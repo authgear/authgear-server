@@ -11,32 +11,32 @@
 {{ template "__error.html" . }}
 
 <section class="pane">
-  <section class="settings-totp-row settings-totp-title-section">
-    <h1 class="title primary-txt">
+  <section class="margin-h-14 padding-v-10 row-sep">
+    <h1 class="font-inherit margin-0 primary-txt">
       {{ template "settings-totp-title" }}
     </h1>
   </section>
 
   {{ range $.Authenticators }}
-    <form method="post" novalidate class="settings-totp-row settings-totp-item-section">
-      <p class="title primary-txt">
+    <form class="margin-h-14 padding-v-10 row-sep grid grid-title-desc-action1-action2" method="post" novalidate>
+      <p class="grid-area-title align-self-center font-inherit margin-0 primary-txt">
         {{ index .Claims "https://authgear.com/claims/totp/display_name" }}
       </p>
-      <p class="desc secondary-txt">
+      <p class="grid-area-desc align-self-center font-smaller margin-0 secondary-txt">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
-      <button class="action btn destructive-btn" type="submit" name="x_action" value="remove">
+      <button class="grid-area-action1 align-self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
         {{ template "remove-button-label" }}
       </button>
     </form>
   {{ end }}
-  <section class="settings-totp-row settings-totp-add-section">
+  <section class="margin-h-14 padding-v-10 row-sep">
     <form class="primary-action" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="action btn secondary-btn" type="submit" name="x_action" value="add">
+      <button class="btn secondary-btn" type="submit" name="x_action" value="add">
         {{ template "add-button-label" }}
       </button>
     </form>

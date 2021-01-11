@@ -82,7 +82,8 @@
   "oauth-branding-azureadv2": "Sign in with Microsoft",
   "oauth-branding-wechat": "Login with WeChat",
 
-  "sso-login-id-separator": "or",
+  "sso-login-id-separator-both-present": "or",
+  "sso-login-id-separator-oauth-present": "Choose an option below to continue",
 
   "phone-number-placeholder": "phone",
   "login-id-placeholder": "{variant, select, email {email} username {username} other {email or username}}",
@@ -254,5 +255,7 @@
   "wechat-auth-title": "Login with WeChat",
   "wechat-auth-description": "Please scan the QR code in your WeChat app to sign in.",
 
-  "toc-pp-footer": "<p class=\"toc-pp-footer\">By registering, you agree to our <a target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>.</p>"
+  "toc-pp-footer": "By registering, you agree to our <a target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>",
+  "terms-of-service-link": "https://www.authgear.com/terms",
+  "privacy-policy-link": "https://www.authgear.com/data-privacy"
 }

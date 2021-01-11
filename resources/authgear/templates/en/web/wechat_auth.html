@@ -8,15 +8,15 @@
 
 {{ template "__nav_bar.html" }}
 
-<div class="simple-form vertical-form form-fields-container pane">
-
-<h1 class="title primary-txt">{{ template "wechat-auth-title" }}</h1>
-
 {{ template "__error.html" . }}
 
-<p class="description primary-txt">{{ template "wechat-auth-description" }}</p>
+<div class="pane flex flex-direction-column padding-6">
 
-<img src="{{ $.ImageURI }}">
+<h1 class="font-inherit margin-10 primary-txt">{{ template "wechat-auth-title" }}</h1>
+
+<p class="font-smaller overflow-wrap-break-word margin-10 primary-txt">{{ template "wechat-auth-description" }}</p>
+
+<img class="margin-10 qr-code-image" src="{{ $.ImageURI }}">
 
 </div>
 </html>

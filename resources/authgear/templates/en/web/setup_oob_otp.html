@@ -8,9 +8,11 @@
 
 {{ template "__nav_bar.html" }}
 
-<div class="simple-form vertical-form form-fields-container pane">
+{{ template "__error.html" . }}
 
-<h1 class="title primary-txt">
+<div class="pane flex flex-direction-column padding-6">
+
+<h1 class="font-inherit margin-10 primary-txt">
 	{{ if eq $.InputType "phone" }}
 	{{ template "setup-oob-otp-title--sms" }}
 	{{ end }}
@@ -19,14 +21,12 @@
 	{{ end }}
 </h1>
 
-{{ template "__error.html" . }}
-
-<form class="vertical-form form-fields-container" method="post" novalidate>
+<form class="flex flex-direction-column" method="post" novalidate>
 
 {{ $.CSRFField }}
 
 {{ if eq $.InputType "phone" }}
-<div class="phone-input">
+<div class="phone-input margin-10">
 	<select class="input select primary-txt" name="x_calling_code">
 		{{ range $.CountryCallingCodes }}
 		<option
@@ -52,7 +52,7 @@
 </div>
 {{ else }}
 <input
-	class="input text-input primary-txt"
+	class="input text-input primary-txt margin-10"
 	type="{{ $.InputType }}"
 	name="x_email"
 	autocomplete="email"
@@ -62,22 +62,24 @@
 {{ end }}
 
 {{ if eq $.InputType "email" }}
-<a class="link font-smaller align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "phone" }}" data-turbolinks-action="replace">
+<a class="link font-smaller align-self-flex-start margin-10" href="{{ call $.MakeCurrentStepURL "x_input_type" "phone" }}" data-turbolinks-action="replace">
 	{{ template "setup-oob-otp-use-phone-description" }}
 </a>
 {{ end }}
 
 {{ if eq $.InputType "phone" }}
-<a class="link font-smaller align-self-flex-start" href="{{ call $.MakeCurrentStepURL "x_input_type" "email" }}" data-turbolinks-action="replace">
+<a class="link font-smaller align-self-flex-start margin-10" href="{{ call $.MakeCurrentStepURL "x_input_type" "email" }}" data-turbolinks-action="replace">
 	{{ template "setup-oob-otp-use-email-description" }}
 </a>
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn align-self-flex-end margin-10" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
 </form>
 
+<div class="margin-10">
 {{ template "__alternatives.html" . }}
+</div>
 
 </div>
 

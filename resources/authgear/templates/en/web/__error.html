@@ -1,5 +1,5 @@
 {{ define "__error.html" }}
-    <ul class="errors error-txt" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
+<ul class="errors error-txt {{ if .Error }}margin-10{{ else }}margin-0{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
         {{ if .Error }}
             {{ if eq .Error.reason "ValidationFailed" }}
                 {{ range .Error.info.causes }}

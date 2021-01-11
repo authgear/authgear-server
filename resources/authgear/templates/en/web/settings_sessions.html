@@ -11,37 +11,37 @@
 {{ template "__error.html" . }}
 
 <section class="pane">
-  <section class="settings-sessions-row settings-sessions-title-section">
-    <h1 class="title primary-txt">
+  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc">
+    <h1 class="grid-area-title font-inherit margin-0 primary-txt">
       {{ template "settings-sessions-title" }}
     </h1>
-    <p class="description secondary-txt">
+    <p class="grid-area-area font-smaller margin-0 secondary-txt">
       {{ template "settings-sessions-description" }}
     </p>
   </section>
 
   {{ range $.Sessions }}
-    <form method="post" novalidate class="settings-sessions-row settings-sessions-item-section">
-      <p class="title primary-txt">
+    <form class="margin-h-14 padding-v-10 row-sep grid grid-name-desc-action" method="post" novalidate>
+      <p class="grid-area-name font-inherit align-self-center margin-0 primary-txt">
         {{ .UserAgent.Name }} {{ .UserAgent.Version }}
       </p>
-      <p class="desc secondary-txt">
+      <p class="grid-area-desc font-smaller align-self-center margin-0 secondary-txt">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt) }}
       </p>
       {{ if not (eq .ID $.CurrentSessionID) }}
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">
-      <button class="action btn destructive-btn" type="submit" name="x_action" value="revoke">
+      <button class="grid-area-action align-self-start justify-self-end btn destructive-btn" type="submit" name="x_action" value="revoke">
         {{ template "settings-sessions-revoke-label" }}
       </button>
       {{ end }}
     </form>
   {{ end }}
-  <section class="settings-sessions-row settings-sessions-revoke-all-section">
+  <section class="margin-h-14 padding-v-10 row-sep">
     <form class="primary-action" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="action btn destructive-btn" type="submit" name="x_action" value="revoke_all">
+      <button class="btn destructive-btn" type="submit" name="x_action" value="revoke_all">
         {{ template "settings-sessions-revoke-all-label" }}
       </button>
     </form>

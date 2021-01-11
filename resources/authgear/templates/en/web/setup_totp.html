@@ -8,30 +8,30 @@
 
 {{ template "__nav_bar.html" }}
 
-<div class="simple-form vertical-form form-fields-container setup-totp pane">
+{{ template "__error.html" . }}
 
-<h1 class="title primary-txt">
+<div class="setup-totp pane flex flex-direction-column padding-6">
+
+<h1 class="font-inherit margin-10 primary-txt">
 	{{ template "setup-totp-title" }}
 </h1>
 
-{{ template "__error.html" . }}
-
-<form class="vertical-form form-fields-container" method="post" novalidate>
+<form class="flex flex-direction-column" method="post" novalidate>
 
 {{ $.CSRFField }}
 
-<img class="totp-image" src="{{ $.ImageURI }}">
+<img class="qr-code-image" src="{{ $.ImageURI }}">
 
-<p class="description primary-txt">{{ template "setup-totp-get-google-authenticator-description" }}</p>
+<p class="font-smaller overflow-wrap-break-word primary-txt margin-10">{{ template "setup-totp-get-google-authenticator-description" }}</p>
 
-<p class="description primary-txt white-space-pre">{{ template "setup-totp-use-google-authenticator-description" }}</p>
+<p class="font-smaller overflow-wrap-break-word primary-txt white-space-pre margin-10">{{ template "setup-totp-use-google-authenticator-description" }}</p>
 
-<p class="description primary-txt white-space-pre">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
+<p class="font-smaller overflow-wrap-break-word primary-txt white-space-pre margin-10">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
 
-<p class="description primary-txt white-space-pre">{{ template "setup-totp-code-description" }}</p>
+<p class="font-smaller overflow-wrap-break-word primary-txt white-space-pre margin-10">{{ template "setup-totp-code-description" }}</p>
 
 <input
-	class="input text-input primary-txt"
+	class="input text-input primary-txt margin-10"
 	type="text"
 	inputmode="numeric"
 	pattern="[0-9]*"
@@ -41,11 +41,13 @@
 	placeholder="{{ template "setup-totp-code-placeholder" }}"
 >
 
-<button class="btn primary-btn align-self-flex-end" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn align-self-flex-end margin-10" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
 </form>
 
+<div class="margin-10">
 {{ template "__alternatives.html" . }}
+</div>
 
 </div>
 

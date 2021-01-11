@@ -8,9 +8,11 @@
 
 {{ template "__nav_bar.html" }}
 
-<div class="simple-form vertical-form form-fields-container pane">
+{{ template "__error.html" . }}
 
-<h1 class="title primary-txt">
+<div class="pane flex flex-direction-column padding-6">
+
+<h1 class="font-inherit margin-10 primary-txt">
 	{{ if $.IdentityID }}
 	{{ template "enter-login-id-page-title--change" (dict "key" $.LoginIDKey) }}
 	{{ else }}
@@ -19,19 +21,17 @@
 </h1>
 
 {{ if $.IdentityID }}
-<p class="description secondary-txt">
+<p class="font-smaller overflow-wrap-break-word secondary-txt">
 	{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
 </p>
 {{ end }}
 
-{{ template "__error.html" . }}
-
-<form id="main-form" class="vertical-form form-fields-container" method="post" novalidate>
+<form id="main-form" class="flex flex-direction-column" method="post" novalidate>
 
 {{ $.CSRFField }}
 
 {{ if eq .LoginIDInputType "phone" }}
-<div class="phone-input">
+<div class="phone-input margin-10">
 	<select class="input select primary-txt" name="x_calling_code">
 		{{ range $.CountryCallingCodes }}
 		<option
@@ -57,7 +57,7 @@
 </div>
 {{ else }}
 <input
-	class="input text-input primary-txt"
+	class="input text-input primary-txt margin-10"
 	type="{{ .LoginIDInputType }}"
 	autocomplete="username"
 	autocapitalize="none"
@@ -66,11 +66,11 @@
 >
 {{ end }}
 
-<div class="enter-login-id-buttons">
+<div class="flex flex-direction-row-reverse justify-content-space-between margin-10">
 	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
 	{{ if .IdentityID }}
-	<button form="remove-form" class="anchor" type="submit" name="x_action" value="remove">
+	<button form="remove-form" class="secondary-btn" type="submit" name="x_action" value="remove">
 		{{ if eq .LoginIDType "username" }}
 		{{ template "remove-button-label" }}
 		{{ else }}
@@ -82,7 +82,7 @@
 
 </form>
 
-<form id="remove-form" class="enter-login-id-remove-form" method="post" novalidate>
+<form id="remove-form" class="display-none" method="post" novalidate>
 {{ $.CSRFField }}
 </form>
 

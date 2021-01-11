@@ -8,31 +8,33 @@
 
 {{ template "__nav_bar.html" }}
 
-<div class="simple-form vertical-form form-fields-container pane">
+{{ template "__error.html" . }}
+
+<div class="pane flex flex-direction-column">
 
 {{ if $.OOBOTPChannel }}
 {{ if eq $.OOBOTPChannel "sms" }}
-<h1 class="title primary-txt">{{ template "oob-otp-page-title--sms" }}</h1>
+<h1 class="font-inherit primary-txt margin-10">{{ template "oob-otp-page-title--sms" }}</h1>
 {{ end }}
 {{ if eq $.OOBOTPChannel "email" }}
-<h1 class="title primary-txt">{{ template "oob-otp-page-title--email" }}</h1>
+<h1 class="font-inherit primary-txt margin-10">{{ template "oob-otp-page-title--email" }}</h1>
 {{ end }}
 {{ end }}
-
-{{ template "__error.html" . }}
 
 {{ if $.OOBOTPTarget }}
-<div class="description primary-txt">{{ template "oob-otp-send-description" (dict "target" $.OOBOTPTarget) }}</div>
+<div class="font-smaller overflow-wrap-break-word primary-txt margin-10">{{ template "oob-otp-send-description" (dict "target" $.OOBOTPTarget) }}</div>
 {{ end }}
 
-<form class="vertical-form form-fields-container" method="post" novalidate>
+<form class="flex flex-direction-column margin-10" method="post" novalidate>
 {{ $.CSRFField }}
 
 <button class="btn primary-btn align-self-flex-end" type="submit" name="x_action" value="send">{{ template "next-button-label" }}</button>
 
 </form>
 
+<div class="margin-10">
 {{ template "__alternatives.html" . }}
+</div>
 
 </div>
 
