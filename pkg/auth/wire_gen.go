@@ -19944,6 +19944,19 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return sessionMiddleware
 }
 
+func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	uiLocalesMiddleware := &webapp.UILocalesMiddleware{
+		CookieFactory: cookieFactory,
+	}
+	return uiLocalesMiddleware
+}
+
 // wire_middleware.go:
 
 func provideSecHeadersMiddleware(http2 *config.HTTPConfig) *web.SecHeadersMiddleware {

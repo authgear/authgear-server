@@ -101,24 +101,27 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 	session := NewSession(SessionOptions{
 		RedirectURI: options.RedirectURI,
 		Prompt:      options.Prompt,
-		UILocales:   options.UILocales,
 		UpdatedAt:   now,
 	})
 
-	var result httputil.Result
+	var result *Result
 	var err error
 	if options.AuthenticateHint != nil {
 		result, err = p.handleHint(options, session)
 	} else {
 		result, err = p.Pages.CreateSession(session, p.Endpoints.AuthenticateEndpointURL().String())
 	}
+	if result != nil {
+		result.UILocales = options.UILocales
+	}
+
 	return result, err
 }
 
 func (p *AuthenticateURLProvider) handleHint(
 	options AuthenticateURLOptions,
 	session *Session,
-) (httputil.Result, error) {
+) (*Result, error) {
 	switch hint := options.AuthenticateHint.(type) {
 	case AnonymousRequest:
 		switch hint.Request.Action {

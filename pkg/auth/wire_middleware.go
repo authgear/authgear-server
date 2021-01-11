@@ -111,3 +111,10 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		wire.Bind(new(httproute.Middleware), new(*webapp.SessionMiddleware)),
 	))
 }
+
+func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.UILocalesMiddleware)),
+	))
+}

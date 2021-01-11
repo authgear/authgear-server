@@ -18,8 +18,8 @@
 
 			{{ if not $.PublicSignupDisabled }}
 			<div class="signin-signup-switch flex flex-direction-row">
-				<a class="signin-signup-link primary-txt" href="{{ call $.MakeURL "/login"}}" data-turbolinks-action="replace">{{ template "login-label" }}</a>
-				<a class="signin-signup-link primary-txt current" href="{{ call $.MakeURL "/signup"}}" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
+				<a class="signin-signup-link primary-txt" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
+				<a class="signin-signup-link primary-txt current" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 			</div>
 			{{ end }}
 

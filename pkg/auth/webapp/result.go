@@ -3,17 +3,29 @@ package webapp
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type Result struct {
+	UILocales        string
 	RedirectURI      string
 	NavigationAction string
 	Cookies          []*http.Cookie
 }
 
 func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
+	redirectURI, err := url.Parse(r.RedirectURI)
+	if err != nil {
+		panic(err)
+	}
+	if r.UILocales != "" {
+		q := redirectURI.Query()
+		q.Set("ui_locales", r.UILocales)
+		redirectURI.RawQuery = q.Encode()
+	}
+
 	for _, cookie := range r.Cookies {
 		httputil.UpdateCookie(w, cookie)
 	}
@@ -29,7 +41,7 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 			action = "advance"
 		}
 		data, err := json.Marshal(xhrResponse{
-			RedirectURI: r.RedirectURI,
+			RedirectURI: redirectURI.String(),
 			Action:      action,
 		})
 		if err != nil {
@@ -42,7 +54,7 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 			panic(err)
 		}
 	} else {
-		http.Redirect(w, req, r.RedirectURI, http.StatusFound)
+		http.Redirect(w, req, redirectURI.String(), http.StatusFound)
 	}
 }
 

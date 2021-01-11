@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
 type SessionMiddlewareStore interface {
@@ -37,12 +36,6 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 
 		r = r.WithContext(WithSession(r.Context(), session))
 
-		// Restore UI locales from state if necessary
-		if session.UILocales != "" {
-			tags := intl.ParseUILocales(session.UILocales)
-			ctx := intl.WithPreferredLanguageTags(r.Context(), tags)
-			r = r.WithContext(ctx)
-		}
 		next.ServeHTTP(w, r)
 	})
 }
