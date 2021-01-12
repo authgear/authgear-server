@@ -28,7 +28,7 @@ func (WebEndpoints) SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig)
 	panic("not implemented")
 }
 
-func (WebEndpoints) AuthorizeEndpointURL() *url.URL {
+func (WebEndpoints) AuthorizeEndpointURL(config.OAuthSSOProviderConfig) *url.URL {
 	// WechatURLProvider
 	panic("not implemented")
 }

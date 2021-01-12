@@ -42,7 +42,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 300 },
 		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"issue_jwt_access_token": { "type": "boolean" },
-		"is_first_party": { "type": "boolean" }
+		"is_first_party": { "type": "boolean" },
+		"wechat_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } }
 	},
 	"required": ["name", "client_id", "redirect_uris"]
 }
@@ -60,6 +61,7 @@ type OAuthClientConfig struct {
 	RefreshTokenLifetime   DurationSeconds `json:"refresh_token_lifetime_seconds,omitempty"`
 	IssueJWTAccessToken    bool            `json:"issue_jwt_access_token,omitempty"`
 	IsFirstParty           bool            `json:"is_first_party,omitempty"`
+	WeChatRedirectURIs     []string        `json:"wechat_redirect_uris,omitempty"`
 }
 
 func (c *OAuthClientConfig) SetDefaults() {

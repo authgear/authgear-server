@@ -40,6 +40,7 @@ type BaseViewModel struct {
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
 	PageLoadedAt          int
+	IsNativePlatform      bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -123,6 +124,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		httputil.UpdateCookie(rw, m.ErrorCookie.ResetError())
 	}
 
+	platform := r.Form.Get("x_platform")
 	if s := webapp.GetSession(r.Context()); s != nil {
 		for _, step := range s.Steps {
 			if path := step.Kind.Path(); path == "" {
@@ -130,7 +132,13 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			}
 			model.SessionStepURLs = append(model.SessionStepURLs, step.URL().String())
 		}
+		if platform == "" {
+			platform = s.Platform
+		}
 	}
+
+	model.IsNativePlatform = (platform == "ios" ||
+		platform == "android")
 
 	return model
 }

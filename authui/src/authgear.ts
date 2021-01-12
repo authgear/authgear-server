@@ -274,6 +274,31 @@ window.api.onLoad(() => {
   }
 });
 
+// Handle click link switch label and href
+window.api.onLoad(() => {
+  const groups = document.querySelectorAll(".switch-link-group");
+  const disposers: Array<() => void> = [];
+  for (let i = 0; i < groups.length; i++) {
+    const wrapper = groups[i];
+    const clickToSwitchLink = wrapper.querySelector(
+      ".click-to-switch"
+    ) as HTMLAnchorElement;
+    const switchLinks = (e: Event) => {
+      wrapper.classList.add("switched");
+    };
+    clickToSwitchLink.addEventListener("click", switchLinks);
+    disposers.push(() => {
+      clickToSwitchLink.removeEventListener("click", switchLinks);
+    });
+  }
+
+  return () => {
+    for (const disposer of disposers) {
+      disposer();
+    }
+  };
+});
+
 window.api.onLoad(() => {
   const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.host;
@@ -293,6 +318,15 @@ window.api.onLoad(() => {
       ws.close();
     }
     ws = null;
+  }
+
+  function refreshIfNeeded() {
+    const ele = document.querySelector('[data-is-refresh-link="true"]');
+    if (ele) {
+      // if there is refresh link in the page, don't refresh automatically
+      return;
+    }
+    refreshPage();
   }
 
   function connect() {
@@ -327,14 +361,14 @@ window.api.onLoad(() => {
       console.error("ws onerror", e);
     };
 
-    ws.onmessage = function(e) {
+    ws.onmessage = function (e) {
       console.log("ws onmessage", e);
       const message = JSON.parse(e.data);
       switch (message.kind) {
-      case "refresh":
-        refreshPage();
+        case "refresh":
+          refreshIfNeeded();
       }
-    }
+    };
   }
 
   connect();

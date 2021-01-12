@@ -31,3 +31,9 @@ func (r AuthorizationRequest) UILocales() []string { return parseSpaceDelimitedS
 
 func (r AuthorizationRequest) CodeChallenge() string       { return r["code_challenge"] }
 func (r AuthorizationRequest) CodeChallengeMethod() string { return r["code_challenge_method"] }
+
+func (r AuthorizationRequest) Platform() string { return r["x_platform"] }
+
+// wechat mobile support
+
+func (r AuthorizationRequest) WeChatRedirectURI() string { return r["x_wechat_redirect_uri"] }
