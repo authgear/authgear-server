@@ -23,7 +23,7 @@
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
 				<div class="margin-6 phone-input">
-					<select class="input select primary-txt" name="x_calling_code">
+					<select class="select primary-txt" name="x_calling_code">
 						{{ range $.CountryCallingCodes }}
 						<option
 							value="{{ . }}"

@@ -27,7 +27,7 @@
 				<input type="hidden" name="x_login_id_type" value="{{ .login_id_type }}">
 				{{ if eq .login_id_type "phone" }}
 					<div class="margin-6 phone-input">
-						<select class="input select primary-txt" name="x_calling_code">
+						<select class="select primary-txt" name="x_calling_code">
 							{{ range $.CountryCallingCodes }}
 							<option
 								value="{{ . }}"
