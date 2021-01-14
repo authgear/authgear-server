@@ -204,6 +204,106 @@
     --color-background-shaded-8: #0b0b0b;
 
     --color-pane-background: #252525;
+
+    --color-google-primary-unshaded: #ffffff;
+    --color-google-primary-shaded-1: #767676;
+    --color-google-primary-shaded-2: #a6a6a6;
+    --color-google-primary-shaded-3: #c8c8c8;
+    --color-google-primary-shaded-4: #d0d0d0;
+    --color-google-primary-shaded-5: #dadada;
+    --color-google-primary-shaded-6: #eaeaea;
+    --color-google-primary-shaded-7: #f4f4f4;
+    --color-google-primary-shaded-8: #f8f8f8;
+
+    --color-google-background-unshaded: #000000;
+    --color-google-background-shaded-1: #898989;
+    --color-google-background-shaded-2: #737373;
+    --color-google-background-shaded-3: #595959;
+    --color-google-background-shaded-4: #373737;
+    --color-google-background-shaded-5: #2f2f2f;
+    --color-google-background-shaded-6: #252525;
+    --color-google-background-shaded-7: #151515;
+    --color-google-background-shaded-8: #0b0b0b;
+
+    --color-apple-primary-unshaded: #ffffff;
+    --color-apple-primary-shaded-1: #767676;
+    --color-apple-primary-shaded-2: #a6a6a6;
+    --color-apple-primary-shaded-3: #c8c8c8;
+    --color-apple-primary-shaded-4: #d0d0d0;
+    --color-apple-primary-shaded-5: #dadada;
+    --color-apple-primary-shaded-6: #eaeaea;
+    --color-apple-primary-shaded-7: #f4f4f4;
+    --color-apple-primary-shaded-8: #f8f8f8;
+
+    --color-apple-background-unshaded: #000000;
+    --color-apple-background-shaded-1: #898989;
+    --color-apple-background-shaded-2: #737373;
+    --color-apple-background-shaded-3: #595959;
+    --color-apple-background-shaded-4: #373737;
+    --color-apple-background-shaded-5: #2f2f2f;
+    --color-apple-background-shaded-6: #252525;
+    --color-apple-background-shaded-7: #151515;
+    --color-apple-background-shaded-8: #0b0b0b;
+
+    --color-facebook-primary-unshaded: #ffffff;
+    --color-facebook-primary-shaded-1: #767676;
+    --color-facebook-primary-shaded-2: #a6a6a6;
+    --color-facebook-primary-shaded-3: #c8c8c8;
+    --color-facebook-primary-shaded-4: #d0d0d0;
+    --color-facebook-primary-shaded-5: #dadada;
+    --color-facebook-primary-shaded-6: #eaeaea;
+    --color-facebook-primary-shaded-7: #f4f4f4;
+    --color-facebook-primary-shaded-8: #f8f8f8;
+
+    --color-facebook-background-unshaded: #000000;
+    --color-facebook-background-shaded-1: #898989;
+    --color-facebook-background-shaded-2: #737373;
+    --color-facebook-background-shaded-3: #595959;
+    --color-facebook-background-shaded-4: #373737;
+    --color-facebook-background-shaded-5: #2f2f2f;
+    --color-facebook-background-shaded-6: #252525;
+    --color-facebook-background-shaded-7: #151515;
+    --color-facebook-background-shaded-8: #0b0b0b;
+
+    --color-linkedin-primary-unshaded: #ffffff;
+    --color-linkedin-primary-shaded-1: #767676;
+    --color-linkedin-primary-shaded-2: #a6a6a6;
+    --color-linkedin-primary-shaded-3: #c8c8c8;
+    --color-linkedin-primary-shaded-4: #d0d0d0;
+    --color-linkedin-primary-shaded-5: #dadada;
+    --color-linkedin-primary-shaded-6: #eaeaea;
+    --color-linkedin-primary-shaded-7: #f4f4f4;
+    --color-linkedin-primary-shaded-8: #f8f8f8;
+
+    --color-linkedin-background-unshaded: #000000;
+    --color-linkedin-background-shaded-1: #898989;
+    --color-linkedin-background-shaded-2: #737373;
+    --color-linkedin-background-shaded-3: #595959;
+    --color-linkedin-background-shaded-4: #373737;
+    --color-linkedin-background-shaded-5: #2f2f2f;
+    --color-linkedin-background-shaded-6: #252525;
+    --color-linkedin-background-shaded-7: #151515;
+    --color-linkedin-background-shaded-8: #0b0b0b;
+
+    --color-azureadv2-primary-unshaded: #ffffff;
+    --color-azureadv2-primary-shaded-1: #767676;
+    --color-azureadv2-primary-shaded-2: #a6a6a6;
+    --color-azureadv2-primary-shaded-3: #c8c8c8;
+    --color-azureadv2-primary-shaded-4: #d0d0d0;
+    --color-azureadv2-primary-shaded-5: #dadada;
+    --color-azureadv2-primary-shaded-6: #eaeaea;
+    --color-azureadv2-primary-shaded-7: #f4f4f4;
+    --color-azureadv2-primary-shaded-8: #f8f8f8;
+
+    --color-azureadv2-background-unshaded: #000000;
+    --color-azureadv2-background-shaded-1: #898989;
+    --color-azureadv2-background-shaded-2: #737373;
+    --color-azureadv2-background-shaded-3: #595959;
+    --color-azureadv2-background-shaded-4: #373737;
+    --color-azureadv2-background-shaded-5: #2f2f2f;
+    --color-azureadv2-background-shaded-6: #252525;
+    --color-azureadv2-background-shaded-7: #151515;
+    --color-azureadv2-background-shaded-8: #0b0b0b;
   }
 }
 
@@ -955,7 +1055,6 @@ a.btn {
 .sso-btn.google {
   border: 1px solid var(--color-text-shaded-2);
 }
-
 .google {
   color: var(--color-google-background-unshaded);
   background-color: var(--color-google-primary-unshaded);
@@ -968,6 +1067,11 @@ a.btn {
 }
 .google:disabled {
   background-color: var(--color-google-primary-shaded-2);
+}
+@media (prefers-color-scheme: dark) {
+  .sso-btn.google {
+    border: 0;
+  }
 }
 
 .facebook {
