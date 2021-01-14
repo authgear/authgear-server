@@ -156,6 +156,26 @@
   --color-azureadv2-background-shaded-7: #151515;
   --color-azureadv2-background-shaded-8: #0b0b0b;
 
+  --color-wechat-primary-unshaded: #07c160;
+  --color-wechat-primary-shaded-1: #f3fdf8;
+  --color-wechat-primary-shaded-2: #d0f5e2;
+  --color-wechat-primary-shaded-3: #a8edc9;
+  --color-wechat-primary-shaded-4: #5dda99;
+  --color-wechat-primary-shaded-5: #1fc971;
+  --color-wechat-primary-shaded-6: #07ae58;
+  --color-wechat-primary-shaded-7: #06934a;
+  --color-wechat-primary-shaded-8: #046d37;
+
+  --color-wechat-background-unshaded: #ffffff;
+  --color-wechat-background-shaded-1: #767676;
+  --color-wechat-background-shaded-2: #a6a6a6;
+  --color-wechat-background-shaded-3: #c8c8c8;
+  --color-wechat-background-shaded-4: #d0d0d0;
+  --color-wechat-background-shaded-5: #dadada;
+  --color-wechat-background-shaded-6: #eaeaea;
+  --color-wechat-background-shaded-7: #f4f4f4;
+  --color-wechat-background-shaded-8: #f8f8f8;
+
   --color-warn: #fbca4e;
   --color-good: #58ca9a;
 
@@ -304,6 +324,26 @@
     --color-azureadv2-background-shaded-6: #252525;
     --color-azureadv2-background-shaded-7: #151515;
     --color-azureadv2-background-shaded-8: #0b0b0b;
+
+    --color-wechat-primary-unshaded: #ffffff;
+    --color-wechat-primary-shaded-1: #767676;
+    --color-wechat-primary-shaded-2: #a6a6a6;
+    --color-wechat-primary-shaded-3: #c8c8c8;
+    --color-wechat-primary-shaded-4: #d0d0d0;
+    --color-wechat-primary-shaded-5: #dadada;
+    --color-wechat-primary-shaded-6: #eaeaea;
+    --color-wechat-primary-shaded-7: #f4f4f4;
+    --color-wechat-primary-shaded-8: #f8f8f8;
+
+    --color-wechat-background-unshaded: #000000;
+    --color-wechat-background-shaded-1: #898989;
+    --color-wechat-background-shaded-2: #737373;
+    --color-wechat-background-shaded-3: #595959;
+    --color-wechat-background-shaded-4: #373737;
+    --color-wechat-background-shaded-5: #2f2f2f;
+    --color-wechat-background-shaded-6: #252525;
+    --color-wechat-background-shaded-7: #151515;
+    --color-wechat-background-shaded-8: #0b0b0b;
   }
 }
 
@@ -1119,6 +1159,19 @@ a.btn {
 .wechat {
   color: white;
   background-color: #07c160;
+}
+.wechat {
+  color: var(--color-wechat-background-unshaded);
+  background-color: var(--color-wechat-primary-unshaded);
+}
+.wechat:hover {
+  background-color: var(--color-wechat-primary-shaded-4);
+}
+.wechat:active {
+  background-color: var(--color-wechat-primary-shaded-7);
+}
+.wechat:disabled {
+  background-color: var(--color-wechat-primary-shaded-2);
 }
 
 .sso-loginid-separator::before, .sso-loginid-separator::after {
