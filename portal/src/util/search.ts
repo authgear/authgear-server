@@ -7,11 +7,12 @@ export function exactKeywordSearch<X extends SearchItem, K extends keyof X>(
   keyList: X[K] extends string | undefined ? K[] : never,
   searchString: string
 ): X[] {
+  const needle = searchString.toLowerCase();
   const matchedItems = [];
   for (const item of list) {
     for (const key of keyList) {
       const lowered = ((item[key] ?? "") as string).toLowerCase();
-      if (lowered.includes(searchString)) {
+      if (lowered.includes(needle)) {
         matchedItems.push(item);
       }
     }
