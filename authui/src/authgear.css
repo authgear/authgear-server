@@ -4,8 +4,347 @@
 /* The font-size of focusable elements must be >= 16px otherwise */
 /* Safari iOS will zoom the page. */
 
+/* Fluent UI color name <-> Shade */
+/* themeLighterAlt Shade.Shade1 */
+/* themeLighter    Shade.Shade2 */
+/* themeLight      Shade.Shade3 */
+/* themeTertiary   Shade.Shade4 */
+/* themeSecondary  Shade.Shade5 */
+/* themePrimary    Shade.Unshaded */
+/* themeDarkAlt    Shade.Shade6 */
+/* themeDark       Shade.Shade7 */
+/* themeDarker     Shade.Shade8 */
+
 :root {
-  --color-primary: #155bef;
+  --color-primary-unshaded: #176df3;
+  --color-primary-shaded-1: #f5f9fe;
+  --color-primary-shaded-2: #d8e6fd;
+  --color-primary-shaded-3: #b7d1fb;
+  --color-primary-shaded-4: #70a4f7;
+  --color-primary-shaded-5: #317bf4;
+  --color-primary-shaded-6: #1460da;
+  --color-primary-shaded-7: #1151b8;
+  --color-primary-shaded-8: #0c3c88;
+
+  --color-text-unshaded: #000000;
+  --color-text-shaded-1: #898989;
+  --color-text-shaded-2: #737373;
+  --color-text-shaded-3: #595959;
+  --color-text-shaded-4: #373737;
+  --color-text-shaded-5: #2f2f2f;
+  --color-text-shaded-6: #252525;
+  --color-text-shaded-7: #151515;
+  --color-text-shaded-8: #0b0b0b;
+
+  --color-background-unshaded: #ffffff;
+  --color-background-shaded-1: #767676;
+  --color-background-shaded-2: #a6a6a6;
+  --color-background-shaded-3: #c8c8c8;
+  --color-background-shaded-4: #d0d0d0;
+  --color-background-shaded-5: #dadada;
+  --color-background-shaded-6: #eaeaea;
+  --color-background-shaded-7: #f4f4f4;
+  --color-background-shaded-8: #f8f8f8;
+
+  --color-error-unshaded: #fa4335;
+  --color-error-shaded-1: #fff7f7;
+  --color-error-shaded-2: #fee0de;
+  --color-error-shaded-3: #fdc5c1;
+  --color-error-shaded-4: #fc8c85;
+  --color-error-shaded-5: #fb584c;
+  --color-error-shaded-6: #e13b2f;
+  --color-error-shaded-7: #be3228;
+  --color-error-shaded-8: #8c251d;
+
+  --color-google-primary-unshaded: #ffffff;
+  --color-google-primary-shaded-1: #767676;
+  --color-google-primary-shaded-2: #a6a6a6;
+  --color-google-primary-shaded-3: #c8c8c8;
+  --color-google-primary-shaded-4: #d0d0d0;
+  --color-google-primary-shaded-5: #dadada;
+  --color-google-primary-shaded-6: #eaeaea;
+  --color-google-primary-shaded-7: #f4f4f4;
+  --color-google-primary-shaded-8: #f8f8f8;
+
+  --color-google-background-unshaded: #000000;
+  --color-google-background-shaded-1: #898989;
+  --color-google-background-shaded-2: #737373;
+  --color-google-background-shaded-3: #595959;
+  --color-google-background-shaded-4: #373737;
+  --color-google-background-shaded-5: #2f2f2f;
+  --color-google-background-shaded-6: #252525;
+  --color-google-background-shaded-7: #151515;
+  --color-google-background-shaded-8: #0b0b0b;
+
+  --color-apple-primary-unshaded: #000000;
+  --color-apple-primary-shaded-1: #898989;
+  --color-apple-primary-shaded-2: #737373;
+  --color-apple-primary-shaded-3: #595959;
+  --color-apple-primary-shaded-4: #373737;
+  --color-apple-primary-shaded-5: #2f2f2f;
+  --color-apple-primary-shaded-6: #252525;
+  --color-apple-primary-shaded-7: #151515;
+  --color-apple-primary-shaded-8: #0b0b0b;
+
+  --color-apple-background-unshaded: #ffffff;
+  --color-apple-background-shaded-1: #767676;
+  --color-apple-background-shaded-2: #a6a6a6;
+  --color-apple-background-shaded-3: #c8c8c8;
+  --color-apple-background-shaded-4: #d0d0d0;
+  --color-apple-background-shaded-5: #dadada;
+  --color-apple-background-shaded-6: #eaeaea;
+  --color-apple-background-shaded-7: #f4f4f4;
+  --color-apple-background-shaded-8: #f8f8f8;
+
+  --color-facebook-primary-unshaded: #3b5998;
+  --color-facebook-primary-shaded-1: #f5f7fb;
+  --color-facebook-primary-shaded-2: #d7dfef;
+  --color-facebook-primary-shaded-3: #b7c4e0;
+  --color-facebook-primary-shaded-4: #7b91c2;
+  --color-facebook-primary-shaded-5: #4d69a5;
+  --color-facebook-primary-shaded-6: #36508a;
+  --color-facebook-primary-shaded-7: #2d4474;
+  --color-facebook-primary-shaded-8: #213256;
+
+  --color-facebook-background-unshaded: #ffffff;
+  --color-facebook-background-shaded-1: #767676;
+  --color-facebook-background-shaded-2: #a6a6a6;
+  --color-facebook-background-shaded-3: #c8c8c8;
+  --color-facebook-background-shaded-4: #d0d0d0;
+  --color-facebook-background-shaded-5: #dadada;
+  --color-facebook-background-shaded-6: #eaeaea;
+  --color-facebook-background-shaded-7: #f4f4f4;
+  --color-facebook-background-shaded-8: #f8f8f8;
+
+  --color-linkedin-primary-unshaded: #187fb8;
+  --color-linkedin-primary-shaded-1: #f3f9fc;
+  --color-linkedin-primary-shaded-2: #d2e8f4;
+  --color-linkedin-primary-shaded-3: #add4ea;
+  --color-linkedin-primary-shaded-4: #65add4;
+  --color-linkedin-primary-shaded-5: #2d8dc0;
+  --color-linkedin-primary-shaded-6: #1573a5;
+  --color-linkedin-primary-shaded-7: #12618c;
+  --color-linkedin-primary-shaded-8: #0d4867;
+
+  --color-linkedin-background-unshaded: #ffffff;
+  --color-linkedin-background-shaded-1: #767676;
+  --color-linkedin-background-shaded-2: #a6a6a6;
+  --color-linkedin-background-shaded-3: #c8c8c8;
+  --color-linkedin-background-shaded-4: #d0d0d0;
+  --color-linkedin-background-shaded-5: #dadada;
+  --color-linkedin-background-shaded-6: #eaeaea;
+  --color-linkedin-background-shaded-7: #f4f4f4;
+  --color-linkedin-background-shaded-8: #f8f8f8;
+
+  --color-azureadv2-primary-unshaded: #e2e2e2;
+  --color-azureadv2-primary-shaded-1: #cacaca;
+  --color-azureadv2-primary-shaded-2: #b1b1b1;
+  --color-azureadv2-primary-shaded-3: #989898;
+  --color-azureadv2-primary-shaded-4: #7f7f7f;
+  --color-azureadv2-primary-shaded-5: #666666;
+  --color-azureadv2-primary-shaded-6: #4d4d4d;
+  --color-azureadv2-primary-shaded-7: #343434;
+  --color-azureadv2-primary-shaded-8: #1b1b1b;
+
+  --color-azureadv2-background-unshaded: #000000;
+  --color-azureadv2-background-shaded-1: #898989;
+  --color-azureadv2-background-shaded-2: #737373;
+  --color-azureadv2-background-shaded-3: #595959;
+  --color-azureadv2-background-shaded-4: #373737;
+  --color-azureadv2-background-shaded-5: #2f2f2f;
+  --color-azureadv2-background-shaded-6: #252525;
+  --color-azureadv2-background-shaded-7: #151515;
+  --color-azureadv2-background-shaded-8: #0b0b0b;
+
+  --color-wechat-primary-unshaded: #07c160;
+  --color-wechat-primary-shaded-1: #f3fdf8;
+  --color-wechat-primary-shaded-2: #d0f5e2;
+  --color-wechat-primary-shaded-3: #a8edc9;
+  --color-wechat-primary-shaded-4: #5dda99;
+  --color-wechat-primary-shaded-5: #1fc971;
+  --color-wechat-primary-shaded-6: #07ae58;
+  --color-wechat-primary-shaded-7: #06934a;
+  --color-wechat-primary-shaded-8: #046d37;
+
+  --color-wechat-background-unshaded: #ffffff;
+  --color-wechat-background-shaded-1: #767676;
+  --color-wechat-background-shaded-2: #a6a6a6;
+  --color-wechat-background-shaded-3: #c8c8c8;
+  --color-wechat-background-shaded-4: #d0d0d0;
+  --color-wechat-background-shaded-5: #dadada;
+  --color-wechat-background-shaded-6: #eaeaea;
+  --color-wechat-background-shaded-7: #f4f4f4;
+  --color-wechat-background-shaded-8: #f8f8f8;
+
+  --color-warn: #fbca4e;
+  --color-good: #58ca9a;
+
+  --color-pane-background: #ffffff;
+  --color-pane-shadow: rgba(0, 0, 0, 0.25);
+
+  --color-separator: #edebe9;
+
+  --color-password-strength-meter-0: var(--color-separator);
+  --color-password-strength-meter-1: var(--color-error-unshaded);
+  --color-password-strength-meter-2: #ffa133;
+  --color-password-strength-meter-3: var(--color-warn);
+  --color-password-strength-meter-4: #baca58;
+  --color-password-strength-meter-5: var(--color-good);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary-unshaded: #317BF4;
+    --color-primary-shaded-1: #f6faff;
+    --color-primary-shaded-2: #dde9fd;
+    --color-primary-shaded-3: #bfd7fc;
+    --color-primary-shaded-4: #81aff9;
+    --color-primary-shaded-5: #498bf6;
+    --color-primary-shaded-6: #2c70dc;
+    --color-primary-shaded-7: #255eba;
+    --color-primary-shaded-8: #1b4589;
+
+    --color-text-unshaded: #ffffff;
+    --color-text-shaded-1: #767676;
+    --color-text-shaded-2: #a6a6a6;
+    --color-text-shaded-3: #c8c8c8;
+    --color-text-shaded-4: #d0d0d0;
+    --color-text-shaded-5: #dadada;
+    --color-text-shaded-6: #eaeaea;
+    --color-text-shaded-7: #f4f4f4;
+    --color-text-shaded-8: #f8f8f8;
+
+    --color-background-unshaded: #000000;
+    --color-background-shaded-1: #898989;
+    --color-background-shaded-2: #737373;
+    --color-background-shaded-3: #595959;
+    --color-background-shaded-4: #373737;
+    --color-background-shaded-5: #2f2f2f;
+    --color-background-shaded-6: #252525;
+    --color-background-shaded-7: #151515;
+    --color-background-shaded-8: #0b0b0b;
+
+    --color-pane-background: #252525;
+
+    --color-google-primary-unshaded: #ffffff;
+    --color-google-primary-shaded-1: #767676;
+    --color-google-primary-shaded-2: #a6a6a6;
+    --color-google-primary-shaded-3: #c8c8c8;
+    --color-google-primary-shaded-4: #d0d0d0;
+    --color-google-primary-shaded-5: #dadada;
+    --color-google-primary-shaded-6: #eaeaea;
+    --color-google-primary-shaded-7: #f4f4f4;
+    --color-google-primary-shaded-8: #f8f8f8;
+
+    --color-google-background-unshaded: #000000;
+    --color-google-background-shaded-1: #898989;
+    --color-google-background-shaded-2: #737373;
+    --color-google-background-shaded-3: #595959;
+    --color-google-background-shaded-4: #373737;
+    --color-google-background-shaded-5: #2f2f2f;
+    --color-google-background-shaded-6: #252525;
+    --color-google-background-shaded-7: #151515;
+    --color-google-background-shaded-8: #0b0b0b;
+
+    --color-apple-primary-unshaded: #ffffff;
+    --color-apple-primary-shaded-1: #767676;
+    --color-apple-primary-shaded-2: #a6a6a6;
+    --color-apple-primary-shaded-3: #c8c8c8;
+    --color-apple-primary-shaded-4: #d0d0d0;
+    --color-apple-primary-shaded-5: #dadada;
+    --color-apple-primary-shaded-6: #eaeaea;
+    --color-apple-primary-shaded-7: #f4f4f4;
+    --color-apple-primary-shaded-8: #f8f8f8;
+
+    --color-apple-background-unshaded: #000000;
+    --color-apple-background-shaded-1: #898989;
+    --color-apple-background-shaded-2: #737373;
+    --color-apple-background-shaded-3: #595959;
+    --color-apple-background-shaded-4: #373737;
+    --color-apple-background-shaded-5: #2f2f2f;
+    --color-apple-background-shaded-6: #252525;
+    --color-apple-background-shaded-7: #151515;
+    --color-apple-background-shaded-8: #0b0b0b;
+
+    --color-facebook-primary-unshaded: #ffffff;
+    --color-facebook-primary-shaded-1: #767676;
+    --color-facebook-primary-shaded-2: #a6a6a6;
+    --color-facebook-primary-shaded-3: #c8c8c8;
+    --color-facebook-primary-shaded-4: #d0d0d0;
+    --color-facebook-primary-shaded-5: #dadada;
+    --color-facebook-primary-shaded-6: #eaeaea;
+    --color-facebook-primary-shaded-7: #f4f4f4;
+    --color-facebook-primary-shaded-8: #f8f8f8;
+
+    --color-facebook-background-unshaded: #000000;
+    --color-facebook-background-shaded-1: #898989;
+    --color-facebook-background-shaded-2: #737373;
+    --color-facebook-background-shaded-3: #595959;
+    --color-facebook-background-shaded-4: #373737;
+    --color-facebook-background-shaded-5: #2f2f2f;
+    --color-facebook-background-shaded-6: #252525;
+    --color-facebook-background-shaded-7: #151515;
+    --color-facebook-background-shaded-8: #0b0b0b;
+
+    --color-linkedin-primary-unshaded: #ffffff;
+    --color-linkedin-primary-shaded-1: #767676;
+    --color-linkedin-primary-shaded-2: #a6a6a6;
+    --color-linkedin-primary-shaded-3: #c8c8c8;
+    --color-linkedin-primary-shaded-4: #d0d0d0;
+    --color-linkedin-primary-shaded-5: #dadada;
+    --color-linkedin-primary-shaded-6: #eaeaea;
+    --color-linkedin-primary-shaded-7: #f4f4f4;
+    --color-linkedin-primary-shaded-8: #f8f8f8;
+
+    --color-linkedin-background-unshaded: #000000;
+    --color-linkedin-background-shaded-1: #898989;
+    --color-linkedin-background-shaded-2: #737373;
+    --color-linkedin-background-shaded-3: #595959;
+    --color-linkedin-background-shaded-4: #373737;
+    --color-linkedin-background-shaded-5: #2f2f2f;
+    --color-linkedin-background-shaded-6: #252525;
+    --color-linkedin-background-shaded-7: #151515;
+    --color-linkedin-background-shaded-8: #0b0b0b;
+
+    --color-azureadv2-primary-unshaded: #ffffff;
+    --color-azureadv2-primary-shaded-1: #767676;
+    --color-azureadv2-primary-shaded-2: #a6a6a6;
+    --color-azureadv2-primary-shaded-3: #c8c8c8;
+    --color-azureadv2-primary-shaded-4: #d0d0d0;
+    --color-azureadv2-primary-shaded-5: #dadada;
+    --color-azureadv2-primary-shaded-6: #eaeaea;
+    --color-azureadv2-primary-shaded-7: #f4f4f4;
+    --color-azureadv2-primary-shaded-8: #f8f8f8;
+
+    --color-azureadv2-background-unshaded: #000000;
+    --color-azureadv2-background-shaded-1: #898989;
+    --color-azureadv2-background-shaded-2: #737373;
+    --color-azureadv2-background-shaded-3: #595959;
+    --color-azureadv2-background-shaded-4: #373737;
+    --color-azureadv2-background-shaded-5: #2f2f2f;
+    --color-azureadv2-background-shaded-6: #252525;
+    --color-azureadv2-background-shaded-7: #151515;
+    --color-azureadv2-background-shaded-8: #0b0b0b;
+
+    --color-wechat-primary-unshaded: #ffffff;
+    --color-wechat-primary-shaded-1: #767676;
+    --color-wechat-primary-shaded-2: #a6a6a6;
+    --color-wechat-primary-shaded-3: #c8c8c8;
+    --color-wechat-primary-shaded-4: #d0d0d0;
+    --color-wechat-primary-shaded-5: #dadada;
+    --color-wechat-primary-shaded-6: #eaeaea;
+    --color-wechat-primary-shaded-7: #f4f4f4;
+    --color-wechat-primary-shaded-8: #f8f8f8;
+
+    --color-wechat-background-unshaded: #000000;
+    --color-wechat-background-shaded-1: #898989;
+    --color-wechat-background-shaded-2: #737373;
+    --color-wechat-background-shaded-3: #595959;
+    --color-wechat-background-shaded-4: #373737;
+    --color-wechat-background-shaded-5: #2f2f2f;
+    --color-wechat-background-shaded-6: #252525;
+    --color-wechat-background-shaded-7: #151515;
+    --color-wechat-background-shaded-8: #0b0b0b;
+  }
 }
 
 html, body {
@@ -56,9 +395,15 @@ button {
   border: none;
   cursor: pointer;
 }
-
 button:disabled {
   cursor: not-allowed;
+}
+button:focus {
+  outline: none;
+}
+
+input:focus {
+  outline: none;
 }
 
 a {
@@ -295,23 +640,23 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .primary-txt {
-  color: #333333;
+  color: var(--color-text-unshaded);
 }
 
 .secondary-txt {
-  color: #a19f9d;
+  color: var(--color-text-shaded-1);
 }
 
 .good-txt {
-  color: #58CA9A;
+  color: var(--color-good);
 }
 
 .warn-txt {
-  color: #FBCA4E;
+  color: var(--color-warn);
 }
 
 .error-txt {
-  color: #E23D3D;
+  color: var(--color-error-unshaded);
 }
 
 .errors {
@@ -324,23 +669,21 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 0;
   border-bottom-style: solid;
   border-bottom-width: 1px;
-  border-bottom-color: #a19f9d;
+  border-bottom-color: var(--color-text-shaded-2);
 }
-
-.input:disabled, .input:read-only {
-  opacity: 0.7;
-}
-
-.input:focus, .btn:focus {
-  outline: none;
-}
-
 .input:focus {
-  border-bottom-color: var(--color-primary);
+  border-bottom-color: var(--color-primary-unshaded);
 }
-
+.input:disabled, .input:read-only {
+  opacity: 0.4;
+}
 .input::placeholder {
-  color: #a19f9d;
+  color: var(--color-text-shaded-1);
+}
+@media (prefers-color-scheme: dark) {
+  .input:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
 }
 
 .password-input-wrapper {
@@ -371,28 +714,42 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .select {
-  background-color: transparent;
   height: 32px;
-  border-bottom: solid 1px #a19f9d;
-  padding: 0 28px 0 8px;
+  padding: 0 28px 0 0;
+
+  background-color: transparent;
+  border: none;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: var(--color-text-shaded-2);
+
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgBAMAAAH2U1dRAAAABGdBTUEAALGPC/xhBQAAAA9QTFRFAAAAaGhdYV9cYF9dYF5cYSRWqgAAAAR0Uk5TABZp1J65f3sAAAB5SURBVCjPxdDLDYJQEIXhb7wUcBMswIUFDIECRPrvyQVXEY0rTTyrOX/mDQibIrewyh3YqSO5FHQfUrZOcEDMlISYS75N/EInqBjbGCU5VhhXQMkVMM6trlT/1Xm4R/11/cfUSL+03Rp5+EaePDENO09My8tt8ctbbxZSCTDnykmRAAAAAElFTkSuQmCC');
   background-position: right 5px center;
   background-size: 12px auto;
   background-repeat: no-repeat;
 }
-
-.select:disabled, .select:read-only {
-  background-image: none;
+.select:focus {
+  border-bottom-color: var(--color-primary-unshaded);
+}
+.select:disabled {
+  opacity: 0.4;
+}
+@media (prefers-color-scheme: dark) {
+  .select:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
 }
 
 .text-input {
   background-color: transparent;
   height: 36px;
+  padding: 0;
 }
 
 .btn {
   height: 36px;
   border-radius: 2px;
+  padding: 0 24px;
 }
 
 /* Make <a> appears like <button> */
@@ -404,29 +761,106 @@ a.btn {
 }
 
 .primary-btn {
-  color: white;
-  background-color: var(--color-primary);
-  min-width: 100px;
+  color: var(--color-background-unshaded);
+  background-color: var(--color-primary-unshaded);
 }
-
-.secondary-btn {
-  color: var(--color-primary);
+.primary-btn:hover {
+  background-color: var(--color-primary-shaded-4);
+}
+.primary-btn:active {
+  background-color: var(--color-primary-shaded-7);
+}
+.primary-btn:disabled {
+  background-color: var(--color-primary-shaded-2);
+}
+@media (prefers-color-scheme: dark) {
+  .primary-btn {
+    color: var(--color-text-unshaded);
+    background-color: var(--color-primary-shaded-5);
+  }
+  .primary-btn:hover {
+    background-color: var(--color-primary-shaded-4);
+  }
+  .primary-btn:active {
+    background-color: var(--color-primary-shaded-6);
+  }
+  .primary-btn:disabled {
+    background-color: var(--color-primary-shaded-2);
+  }
 }
 
 .destructive-btn {
-  color: #E23D3D;
+  color: var(--color-error-unshaded);
+  background-color: transparent;
+}
+.destructive-btn:hover {
+  color: var(--color-error-shaded-4);
+}
+.destructive-btn:active {
+  color: var(--color-error-shaded-7);
+}
+.description-btn:disabled {
+  color: var(--color-error-shaded-1);
 }
 
-.link {
-  color: var(--color-primary);
+.secondary-btn {
+  color: var(--color-primary-unshaded);
+  background-color: transparent;
+}
+.secondary-btn:hover {
+  color: var(--color-primary-shaded-4);
+}
+.secondary-btn:active {
+  color: var(--color-primary-shaded-7);
+}
+.secondary-btn:disabled {
+  color: var(--color-primary-shaded-1);
+}
+@media (prefers-color-scheme: dark) {
+  .secondary-btn {
+    color: var(--color-primary-shaded-5);
+    background-color: transparent;
+  }
+  .secondary-btn:hover {
+    color: var(--color-primary-shaded-4);
+  }
+  .secondary-btn:active {
+    color: var(--color-primary-shaded-7);
+  }
+  .secondary-btn:disabled {
+    color: var(--color-primary-shaded-1);
+  }
+}
+
+/* <a> does not have disabled attribute */
+.link, .link:visited {
+  color: var(--color-primary-unshaded);
+  background-color: transparent;
+}
+.link:hover {
+  color: var(--color-primary-shaded-4);
+}
+.link:active {
+  color: var(--color-primary-shaded-7);
+}
+@media (prefers-color-scheme: dark) {
+  .link, .link:visited {
+    color: var(--color-primary-shaded-5);
+    background-color: transparent;
+  }
+  .link:hover {
+    color: var(--color-primary-shaded-4);
+  }
+  .link:active {
+    color: var(--color-primary-shaded-7);
+  }
 }
 
 .page {
-  background-color: white;
+  background-color: var(--color-background-unshaded);
 }
 
 .content {
-  background-color: white;
   display: flex;
   flex-direction: column;
 }
@@ -438,10 +872,19 @@ a.btn {
   background-position: center;
   background-size: auto 100%;
   background-repeat: no-repeat;
+  border-radius: 4px;
+  background-color: var(--color-background-unshaded);
+}
+@media (prefers-color-scheme: dark) {
+  .banner {
+    background-color: var(--color-text-unshaded);
+  }
 }
 
+
 .pane {
-  box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.25);
+  background-color: var(--color-pane-background);
+  box-shadow: 0px 3px 8px var(--color-pane-shadow);
   border-radius: 6px;
   padding: 6px;
   margin: 6px;
@@ -495,106 +938,106 @@ a.btn {
 .password-strength-meter, .password-strength-meter::-webkit-meter-bar {
   background: linear-gradient(
     90deg,
-    #E0E0E0 0% 18.4%,
+    var(--color-password-strength-meter-0) 0% 18.4%,
     transparent 18.4% 20.4%,
-    #E0E0E0 20.4% 38.8%,
+    var(--color-password-strength-meter-0) 20.4% 38.8%,
     transparent 38.8% 40.8%,
-    #E0E0E0 40.8% 59.2%,
+    var(--color-password-strength-meter-0) 40.8% 59.2%,
     transparent 59.2% 61.2%,
-    #E0E0E0 61.2% 79.6%,
+    var(--color-password-strength-meter-0) 61.2% 79.6%,
     transparent 79.6% 81.6%,
-    #E0E0E0 81.6% 100%
+    var(--color-password-strength-meter-0) 81.6% 100%
   );
 }
 
 .password-strength-meter[value="1"], .password-strength-meter[value="1"]::-webkit-meter-bar {
   background: linear-gradient(
     90deg,
-    #E23D3D 0% 18.4%,
+    var(--color-password-strength-meter-1) 0% 18.4%,
     transparent 18.4% 20.4%,
-    #E0E0E0 20.4% 38.8%,
+    var(--color-password-strength-meter-0) 20.4% 38.8%,
     transparent 38.8% 40.8%,
-    #E0E0E0 40.8% 59.2%,
+    var(--color-password-strength-meter-0) 40.8% 59.2%,
     transparent 59.2% 61.2%,
-    #E0E0E0 61.2% 79.6%,
+    var(--color-password-strength-meter-0) 61.2% 79.6%,
     transparent 79.6% 81.6%,
-    #E0E0E0 81.6% 100%
+    var(--color-password-strength-meter-0) 81.6% 100%
   );
 }
 .password-strength-meter-description[data-value="1"] {
-  color: #E23D3D;
+  color: var(--color-password-strength-meter-1);
 }
 
 .password-strength-meter[value="2"], .password-strength-meter[value="2"]::-webkit-meter-bar {
   background: linear-gradient(
     90deg,
-    #FFA133 0% 18.4%,
+    var(--color-password-strength-meter-2) 0% 18.4%,
     transparent 18.4% 20.4%,
-    #FFA133 20.4% 38.8%,
+    var(--color-password-strength-meter-2) 20.4% 38.8%,
     transparent 38.8% 40.8%,
-    #E0E0E0 40.8% 59.2%,
+    var(--color-password-strength-meter-0) 40.8% 59.2%,
     transparent 59.2% 61.2%,
-    #E0E0E0 61.2% 79.6%,
+    var(--color-password-strength-meter-0) 61.2% 79.6%,
     transparent 79.6% 81.6%,
-    #E0E0E0 81.6% 100%
+    var(--color-password-strength-meter-0) 81.6% 100%
   );
 }
 .password-strength-meter-description[data-value="2"] {
-  color: #FFA133;
+  color: var(--color-password-strength-meter-2);
 }
 
 .password-strength-meter[value="3"], .password-strength-meter[value="3"]::-webkit-meter-bar {
   background: linear-gradient(
     90deg,
-    #FBCA4E 0% 18.4%,
+    var(--color-password-strength-meter-3) 0% 18.4%,
     transparent 18.4% 20.4%,
-    #FBCA4E 20.4% 38.8%,
+    var(--color-password-strength-meter-3) 20.4% 38.8%,
     transparent 38.8% 40.8%,
-    #FBCA4E 40.8% 59.2%,
+    var(--color-password-strength-meter-3) 40.8% 59.2%,
     transparent 59.2% 61.2%,
-    #E0E0E0 61.2% 79.6%,
+    var(--color-password-strength-meter-0) 61.2% 79.6%,
     transparent 79.6% 81.6%,
-    #E0E0E0 81.6% 100%
+    var(--color-password-strength-meter-0) 81.6% 100%
   );
 }
 .password-strength-meter-description[data-value="3"] {
-  color: #FBCA4E;
+  color: var(--color-password-strength-meter-3);
 }
 
 .password-strength-meter[value="4"], .password-strength-meter[value="4"]::-webkit-meter-bar {
   background: linear-gradient(
     90deg,
-    #BACA58 0% 18.4%,
+    var(--color-password-strength-meter-4) 0% 18.4%,
     transparent 18.4% 20.4%,
-    #BACA58 20.4% 38.8%,
+    var(--color-password-strength-meter-4) 20.4% 38.8%,
     transparent 38.8% 40.8%,
-    #BACA58 40.8% 59.2%,
+    var(--color-password-strength-meter-4) 40.8% 59.2%,
     transparent 59.2% 61.2%,
-    #BACA58 61.2% 79.6%,
+    var(--color-password-strength-meter-4) 61.2% 79.6%,
     transparent 79.6% 81.6%,
-    #E0E0E0 81.6% 100%
+    var(--color-password-strength-meter-0) 81.6% 100%
   );
 }
 .password-strength-meter-description[data-value="4"] {
-  color: #BACA58;
+  color: var(--color-password-strength-meter-4);
 }
 
 .password-strength-meter[value="5"], .password-strength-meter[value="5"]::-webkit-meter-bar {
   background: linear-gradient(
     90deg,
-    #58CA9A 0% 18.4%,
+    var(--color-password-strength-meter-5) 0% 18.4%,
     transparent 18.4% 20.4%,
-    #58CA9A 20.4% 38.8%,
+    var(--color-password-strength-meter-5) 20.4% 38.8%,
     transparent 38.8% 40.8%,
-    #58CA9A 40.8% 59.2%,
+    var(--color-password-strength-meter-5) 40.8% 59.2%,
     transparent 59.2% 61.2%,
-    #58CA9A 61.2% 79.6%,
+    var(--color-password-strength-meter-5) 61.2% 79.6%,
     transparent 79.6% 81.6%,
-    #58CA9A 81.6% 100%
+    var(--color-password-strength-meter-5) 81.6% 100%
   );
 }
 .password-strength-meter-description[data-value="5"] {
-  color: #58CA9A;
+  color: var(--color-password-strength-meter-5);
 }
 
 .phone-input {
@@ -636,44 +1079,106 @@ a.btn {
 }
 
 .apple {
-  color: white;
-  background-color: black;
+  color: var(--color-apple-background-unshaded);
+  background-color: var(--color-apple-primary-unshaded);
+}
+.apple:hover {
+  background-color: var(--color-apple-primary-shaded-4);
+}
+.apple:active {
+  background-color: var(--color-apple-primary-shaded-7);
+}
+.apple:disabled {
+  background-color: var(--color-apple-primary-shaded-2);
 }
 
 .sso-btn.google {
-  border: 1px solid #bbbbbb;
+  border: 1px solid var(--color-text-shaded-2);
 }
-
 .google {
-  color: #333333;
-  background-color: white;
+  color: var(--color-google-background-unshaded);
+  background-color: var(--color-google-primary-unshaded);
+}
+.google:hover {
+  background-color: var(--color-google-primary-shaded-4);
+}
+.google:active {
+  background-color: var(--color-google-primary-shaded-7);
+}
+.google:disabled {
+  background-color: var(--color-google-primary-shaded-2);
+}
+@media (prefers-color-scheme: dark) {
+  .sso-btn.google {
+    border: 0;
+  }
 }
 
 .facebook {
-  color: white;
-  background-color: #3b5998;
+  color: var(--color-facebook-background-unshaded);
+  background-color: var(--color-facebook-primary-unshaded);
+}
+.facebook:hover {
+  background-color: var(--color-facebook-primary-shaded-4);
+}
+.facebook:active {
+  background-color: var(--color-facebook-primary-shaded-7);
+}
+.facebook:disabled {
+  background-color: var(--color-facebook-primary-shaded-2);
 }
 
 .linkedin {
-  color: white;
-  background-color: #187fb8;
+  color: var(--color-linkedin-background-unshaded);
+  background-color: var(--color-linkedin-primary-unshaded);
+}
+.linkedin:hover {
+  background-color: var(--color-linkedin-primary-shaded-4);
+}
+.linkedin:active {
+  background-color: var(--color-linkedin-primary-shaded-7);
+}
+.linkedin:disabled {
+  background-color: var(--color-linkedin-primary-shaded-2);
 }
 
 .azureadv2 {
-  color: #333333;
-  background-color: #e2e2e2;
+  color: var(--color-azureadv2-background-unshaded);
+  background-color: var(--color-azureadv2-primary-unshaded);
+}
+.azureadv2:hover {
+  background-color: var(--color-azureadv2-primary-shaded-4);
+}
+.azureadv2:active {
+  background-color: var(--color-azureadv2-primary-shaded-7);
+}
+.azureadv2:disabled {
+  background-color: var(--color-azureadv2-primary-shaded-2);
 }
 
 .wechat {
   color: white;
   background-color: #07c160;
 }
+.wechat {
+  color: var(--color-wechat-background-unshaded);
+  background-color: var(--color-wechat-primary-unshaded);
+}
+.wechat:hover {
+  background-color: var(--color-wechat-primary-shaded-4);
+}
+.wechat:active {
+  background-color: var(--color-wechat-primary-shaded-7);
+}
+.wechat:disabled {
+  background-color: var(--color-wechat-primary-shaded-2);
+}
 
 .sso-loginid-separator::before, .sso-loginid-separator::after {
   content: "";
   flex: 1;
   height: 1px;
-  background-color: #edebe9;
+  background-color: var(--color-text-shaded-2);
   margin: 6px;
 }
 
@@ -771,7 +1276,7 @@ a.btn {
 }
 
 .row-sep:not(:last-child) {
-  border-bottom: 1px solid #E5E5E5;
+  border-bottom: 1px solid var(--color-separator);
 }
 
 .recovery-code-list-section {
@@ -823,12 +1328,18 @@ a.btn {
   align-items: center;
   justify-content: center;
   flex: 1;
-  border-bottom: 2px solid #EDEBE9;
+  border-bottom: 2px solid var(--color-separator);
 }
 
 .signin-signup-link.current {
-  border-bottom: 2px solid var(--color-primary);
-  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary-unshaded);
+  color: var(--color-primary-unshaded);
+}
+@media (prefers-color-scheme: dark) {
+  .signin-signup-link.current {
+    border-bottom: 2px solid var(--color-primary-shaded-5);
+    color: var(--color-primary-shaded-5);
+  }
 }
 
 .switch-link-group .click-to-switch, .switch-link-group.switched .switch-to-item {

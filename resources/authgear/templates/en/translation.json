@@ -228,7 +228,7 @@
 
   "setup-totp-title": "Setup authenticator",
   "setup-totp-code-placeholder": "code",
-  "setup-totp-get-google-authenticator-description": "If you don''t have any authenticator device / app, you can get the Google Authenticator App from <a target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> or <a target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a>",
+  "setup-totp-get-google-authenticator-description": "If you don''t have any authenticator device / app, you can get the Google Authenticator App from <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> or <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a>",
   "setup-totp-use-google-authenticator-description": "In the App select <b>Set up account</b>.\nChoose <b>Scan barcode</b>",
   "setup-totp-fallback-description": "Can''t scan the barcode?\nChoose <b>Manual entry</b>.\nEnter your email address and this key:\n<b>{secret}</b>\nMake sure that Time based is turned on",
   "setup-totp-code-description": "Enter the 6-digit code that you see in the app / device",
@@ -258,7 +258,7 @@
   "wechat-open-app": "Open WeChat app to login",
   "wechat-proceed": "Proceed WeChat login",
 
-  "toc-pp-footer": "By registering, you agree to our <a target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>",
+  "toc-pp-footer": "By registering, you agree to our <a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>",
   "terms-of-service-link": "https://www.authgear.com/terms",
   "privacy-policy-link": "https://www.authgear.com/data-privacy"
 }

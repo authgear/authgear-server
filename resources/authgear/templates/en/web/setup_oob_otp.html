@@ -27,7 +27,7 @@
 
 {{ if eq $.InputType "phone" }}
 <div class="phone-input margin-10">
-	<select class="input select primary-txt" name="x_calling_code">
+	<select class="select primary-txt" name="x_calling_code">
 		{{ range $.CountryCallingCodes }}
 		<option
 			value="{{ . }}"
