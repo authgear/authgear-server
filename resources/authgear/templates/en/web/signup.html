@@ -62,7 +62,7 @@
 						name="x_login_id"
 						autocomplete="username"
 						autocapitalize="none"
-						placeholder="{{ .login_id_type }}"
+						placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginPageTextLoginIDVariant) }}"
 					>
 				{{ end }}
 				{{ end }}{{ end }}
