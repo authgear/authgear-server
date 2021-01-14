@@ -34,18 +34,29 @@ type Resolver struct {
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
-	s, err := re.resolveHeader(r)
-	if errors.Is(err, session.ErrInvalidSession) {
-		s = nil
-	} else if err != nil {
-		return nil, err
-	}
-	if s != nil {
-		return s, nil
+	// The resolve function has the following outcomes:
+	// - (nil, nil) which means no session was found and no error.
+	// - (nil, err) in which err is ErrInvalidSession, which means the session was found but was invalid.
+	//              in which err is something else, which means some unexpected error occurred.
+	// - (s, nil)  which means a session was resolved successfully.
+	//
+	// Here we want to try the next resolve function iff the outcome is (nil, nil).
+	funcs := []func(*http.Request) (session.Session, error){
+		re.resolveHeader,
+		re.resolveCookie,
 	}
 
-	s, err = re.resolveCookie(r)
-	return s, err
+	for _, f := range funcs {
+		s, err := f(r)
+		if err != nil {
+			return nil, err
+		}
+		if s != nil {
+			return s, nil
+		}
+	}
+
+	return nil, nil
 }
 
 func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
