@@ -28,6 +28,15 @@ func (e *EdgeCreateAuthenticatorPassword) IsDefaultAuthenticator() bool {
 }
 
 func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	var stageInput InputAuthenticationStage
+	if !interaction.Input(rawInput, &stageInput) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+	stage := stageInput.GetAuthenticationStage()
+	if stage != e.Stage {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
 	var input InputCreateAuthenticatorPassword
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

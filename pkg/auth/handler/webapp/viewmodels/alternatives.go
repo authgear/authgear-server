@@ -123,6 +123,8 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
 	}
 
+	m.AuthenticationStage = node.GetCreateAuthenticatorStage()
+
 	edges, err := node.GetCreateAuthenticatorEdges()
 	if err != nil {
 		return err

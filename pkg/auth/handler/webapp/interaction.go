@@ -91,12 +91,17 @@ var _ nodes.InputCreateAuthenticatorTOTPSetup = &InputSelectTOTP{}
 func (i *InputSelectTOTP) SetupTOTP() {}
 
 type InputSetupPassword struct {
+	Stage    string
 	Password string
 }
 
 var _ nodes.InputCreateAuthenticatorPassword = &InputSetupPassword{}
+var _ nodes.InputAuthenticationStage = &InputSetupPassword{}
 
 func (i *InputSetupPassword) GetPassword() string { return i.Password }
+func (i *InputSetupPassword) GetAuthenticationStage() interaction.AuthenticationStage {
+	return interaction.AuthenticationStage(i.Stage)
+}
 
 type InputResendCode struct{}
 

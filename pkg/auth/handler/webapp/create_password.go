@@ -37,7 +37,6 @@ func ConfigureCreatePasswordRoute(route httproute.Route) httproute.Route {
 
 type CreatePasswordViewModel struct {
 	IdentityDisplayID string
-	AlternativeSteps  []viewmodels.AlternativeStep
 }
 
 type PasswordPolicy interface {
@@ -76,7 +75,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		},
 	)
 
-	alternatives := &viewmodels.AlternativeStepsViewModel{}
+	alternatives := viewmodels.AlternativeStepsViewModel{}
 	err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepCreatePassword)
 	if err != nil {
 		return nil, err
@@ -84,13 +83,13 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 
 	createPasswordViewModel := CreatePasswordViewModel{
 		IdentityDisplayID: displayID,
-		AlternativeSteps:  alternatives.AlternativeSteps,
 	}
 
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
 	viewmodels.Embed(data, createPasswordViewModel)
+	viewmodels.Embed(data, alternatives)
 
 	return data, nil
 }
@@ -132,12 +131,14 @@ func (h *CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 			newPassword := r.Form.Get("x_password")
 			confirmPassword := r.Form.Get("x_confirm_password")
+			stage := r.Form.Get("x_stage")
 			err = pwd.ConfirmPassword(newPassword, confirmPassword)
 			if err != nil {
 				return
 			}
 
 			input = &InputSetupPassword{
+				Stage:    stage,
 				Password: newPassword,
 			}
 			return
