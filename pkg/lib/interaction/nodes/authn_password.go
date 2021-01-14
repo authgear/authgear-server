@@ -31,12 +31,24 @@ func (e *EdgeAuthenticationPassword) IsDefaultAuthenticator() bool {
 }
 
 func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	var input InputAuthenticationPassword
-	if !interaction.Input(rawInput, &input) {
+	// We first check the stage so that if password + additional password is used,
+	// we do not advance too far.
+	// That is, we do not check the given primary password against secondary password and report error.
+	var stageInput InputAuthenticationStage
+	if !interaction.Input(rawInput, &stageInput) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+	stage := stageInput.GetAuthenticationStage()
+	if stage != e.Stage {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	inputPassword := input.GetPassword()
+	var passwordInput InputAuthenticationPassword
+	if !interaction.Input(rawInput, &passwordInput) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
+	inputPassword := passwordInput.GetPassword()
 
 	var info *authenticator.Info
 	for _, a := range e.Authenticators {

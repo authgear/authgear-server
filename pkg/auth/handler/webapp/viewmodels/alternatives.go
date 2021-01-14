@@ -14,6 +14,7 @@ import (
 
 type AuthenticationBeginNode interface {
 	GetAuthenticationEdges() ([]interaction.Edge, error)
+	GetAuthenticationStage() interaction.AuthenticationStage
 }
 
 type CreateAuthenticatorBeginNode interface {
@@ -32,6 +33,7 @@ type AlternativeStep struct {
 }
 
 type AlternativeStepsViewModel struct {
+	AuthenticationStage   interaction.AuthenticationStage
 	AlternativeSteps      []AlternativeStep
 	CanRequestDeviceToken bool
 }
@@ -41,6 +43,8 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 	if !graph.FindLastNode(&node) {
 		panic("authentication_begin: expected graph has node implementing AuthenticationBeginNode")
 	}
+
+	m.AuthenticationStage = node.GetAuthenticationStage()
 
 	edges, err := node.GetAuthenticationEdges()
 	if err != nil {
