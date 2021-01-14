@@ -171,9 +171,40 @@
   --color-password-strength-meter-4: #baca58;
   --color-password-strength-meter-5: var(--color-good);
 }
-
 @media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary-unshaded: #317BF4;
+    --color-primary-shaded-1: #f6faff;
+    --color-primary-shaded-2: #dde9fd;
+    --color-primary-shaded-3: #bfd7fc;
+    --color-primary-shaded-4: #81aff9;
+    --color-primary-shaded-5: #498bf6;
+    --color-primary-shaded-6: #2c70dc;
+    --color-primary-shaded-7: #255eba;
+    --color-primary-shaded-8: #1b4589;
 
+    --color-text-unshaded: #ffffff;
+    --color-text-shaded-1: #767676;
+    --color-text-shaded-2: #a6a6a6;
+    --color-text-shaded-3: #c8c8c8;
+    --color-text-shaded-4: #d0d0d0;
+    --color-text-shaded-5: #dadada;
+    --color-text-shaded-6: #eaeaea;
+    --color-text-shaded-7: #f4f4f4;
+    --color-text-shaded-8: #f8f8f8;
+
+    --color-background-unshaded: #000000;
+    --color-background-shaded-1: #898989;
+    --color-background-shaded-2: #737373;
+    --color-background-shaded-3: #595959;
+    --color-background-shaded-4: #373737;
+    --color-background-shaded-5: #2f2f2f;
+    --color-background-shaded-6: #252525;
+    --color-background-shaded-7: #151515;
+    --color-background-shaded-8: #0b0b0b;
+
+    --color-pane-background: #252525;
+  }
 }
 
 html, body {
@@ -509,6 +540,11 @@ h1, h2, h3, h4, h5, h6 {
 .input::placeholder {
   color: var(--color-text-shaded-1);
 }
+@media (prefers-color-scheme: dark) {
+  .input:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
+}
 
 .password-input-wrapper {
   display: flex;
@@ -558,6 +594,11 @@ h1, h2, h3, h4, h5, h6 {
 .select:disabled {
   opacity: 0.4;
 }
+@media (prefers-color-scheme: dark) {
+  .select:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
+}
 
 .text-input {
   background-color: transparent;
@@ -592,6 +633,21 @@ a.btn {
 .primary-btn:disabled {
   background-color: var(--color-primary-shaded-2);
 }
+@media (prefers-color-scheme: dark) {
+  .primary-btn {
+    color: var(--color-text-unshaded);
+    background-color: var(--color-primary-shaded-5);
+  }
+  .primary-btn:hover {
+    background-color: var(--color-primary-shaded-4);
+  }
+  .primary-btn:active {
+    background-color: var(--color-primary-shaded-6);
+  }
+  .primary-btn:disabled {
+    background-color: var(--color-primary-shaded-2);
+  }
+}
 
 .destructive-btn {
   color: var(--color-error-unshaded);
@@ -620,19 +676,45 @@ a.btn {
 .secondary-btn:disabled {
   color: var(--color-primary-shaded-1);
 }
+@media (prefers-color-scheme: dark) {
+  .secondary-btn {
+    color: var(--color-primary-shaded-5);
+    background-color: transparent;
+  }
+  .secondary-btn:hover {
+    color: var(--color-primary-shaded-4);
+  }
+  .secondary-btn:active {
+    color: var(--color-primary-shaded-7);
+  }
+  .secondary-btn:disabled {
+    color: var(--color-primary-shaded-1);
+  }
+}
 
+/* <a> does not have disabled attribute */
 .link, .link:visited {
   color: var(--color-primary-unshaded);
   background-color: transparent;
 }
 .link:hover {
   color: var(--color-primary-shaded-4);
-  background-color: transparent;
 }
 .link:active {
   color: var(--color-primary-shaded-7);
 }
-/* <a> does not have disabled attribute */
+@media (prefers-color-scheme: dark) {
+  .link, .link:visited {
+    color: var(--color-primary-shaded-5);
+    background-color: transparent;
+  }
+  .link:hover {
+    color: var(--color-primary-shaded-4);
+  }
+  .link:active {
+    color: var(--color-primary-shaded-7);
+  }
+}
 
 .page {
   background-color: var(--color-background-unshaded);
@@ -650,7 +732,15 @@ a.btn {
   background-position: center;
   background-size: auto 100%;
   background-repeat: no-repeat;
+  border-radius: 4px;
+  background-color: var(--color-background-unshaded);
 }
+@media (prefers-color-scheme: dark) {
+  .banner {
+    background-color: var(--color-text-unshaded);
+  }
+}
+
 
 .pane {
   background-color: var(--color-pane-background);
@@ -1087,6 +1177,12 @@ a.btn {
 .signin-signup-link.current {
   border-bottom: 2px solid var(--color-primary-unshaded);
   color: var(--color-primary-unshaded);
+}
+@media (prefers-color-scheme: dark) {
+  .signin-signup-link.current {
+    border-bottom: 2px solid var(--color-primary-shaded-5);
+    color: var(--color-primary-shaded-5);
+  }
 }
 
 .switch-link-group .click-to-switch, .switch-link-group.switched .switch-to-item {

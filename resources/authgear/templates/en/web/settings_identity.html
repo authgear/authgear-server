@@ -46,7 +46,7 @@
 
     {{ end }}
 
-    <i class="grid-area-icon align-self-start justify-self-center margin-2 {{ $fa }}" aria-hidden="true"></i>
+    <i class="grid-area-icon align-self-start justify-self-center margin-2 primary-txt {{ $fa }}" aria-hidden="true"></i>
     <h2 class="grid-area-name align-self-center font-inherit margin-0 primary-txt">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
