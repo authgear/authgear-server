@@ -76,7 +76,7 @@
   "ScreenNav.passwords": "Passwords",
   "ScreenNav.client-applications": "Applications",
   "ScreenNav.dns": "DNS",
-  "ScreenNav.localization-appearance": "Localization & Appearance",
+  "ScreenNav.localization-appearance": "Appearance & Localization",
   "ScreenNav.settings": "Settings",
 
   "NavBreadcrumb.label": "Nested navigation",
@@ -379,7 +379,7 @@
   "ManageLanguageWidget.error.locale-without-resources": "Some of the languages are invalid. A language must have at least 1 localization to become valid",
   "ManageLanguageWidget.error.required-default-resource": "Some of the languages are invalid. Some required resources do not have localizations in default language",
 
-  "ResourceConfigurationScreen.title": "Localization & Appearance",
+  "ResourceConfigurationScreen.title": "Appearance & Localization",
   "ResourceConfigurationScreen.appearance.title": "Appearance",
   "ResourceConfigurationScreen.translationjson.title": "Translations",
   "ResourceConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
