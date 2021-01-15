@@ -13,7 +13,7 @@ import EditTemplatesWidget, {
 import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  ALL_LOCALIZABLE_RESOURCES,
+  ALL_EDITABLE_RESOURCES,
   ALL_TEMPLATES,
   renderPath,
   RESOURCE_FAVICON,
@@ -28,6 +28,7 @@ import {
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
   RESOURCE_TRANSLATION_JSON,
+  RESOURCE_AUTHGEAR_CSS,
 } from "../../resources";
 import {
   LanguageTag,
@@ -119,12 +120,14 @@ const PIVOT_KEY_APPEARANCE = "appearance";
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
 const PIVOT_KEY_PASSWORDLESS = "passwordless";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
+const PIVOT_KEY_CUSTOM_CSS = "custom-css";
 
 const ALL_PIVOT_KEYS = [
   PIVOT_KEY_TRANSLATION_JSON,
   PIVOT_KEY_APPEARANCE,
   PIVOT_KEY_FORGOT_PASSWORD,
   PIVOT_KEY_PASSWORDLESS,
+  PIVOT_KEY_CUSTOM_CSS,
 ];
 
 const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
@@ -312,6 +315,24 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     },
   ];
 
+  const sectionsCustomCSS: EditTemplatesWidgetSection[] = [
+    {
+      key: "custom-css",
+      title: <FormattedMessage id="EditTemplatesWidget.custom-css.title" />,
+      items: [
+        {
+          key: "custom-css",
+          title: (
+            <FormattedMessage id="EditTemplatesWidget.custom-css.subtitle" />
+          ),
+          language: "css",
+          value: getValue(RESOURCE_AUTHGEAR_CSS),
+          onChange: getOnChange(RESOURCE_AUTHGEAR_CSS),
+        },
+      ],
+    },
+  ];
+
   const sectionsForgotPassword: EditTemplatesWidgetSection[] = [
     {
       key: "email",
@@ -466,6 +487,14 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         >
           <EditTemplatesWidget sections={sectionsPasswordless} />
         </PivotItem>
+        <PivotItem
+          headerText={renderToString(
+            "ResourceConfigurationScreen.custom-css.title"
+          )}
+          itemKey={PIVOT_KEY_CUSTOM_CSS}
+        >
+          <EditTemplatesWidget sections={sectionsCustomCSS} />
+        </PivotItem>
       </Pivot>
     </div>
   );
@@ -484,7 +513,7 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of resourceLocales) {
-      for (const def of ALL_LOCALIZABLE_RESOURCES) {
+      for (const def of ALL_EDITABLE_RESOURCES) {
         specifiers.push({
           def,
           locale,

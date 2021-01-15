@@ -7,7 +7,7 @@ import styles from "./EditTemplatesWidget.module.scss";
 export interface EditTemplatesWidgetItem {
   key: string;
   title: React.ReactNode;
-  language: "html" | "plaintext" | "json";
+  language: "html" | "plaintext" | "json" | "css";
   value: string;
   onChange: (e: unknown, value?: string) => void;
 }

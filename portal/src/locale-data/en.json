@@ -75,7 +75,6 @@
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
   "ScreenNav.client-applications": "Applications",
-  "ScreenNav.user-interface": "User Interface",
   "ScreenNav.dns": "DNS",
   "ScreenNav.localization-appearance": "Localization & Appearance",
   "ScreenNav.settings": "Settings",
@@ -385,6 +384,7 @@
   "ResourceConfigurationScreen.translationjson.title": "Translations",
   "ResourceConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "ResourceConfigurationScreen.forgot-password.title": "Forgot Password",
+  "ResourceConfigurationScreen.custom-css.title": "Custom CSS",
 
   "ResourceConfigurationScreen.favicon": "Favicon",
   "ResourceConfigurationScreen.app-logo": "App Logo",
@@ -397,6 +397,9 @@
 
   "EditTemplatesWidget.translationjson.title": "translation.json",
   "EditTemplatesWidget.translationjson.subtitle": "Translations for the web UI as well as app brandings like app name",
+
+  "EditTemplatesWidget.custom-css.title": "Custom CSS",
+  "EditTemplatesWidget.custom-css.subtitle": "Custom CSS to be included in every page",
 
   "EditTemplatesWidget.passwordless.setup.title": "First Time Setup",
   "EditTemplatesWidget.passwordless.login.title": "Subsequent Logins",
@@ -433,9 +436,6 @@
   "PasswordField.guessable-level.3": "Fair",
   "PasswordField.guessable-level.4": "Very unguessable",
   "PasswordField.guessable-level.5": "Extremely unguessable",
-
-  "UserInterfaceScreen.title": "User Interface",
-  "UserInterfaceScreen.custom-css.label": "Custom CSS",
 
   "SettingsScreen.title": "Settings",
   "SettingsScreen.general.title": "General",
