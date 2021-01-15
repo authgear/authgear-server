@@ -65,7 +65,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		baseViewModel := h.BaseViewModel.ViewModel(r, w)
 		if baseViewModel.IsNativePlatform {
 			if err == nil {
-				h.JSON.WriteResponse(w, &api.Response{Result: nil})
+				h.JSON.WriteResponse(w, &api.Response{Result: "OK"})
 			} else {
 				h.JSON.WriteResponse(w, &api.Response{Error: err})
 			}
