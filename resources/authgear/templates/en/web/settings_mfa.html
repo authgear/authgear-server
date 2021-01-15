@@ -90,20 +90,20 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt) }}
     </p>
-    <a class="grid-area-action1 justify-self-end secondary-btn" href="/settings/mfa/change_secondary_password">
+    <a class="grid-area-action1 justify-self-end btn secondary-btn" href="/settings/mfa/change_secondary_password">
       {{ template "change-password-button-label" }}
     </a>
     <form class="grid-area-action2 justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ $secondary_password.ID }}">
-      <button class="destructive-btn" type="submit" name="x_action" value="remove_secondary_password">
+      <button class="btn destructive-btn" type="submit" name="x_action" value="remove_secondary_password">
         {{ template "remove-button-label" }}
       </button>
     </form>
     {{ else }}
     <form class="link grid-area-action1 justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
+      <button class="btn secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
         {{ template "setup-password-button-label" }}
       </button>
     </form>

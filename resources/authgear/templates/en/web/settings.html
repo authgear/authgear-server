@@ -101,9 +101,9 @@
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     {{ if .identity_id }}
-    <button class="destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
+    <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
     {{ else }}
-    <button class="secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
+    <button class="btn secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
     {{ end }}
     </form>
     {{ end }}
@@ -128,7 +128,7 @@
     <form class="grid-area-action2 align-self-center justify-self-end" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-    <button class="secondary-btn" type="submit" name="x_action" value="verify_login_id">
+    <button class="btn secondary-btn" type="submit" name="x_action" value="verify_login_id">
       {{ template "resend-verification-code-button-label" }}
     </button>
     </form>

@@ -746,20 +746,19 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
 }
 
-.btn {
-  height: 36px;
-  border-radius: 2px;
-  padding: 0 24px;
-}
-
 /* Make <a> appears like <button> */
-a.btn {
+.as-btn {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
 }
 
+.btn.primary-btn {
+  height: 36px;
+  border-radius: 2px;
+  padding: 0 24px;
+}
 .primary-btn {
   color: var(--color-background-unshaded);
   background-color: var(--color-primary-unshaded);
@@ -1055,6 +1054,11 @@ a.btn {
   margin: 0 0 0 3px;
 }
 
+.btn.sso-btn {
+  height: 36px;
+  border-radius: 2px;
+  padding: 0 12px;
+}
 /* Safari button cannot have display being set to other value */
 /* Therefore we have to wrap the content in a span */
 /* However, other sizing properties still need to be declared on the button itself */
