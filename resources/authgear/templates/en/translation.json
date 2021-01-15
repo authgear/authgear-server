@@ -120,7 +120,9 @@
 
   "use-login-id-key": "Use {key} instead",
 
-  "create-password-page-title": "Create password",
+  "create-password-page-title": "Create Password",
+  "create-additional-password-page-title": "Create Additional Password",
+
   "password-policy-required-password-strength-label": "Your new password must be",
   "password-policy-title": "Your new password must follow the below rules:",
   "password-policy-minimum-length": "Minimum {length, plural, one{# character} other{# characters}}",

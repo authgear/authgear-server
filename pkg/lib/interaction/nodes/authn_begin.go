@@ -51,6 +51,11 @@ func (n *NodeAuthenticationBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 	return n.GetAuthenticationEdges()
 }
 
+// GetAuthenticationStage implements AuthenticationBeginNode.
+func (n *NodeAuthenticationBegin) GetAuthenticationStage() interaction.AuthenticationStage {
+	return n.Stage
+}
+
 // GetAuthenticationEdges implements AuthenticationBeginNode.
 func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, error) {
 	var edges []interaction.Edge

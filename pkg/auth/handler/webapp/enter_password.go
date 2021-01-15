@@ -133,8 +133,10 @@ func (h *EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 			plainPassword := r.Form.Get("x_password")
 			deviceToken := r.Form.Get("x_device_token") == "true"
+			stage := r.Form.Get("x_stage")
 
 			input = &InputAuthPassword{
+				Stage:       stage,
 				Password:    plainPassword,
 				DeviceToken: deviceToken,
 			}

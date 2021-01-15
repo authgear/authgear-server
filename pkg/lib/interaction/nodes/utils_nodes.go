@@ -20,3 +20,7 @@ func (e *EdgeTerminal) Instantiate(ctx *interaction.Context, graph *interaction.
 	// Use ErrIncompatibleInput to 'stuck' the interaction at the current node.
 	return nil, interaction.ErrIncompatibleInput
 }
+
+type InputAuthenticationStage interface {
+	GetAuthenticationStage() interaction.AuthenticationStage
+}

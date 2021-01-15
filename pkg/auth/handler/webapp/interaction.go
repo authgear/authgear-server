@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
 
@@ -90,12 +91,17 @@ var _ nodes.InputCreateAuthenticatorTOTPSetup = &InputSelectTOTP{}
 func (i *InputSelectTOTP) SetupTOTP() {}
 
 type InputSetupPassword struct {
+	Stage    string
 	Password string
 }
 
 var _ nodes.InputCreateAuthenticatorPassword = &InputSetupPassword{}
+var _ nodes.InputAuthenticationStage = &InputSetupPassword{}
 
 func (i *InputSetupPassword) GetPassword() string { return i.Password }
+func (i *InputSetupPassword) GetAuthenticationStage() interaction.AuthenticationStage {
+	return interaction.AuthenticationStage(i.Stage)
+}
 
 type InputResendCode struct{}
 
@@ -124,15 +130,20 @@ func (i *InputAuthTOTP) GetTOTP() string         { return i.Code }
 func (i *InputAuthTOTP) CreateDeviceToken() bool { return i.DeviceToken }
 
 type InputAuthPassword struct {
+	Stage       string
 	Password    string
 	DeviceToken bool
 }
 
 var _ nodes.InputAuthenticationPassword = &InputAuthPassword{}
 var _ nodes.InputCreateDeviceToken = &InputAuthPassword{}
+var _ nodes.InputAuthenticationStage = &InputAuthPassword{}
 
 func (i *InputAuthPassword) GetPassword() string     { return i.Password }
 func (i *InputAuthPassword) CreateDeviceToken() bool { return i.DeviceToken }
+func (i *InputAuthPassword) GetAuthenticationStage() interaction.AuthenticationStage {
+	return interaction.AuthenticationStage(i.Stage)
+}
 
 type InputAuthRecoveryCode struct {
 	Code string
