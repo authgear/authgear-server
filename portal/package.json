@@ -52,6 +52,7 @@
     "immer": "8.0.0",
     "js-yaml": "3.14.1",
     "luxon": "1.25.0",
+    "postcss": "8.2.4",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "react-helmet-async": "1.0.7",
