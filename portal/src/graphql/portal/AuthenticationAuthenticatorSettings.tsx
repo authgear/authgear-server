@@ -477,8 +477,6 @@ const AuthenticationAuthenticatorSettingsScreen: React.FC = function Authenticat
   const { appID } = useParams();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-  // TODO: refine this error, include more info for distinguishing
-  // general validation error
   const errorRules: ErrorParseRule[] = useMemo(
     () => [
       {
