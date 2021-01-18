@@ -105,6 +105,50 @@ config:
           client_id: client_b
 
 ---
+name: dupe-wechat-oauth-provider
+error: |-
+  invalid configuration:
+  /identity/oauth/providers/1: duplicated OAuth provider
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    oauth:
+      providers:
+        - alias: wechat_a
+          type: wechat
+          client_id: client_id_a
+          account_id: account_id
+          app_type: mobile
+        - alias: wechat_b
+          type: wechat
+          client_id: client_id_b
+          account_id: account_id
+          app_type: mobile
+
+---
+name: dupe-wechat-oauth-provider-different-app-type
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    oauth:
+      providers:
+        - alias: wechat_a
+          type: wechat
+          client_id: client_id_a
+          account_id: account_id
+          app_type: mobile
+        - alias: wechat_b
+          type: wechat
+          client_id: client_id_b
+          account_id: account_id
+          app_type: web
+
+---
 name: missing-oauth-provider-alias
 error: |-
   invalid configuration:
