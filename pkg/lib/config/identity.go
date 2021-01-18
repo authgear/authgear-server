@@ -271,6 +271,23 @@ const (
 	OAuthSSOProviderTypeWechat    OAuthSSOProviderType = "wechat"
 )
 
+var _ = Schema.Add("OAuthSSOWeChatAppType", `
+{
+	"type": "string",
+	"enum": [
+		"mobile",
+		"web"
+	]
+}
+`)
+
+type OAuthSSOWeChatAppType string
+
+const (
+	OAuthSSOWeChatAppTypeWeb    OAuthSSOWeChatAppType = "web"
+	OAuthSSOWeChatAppTypeMobile OAuthSSOWeChatAppType = "mobile"
+)
+
 var _ = Schema.Add("OAuthSSOProviderConfig", `
 {
 	"type": "object",
@@ -282,7 +299,8 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"claims": { "$ref": "#/$defs/VerificationOAuthClaimsConfig" },
 		"tenant": { "type": "string" },
 		"key_id": { "type": "string" },
-		"team_id": { "type": "string" }
+		"team_id": { "type": "string" },
+		"app_type": { "$ref": "#/$defs/OAuthSSOWeChatAppType" }
 	},
 	"required": ["alias", "type", "client_id"],
 	"allOf": [
@@ -296,6 +314,12 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 			"if": { "properties": { "type": { "const": "azureadv2" } } },
 			"then": {
 				"required": ["tenant"]
+			}
+		},
+		{
+			"if": { "properties": { "type": { "const": "wechat" } } },
+			"then": {
+				"required": ["app_type"]
 			}
 		}
 	]
@@ -314,6 +338,9 @@ type OAuthSSOProviderConfig struct {
 	// KeyID and TeamID are specific to apple
 	KeyID  string `json:"key_id,omitempty"`
 	TeamID string `json:"team_id,omitempty"`
+
+	// AppType is specific to wechat, support web or mobile
+	AppType OAuthSSOWeChatAppType `json:"app_type,omitempty"`
 }
 
 func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {

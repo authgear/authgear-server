@@ -14,6 +14,7 @@ const (
 	CandidateKeyProviderType      = "provider_type"
 	CandidateKeyProviderAlias     = "provider_alias"
 	CandidateKeyProviderSubjectID = "provider_subject_id"
+	CandidateKeyProviderAppType   = "provider_app_type"
 
 	CandidateKeyLoginIDType  = "login_id_type"
 	CandidateKeyLoginIDKey   = "login_id_key"
@@ -29,6 +30,7 @@ func NewOAuthCandidate(c *config.OAuthSSOProviderConfig) Candidate {
 		CandidateKeyProviderType:      string(c.Type),
 		CandidateKeyProviderAlias:     c.Alias,
 		CandidateKeyProviderSubjectID: "",
+		CandidateKeyProviderAppType:   string(c.AppType),
 		CandidateKeyDisplayID:         "",
 	}
 }
