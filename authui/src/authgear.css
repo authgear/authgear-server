@@ -56,125 +56,85 @@
   --color-error-shaded-7: #be3228;
   --color-error-shaded-8: #8c251d;
 
-  --color-google-primary-unshaded: #ffffff;
-  --color-google-primary-shaded-1: #767676;
-  --color-google-primary-shaded-2: #a6a6a6;
-  --color-google-primary-shaded-3: #c8c8c8;
-  --color-google-primary-shaded-4: #d0d0d0;
-  --color-google-primary-shaded-5: #dadada;
-  --color-google-primary-shaded-6: #eaeaea;
-  --color-google-primary-shaded-7: #f4f4f4;
-  --color-google-primary-shaded-8: #f8f8f8;
+  --color-white-unshaded: #ffffff;
+  --color-white-shaded-1: #767676;
+  --color-white-shaded-2: #a6a6a6;
+  --color-white-shaded-3: #c8c8c8;
+  --color-white-shaded-4: #d0d0d0;
+  --color-white-shaded-5: #dadada;
+  --color-white-shaded-6: #eaeaea;
+  --color-white-shaded-7: #f4f4f4;
+  --color-white-shaded-8: #f8f8f8;
 
-  --color-google-background-unshaded: #000000;
-  --color-google-background-shaded-1: #898989;
-  --color-google-background-shaded-2: #737373;
-  --color-google-background-shaded-3: #595959;
-  --color-google-background-shaded-4: #373737;
-  --color-google-background-shaded-5: #2f2f2f;
-  --color-google-background-shaded-6: #252525;
-  --color-google-background-shaded-7: #151515;
-  --color-google-background-shaded-8: #0b0b0b;
+  --color-black-unshaded: #000000;
+  --color-black-shaded-1: #898989;
+  --color-black-shaded-2: #737373;
+  --color-black-shaded-3: #595959;
+  --color-black-shaded-4: #373737;
+  --color-black-shaded-5: #2f2f2f;
+  --color-black-shaded-6: #252525;
+  --color-black-shaded-7: #151515;
+  --color-black-shaded-8: #0b0b0b;
 
-  --color-apple-primary-unshaded: #000000;
-  --color-apple-primary-shaded-1: #898989;
-  --color-apple-primary-shaded-2: #737373;
-  --color-apple-primary-shaded-3: #595959;
-  --color-apple-primary-shaded-4: #373737;
-  --color-apple-primary-shaded-5: #2f2f2f;
-  --color-apple-primary-shaded-6: #252525;
-  --color-apple-primary-shaded-7: #151515;
-  --color-apple-primary-shaded-8: #0b0b0b;
+  --color-apple-unshaded: #000000;
+  --color-apple-shaded-1: #898989;
+  --color-apple-shaded-2: #737373;
+  --color-apple-shaded-3: #595959;
+  --color-apple-shaded-4: #373737;
+  --color-apple-shaded-5: #2f2f2f;
+  --color-apple-shaded-6: #252525;
+  --color-apple-shaded-7: #151515;
+  --color-apple-shaded-8: #0b0b0b;
 
-  --color-apple-background-unshaded: #ffffff;
-  --color-apple-background-shaded-1: #767676;
-  --color-apple-background-shaded-2: #a6a6a6;
-  --color-apple-background-shaded-3: #c8c8c8;
-  --color-apple-background-shaded-4: #d0d0d0;
-  --color-apple-background-shaded-5: #dadada;
-  --color-apple-background-shaded-6: #eaeaea;
-  --color-apple-background-shaded-7: #f4f4f4;
-  --color-apple-background-shaded-8: #f8f8f8;
+  --color-google-unshaded: #ffffff;
+  --color-google-shaded-1: #767676;
+  --color-google-shaded-2: #a6a6a6;
+  --color-google-shaded-3: #c8c8c8;
+  --color-google-shaded-4: #d0d0d0;
+  --color-google-shaded-5: #dadada;
+  --color-google-shaded-6: #eaeaea;
+  --color-google-shaded-7: #f4f4f4;
+  --color-google-shaded-8: #f8f8f8;
 
-  --color-facebook-primary-unshaded: #3b5998;
-  --color-facebook-primary-shaded-1: #f5f7fb;
-  --color-facebook-primary-shaded-2: #d7dfef;
-  --color-facebook-primary-shaded-3: #b7c4e0;
-  --color-facebook-primary-shaded-4: #7b91c2;
-  --color-facebook-primary-shaded-5: #4d69a5;
-  --color-facebook-primary-shaded-6: #36508a;
-  --color-facebook-primary-shaded-7: #2d4474;
-  --color-facebook-primary-shaded-8: #213256;
+  --color-facebook-unshaded: #3b5998;
+  --color-facebook-shaded-1: #f5f7fb;
+  --color-facebook-shaded-2: #d7dfef;
+  --color-facebook-shaded-3: #b7c4e0;
+  --color-facebook-shaded-4: #7b91c2;
+  --color-facebook-shaded-5: #4d69a5;
+  --color-facebook-shaded-6: #36508a;
+  --color-facebook-shaded-7: #2d4474;
+  --color-facebook-shaded-8: #213256;
 
-  --color-facebook-background-unshaded: #ffffff;
-  --color-facebook-background-shaded-1: #767676;
-  --color-facebook-background-shaded-2: #a6a6a6;
-  --color-facebook-background-shaded-3: #c8c8c8;
-  --color-facebook-background-shaded-4: #d0d0d0;
-  --color-facebook-background-shaded-5: #dadada;
-  --color-facebook-background-shaded-6: #eaeaea;
-  --color-facebook-background-shaded-7: #f4f4f4;
-  --color-facebook-background-shaded-8: #f8f8f8;
+  --color-linkedin-unshaded: #187fb8;
+  --color-linkedin-shaded-1: #f3f9fc;
+  --color-linkedin-shaded-2: #d2e8f4;
+  --color-linkedin-shaded-3: #add4ea;
+  --color-linkedin-shaded-4: #65add4;
+  --color-linkedin-shaded-5: #2d8dc0;
+  --color-linkedin-shaded-6: #1573a5;
+  --color-linkedin-shaded-7: #12618c;
+  --color-linkedin-shaded-8: #0d4867;
 
-  --color-linkedin-primary-unshaded: #187fb8;
-  --color-linkedin-primary-shaded-1: #f3f9fc;
-  --color-linkedin-primary-shaded-2: #d2e8f4;
-  --color-linkedin-primary-shaded-3: #add4ea;
-  --color-linkedin-primary-shaded-4: #65add4;
-  --color-linkedin-primary-shaded-5: #2d8dc0;
-  --color-linkedin-primary-shaded-6: #1573a5;
-  --color-linkedin-primary-shaded-7: #12618c;
-  --color-linkedin-primary-shaded-8: #0d4867;
+  --color-azureadv2-unshaded: #00a2ed;
+  --color-azureadv2-shaded-1: #f4fbfe;
+  --color-azureadv2-shaded-2: #d4effc;
+  --color-azureadv2-shaded-3: #afe2fa;
+  --color-azureadv2-shaded-4: #62c6f4;
+  --color-azureadv2-shaded-5: #1dadef;
+  --color-azureadv2-shaded-6: #0092d5;
+  --color-azureadv2-shaded-7: #007bb4;
+  --color-azureadv2-shaded-8: #005b85;
 
-  --color-linkedin-background-unshaded: #ffffff;
-  --color-linkedin-background-shaded-1: #767676;
-  --color-linkedin-background-shaded-2: #a6a6a6;
-  --color-linkedin-background-shaded-3: #c8c8c8;
-  --color-linkedin-background-shaded-4: #d0d0d0;
-  --color-linkedin-background-shaded-5: #dadada;
-  --color-linkedin-background-shaded-6: #eaeaea;
-  --color-linkedin-background-shaded-7: #f4f4f4;
-  --color-linkedin-background-shaded-8: #f8f8f8;
-
-  --color-azureadv2-primary-unshaded: #e2e2e2;
-  --color-azureadv2-primary-shaded-1: #cacaca;
-  --color-azureadv2-primary-shaded-2: #b1b1b1;
-  --color-azureadv2-primary-shaded-3: #989898;
-  --color-azureadv2-primary-shaded-4: #7f7f7f;
-  --color-azureadv2-primary-shaded-5: #666666;
-  --color-azureadv2-primary-shaded-6: #4d4d4d;
-  --color-azureadv2-primary-shaded-7: #343434;
-  --color-azureadv2-primary-shaded-8: #1b1b1b;
-
-  --color-azureadv2-background-unshaded: #000000;
-  --color-azureadv2-background-shaded-1: #898989;
-  --color-azureadv2-background-shaded-2: #737373;
-  --color-azureadv2-background-shaded-3: #595959;
-  --color-azureadv2-background-shaded-4: #373737;
-  --color-azureadv2-background-shaded-5: #2f2f2f;
-  --color-azureadv2-background-shaded-6: #252525;
-  --color-azureadv2-background-shaded-7: #151515;
-  --color-azureadv2-background-shaded-8: #0b0b0b;
-
-  --color-wechat-primary-unshaded: #07c160;
-  --color-wechat-primary-shaded-1: #f3fdf8;
-  --color-wechat-primary-shaded-2: #d0f5e2;
-  --color-wechat-primary-shaded-3: #a8edc9;
-  --color-wechat-primary-shaded-4: #5dda99;
-  --color-wechat-primary-shaded-5: #1fc971;
-  --color-wechat-primary-shaded-6: #07ae58;
-  --color-wechat-primary-shaded-7: #06934a;
-  --color-wechat-primary-shaded-8: #046d37;
-
-  --color-wechat-background-unshaded: #ffffff;
-  --color-wechat-background-shaded-1: #767676;
-  --color-wechat-background-shaded-2: #a6a6a6;
-  --color-wechat-background-shaded-3: #c8c8c8;
-  --color-wechat-background-shaded-4: #d0d0d0;
-  --color-wechat-background-shaded-5: #dadada;
-  --color-wechat-background-shaded-6: #eaeaea;
-  --color-wechat-background-shaded-7: #f4f4f4;
-  --color-wechat-background-shaded-8: #f8f8f8;
+  --color-wechat-unshaded: #07c160;
+  --color-wechat-shaded-1: #f3fdf8;
+  --color-wechat-shaded-2: #d0f5e2;
+  --color-wechat-shaded-3: #a8edc9;
+  --color-wechat-shaded-4: #5dda99;
+  --color-wechat-shaded-5: #1fc971;
+  --color-wechat-shaded-6: #07ae58;
+  --color-wechat-shaded-7: #06934a;
+  --color-wechat-shaded-8: #046d37;
 
   --color-warn: #fbca4e;
   --color-good: #58ca9a;
@@ -224,126 +184,6 @@
     --color-background-shaded-8: #0b0b0b;
 
     --color-pane-background: #252525;
-
-    --color-google-primary-unshaded: #ffffff;
-    --color-google-primary-shaded-1: #767676;
-    --color-google-primary-shaded-2: #a6a6a6;
-    --color-google-primary-shaded-3: #c8c8c8;
-    --color-google-primary-shaded-4: #d0d0d0;
-    --color-google-primary-shaded-5: #dadada;
-    --color-google-primary-shaded-6: #eaeaea;
-    --color-google-primary-shaded-7: #f4f4f4;
-    --color-google-primary-shaded-8: #f8f8f8;
-
-    --color-google-background-unshaded: #000000;
-    --color-google-background-shaded-1: #898989;
-    --color-google-background-shaded-2: #737373;
-    --color-google-background-shaded-3: #595959;
-    --color-google-background-shaded-4: #373737;
-    --color-google-background-shaded-5: #2f2f2f;
-    --color-google-background-shaded-6: #252525;
-    --color-google-background-shaded-7: #151515;
-    --color-google-background-shaded-8: #0b0b0b;
-
-    --color-apple-primary-unshaded: #ffffff;
-    --color-apple-primary-shaded-1: #767676;
-    --color-apple-primary-shaded-2: #a6a6a6;
-    --color-apple-primary-shaded-3: #c8c8c8;
-    --color-apple-primary-shaded-4: #d0d0d0;
-    --color-apple-primary-shaded-5: #dadada;
-    --color-apple-primary-shaded-6: #eaeaea;
-    --color-apple-primary-shaded-7: #f4f4f4;
-    --color-apple-primary-shaded-8: #f8f8f8;
-
-    --color-apple-background-unshaded: #000000;
-    --color-apple-background-shaded-1: #898989;
-    --color-apple-background-shaded-2: #737373;
-    --color-apple-background-shaded-3: #595959;
-    --color-apple-background-shaded-4: #373737;
-    --color-apple-background-shaded-5: #2f2f2f;
-    --color-apple-background-shaded-6: #252525;
-    --color-apple-background-shaded-7: #151515;
-    --color-apple-background-shaded-8: #0b0b0b;
-
-    --color-facebook-primary-unshaded: #ffffff;
-    --color-facebook-primary-shaded-1: #767676;
-    --color-facebook-primary-shaded-2: #a6a6a6;
-    --color-facebook-primary-shaded-3: #c8c8c8;
-    --color-facebook-primary-shaded-4: #d0d0d0;
-    --color-facebook-primary-shaded-5: #dadada;
-    --color-facebook-primary-shaded-6: #eaeaea;
-    --color-facebook-primary-shaded-7: #f4f4f4;
-    --color-facebook-primary-shaded-8: #f8f8f8;
-
-    --color-facebook-background-unshaded: #000000;
-    --color-facebook-background-shaded-1: #898989;
-    --color-facebook-background-shaded-2: #737373;
-    --color-facebook-background-shaded-3: #595959;
-    --color-facebook-background-shaded-4: #373737;
-    --color-facebook-background-shaded-5: #2f2f2f;
-    --color-facebook-background-shaded-6: #252525;
-    --color-facebook-background-shaded-7: #151515;
-    --color-facebook-background-shaded-8: #0b0b0b;
-
-    --color-linkedin-primary-unshaded: #ffffff;
-    --color-linkedin-primary-shaded-1: #767676;
-    --color-linkedin-primary-shaded-2: #a6a6a6;
-    --color-linkedin-primary-shaded-3: #c8c8c8;
-    --color-linkedin-primary-shaded-4: #d0d0d0;
-    --color-linkedin-primary-shaded-5: #dadada;
-    --color-linkedin-primary-shaded-6: #eaeaea;
-    --color-linkedin-primary-shaded-7: #f4f4f4;
-    --color-linkedin-primary-shaded-8: #f8f8f8;
-
-    --color-linkedin-background-unshaded: #000000;
-    --color-linkedin-background-shaded-1: #898989;
-    --color-linkedin-background-shaded-2: #737373;
-    --color-linkedin-background-shaded-3: #595959;
-    --color-linkedin-background-shaded-4: #373737;
-    --color-linkedin-background-shaded-5: #2f2f2f;
-    --color-linkedin-background-shaded-6: #252525;
-    --color-linkedin-background-shaded-7: #151515;
-    --color-linkedin-background-shaded-8: #0b0b0b;
-
-    --color-azureadv2-primary-unshaded: #ffffff;
-    --color-azureadv2-primary-shaded-1: #767676;
-    --color-azureadv2-primary-shaded-2: #a6a6a6;
-    --color-azureadv2-primary-shaded-3: #c8c8c8;
-    --color-azureadv2-primary-shaded-4: #d0d0d0;
-    --color-azureadv2-primary-shaded-5: #dadada;
-    --color-azureadv2-primary-shaded-6: #eaeaea;
-    --color-azureadv2-primary-shaded-7: #f4f4f4;
-    --color-azureadv2-primary-shaded-8: #f8f8f8;
-
-    --color-azureadv2-background-unshaded: #000000;
-    --color-azureadv2-background-shaded-1: #898989;
-    --color-azureadv2-background-shaded-2: #737373;
-    --color-azureadv2-background-shaded-3: #595959;
-    --color-azureadv2-background-shaded-4: #373737;
-    --color-azureadv2-background-shaded-5: #2f2f2f;
-    --color-azureadv2-background-shaded-6: #252525;
-    --color-azureadv2-background-shaded-7: #151515;
-    --color-azureadv2-background-shaded-8: #0b0b0b;
-
-    --color-wechat-primary-unshaded: #ffffff;
-    --color-wechat-primary-shaded-1: #767676;
-    --color-wechat-primary-shaded-2: #a6a6a6;
-    --color-wechat-primary-shaded-3: #c8c8c8;
-    --color-wechat-primary-shaded-4: #d0d0d0;
-    --color-wechat-primary-shaded-5: #dadada;
-    --color-wechat-primary-shaded-6: #eaeaea;
-    --color-wechat-primary-shaded-7: #f4f4f4;
-    --color-wechat-primary-shaded-8: #f8f8f8;
-
-    --color-wechat-background-unshaded: #000000;
-    --color-wechat-background-shaded-1: #898989;
-    --color-wechat-background-shaded-2: #737373;
-    --color-wechat-background-shaded-3: #595959;
-    --color-wechat-background-shaded-4: #373737;
-    --color-wechat-background-shaded-5: #2f2f2f;
-    --color-wechat-background-shaded-6: #252525;
-    --color-wechat-background-shaded-7: #151515;
-    --color-wechat-background-shaded-8: #0b0b0b;
   }
 }
 
@@ -746,20 +586,19 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
 }
 
-.btn {
-  height: 36px;
-  border-radius: 2px;
-  padding: 0 24px;
-}
-
 /* Make <a> appears like <button> */
-a.btn {
+.as-btn {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
 }
 
+.btn.primary-btn {
+  height: 36px;
+  border-radius: 2px;
+  padding: 0 24px;
+}
 .primary-btn {
   color: var(--color-background-unshaded);
   background-color: var(--color-primary-unshaded);
@@ -1055,6 +894,11 @@ a.btn {
   margin: 0 0 0 3px;
 }
 
+.btn.sso-btn {
+  height: 36px;
+  border-radius: 2px;
+  padding: 0 12px;
+}
 /* Safari button cannot have display being set to other value */
 /* Therefore we have to wrap the content in a span */
 /* However, other sizing properties still need to be declared on the button itself */
@@ -1079,99 +923,201 @@ a.btn {
 }
 
 .apple {
-  color: var(--color-apple-background-unshaded);
-  background-color: var(--color-apple-primary-unshaded);
+  color: var(--color-white-unshaded);
+  background-color: var(--color-apple-unshaded);
 }
 .apple:hover {
-  background-color: var(--color-apple-primary-shaded-4);
+  background-color: var(--color-apple-shaded-4);
 }
 .apple:active {
-  background-color: var(--color-apple-primary-shaded-7);
+  background-color: var(--color-apple-shaded-7);
 }
 .apple:disabled {
-  background-color: var(--color-apple-primary-shaded-2);
+  background-color: var(--color-apple-shaded-2);
+}
+@media (prefers-color-scheme: dark) {
+  .apple {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .apple:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .apple:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .apple:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .apple .sso-btn-icon {
+    color: var(--color-apple-unshaded);
+  }
 }
 
 .sso-btn.google {
   border: 1px solid var(--color-text-shaded-2);
 }
 .google {
-  color: var(--color-google-background-unshaded);
-  background-color: var(--color-google-primary-unshaded);
+  color: var(--color-black-unshaded);
+  background-color: var(--color-google-unshaded);
 }
 .google:hover {
-  background-color: var(--color-google-primary-shaded-4);
+  background-color: var(--color-google-shaded-4);
 }
 .google:active {
-  background-color: var(--color-google-primary-shaded-7);
+  background-color: var(--color-google-shaded-7);
 }
 .google:disabled {
-  background-color: var(--color-google-primary-shaded-2);
+  background-color: var(--color-google-shaded-2);
 }
 @media (prefers-color-scheme: dark) {
   .sso-btn.google {
     border: 0;
   }
+  .google {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .google:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .google:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .google:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .google .sso-btn-icon {
+    color: var(--color-black-unshaded);
+  }
 }
 
 .facebook {
-  color: var(--color-facebook-background-unshaded);
-  background-color: var(--color-facebook-primary-unshaded);
+  color: var(--color-white-unshaded);
+  background-color: var(--color-facebook-unshaded);
 }
 .facebook:hover {
-  background-color: var(--color-facebook-primary-shaded-4);
+  background-color: var(--color-facebook-shaded-4);
 }
 .facebook:active {
-  background-color: var(--color-facebook-primary-shaded-7);
+  background-color: var(--color-facebook-shaded-7);
 }
 .facebook:disabled {
-  background-color: var(--color-facebook-primary-shaded-2);
+  background-color: var(--color-facebook-shaded-2);
+}
+@media (prefers-color-scheme: dark) {
+  .facebook {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .facebook:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .facebook:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .facebook:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .facebook .sso-btn-icon {
+    color: var(--color-facebook-unshaded);
+  }
 }
 
 .linkedin {
-  color: var(--color-linkedin-background-unshaded);
-  background-color: var(--color-linkedin-primary-unshaded);
+  color: var(--color-white-unshaded);
+  background-color: var(--color-linkedin-unshaded);
 }
 .linkedin:hover {
-  background-color: var(--color-linkedin-primary-shaded-4);
+  background-color: var(--color-linkedin-shaded-4);
 }
 .linkedin:active {
-  background-color: var(--color-linkedin-primary-shaded-7);
+  background-color: var(--color-linkedin-shaded-7);
 }
 .linkedin:disabled {
-  background-color: var(--color-linkedin-primary-shaded-2);
+  background-color: var(--color-linkedin-shaded-2);
+}
+@media (prefers-color-scheme: dark) {
+  .linkedin {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .linkedin:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .linkedin:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .linkedin:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .linkedin .sso-btn-icon {
+    color: var(--color-linkedin-unshaded);
+  }
 }
 
 .azureadv2 {
-  color: var(--color-azureadv2-background-unshaded);
-  background-color: var(--color-azureadv2-primary-unshaded);
+  color: var(--color-white-unshaded);
+  background-color: var(--color-azureadv2-unshaded);
 }
 .azureadv2:hover {
-  background-color: var(--color-azureadv2-primary-shaded-4);
+  background-color: var(--color-azureadv2-shaded-4);
 }
 .azureadv2:active {
-  background-color: var(--color-azureadv2-primary-shaded-7);
+  background-color: var(--color-azureadv2-shaded-7);
 }
 .azureadv2:disabled {
-  background-color: var(--color-azureadv2-primary-shaded-2);
+  background-color: var(--color-azureadv2-shaded-2);
+}
+@media (prefers-color-scheme: dark) {
+  .azureadv2 {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .azureadv2:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .azureadv2:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .azureadv2:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .azureadv2 .sso-btn-icon {
+    color: var(--color-azureadv2-unshaded);
+  }
 }
 
 .wechat {
-  color: white;
-  background-color: #07c160;
-}
-.wechat {
-  color: var(--color-wechat-background-unshaded);
-  background-color: var(--color-wechat-primary-unshaded);
+  color: var(--color-white-unshaded);
+  background-color: var(--color-wechat-unshaded);
 }
 .wechat:hover {
-  background-color: var(--color-wechat-primary-shaded-4);
+  background-color: var(--color-wechat-shaded-4);
 }
 .wechat:active {
-  background-color: var(--color-wechat-primary-shaded-7);
+  background-color: var(--color-wechat-shaded-7);
 }
 .wechat:disabled {
-  background-color: var(--color-wechat-primary-shaded-2);
+  background-color: var(--color-wechat-shaded-2);
+}
+@media (prefers-color-scheme: dark) {
+  .wechat {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .wechat:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .wechat:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .wechat:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .wechat .sso-btn-icon {
+    color: var(--color-wechat-unshaded);
+  }
 }
 
 .sso-loginid-separator::before, .sso-loginid-separator::after {

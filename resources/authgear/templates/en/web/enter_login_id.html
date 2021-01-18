@@ -21,7 +21,7 @@
 </h1>
 
 {{ if $.IdentityID }}
-<p class="font-smaller overflow-wrap-break-word secondary-txt">
+<p class="font-smaller margin-10 overflow-wrap-break-word secondary-txt">
 	{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
 </p>
 {{ end }}
@@ -70,7 +70,7 @@
 	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
 	{{ if .IdentityID }}
-	<button form="remove-form" class="secondary-btn" type="submit" name="x_action" value="remove">
+	<button form="remove-form" class="btn secondary-btn" type="submit" name="x_action" value="remove">
 		{{ if eq .LoginIDType "username" }}
 		{{ template "remove-button-label" }}
 		{{ else }}
