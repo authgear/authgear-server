@@ -105,6 +105,14 @@
 				{{ if eq .type "oauth" }}
 				<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
+				{{ $skip := false }}
+				{{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}
+				{{ $skip = true }}
+				{{ end }}
+				{{- if (and (eq .provider_type "wechat") (eq .provider_app_type "web") ($.IsNativePlatform)) -}}
+				{{ $skip = true }}
+				{{ end }}
+				{{- if not $skip -}}
 				<button class="btn sso-btn margin-v-4 margin-h-6 {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
@@ -135,6 +143,7 @@
 					</span>
 				</button>
 				</form>
+				{{ end }}
 				{{ end }}
 				{{ end }}
 			</div>

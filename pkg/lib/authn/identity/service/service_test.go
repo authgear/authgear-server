@@ -56,6 +56,7 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_type":       "google",
 					"provider_alias":      "google",
 					"provider_subject_id": "",
+					"provider_app_type":   "",
 				},
 			})
 		})
@@ -174,6 +175,7 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_type":       "google",
 					"provider_alias":      "google",
 					"provider_subject_id": "john.doe@gmail.com",
+					"provider_app_type":   "",
 				},
 			})
 		})
