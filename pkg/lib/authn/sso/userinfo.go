@@ -100,7 +100,7 @@ func DecodeLinkedIn(userInfo map[string]interface{}) *ProviderUserInfo {
 }
 
 func DecodeWechat(userInfo map[string]interface{}) *ProviderUserInfo {
-	id, _ := userInfo["openid"].(string)
+	id, _ := userInfo["userid"].(string)
 
 	return &ProviderUserInfo{
 		ID: id,

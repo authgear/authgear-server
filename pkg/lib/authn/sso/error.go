@@ -9,11 +9,12 @@ var SSOFailed = apierrors.Unauthorized.WithReason("SSOFailed")
 type ssoFailCause string
 
 const (
-	SSOUnauthorized     ssoFailCause = "Unauthorized"
-	NetworkFailed       ssoFailCause = "NetworkFailed"
-	InvalidParams       ssoFailCause = "InvalidParams"
-	AlreadyLinked       ssoFailCause = "AlreadyLinked"
-	InvalidCodeVerifier ssoFailCause = "InvalidCodeVerifier"
+	SSOUnauthorized      ssoFailCause = "Unauthorized"
+	NetworkFailed        ssoFailCause = "NetworkFailed"
+	InvalidParams        ssoFailCause = "InvalidParams"
+	AlreadyLinked        ssoFailCause = "AlreadyLinked"
+	InvalidCodeVerifier  ssoFailCause = "InvalidCodeVerifier"
+	InvalidConfiguration ssoFailCause = "InvalidConfiguration"
 )
 
 func NewSSOFailed(cause ssoFailCause, msg string) error {

@@ -47,6 +47,14 @@ func (r wechatAccessTokenResp) OpenID() string {
 	return ""
 }
 
+func (r wechatAccessTokenResp) UnionID() string {
+	unionid, ok := r["unionid"].(string)
+	if ok {
+		return unionid
+	}
+	return ""
+}
+
 type wechatUserInfoResp map[string]interface{}
 
 func (r wechatUserInfoResp) OpenID() string {
