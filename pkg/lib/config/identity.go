@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strconv"
 )
 
 var _ = Schema.Add("IdentityConfig", `
@@ -300,7 +301,9 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"tenant": { "type": "string" },
 		"key_id": { "type": "string" },
 		"team_id": { "type": "string" },
-		"app_type": { "$ref": "#/$defs/OAuthSSOWeChatAppType" }
+		"app_type": { "$ref": "#/$defs/OAuthSSOWeChatAppType" },
+		"account_id": { "type": "string" },
+		"is_sandbox_account": { "type": "boolean" }
 	},
 	"required": ["alias", "type", "client_id"],
 	"allOf": [
@@ -319,7 +322,7 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		{
 			"if": { "properties": { "type": { "const": "wechat" } } },
 			"then": {
-				"required": ["app_type"]
+				"required": ["app_type", "account_id"]
 			}
 		}
 	]
@@ -340,7 +343,9 @@ type OAuthSSOProviderConfig struct {
 	TeamID string `json:"team_id,omitempty"`
 
 	// AppType is specific to wechat, support web or mobile
-	AppType OAuthSSOWeChatAppType `json:"app_type,omitempty"`
+	AppType          OAuthSSOWeChatAppType `json:"app_type,omitempty"`
+	AccountID        string                `json:"account_id,omitempty"`
+	IsSandboxAccount bool                  `json:"is_sandbox_account,omitempty"`
 }
 
 func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
@@ -386,7 +391,12 @@ func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
 		// the user may not be associate their account.
 		keys["team_id"] = c.TeamID
 	case OAuthSSOProviderTypeWechat:
-		keys["client_id"] = c.ClientID
+		// WeChat does NOT support OIDC.
+		// In the same Weixin Open Platform account, the user UnionID is unique.
+		// The id is scoped to Open Platform account.
+		// https://developers.weixin.qq.com/miniprogram/en/dev/framework/open-ability/union-id.html
+		keys["account_id"] = c.AccountID
+		keys["is_sandbox_account"] = strconv.FormatBool(c.IsSandboxAccount)
 	}
 
 	return ProviderID{

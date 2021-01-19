@@ -80,7 +80,15 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	oauthProviderAliases := map[string]struct{}{}
 	for i, provider := range c.Identity.OAuth.Providers {
 		// Ensure provider ID is not duplicated
-		id, err := json.Marshal(provider.ProviderID().Claims())
+		// Except WeChat provider with different app type
+		providerID := map[string]interface{}{}
+		for k, v := range provider.ProviderID().Claims() {
+			providerID[k] = v
+		}
+		if provider.Type == OAuthSSOProviderTypeWechat {
+			providerID["app_type"] = provider.AppType
+		}
+		id, err := json.Marshal(providerID)
 		if err != nil {
 			panic("config: cannot marshal provider ID claims: " + err.Error())
 		}
