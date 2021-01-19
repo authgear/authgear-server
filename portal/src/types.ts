@@ -88,7 +88,7 @@ export const createOAuthSSOProviderItemKey = (
 export const parseOAuthSSOProviderItemKey = (
   itemKey: OAuthSSOProviderItemKey
 ): [OAuthSSOProviderType, OAuthSSOWeChatAppType?] => {
-  var [type, appType] = itemKey.split(".");
+  const [type, appType] = itemKey.split(".");
   return [type as OAuthSSOProviderType, appType as OAuthSSOWeChatAppType];
 };
 
@@ -259,6 +259,7 @@ export interface OAuthClientConfig {
   grant_types?: string[];
   response_types?: string[];
   post_logout_redirect_uris?: string[];
+  wechat_redirect_uris?: string[];
   access_token_lifetime_seconds?: number;
   refresh_token_lifetime_seconds?: number;
   issue_jwt_access_token?: boolean;
