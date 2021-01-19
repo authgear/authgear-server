@@ -143,7 +143,6 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_id",
       "client_secret",
       "account_id",
-      "is_sandbox_account",
     ]),
     isSecretFieldTextArea: false,
   },
