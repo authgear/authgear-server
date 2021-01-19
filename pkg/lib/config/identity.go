@@ -302,7 +302,7 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"key_id": { "type": "string" },
 		"team_id": { "type": "string" },
 		"app_type": { "$ref": "#/$defs/OAuthSSOWeChatAppType" },
-		"account_id": { "type": "string" },
+		"account_id": { "type": "string", "format": "wechat_account_id"},
 		"is_sandbox_account": { "type": "boolean" }
 	},
 	"required": ["alias", "type", "client_id"],

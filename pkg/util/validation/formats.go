@@ -5,6 +5,7 @@ import (
 	"net/mail"
 	"net/url"
 	"path/filepath"
+	"strings"
 
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
 
@@ -17,6 +18,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["email-name-addr"] = FormatEmail{AllowName: true}
 	jsonschemaformat.DefaultChecker["uri"] = FormatURI{}
 	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}
+	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -116,6 +118,23 @@ func (f FormatHTTPOrigin) CheckFormat(value interface{}) error {
 
 	if u.User != nil || u.RawPath != "" || u.RawQuery != "" || u.RawFragment != "" {
 		return errors.New("expect input URL without user info, path, query and fragment")
+	}
+
+	return nil
+}
+
+// FormatWeChatAccountID checks if input start with gh_.
+type FormatWeChatAccountID struct {
+}
+
+func (f FormatWeChatAccountID) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	if !strings.HasPrefix(str, "gh_") {
+		return errors.New("expect WeChat account id start with gh_")
 	}
 
 	return nil

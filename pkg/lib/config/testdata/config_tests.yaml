@@ -119,12 +119,12 @@ config:
         - alias: wechat_a
           type: wechat
           client_id: client_id_a
-          account_id: account_id
+          account_id: gh_accountid
           app_type: mobile
         - alias: wechat_b
           type: wechat
           client_id: client_id_b
-          account_id: account_id
+          account_id: gh_accountid
           app_type: mobile
 
 ---
@@ -140,13 +140,32 @@ config:
         - alias: wechat_a
           type: wechat
           client_id: client_id_a
-          account_id: account_id
+          account_id: gh_accountida
           app_type: mobile
         - alias: wechat_b
           type: wechat
           client_id: client_id_b
-          account_id: account_id
+          account_id: gh_accountidb
           app_type: web
+
+---
+name: invalid-wechat-oauth-provider-account-id
+error: |-
+  invalid configuration:
+  /identity/oauth/providers/0/account_id: format
+    map[error:expect WeChat account id start with gh_ format:wechat_account_id]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    oauth:
+      providers:
+        - alias: wechat_a
+          type: wechat
+          client_id: client_id_a
+          account_id: invalid_account_id
+          app_type: mobile
 
 ---
 name: missing-oauth-provider-alias
