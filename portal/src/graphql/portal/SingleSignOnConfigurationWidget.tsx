@@ -1,14 +1,17 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import cn from "classnames";
-import { Label, Toggle } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Checkbox, Label, Toggle } from "@fluentui/react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
 import FormTextField from "../../FormTextField";
 import {
+  createOAuthSSOProviderItemKey,
   OAuthClientCredentialItem,
   OAuthSSOProviderConfig,
+  OAuthSSOProviderItemKey,
   OAuthSSOProviderType,
+  OAuthSSOWeChatAppType,
 } from "../../types";
 
 import styles from "./SingleSignOnConfigurationWidget.module.scss";
@@ -49,6 +52,7 @@ interface OAuthProviderInfo {
   iconNode: React.ReactNode;
   fields: Set<WidgetTextFieldKey>;
   isSecretFieldTextArea: boolean;
+  appType?: OAuthSSOWeChatAppType;
 }
 
 const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
@@ -57,7 +61,7 @@ const MULTILINE_TEXT_FIELD_STYLE = {
   field: { minHeight: "160px" },
 };
 
-const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
+const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
   apple: {
     providerType: "apple",
     iconNode: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
@@ -117,6 +121,32 @@ const oauthProviders: Record<OAuthSSOProviderType, OAuthProviderInfo> = {
     ]),
     isSecretFieldTextArea: false,
   },
+  "wechat.web": {
+    providerType: "wechat",
+    appType: "web",
+    iconNode: <i className={cn("fab", "fa-weixin", styles.widgetLabelIcon)} />,
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "client_secret",
+      "account_id",
+      "is_sandbox_account",
+    ]),
+    isSecretFieldTextArea: false,
+  },
+  "wechat.mobile": {
+    providerType: "wechat",
+    appType: "web",
+    iconNode: <i className={cn("fab", "fa-weixin", styles.widgetLabelIcon)} />,
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "client_secret",
+      "account_id",
+      "is_sandbox_account",
+    ]),
+    isSecretFieldTextArea: false,
+  },
 };
 
 const WidgetHeaderLabel: React.FC<WidgetHeaderLabelProps> = function WidgetHeaderLabel(
@@ -170,14 +200,20 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     onChange,
   } = props;
 
+  const { renderToString } = useContext(Context);
+
+  const providerItemKey = createOAuthSSOProviderItemKey(
+    config.type,
+    config.app_type
+  );
+
   const {
-    providerType,
     isSecretFieldTextArea,
     iconNode,
     fields: visibleFields,
-  } = oauthProviders[config.type];
+  } = oauthProviders[providerItemKey];
 
-  const messageID = "OAuthBranding." + providerType;
+  const messageID = "OAuthBranding." + providerItemKey;
 
   const [extended, setExtended] = useState(isEnabled);
 
@@ -225,6 +261,16 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
   const onClientSecretChange = useCallback(
     (_, value?: string) =>
       onChange(config, { ...secret, client_secret: value ?? "" }),
+    [onChange, config, secret]
+  );
+  const onAccountIDChange = useCallback(
+    (_, value?: string) =>
+      onChange({ ...config, account_id: value ?? "" }, secret),
+    [onChange, config, secret]
+  );
+  const onIsSandBoxAccountChange = useCallback(
+    (_, value?: boolean) =>
+      onChange({ ...config, is_sandbox_account: value ?? false }, secret),
     [onChange, config, secret]
   );
 
@@ -314,6 +360,27 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           styles={TEXT_FIELD_STYLE}
           value={config.team_id ?? ""}
           onChange={onTeamIDChange}
+        />
+      )}
+      {visibleFields.has("account_id") && (
+        <FormTextField
+          parentJSONPointer={jsonPointer}
+          fieldName="account_id"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.account-id"
+          className={styles.textField}
+          styles={TEXT_FIELD_STYLE}
+          value={config.account_id ?? ""}
+          onChange={onAccountIDChange}
+        />
+      )}
+      {visibleFields.has("is_sandbox_account") && (
+        <Checkbox
+          label={renderToString(
+            "SingleSignOnConfigurationScreen.widget.is-sandbox-account"
+          )}
+          className={styles.checkbox}
+          checked={config.is_sandbox_account ?? false}
+          onChange={onIsSandBoxAccountChange}
         />
       )}
     </ExtendableWidget>

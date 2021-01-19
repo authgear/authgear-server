@@ -9,11 +9,16 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { clearEmptyObject } from "../../util/misc";
 import {
+  createOAuthSSOProviderItemKey,
+  isOAuthSSOProvider,
   OAuthClientCredentialItem,
   OAuthSecretItem,
   OAuthSSOProviderConfig,
+  OAuthSSOProviderItemKey,
+  oauthSSOProviderItemKeys,
   OAuthSSOProviderType,
-  oauthSSOProviderTypes,
+  OAuthSSOWeChatAppType,
+  parseOAuthSSOProviderItemKey,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
@@ -33,7 +38,7 @@ interface SSOProviderFormState {
 
 interface FormState {
   providers: SSOProviderFormState[];
-  isEnabled: Record<OAuthSSOProviderType, boolean>;
+  isEnabled: Record<OAuthSSOProviderItemKey, boolean>;
 }
 
 function constructFormState(
@@ -62,12 +67,17 @@ function constructFormState(
     });
   }
 
-  const isEnabled = {} as Record<OAuthSSOProviderType, boolean>;
+  const isEnabled = {} as Record<OAuthSSOProviderItemKey, boolean>;
   const isOAuthEnabled =
     appConfig.authentication?.identities?.includes("oauth") ?? true;
-  for (const type of oauthSSOProviderTypes) {
-    isEnabled[type] =
-      isOAuthEnabled && providers.some((p) => p.config.type === type);
+  for (const itemKey of oauthSSOProviderItemKeys) {
+    isEnabled[itemKey] =
+      isOAuthEnabled &&
+      providers.some(
+        (p) =>
+          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type) ===
+          itemKey
+      );
   }
 
   return { providers, isEnabled };
@@ -83,7 +93,10 @@ function constructConfig(
   // eslint-disable-next-line complexity
   return produce([config, secrets], ([config, { secrets }]) => {
     const providers = currentState.providers.filter(
-      (p) => currentState.isEnabled[p.config.type]
+      (p) =>
+        currentState.isEnabled[
+          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
+        ]
     );
 
     const configs: OAuthSSOProviderConfig[] = [];
@@ -136,35 +149,53 @@ function constructConfig(
   });
 }
 
+function defaultAlias(
+  providerType: OAuthSSOProviderType,
+  appType?: OAuthSSOWeChatAppType
+) {
+  return appType ? [providerType, appType].join("_") : providerType;
+}
+
 interface OAuthClientItemProps {
-  providerType: OAuthSSOProviderType;
+  providerItemKey: OAuthSSOProviderItemKey;
   form: AppSecretConfigFormModel<FormState>;
 }
 
 const OAuthClientItem: React.FC<OAuthClientItemProps> = function OAuthClientItem(
   props
 ) {
-  const { providerType, form } = props;
+  const { providerItemKey, form } = props;
   const {
     state: { providers, isEnabled },
     setState,
   } = form;
 
+  const [providerType, appType] = parseOAuthSSOProviderItemKey(providerItemKey);
+
   const provider = useMemo(
     () =>
-      providers.find((p) => p.config.type === providerType) ?? {
+      providers.find((p) =>
+        isOAuthSSOProvider(p.config, providerType, appType)
+      ) ?? {
         config: {
           type: providerType,
-          alias: providerType,
+          alias: defaultAlias(providerType, appType),
+          ...(appType && { app_type: appType }),
         },
-        secret: { alias: providerType, client_secret: "" },
+        secret: {
+          alias: defaultAlias(providerType, appType),
+          client_secret: "",
+        },
       },
-    [providers, providerType]
+    [providers, providerType, appType]
   );
 
-  const enabledProviders = providers.filter((p) => isEnabled[p.config.type]);
-  const index = enabledProviders.findIndex(
-    (p) => p.config.type === providerType
+  const enabledProviders = providers.filter(
+    (p) =>
+      isEnabled[createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)]
+  );
+  const index = enabledProviders.findIndex((p) =>
+    isOAuthSSOProvider(p.config, providerType, appType)
   );
   const jsonPointer = index >= 0 ? `/identity/oauth/providers/${index}` : "";
   const clientSecretParentJsonPointer =
@@ -174,9 +205,11 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> = function OAuthClientItem
     (isEnabled: boolean) => {
       setState((state) =>
         produce(state, (state) => {
-          state.isEnabled[providerType] = isEnabled;
-          const hasProvider = state.providers.some(
-            (p) => p.config.type === providerType
+          state.isEnabled[
+            createOAuthSSOProviderItemKey(providerType, appType)
+          ] = isEnabled;
+          const hasProvider = state.providers.some((p) =>
+            isOAuthSSOProvider(p.config, providerType, appType)
           );
           if (isEnabled && !hasProvider) {
             state.providers.push(provider);
@@ -184,15 +217,15 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> = function OAuthClientItem
         })
       );
     },
-    [setState, providerType, provider]
+    [setState, providerType, appType, provider]
   );
 
   const onChange = useCallback(
     (config: OAuthSSOProviderConfig, secret: OAuthClientCredentialItem) =>
       setState((state) =>
         produce(state, (state) => {
-          const index = state.providers.findIndex(
-            (p) => p.config.type === providerType
+          const index = state.providers.findIndex((p) =>
+            isOAuthSSOProvider(p.config, providerType, appType)
           );
           if (index === -1) {
             state.providers.push({ config, secret });
@@ -201,7 +234,7 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> = function OAuthClientItem
           }
         })
       ),
-    [setState, providerType]
+    [setState, providerType, appType]
   );
 
   return (
@@ -209,7 +242,9 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> = function OAuthClientItem
       className={styles.widget}
       jsonPointer={jsonPointer}
       clientSecretParentJsonPointer={clientSecretParentJsonPointer}
-      isEnabled={isEnabled[providerType]}
+      isEnabled={
+        isEnabled[createOAuthSSOProviderItemKey(providerType, appType)]
+      }
       onIsEnabledChange={onIsEnabledChange}
       config={provider.config}
       secret={provider.secret}
@@ -247,10 +282,10 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
         <FormattedMessage id="SingleSignOnConfigurationScreen.help-link-label" />
       </Link>
 
-      {oauthSSOProviderTypes.map((providerType) => (
+      {oauthSSOProviderItemKeys.map((providerItemKey) => (
         <OAuthClientItem
-          key={providerType}
-          providerType={providerType}
+          key={providerItemKey}
+          providerItemKey={providerItemKey}
           form={props.form}
         />
       ))}

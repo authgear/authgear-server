@@ -49,16 +49,11 @@ export const oauthSSOProviderTypes = [
   "facebook",
   "linkedin",
   "azureadv2",
+  "wechat",
 ] as const;
 export type OAuthSSOProviderType = typeof oauthSSOProviderTypes[number];
-export function isOAuthSSOProviderType(
-  value?: string
-): value is OAuthSSOProviderType {
-  return value == null
-    ? false
-    : oauthSSOProviderTypes.includes(value as OAuthSSOProviderType);
-}
-
+export const oauthSSOWeChatAppType = ["mobile", "web"] as const;
+export type OAuthSSOWeChatAppType = typeof oauthSSOWeChatAppType[number];
 export interface OAuthSSOProviderConfig {
   alias: string;
   type: OAuthSSOProviderType;
@@ -66,7 +61,44 @@ export interface OAuthSSOProviderConfig {
   tenant?: string;
   key_id?: string;
   team_id?: string;
+  app_type?: OAuthSSOWeChatAppType;
+  account_id?: string;
+  is_sandbox_account?: boolean;
 }
+export const oauthSSOProviderItemKeys = [
+  "apple",
+  "google",
+  "facebook",
+  "linkedin",
+  "azureadv2",
+  "wechat.mobile",
+  "wechat.web",
+] as const;
+export type OAuthSSOProviderItemKey = typeof oauthSSOProviderItemKeys[number];
+
+export const createOAuthSSOProviderItemKey = (
+  type: OAuthSSOProviderType,
+  appType?: OAuthSSOWeChatAppType
+): OAuthSSOProviderItemKey => {
+  return (!appType
+    ? type
+    : [type, appType].join(".")) as OAuthSSOProviderItemKey;
+};
+
+export const parseOAuthSSOProviderItemKey = (
+  itemKey: OAuthSSOProviderItemKey
+): [OAuthSSOProviderType, OAuthSSOWeChatAppType?] => {
+  var [type, appType] = itemKey.split(".");
+  return [type as OAuthSSOProviderType, appType as OAuthSSOWeChatAppType];
+};
+
+export const isOAuthSSOProvider = (
+  config: OAuthSSOProviderConfig,
+  type: OAuthSSOProviderType,
+  appType?: OAuthSSOWeChatAppType
+): boolean => {
+  return config.type === type && (!appType || config.app_type === appType);
+};
 
 interface OAuthSSOConfig {
   providers?: OAuthSSOProviderConfig[];

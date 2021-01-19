@@ -270,6 +270,8 @@
   "SingleSignOnConfigurationScreen.widget.tenant": "Tenant",
   "SingleSignOnConfigurationScreen.widget.key-id": "Key ID",
   "SingleSignOnConfigurationScreen.widget.team-id": "Team ID",
+  "SingleSignOnConfigurationScreen.widget.account-id": "原始 ID",
+  "SingleSignOnConfigurationScreen.widget.is-sandbox-account": "Is Sandbox account",
   "SingleSignOnConfigurationScreen.widget.client-secret.error": "Invalid client secret",
 
   "OAuthBranding.apple": "Sign in with Apple",
@@ -277,6 +279,8 @@
   "OAuthBranding.facebook": "Login with Facebook",
   "OAuthBranding.linkedin": "Sign in with LinkedIn",
   "OAuthBranding.azureadv2": "Sign in with Microsoft",
+  "OAuthBranding.wechat.web": "Sign in with WeChat (Web/网站应用)",
+  "OAuthBranding.wechat.mobile": "Sign in with WeChat (Mobile/移动应用)",
 
   "PasswordPolicySettingsScreen.title": "Password Policy",
   "PasswordPolicySettingsScreen.min-length.label": "Minimum password length",
