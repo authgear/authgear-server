@@ -298,7 +298,9 @@ func (s *ConfigService) createKubernetesIngress(
 					Kind: tlsCertConfig.IssuerKind,
 					Name: tlsCertConfig.IssuerName,
 				},
-				CommonName: def.Host,
+				DNSNames: []string{
+					def.Host,
+				},
 			},
 		}
 	default:
