@@ -510,6 +510,12 @@
   "ImageFilePicker.select-image": "Select Image",
   "ImageFilePicker.remove-image": "Remove Image",
 
+  "ThemeConfigurationWidget.light-mode": "Light Mode",
+  "ThemeConfigurationWidget.custom-color": "Custom Color",
+  "ThemeConfigurationWidget.primary-color": "Primary Color",
+  "ThemeConfigurationWidget.text-color": "Text Color",
+  "ThemeConfigurationWidget.background-color": "Text Color",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",
