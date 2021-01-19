@@ -117,17 +117,19 @@ interface ResourcesConfigurationContentProps {
 }
 
 const PIVOT_KEY_APPEARANCE = "appearance";
+const PIVOT_KEY_CUSTOM_CSS = "custom-css";
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
 const PIVOT_KEY_PASSWORDLESS = "passwordless";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
-const PIVOT_KEY_CUSTOM_CSS = "custom-css";
+
+const PIVOT_KEY_DEFAULT = PIVOT_KEY_APPEARANCE;
 
 const ALL_PIVOT_KEYS = [
-  PIVOT_KEY_TRANSLATION_JSON,
   PIVOT_KEY_APPEARANCE,
+  PIVOT_KEY_CUSTOM_CSS,
   PIVOT_KEY_FORGOT_PASSWORD,
   PIVOT_KEY_PASSWORDLESS,
-  PIVOT_KEY_CUSTOM_CSS,
+  PIVOT_KEY_TRANSLATION_JSON,
 ];
 
 const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
@@ -206,9 +208,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [locales, setState, state]
   );
 
-  const [selectedKey, setSelectedKey] = useState<string>(
-    PIVOT_KEY_TRANSLATION_JSON
-  );
+  const [selectedKey, setSelectedKey] = useState<string>(PIVOT_KEY_DEFAULT);
   const onLinkClick = useCallback((item?: PivotItem) => {
     const itemKey = item?.props.itemKey;
     if (itemKey != null) {
@@ -446,14 +446,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
         <PivotItem
           headerText={renderToString(
-            "ResourceConfigurationScreen.translationjson.title"
-          )}
-          itemKey={PIVOT_KEY_TRANSLATION_JSON}
-        >
-          <EditTemplatesWidget sections={sectionsTranslationJSON} />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
             "ResourceConfigurationScreen.appearance.title"
           )}
           itemKey={PIVOT_KEY_APPEARANCE}
@@ -470,6 +462,14 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               onChange={getOnChangeImage(RESOURCE_APP_LOGO)}
             />
           </div>
+        </PivotItem>
+        <PivotItem
+          headerText={renderToString(
+            "ResourceConfigurationScreen.translationjson.title"
+          )}
+          itemKey={PIVOT_KEY_TRANSLATION_JSON}
+        >
+          <EditTemplatesWidget sections={sectionsTranslationJSON} />
         </PivotItem>
         <PivotItem
           headerText={renderToString(
