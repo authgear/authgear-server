@@ -107,6 +107,19 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
     [onClientConfigChange, clientConfig]
   );
 
+  const onWeChatRedirectUrisChange = useCallback(
+    (list: string[]) => {
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "wechat_redirect_uris",
+          list.length > 0 ? list : undefined
+        )
+      );
+    },
+    [onClientConfigChange, clientConfig]
+  );
+
   const onIsFirstPartyClientChange = useCallback(
     (_, value?: boolean) => {
       onClientConfigChange(
@@ -209,6 +222,22 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
             labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
             tooltipHeaderId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
             tooltipMessageId="ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message"
+            directionalHint={DirectionalHint.bottomLeftEdge}
+          />
+        }
+      />
+      <FormTextFieldList
+        className={styles.inputFieldList}
+        parentJSONPointer="/oauth/clients/\d+"
+        fieldName="wechat_redirect_uris"
+        list={clientConfig.wechat_redirect_uris ?? []}
+        onListChange={onWeChatRedirectUrisChange}
+        addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
+        label={
+          <LabelWithTooltip
+            labelId="ModifyOAuthClientForm.wechat-redirect-uris-label"
+            tooltipHeaderId="ModifyOAuthClientForm.wechat-redirect-uris-label"
+            tooltipMessageId="ModifyOAuthClientForm.wechat-redirect-uris-tooltip-message"
             directionalHint={DirectionalHint.bottomLeftEdge}
           />
         }

@@ -270,6 +270,8 @@
   "SingleSignOnConfigurationScreen.widget.tenant": "Tenant",
   "SingleSignOnConfigurationScreen.widget.key-id": "Key ID",
   "SingleSignOnConfigurationScreen.widget.team-id": "Team ID",
+  "SingleSignOnConfigurationScreen.widget.account-id": "原始 ID",
+  "SingleSignOnConfigurationScreen.widget.is-sandbox-account": "Is Sandbox account",
   "SingleSignOnConfigurationScreen.widget.client-secret.error": "Invalid client secret",
 
   "OAuthBranding.apple": "Sign in with Apple",
@@ -277,6 +279,8 @@
   "OAuthBranding.facebook": "Login with Facebook",
   "OAuthBranding.linkedin": "Sign in with LinkedIn",
   "OAuthBranding.azureadv2": "Sign in with Microsoft",
+  "OAuthBranding.wechat.web": "Sign in with WeChat (Web/网站应用)",
+  "OAuthBranding.wechat.mobile": "Sign in with WeChat (Mobile/移动应用)",
 
   "PasswordPolicySettingsScreen.title": "Password Policy",
   "PasswordPolicySettingsScreen.min-length.label": "Minimum password length",
@@ -325,6 +329,8 @@
   "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated.",
   "ModifyOAuthClientForm.post-logout-redirect-uris-label": "Post Logout Redirect URIs",
   "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out.",
+  "ModifyOAuthClientForm.wechat-redirect-uris-label": "WeChat redirect URIs",
+  "ModifyOAuthClientForm.wechat-redirect-uris-tooltip-message": "For mobile app only, to receive delegate call when user click on login with WeChat button.",
   "ModifyOAuthClientForm.is-first-party-client-label": "Is first-party application",
   "ModifyOAuthClientForm.is-first-party-client-tooltip-message": "First-party application may request access to sensitive user information and operations",
   "ModifyOAuthClientForm.issue-jwt-access-token-label": "Issue JWT as access token",
