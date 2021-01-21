@@ -1,12 +1,14 @@
-import { parse, Comment } from "postcss";
+import { parse, Comment, Node, Root } from "postcss";
 
-// eslint-disable-next-line complexity
-export function setCSS(
-  rootString: string,
-  cssString: string,
+// Locate the start index and the end index delimited by the comment.
+function locate(
+  root: Root,
   comment: string
-): string {
-  const root = parse(rootString);
+): {
+  root: Root;
+  start: number;
+  end: number;
+} {
   let start = -1;
   let end = -1;
   for (let i = 0; i < root.nodes.length; i++) {
@@ -47,6 +49,22 @@ export function setCSS(
     );
   }
 
+  return {
+    root,
+    start,
+    end,
+  };
+}
+
+// eslint-disable-next-line complexity
+export function setCSS(
+  rootString: string,
+  cssString: string,
+  comment: string
+): string {
+  const root = parse(rootString);
+  const { start, end } = locate(root, comment);
+
   // The file does not have the special comment.
   // Add the css at the beginning of the file.
   if (start === -1 && end === -1) {
@@ -73,4 +91,23 @@ export function setCSS(
   }
 
   return root.toResult().css;
+}
+
+export function getCSS(rootString: string, comment: string): Node[] {
+  const root = parse(rootString);
+  const { start, end } = locate(root, comment);
+
+  // The file does not have the special comment.
+  // Return empty array.
+  if (start === -1 && end === -1) {
+    return [];
+  }
+
+  const output = [];
+  for (let i = start + 1; i < end; i++) {
+    const node = root.nodes[i];
+    output.push(node.clone());
+  }
+
+  return output;
 }
