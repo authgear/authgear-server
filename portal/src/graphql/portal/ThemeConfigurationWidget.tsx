@@ -1,10 +1,13 @@
-import React from "react";
-import { DefaultEffects, Text, Label } from "@fluentui/react";
+import React, { useCallback } from "react";
+import { DefaultEffects, Text, Label, Toggle } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import PortalColorPicker from "../../PortalColorPicker";
 import styles from "./ThemeConfigurationWidget.module.scss";
 
 export interface ThemeConfigurationWidgetProps {
+  isDarkMode: boolean;
+  darkModeEnabled: boolean;
+  onChangeDarkModeEnabled: (enabled: boolean) => void;
   primaryColor: string;
   onChangePrimaryColor: (color: string) => void;
   textColor: string;
@@ -17,6 +20,9 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
   props: ThemeConfigurationWidgetProps
 ) {
   const {
+    isDarkMode,
+    darkModeEnabled,
+    onChangeDarkModeEnabled,
     primaryColor,
     onChangePrimaryColor,
     textColor,
@@ -25,14 +31,38 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     onChangeBackgroundColor,
   } = props;
 
+  const onChangeChecked = useCallback(
+    (_e, checked) => {
+      if (checked != null) {
+        onChangeDarkModeEnabled(checked);
+      }
+    },
+    [onChangeDarkModeEnabled]
+  );
+
   return (
     <div
       className={styles.root}
       style={{ boxShadow: DefaultEffects.elevation4 }}
     >
-      <Text as="h1" className={styles.title}>
-        <FormattedMessage id="ThemeConfigurationWidget.light-mode" />
-      </Text>
+      <div className={styles.titleSection}>
+        {isDarkMode && (
+          <Toggle
+            className={styles.toggle}
+            checked={darkModeEnabled}
+            onChange={onChangeChecked}
+          />
+        )}
+        <Text as="h1" className={styles.title}>
+          <FormattedMessage
+            id={
+              isDarkMode
+                ? "ThemeConfigurationWidget.dark-mode"
+                : "ThemeConfigurationWidget.light-mode"
+            }
+          />
+        </Text>
+      </div>
       <div className={styles.colorControlSection}>
         <Text as="h2" className={styles.colorControlTitle}>
           <FormattedMessage id="ThemeConfigurationWidget.custom-color" />
@@ -44,13 +74,18 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
           <PortalColorPicker
             color={primaryColor}
             onChange={onChangePrimaryColor}
+            disabled={isDarkMode && !darkModeEnabled}
           />
         </div>
         <div className={styles.colorControl}>
           <Label className={styles.colorControlLabel}>
             <FormattedMessage id="ThemeConfigurationWidget.text-color" />
           </Label>
-          <PortalColorPicker color={textColor} onChange={onChangeTextColor} />
+          <PortalColorPicker
+            color={textColor}
+            onChange={onChangeTextColor}
+            disabled={isDarkMode && !darkModeEnabled}
+          />
         </div>
         <div className={styles.colorControl}>
           <Label className={styles.colorControlLabel}>
@@ -59,6 +94,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
           <PortalColorPicker
             color={backgroundColor}
             onChange={onChangeBackgroundColor}
+            disabled={isDarkMode && !darkModeEnabled}
           />
         </div>
       </div>

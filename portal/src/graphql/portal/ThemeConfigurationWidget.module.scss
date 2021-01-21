@@ -3,6 +3,16 @@
   max-width: 635px;
 }
 
+.titleSection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.toggle {
+  margin: 0 10px;
+}
+
 .title {
   margin: 10px;
   display: block;

@@ -60,6 +60,8 @@ interface ConfigFormState {
   defaultLocale: string;
 }
 
+const NOOP = () => {};
+
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
   return { defaultLocale: config.localization?.fallback_language ?? "en" };
 }
@@ -321,41 +323,98 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     return theme;
   }, [state.resources]);
 
+  const setTheme = useCallback(
+    (newTheme: Theme) => {
+      setState((prev) => {
+        const specifier: ResourceSpecifier = {
+          def: RESOURCE_AUTHGEAR_CSS,
+          locale: state.selectedLocale,
+        };
+        const updatedResources = { ...prev.resources };
+        const resource = prev.resources[specifierId(specifier)];
+        if (resource != null) {
+          const css = themeToCSS(newTheme);
+          const value = setCSS(resource.value, css, THEME_DELIMITER_COMMENT);
+          const newResource: Resource = {
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {
+              locale: specifier.locale,
+            }),
+            value,
+          };
+          updatedResources[specifierId(newResource.specifier)] = newResource;
+        }
+        return {
+          ...prev,
+          theme,
+          resources: updatedResources,
+        };
+      });
+    },
+    [setState, state.selectedLocale, theme]
+  );
+
   const getOnChangeColor = useCallback(
     (key: keyof Theme) => {
       return (color: string) => {
-        setState((prev) => {
-          const newTheme: Theme = {
-            ...(theme ?? DEFAULT_THEME),
-            [key]: color,
-          };
-          const specifier: ResourceSpecifier = {
-            def: RESOURCE_AUTHGEAR_CSS,
-            locale: state.selectedLocale,
-          };
-          const updatedResources = { ...prev.resources };
-          const resource = prev.resources[specifierId(specifier)];
-          if (resource != null) {
-            const css = themeToCSS(newTheme);
-            const value = setCSS(resource.value, css, THEME_DELIMITER_COMMENT);
-            const newResource: Resource = {
-              specifier,
-              path: renderPath(specifier.def.resourcePath, {
-                locale: specifier.locale,
-              }),
-              value,
-            };
-            updatedResources[specifierId(newResource.specifier)] = newResource;
-          }
-          return {
-            ...prev,
-            theme,
-            resources: updatedResources,
-          };
-        });
+        const newTheme: Theme = {
+          ...(theme ?? DEFAULT_THEME),
+          [key]: color,
+        };
+        setTheme(newTheme);
       };
     },
-    [setState, state.selectedLocale, theme]
+    [theme, setTheme]
+  );
+
+  const onChangeLightModePrimaryColor = getOnChangeColor(
+    "lightModePrimaryColor"
+  );
+  const onChangeLightModeTextColor = getOnChangeColor("lightModeTextColor");
+  const onChangeLightModeBackgroundColor = getOnChangeColor(
+    "lightModeBackgroundColor"
+  );
+  const onChangeDarkModePrimaryColor = getOnChangeColor("darkModePrimaryColor");
+  const onChangeDarkModeTextColor = getOnChangeColor("darkModeTextColor");
+  const onChangeDarkModeBackgroundColor = getOnChangeColor(
+    "darkModeBackgroundColor"
+  );
+
+  const darkModeEnabled = useMemo(() => {
+    if (theme == null) {
+      return true;
+    }
+    const darkModeDisabled =
+      theme.lightModePrimaryColor === theme.darkModePrimaryColor &&
+      theme.lightModeTextColor === theme.darkModeTextColor &&
+      theme.lightModeBackgroundColor === theme.darkModeBackgroundColor;
+    return !darkModeDisabled;
+  }, [theme]);
+
+  const onChangeDarkModeEnabled = useCallback(
+    (enabled) => {
+      if (enabled) {
+        // Become enabled, copy the light theme with text color and background color swapped.
+        const oldTheme = theme ?? DEFAULT_THEME;
+        const newTheme = {
+          ...oldTheme,
+          darkModePrimaryColor: oldTheme.lightModePrimaryColor,
+          darkModeTextColor: oldTheme.lightModeBackgroundColor,
+          darkModeBackgroundColor: oldTheme.lightModeTextColor,
+        };
+        setTheme(newTheme);
+      } else {
+        const oldTheme = theme ?? DEFAULT_THEME;
+        const newTheme = {
+          ...oldTheme,
+          darkModePrimaryColor: oldTheme.lightModePrimaryColor,
+          darkModeTextColor: oldTheme.lightModeTextColor,
+          darkModeBackgroundColor: oldTheme.lightModeBackgroundColor,
+        };
+        setTheme(newTheme);
+      }
+    },
+    [setTheme, theme]
   );
 
   const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
@@ -531,6 +590,9 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           itemKey={PIVOT_KEY_THEME}
         >
           <ThemeConfigurationWidget
+            isDarkMode={false}
+            darkModeEnabled={false}
+            onChangeDarkModeEnabled={NOOP}
             primaryColor={
               theme?.lightModePrimaryColor ??
               DEFAULT_THEME.lightModePrimaryColor
@@ -542,11 +604,27 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               theme?.lightModeBackgroundColor ??
               DEFAULT_THEME.lightModeBackgroundColor
             }
-            onChangePrimaryColor={getOnChangeColor("lightModePrimaryColor")}
-            onChangeTextColor={getOnChangeColor("lightModeTextColor")}
-            onChangeBackgroundColor={getOnChangeColor(
-              "lightModeBackgroundColor"
-            )}
+            onChangePrimaryColor={onChangeLightModePrimaryColor}
+            onChangeTextColor={onChangeLightModeTextColor}
+            onChangeBackgroundColor={onChangeLightModeBackgroundColor}
+          />
+          <ThemeConfigurationWidget
+            isDarkMode={true}
+            darkModeEnabled={darkModeEnabled}
+            onChangeDarkModeEnabled={onChangeDarkModeEnabled}
+            primaryColor={
+              theme?.darkModePrimaryColor ?? DEFAULT_THEME.darkModePrimaryColor
+            }
+            textColor={
+              theme?.darkModeTextColor ?? DEFAULT_THEME.darkModeTextColor
+            }
+            backgroundColor={
+              theme?.darkModeBackgroundColor ??
+              DEFAULT_THEME.darkModeBackgroundColor
+            }
+            onChangePrimaryColor={onChangeDarkModePrimaryColor}
+            onChangeTextColor={onChangeDarkModeTextColor}
+            onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
           />
         </PivotItem>
         <PivotItem
