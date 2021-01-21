@@ -16,8 +16,8 @@ export interface PortalColorPickerProps {
 const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColorPicker(
   props: PortalColorPickerProps
 ) {
-  const [colorStr, setColorStr] = useState(color);
   const { disabled, color, onChange } = props;
+  const [colorStr, setColorStr] = useState<string | undefined>();
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const colorboxRef = useRef(null);
 
@@ -26,10 +26,13 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
       if (newValue == null) {
         return;
       }
-      setColorStr(newValue);
+
       const newColor = getColorFromString(newValue);
       if (newColor != null) {
         onChange(newColor.str);
+        setColorStr(undefined);
+      } else {
+        setColorStr(newValue);
       }
     },
     [onChange]
@@ -76,7 +79,7 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
         <TextField
           disabled={disabled}
           className={styles.textField}
-          value={colorStr}
+          value={colorStr != null ? colorStr : color}
           onChange={onTextFieldChange}
         />
       </div>
