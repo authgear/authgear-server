@@ -4,7 +4,27 @@ import {
   ThemeGenerator,
   BaseSlots,
 } from "@fluentui/react";
-import { Node, Rule, AtRule, Declaration } from "postcss";
+import { Root, Node, Rule, AtRule, Declaration } from "postcss";
+
+export interface Theme {
+  lightModePrimaryColor: string;
+  lightModeTextColor: string;
+  lightModeBackgroundColor: string;
+  darkModePrimaryColor: string;
+  darkModeTextColor: string;
+  darkModeBackgroundColor: string;
+}
+
+export const THEME_DELIMITER_COMMENT = "AUTHGEAR THEME CSS. DO NOT EDIT!";
+
+export const DEFAULT_THEME: Theme = {
+  lightModePrimaryColor: "#176df3",
+  lightModeTextColor: "#000000",
+  lightModeBackgroundColor: "#ffffff",
+  darkModePrimaryColor: "#317BF4",
+  darkModeTextColor: "#ffffff",
+  darkModeBackgroundColor: "#000000",
+};
 
 // getShades takes a color and then return the shades.
 // The return value is 9-element array, with the first element being the originally given color.
@@ -51,16 +71,6 @@ export function getShades(colorStr: string): string[] {
     primaryColorShade8,
   ];
 }
-
-export interface Theme {
-  lightModePrimaryColor: string;
-  lightModeTextColor: string;
-  lightModeBackgroundColor: string;
-  darkModePrimaryColor: string;
-  darkModeTextColor: string;
-  darkModeBackgroundColor: string;
-}
-
 // getTheme takes a list of CSS nodes and extract the theme.
 // eslint-disable-next-line complexity
 export function getTheme(nodes: Node[]): Theme | null {
@@ -139,4 +149,60 @@ export function getTheme(nodes: Node[]): Theme | null {
   }
 
   return null;
+}
+
+function addShadeDeclarations(rule: Rule, shades: string[], name: string) {
+  for (let i = 0; i < shades.length; i++) {
+    const value = shades[i];
+    if (i === 0) {
+      rule.append(new Declaration({ prop: `--color-${name}-unshaded`, value }));
+    } else {
+      rule.append(
+        new Declaration({ prop: `--color-${name}-shaded-${i}`, value })
+      );
+    }
+  }
+}
+
+export function themeToCSS(theme: Theme): string {
+  const root = new Root();
+
+  const pseudoRoot = new Rule({ selector: ":root" });
+  addShadeDeclarations(
+    pseudoRoot,
+    getShades(theme.lightModePrimaryColor),
+    "primary"
+  );
+  addShadeDeclarations(pseudoRoot, getShades(theme.lightModeTextColor), "text");
+  addShadeDeclarations(
+    pseudoRoot,
+    getShades(theme.lightModeBackgroundColor),
+    "background"
+  );
+  root.append(pseudoRoot);
+
+  const atRule = new AtRule({
+    name: "media",
+    params: "(prefers-color-scheme: dark)",
+  });
+  const darkPseudoRoot = new Rule({ selector: ":root" });
+  addShadeDeclarations(
+    darkPseudoRoot,
+    getShades(theme.darkModePrimaryColor),
+    "primary"
+  );
+  addShadeDeclarations(
+    darkPseudoRoot,
+    getShades(theme.darkModeTextColor),
+    "text"
+  );
+  addShadeDeclarations(
+    darkPseudoRoot,
+    getShades(theme.darkModeBackgroundColor),
+    "background"
+  );
+  atRule.append(darkPseudoRoot);
+  root.append(atRule);
+
+  return root.toResult().css;
 }
