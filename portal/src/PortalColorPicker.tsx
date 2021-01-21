@@ -8,6 +8,7 @@ import {
 import styles from "./PortalColorPicker.module.scss";
 
 export interface PortalColorPickerProps {
+  disabled?: boolean;
   color: string;
   onChange: (color: string) => void;
 }
@@ -15,9 +16,8 @@ export interface PortalColorPickerProps {
 const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColorPicker(
   props: PortalColorPickerProps
 ) {
-  const { color, onChange } = props;
-
   const [colorStr, setColorStr] = useState(color);
+  const { disabled, color, onChange } = props;
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const colorboxRef = useRef(null);
 
@@ -43,11 +43,17 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
     [onChange]
   );
 
-  const onColorboxClick = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsColorPickerVisible(true);
-  }, []);
+  const onColorboxClick = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (disabled) {
+        return;
+      }
+      setIsColorPickerVisible(true);
+    },
+    [disabled]
+  );
 
   const onCalloutDismiss = useCallback(() => {
     setIsColorPickerVisible(false);
@@ -68,6 +74,7 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
           onClick={onColorboxClick}
         />
         <TextField
+          disabled={disabled}
           className={styles.textField}
           value={colorStr}
           onChange={onTextFieldChange}
