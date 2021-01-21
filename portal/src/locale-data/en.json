@@ -385,6 +385,7 @@
   "ResourceConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "ResourceConfigurationScreen.forgot-password.title": "Forgot Password",
   "ResourceConfigurationScreen.custom-css.title": "Custom CSS",
+  "ResourceConfigurationScreen.theme.title": "Theme",
 
   "ResourceConfigurationScreen.favicon": "Favicon",
   "ResourceConfigurationScreen.app-logo": "App Logo",

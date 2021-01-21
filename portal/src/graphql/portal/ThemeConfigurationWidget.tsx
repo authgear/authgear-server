@@ -13,14 +13,6 @@ export interface ThemeConfigurationWidgetProps {
   onChangeBackgroundColor: (color: string) => void;
 }
 
-export const LIGHT_MODE_PRIMARY_COLOR = "#176df3";
-export const LIGHT_MODE_TEXT_COLOR = "#000000";
-export const LIGHT_MODE_BACKGROUND_COLOR = "#ffffff";
-
-export const DARK_MODE_PRIMARY_COLOR = "#317BF4";
-export const DARK_MODE_TEXT_COLOR = "#ffffff";
-export const DARK_MODE_BACKGROUND_COLOR = "#000000";
-
 const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = function ThemeConfigurationWidget(
   props: ThemeConfigurationWidgetProps
 ) {

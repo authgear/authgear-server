@@ -6,6 +6,7 @@ import { produce } from "immer";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ManageLanguageWidget from "./ManageLanguageWidget";
+import ThemeConfigurationWidget from "./ThemeConfigurationWidget";
 import ImageFilePicker from "../../ImageFilePicker";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
@@ -39,6 +40,14 @@ import {
   specifierId,
   validateLocales,
 } from "../../util/resource";
+import {
+  DEFAULT_THEME,
+  THEME_DELIMITER_COMMENT,
+  Theme,
+  getTheme,
+  themeToCSS,
+} from "../../util/theme";
+import { setCSS, getCSS } from "../../util/css";
 
 import styles from "./ResourceConfigurationScreen.module.scss";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
@@ -85,6 +94,7 @@ function constructResourcesFormState(
       resourceMap[specifierId(r.specifier)] = r;
     }
   }
+
   return { resources: resourceMap };
 }
 
@@ -120,6 +130,7 @@ const PIVOT_KEY_APPEARANCE = "appearance";
 const PIVOT_KEY_CUSTOM_CSS = "custom-css";
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
 const PIVOT_KEY_PASSWORDLESS = "passwordless";
+const PIVOT_KEY_THEME = "theme";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
 const PIVOT_KEY_DEFAULT = PIVOT_KEY_APPEARANCE;
@@ -130,6 +141,7 @@ const ALL_PIVOT_KEYS = [
   PIVOT_KEY_FORGOT_PASSWORD,
   PIVOT_KEY_PASSWORDLESS,
   PIVOT_KEY_TRANSLATION_JSON,
+  PIVOT_KEY_THEME,
 ];
 
 const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
@@ -293,6 +305,57 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       };
     },
     [state.selectedLocale, setState]
+  );
+
+  const theme = useMemo(() => {
+    let theme = null;
+    for (const r of Object.values(state.resources)) {
+      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_CSS) {
+        const nodes = getCSS(r.value, THEME_DELIMITER_COMMENT);
+        const t = getTheme(nodes);
+        if (t != null) {
+          theme = t;
+        }
+      }
+    }
+    return theme;
+  }, [state.resources]);
+
+  const getOnChangeColor = useCallback(
+    (key: keyof Theme) => {
+      return (color: string) => {
+        setState((prev) => {
+          const newTheme: Theme = {
+            ...(theme ?? DEFAULT_THEME),
+            [key]: color,
+          };
+          const specifier: ResourceSpecifier = {
+            def: RESOURCE_AUTHGEAR_CSS,
+            locale: state.selectedLocale,
+          };
+          const updatedResources = { ...prev.resources };
+          const resource = prev.resources[specifierId(specifier)];
+          if (resource != null) {
+            const css = themeToCSS(newTheme);
+            const value = setCSS(resource.value, css, THEME_DELIMITER_COMMENT);
+            const newResource: Resource = {
+              specifier,
+              path: renderPath(specifier.def.resourcePath, {
+                locale: specifier.locale,
+              }),
+              value,
+            };
+            updatedResources[specifierId(newResource.specifier)] = newResource;
+          }
+          return {
+            ...prev,
+            theme,
+            resources: updatedResources,
+          };
+        });
+      };
+    },
+    [setState, state.selectedLocale, theme]
   );
 
   const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
@@ -462,6 +525,29 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               onChange={getOnChangeImage(RESOURCE_APP_LOGO)}
             />
           </div>
+        </PivotItem>
+        <PivotItem
+          headerText={renderToString("ResourceConfigurationScreen.theme.title")}
+          itemKey={PIVOT_KEY_THEME}
+        >
+          <ThemeConfigurationWidget
+            primaryColor={
+              theme?.lightModePrimaryColor ??
+              DEFAULT_THEME.lightModePrimaryColor
+            }
+            textColor={
+              theme?.lightModeTextColor ?? DEFAULT_THEME.lightModeTextColor
+            }
+            backgroundColor={
+              theme?.lightModeBackgroundColor ??
+              DEFAULT_THEME.lightModeBackgroundColor
+            }
+            onChangePrimaryColor={getOnChangeColor("lightModePrimaryColor")}
+            onChangeTextColor={getOnChangeColor("lightModeTextColor")}
+            onChangeBackgroundColor={getOnChangeColor(
+              "lightModeBackgroundColor"
+            )}
+          />
         </PivotItem>
         <PivotItem
           headerText={renderToString(
