@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
+import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ManageLanguageWidget from "./ManageLanguageWidget";
@@ -30,6 +31,8 @@ import {
   RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_AUTHGEAR_CSS,
+  RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
+  RESOURCE_AUTHGEAR_DARK_THEME_CSS,
 } from "../../resources";
 import {
   LanguageTag,
@@ -41,14 +44,15 @@ import {
   validateLocales,
 } from "../../util/resource";
 import {
-  DEFAULT_THEME,
-  THEME_DELIMITER_COMMENT,
-  Theme,
-  getTheme,
-  themeToCSS,
-  isDarkModeEnabled,
+  DEFAULT_LIGHT_THEME,
+  DEFAULT_DARK_THEME,
+  LightTheme,
+  DarkTheme,
+  getLightTheme,
+  getDarkTheme,
+  lightThemeToCSS,
+  darkThemeToCSS,
 } from "../../util/theme";
-import { setCSS, getCSS } from "../../util/css";
 
 import styles from "./ResourceConfigurationScreen.module.scss";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
@@ -59,12 +63,16 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 interface ConfigFormState {
   defaultLocale: string;
+  darkThemeDisabled: boolean;
 }
 
 const NOOP = () => {};
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
-  return { defaultLocale: config.localization?.fallback_language ?? "en" };
+  return {
+    defaultLocale: config.localization?.fallback_language ?? "en",
+    darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
+  };
 }
 
 function constructConfig(
@@ -76,6 +84,10 @@ function constructConfig(
     config.localization = config.localization ?? {};
     if (initialState.defaultLocale !== currentState.defaultLocale) {
       config.localization.fallback_language = currentState.defaultLocale;
+    }
+    config.ui = config.ui ?? {};
+    if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
+      config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
     }
     clearEmptyObject(config);
   });
@@ -310,108 +322,147 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [state.selectedLocale, setState]
   );
 
-  const theme = useMemo(() => {
-    let theme = null;
+  const lightTheme = useMemo(() => {
+    let lightTheme = null;
     for (const r of Object.values(state.resources)) {
-      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_CSS) {
-        const nodes = getCSS(r.value, THEME_DELIMITER_COMMENT);
-        const t = getTheme(nodes);
-        if (t != null) {
-          theme = t;
-        }
+      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS) {
+        const root = parse(r.value);
+        lightTheme = getLightTheme(root.nodes);
       }
     }
-    return theme;
+
+    return lightTheme;
   }, [state.resources]);
 
-  const setTheme = useCallback(
-    (newTheme: Theme) => {
+  const darkTheme = useMemo(() => {
+    let darkTheme = null;
+    for (const r of Object.values(state.resources)) {
+      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
+        const root = parse(r.value);
+        darkTheme = getDarkTheme(root.nodes);
+      }
+    }
+    return darkTheme;
+  }, [state.resources]);
+
+  const setLightTheme = useCallback(
+    (newLightTheme: LightTheme) => {
       setState((prev) => {
         const specifier: ResourceSpecifier = {
-          def: RESOURCE_AUTHGEAR_CSS,
+          def: RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
           locale: state.selectedLocale,
         };
         const updatedResources = { ...prev.resources };
-        const resource = prev.resources[specifierId(specifier)];
-        if (resource != null) {
-          const css = themeToCSS(newTheme);
-          const value = setCSS(resource.value, css, THEME_DELIMITER_COMMENT);
-          const newResource: Resource = {
-            specifier,
-            path: renderPath(specifier.def.resourcePath, {
-              locale: specifier.locale,
-            }),
-            value,
-          };
-          updatedResources[specifierId(newResource.specifier)] = newResource;
-        }
+        const css = lightThemeToCSS(newLightTheme);
+        const newResource: Resource = {
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {
+            locale: specifier.locale,
+          }),
+          value: css,
+        };
+        updatedResources[specifierId(newResource.specifier)] = newResource;
         return {
           ...prev,
-          theme,
           resources: updatedResources,
         };
       });
     },
-    [setState, state.selectedLocale, theme]
+    [setState, state.selectedLocale]
   );
 
-  const getOnChangeColor = useCallback(
-    (key: keyof Theme) => {
+  const setDarkTheme = useCallback(
+    (newDarkTheme: DarkTheme) => {
+      setState((prev) => {
+        const specifier: ResourceSpecifier = {
+          def: RESOURCE_AUTHGEAR_DARK_THEME_CSS,
+          locale: state.selectedLocale,
+        };
+        const updatedResources = { ...prev.resources };
+        const css = darkThemeToCSS(newDarkTheme);
+        const newResource: Resource = {
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {
+            locale: specifier.locale,
+          }),
+          value: css,
+        };
+        updatedResources[specifierId(newResource.specifier)] = newResource;
+        return {
+          ...prev,
+          resources: updatedResources,
+        };
+      });
+    },
+    [setState, state.selectedLocale]
+  );
+
+  const getOnChangeLightThemeColor = useCallback(
+    (key: keyof LightTheme) => {
       return (color: string) => {
-        const newTheme: Theme = {
-          ...(theme ?? DEFAULT_THEME),
+        const newLightTheme: LightTheme = {
+          ...(lightTheme ?? DEFAULT_LIGHT_THEME),
           [key]: color,
         };
-        setTheme(newTheme);
+        setLightTheme(newLightTheme);
       };
     },
-    [theme, setTheme]
+    [lightTheme, setLightTheme]
   );
 
-  const onChangeLightModePrimaryColor = getOnChangeColor(
+  const getOnChangeDarkThemeColor = useCallback(
+    (key: keyof DarkTheme) => {
+      return (color: string) => {
+        const newDarkTheme: DarkTheme = {
+          ...(darkTheme ?? DEFAULT_DARK_THEME),
+          [key]: color,
+        };
+        setDarkTheme(newDarkTheme);
+      };
+    },
+    [darkTheme, setDarkTheme]
+  );
+
+  const onChangeLightModePrimaryColor = getOnChangeLightThemeColor(
     "lightModePrimaryColor"
   );
-  const onChangeLightModeTextColor = getOnChangeColor("lightModeTextColor");
-  const onChangeLightModeBackgroundColor = getOnChangeColor(
+  const onChangeLightModeTextColor = getOnChangeLightThemeColor(
+    "lightModeTextColor"
+  );
+  const onChangeLightModeBackgroundColor = getOnChangeLightThemeColor(
     "lightModeBackgroundColor"
   );
-  const onChangeDarkModePrimaryColor = getOnChangeColor("darkModePrimaryColor");
-  const onChangeDarkModeTextColor = getOnChangeColor("darkModeTextColor");
-  const onChangeDarkModeBackgroundColor = getOnChangeColor(
+  const onChangeDarkModePrimaryColor = getOnChangeDarkThemeColor(
+    "darkModePrimaryColor"
+  );
+  const onChangeDarkModeTextColor = getOnChangeDarkThemeColor(
+    "darkModeTextColor"
+  );
+  const onChangeDarkModeBackgroundColor = getOnChangeDarkThemeColor(
     "darkModeBackgroundColor"
   );
-
-  const darkModeEnabled = useMemo(() => {
-    if (theme == null) {
-      return true;
-    }
-    return isDarkModeEnabled(theme);
-  }, [theme]);
 
   const onChangeDarkModeEnabled = useCallback(
     (enabled) => {
       if (enabled) {
         // Become enabled, copy the light theme with text color and background color swapped.
-        const oldTheme = theme ?? DEFAULT_THEME;
-        const newTheme = {
-          ...oldTheme,
-          darkModePrimaryColor: oldTheme.lightModePrimaryColor,
-          darkModeTextColor: oldTheme.lightModeBackgroundColor,
-          darkModeBackgroundColor: oldTheme.lightModeTextColor,
+        const base = lightTheme ?? DEFAULT_LIGHT_THEME;
+        const newDarkTheme = {
+          darkModePrimaryColor: base.lightModePrimaryColor,
+          darkModeTextColor: base.lightModeBackgroundColor,
+          darkModeBackgroundColor: base.lightModeTextColor,
         };
-        setTheme(newTheme);
-      } else {
-        const oldTheme = theme ?? DEFAULT_THEME;
-        const newTheme = {
-          ...oldTheme,
-          darkModePrimaryColor: oldTheme.lightModePrimaryColor,
-          darkModeTextColor: oldTheme.lightModeTextColor,
-          darkModeBackgroundColor: oldTheme.lightModeBackgroundColor,
-        };
-        setTheme(newTheme);
+        setDarkTheme(newDarkTheme);
       }
+
+      setState((prev) => {
+        return {
+          ...prev,
+          darkThemeDisabled: !enabled,
+        };
+      });
     },
-    [setTheme, theme]
+    [setState, lightTheme, setDarkTheme]
   );
 
   const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
@@ -591,15 +642,16 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             darkModeEnabled={false}
             onChangeDarkModeEnabled={NOOP}
             primaryColor={
-              theme?.lightModePrimaryColor ??
-              DEFAULT_THEME.lightModePrimaryColor
+              lightTheme?.lightModePrimaryColor ??
+              DEFAULT_LIGHT_THEME.lightModePrimaryColor
             }
             textColor={
-              theme?.lightModeTextColor ?? DEFAULT_THEME.lightModeTextColor
+              lightTheme?.lightModeTextColor ??
+              DEFAULT_LIGHT_THEME.lightModeTextColor
             }
             backgroundColor={
-              theme?.lightModeBackgroundColor ??
-              DEFAULT_THEME.lightModeBackgroundColor
+              lightTheme?.lightModeBackgroundColor ??
+              DEFAULT_LIGHT_THEME.lightModeBackgroundColor
             }
             onChangePrimaryColor={onChangeLightModePrimaryColor}
             onChangeTextColor={onChangeLightModeTextColor}
@@ -607,17 +659,19 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           />
           <ThemeConfigurationWidget
             isDarkMode={true}
-            darkModeEnabled={darkModeEnabled}
+            darkModeEnabled={!state.darkThemeDisabled}
             onChangeDarkModeEnabled={onChangeDarkModeEnabled}
             primaryColor={
-              theme?.darkModePrimaryColor ?? DEFAULT_THEME.darkModePrimaryColor
+              darkTheme?.darkModePrimaryColor ??
+              DEFAULT_DARK_THEME.darkModePrimaryColor
             }
             textColor={
-              theme?.darkModeTextColor ?? DEFAULT_THEME.darkModeTextColor
+              darkTheme?.darkModeTextColor ??
+              DEFAULT_DARK_THEME.darkModeTextColor
             }
             backgroundColor={
-              theme?.darkModeBackgroundColor ??
-              DEFAULT_THEME.darkModeBackgroundColor
+              darkTheme?.darkModeBackgroundColor ??
+              DEFAULT_DARK_THEME.darkModeBackgroundColor
             }
             onChangePrimaryColor={onChangeDarkModePrimaryColor}
             onChangeTextColor={onChangeDarkModeTextColor}
@@ -704,8 +758,14 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
       defaultLocale: config.state.defaultLocale,
       resources: resources.state.resources,
       selectedLocale: selectedLocale ?? config.state.defaultLocale,
+      darkThemeDisabled: config.state.darkThemeDisabled,
     }),
-    [config.state.defaultLocale, resources.state.resources, selectedLocale]
+    [
+      config.state.defaultLocale,
+      config.state.darkThemeDisabled,
+      resources.state.resources,
+      selectedLocale,
+    ]
   );
 
   const form: FormModel = {
@@ -717,7 +777,10 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
     state,
     setState: (fn) => {
       const newState = fn(state);
-      config.setState(() => ({ defaultLocale: newState.defaultLocale }));
+      config.setState(() => ({
+        defaultLocale: newState.defaultLocale,
+        darkThemeDisabled: newState.darkThemeDisabled,
+      }));
       resources.setState(() => ({ resources: newState.resources }));
       setSelectedLocale(newState.selectedLocale);
     },

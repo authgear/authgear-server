@@ -1,6 +1,14 @@
 /* global describe, it, expect */
 import { parse } from "postcss";
-import { getShades, getTheme, themeToCSS, DEFAULT_THEME } from "./theme";
+import {
+  getShades,
+  getLightTheme,
+  getDarkTheme,
+  lightThemeToCSS,
+  darkThemeToCSS,
+  DEFAULT_LIGHT_THEME,
+  DEFAULT_DARK_THEME,
+} from "./theme";
 
 describe("getShades", () => {
   it("gives the same result as https://fabricweb.z5.web.core.windows.net/pr-deploy-site/refs/heads/master/theming-designer/index.html does", () => {
@@ -87,14 +95,28 @@ const CSS = `
 }
 `;
 
-describe("getTheme", () => {
+describe("getLightTheme", () => {
   it("extracts theme color", () => {
     const root = parse(CSS);
-    const actual = getTheme(root.nodes);
+    const actual = getLightTheme(root.nodes);
     expect(actual).toEqual({
       lightModePrimaryColor: "#176df3",
       lightModeTextColor: "#000000",
       lightModeBackgroundColor: "#ffffff",
+    });
+  });
+
+  it("returns null", () => {
+    const actual = getDarkTheme([]);
+    expect(actual).toEqual(null);
+  });
+});
+
+describe("getDarkTheme", () => {
+  it("extracts theme color", () => {
+    const root = parse(CSS);
+    const actual = getDarkTheme(root.nodes);
+    expect(actual).toEqual({
       darkModePrimaryColor: "#317BF4",
       darkModeTextColor: "#ffffff",
       darkModeBackgroundColor: "#000000",
@@ -102,14 +124,14 @@ describe("getTheme", () => {
   });
 
   it("returns null", () => {
-    const actual = getTheme([]);
+    const actual = getDarkTheme([]);
     expect(actual).toEqual(null);
   });
 });
 
-describe("themeToCSS", () => {
+describe("lightThemeToCSS", () => {
   it("renders theme into CSS", () => {
-    const actual = themeToCSS(DEFAULT_THEME);
+    const actual = lightThemeToCSS(DEFAULT_LIGHT_THEME);
     const expected = `:root {
     --color-primary-unshaded: #176df3;
     --color-primary-shaded-1: #f5f9fe;
@@ -138,8 +160,15 @@ describe("themeToCSS", () => {
     --color-background-shaded-6: #eaeaea;
     --color-background-shaded-7: #f4f4f4;
     --color-background-shaded-8: #f8f8f8
-}
-@media (prefers-color-scheme: dark) {
+}`;
+    expect(actual).toEqual(expected);
+  });
+});
+
+describe("darkThemeToCSS", () => {
+  it("renders theme into CSS", () => {
+    const actual = darkThemeToCSS(DEFAULT_DARK_THEME);
+    const expected = `@media (prefers-color-scheme: dark) {
     :root {
         --color-primary-unshaded: #317BF4;
         --color-primary-shaded-1: #f6faff;

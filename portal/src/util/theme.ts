@@ -6,33 +6,29 @@ import {
 } from "@fluentui/react";
 import { Root, Node, Rule, AtRule, Declaration } from "postcss";
 
-export interface Theme {
+export interface LightTheme {
   lightModePrimaryColor: string;
   lightModeTextColor: string;
   lightModeBackgroundColor: string;
+}
+
+export interface DarkTheme {
   darkModePrimaryColor: string;
   darkModeTextColor: string;
   darkModeBackgroundColor: string;
 }
 
-export const THEME_DELIMITER_COMMENT = "AUTHGEAR THEME CSS. DO NOT EDIT!";
-
-export const DEFAULT_THEME: Theme = {
+export const DEFAULT_LIGHT_THEME: LightTheme = {
   lightModePrimaryColor: "#176df3",
   lightModeTextColor: "#000000",
   lightModeBackgroundColor: "#ffffff",
+};
+
+export const DEFAULT_DARK_THEME: DarkTheme = {
   darkModePrimaryColor: "#317BF4",
   darkModeTextColor: "#ffffff",
   darkModeBackgroundColor: "#000000",
 };
-
-export function isDarkModeEnabled(theme: Theme): boolean {
-  const darkModeDisabled =
-    theme.lightModePrimaryColor === theme.darkModePrimaryColor &&
-    theme.lightModeTextColor === theme.darkModeTextColor &&
-    theme.lightModeBackgroundColor === theme.darkModeBackgroundColor;
-  return !darkModeDisabled;
-}
 
 // getShades takes a color and then return the shades.
 // The return value is 9-element array, with the first element being the originally given color.
@@ -79,17 +75,13 @@ export function getShades(colorStr: string): string[] {
     primaryColorShade8,
   ];
 }
-// getTheme takes a list of CSS nodes and extract the theme.
+
 // eslint-disable-next-line complexity
-export function getTheme(nodes: Node[]): Theme | null {
+export function getLightTheme(nodes: Node[]): LightTheme | null {
   let lightModePrimaryColor;
   let lightModeTextColor;
   let lightModeBackgroundColor;
-  let darkModePrimaryColor;
-  let darkModeTextColor;
-  let darkModeBackgroundColor;
 
-  // Extract light mode.
   for (const pseudoRoot of nodes) {
     if (pseudoRoot instanceof Rule && pseudoRoot.selector === ":root") {
       for (const decl of pseudoRoot.nodes) {
@@ -110,7 +102,27 @@ export function getTheme(nodes: Node[]): Theme | null {
     }
   }
 
-  // Extract dark mode.
+  if (
+    lightModePrimaryColor != null &&
+    lightModeTextColor != null &&
+    lightModeBackgroundColor != null
+  ) {
+    return {
+      lightModePrimaryColor,
+      lightModeTextColor,
+      lightModeBackgroundColor,
+    };
+  }
+
+  return null;
+}
+
+// eslint-disable-next-line complexity
+export function getDarkTheme(nodes: Node[]): DarkTheme | null {
+  let darkModePrimaryColor;
+  let darkModeTextColor;
+  let darkModeBackgroundColor;
+
   for (const atRule of nodes) {
     if (
       atRule instanceof AtRule &&
@@ -139,17 +151,11 @@ export function getTheme(nodes: Node[]): Theme | null {
   }
 
   if (
-    lightModePrimaryColor != null &&
-    lightModeTextColor != null &&
-    lightModeBackgroundColor != null &&
     darkModePrimaryColor != null &&
     darkModeTextColor != null &&
     darkModeBackgroundColor != null
   ) {
     return {
-      lightModePrimaryColor,
-      lightModeTextColor,
-      lightModeBackgroundColor,
       darkModePrimaryColor,
       darkModeTextColor,
       darkModeBackgroundColor,
@@ -172,22 +178,32 @@ function addShadeDeclarations(rule: Rule, shades: string[], name: string) {
   }
 }
 
-export function themeToCSS(theme: Theme): string {
+export function lightThemeToCSS(lightTheme: LightTheme): string {
   const root = new Root();
 
   const pseudoRoot = new Rule({ selector: ":root" });
   addShadeDeclarations(
     pseudoRoot,
-    getShades(theme.lightModePrimaryColor),
+    getShades(lightTheme.lightModePrimaryColor),
     "primary"
   );
-  addShadeDeclarations(pseudoRoot, getShades(theme.lightModeTextColor), "text");
   addShadeDeclarations(
     pseudoRoot,
-    getShades(theme.lightModeBackgroundColor),
+    getShades(lightTheme.lightModeTextColor),
+    "text"
+  );
+  addShadeDeclarations(
+    pseudoRoot,
+    getShades(lightTheme.lightModeBackgroundColor),
     "background"
   );
   root.append(pseudoRoot);
+
+  return root.toResult().css;
+}
+
+export function darkThemeToCSS(darkTheme: DarkTheme): string {
+  const root = new Root();
 
   const atRule = new AtRule({
     name: "media",
@@ -196,17 +212,17 @@ export function themeToCSS(theme: Theme): string {
   const darkPseudoRoot = new Rule({ selector: ":root" });
   addShadeDeclarations(
     darkPseudoRoot,
-    getShades(theme.darkModePrimaryColor),
+    getShades(darkTheme.darkModePrimaryColor),
     "primary"
   );
   addShadeDeclarations(
     darkPseudoRoot,
-    getShades(theme.darkModeTextColor),
+    getShades(darkTheme.darkModeTextColor),
     "text"
   );
   addShadeDeclarations(
     darkPseudoRoot,
-    getShades(theme.darkModeBackgroundColor),
+    getShades(darkTheme.darkModeBackgroundColor),
     "background"
   );
   atRule.append(darkPseudoRoot);
