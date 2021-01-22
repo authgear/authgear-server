@@ -31,13 +31,13 @@ export interface LoginIDUsernameConfig {
   case_sensitive?: boolean;
 }
 
-interface LoginIDTypesConfig {
+export interface LoginIDTypesConfig {
   email?: LoginIDEmailConfig;
   username?: LoginIDUsernameConfig;
 }
 
 // LoginIDConfig
-interface LoginIDConfig {
+export interface LoginIDConfig {
   keys?: LoginIDKeyConfig[];
   types?: LoginIDTypesConfig;
 }
@@ -100,7 +100,7 @@ export const isOAuthSSOProvider = (
   return config.type === type && (!appType || config.app_type === appType);
 };
 
-interface OAuthSSOConfig {
+export interface OAuthSSOConfig {
   providers?: OAuthSSOProviderConfig[];
 }
 
@@ -118,12 +118,12 @@ export const isPromotionConflictBehaviour = (
   );
 };
 
-interface IdentityConflictConfig {
+export interface IdentityConflictConfig {
   additionalProperties?: boolean;
   promotion?: PromotionConflictBehaviour;
 }
 
-interface IdentityConfig {
+export interface IdentityConfig {
   login_id?: LoginIDConfig;
   oauth?: OAuthSSOConfig;
   on_conflict?: IdentityConflictConfig;
@@ -154,11 +154,11 @@ export interface PasswordPolicyConfig {
   history_days?: number;
 }
 
-interface AuthenticatorPasswordConfig {
+export interface AuthenticatorPasswordConfig {
   policy?: PasswordPolicyConfig;
 }
 
-interface AuthenticatorConfig {
+export interface AuthenticatorConfig {
   oob_otp?: Record<string, unknown>;
   password?: AuthenticatorPasswordConfig;
   totp?: Record<string, unknown>;
@@ -194,12 +194,12 @@ export const secondaryAuthenticationModes = [
 ] as const;
 export type SecondaryAuthenticationMode = typeof secondaryAuthenticationModes[number];
 
-interface RecoveryCodeConfig {
+export interface RecoveryCodeConfig {
   count?: number;
   list_enabled?: boolean;
 }
 
-interface AuthenticationConfig {
+export interface AuthenticationConfig {
   identities?: IdentityType[];
   primary_authenticators?: PrimaryAuthenticatorType[];
   secondary_authenticators?: SecondaryAuthenticatorType[];
@@ -212,7 +212,7 @@ export interface VerificationClaimConfig {
   required?: boolean;
 }
 
-interface VerificationClaimsConfig {
+export interface VerificationClaimsConfig {
   email?: VerificationClaimConfig;
   phone_number?: VerificationClaimConfig;
 }
@@ -221,7 +221,7 @@ export const verificationCriteriaList = ["any", "all"] as const;
 export type VerificationCriteria = typeof verificationCriteriaList[number];
 
 // type alias of integer in JSON schema
-type DurationSeconds = number;
+export type DurationSeconds = number;
 
 export interface VerificationConfig {
   claims?: VerificationClaimsConfig;
@@ -235,17 +235,18 @@ export interface UICountryCallingCodeConfig {
   pinned_list?: string[];
 }
 
-interface UIConfig {
+export interface UIConfig {
   country_calling_code?: UICountryCallingCodeConfig;
+  dark_theme_disabled?: boolean;
 }
 
 // LocalizationConfig
-interface LocalizationConfig {
+export interface LocalizationConfig {
   fallback_language?: string;
 }
 
 // ForgotPasswordConfig
-interface ForgotPasswordConfig {
+export interface ForgotPasswordConfig {
   enabled?: boolean;
   reset_code_expiry_seconds?: DurationSeconds;
 }
@@ -266,7 +267,7 @@ export interface OAuthClientConfig {
   is_first_party?: boolean;
 }
 
-interface OAuthConfig {
+export interface OAuthConfig {
   clients?: OAuthClientConfig[];
 }
 
@@ -323,17 +324,17 @@ export type SecretConfigKey = typeof secretConfigKeyList[number];
 
 // item with different key has different schema
 
-interface DbSecretItem {
+export interface DbSecretItem {
   key: "db";
   data: Record<string, unknown>;
 }
 
-interface RedisSecretItem {
+export interface RedisSecretItem {
   key: "redis";
   data: Record<string, unknown>;
 }
 
-interface AdminApiSecretItem {
+export interface AdminApiSecretItem {
   key: "admin-api.auth";
   data: Record<string, unknown>;
 }
@@ -345,7 +346,7 @@ export interface OAuthClientCredentialItem {
   client_secret: string;
 }
 
-interface OAuthClientCredentials {
+export interface OAuthClientCredentials {
   items: OAuthClientCredentialItem[];
 }
 
@@ -354,38 +355,38 @@ export interface OAuthSecretItem {
   data: OAuthClientCredentials;
 }
 
-interface SmtpSecretItem {
+export interface SmtpSecretItem {
   key: "mail.smtp";
   data: Record<string, unknown>;
 }
 
-interface TwilioSecretItem {
+export interface TwilioSecretItem {
   key: "sms.twilio";
   data: Record<string, unknown>;
 }
 
-interface NexmoSecretItem {
+export interface NexmoSecretItem {
   key: "sms.nexmo";
   data: Record<string, unknown>;
 }
 
-interface OidcSecretItem {
+export interface OidcSecretItem {
   key: "oidc";
   data: Record<string, unknown>;
 }
 
-interface CsrfSecretItem {
+export interface CsrfSecretItem {
   key: "csrf";
   data: Record<string, unknown>;
 }
 
-interface WebhookSecretItem {
+export interface WebhookSecretItem {
   key: "webhook";
   data: Record<string, unknown>;
 }
 
 // union type
-type SecretItem =
+export type SecretItem =
   | DbSecretItem
   | RedisSecretItem
   | AdminApiSecretItem
