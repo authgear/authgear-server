@@ -26,6 +26,14 @@ export const DEFAULT_THEME: Theme = {
   darkModeBackgroundColor: "#000000",
 };
 
+export function isDarkModeEnabled(theme: Theme): boolean {
+  const darkModeDisabled =
+    theme.lightModePrimaryColor === theme.darkModePrimaryColor &&
+    theme.lightModeTextColor === theme.darkModeTextColor &&
+    theme.lightModeBackgroundColor === theme.darkModeBackgroundColor;
+  return !darkModeDisabled;
+}
+
 // getShades takes a color and then return the shades.
 // The return value is 9-element array, with the first element being the originally given color.
 // The remaining 8 elements are the shades, ordered from Shade.Shade1 to Shade.Shade8

@@ -46,6 +46,7 @@ import {
   Theme,
   getTheme,
   themeToCSS,
+  isDarkModeEnabled,
 } from "../../util/theme";
 import { setCSS, getCSS } from "../../util/css";
 
@@ -384,11 +385,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     if (theme == null) {
       return true;
     }
-    const darkModeDisabled =
-      theme.lightModePrimaryColor === theme.darkModePrimaryColor &&
-      theme.lightModeTextColor === theme.darkModeTextColor &&
-      theme.lightModeBackgroundColor === theme.darkModeBackgroundColor;
-    return !darkModeDisabled;
+    return isDarkModeEnabled(theme);
   }, [theme]);
 
   const onChangeDarkModeEnabled = useCallback(
