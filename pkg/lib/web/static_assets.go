@@ -6,33 +6,30 @@ import (
 
 const StaticAssetResourcePrefix = "static/"
 
-const (
-	webJSName        = "authgear.js"
-	passwordPolicyJS = "password-policy.js"
-	webCSSName       = "authgear.css"
-)
-
-const (
-	appLogoNamePrefix = "app_logo"
-	faviconNamePrefix = "favicon"
-)
-
 type StaticAsset struct {
 	Path string
 	Data []byte
 }
 
 var WebJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + webJSName,
+	Path: StaticAssetResourcePrefix + "authgear.js",
 })
 
 var PasswordPolicyJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + passwordPolicyJS,
+	Path: StaticAssetResourcePrefix + "password-policy.js",
 })
 
-var WebCSS = resource.RegisterResource(CSSDescriptor{
-	Path: StaticAssetResourcePrefix + webCSSName,
+var AuthgearLightThemeCSS = resource.RegisterResource(CSSDescriptor{
+	Path: StaticAssetResourcePrefix + "authgear-light-theme.css",
 })
 
-var AppLogo = resource.RegisterResource(ImageDescriptor{Name: appLogoNamePrefix})
-var Favicon = resource.RegisterResource(ImageDescriptor{Name: faviconNamePrefix})
+var AuthgearDarkThemeCSS = resource.RegisterResource(CSSDescriptor{
+	Path: StaticAssetResourcePrefix + "authgear-dark-theme.css",
+})
+
+var AuthgearCSS = resource.RegisterResource(CSSDescriptor{
+	Path: StaticAssetResourcePrefix + "authgear.css",
+})
+
+var AppLogo = resource.RegisterResource(ImageDescriptor{Name: "app_logo"})
+var Favicon = resource.RegisterResource(ImageDescriptor{Name: "favicon"})

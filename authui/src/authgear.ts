@@ -1,6 +1,7 @@
 import Turbolinks from "turbolinks";
 import { init } from "./core";
-import "./authgear.css";
+// FIXME(css): Build CSS files one by one with another tool
+// webpack bundles all CSS files into one bundle.
 
 init();
 

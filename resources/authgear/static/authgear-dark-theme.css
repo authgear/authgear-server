@@ -1,0 +1,223 @@
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary-unshaded: #317BF4;
+    --color-primary-shaded-1: #f6faff;
+    --color-primary-shaded-2: #dde9fd;
+    --color-primary-shaded-3: #bfd7fc;
+    --color-primary-shaded-4: #81aff9;
+    --color-primary-shaded-5: #498bf6;
+    --color-primary-shaded-6: #2c70dc;
+    --color-primary-shaded-7: #255eba;
+    --color-primary-shaded-8: #1b4589;
+
+    --color-text-unshaded: #ffffff;
+    --color-text-shaded-1: #767676;
+    --color-text-shaded-2: #a6a6a6;
+    --color-text-shaded-3: #c8c8c8;
+    --color-text-shaded-4: #d0d0d0;
+    --color-text-shaded-5: #dadada;
+    --color-text-shaded-6: #eaeaea;
+    --color-text-shaded-7: #f4f4f4;
+    --color-text-shaded-8: #f8f8f8;
+
+    --color-background-unshaded: #000000;
+    --color-background-shaded-1: #898989;
+    --color-background-shaded-2: #737373;
+    --color-background-shaded-3: #595959;
+    --color-background-shaded-4: #373737;
+    --color-background-shaded-5: #2f2f2f;
+    --color-background-shaded-6: #252525;
+    --color-background-shaded-7: #151515;
+    --color-background-shaded-8: #0b0b0b;
+
+    --color-pane-background: #252525;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .input:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .select:focus {
+    border-bottom-color: var(--color-primary-shaded-5);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .primary-btn {
+    color: var(--color-text-unshaded);
+    background-color: var(--color-primary-shaded-5);
+  }
+  .primary-btn:hover {
+    background-color: var(--color-primary-shaded-4);
+  }
+  .primary-btn:active {
+    background-color: var(--color-primary-shaded-6);
+  }
+  .primary-btn:disabled {
+    background-color: var(--color-primary-shaded-2);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .secondary-btn {
+    color: var(--color-primary-shaded-5);
+    background-color: transparent;
+  }
+  .secondary-btn:hover {
+    color: var(--color-primary-shaded-4);
+  }
+  .secondary-btn:active {
+    color: var(--color-primary-shaded-7);
+  }
+  .secondary-btn:disabled {
+    color: var(--color-primary-shaded-1);
+  }
+}
+
+/* <a> does not have disabled attribute */
+@media (prefers-color-scheme: dark) {
+  .link, .link:visited {
+    color: var(--color-primary-shaded-5);
+    background-color: transparent;
+  }
+  .link:hover {
+    color: var(--color-primary-shaded-4);
+  }
+  .link:active {
+    color: var(--color-primary-shaded-7);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .banner {
+    background-color: var(--color-text-unshaded);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .apple {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .apple:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .apple:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .apple:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .apple .sso-btn-icon {
+    color: var(--color-apple-unshaded);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .sso-btn.google {
+    border: 0;
+  }
+  .google {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .google:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .google:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .google:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .google .sso-btn-icon {
+    color: var(--color-black-unshaded);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .facebook {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .facebook:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .facebook:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .facebook:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .facebook .sso-btn-icon {
+    color: var(--color-facebook-unshaded);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .linkedin {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .linkedin:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .linkedin:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .linkedin:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .linkedin .sso-btn-icon {
+    color: var(--color-linkedin-unshaded);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .azureadv2 {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .azureadv2:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .azureadv2:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .azureadv2:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .azureadv2 .sso-btn-icon {
+    color: var(--color-azureadv2-unshaded);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .wechat {
+    color: var(--color-black-unshaded);
+    background-color: var(--color-white-unshaded);
+  }
+  .wechat:hover {
+    background-color: var(--color-white-shaded-4);
+  }
+  .wechat:active {
+    background-color: var(--color-white-shaded-7);
+  }
+  .wechat:disabled {
+    background-color: var(--color-white-shaded-2);
+  }
+  .wechat .sso-btn-icon {
+    color: var(--color-wechat-unshaded);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .signin-signup-link.current {
+    border-bottom: 2px solid var(--color-primary-shaded-5);
+    color: var(--color-primary-shaded-5);
+  }
+}

@@ -1,6 +1,5 @@
 const path = require("path");
 const webpack = require("webpack");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
   mode: "production",
@@ -15,9 +14,6 @@ module.exports = {
   },
   plugins: [
     new webpack.ProgressPlugin(),
-    new MiniCssExtractPlugin({
-      filename: "authgear.css"
-    })
   ],
   module: {
     rules: [
@@ -25,10 +21,6 @@ module.exports = {
         test: /\.(js|ts)$/,
         loader: "babel-loader"
       },
-      {
-        test: /.css$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"]
-      }
     ]
   },
   resolve: {
