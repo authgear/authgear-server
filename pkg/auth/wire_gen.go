@@ -19971,6 +19971,23 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	return uiLocalesMiddleware
 }
 
+func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
+	weChatRedirectURIMiddleware := &webapp.WeChatRedirectURIMiddleware{
+		CookieFactory: cookieFactory,
+		Config:        oAuthConfig,
+	}
+	return weChatRedirectURIMiddleware
+}
+
 // wire_middleware.go:
 
 func provideSecHeadersMiddleware(http2 *config.HTTPConfig) *web.SecHeadersMiddleware {

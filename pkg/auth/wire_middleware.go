@@ -118,3 +118,10 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 		wire.Bind(new(httproute.Middleware), new(*webapp.UILocalesMiddleware)),
 	))
 }
+
+func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.WeChatRedirectURIMiddleware)),
+	))
+}

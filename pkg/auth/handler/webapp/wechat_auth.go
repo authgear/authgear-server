@@ -17,6 +17,7 @@ import (
 	coreimage "github.com/authgear/authgear-server/pkg/util/image"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
+	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
 
 var TemplateWebWechatAuthHandlerHTML = template.RegisterHTML(
@@ -70,8 +71,9 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 		CurrentURI: r.URL.RequestURI(),
 	}
 
-	if session.WeChatRedirectURI != "" {
-		u, err := url.Parse(session.WeChatRedirectURI)
+	weChatRedirectURIFromCtx := wechat.GetWeChatRedirectURI(r.Context())
+	if weChatRedirectURIFromCtx != "" {
+		u, err := url.Parse(weChatRedirectURIFromCtx)
 		if err != nil {
 			return nil, err
 		}
