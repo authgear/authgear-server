@@ -69,15 +69,7 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 		}
 	}
 
-	weChatRedirectURI, errResp := parseWeChatRedirectURI(client, r)
-	if errResp != nil {
-		return authorizationResultError{
-			ResponseMode: r.ResponseMode(),
-			Response:     errResp,
-		}
-	}
-
-	result, err := h.doHandle(redirectURI, client, r, weChatRedirectURI)
+	result, err := h.doHandle(redirectURI, client, r)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
 		resultErr := authorizationResultError{
@@ -105,7 +97,6 @@ func (h *AuthorizationHandler) doHandle(
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,
 	r protocol.AuthorizationRequest,
-	weChatRedirectURI *url.URL,
 ) (httputil.Result, error) {
 	if err := h.validateRequest(client, r); err != nil {
 		return nil, err
@@ -119,10 +110,6 @@ func (h *AuthorizationHandler) doHandle(
 
 	s := session.GetSession(h.Context)
 	authnOptions := webapp.AuthenticateURLOptions{}
-	authnOptions.Platform = r.Platform()
-	if weChatRedirectURI != nil {
-		authnOptions.WeChatRedirectURI = weChatRedirectURI.String()
-	}
 	if slice.ContainsString(r.Prompt(), "login") {
 		// Request login prompt => force re-authentication and retry
 		r2 := protocol.AuthorizationRequest{}
