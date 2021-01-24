@@ -8,6 +8,10 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
+import {
+  DEFAULT_LIGHT_THEME,
+  DEFAULT_DARK_THEME,
+} from "../../ThemePresetWidget";
 import ImageFilePicker from "../../ImageFilePicker";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
@@ -44,8 +48,6 @@ import {
   validateLocales,
 } from "../../util/resource";
 import {
-  DEFAULT_LIGHT_THEME,
-  DEFAULT_DARK_THEME,
   LightTheme,
   DarkTheme,
   getLightTheme,
@@ -424,22 +426,18 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   );
 
   const onChangeLightModePrimaryColor = getOnChangeLightThemeColor(
-    "lightModePrimaryColor"
+    "primaryColor"
   );
-  const onChangeLightModeTextColor = getOnChangeLightThemeColor(
-    "lightModeTextColor"
-  );
+  const onChangeLightModeTextColor = getOnChangeLightThemeColor("textColor");
   const onChangeLightModeBackgroundColor = getOnChangeLightThemeColor(
-    "lightModeBackgroundColor"
+    "backgroundColor"
   );
   const onChangeDarkModePrimaryColor = getOnChangeDarkThemeColor(
-    "darkModePrimaryColor"
+    "primaryColor"
   );
-  const onChangeDarkModeTextColor = getOnChangeDarkThemeColor(
-    "darkModeTextColor"
-  );
+  const onChangeDarkModeTextColor = getOnChangeDarkThemeColor("textColor");
   const onChangeDarkModeBackgroundColor = getOnChangeDarkThemeColor(
-    "darkModeBackgroundColor"
+    "backgroundColor"
   );
 
   const onChangeDarkModeEnabled = useCallback(
@@ -447,10 +445,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       if (enabled) {
         // Become enabled, copy the light theme with text color and background color swapped.
         const base = lightTheme ?? DEFAULT_LIGHT_THEME;
-        const newDarkTheme = {
-          darkModePrimaryColor: base.lightModePrimaryColor,
-          darkModeTextColor: base.lightModeBackgroundColor,
-          darkModeBackgroundColor: base.lightModeTextColor,
+        const newDarkTheme: DarkTheme = {
+          isDarkTheme: true,
+          primaryColor: base.primaryColor,
+          textColor: base.backgroundColor,
+          backgroundColor: base.textColor,
         };
         setDarkTheme(newDarkTheme);
       }
@@ -638,41 +637,27 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           itemKey={PIVOT_KEY_THEME}
         >
           <ThemeConfigurationWidget
+            className={styles.themeWidget}
+            darkTheme={darkTheme}
+            lightTheme={lightTheme}
             isDarkMode={false}
             darkModeEnabled={false}
             onChangeDarkModeEnabled={NOOP}
-            primaryColor={
-              lightTheme?.lightModePrimaryColor ??
-              DEFAULT_LIGHT_THEME.lightModePrimaryColor
-            }
-            textColor={
-              lightTheme?.lightModeTextColor ??
-              DEFAULT_LIGHT_THEME.lightModeTextColor
-            }
-            backgroundColor={
-              lightTheme?.lightModeBackgroundColor ??
-              DEFAULT_LIGHT_THEME.lightModeBackgroundColor
-            }
+            onChangeLightTheme={setLightTheme}
+            onChangeDarkTheme={setDarkTheme}
             onChangePrimaryColor={onChangeLightModePrimaryColor}
             onChangeTextColor={onChangeLightModeTextColor}
             onChangeBackgroundColor={onChangeLightModeBackgroundColor}
           />
           <ThemeConfigurationWidget
+            className={styles.themeWidget}
+            darkTheme={darkTheme}
+            lightTheme={lightTheme}
             isDarkMode={true}
             darkModeEnabled={!state.darkThemeDisabled}
+            onChangeLightTheme={setLightTheme}
+            onChangeDarkTheme={setDarkTheme}
             onChangeDarkModeEnabled={onChangeDarkModeEnabled}
-            primaryColor={
-              darkTheme?.darkModePrimaryColor ??
-              DEFAULT_DARK_THEME.darkModePrimaryColor
-            }
-            textColor={
-              darkTheme?.darkModeTextColor ??
-              DEFAULT_DARK_THEME.darkModeTextColor
-            }
-            backgroundColor={
-              darkTheme?.darkModeBackgroundColor ??
-              DEFAULT_DARK_THEME.darkModeBackgroundColor
-            }
             onChangePrimaryColor={onChangeDarkModePrimaryColor}
             onChangeTextColor={onChangeDarkModeTextColor}
             onChangeBackgroundColor={onChangeDarkModeBackgroundColor}

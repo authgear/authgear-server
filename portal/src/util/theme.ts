@@ -7,28 +7,18 @@ import {
 import { Root, Node, Rule, AtRule, Declaration } from "postcss";
 
 export interface LightTheme {
-  lightModePrimaryColor: string;
-  lightModeTextColor: string;
-  lightModeBackgroundColor: string;
+  isDarkTheme: false;
+  primaryColor: string;
+  textColor: string;
+  backgroundColor: string;
 }
 
 export interface DarkTheme {
-  darkModePrimaryColor: string;
-  darkModeTextColor: string;
-  darkModeBackgroundColor: string;
+  isDarkTheme: true;
+  primaryColor: string;
+  textColor: string;
+  backgroundColor: string;
 }
-
-export const DEFAULT_LIGHT_THEME: LightTheme = {
-  lightModePrimaryColor: "#176df3",
-  lightModeTextColor: "#000000",
-  lightModeBackgroundColor: "#ffffff",
-};
-
-export const DEFAULT_DARK_THEME: DarkTheme = {
-  darkModePrimaryColor: "#317BF4",
-  darkModeTextColor: "#ffffff",
-  darkModeBackgroundColor: "#000000",
-};
 
 // getShades takes a color and then return the shades.
 // The return value is 9-element array, with the first element being the originally given color.
@@ -78,9 +68,9 @@ export function getShades(colorStr: string): string[] {
 
 // eslint-disable-next-line complexity
 export function getLightTheme(nodes: Node[]): LightTheme | null {
-  let lightModePrimaryColor;
-  let lightModeTextColor;
-  let lightModeBackgroundColor;
+  let primaryColor;
+  let textColor;
+  let backgroundColor;
 
   for (const pseudoRoot of nodes) {
     if (pseudoRoot instanceof Rule && pseudoRoot.selector === ":root") {
@@ -88,13 +78,13 @@ export function getLightTheme(nodes: Node[]): LightTheme | null {
         if (decl instanceof Declaration) {
           switch (decl.prop) {
             case "--color-primary-unshaded":
-              lightModePrimaryColor = decl.value;
+              primaryColor = decl.value;
               break;
             case "--color-text-unshaded":
-              lightModeTextColor = decl.value;
+              textColor = decl.value;
               break;
             case "--color-background-unshaded":
-              lightModeBackgroundColor = decl.value;
+              backgroundColor = decl.value;
               break;
           }
         }
@@ -102,15 +92,12 @@ export function getLightTheme(nodes: Node[]): LightTheme | null {
     }
   }
 
-  if (
-    lightModePrimaryColor != null &&
-    lightModeTextColor != null &&
-    lightModeBackgroundColor != null
-  ) {
+  if (primaryColor != null && textColor != null && backgroundColor != null) {
     return {
-      lightModePrimaryColor,
-      lightModeTextColor,
-      lightModeBackgroundColor,
+      isDarkTheme: false,
+      primaryColor,
+      textColor,
+      backgroundColor,
     };
   }
 
@@ -119,9 +106,9 @@ export function getLightTheme(nodes: Node[]): LightTheme | null {
 
 // eslint-disable-next-line complexity
 export function getDarkTheme(nodes: Node[]): DarkTheme | null {
-  let darkModePrimaryColor;
-  let darkModeTextColor;
-  let darkModeBackgroundColor;
+  let primaryColor;
+  let textColor;
+  let backgroundColor;
 
   for (const atRule of nodes) {
     if (
@@ -134,13 +121,13 @@ export function getDarkTheme(nodes: Node[]): DarkTheme | null {
             if (decl instanceof Declaration) {
               switch (decl.prop) {
                 case "--color-primary-unshaded":
-                  darkModePrimaryColor = decl.value;
+                  primaryColor = decl.value;
                   break;
                 case "--color-text-unshaded":
-                  darkModeTextColor = decl.value;
+                  textColor = decl.value;
                   break;
                 case "--color-background-unshaded":
-                  darkModeBackgroundColor = decl.value;
+                  backgroundColor = decl.value;
                   break;
               }
             }
@@ -150,15 +137,12 @@ export function getDarkTheme(nodes: Node[]): DarkTheme | null {
     }
   }
 
-  if (
-    darkModePrimaryColor != null &&
-    darkModeTextColor != null &&
-    darkModeBackgroundColor != null
-  ) {
+  if (primaryColor != null && textColor != null && backgroundColor != null) {
     return {
-      darkModePrimaryColor,
-      darkModeTextColor,
-      darkModeBackgroundColor,
+      isDarkTheme: true,
+      primaryColor,
+      textColor,
+      backgroundColor,
     };
   }
 
@@ -184,17 +168,13 @@ export function lightThemeToCSS(lightTheme: LightTheme): string {
   const pseudoRoot = new Rule({ selector: ":root" });
   addShadeDeclarations(
     pseudoRoot,
-    getShades(lightTheme.lightModePrimaryColor),
+    getShades(lightTheme.primaryColor),
     "primary"
   );
+  addShadeDeclarations(pseudoRoot, getShades(lightTheme.textColor), "text");
   addShadeDeclarations(
     pseudoRoot,
-    getShades(lightTheme.lightModeTextColor),
-    "text"
-  );
-  addShadeDeclarations(
-    pseudoRoot,
-    getShades(lightTheme.lightModeBackgroundColor),
+    getShades(lightTheme.backgroundColor),
     "background"
   );
   root.append(pseudoRoot);
@@ -212,21 +192,33 @@ export function darkThemeToCSS(darkTheme: DarkTheme): string {
   const darkPseudoRoot = new Rule({ selector: ":root" });
   addShadeDeclarations(
     darkPseudoRoot,
-    getShades(darkTheme.darkModePrimaryColor),
+    getShades(darkTheme.primaryColor),
     "primary"
   );
+  addShadeDeclarations(darkPseudoRoot, getShades(darkTheme.textColor), "text");
   addShadeDeclarations(
     darkPseudoRoot,
-    getShades(darkTheme.darkModeTextColor),
-    "text"
-  );
-  addShadeDeclarations(
-    darkPseudoRoot,
-    getShades(darkTheme.darkModeBackgroundColor),
+    getShades(darkTheme.backgroundColor),
     "background"
   );
   atRule.append(darkPseudoRoot);
   root.append(atRule);
 
   return root.toResult().css;
+}
+
+export function isLightThemeEqual(a: LightTheme, b: LightTheme): boolean {
+  return (
+    a.primaryColor === b.primaryColor &&
+    a.textColor === b.textColor &&
+    a.backgroundColor === b.backgroundColor
+  );
+}
+
+export function isDarkThemeEqual(a: DarkTheme, b: DarkTheme): boolean {
+  return (
+    a.primaryColor === b.primaryColor &&
+    a.textColor === b.textColor &&
+    a.backgroundColor === b.backgroundColor
+  );
 }

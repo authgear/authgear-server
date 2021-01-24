@@ -9,7 +9,8 @@
           "css-appearance",
           "css-gradients",
           "css3-cursors",
-          "flexbox"
+          "flexbox",
+          "multicolumn"
         ]
       }
     ],
