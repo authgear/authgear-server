@@ -1,9 +1,9 @@
 import React, { useCallback, useRef } from "react";
 import { DefaultEffects, Text, Label, Toggle } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
-import PortalColorPicker from "../../PortalColorPicker";
-import ScaleContainer from "../../ScaleContainer";
-import ThemePreviewWidget from "../../ThemePreviewWidget";
+import ScaleContainer from "./ScaleContainer";
+import ThemePreviewWidget from "./ThemePreviewWidget";
+import PortalColorPicker from "./PortalColorPicker";
 import styles from "./ThemeConfigurationWidget.module.scss";
 
 export interface ThemeConfigurationWidgetProps {

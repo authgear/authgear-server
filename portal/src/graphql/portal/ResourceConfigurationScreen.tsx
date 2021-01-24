@@ -7,7 +7,7 @@ import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ManageLanguageWidget from "./ManageLanguageWidget";
-import ThemeConfigurationWidget from "./ThemeConfigurationWidget";
+import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
 import ImageFilePicker from "../../ImageFilePicker";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
