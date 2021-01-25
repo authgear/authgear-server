@@ -3,9 +3,11 @@ import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
+import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ManageLanguageWidget from "./ManageLanguageWidget";
+import ThemeConfigurationWidget from "./ThemeConfigurationWidget";
 import ImageFilePicker from "../../ImageFilePicker";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
@@ -13,7 +15,7 @@ import EditTemplatesWidget, {
 import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  ALL_LOCALIZABLE_RESOURCES,
+  ALL_EDITABLE_RESOURCES,
   ALL_TEMPLATES,
   renderPath,
   RESOURCE_FAVICON,
@@ -28,6 +30,9 @@ import {
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
   RESOURCE_TRANSLATION_JSON,
+  RESOURCE_AUTHGEAR_CSS,
+  RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
+  RESOURCE_AUTHGEAR_DARK_THEME_CSS,
 } from "../../resources";
 import {
   LanguageTag,
@@ -38,6 +43,16 @@ import {
   specifierId,
   validateLocales,
 } from "../../util/resource";
+import {
+  DEFAULT_LIGHT_THEME,
+  DEFAULT_DARK_THEME,
+  LightTheme,
+  DarkTheme,
+  getLightTheme,
+  getDarkTheme,
+  lightThemeToCSS,
+  darkThemeToCSS,
+} from "../../util/theme";
 
 import styles from "./ResourceConfigurationScreen.module.scss";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
@@ -48,10 +63,16 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 interface ConfigFormState {
   defaultLocale: string;
+  darkThemeDisabled: boolean;
 }
 
+const NOOP = () => {};
+
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
-  return { defaultLocale: config.localization?.fallback_language ?? "en" };
+  return {
+    defaultLocale: config.localization?.fallback_language ?? "en",
+    darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
+  };
 }
 
 function constructConfig(
@@ -63,6 +84,10 @@ function constructConfig(
     config.localization = config.localization ?? {};
     if (initialState.defaultLocale !== currentState.defaultLocale) {
       config.localization.fallback_language = currentState.defaultLocale;
+    }
+    config.ui = config.ui ?? {};
+    if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
+      config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
     }
     clearEmptyObject(config);
   });
@@ -84,6 +109,7 @@ function constructResourcesFormState(
       resourceMap[specifierId(r.specifier)] = r;
     }
   }
+
   return { resources: resourceMap };
 }
 
@@ -116,15 +142,21 @@ interface ResourcesConfigurationContentProps {
 }
 
 const PIVOT_KEY_APPEARANCE = "appearance";
+const PIVOT_KEY_CUSTOM_CSS = "custom-css";
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
 const PIVOT_KEY_PASSWORDLESS = "passwordless";
+const PIVOT_KEY_THEME = "theme";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
+const PIVOT_KEY_DEFAULT = PIVOT_KEY_APPEARANCE;
+
 const ALL_PIVOT_KEYS = [
-  PIVOT_KEY_TRANSLATION_JSON,
   PIVOT_KEY_APPEARANCE,
+  PIVOT_KEY_CUSTOM_CSS,
   PIVOT_KEY_FORGOT_PASSWORD,
   PIVOT_KEY_PASSWORDLESS,
+  PIVOT_KEY_TRANSLATION_JSON,
+  PIVOT_KEY_THEME,
 ];
 
 const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
@@ -203,9 +235,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [locales, setState, state]
   );
 
-  const [selectedKey, setSelectedKey] = useState<string>(
-    PIVOT_KEY_TRANSLATION_JSON
-  );
+  const [selectedKey, setSelectedKey] = useState<string>(PIVOT_KEY_DEFAULT);
   const onLinkClick = useCallback((item?: PivotItem) => {
     const itemKey = item?.props.itemKey;
     if (itemKey != null) {
@@ -292,6 +322,149 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [state.selectedLocale, setState]
   );
 
+  const lightTheme = useMemo(() => {
+    let lightTheme = null;
+    for (const r of Object.values(state.resources)) {
+      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS) {
+        const root = parse(r.value);
+        lightTheme = getLightTheme(root.nodes);
+      }
+    }
+
+    return lightTheme;
+  }, [state.resources]);
+
+  const darkTheme = useMemo(() => {
+    let darkTheme = null;
+    for (const r of Object.values(state.resources)) {
+      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
+        const root = parse(r.value);
+        darkTheme = getDarkTheme(root.nodes);
+      }
+    }
+    return darkTheme;
+  }, [state.resources]);
+
+  const setLightTheme = useCallback(
+    (newLightTheme: LightTheme) => {
+      setState((prev) => {
+        const specifier: ResourceSpecifier = {
+          def: RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
+          locale: state.selectedLocale,
+        };
+        const updatedResources = { ...prev.resources };
+        const css = lightThemeToCSS(newLightTheme);
+        const newResource: Resource = {
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {
+            locale: specifier.locale,
+          }),
+          value: css,
+        };
+        updatedResources[specifierId(newResource.specifier)] = newResource;
+        return {
+          ...prev,
+          resources: updatedResources,
+        };
+      });
+    },
+    [setState, state.selectedLocale]
+  );
+
+  const setDarkTheme = useCallback(
+    (newDarkTheme: DarkTheme) => {
+      setState((prev) => {
+        const specifier: ResourceSpecifier = {
+          def: RESOURCE_AUTHGEAR_DARK_THEME_CSS,
+          locale: state.selectedLocale,
+        };
+        const updatedResources = { ...prev.resources };
+        const css = darkThemeToCSS(newDarkTheme);
+        const newResource: Resource = {
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {
+            locale: specifier.locale,
+          }),
+          value: css,
+        };
+        updatedResources[specifierId(newResource.specifier)] = newResource;
+        return {
+          ...prev,
+          resources: updatedResources,
+        };
+      });
+    },
+    [setState, state.selectedLocale]
+  );
+
+  const getOnChangeLightThemeColor = useCallback(
+    (key: keyof LightTheme) => {
+      return (color: string) => {
+        const newLightTheme: LightTheme = {
+          ...(lightTheme ?? DEFAULT_LIGHT_THEME),
+          [key]: color,
+        };
+        setLightTheme(newLightTheme);
+      };
+    },
+    [lightTheme, setLightTheme]
+  );
+
+  const getOnChangeDarkThemeColor = useCallback(
+    (key: keyof DarkTheme) => {
+      return (color: string) => {
+        const newDarkTheme: DarkTheme = {
+          ...(darkTheme ?? DEFAULT_DARK_THEME),
+          [key]: color,
+        };
+        setDarkTheme(newDarkTheme);
+      };
+    },
+    [darkTheme, setDarkTheme]
+  );
+
+  const onChangeLightModePrimaryColor = getOnChangeLightThemeColor(
+    "lightModePrimaryColor"
+  );
+  const onChangeLightModeTextColor = getOnChangeLightThemeColor(
+    "lightModeTextColor"
+  );
+  const onChangeLightModeBackgroundColor = getOnChangeLightThemeColor(
+    "lightModeBackgroundColor"
+  );
+  const onChangeDarkModePrimaryColor = getOnChangeDarkThemeColor(
+    "darkModePrimaryColor"
+  );
+  const onChangeDarkModeTextColor = getOnChangeDarkThemeColor(
+    "darkModeTextColor"
+  );
+  const onChangeDarkModeBackgroundColor = getOnChangeDarkThemeColor(
+    "darkModeBackgroundColor"
+  );
+
+  const onChangeDarkModeEnabled = useCallback(
+    (enabled) => {
+      if (enabled) {
+        // Become enabled, copy the light theme with text color and background color swapped.
+        const base = lightTheme ?? DEFAULT_LIGHT_THEME;
+        const newDarkTheme = {
+          darkModePrimaryColor: base.lightModePrimaryColor,
+          darkModeTextColor: base.lightModeBackgroundColor,
+          darkModeBackgroundColor: base.lightModeTextColor,
+        };
+        setDarkTheme(newDarkTheme);
+      }
+
+      setState((prev) => {
+        return {
+          ...prev,
+          darkThemeDisabled: !enabled,
+        };
+      });
+    },
+    [setState, lightTheme, setDarkTheme]
+  );
+
   const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
     {
       key: "translation.json",
@@ -307,6 +480,24 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           language: "json",
           value: getValue(RESOURCE_TRANSLATION_JSON),
           onChange: getOnChange(RESOURCE_TRANSLATION_JSON),
+        },
+      ],
+    },
+  ];
+
+  const sectionsCustomCSS: EditTemplatesWidgetSection[] = [
+    {
+      key: "custom-css",
+      title: <FormattedMessage id="EditTemplatesWidget.custom-css.title" />,
+      items: [
+        {
+          key: "custom-css",
+          title: (
+            <FormattedMessage id="EditTemplatesWidget.custom-css.subtitle" />
+          ),
+          language: "css",
+          value: getValue(RESOURCE_AUTHGEAR_CSS),
+          onChange: getOnChange(RESOURCE_AUTHGEAR_CSS),
         },
       ],
     },
@@ -425,14 +616,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
         <PivotItem
           headerText={renderToString(
-            "ResourceConfigurationScreen.translationjson.title"
-          )}
-          itemKey={PIVOT_KEY_TRANSLATION_JSON}
-        >
-          <EditTemplatesWidget sections={sectionsTranslationJSON} />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
             "ResourceConfigurationScreen.appearance.title"
           )}
           itemKey={PIVOT_KEY_APPEARANCE}
@@ -451,6 +634,59 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           </div>
         </PivotItem>
         <PivotItem
+          headerText={renderToString("ResourceConfigurationScreen.theme.title")}
+          itemKey={PIVOT_KEY_THEME}
+        >
+          <ThemeConfigurationWidget
+            isDarkMode={false}
+            darkModeEnabled={false}
+            onChangeDarkModeEnabled={NOOP}
+            primaryColor={
+              lightTheme?.lightModePrimaryColor ??
+              DEFAULT_LIGHT_THEME.lightModePrimaryColor
+            }
+            textColor={
+              lightTheme?.lightModeTextColor ??
+              DEFAULT_LIGHT_THEME.lightModeTextColor
+            }
+            backgroundColor={
+              lightTheme?.lightModeBackgroundColor ??
+              DEFAULT_LIGHT_THEME.lightModeBackgroundColor
+            }
+            onChangePrimaryColor={onChangeLightModePrimaryColor}
+            onChangeTextColor={onChangeLightModeTextColor}
+            onChangeBackgroundColor={onChangeLightModeBackgroundColor}
+          />
+          <ThemeConfigurationWidget
+            isDarkMode={true}
+            darkModeEnabled={!state.darkThemeDisabled}
+            onChangeDarkModeEnabled={onChangeDarkModeEnabled}
+            primaryColor={
+              darkTheme?.darkModePrimaryColor ??
+              DEFAULT_DARK_THEME.darkModePrimaryColor
+            }
+            textColor={
+              darkTheme?.darkModeTextColor ??
+              DEFAULT_DARK_THEME.darkModeTextColor
+            }
+            backgroundColor={
+              darkTheme?.darkModeBackgroundColor ??
+              DEFAULT_DARK_THEME.darkModeBackgroundColor
+            }
+            onChangePrimaryColor={onChangeDarkModePrimaryColor}
+            onChangeTextColor={onChangeDarkModeTextColor}
+            onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
+          />
+        </PivotItem>
+        <PivotItem
+          headerText={renderToString(
+            "ResourceConfigurationScreen.translationjson.title"
+          )}
+          itemKey={PIVOT_KEY_TRANSLATION_JSON}
+        >
+          <EditTemplatesWidget sections={sectionsTranslationJSON} />
+        </PivotItem>
+        <PivotItem
           headerText={renderToString(
             "ResourceConfigurationScreen.forgot-password.title"
           )}
@@ -465,6 +701,14 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           itemKey={PIVOT_KEY_PASSWORDLESS}
         >
           <EditTemplatesWidget sections={sectionsPasswordless} />
+        </PivotItem>
+        <PivotItem
+          headerText={renderToString(
+            "ResourceConfigurationScreen.custom-css.title"
+          )}
+          itemKey={PIVOT_KEY_CUSTOM_CSS}
+        >
+          <EditTemplatesWidget sections={sectionsCustomCSS} />
         </PivotItem>
       </Pivot>
     </div>
@@ -484,7 +728,7 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of resourceLocales) {
-      for (const def of ALL_LOCALIZABLE_RESOURCES) {
+      for (const def of ALL_EDITABLE_RESOURCES) {
         specifiers.push({
           def,
           locale,
@@ -514,8 +758,14 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
       defaultLocale: config.state.defaultLocale,
       resources: resources.state.resources,
       selectedLocale: selectedLocale ?? config.state.defaultLocale,
+      darkThemeDisabled: config.state.darkThemeDisabled,
     }),
-    [config.state.defaultLocale, resources.state.resources, selectedLocale]
+    [
+      config.state.defaultLocale,
+      config.state.darkThemeDisabled,
+      resources.state.resources,
+      selectedLocale,
+    ]
   );
 
   const form: FormModel = {
@@ -527,7 +777,10 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
     state,
     setState: (fn) => {
       const newState = fn(state);
-      config.setState(() => ({ defaultLocale: newState.defaultLocale }));
+      config.setState(() => ({
+        defaultLocale: newState.defaultLocale,
+        darkThemeDisabled: newState.darkThemeDisabled,
+      }));
       resources.setState(() => ({ resources: newState.resources }));
       setSelectedLocale(newState.selectedLocale);
     },

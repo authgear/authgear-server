@@ -16,5 +16,4 @@ node_modules/
 
 # compiled static files
 resources/authgear/static/authgear.js
-resources/authgear/static/authgear.css
 resources/authgear/static/password-policy.js

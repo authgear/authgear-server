@@ -1,0 +1,16 @@
+.root {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.colorbox {
+  margin: 4px;
+  width: 20px;
+  height: 20px;
+  border: 1px solid black;
+}
+
+.textField {
+  margin: 4px;
+}

@@ -75,9 +75,8 @@
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
   "ScreenNav.client-applications": "Applications",
-  "ScreenNav.user-interface": "User Interface",
   "ScreenNav.dns": "DNS",
-  "ScreenNav.localization-appearance": "Localization & Appearance",
+  "ScreenNav.localization-appearance": "Appearance & Localization",
   "ScreenNav.settings": "Settings",
 
   "NavBreadcrumb.label": "Nested navigation",
@@ -380,11 +379,13 @@
   "ManageLanguageWidget.error.locale-without-resources": "Some of the languages are invalid. A language must have at least 1 localization to become valid",
   "ManageLanguageWidget.error.required-default-resource": "Some of the languages are invalid. Some required resources do not have localizations in default language",
 
-  "ResourceConfigurationScreen.title": "Localization & Appearance",
+  "ResourceConfigurationScreen.title": "Appearance & Localization",
   "ResourceConfigurationScreen.appearance.title": "Appearance",
   "ResourceConfigurationScreen.translationjson.title": "Translations",
   "ResourceConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
   "ResourceConfigurationScreen.forgot-password.title": "Forgot Password",
+  "ResourceConfigurationScreen.custom-css.title": "Custom CSS",
+  "ResourceConfigurationScreen.theme.title": "Theme",
 
   "ResourceConfigurationScreen.favicon": "Favicon",
   "ResourceConfigurationScreen.app-logo": "App Logo",
@@ -397,6 +398,9 @@
 
   "EditTemplatesWidget.translationjson.title": "translation.json",
   "EditTemplatesWidget.translationjson.subtitle": "Translations for the web UI as well as app brandings like app name",
+
+  "EditTemplatesWidget.custom-css.title": "Custom CSS",
+  "EditTemplatesWidget.custom-css.subtitle": "Custom CSS to be included in every page",
 
   "EditTemplatesWidget.passwordless.setup.title": "First Time Setup",
   "EditTemplatesWidget.passwordless.login.title": "Subsequent Logins",
@@ -433,9 +437,6 @@
   "PasswordField.guessable-level.3": "Fair",
   "PasswordField.guessable-level.4": "Very unguessable",
   "PasswordField.guessable-level.5": "Extremely unguessable",
-
-  "UserInterfaceScreen.title": "User Interface",
-  "UserInterfaceScreen.custom-css.label": "Custom CSS",
 
   "SettingsScreen.title": "Settings",
   "SettingsScreen.general.title": "General",
@@ -509,6 +510,13 @@
 
   "ImageFilePicker.select-image": "Select Image",
   "ImageFilePicker.remove-image": "Remove Image",
+
+  "ThemeConfigurationWidget.light-mode": "Light Mode",
+  "ThemeConfigurationWidget.dark-mode": "Dark Mode",
+  "ThemeConfigurationWidget.custom-color": "Custom Color",
+  "ThemeConfigurationWidget.primary-color": "Primary Color",
+  "ThemeConfigurationWidget.text-color": "Text Color",
+  "ThemeConfigurationWidget.background-color": "Background Color",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

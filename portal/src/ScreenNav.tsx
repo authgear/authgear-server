@@ -84,10 +84,6 @@ const links: NavLinkProps[] = [
     ],
   },
   {
-    textKey: "ScreenNav.user-interface",
-    url: "configuration/user-interface",
-  },
-  {
     textKey: "ScreenNav.client-applications",
     url: "configuration/apps",
     children: [

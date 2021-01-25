@@ -105,13 +105,6 @@ export const ALL_TEMPLATES = [
   RESOURCE_FORGOT_PASSWORD_SMS_TXT,
 ];
 
-export const ALL_LOCALIZABLE_RESOURCES = [
-  ...ALL_TEMPLATES,
-  RESOURCE_APP_LOGO,
-  RESOURCE_FAVICON,
-];
-
-export const PATH_AUTHGEAR_CSS = "static/authgear.css";
 export const RESOURCE_AUTHGEAR_CSS: ResourceDefinition = {
   resourcePath: resourcePath`static/authgear.css`,
   type: "text",
@@ -119,6 +112,31 @@ export const RESOURCE_AUTHGEAR_CSS: ResourceDefinition = {
   usesEffectiveDataAsFallbackValue: false,
   optional: true,
 };
+
+export const RESOURCE_AUTHGEAR_LIGHT_THEME_CSS: ResourceDefinition = {
+  resourcePath: resourcePath`static/authgear-light-theme.css`,
+  type: "text",
+  extensions: [],
+  usesEffectiveDataAsFallbackValue: false,
+  optional: true,
+};
+
+export const RESOURCE_AUTHGEAR_DARK_THEME_CSS: ResourceDefinition = {
+  resourcePath: resourcePath`static/authgear-dark-theme.css`,
+  type: "text",
+  extensions: [],
+  usesEffectiveDataAsFallbackValue: false,
+  optional: true,
+};
+
+export const ALL_EDITABLE_RESOURCES = [
+  ...ALL_TEMPLATES,
+  RESOURCE_APP_LOGO,
+  RESOURCE_FAVICON,
+  RESOURCE_AUTHGEAR_CSS,
+  RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
+  RESOURCE_AUTHGEAR_DARK_THEME_CSS,
+];
 
 export interface RenderPathArguments {
   locale?: LanguageTag;

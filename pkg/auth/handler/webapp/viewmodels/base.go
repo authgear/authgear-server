@@ -30,6 +30,7 @@ type BaseViewModel struct {
 	CSRFField             htmltemplate.HTML
 	Translations          TranslationService
 	StaticAssetURL        func(id string) (url string, err error)
+	DarkThemeEnabled      bool
 	CountryCallingCodes   []string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
@@ -92,6 +93,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		CSRFField:           csrf.TemplateField(r),
 		Translations:        m.Translations,
 		StaticAssetURL:      m.StaticAssets.StaticAssetURL,
+		DarkThemeEnabled:    !m.AuthUI.DarkThemeDisabled,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
 		SliceContains:       sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
