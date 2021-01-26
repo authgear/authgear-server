@@ -303,7 +303,8 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"team_id": { "type": "string" },
 		"app_type": { "$ref": "#/$defs/OAuthSSOWeChatAppType" },
 		"account_id": { "type": "string", "format": "wechat_account_id"},
-		"is_sandbox_account": { "type": "boolean" }
+		"is_sandbox_account": { "type": "boolean" },
+		"wechat_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } }
 	},
 	"required": ["alias", "type", "client_id"],
 	"allOf": [
@@ -343,9 +344,10 @@ type OAuthSSOProviderConfig struct {
 	TeamID string `json:"team_id,omitempty"`
 
 	// AppType is specific to wechat, support web or mobile
-	AppType          OAuthSSOWeChatAppType `json:"app_type,omitempty"`
-	AccountID        string                `json:"account_id,omitempty"`
-	IsSandboxAccount bool                  `json:"is_sandbox_account,omitempty"`
+	AppType            OAuthSSOWeChatAppType `json:"app_type,omitempty"`
+	AccountID          string                `json:"account_id,omitempty"`
+	IsSandboxAccount   bool                  `json:"is_sandbox_account,omitempty"`
+	WeChatRedirectURIs []string              `json:"wechat_redirect_uris,omitempty"`
 }
 
 func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {
