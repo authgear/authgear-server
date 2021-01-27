@@ -183,7 +183,9 @@
   "settings-page-session-section-title": "Signed in Sessions",
   "settings-page-session-section-description": "Manage your signed in sessions on your autenticated devices.",
   "show-recovery-code-button-label": "Show Codes",
-  "revoke-all-device-tokens-button-label": "Forget all trusted devices",
+  "settings-page-trusted-devices-title": "Trusted Devices",
+  "revoke-all-device-tokens-button-label": "Forget all trusted devices that could skip MFA",
+  "no-device-tokens-description": "No trusted devices that could skip MFA",
 
   "settings-identity-title": "Login Info",
   "settings-identity-description": "There are the methods to sign in your account",

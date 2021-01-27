@@ -128,13 +128,24 @@
 
   <!-- Revoke all device tokens -->
   {{ if $has_mfa }}
-  <form class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-action" method="post" novalidate>
+  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
+    <h3 class="grid-area-title margin-0 font-inherit primary-txt">
+      {{ template "settings-page-trusted-devices-title" }}
+    </h3>
+  {{ if $.HasDeviceTokens }}
+  <form class="grid-area-desc margin-0" method="post" novalidate>
     {{ $.CSRFField }}
-    <button class="grid-area-action justify-self-start btn destructive-btn" type="submit" name="x_action" value="revoke_devices">
+    <button class="justify-self-start btn destructive-btn" type="submit" name="x_action" value="revoke_devices">
       {{ template "revoke-all-device-tokens-button-label" }}
     </button>
   </form>
+  {{ else }}
+  <p class="grid-area-desc margin-0 font-smaller secondary-txt">
+    {{ template "no-device-tokens-description" }}
+  </p>
   {{ end }}
+  {{ end }}
+  </section>
 </section>
 
 </main>
