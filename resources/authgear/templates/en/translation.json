@@ -162,8 +162,8 @@
   "change-secondary-password-page-title": "Change Additional Password",
   "change-secondary-password-page-description": "Please enter your new password below.",
 
-  "logout-button-hint": "Click the button to sign out",
-  "logout-button-label": "Sign out",
+  "logout-button-hint": "Click the button to log out",
+  "logout-button-label": "Log out",
 
   "settings-page-security-section-title": "Security",
   "settings-page-security-section-description": "These can be used to make sure that it''s really you signing in.",
