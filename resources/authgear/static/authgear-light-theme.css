@@ -261,6 +261,7 @@
 }
 
 .wechat {
+  /* The class is used in both WeChat login button and login proceed button */
   color: var(--color-white-unshaded);
   background-color: var(--color-wechat-unshaded);
 }
