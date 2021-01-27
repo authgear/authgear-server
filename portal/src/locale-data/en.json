@@ -328,8 +328,6 @@
   "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated.",
   "ModifyOAuthClientForm.post-logout-redirect-uris-label": "Post Logout Redirect URIs",
   "ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message": "Users will be redirected to this path after they have logged out.",
-  "ModifyOAuthClientForm.wechat-redirect-uris-label": "WeChat redirect URIs",
-  "ModifyOAuthClientForm.wechat-redirect-uris-tooltip-message": "For mobile app only, to receive delegate call when user click on login with WeChat button.",
   "ModifyOAuthClientForm.is-first-party-client-label": "Is first-party application",
   "ModifyOAuthClientForm.is-first-party-client-tooltip-message": "First-party application may request access to sensitive user information and operations",
   "ModifyOAuthClientForm.issue-jwt-access-token-label": "Issue JWT as access token",
