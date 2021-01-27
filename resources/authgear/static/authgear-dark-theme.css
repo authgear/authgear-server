@@ -74,7 +74,7 @@
     color: var(--color-primary-shaded-7);
   }
   .secondary-btn:disabled {
-    color: var(--color-primary-shaded-1);
+    color: var(--color-black-shaded-2);
   }
 }
 

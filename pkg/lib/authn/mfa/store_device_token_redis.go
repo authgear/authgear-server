@@ -106,6 +106,27 @@ func (s *StoreDeviceTokenRedis) DeleteAll(userID string) error {
 	return err
 }
 
+func (s *StoreDeviceTokenRedis) HasTokens(userID string) (bool, error) {
+	hasTokens := false
+
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		ctx := context.Background()
+		key := redisDeviceTokensKey(s.AppID, userID)
+		_, err := conn.Get(ctx, key).Bytes()
+		if err != nil {
+			if errors.Is(err, goredis.Nil) {
+				hasTokens = false
+				return nil
+			}
+			return err
+		}
+		hasTokens = true
+		return nil
+	})
+
+	return hasTokens, err
+}
+
 func (s *StoreDeviceTokenRedis) saveTokens(conn *goredis.Conn, key string, tokens map[string]*DeviceToken, ttl time.Duration) error {
 	ctx := context.Background()
 

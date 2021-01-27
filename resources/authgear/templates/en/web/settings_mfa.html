@@ -53,7 +53,11 @@
     </p>
     {{ end }}
     <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/totp">
+      {{ if $has_secondary_totp }}
       {{ template "details-button-label" }}
+      {{ else }}
+      {{ template "configure-button-label" }}
+      {{ end }}
     </a>
   </section>
   {{ end }}
@@ -69,12 +73,16 @@
       {{ template "activated-label" }}
     </p>
     {{ else }}
-    <p class="grid-area-desc margin-0 font-smaller good-txt">
+    <p class="grid-area-desc margin-0 font-smaller warn-txt">
       {{ template "inactive-label" }}
     </p>
     {{ end }}
     <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp">
+      {{ if $has_secondary_oob_otp }}
       {{ template "details-button-label" }}
+      {{ else }}
+      {{ template "configure-button-label" }}
+      {{ end }}
     </a>
   </section>
   {{ end }}
@@ -128,13 +136,24 @@
 
   <!-- Revoke all device tokens -->
   {{ if $has_mfa }}
-  <form class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-action" method="post" novalidate>
+  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
+    <h3 class="grid-area-title margin-0 font-inherit primary-txt">
+      {{ template "settings-page-trusted-devices-title" }}
+    </h3>
+  {{ if $.HasDeviceTokens }}
+  <form class="grid-area-desc margin-0" method="post" novalidate>
     {{ $.CSRFField }}
-    <button class="grid-area-action justify-self-start btn destructive-btn" type="submit" name="x_action" value="revoke_devices">
+    <button class="justify-self-start btn destructive-btn" type="submit" name="x_action" value="revoke_devices">
       {{ template "revoke-all-device-tokens-button-label" }}
     </button>
   </form>
+  {{ else }}
+  <p class="grid-area-desc margin-0 font-smaller secondary-txt">
+    {{ template "no-device-tokens-description" }}
+  </p>
   {{ end }}
+  {{ end }}
+  </section>
 </section>
 
 </main>

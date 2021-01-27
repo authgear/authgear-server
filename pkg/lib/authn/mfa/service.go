@@ -11,6 +11,7 @@ type StoreDeviceToken interface {
 	Get(userID string, token string) (*DeviceToken, error)
 	Create(token *DeviceToken) error
 	DeleteAll(userID string) error
+	HasTokens(userID string) (bool, error)
 }
 
 type StoreRecoveryCode interface {
@@ -64,6 +65,10 @@ func (s *Service) VerifyDeviceToken(userID string, token string) error {
 
 func (s *Service) InvalidateAllDeviceTokens(userID string) error {
 	return s.DeviceTokens.DeleteAll(userID)
+}
+
+func (s *Service) HasDeviceTokens(userID string) (bool, error) {
+	return s.DeviceTokens.HasTokens(userID)
 }
 
 func (s *Service) GenerateRecoveryCodes() []string {

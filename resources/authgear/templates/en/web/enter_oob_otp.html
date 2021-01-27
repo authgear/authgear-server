@@ -57,8 +57,8 @@
 <form class="link margin-10" method="post" novalidate>
 {{ $.CSRFField }}
 
-<span class="primary-txt">{{ template "oob-otp-resend-button-hint" }}</span>
-<button id="resend-button" class="btn secondary-btn" type="submit" name="x_action" value="resend"
+<span class="primary-txt font-smaller">{{ template "oob-otp-resend-button-hint" }}</span>
+<button id="resend-button" class="btn secondary-btn font-smaller" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
 	data-label="{{ template "oob-otp-resend-button-label" }}"
 	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>

@@ -168,7 +168,7 @@
   color: var(--color-primary-shaded-7);
 }
 .secondary-btn:disabled {
-  color: var(--color-primary-shaded-1);
+  color: var(--color-white-shaded-2);
 }
 
 /* <a> does not have disabled attribute */

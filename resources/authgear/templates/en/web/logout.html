@@ -14,7 +14,7 @@
       {{ template "logout-button-hint" }}
     </h2>
     <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
-    <form class="grid-area-action" method="post" novalidate>
+    <form class="grid-area-action flex align-items-center" method="post" novalidate>
       {{ $.CSRFField }}
       <button class="btn secondary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
     </form>

@@ -10,10 +10,6 @@
 
 {{ template "__error.html" . }}
 
-<p class="align-self-center primary-txt">
-  Click <a class="link" href="/logout">here</a> to sign out.
-</p>
-
 {{/* Identity */}}
 <section class="pane">
   <section class="margin-h-14 padding-v-10 gap-8 row-sep grid grid-title-desc">
@@ -264,6 +260,10 @@
     </a>
   </section>
 </section>
+
+<p class="align-self-center primary-txt">
+  <a class="link" href="/logout">{{ template "logout-button-label" }}</a>
+</p>
 
 </main>
 </body>

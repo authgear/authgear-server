@@ -32,11 +32,13 @@ type SettingsMFAViewModel struct {
 	SecondaryTOTPAllowed     bool
 	SecondaryOOBOTPAllowed   bool
 	SecondaryPasswordAllowed bool
+	HasDeviceTokens          bool
 }
 
 type SettingsMFAService interface {
 	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 	InvalidateAllDeviceTokens(userID string) error
+	HasDeviceTokens(userID string) (bool, error)
 }
 
 type SettingsMFAHandler struct {
@@ -86,11 +88,17 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		hasDeviceTokens, err := h.MFA.HasDeviceTokens(userID)
+		if err != nil {
+			return err
+		}
+
 		viewModel := SettingsMFAViewModel{
 			Authenticators:           authenticators,
 			SecondaryTOTPAllowed:     totp,
 			SecondaryOOBOTPAllowed:   oobotp,
 			SecondaryPasswordAllowed: password,
+			HasDeviceTokens:          hasDeviceTokens,
 		}
 		viewmodels.Embed(data, viewModel)
 

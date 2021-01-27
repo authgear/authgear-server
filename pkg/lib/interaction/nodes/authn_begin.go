@@ -134,7 +134,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 	)
 	interaction.SortAuthenticators(
 		nil,
-		totps,
+		oobs,
 		func(i int) interaction.SortableAuthenticator {
 			a := interaction.SortableAuthenticatorInfo(*oobs[i])
 			return &a

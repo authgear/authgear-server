@@ -61,6 +61,7 @@
   "add-button-label": "Add",
   "remove-button-label": "Remove",
   "details-button-label": "Details",
+  "configure-button-label": "Configure",
   "more-button-label": "More",
   "setup-password-button-label": "Setup Password",
   "change-password-button-label": "Change Password",
@@ -162,8 +163,8 @@
   "change-secondary-password-page-title": "Change Additional Password",
   "change-secondary-password-page-description": "Please enter your new password below.",
 
-  "logout-button-hint": "Click the button to sign out",
-  "logout-button-label": "Sign out",
+  "logout-button-hint": "Click the button to log out",
+  "logout-button-label": "Log out",
 
   "settings-page-security-section-title": "Security",
   "settings-page-security-section-description": "These can be used to make sure that it''s really you signing in.",
@@ -183,7 +184,9 @@
   "settings-page-session-section-title": "Signed in Sessions",
   "settings-page-session-section-description": "Manage your signed in sessions on your autenticated devices.",
   "show-recovery-code-button-label": "Show Codes",
-  "revoke-all-device-tokens-button-label": "Forget all trusted devices",
+  "settings-page-trusted-devices-title": "Trusted Devices",
+  "revoke-all-device-tokens-button-label": "Forget all trusted devices that could skip MFA",
+  "no-device-tokens-description": "No trusted devices that could skip MFA",
 
   "settings-identity-title": "Login Info",
   "settings-identity-description": "There are the methods to sign in your account",
