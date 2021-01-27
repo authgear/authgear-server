@@ -272,6 +272,10 @@
   "SingleSignOnConfigurationScreen.widget.account-id": "原始 ID",
   "SingleSignOnConfigurationScreen.widget.is-sandbox-account": "Is Sandbox account",
   "SingleSignOnConfigurationScreen.widget.client-secret.error": "Invalid client secret",
+  "SingleSignOnConfigurationScreen.widget.add-uri": "Add URI",
+  "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label": "WeChat redirect URIs",
+  "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message": "For mobile app only, to receive delegate call when user click on login with WeChat button.",
+  
 
   "OAuthBranding.apple": "Sign in with Apple",
   "OAuthBranding.google": "Sign in with Google",

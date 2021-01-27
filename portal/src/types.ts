@@ -64,6 +64,7 @@ export interface OAuthSSOProviderConfig {
   app_type?: OAuthSSOWeChatAppType;
   account_id?: string;
   is_sandbox_account?: boolean;
+  wechat_redirect_uris?: string[];
 }
 export const oauthSSOProviderItemKeys = [
   "apple",
