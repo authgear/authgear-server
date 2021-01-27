@@ -53,7 +53,11 @@
     </p>
     {{ end }}
     <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/totp">
+      {{ if $has_secondary_totp }}
       {{ template "details-button-label" }}
+      {{ else }}
+      {{ template "configure-button-label" }}
+      {{ end }}
     </a>
   </section>
   {{ end }}
@@ -69,12 +73,16 @@
       {{ template "activated-label" }}
     </p>
     {{ else }}
-    <p class="grid-area-desc margin-0 font-smaller good-txt">
+    <p class="grid-area-desc margin-0 font-smaller warn-txt">
       {{ template "inactive-label" }}
     </p>
     {{ end }}
     <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp">
+      {{ if $has_secondary_oob_otp }}
       {{ template "details-button-label" }}
+      {{ else }}
+      {{ template "configure-button-label" }}
+      {{ end }}
     </a>
   </section>
   {{ end }}
