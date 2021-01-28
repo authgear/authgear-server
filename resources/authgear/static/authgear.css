@@ -371,6 +371,11 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-block;
 }
 
+.password-input-wrapper input::-ms-reveal,
+.password-input-wrapper input::-ms-clear {
+  display: none;
+}
+
 .select {
   height: 32px;
   padding: 0 28px 0 0;
