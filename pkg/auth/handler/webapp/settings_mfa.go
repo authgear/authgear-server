@@ -33,6 +33,7 @@ type SettingsMFAViewModel struct {
 	SecondaryOOBOTPAllowed   bool
 	SecondaryPasswordAllowed bool
 	HasDeviceTokens          bool
+	ListRecoveryCodesAllowed bool
 }
 
 type SettingsMFAService interface {
@@ -99,6 +100,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			SecondaryOOBOTPAllowed:   oobotp,
 			SecondaryPasswordAllowed: password,
 			HasDeviceTokens:          hasDeviceTokens,
+			ListRecoveryCodesAllowed: h.Authentication.RecoveryCode.ListEnabled,
 		}
 		viewmodels.Embed(data, viewModel)
 
@@ -148,6 +150,50 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				Type: authn.AuthenticatorTypePassword,
 				ID:   authenticatorID,
 			}, nil
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("add_secondary_totp", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentAddAuthenticator(
+			userID,
+			interaction.AuthenticationStageSecondary,
+			authn.AuthenticatorTypeTOTP,
+		)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputCreateAuthenticator{}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("add_secondary_oob_otp", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentAddAuthenticator(
+			userID,
+			interaction.AuthenticationStageSecondary,
+			authn.AuthenticatorTypeOOB,
+		)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputCreateAuthenticator{}
+			return
 		})
 		if err != nil {
 			return err

@@ -47,18 +47,20 @@
     <p class="grid-area-desc margin-0 font-smaller good-txt">
       {{ template "activated-label" }}
     </p>
+    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/totp">
+      {{ template "details-button-label" }}
+    </a>
     {{ else }}
     <p class="grid-area-desc margin-0 font-smaller warn-txt">
       {{ template "inactive-label" }}
     </p>
+    <form class="grid-area-action1 justify-self-end" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button class="btn secondary-btn" type="submit" name="x_action" value="add_secondary_totp">
+        {{ template "configure-button-label" }}
+      </button>
+    </form>
     {{ end }}
-    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/totp">
-      {{ if $has_secondary_totp }}
-      {{ template "details-button-label" }}
-      {{ else }}
-      {{ template "configure-button-label" }}
-      {{ end }}
-    </a>
   </section>
   {{ end }}
 
@@ -72,18 +74,20 @@
     <p class="grid-area-desc margin-0 font-smaller good-txt">
       {{ template "activated-label" }}
     </p>
+    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp">
+      {{ template "details-button-label" }}
+    </a>
     {{ else }}
     <p class="grid-area-desc margin-0 font-smaller warn-txt">
       {{ template "inactive-label" }}
     </p>
+    <form class="grid-area-action1 justify-self-end" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button class="btn secondary-btn" type="submit" name="x_action" value="add_secondary_oob_otp">
+        {{ template "configure-button-label" }}
+      </button>
+    </form>
     {{ end }}
-    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp">
-      {{ if $has_secondary_oob_otp }}
-      {{ template "details-button-label" }}
-      {{ else }}
-      {{ template "configure-button-label" }}
-      {{ end }}
-    </a>
   </section>
   {{ end }}
 
@@ -120,7 +124,7 @@
   {{ end }}
 
   <!-- Recovery code -->
-  {{ if $has_mfa }}
+  {{ if (and $has_mfa $.ListRecoveryCodesAllowed) }}
   <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
     <h3 class="grid-area-title margin-0 font-inherit primary-txt">
       {{ template "settings-page-recovery-code-title" }}

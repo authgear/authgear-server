@@ -25,8 +25,7 @@ func ConfigureSettingsRecoveryCodeRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsRecoveryCodeViewModel struct {
-	AllowListRecoveryCodes bool
-	RecoveryCodes          []string
+	RecoveryCodes []string
 }
 
 type SettingsRecoveryCodeHandler struct {
@@ -44,8 +43,7 @@ func (h *SettingsRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseW
 	userID := *session.GetUserID(r.Context())
 
 	viewModel := SettingsRecoveryCodeViewModel{}
-	viewModel.AllowListRecoveryCodes = h.Authentication.RecoveryCode.ListEnabled
-	if viewModel.AllowListRecoveryCodes {
+	if h.Authentication.RecoveryCode.ListEnabled {
 		codes, err := h.MFA.ListRecoveryCodes(userID)
 		if err != nil {
 			return nil, err
@@ -76,6 +74,11 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	userID := ctrl.RequireUserID()
 
 	ctrl.Get(func() error {
+		if !h.Authentication.RecoveryCode.ListEnabled {
+			http.Error(w, "listing recovery code is disabled", http.StatusForbidden)
+			return nil
+		}
+
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -101,6 +104,11 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 	})
 
 	ctrl.PostAction("regenerate", func() error {
+		if !h.Authentication.RecoveryCode.ListEnabled {
+			http.Error(w, "regenerate recovery code is disabled", http.StatusForbidden)
+			return nil
+		}
+
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}

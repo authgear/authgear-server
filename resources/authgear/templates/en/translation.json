@@ -250,7 +250,6 @@
   "recovery-code-title": "Recovery Code",
   "recovery-code-storage-description": "Keep these recovery codes somewhere safe but accessible",
   "recovery-code-consumption-description": "You can only use each code once",
-  "recovery-code-list-disabled": "Listing recovery code is disabled by administrator",
 
   "show-password-label": "Show password",
   "hide-password-label": "Hide password",
