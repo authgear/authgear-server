@@ -68,6 +68,8 @@
                 {{ else }}
                     <li>{{ . }}</li>
                 {{ end }}
+            {{ else if eq .Error.reason "InvalidVerificationCode" }}
+                <li>{{ template "error-verification-code-invalid" }}</li>
             {{ else if eq .Error.reason "WebUIInvalidSession" }}
                 <!-- This error is handled as fatal error -->
             {{ else if eq .Error.reason "RateLimited" }}
