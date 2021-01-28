@@ -120,7 +120,7 @@
   {{ end }}
 
   <!-- Recovery code -->
-  {{ if $has_mfa }}
+  {{ if (and $has_mfa $.ListRecoveryCodesAllowed) }}
   <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
     <h3 class="grid-area-title margin-0 font-inherit primary-txt">
       {{ template "settings-page-recovery-code-title" }}

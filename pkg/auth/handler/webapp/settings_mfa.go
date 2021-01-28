@@ -33,6 +33,7 @@ type SettingsMFAViewModel struct {
 	SecondaryOOBOTPAllowed   bool
 	SecondaryPasswordAllowed bool
 	HasDeviceTokens          bool
+	ListRecoveryCodesAllowed bool
 }
 
 type SettingsMFAService interface {
@@ -99,6 +100,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			SecondaryOOBOTPAllowed:   oobotp,
 			SecondaryPasswordAllowed: password,
 			HasDeviceTokens:          hasDeviceTokens,
+			ListRecoveryCodesAllowed: h.Authentication.RecoveryCode.ListEnabled,
 		}
 		viewmodels.Embed(data, viewModel)
 
