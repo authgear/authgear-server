@@ -45,6 +45,7 @@ type SettingsSessionManager interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
 	Revoke(s session.Session) error
+	Logout(session.Session, http.ResponseWriter) error
 }
 
 type SettingsHandler struct {
@@ -57,6 +58,8 @@ type SettingsHandler struct {
 	Authenticators    SettingsAuthenticatorService
 	MFA               SettingsMFAService
 	CSRFCookie        webapp.CSRFCookieDef
+	TrustProxy        config.TrustProxy
+	SessionManager    SettingsSessionManager
 }
 
 func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -174,6 +177,19 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("logout", func() error {
+		sess := session.GetSession(r.Context())
+		err := h.SessionManager.Logout(sess, w)
+
+		if err != nil {
+			return err
+		}
+
+		redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), "/settings")
+		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 	})
 }

@@ -261,9 +261,13 @@
   </section>
 </section>
 
-<p class="align-self-center primary-txt">
-  <a class="link" href="/logout">{{ template "logout-button-label" }}</a>
-</p>
+
+<form class="flex flex-direction-column margin-v-12" method="post">
+{{ $.CSRFField }}
+<button class="btn secondary-btn align-self-center justify-self-end" type="submit" name="x_action" value="logout" data-form-xhr="false">
+  {{ template "logout-button-label" }}
+</button>
+</form>
 
 </main>
 </body>

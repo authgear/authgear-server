@@ -13944,6 +13944,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
+	manager2 := &session.Manager{
+		Users:               queries,
+		Hooks:               hookProvider,
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+	}
 	settingsHandler := &webapp2.SettingsHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
@@ -13954,6 +13960,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:    service3,
 		MFA:               mfaService,
 		CSRFCookie:        csrfCookieDef,
+		TrustProxy:        trustProxy,
+		SessionManager:    manager2,
 	}
 	return settingsHandler
 }
