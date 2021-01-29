@@ -154,6 +154,17 @@ func (c *Controller) Serve() {
 }
 
 func (c *Controller) renderError(err error) {
+	// If the request is Authgear XHR request and the web session is invalid
+	// redirect to the same page to display fatal error
+	if c.request.Header.Get("X-Authgear-XHR") == "true" {
+		apierr := apierrors.AsAPIError(err)
+		if apierr != nil && apierr.Reason == webapp.WebUIInvalidSession.Reason {
+			result := webapp.Result{RedirectURI: c.request.URL.String()}
+			result.WriteResponse(c.response, c.request)
+			return
+		}
+	}
+
 	data := make(map[string]interface{})
 	baseViewModel := c.BaseViewModel.ViewModel(c.request, c.response)
 	baseViewModel.SetError(err)
