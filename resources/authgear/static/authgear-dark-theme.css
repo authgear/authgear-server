@@ -31,12 +31,23 @@
     --color-background-shaded-8: #0b0b0b;
 
     --color-pane-background: #252525;
+
+    --color-separator: #3e3e3e;
+
+    --color-password-strength-meter-0: #8a8886;
   }
 }
 
 @media (prefers-color-scheme: dark) {
   .input:focus {
     border-bottom-color: var(--color-primary-shaded-5);
+  }
+}
+
+
+@media (prefers-color-scheme: dark) {
+  .secondary-txt {
+    color: var(--color-text-shaded-6);
   }
 }
 
@@ -49,13 +60,13 @@
 @media (prefers-color-scheme: dark) {
   .primary-btn {
     color: var(--color-text-unshaded);
-    background-color: var(--color-primary-shaded-5);
+    background-color: var(--color-primary-unshaded);
   }
   .primary-btn:hover {
     background-color: var(--color-primary-shaded-4);
   }
   .primary-btn:active {
-    background-color: var(--color-primary-shaded-6);
+    background-color: var(--color-primary-shaded-7);
   }
   .primary-btn:disabled {
     background-color: var(--color-primary-shaded-2);

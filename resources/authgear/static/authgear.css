@@ -314,10 +314,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-unshaded);
 }
 
-.secondary-txt {
-  color: var(--color-text-shaded-1);
-}
-
 .good-txt {
   color: var(--color-good);
 }
@@ -335,13 +331,13 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 0;
   border-bottom-style: solid;
   border-bottom-width: 1px;
-  border-bottom-color: var(--color-text-shaded-2);
+  border-bottom-color: var(--color-text-shaded-3);
 }
 .input:disabled, .input:read-only {
   opacity: 0.4;
 }
 .input::placeholder {
-  color: var(--color-text-shaded-1);
+  color: var(--color-text-shaded-3);
 }
 
 .password-input-wrapper {

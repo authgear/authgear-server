@@ -29,15 +29,15 @@
   --color-background-shaded-7: #f4f4f4;
   --color-background-shaded-8: #f8f8f8;
 
-  --color-error-unshaded: #fa4335;
-  --color-error-shaded-1: #fff7f7;
-  --color-error-shaded-2: #fee0de;
-  --color-error-shaded-3: #fdc5c1;
-  --color-error-shaded-4: #fc8c85;
-  --color-error-shaded-5: #fb584c;
-  --color-error-shaded-6: #e13b2f;
-  --color-error-shaded-7: #be3228;
-  --color-error-shaded-8: #8c251d;
+  --color-error-unshaded: #e23d3d;
+  --color-error-shaded-1: #fef6f6;
+  --color-error-shaded-2: #fbdddd;
+  --color-error-shaded-3: #f7c1c1;
+  --color-error-shaded-4: #ee8686;
+  --color-error-shaded-5: #e65252;
+  --color-error-shaded-6: #cc3737;
+  --color-error-shaded-7: #ac2f2f;
+  --color-error-shaded-8: #7f2222;
 
   --color-white-unshaded: #ffffff;
   --color-white-shaded-1: #767676;
@@ -125,14 +125,18 @@
   --color-pane-background: #ffffff;
   --color-pane-shadow: rgba(0, 0, 0, 0.25);
 
-  --color-separator: #edebe9;
+  --color-separator: #e5e5e5;
 
-  --color-password-strength-meter-0: var(--color-separator);
+  --color-password-strength-meter-0: #edebe9;
   --color-password-strength-meter-1: var(--color-error-unshaded);
   --color-password-strength-meter-2: #ffa133;
   --color-password-strength-meter-3: var(--color-warn);
   --color-password-strength-meter-4: #baca58;
   --color-password-strength-meter-5: var(--color-good);
+}
+
+.secondary-txt {
+  color: var(--color-text-shaded-1);
 }
 
 .input:focus {
