@@ -324,7 +324,17 @@ func (s *Service2) afterPost(
 	// Transition to redirect URI
 	if isFinished {
 		result.RedirectURI = deriveFinishRedirectURI(session, graph)
-		result.NavigationAction = "redirect"
+		switch graph.Intent.(type) {
+		case *intents.IntentAuthenticate:
+			result.NavigationAction = "redirect"
+		default:
+			// Use the default navigation action for any other intents.
+			// That is, "advance" will be used.
+			// This is more suitable because interactions started in settings will have finish URI within settings.
+			// Keep using Turbolinks make sure "popstate" will be fired properly.
+			// If "redirect" is used, "popstate" will NOT be fired.
+			break
+		}
 	} else if interactionErr == nil {
 		if a, ok := graph.CurrentNode().(interface{ GetRedirectURI() string }); ok {
 			result.RedirectURI = a.GetRedirectURI()
