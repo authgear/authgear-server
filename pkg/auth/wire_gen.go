@@ -4842,6 +4842,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		CSRFCookie:        csrfCookieDef,
+		IdentityConfig:    identityConfig,
 	}
 	return wechatAuthHandler
 }
@@ -19969,6 +19970,19 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 		CookieFactory: cookieFactory,
 	}
 	return uiLocalesMiddleware
+}
+
+func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	weChatRedirectURIMiddleware := &webapp.WeChatRedirectURIMiddleware{
+		CookieFactory: cookieFactory,
+	}
+	return weChatRedirectURIMiddleware
 }
 
 // wire_middleware.go:

@@ -38,6 +38,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	oauthAPIChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
+		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 	)
 
 	apiChain := httproute.Chain(
@@ -60,6 +61,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newWebAppSessionMiddleware),
 		p.Middleware(newWebAppUILocalesMiddleware),
+		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 	)
 	webappSSOCallbackChain := httproute.Chain(
 		webappChain,

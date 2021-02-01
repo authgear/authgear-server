@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
 
 type TranslationService interface {
@@ -126,7 +127,6 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		httputil.UpdateCookie(rw, m.ErrorCookie.ResetError())
 	}
 
-	platform := r.Form.Get("x_platform")
 	if s := webapp.GetSession(r.Context()); s != nil {
 		for _, step := range s.Steps {
 			if path := step.Kind.Path(); path == "" {
@@ -134,11 +134,14 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			}
 			model.SessionStepURLs = append(model.SessionStepURLs, step.URL().String())
 		}
-		if platform == "" {
-			platform = s.Platform
-		}
 	}
 
+	platform := r.Form.Get("x_platform")
+	if platform == "" {
+		// if platform is not provided from the query and form
+		// check it from cookie
+		platform = wechat.GetPlatform(r.Context())
+	}
 	model.IsNativePlatform = (platform == "ios" ||
 		platform == "android")
 

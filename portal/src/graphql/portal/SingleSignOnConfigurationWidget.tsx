@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import cn from "classnames";
-import { Checkbox, Label, Toggle } from "@fluentui/react";
+import { Checkbox, DirectionalHint, Label, Toggle } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
@@ -15,6 +15,8 @@ import {
 } from "../../types";
 
 import styles from "./SingleSignOnConfigurationWidget.module.scss";
+import FormTextFieldList from "../../FormTextFieldList";
+import LabelWithTooltip from "../../LabelWithTooltip";
 
 interface WidgetHeaderLabelProps {
   icon: React.ReactNode;
@@ -143,6 +145,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_id",
       "client_secret",
       "account_id",
+      "wechat_redirect_uris",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -272,6 +275,14 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       onChange({ ...config, is_sandbox_account: value ?? false }, secret),
     [onChange, config, secret]
   );
+  const onWeChatRedirectUrisChange = useCallback(
+    (list: string[]) =>
+      onChange(
+        { ...config, wechat_redirect_uris: list.length > 0 ? list : [] },
+        secret
+      ),
+    [onChange, config, secret]
+  );
 
   return (
     <ExtendableWidget
@@ -380,6 +391,24 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           className={styles.checkbox}
           checked={config.is_sandbox_account ?? false}
           onChange={onIsSandBoxAccountChange}
+        />
+      )}
+      {visibleFields.has("wechat_redirect_uris") && (
+        <FormTextFieldList
+          parentJSONPointer={jsonPointer}
+          fieldName="wechat_redirect_uris"
+          list={config.wechat_redirect_uris ?? []}
+          onListChange={onWeChatRedirectUrisChange}
+          addButtonLabelMessageID="SingleSignOnConfigurationScreen.widget.add-uri"
+          className={styles.fieldList}
+          label={
+            <LabelWithTooltip
+              labelId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
+              tooltipHeaderId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label"
+              tooltipMessageId="SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-tooltip-message"
+              directionalHint={DirectionalHint.bottomLeftEdge}
+            />
+          }
         />
       )}
     </ExtendableWidget>

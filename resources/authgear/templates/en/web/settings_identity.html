@@ -27,6 +27,17 @@
     {{ $verification_status = (index $claim_verification_statuses 0).Status }}
   {{ end }}
 
+  {{ $skip := false }}
+  {{ if eq .type "oauth" }}
+  {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}
+  {{ $skip = true }}
+  {{ end }}
+  {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "web") ($.IsNativePlatform)) -}}
+  {{ $skip = true }}
+  {{ end }}
+  {{ end }}
+
+  {{- if not $skip -}}
   <section class="margin-h-14 padding-v-10 row-sep grid grid-icon-name-claim-action1-action2">
     {{ $fa := "" }}
 
@@ -128,6 +139,7 @@
     {{ end }}
 
   </section>
+  {{ end }}
 
   {{ end }}
 </section>
