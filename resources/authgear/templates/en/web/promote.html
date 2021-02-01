@@ -120,7 +120,7 @@
 					<span class="title">{{ template "oauth-branding-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
-					<div class="sso-btn-icon"><i class="fab fa-google" aria-hidden="true"></i></div>
+					<div class="sso-btn-icon google-icon"></div>
 					<span class="title">{{ template "oauth-branding-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
