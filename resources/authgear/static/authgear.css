@@ -620,7 +620,6 @@ h1, h2, h3, h4, h5, h6 {
 .btn.sso-btn {
   height: 36px;
   border-radius: 2px;
-  padding: 0 12px;
 }
 /* Safari button cannot have display being set to other value */
 /* Therefore we have to wrap the content in a span */
@@ -628,14 +627,15 @@ h1, h2, h3, h4, h5, h6 {
 /* Otherwise, the content will overflow the button */
 .sso-btn-content {
   display: grid;
-  grid: "icon title" auto
-      /  36px 1fr;
+  grid: "icon title" 36px
+      /  40px 1fr;
 }
 
-.sso-btn .fab {
+.sso-btn .sso-btn-icon {
   grid-area: icon;
-  align-self: center;
-  justify-self: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .sso-btn .title {

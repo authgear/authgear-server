@@ -206,7 +206,7 @@
 }
 
 .sso-btn.google {
-  border: 1px solid var(--color-text-shaded-2);
+  border: 1px solid var(--color-separator);
 }
 .google {
   color: var(--color-black-unshaded);
