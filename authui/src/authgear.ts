@@ -9,24 +9,6 @@ window.api.onLoad(() => {
   document.body.classList.add("js");
 });
 
-// Handle history tracking.
-
-let rootArea: "settings" | null;
-let historyRootSet = false;
-window.api.onLoad(() => {
-  if (!historyRootSet) {
-    const meta = document.createElement("meta");
-    meta.name = "authgear-history-root"
-    document.head.appendChild(meta);
-    historyRootSet = true;
-  }
-  if (window.location.pathname.startsWith("/settings")) {
-    rootArea = "settings";
-  } else {
-    rootArea = null;
-  }
-});
-
 // Handle form submission
 
 function setNetworkError() {
@@ -134,25 +116,6 @@ window.api.onLoad(() => {
   };
 });
 
-// Handle back button.
-
-function back(e: Event) {
-  e.preventDefault();
-  e.stopPropagation();
-  const rootMeta = document.querySelector('meta[name="authgear-history-root"]');
-  if (rootMeta) {
-    if (rootArea === "settings" && !window.location.pathname.startsWith("/settings")) {
-      // Replace the history root with settings top-page.
-      // FIXME: forward history is not cleared.
-      rootMeta.remove();
-      Turbolinks.visit("/settings", { action: "replace" });
-      historyRootSet = false;
-      return;
-    }
-  }
-  window.history.back();
-}
-
 function refreshPage() {
   let url = window.location.pathname;
   if (window.location.search !== "") {
@@ -164,21 +127,7 @@ function refreshPage() {
   Turbolinks.visit(url, { action: "replace" });
 }
 
-window.api.onLoad(() => {
-  const elems = document.querySelectorAll(".back-btn");
-  for (let i = 0; i < elems.length; i++) {
-    elems[i].addEventListener("click", back);
-  }
-
-  return () => {
-    for (let i = 0; i < elems.length; i++) {
-      elems[i].removeEventListener("click", back);
-    }
-  };
-});
-
 // Handle password visibility toggle.
-
 window.api.onLoad(() => {
   const wrappers = document.querySelectorAll(".password-input-wrapper");
   const disposers: Array<() => void> = [];
@@ -224,7 +173,6 @@ window.api.onLoad(() => {
 });
 
 // Handle resend button.
-
 window.api.onLoad(() => {
   const el = document.querySelector("#resend-button") as HTMLButtonElement;
   if (el == null) {
@@ -300,6 +248,53 @@ window.api.onLoad(() => {
   };
 });
 
+// Handle back button click.
+
+function handleBack(pathname: string): boolean {
+  const pathComponents = pathname.split("/").filter(c => c !== "");
+  if (pathComponents.length > 1 && pathComponents[0] === "settings") {
+    const newPathname = "/" + pathComponents.slice(0, pathComponents.length - 1).join("/");
+    Turbolinks.visit(newPathname, { action: "replace" });
+    return true;
+  }
+  return false;
+}
+
+let pathnameBeforeOnPopState = window.location.pathname;
+function onPopState(_e: Event) {
+  // When this event handler runs, location reflects the latest change.
+  // So window.location is useless to us here.
+  handleBack(pathnameBeforeOnPopState);
+}
+window.api.onLoad(() => {
+  pathnameBeforeOnPopState = window.location.pathname;
+  window.addEventListener("popstate", onPopState);
+  return () => {
+    window.removeEventListener("popstate", onPopState);
+  };
+});
+function onClickBackButton(e: Event) {
+  e.preventDefault();
+  e.stopPropagation();
+  const handled = handleBack(window.location.pathname);
+  if (handled) {
+    return;
+  }
+  window.history.back();
+}
+window.api.onLoad(() => {
+  const elems = document.querySelectorAll(".back-btn");
+  for (let i = 0; i < elems.length; i++) {
+    elems[i].addEventListener("click", onClickBackButton);
+  }
+  return () => {
+    for (let i = 0; i < elems.length; i++) {
+      elems[i].removeEventListener("click", onClickBackButton);
+    }
+  };
+});
+
+// Websocket runtime
 window.api.onLoad(() => {
   const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
   const host = window.location.host;
