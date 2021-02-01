@@ -101,14 +101,14 @@
 
 /* <a> does not have disabled attribute */
 @media (prefers-color-scheme: dark) {
-  .link, .link:visited {
+  a:not(.not-a), a:not(.not-a):visited, .link, .link:visited {
     color: var(--color-primary-shaded-5);
     background-color: transparent;
   }
-  .link:hover {
+  a:not(.not-a):hover, .link:hover {
     color: var(--color-primary-shaded-4);
   }
-  .link:active {
+  a:not(.not-a):active, .link:active {
     color: var(--color-primary-shaded-7);
   }
 }
