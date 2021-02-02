@@ -18,8 +18,8 @@
 
 			{{ if not $.PublicSignupDisabled }}
 			<div class="signin-signup-switch flex flex-direction-row">
-				<a class="signin-signup-link primary-txt" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
-				<a class="signin-signup-link primary-txt current" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
+				<a class="not-a signin-signup-link primary-txt" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
+				<a class="not-a signin-signup-link primary-txt current" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 			</div>
 			{{ end }}
 
@@ -122,27 +122,27 @@
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
-					<i class="sso-btn-icon fab fa-apple" aria-hidden="true"></i>
+					<div class="sso-btn-icon"><i class="fab fa-apple" aria-hidden="true"></i></div>
 					<span class="title">{{ template "oauth-branding-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
-					<i class="sso-btn-icon fab fa-google" aria-hidden="true"></i>
+					<div class="sso-btn-icon google-icon"></div>
 					<span class="title">{{ template "oauth-branding-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
-					<i class="sso-btn-icon fab fa-facebook-f" aria-hidden="true"></i>
+					<div class="sso-btn-icon"><i class="fab fa-facebook-f" aria-hidden="true"></i></div>
 					<span class="title">{{ template "oauth-branding-facebook" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
-					<i class="sso-btn-icon fab fa-linkedin-in" aria-hidden="true"></i>
+					<div class="sso-btn-icon"><i class="fab fa-linkedin-in" aria-hidden="true"></i></div>
 					<span class="title">{{ template "oauth-branding-linkedin" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
-					<i class="sso-btn-icon fab fa-microsoft" aria-hidden="true"></i>
+					<div class="sso-btn-icon"><i class="fab fa-microsoft" aria-hidden="true"></i></div>
 					<span class="title">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "wechat" -}}
-					<i class="sso-btn-icon fab fa-weixin" aria-hidden="true"></i>
+					<div class="sso-btn-icon"><i class="fab fa-weixin" aria-hidden="true"></i></div>
 					<span class="title">{{ template "oauth-branding-wechat" }}</span>
 					{{- end -}}
 					</span>

@@ -30,13 +30,34 @@
     --color-background-shaded-7: #151515;
     --color-background-shaded-8: #0b0b0b;
 
+    --color-google-unshaded: #4285f4;
+    --color-google-shaded-1: #f7faff;
+    --color-google-shaded-2: #e0ebfd;
+    --color-google-shaded-3: #c5dafc;
+    --color-google-shaded-4: #8cb6f9;
+    --color-google-shaded-5: #5895f6;
+    --color-google-shaded-6: #3b79dc;
+    --color-google-shaded-7: #3266ba;
+    --color-google-shaded-8: #254b89;
+
     --color-pane-background: #252525;
+
+    --color-separator: #3e3e3e;
+
+    --color-password-strength-meter-0: #8a8886;
   }
 }
 
 @media (prefers-color-scheme: dark) {
   .input:focus {
     border-bottom-color: var(--color-primary-shaded-5);
+  }
+}
+
+
+@media (prefers-color-scheme: dark) {
+  .secondary-txt {
+    color: var(--color-text-shaded-6);
   }
 }
 
@@ -49,13 +70,13 @@
 @media (prefers-color-scheme: dark) {
   .primary-btn {
     color: var(--color-text-unshaded);
-    background-color: var(--color-primary-shaded-5);
+    background-color: var(--color-primary-unshaded);
   }
   .primary-btn:hover {
     background-color: var(--color-primary-shaded-4);
   }
   .primary-btn:active {
-    background-color: var(--color-primary-shaded-6);
+    background-color: var(--color-primary-shaded-7);
   }
   .primary-btn:disabled {
     background-color: var(--color-primary-shaded-2);
@@ -80,14 +101,14 @@
 
 /* <a> does not have disabled attribute */
 @media (prefers-color-scheme: dark) {
-  .link, .link:visited {
+  a:not(.not-a), a:not(.not-a):visited, .link, .link:visited {
     color: var(--color-primary-shaded-5);
     background-color: transparent;
   }
-  .link:hover {
+  a:not(.not-a):hover, .link:hover {
     color: var(--color-primary-shaded-4);
   }
-  .link:active {
+  a:not(.not-a):active, .link:active {
     color: var(--color-primary-shaded-7);
   }
 }
@@ -122,96 +143,23 @@
     border: 0;
   }
   .google {
-    color: var(--color-black-unshaded);
-    background-color: var(--color-white-unshaded);
+    color: var(--color-white-unshaded);
+    background-color: var(--color-google-unshaded);
   }
   .google:hover {
-    background-color: var(--color-white-shaded-4);
+    background-color: var(--color-google-shaded-4);
   }
   .google:active {
-    background-color: var(--color-white-shaded-7);
+    background-color: var(--color-google-shaded-7);
   }
   .google:disabled {
-    background-color: var(--color-white-shaded-2);
+    background-color: var(--color-google-shaded-2);
   }
   .google .sso-btn-icon {
     color: var(--color-black-unshaded);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .facebook {
-    color: var(--color-black-unshaded);
     background-color: var(--color-white-unshaded);
-  }
-  .facebook:hover {
-    background-color: var(--color-white-shaded-4);
-  }
-  .facebook:active {
-    background-color: var(--color-white-shaded-7);
-  }
-  .facebook:disabled {
-    background-color: var(--color-white-shaded-2);
-  }
-  .facebook .sso-btn-icon {
-    color: var(--color-facebook-unshaded);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .linkedin {
-    color: var(--color-black-unshaded);
-    background-color: var(--color-white-unshaded);
-  }
-  .linkedin:hover {
-    background-color: var(--color-white-shaded-4);
-  }
-  .linkedin:active {
-    background-color: var(--color-white-shaded-7);
-  }
-  .linkedin:disabled {
-    background-color: var(--color-white-shaded-2);
-  }
-  .linkedin .sso-btn-icon {
-    color: var(--color-linkedin-unshaded);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .azureadv2 {
-    color: var(--color-black-unshaded);
-    background-color: var(--color-white-unshaded);
-  }
-  .azureadv2:hover {
-    background-color: var(--color-white-shaded-4);
-  }
-  .azureadv2:active {
-    background-color: var(--color-white-shaded-7);
-  }
-  .azureadv2:disabled {
-    background-color: var(--color-white-shaded-2);
-  }
-  .azureadv2 .sso-btn-icon {
-    color: var(--color-azureadv2-unshaded);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .wechat {
-    color: var(--color-black-unshaded);
-    background-color: var(--color-white-unshaded);
-  }
-  .wechat:hover {
-    background-color: var(--color-white-shaded-4);
-  }
-  .wechat:active {
-    background-color: var(--color-white-shaded-7);
-  }
-  .wechat:disabled {
-    background-color: var(--color-white-shaded-2);
-  }
-  .wechat .sso-btn-icon {
-    color: var(--color-wechat-unshaded);
+    border-radius: 2px;
+    margin: 1px;
   }
 }
 

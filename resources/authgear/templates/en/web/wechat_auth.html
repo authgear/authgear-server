@@ -19,13 +19,13 @@
 <p class="font-smaller overflow-wrap-break-word margin-10 primary-txt">{{ template "wechat-auth-with-app-description" }}</p>
 
 <div class="switch-link-group flex flex-direction-column margin-10">
-<a class="as-btn btn primary-btn item click-to-switch"
+<a class="as-btn not-a btn primary-btn item click-to-switch"
     href="{{ $.WeChatRedirectURI }}"
     data-turbolinks-action="replace"
 >
 {{ template "wechat-open-app" }}
 </a>
-<a class="as-btn btn primary-btn item switch-to-item wechat"
+<a class="as-btn not-a btn primary-btn item switch-to-item wechat"
     href="{{ $.CurrentURI }}"
     data-turbolinks-action="replace"
     data-is-refresh-link="true"
