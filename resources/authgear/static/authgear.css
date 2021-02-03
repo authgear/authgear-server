@@ -76,6 +76,9 @@ a {
   text-decoration: none;
   cursor: pointer;
 }
+a:focus {
+  outline: none;
+}
 
 select {
   -moz-appearance: none;
@@ -415,7 +418,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-error-unshaded);
   background-color: transparent;
 }
-.destructive-btn:hover {
+.destructive-btn:hover, .description-btn:focus {
   color: var(--color-error-shaded-4);
 }
 .destructive-btn:active {
