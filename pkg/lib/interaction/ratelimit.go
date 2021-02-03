@@ -2,9 +2,9 @@ package interaction
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
 // TODO(rate-limit): allow configuration of bucket size & reset period
@@ -13,7 +13,7 @@ func RequestRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("request:%s", ip),
 		Size:        60,
-		ResetPeriod: 1 * time.Minute,
+		ResetPeriod: duration.PerMinute,
 	}
 }
 
@@ -21,7 +21,7 @@ func SignupRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("signup:%s", ip),
 		Size:        1,
-		ResetPeriod: 1 * time.Minute,
+		ResetPeriod: duration.PerMinute,
 	}
 }
 
@@ -29,6 +29,6 @@ func AuthIPRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("auth-ip:%s", ip),
 		Size:        10,
-		ResetPeriod: 1 * time.Minute,
+		ResetPeriod: duration.PerMinute,
 	}
 }

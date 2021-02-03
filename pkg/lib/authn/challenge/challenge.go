@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
@@ -24,7 +25,7 @@ func (p Purpose) IsValid() bool {
 func (p Purpose) ValidityPeriod() time.Duration {
 	switch p {
 	case PurposeAnonymousRequest:
-		return time.Minute * 5
+		return duration.Short
 	default:
 		panic("challenge: unknown purpose: " + p)
 	}

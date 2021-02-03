@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -14,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
@@ -43,7 +43,7 @@ func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
 	payload := jwt.New()
 	_ = payload.Set(jwt.IssuerKey, f.ProviderConfig.TeamID)
 	_ = payload.Set(jwt.IssuedAtKey, now.Unix())
-	_ = payload.Set(jwt.ExpirationKey, now.Add(5*time.Minute).Unix())
+	_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
 	_ = payload.Set(jwt.AudienceKey, "https://appleid.apple.com")
 	_ = payload.Set(jwt.SubjectKey, f.ProviderConfig.ClientID)
 

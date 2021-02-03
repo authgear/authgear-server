@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
-const SessionExpiryDuration = 5 * time.Minute
+const SessionExpiryDuration = interaction.GraphLifetime
 
 type SessionStoreRedis struct {
 	AppID config.AppID

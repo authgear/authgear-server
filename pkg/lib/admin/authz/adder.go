@@ -3,13 +3,13 @@ package authz
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
@@ -30,7 +30,7 @@ func (a *Adder) AddAuthz(auth config.AdminAPIAuth, appID config.AppID, authKey *
 		payload := jwt.New()
 		_ = payload.Set(jwt.AudienceKey, string(appID))
 		_ = payload.Set(jwt.IssuedAtKey, now.Unix())
-		_ = payload.Set(jwt.ExpirationKey, now.Add(5*time.Minute).Unix())
+		_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
 
 		key := authKey.Set.Keys[0]
 
