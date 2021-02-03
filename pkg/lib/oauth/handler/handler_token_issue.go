@@ -1,15 +1,14 @@
 package handler
 
 import (
-	"time"
-
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
-const AppSessionTokenDuration = 5 * time.Minute
+const AppSessionTokenDuration = duration.Short
 
 func (h *TokenHandler) IssueTokens(
 	client *config.OAuthClientConfig,

@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"net/url"
-	"time"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
@@ -13,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
@@ -34,7 +34,7 @@ type IDTokenIssuer struct {
 
 // IDTokenValidDuration is the valid period of ID token.
 // It can be short, since id_token_hint should accept expired ID tokens.
-const IDTokenValidDuration = 5 * time.Minute
+const IDTokenValidDuration = duration.Short
 
 func (ti *IDTokenIssuer) GetPublicKeySet() (*jwk.Set, error) {
 	return jwkutil.PublicKeySet(&ti.Secrets.Set)

@@ -4,12 +4,12 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
 const (
-	// OOBOTPValidDuration is 20 minutes according to the suggestion in
-	// https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html#step-3-send-a-token-over-a-side-channel
-	OOBOTPValidDuration time.Duration = 20 * time.Minute
+	// OOBOTPValidDuration is duration.UserInteraction.
+	OOBOTPValidDuration = duration.UserInteraction
 	// OOBOTPSendCooldownSeconds is 60 seconds.
 	OOBOTPSendCooldownSeconds = 60
 )

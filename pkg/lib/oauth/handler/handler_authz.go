@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -15,12 +14,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
-const CodeGrantValidDuration = 5 * time.Minute
+const CodeGrantValidDuration = duration.Short
 
 type OAuthURLProvider interface {
 	AuthorizeURL(r protocol.AuthorizationRequest) *url.URL

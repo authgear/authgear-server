@@ -12,6 +12,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -98,7 +99,7 @@ func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err er
 
 	err = jwt.Verify(jwtToken,
 		jwt.WithClock(jwtClock{p.Clock}),
-		jwt.WithAcceptableSkew(5*time.Minute),
+		jwt.WithAcceptableSkew(duration.ClockSkew),
 	)
 	if err != nil {
 		err = fmt.Errorf("invalid JWT: %w", err)

@@ -5,15 +5,15 @@ import (
 	"errors"
 	"reflect"
 	"sort"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
-const GraphLifetime = 5 * time.Minute
+const GraphLifetime = duration.UserInteraction
 
 type Graph struct {
 	// GraphID is the unique ID for a graph.
