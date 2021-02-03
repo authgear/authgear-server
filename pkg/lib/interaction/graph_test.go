@@ -195,7 +195,7 @@ func TestGraphGetAMRACR(t *testing.T) {
 				&testGraphGetAMRnode{
 					Stage: AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
-						Type: authn.AuthenticatorTypeOOB,
+						Type: authn.AuthenticatorTypeOOBSMS,
 						Claims: map[string]interface{}{
 							authenticator.AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
 						},
@@ -219,7 +219,7 @@ func TestGraphGetAMRACR(t *testing.T) {
 				&testGraphGetAMRnode{
 					Stage: AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
-						Type: authn.AuthenticatorTypeOOB,
+						Type: authn.AuthenticatorTypeOOBEmail,
 						Claims: map[string]interface{}{
 							authenticator.AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
 						},
@@ -243,7 +243,7 @@ func TestGraphGetAMRACR(t *testing.T) {
 				&testGraphGetAMRnode{
 					Stage: AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
-						Type: authn.AuthenticatorTypeOOB,
+						Type: authn.AuthenticatorTypeOOBSMS,
 						Claims: map[string]interface{}{
 							authenticator.AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
 						},

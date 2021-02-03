@@ -15,8 +15,9 @@ type InputAuthenticationOOBTrigger interface {
 }
 
 type EdgeAuthenticationOOBTrigger struct {
-	Stage          interaction.AuthenticationStage
-	Authenticators []*authenticator.Info
+	Stage                interaction.AuthenticationStage
+	OOBAuthenticatorType authn.AuthenticatorType
+	Authenticators       []*authenticator.Info
 }
 
 func (e *EdgeAuthenticationOOBTrigger) getAuthenticator(idx int) (*authenticator.Info, error) {
@@ -28,7 +29,7 @@ func (e *EdgeAuthenticationOOBTrigger) getAuthenticator(idx int) (*authenticator
 }
 
 func (e *EdgeAuthenticationOOBTrigger) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeOOB
+	return e.OOBAuthenticatorType
 }
 
 func (e *EdgeAuthenticationOOBTrigger) IsDefaultAuthenticator() bool {

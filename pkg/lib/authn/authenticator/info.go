@@ -58,7 +58,7 @@ func (i *Info) AMR() []string {
 		return []string{authn.AMRPWD}
 	case authn.AuthenticatorTypeTOTP:
 		return []string{authn.AMROTP}
-	case authn.AuthenticatorTypeOOB:
+	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 		out := []string{authn.AMROTP}
 		channel := i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
 		switch authn.AuthenticatorOOBChannel(channel) {
@@ -95,7 +95,7 @@ func (i *Info) Equal(that *Info) bool {
 		}
 
 		return subtle.ConstantTimeCompare([]byte(i.Secret), []byte(that.Secret)) == 1
-	case authn.AuthenticatorTypeOOB:
+	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 		// If they are OOB, they have the same channel, target, and primary/secondary tag.
 		if i.Kind != that.Kind {
 			return false
@@ -132,7 +132,7 @@ func (i *Info) StandardClaims() map[authn.ClaimName]string {
 		break
 	case authn.AuthenticatorTypeTOTP:
 		break
-	case authn.AuthenticatorTypeOOB:
+	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 		channel := i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
 		switch authn.AuthenticatorOOBChannel(i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)) {
 		case authn.AuthenticatorOOBChannelEmail:

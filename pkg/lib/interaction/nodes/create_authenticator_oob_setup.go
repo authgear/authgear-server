@@ -22,6 +22,7 @@ type EdgeCreateAuthenticatorOOBSetup struct {
 	Stage     interaction.AuthenticationStage
 	IsDefault bool
 
+	OOBAuthenticatorType authn.AuthenticatorType
 	// Either have Channel and Target
 	Channel authn.AuthenticatorOOBChannel
 	Target  string
@@ -30,7 +31,7 @@ type EdgeCreateAuthenticatorOOBSetup struct {
 }
 
 func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeOOB
+	return e.OOBAuthenticatorType
 }
 
 func (e *EdgeCreateAuthenticatorOOBSetup) IsDefaultAuthenticator() bool {
@@ -58,6 +59,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 
 	var spec *authenticator.Spec
 	var identityInfo *identity.Info
+	var oobAuthenticatorType authn.AuthenticatorType
 	if e.Stage == interaction.AuthenticationStagePrimary {
 		// Primary OOB authenticators must be bound to login ID identity
 		identityInfo = graph.MustGetUserLastIdentity()
@@ -69,7 +71,6 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			UserID:    identityInfo.UserID,
 			IsDefault: e.IsDefault,
 			Kind:      stageToAuthenticatorKind(e.Stage),
-			Type:      authn.AuthenticatorTypeOOB,
 			Claims:    map[string]interface{}{},
 		}
 
@@ -82,12 +83,17 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			switch t.Type {
 			case config.LoginIDKeyTypeEmail:
 				channel = authn.AuthenticatorOOBChannelEmail
+				oobAuthenticatorType = authn.AuthenticatorTypeOOBEmail
 			case config.LoginIDKeyTypePhone:
 				channel = authn.AuthenticatorOOBChannelSMS
+				oobAuthenticatorType = authn.AuthenticatorTypeOOBSMS
 			default:
 				panic("interaction: creating OOB authenticator for invalid login ID type")
 			}
 			break
+		}
+		if oobAuthenticatorType == "" {
+			panic("interaction: login ID not found for creating OOB authenticator")
 		}
 		target = identityInfo.Claims[identity.IdentityClaimLoginIDValue].(string)
 
@@ -97,7 +103,6 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			UserID:    userID,
 			IsDefault: e.IsDefault,
 			Kind:      stageToAuthenticatorKind(e.Stage),
-			Type:      authn.AuthenticatorTypeOOB,
 			Claims:    map[string]interface{}{},
 		}
 
@@ -109,15 +114,20 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			if err != nil {
 				return nil, err
 			}
+			oobAuthenticatorType = authn.AuthenticatorTypeOOBEmail
 		case authn.AuthenticatorOOBChannelSMS:
 			var err error
 			target, err = ctx.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypePhone).Normalize(target)
 			if err != nil {
 				return nil, err
 			}
+			oobAuthenticatorType = authn.AuthenticatorTypeOOBSMS
+		default:
+			panic("interaction: creating OOB authenticator for invalid channel")
 		}
 	}
 
+	spec.Type = oobAuthenticatorType
 	spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType] = string(channel)
 	switch channel {
 	case authn.AuthenticatorOOBChannelSMS:

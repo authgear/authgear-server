@@ -68,8 +68,12 @@ func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 }
 
 func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
+	t, err := authn.GetOOBAuthenticatorType(o.Channel)
+	if err != nil {
+		panic("authenticator: fail to convert: " + err.Error())
+	}
 	info := &authenticator.Info{
-		Type:      authn.AuthenticatorTypeOOB,
+		Type:      t,
 		ID:        o.ID,
 		Labels:    o.Labels,
 		UserID:    o.UserID,

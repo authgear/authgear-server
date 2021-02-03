@@ -173,26 +173,15 @@
   </section>
   {{ end }}{{ end }}
 
-  <!-- Primary OOB OTP -->
-  {{ if eq .Type "oob_otp" }}{{ if eq .Kind "primary" }}
+  <!-- Primary OOB OTP Email -->
+  {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
   <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-info-desc-action">
     <p class="grid-area-title margin-0 primary-txt">
-      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "email" }}
       {{ template "settings-page-primary-oob-otp-title--email" }}
-      {{ end }}
-      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "sms" }}
-      {{ template "settings-page-primary-oob-otp-title--sms" }}
-      {{ end }}
     </p>
     <p class="grid-area-info margin-0 font-smaller secondary-txt">
-      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "email" }}
       <i class="fas fa-envelope" aria-hidden="true"></i>
       {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
-      {{ end }}
-      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "sms" }}
-      <i class="fas fa-phone" aria-hidden="true"></i>
-      {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
-      {{ end }}
     </p>
     <p class="grid-area-desc margin-0 font-smaller secondary-txt">
       <!-- FIXME(ui): Use user preferred timezone -->
@@ -203,6 +192,27 @@
     </a>
   </section>
   {{ end}}{{ end }}
+
+  <!-- Primary OOB OTP SMS -->
+  {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
+  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-info-desc-action">
+    <p class="grid-area-title margin-0 primary-txt">
+      {{ template "settings-page-primary-oob-otp-title--sms" }}
+    </p>
+    <p class="grid-area-info margin-0 font-smaller secondary-txt">
+      <i class="fas fa-phone" aria-hidden="true"></i>
+      {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
+    </p>
+    <p class="grid-area-desc margin-0 font-smaller secondary-txt">
+      <!-- FIXME(ui): Use user preferred timezone -->
+      {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
+    </p>
+    <a class="link grid-area-action" href="/settings/identity">
+      {{ template "details-button-label" }}
+    </a>
+  </section>
+  {{ end}}{{ end }}
+
   {{ end }}
 
 </div>
@@ -211,24 +221,27 @@
 <!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->
 <!-- or the user somehow has authenticator of that kind -->
 {{ $has_secondary_totp := false }}
-{{ $has_secondary_oob_otp := false }}
+{{ $has_secondary_oob_otp_email := false }}
+{{ $has_secondary_oob_otp_sms := false }}
 {{ $secondary_password := false }}
 {{ range $.Authenticators }}
 {{ if eq .Kind "secondary" }}
   {{ if eq .Type "totp" }}
     {{ $has_secondary_totp = true }}
-  {{ else if eq .Type "oob_otp" }}
-    {{ $has_secondary_oob_otp = true }}
+  {{ else if eq .Type "oob_otp_email" }}
+    {{ $has_secondary_oob_otp_email = true }}
+  {{ else if eq .Type "oob_otp_sms" }}
+    {{ $has_secondary_oob_otp_sms = true }}
   {{ else if eq .Type "password" }}
     {{ $secondary_password = . }}
   {{ end }}
 {{ end }}
 {{ end }}
-{{ $has_mfa := (or $has_secondary_totp $has_secondary_oob_otp $secondary_password) }}
 {{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
-{{ $show_secondary_oob_otp := (or $has_secondary_oob_otp $.SecondaryOOBOTPAllowed) }}
+{{ $show_secondary_oob_otp_email := (or $has_secondary_oob_otp_email $.SecondaryOOBOTPEmailAllowed) }}
+{{ $show_secondary_oob_otp_sms := (or $has_secondary_oob_otp_sms $.SecondaryOOBOTPSMSAllowed) }}
 {{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
-{{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp $show_secondary_password) }}
+{{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password) }}
 
 {{ if $show_mfa }}
 <div class="pane margin-6 padding-6">

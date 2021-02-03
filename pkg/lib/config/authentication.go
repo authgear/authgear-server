@@ -44,14 +44,14 @@ var _ = Schema.Add("IdentityType", `
 var _ = Schema.Add("PrimaryAuthenticatorType", `
 {
 	"type": "string",
-	"enum": ["password", "oob_otp"]
+	"enum": ["password", "oob_otp_email", "oob_otp_sms"]
 }
 `)
 
 var _ = Schema.Add("SecondaryAuthenticatorType", `
 {
 	"type": "string",
-	"enum": ["password", "oob_otp", "totp"]
+	"enum": ["password", "oob_otp_email", "oob_otp_sms", "totp"]
 }
 `)
 
@@ -80,7 +80,7 @@ func (c *AuthenticationConfig) SetDefaults() {
 	if c.SecondaryAuthenticators == nil {
 		c.SecondaryAuthenticators = []authn.AuthenticatorType{
 			authn.AuthenticatorTypeTOTP,
-			authn.AuthenticatorTypeOOB,
+			authn.AuthenticatorTypeOOBSMS,
 		}
 	}
 	if c.SecondaryAuthenticationMode == "" {

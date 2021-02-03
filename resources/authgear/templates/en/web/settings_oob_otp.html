@@ -12,7 +12,11 @@
 <div class="padding-6 flex flex-direction-column">
   <section class="margin-h-14 padding-v-10 row-sep">
     <h1 class="font-inherit margin-0 primary-txt">
-      {{ template "settings-oob-otp-title" }}
+      {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
+      {{ template "settings-oob-otp-email-title" }}
+      {{ else if eq $.OOBAuthenticatorType "oob_otp_sms" }}
+      {{ template "settings-oob-otp-sms-title" }}
+      {{ end }}
     </h1>
   </section>
 

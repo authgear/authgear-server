@@ -143,6 +143,11 @@ func (s *Store) Create(a *Authenticator) error {
 		return err
 	}
 
+	authenticatorType, err := authn.GetOOBAuthenticatorType(a.Channel)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.Tenant().
 		Insert(s.SQLBuilder.FullTableName("authenticator")).
 		Columns(
@@ -158,7 +163,7 @@ func (s *Store) Create(a *Authenticator) error {
 		Values(
 			a.ID,
 			labels,
-			authn.AuthenticatorTypeOOB,
+			authenticatorType,
 			a.UserID,
 			a.CreatedAt,
 			a.UpdatedAt,

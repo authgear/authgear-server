@@ -65,7 +65,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 			// OOB with the same channel and target.
 			{
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBEmail,
 					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
@@ -74,7 +74,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					},
 				},
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBEmail,
 					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
@@ -86,7 +86,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 
 			{
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBSMS,
 					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
@@ -95,7 +95,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					},
 				},
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBSMS,
 					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
@@ -107,7 +107,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 
 			{
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBEmail,
 					Kind: KindSecondary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
@@ -116,7 +116,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					},
 				},
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBEmail,
 					Kind: KindSecondary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
@@ -128,7 +128,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 
 			{
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBSMS,
 					Kind: KindSecondary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
@@ -137,7 +137,7 @@ func TestAuthenticatorEqualTrue(t *testing.T) {
 					},
 				},
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBSMS,
 					Kind: KindSecondary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelSMS),
@@ -199,7 +199,7 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 			// OOB with the same channel but different target.
 			{
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBEmail,
 					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),
@@ -208,7 +208,7 @@ func TestAuthenticatorEqualFalse(t *testing.T) {
 					},
 				},
 				&Info{
-					Type: authn.AuthenticatorTypeOOB,
+					Type: authn.AuthenticatorTypeOOBEmail,
 					Kind: KindPrimary,
 					Claims: map[string]interface{}{
 						AuthenticatorClaimOOBOTPChannelType: string(authn.AuthenticatorOOBChannelEmail),

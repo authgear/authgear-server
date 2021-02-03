@@ -244,15 +244,15 @@ config:
   http:
     public_origin: http://test
   authentication:
-    primary_authenticators: [oob_otp]
-    secondary_authenticators: [totp, oob_otp]
+    primary_authenticators: [oob_otp_email]
+    secondary_authenticators: [totp, oob_otp_sms]
 
 ---
 name: invalid-totp-primary-authenticator
 error: |-
   invalid configuration:
   /authentication/primary_authenticators/0: enum
-    map[actual:totp expected:[password oob_otp]]
+    map[actual:totp expected:[password oob_otp_email oob_otp_sms]]
 config:
   id: test
   http:
@@ -299,7 +299,7 @@ config:
     public_origin: http://test
   authentication:
     identities: [login_id]
-    primary_authenticators: [oob_otp]
+    primary_authenticators: [oob_otp_email]
     secondary_authenticators: []
   identity:
     login_id:
@@ -325,6 +325,42 @@ config:
       keys:
         - key: email
           type: email
+
+---
+name: no-usable-primary-authenticator-for-phone
+error: |-
+  invalid configuration:
+  /authentication/identities/0: no usable primary authenticator is enabled
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: [login_id]
+    primary_authenticators: [oob_otp_email]
+    secondary_authenticators: []
+  identity:
+    login_id:
+      keys:
+        - key: phone
+          type: phone
+
+---
+name: oob-otp-primary-authenticator-for-phone
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    identities: [login_id]
+    primary_authenticators: [oob_otp_sms]
+    secondary_authenticators: []
+  identity:
+    login_id:
+      keys:
+        - key: phone
+          type: phone
 
 ---
 name: invalid-password-policy-for-min-length

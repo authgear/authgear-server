@@ -45,7 +45,8 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 		for _, typ := range ii.PrimaryAuthenticatorTypes() {
 			if ai.Type == typ {
 				switch {
-				case ii.Type == authn.IdentityTypeLoginID && ai.Type == authn.AuthenticatorTypeOOB:
+				case ii.Type == authn.IdentityTypeLoginID &&
+					(ai.Type == authn.AuthenticatorTypeOOBEmail || ai.Type == authn.AuthenticatorTypeOOBSMS):
 					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
 					email, _ := ai.Claims[AuthenticatorClaimOOBOTPEmail].(string)
 					phone, _ := ai.Claims[AuthenticatorClaimOOBOTPPhone].(string)

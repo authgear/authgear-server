@@ -23,11 +23,12 @@ var TemplateWebSettingsOOBOTPHTML = template.RegisterHTML(
 func ConfigureSettingsOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/settings/mfa/oob_otp")
+		WithPathPattern("/settings/mfa/oob_otp_:channel")
 }
 
 type SettingsOOBOTPViewModel struct {
-	Authenticators []*authenticator.Info
+	OOBAuthenticatorType authn.AuthenticatorType
+	Authenticators       []*authenticator.Info
 }
 
 type SettingsOOBOTPHandler struct {
@@ -43,13 +44,19 @@ func (h *SettingsOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter)
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	userID := session.GetUserID(r.Context())
 	viewModel := SettingsOOBOTPViewModel{}
+	oc := httproute.GetParam(r, "channel")
+	t, err := authn.GetOOBAuthenticatorType(authn.AuthenticatorOOBChannel(oc))
+	if err != nil {
+		return nil, err
+	}
 	authenticators, err := h.Authenticators.List(*userID,
 		authenticator.KeepKind(authenticator.KindSecondary),
-		authenticator.KeepType(authn.AuthenticatorTypeOOB),
+		authenticator.KeepType(t),
 	)
 	if err != nil {
 		return nil, err
 	}
+	viewModel.OOBAuthenticatorType = t
 	viewModel.Authenticators = authenticators
 
 	viewmodels.Embed(data, baseViewModel)
@@ -62,6 +69,12 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	oc := httproute.GetParam(r, "channel")
+	oobAuthenticatorType, err := authn.GetOOBAuthenticatorType(authn.AuthenticatorOOBChannel(oc))
+	if err != nil {
+		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}
 	defer ctrl.Serve()
@@ -88,7 +101,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			input = &InputRemoveAuthenticator{
-				Type: authn.AuthenticatorTypeOOB,
+				Type: oobAuthenticatorType,
 				ID:   authenticatorID,
 			}
 			return
@@ -108,7 +121,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
 			interaction.AuthenticationStageSecondary,
-			authn.AuthenticatorTypeOOB,
+			oobAuthenticatorType,
 		)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {

@@ -164,7 +164,7 @@ func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string][]Cla
 }
 
 func (s *Service) GetAuthenticatorVerificationStatus(a *authenticator.Info) (AuthenticatorStatus, error) {
-	if a.Type != authn.AuthenticatorTypeOOB {
+	if a.Type != authn.AuthenticatorTypeOOBEmail && a.Type != authn.AuthenticatorTypeOOBSMS {
 		panic("verification: incompatible authenticator type: " + a.Type)
 	}
 

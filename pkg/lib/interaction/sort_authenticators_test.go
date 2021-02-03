@@ -54,11 +54,11 @@ func TestSortAuthenticators(t *testing.T) {
 		// OTP comes before
 		test([]*authenticator.Info{
 			info(authn.AuthenticatorTypePassword, "password"),
-			info(authn.AuthenticatorTypeOOB, "oob"),
+			info(authn.AuthenticatorTypeOOBEmail, "oob"),
 		}, []authn.AuthenticatorType{
-			authn.AuthenticatorTypeOOB,
+			authn.AuthenticatorTypeOOBEmail,
 		}, []*authenticator.Info{
-			info(authn.AuthenticatorTypeOOB, "oob"),
+			info(authn.AuthenticatorTypeOOBEmail, "oob"),
 			info(authn.AuthenticatorTypePassword, "password"),
 		})
 
@@ -66,15 +66,17 @@ func TestSortAuthenticators(t *testing.T) {
 		test([]*authenticator.Info{
 			info(authn.AuthenticatorTypePassword, "password1"),
 			info(authn.AuthenticatorTypePassword, "password2"),
-			info(authn.AuthenticatorTypeOOB, "oob1"),
-			info(authn.AuthenticatorTypeOOB, "oob2"),
+			info(authn.AuthenticatorTypeOOBEmail, "oob1"),
+			info(authn.AuthenticatorTypeOOBEmail, "oob2"),
+			info(authn.AuthenticatorTypeOOBSMS, "oob_sms"),
 		}, []authn.AuthenticatorType{
-			authn.AuthenticatorTypeOOB,
+			authn.AuthenticatorTypeOOBEmail,
 		}, []*authenticator.Info{
-			info(authn.AuthenticatorTypeOOB, "oob1"),
-			info(authn.AuthenticatorTypeOOB, "oob2"),
+			info(authn.AuthenticatorTypeOOBEmail, "oob1"),
+			info(authn.AuthenticatorTypeOOBEmail, "oob2"),
 			info(authn.AuthenticatorTypePassword, "password1"),
 			info(authn.AuthenticatorTypePassword, "password2"),
+			info(authn.AuthenticatorTypeOOBSMS, "oob_sms"),
 		})
 	})
 
@@ -89,24 +91,24 @@ func TestSortAuthenticators(t *testing.T) {
 		// Default comes first
 		test([]*authenticator.Info{
 			infoDefault(authn.AuthenticatorTypePassword, "password", true),
-			info(authn.AuthenticatorTypeOOB, "oob"),
+			info(authn.AuthenticatorTypeOOBEmail, "oob"),
 		}, []authn.AuthenticatorType{
-			authn.AuthenticatorTypeOOB,
+			authn.AuthenticatorTypeOOBEmail,
 		}, []*authenticator.Info{
 			infoDefault(authn.AuthenticatorTypePassword, "password", true),
-			info(authn.AuthenticatorTypeOOB, "oob"),
+			info(authn.AuthenticatorTypeOOBEmail, "oob"),
 		})
 
 		test([]*authenticator.Info{
 			info(authn.AuthenticatorTypePassword, "password1"),
 			info(authn.AuthenticatorTypePassword, "password2"),
-			info(authn.AuthenticatorTypeOOB, "oob1"),
-			infoDefault(authn.AuthenticatorTypeOOB, "oob2", true),
+			info(authn.AuthenticatorTypeOOBEmail, "oob1"),
+			infoDefault(authn.AuthenticatorTypeOOBEmail, "oob2", true),
 		}, []authn.AuthenticatorType{
-			authn.AuthenticatorTypeOOB,
+			authn.AuthenticatorTypeOOBEmail,
 		}, []*authenticator.Info{
-			infoDefault(authn.AuthenticatorTypeOOB, "oob2", true),
-			info(authn.AuthenticatorTypeOOB, "oob1"),
+			infoDefault(authn.AuthenticatorTypeOOBEmail, "oob2", true),
+			info(authn.AuthenticatorTypeOOBEmail, "oob1"),
 			info(authn.AuthenticatorTypePassword, "password1"),
 			info(authn.AuthenticatorTypePassword, "password2"),
 		})

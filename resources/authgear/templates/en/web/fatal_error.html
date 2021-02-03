@@ -8,6 +8,7 @@
 
 {{ template "__nav_bar.html" true }}
 
+{{ if .Error }}
 {{ if eq .Error.reason "WebUIInvalidSession" }}
     {{ if len .SessionStepURLs }}
         {{ template "error-web-ui-invalid-session-return" }}
@@ -22,6 +23,7 @@
     {{ end }}
 {{ else }}
 {{ template "__error.html" . }}
+{{ end }}
 {{ end }}
 </main>
 </body>
