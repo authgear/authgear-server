@@ -190,7 +190,7 @@
   "no-device-tokens-description": "No trusted devices that could skip MFA",
 
   "settings-identity-title": "Login Info",
-  "settings-identity-description": "There are the methods to sign in your account",
+  "settings-identity-description": "These are the methods you can use to sign in",
   "settings-identity-oauth-google": "Google",
   "settings-identity-oauth-apple": "Apple",
   "settings-identity-oauth-facebook": "Facebook",
