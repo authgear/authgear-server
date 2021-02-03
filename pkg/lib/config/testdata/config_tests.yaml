@@ -340,3 +340,26 @@ config:
     password:
       policy:
         min_length: 0
+
+---
+name: invalid-home-uri
+error: |-
+  invalid configuration:
+  /ui/home_uri: format
+    map[error:input URL must be absolute format:uri]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  ui:
+    home_uri: nonsense
+
+---
+name: valid-home-uri
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  ui:
+    home_uri: http://test
