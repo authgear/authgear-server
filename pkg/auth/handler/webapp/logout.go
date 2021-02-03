@@ -30,6 +30,7 @@ type LogoutSessionManager interface {
 type LogoutHandler struct {
 	Database       *db.Handle
 	TrustProxy     config.TrustProxy
+	UIConfig       *config.UIConfig
 	SessionManager LogoutSessionManager
 	BaseViewModel  *viewmodels.BaseViewModeler
 	Renderer       Renderer
@@ -55,7 +56,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 
-			redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), "/settings")
+			redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), webapp.DefaultRedirectURI(h.UIConfig))
 			http.Redirect(w, r, redirectURI, http.StatusFound)
 			return nil
 		})

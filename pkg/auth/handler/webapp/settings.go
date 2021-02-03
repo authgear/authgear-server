@@ -52,6 +52,7 @@ type SettingsHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
+	UIConfig          *config.UIConfig
 	Authentication    *config.AuthenticationConfig
 	Identities        SettingsIdentityService
 	Verification      SettingsVerificationService
@@ -188,7 +189,7 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), "/settings")
+		redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), webapp.DefaultRedirectURI(h.UIConfig))
 		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 	})

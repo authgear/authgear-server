@@ -40,6 +40,7 @@ type ControllerDeps struct {
 	Renderer      Renderer
 	Publisher     *Publisher
 	Clock         clock.Clock
+	UIConfig      *config.UIConfig
 
 	TrustProxy config.TrustProxy
 }
@@ -182,6 +183,10 @@ func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Sessi
 			o.RedirectURI = opts.RedirectURI
 		}
 		o.KeepAfterFinish = opts.KeepAfterFinish
+	} else {
+		if o.RedirectURI == "" {
+			o.RedirectURI = webapp.DefaultRedirectURI(c.UIConfig)
+		}
 	}
 	o.UpdatedAt = now
 	s = webapp.NewSession(o)
