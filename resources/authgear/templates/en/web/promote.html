@@ -40,6 +40,8 @@
 							{{ end }}
 						</select>
 						<input
+							tabindex="0"
+							autofocus
 							class="input text-input primary-txt"
 							type="text"
 							inputmode="numeric"
@@ -52,6 +54,8 @@
 					</div>
 				{{ else }}
 					<input
+						tabindex="0"
+						autofocus
 						class="margin-6 input text-input primary-txt"
 						type="{{ $.x_login_id_input_type }}"
 						name="x_login_id"
