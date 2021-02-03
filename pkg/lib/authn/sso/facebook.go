@@ -1,14 +1,17 @@
 package sso
 
 import (
+	"net/url"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
 const (
-	facebookAuthorizationURL string = "https://www.facebook.com/v6.0/dialog/oauth"
+	facebookAuthorizationURL string = "https://www.facebook.com/v9.0/dialog/oauth"
 	// nolint: gosec
-	facebookTokenURL    string = "https://graph.facebook.com/v6.0/oauth/access_token"
-	facebookUserInfoURL string = "https://graph.facebook.com/v6.0/me?fields=id,email"
+	facebookTokenURL    string = "https://graph.facebook.com/v9.0/oauth/access_token"
+	facebookUserInfoURL string = "https://graph.facebook.com/v9.0/me?fields=id,email"
 )
 
 type FacebookImpl struct {
@@ -42,15 +45,44 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 }
 
 func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	h := getAuthInfoRequest{
-		redirectURL:     f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
-		providerConfig:  f.ProviderConfig,
-		clientSecret:    f.Credentials.ClientSecret,
-		accessTokenURL:  facebookTokenURL,
-		userProfileURL:  facebookUserInfoURL,
-		userInfoDecoder: f.UserInfoDecoder,
+	authInfo = AuthInfo{
+		ProviderConfig: f.ProviderConfig,
 	}
-	return h.getAuthInfo(r)
+
+	accessTokenResp, err := fetchAccessTokenResp(
+		r.Code,
+		facebookTokenURL,
+		f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
+		f.ProviderConfig.ClientID,
+		f.Credentials.ClientSecret,
+	)
+	if err != nil {
+		return
+	}
+	authInfo.ProviderAccessTokenResp = accessTokenResp
+
+	userProfileURL, err := url.Parse(facebookUserInfoURL)
+	if err != nil {
+		return
+	}
+	q := userProfileURL.Query()
+	appSecretProof := crypto.HMACSHA256String([]byte(f.Credentials.ClientSecret), []byte(accessTokenResp.AccessToken()))
+	q.Set("appsecret_proof", appSecretProof)
+	userProfileURL.RawQuery = q.Encode()
+
+	userProfile, err := fetchUserProfile(accessTokenResp, userProfileURL.String())
+	if err != nil {
+		return
+	}
+	authInfo.ProviderRawProfile = userProfile
+
+	providerUserInfo, err := f.UserInfoDecoder.DecodeUserInfo(f.ProviderConfig.Type, userProfile)
+	if err != nil {
+		return
+	}
+	authInfo.ProviderUserInfo = *providerUserInfo
+
+	return
 }
 
 var (
