@@ -91,7 +91,7 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
           <ColorPicker
             color={iColor}
             onChange={onColorPickerChange}
-            alphaSliderHidden={true}
+            alphaType="none"
           />
         </Callout>
       )}
