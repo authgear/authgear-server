@@ -87,9 +87,9 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 
 					var maskedTarget string
 					switch channel {
-					case string(authn.AuthenticatorOOBChannelSMS):
+					case authn.AuthenticatorOOBChannelSMS:
 						maskedTarget = corephone.Mask(target)
-					case string(authn.AuthenticatorOOBChannelEmail):
+					case authn.AuthenticatorOOBChannelEmail:
 						maskedTarget = mail.MaskAddress(target)
 					default:
 						panic("authentication_begin: unexpected channel: " + channel)

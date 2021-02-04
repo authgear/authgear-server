@@ -171,32 +171,33 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 				IsDefault: isDefault,
 			})
 
-		// fixme(oob): check type
-		case authn.AuthenticatorTypeOOBSMS, authn.AuthenticatorTypeOOBEmail:
+		case authn.AuthenticatorTypeOOBSMS:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
 
-			var channel authn.AuthenticatorOOBChannel
-			var target string
-			var authType authn.AuthenticatorType
-			switch loginIDType {
-			case string(config.LoginIDKeyTypeEmail):
-				channel = authn.AuthenticatorOOBChannelEmail
-				target = loginID
-				authType = authn.AuthenticatorTypeOOBEmail
-			case string(config.LoginIDKeyTypePhone):
-				channel = authn.AuthenticatorOOBChannelSMS
-				target = loginID
-				authType = authn.AuthenticatorTypeOOBSMS
-			}
-
-			if target != "" {
+			// check if identity login id type match oob type
+			if loginIDType == string(config.LoginIDKeyTypePhone) {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
-					Channel:              channel,
-					Target:               target,
-					OOBAuthenticatorType: authType,
+					Target:               loginID,
+					Channel:              authn.AuthenticatorOOBChannelSMS,
+					OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
+				})
+			}
+
+		case authn.AuthenticatorTypeOOBEmail:
+			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
+
+			// check if identity login id type match oob type
+			if loginIDType == string(config.LoginIDKeyTypeEmail) {
+				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+					Stage:                n.Stage,
+					IsDefault:            isDefault,
+					Target:               loginID,
+					Channel:              authn.AuthenticatorOOBChannelEmail,
+					OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
 				})
 			}
 		default:

@@ -28,7 +28,7 @@ var TemplateWebSendOOBOTPHTML = template.RegisterHTML(
 type SendOOBOTPViewModel struct {
 	OOBOTPTarget     string
 	OOBOTPCodeLength int
-	OOBOTPChannel    string
+	OOBOTPChannel    authn.AuthenticatorOOBChannel
 }
 
 func ConfigureSendOOBOTPRoute(route httproute.Route) httproute.Route {
@@ -45,7 +45,7 @@ type SendOOBOTPHandler struct {
 
 type TriggerOOBOTPEdge interface {
 	GetOOBOTPTarget(idx int) string
-	GetOOBOTPChannel(idx int) string
+	GetOOBOTPChannel(idx int) authn.AuthenticatorOOBChannel
 }
 
 func (h *SendOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -66,7 +66,7 @@ func (h *SendOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, gra
 
 	if edge, ok := edges[0].(TriggerOOBOTPEdge); ok {
 		viewModel.OOBOTPChannel = edge.GetOOBOTPChannel(DefaultAuthenticatorIndex)
-		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
+		switch viewModel.OOBOTPChannel {
 		case authn.AuthenticatorOOBChannelEmail:
 			viewModel.OOBOTPTarget = mail.MaskAddress(edge.GetOOBOTPTarget(DefaultAuthenticatorIndex))
 		case authn.AuthenticatorOOBChannelSMS:

@@ -15,14 +15,14 @@ const (
 )
 
 type Authenticator struct {
-	ID        string
-	Labels    map[string]interface{}
-	IsDefault bool
-	Kind      string
-	UserID    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Channel   authn.AuthenticatorOOBChannel
-	Phone     string
-	Email     string
+	ID                   string
+	Labels               map[string]interface{}
+	IsDefault            bool
+	Kind                 string
+	UserID               string
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	OOBAuthenticatorType authn.AuthenticatorType
+	Phone                string
+	Email                string
 }

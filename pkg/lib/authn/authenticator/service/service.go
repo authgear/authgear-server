@@ -40,7 +40,7 @@ type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
 	GetMany(ids []string) ([]*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
-	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, isDefault bool, kind string) *oob.Authenticator
+	New(userID string, oobAuthenticatorType authn.AuthenticatorType, target string, isDefault bool, kind string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
 	VerifyCode(authenticatorID string, code string) (*oob.Code, error)
@@ -199,16 +199,14 @@ func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.I
 		t := s.TOTP.New(spec.UserID, displayName, spec.IsDefault, string(spec.Kind))
 		return totpToAuthenticatorInfo(t), nil
 
-	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
-		channel := spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
-		var phone, email string
-		switch authn.AuthenticatorOOBChannel(channel) {
-		case authn.AuthenticatorOOBChannelSMS:
-			phone = spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
-		case authn.AuthenticatorOOBChannelEmail:
-			email = spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
-		}
-		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email, spec.IsDefault, string(spec.Kind))
+	case authn.AuthenticatorTypeOOBEmail:
+		email := spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorTypeOOBEmail, email, spec.IsDefault, string(spec.Kind))
+		return oobotpToAuthenticatorInfo(o), nil
+
+	case authn.AuthenticatorTypeOOBSMS:
+		phone := spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorTypeOOBSMS, phone, spec.IsDefault, string(spec.Kind))
 		return oobotpToAuthenticatorInfo(o), nil
 	}
 

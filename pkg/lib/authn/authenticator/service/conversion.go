@@ -68,29 +68,25 @@ func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 }
 
 func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
-	t, err := authn.GetOOBAuthenticatorType(o.Channel)
-	if err != nil {
-		panic("authenticator: fail to convert: " + err.Error())
-	}
 	info := &authenticator.Info{
-		Type:      t,
+		Type:      o.OOBAuthenticatorType,
 		ID:        o.ID,
 		Labels:    o.Labels,
 		UserID:    o.UserID,
 		CreatedAt: o.CreatedAt,
 		UpdatedAt: o.UpdatedAt,
 		Secret:    "",
-		Claims: map[string]interface{}{
-			authenticator.AuthenticatorClaimOOBOTPChannelType: string(o.Channel),
-		},
+		Claims:    map[string]interface{}{},
 		IsDefault: o.IsDefault,
 		Kind:      authenticator.Kind(o.Kind),
 	}
-	switch o.Channel {
-	case authn.AuthenticatorOOBChannelSMS:
+	switch o.OOBAuthenticatorType {
+	case authn.AuthenticatorTypeOOBSMS:
 		info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone] = o.Phone
-	case authn.AuthenticatorOOBChannelEmail:
+	case authn.AuthenticatorTypeOOBEmail:
 		info.Claims[authenticator.AuthenticatorClaimOOBOTPEmail] = o.Email
+	default:
+		panic("authenticator: incompatible authenticator type for oob: " + o.OOBAuthenticatorType)
 	}
 	return info
 }
@@ -99,15 +95,15 @@ func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 	phone, _ := a.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
 	email, _ := a.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 	return &oob.Authenticator{
-		ID:        a.ID,
-		Labels:    a.Labels,
-		UserID:    a.UserID,
-		CreatedAt: a.CreatedAt,
-		UpdatedAt: a.UpdatedAt,
-		Channel:   authn.AuthenticatorOOBChannel(a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)),
-		Phone:     phone,
-		Email:     email,
-		IsDefault: a.IsDefault,
-		Kind:      string(a.Kind),
+		ID:                   a.ID,
+		Labels:               a.Labels,
+		UserID:               a.UserID,
+		CreatedAt:            a.CreatedAt,
+		UpdatedAt:            a.UpdatedAt,
+		OOBAuthenticatorType: a.Type,
+		Phone:                phone,
+		Email:                email,
+		IsDefault:            a.IsDefault,
+		Kind:                 string(a.Kind),
 	}
 }

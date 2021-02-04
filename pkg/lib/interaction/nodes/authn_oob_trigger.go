@@ -43,23 +43,31 @@ func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPTarget(idx int) string {
 		return ""
 	}
 
-	channel := authn.AuthenticatorOOBChannel(info.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string))
 	var target string
-	switch channel {
-	case authn.AuthenticatorOOBChannelSMS:
+	switch info.Type {
+	case authn.AuthenticatorTypeOOBSMS:
 		target = info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
-	case authn.AuthenticatorOOBChannelEmail:
+	case authn.AuthenticatorTypeOOBEmail:
 		target = info.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+	default:
+		panic("interaction: incompatible authenticator type for oob: " + info.Type)
 	}
 	return target
 }
 
-func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPChannel(idx int) string {
+func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPChannel(idx int) authn.AuthenticatorOOBChannel {
 	info, err := e.getAuthenticator(idx)
 	if err != nil {
 		return ""
 	}
-	return info.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
+	switch info.Type {
+	case authn.AuthenticatorTypeOOBSMS:
+		return authn.AuthenticatorOOBChannelSMS
+	case authn.AuthenticatorTypeOOBEmail:
+		return authn.AuthenticatorOOBChannelEmail
+	default:
+		panic("interaction: incompatible authenticator type for oob: " + info.Type)
+	}
 }
 
 func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {

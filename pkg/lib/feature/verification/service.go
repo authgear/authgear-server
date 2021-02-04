@@ -168,20 +168,16 @@ func (s *Service) GetAuthenticatorVerificationStatus(a *authenticator.Info) (Aut
 		panic("verification: incompatible authenticator type: " + a.Type)
 	}
 
-	channel := a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
-
 	var claimName string
 	var claimValue string
 	aClaims := a.StandardClaims()
-	switch authn.AuthenticatorOOBChannel(channel) {
-	case authn.AuthenticatorOOBChannelEmail:
+	switch a.Type {
+	case authn.AuthenticatorTypeOOBEmail:
 		claimName = string(authn.ClaimEmail)
 		claimValue = aClaims[authn.ClaimEmail]
-	case authn.AuthenticatorOOBChannelSMS:
+	case authn.AuthenticatorTypeOOBSMS:
 		claimName = string(authn.ClaimPhoneNumber)
 		claimValue = aClaims[authn.ClaimPhoneNumber]
-	default:
-		panic("verification: unknown OOB channel: " + channel)
 	}
 
 	_, err := s.ClaimStore.Get(a.UserID, claimName, claimValue)

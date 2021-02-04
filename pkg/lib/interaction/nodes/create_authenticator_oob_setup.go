@@ -128,7 +128,6 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	}
 
 	spec.Type = oobAuthenticatorType
-	spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType] = string(channel)
 	switch channel {
 	case authn.AuthenticatorOOBChannelSMS:
 		spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone] = target

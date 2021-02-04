@@ -22,13 +22,13 @@
 
   {{ range $.Authenticators }}
     <form class="margin-h-14 padding-v-10 row-sep grid grid-icon-name-desc-action" method="post" novalidate>
-      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "email" }}
+      {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
         <i class="grid-area-icon align-self-start justify-self-center margin-2 fas fa-envelope" aria-hidden="true"></i>
         <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt">
           {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
         </p>
       {{ end }}
-      {{ if eq (index .Claims "https://authgear.com/claims/oob_otp/channel_type") "sms" }}
+      {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
         <i class="grid-area-icon align-self-start justify-self-center margin-2 fas fa-phone" aria-hidden="true"></i>
         <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt">
           {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}

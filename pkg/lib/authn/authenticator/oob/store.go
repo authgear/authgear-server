@@ -21,13 +21,13 @@ func (s *Store) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.Tenant().
 		Select(
 			"a.id",
+			"a.type",
 			"a.labels",
 			"a.user_id",
 			"a.created_at",
 			"a.updated_at",
 			"a.is_default",
 			"a.kind",
-			"ao.channel",
 			"ao.phone",
 			"ao.email",
 		).
@@ -41,13 +41,13 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 
 	err := scn.Scan(
 		&a.ID,
+		&a.OOBAuthenticatorType,
 		&labels,
 		&a.UserID,
 		&a.CreatedAt,
 		&a.UpdatedAt,
 		&a.IsDefault,
 		&a.Kind,
-		&a.Channel,
 		&a.Phone,
 		&a.Email,
 	)
@@ -143,9 +143,9 @@ func (s *Store) Create(a *Authenticator) error {
 		return err
 	}
 
-	authenticatorType, err := authn.GetOOBAuthenticatorType(a.Channel)
-	if err != nil {
-		return err
+	if a.OOBAuthenticatorType != authn.AuthenticatorTypeOOBEmail &&
+		a.OOBAuthenticatorType != authn.AuthenticatorTypeOOBSMS {
+		return errors.New("invalid oob authenticator type")
 	}
 
 	q := s.SQLBuilder.Tenant().
@@ -163,7 +163,7 @@ func (s *Store) Create(a *Authenticator) error {
 		Values(
 			a.ID,
 			labels,
-			authenticatorType,
+			a.OOBAuthenticatorType,
 			a.UserID,
 			a.CreatedAt,
 			a.UpdatedAt,
@@ -179,13 +179,11 @@ func (s *Store) Create(a *Authenticator) error {
 		Insert(s.SQLBuilder.FullTableName("authenticator_oob")).
 		Columns(
 			"id",
-			"channel",
 			"phone",
 			"email",
 		).
 		Values(
 			a.ID,
-			a.Channel,
 			a.Phone,
 			a.Email,
 		)

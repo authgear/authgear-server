@@ -53,16 +53,23 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, isDefault bool, kind string) *Authenticator {
+func (p *Provider) New(userID string, oobAuthenticatorType authn.AuthenticatorType, target string, isDefault bool, kind string) *Authenticator {
 	a := &Authenticator{
-		ID:        uuid.New(),
-		Labels:    make(map[string]interface{}),
-		UserID:    userID,
-		Channel:   channel,
-		Phone:     phone,
-		Email:     email,
-		IsDefault: isDefault,
-		Kind:      kind,
+		ID:                   uuid.New(),
+		Labels:               make(map[string]interface{}),
+		UserID:               userID,
+		OOBAuthenticatorType: oobAuthenticatorType,
+		IsDefault:            isDefault,
+		Kind:                 kind,
+	}
+
+	switch oobAuthenticatorType {
+	case authn.AuthenticatorTypeOOBEmail:
+		a.Email = target
+	case authn.AuthenticatorTypeOOBSMS:
+		a.Phone = target
+	default:
+		panic("oob: incompatible authenticator type:" + oobAuthenticatorType)
 	}
 	return a
 }
