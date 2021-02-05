@@ -67,22 +67,21 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
   }, [color]);
 
   return (
-    <>
-      <div className={styles.root}>
-        <div
-          className={styles.colorbox}
-          style={{
-            backgroundColor: color,
-          }}
-          onClick={onColorboxClick}
-        />
-        <TextField
-          disabled={disabled}
-          className={styles.textField}
-          value={colorStr != null ? colorStr : color}
-          onChange={onTextFieldChange}
-        />
-      </div>
+    <div className={styles.root}>
+      <div
+        ref={colorboxRef}
+        className={styles.colorbox}
+        style={{
+          backgroundColor: color,
+        }}
+        onClick={onColorboxClick}
+      />
+      <TextField
+        disabled={disabled}
+        className={styles.textField}
+        value={colorStr != null ? colorStr : color}
+        onChange={onTextFieldChange}
+      />
       {isColorPickerVisible && (
         <Callout
           gapSpace={10}
@@ -92,11 +91,11 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
           <ColorPicker
             color={iColor}
             onChange={onColorPickerChange}
-            alphaSliderHidden={true}
+            alphaType="none"
           />
         </Callout>
       )}
-    </>
+    </div>
   );
 };
 
