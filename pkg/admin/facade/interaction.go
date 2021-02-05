@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
 
 type InteractionService interface {
@@ -47,6 +48,8 @@ type removeIdentityInput struct {
 	identityInfo *identity.Info
 }
 
+var _ nodes.InputRemoveIdentity = &removeIdentityInput{}
+
 func (i *removeIdentityInput) GetIdentityType() authn.IdentityType {
 	return i.identityInfo.Type
 }
@@ -68,6 +71,8 @@ type removeAuthenticatorInput struct {
 	authenticatorInfo *authenticator.Info
 }
 
+var _ nodes.InputRemoveAuthenticator = &removeAuthenticatorInput{}
+
 func (i *removeAuthenticatorInput) GetAuthenticatorType() authn.AuthenticatorType {
 	return i.authenticatorInfo.Type
 }
@@ -81,6 +86,9 @@ type addPasswordInput struct {
 	password string
 }
 
+var _ nodes.InputCreateAuthenticatorPassword = &addPasswordInput{}
+var _ nodes.InputAuthenticationStage = &addPasswordInput{}
+
 func (i *addPasswordInput) GetPassword() string {
 	return i.password
 }
@@ -88,11 +96,17 @@ func (i *addPasswordInput) Input() interface{} {
 	return i.inner
 }
 
+func (i *addPasswordInput) GetAuthenticationStage() interaction.AuthenticationStage {
+	return interaction.AuthenticationStagePrimary
+}
+
 type resetPasswordInput struct {
 	adminAPIOp
 	userID   string
 	password string
 }
+
+var _ nodes.InputResetPassword = &resetPasswordInput{}
 
 func (i *resetPasswordInput) GetResetPasswordUserID() string {
 	return i.userID
@@ -107,9 +121,15 @@ type createUserInput struct {
 	password    string
 }
 
+var _ nodes.InputCreateAuthenticatorPassword = &createUserInput{}
+var _ nodes.InputAuthenticationStage = &createUserInput{}
+
 func (i *createUserInput) GetPassword() string {
 	return i.password
 }
 func (i *createUserInput) Input() interface{} {
 	return i.identityDef
+}
+func (i *createUserInput) GetAuthenticationStage() interaction.AuthenticationStage {
+	return interaction.AuthenticationStagePrimary
 }
