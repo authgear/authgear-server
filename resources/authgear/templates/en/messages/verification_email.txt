@@ -1,9 +1,7 @@
 Email Verification
 
-This email is sent to verify {{ .Email }} on {{ template "app.name" }}. To do so, please visit the link below.
+This email is sent to verify {{ .Email }} on {{ template "app.name" }}. Use this code in the verification page.
 
-{{ .URL }}
-
-Alternatively, use this code in the verification page: {{ .Code }}
+{{ .Code }}
 
 If you didn't sign in or sign up please ignore this email.
