@@ -1,7 +1,11 @@
 {{ define "__header.html" }}
 {{ if $.HomeURI }}
-<a class="not-a banner" style="background-image: url('{{ call $.StaticAssetURL "app-logo" }}')" href="{{ $.HomeURI }}"></a>
+<a class="not-a banner-frame" href="{{ $.HomeURI }}">
+    <img class="banner" src="{{ call $.StaticAssetURL "app-logo" }}">
+</a>
 {{ else }}
-<div class="banner" style="background-image: url('{{ call $.StaticAssetURL "app-logo" }}')"></div>
+<div class="banner-frame">
+    <img class="banner" src="{{ call $.StaticAssetURL "app-logo" }}">
+</div>
 {{ end }}
 {{ end }}
