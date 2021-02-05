@@ -3,18 +3,22 @@
 {{ template "__html_head.html" . }}
 <body class="page">
 	<div class="content">
-		{{ template "__header.html" . }}
 
 		{{ template "__nav_bar.html" true }}
 
 		{{ template "__error.html" . }}
 
 		{{ if $.PublicSignupDisabled }}
-		<div class="pane">
+		<div class="pane margin-6 flex flex-direction-column">
+		{{ template "__header.html" . }}
+		<div class="padding-6 flex flex-direction-column">
 			<p class="margin-12 primary-txt">{{ template "public-signup-disabled-notice" }}</p>
 		</div>
+		</div>
 		{{ else }}
-		<div class="pane flex flex-direction-column">
+		<div class="pane margin-6 flex flex-direction-column">
+		{{ template "__header.html" . }}
+		<div class="padding-6 flex flex-direction-column">
 
 			{{ if not $.PublicSignupDisabled }}
 			<div class="signin-signup-switch flex flex-direction-row">
@@ -162,6 +166,7 @@
 			</p>
 
 			<div class="footer-watermark margin-12 width-full"></div>
+		</div>
 		</div>
 		{{ end }}
 	</div>

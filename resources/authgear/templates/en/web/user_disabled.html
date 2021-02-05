@@ -3,12 +3,11 @@
 {{ template "__html_head.html" . }}
 <body class="page">
 <main class="content">
-
-{{ template "__header.html" . }}
-
 {{ template "__nav_bar.html" }}
 
-<div class="flex flex-direction-column pane">
+<div class="pane margin-6 flex flex-direction-column">
+{{ template "__header.html" . }}
+<div class="padding-6 flex flex-direction-column">
 
 {{ if .Error }}
     {{ if eq .Error.reason "DisabledUser" }}
@@ -25,6 +24,7 @@
     <p class="margin-10">{{ template "error-blocked-user" }}</p>
 {{ end }}
 
+</div>
 </div>
 
 </main>

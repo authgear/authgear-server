@@ -3,9 +3,6 @@
 {{ template "__html_head.html" . }}
 <body class="page">
 <div class="content">
-
-{{ template "__header.html" . }}
-
 {{ if eq $.Action "update_session_step" }}
 {{ template "__nav_bar.html" true }}
 {{ else if $.IdentityDisplayID }}
@@ -16,7 +13,9 @@
 
 {{ template "__error.html" . }}
 
-<div class="pane flex flex-direction-column padding-6">
+<div class="pane margin-6 flex flex-direction-column">
+{{ template "__header.html" . }}
+<div class="padding-6 flex flex-direction-column">
 
 {{ if $.IdentityDisplayID }}
 {{ if eq $.VerificationCodeChannel "sms" }}
@@ -71,6 +70,8 @@
 
 </form>
 {{ end }}
+
+</div>
 </div>
 
 </div>
