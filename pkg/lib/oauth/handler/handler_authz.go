@@ -128,6 +128,7 @@ func (h *AuthorizationHandler) doHandle(
 		// Not authenticated as IdP session => request authentication and retry
 		authnOptions.ClientID = r.ClientID()
 		authnOptions.UILocales = strings.Join(r.UILocales(), " ")
+		authnOptions.Page = r.Page()
 
 		hint, err := h.LoginHintParser.ResolveLoginHint(r.LoginHint())
 		if err != nil {
