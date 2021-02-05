@@ -151,7 +151,7 @@
   color: var(--color-background-unshaded);
   background-color: var(--color-primary-unshaded);
 }
-.primary-btn:hover {
+.primary-btn:hover, .primary-btn:focus {
   background-color: var(--color-primary-shaded-4);
 }
 .primary-btn:active {
@@ -165,7 +165,7 @@
   color: var(--color-primary-unshaded);
   background-color: transparent;
 }
-.secondary-btn:hover {
+.secondary-btn:hover, .secondary-btn:focus {
   color: var(--color-primary-shaded-4);
 }
 .secondary-btn:active {
@@ -180,7 +180,7 @@ a:not(.not-a), a:not(.not-a):visited, .link, .link:visited {
   color: var(--color-primary-unshaded);
   background-color: transparent;
 }
-a:not(.not-a):hover, .link:hover {
+a:not(.not-a):hover, .link:hover, a:not(.not-a):focus, .link:focus {
   color: var(--color-primary-shaded-4);
 }
 a:not(.not-a):active, .link:active {
@@ -195,7 +195,7 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-apple-unshaded);
 }
-.apple:hover {
+.apple:hover, .apple:focus {
   background-color: var(--color-apple-shaded-4);
 }
 .apple:active {
@@ -212,7 +212,7 @@ a:not(.not-a):active, .link:active {
   color: var(--color-black-unshaded);
   background-color: var(--color-google-unshaded);
 }
-.google:hover {
+.google:hover, .google:focus {
   background-color: var(--color-google-shaded-4);
 }
 .google:active {
@@ -226,7 +226,7 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-facebook-unshaded);
 }
-.facebook:hover {
+.facebook:hover, .facebook:focus {
   background-color: var(--color-facebook-shaded-4);
 }
 .facebook:active {
@@ -240,7 +240,7 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-linkedin-unshaded);
 }
-.linkedin:hover {
+.linkedin:hover, .linkedin:focus {
   background-color: var(--color-linkedin-shaded-4);
 }
 .linkedin:active {
@@ -254,7 +254,7 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-azureadv2-unshaded);
 }
-.azureadv2:hover {
+.azureadv2:hover, .azureadv2:focus {
   background-color: var(--color-azureadv2-shaded-4);
 }
 .azureadv2:active {
@@ -269,7 +269,7 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-wechat-unshaded);
 }
-.wechat:hover {
+.wechat:hover, .wechat:focus {
   background-color: var(--color-wechat-shaded-4);
 }
 .wechat:active {

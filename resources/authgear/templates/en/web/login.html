@@ -36,6 +36,8 @@
 						{{ end }}
 					</select>
 					<input
+						tabindex="0"
+						autofocus
 						class="input text-input primary-txt"
 						type="text"
 						inputmode="numeric"
@@ -50,6 +52,8 @@
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
 				<input
+					tabindex="0"
+					autofocus
 					class="margin-6 input text-input primary-txt"
 					type="{{ $.LoginPageTextLoginIDInputType }}"
 					autocomplete="username"
