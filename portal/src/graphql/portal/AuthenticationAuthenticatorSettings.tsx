@@ -159,12 +159,14 @@ const HIDDEN_REQUIRE_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
 ];
 
 const primaryAuthenticatorNameIds = {
-  oob_otp: "AuthenticatorType.primary.oob-otp",
+  oob_otp_email: "AuthenticatorType.primary.oob-otp-email",
+  oob_otp_sms: "AuthenticatorType.primary.oob-otp-sms",
   password: "AuthenticatorType.primary.password",
 };
 const secondaryAuthenticatorNameIds = {
   totp: "AuthenticatorType.secondary.totp",
-  oob_otp: "AuthenticatorType.secondary.oob-otp",
+  oob_otp_email: "AuthenticatorType.secondary.oob-otp-email",
+  oob_otp_sms: "AuthenticatorType.secondary.oob-otp-sms",
   password: "AuthenticatorType.secondary.password",
 };
 
