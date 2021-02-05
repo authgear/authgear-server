@@ -439,6 +439,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .banner {
   /* The banner is intended to be fixed height */
+  display: block;
   height: 90px;
   margin: 6px;
   background-position: center;

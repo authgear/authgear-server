@@ -8,7 +8,8 @@ var _ = Schema.Add("UIConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"country_calling_code": { "$ref": "#/$defs/UICountryCallingCodeConfig" },
-		"dark_theme_disabled": { "type": "boolean" }
+		"dark_theme_disabled": { "type": "boolean" },
+		"home_uri": { "type": "string", "format": "uri" }
 	}
 }
 `)
@@ -16,6 +17,7 @@ var _ = Schema.Add("UIConfig", `
 type UIConfig struct {
 	CountryCallingCode *UICountryCallingCodeConfig `json:"country_calling_code,omitempty"`
 	DarkThemeDisabled  bool                        `json:"dark_theme_disabled,omitempty"`
+	HomeURI            string                      `json:"home_uri,omitempty"`
 }
 
 var _ = Schema.Add("UICountryCallingCodeConfig", `
