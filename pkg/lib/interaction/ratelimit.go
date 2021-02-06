@@ -12,7 +12,7 @@ import (
 func RequestRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("request:%s", ip),
-		Size:        60,
+		Size:        200,
 		ResetPeriod: duration.PerMinute,
 	}
 }
