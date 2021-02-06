@@ -171,7 +171,7 @@ func (p *Provider) sendEmail(email string, code string) error {
 		return err
 	}
 
-	err = p.RateLimiter.TakeToken(mail.RateLimitBucket(email, messageForgotPassword.Name))
+	err = p.RateLimiter.TakeToken(mail.RateLimitBucket(email))
 	if err != nil {
 		return err
 	}
@@ -203,7 +203,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 		return err
 	}
 
-	err = p.RateLimiter.TakeToken(sms.RateLimitBucket(phone, messageForgotPassword.Name))
+	err = p.RateLimiter.TakeToken(sms.RateLimitBucket(phone))
 	if err != nil {
 		return err
 	}
