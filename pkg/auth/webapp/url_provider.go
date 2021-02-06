@@ -18,7 +18,9 @@ import (
 )
 
 type EndpointsProvider interface {
-	AuthenticateEndpointURL() *url.URL
+	BaseURL() *url.URL
+	LoginEndpointURL() *url.URL
+	SignupEndpointURL() *url.URL
 	LogoutEndpointURL() *url.URL
 	SettingsEndpointURL() *url.URL
 	ResetPasswordEndpointURL() *url.URL
@@ -77,6 +79,7 @@ type AuthenticateURLOptions struct {
 	RedirectURI      string
 	UILocales        string
 	Prompt           string
+	Page             string
 	AuthenticateHint interface{}
 }
 type PageService interface {
@@ -109,7 +112,14 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 	if options.AuthenticateHint != nil {
 		result, err = p.handleHint(options, session)
 	} else {
-		result, err = p.Pages.CreateSession(session, p.Endpoints.AuthenticateEndpointURL().String())
+		endpoint := p.Endpoints.BaseURL().String()
+		switch options.Page {
+		case "login":
+			endpoint = p.Endpoints.LoginEndpointURL().String()
+		case "signup":
+			endpoint = p.Endpoints.SignupEndpointURL().String()
+		}
+		result, err = p.Pages.CreateSession(session, endpoint)
 	}
 	if result != nil {
 		result.UILocales = options.UILocales
