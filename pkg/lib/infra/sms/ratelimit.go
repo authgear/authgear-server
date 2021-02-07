@@ -13,10 +13,10 @@ type RateLimiter interface {
 
 // TODO(rate-limit): allow configuration of bucket size & reset period
 
-func RateLimitBucket(phone string, messageType string) ratelimit.Bucket {
+func RateLimitBucket(phone string) ratelimit.Bucket {
 	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("sms-message:%s:%s", messageType, phone),
-		Size:        1,
+		Key:         fmt.Sprintf("sms-message:%s", phone),
+		Size:        10,
 		ResetPeriod: duration.PerMinute,
 	}
 }

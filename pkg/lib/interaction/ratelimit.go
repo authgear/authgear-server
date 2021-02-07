@@ -12,7 +12,7 @@ import (
 func RequestRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("request:%s", ip),
-		Size:        60,
+		Size:        200,
 		ResetPeriod: duration.PerMinute,
 	}
 }
@@ -25,9 +25,9 @@ func SignupRateLimitBucket(ip string) ratelimit.Bucket {
 	}
 }
 
-func AuthIPRateLimitBucket(ip string) ratelimit.Bucket {
+func AccountEnumerationRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("auth-ip:%s", ip),
+		Key:         fmt.Sprintf("account-enumeration:%s", ip),
 		Size:        10,
 		ResetPeriod: duration.PerMinute,
 	}
