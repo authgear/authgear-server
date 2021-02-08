@@ -20082,6 +20082,19 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	return uiLocalesMiddleware
 }
 
+func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	clientIDMiddleware := &webapp.ClientIDMiddleware{
+		CookieFactory: cookieFactory,
+	}
+	return clientIDMiddleware
+}
+
 func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	request := p.Request
 	appProvider := p.AppProvider
