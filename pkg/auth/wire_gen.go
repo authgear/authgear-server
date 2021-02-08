@@ -14080,6 +14080,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Authentication:    authenticationConfig,
+		OAuth:             oAuthConfig,
 		UIConfig:          uiConfig,
 		Identities:        serviceService,
 		Verification:      verificationService,
@@ -18718,6 +18719,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	config := appProvider.Config
 	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -19030,7 +19032,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
-	oAuthConfig := appConfig.OAuth
 	forgotPasswordConfig := appConfig.ForgotPassword
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	errorCookie := &webapp.ErrorCookie{
@@ -19055,6 +19056,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	logoutHandler := &webapp2.LogoutHandler{
 		Database:       handle,
 		TrustProxy:     trustProxy,
+		OAuth:          oAuthConfig,
 		UIConfig:       uiConfig,
 		SessionManager: manager2,
 		BaseViewModel:  baseViewModeler,

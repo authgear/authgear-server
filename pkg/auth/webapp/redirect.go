@@ -22,10 +22,19 @@ func DefaultPostLoginRedirectURI(uiConfig *config.UIConfig) string {
 	return "/settings"
 }
 
-func DefaultPostLogoutRedirectURI(uiConfig *config.UIConfig) string {
+func ResolvePostLogoutRedirectURI(client *config.OAuthClientConfig, givenPostLogoutRedirectURI string, uiConfig *config.UIConfig) string {
+	if client != nil && givenPostLogoutRedirectURI != "" {
+		for _, v := range client.PostLogoutRedirectURIs {
+			if v == givenPostLogoutRedirectURI {
+				return givenPostLogoutRedirectURI
+			}
+		}
+	}
+
 	if uiConfig != nil && uiConfig.DefaultPostLogoutRedirectURI != "" {
 		return uiConfig.DefaultPostLogoutRedirectURI
 	}
+
 	return "/login"
 }
 

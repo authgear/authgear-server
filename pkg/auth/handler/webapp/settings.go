@@ -53,6 +53,7 @@ type SettingsHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Authentication    *config.AuthenticationConfig
+	OAuth             *config.OAuthConfig
 	UIConfig          *config.UIConfig
 	Identities        SettingsIdentityService
 	Verification      SettingsVerificationService
@@ -189,7 +190,10 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), webapp.DefaultPostLogoutRedirectURI(h.UIConfig))
+		clientID := webapp.GetClientID(r.Context())
+		client, _ := h.OAuth.GetClient(clientID)
+		postLogoutRedirectURI := webapp.ResolvePostLogoutRedirectURI(client, r.FormValue("post_logout_redirect_uri"), h.UIConfig)
+		redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), postLogoutRedirectURI)
 		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 	})
