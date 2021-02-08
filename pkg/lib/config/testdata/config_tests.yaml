@@ -292,7 +292,8 @@ config:
 name: no-usable-primary-authenticator-for-username
 error: |-
   invalid configuration:
-  /authentication/identities/0: no usable primary authenticator is enabled
+  /authentication/identities/0: noPrimaryAuthenticator
+    map[login_id_type:username]
 config:
   id: test
   http:
@@ -311,7 +312,8 @@ config:
 name: no-usable-primary-authenticator-for-email
 error: |-
   invalid configuration:
-  /authentication/identities/0: no usable primary authenticator is enabled
+  /authentication/identities/0: noPrimaryAuthenticator
+    map[login_id_type:email]
 config:
   id: test
   http:
@@ -330,7 +332,8 @@ config:
 name: no-usable-primary-authenticator-for-phone
 error: |-
   invalid configuration:
-  /authentication/identities/0: no usable primary authenticator is enabled
+  /authentication/identities/0: noPrimaryAuthenticator
+    map[login_id_type:phone]
 config:
   id: test
   http:

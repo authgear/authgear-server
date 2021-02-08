@@ -19,7 +19,8 @@ export type ValidationFailedErrorInfoCause =
   | MinimumErrorCause
   | MaximumErrorCause
   | MinLengthErrorCause
-  | MaxLengthErrorCause;
+  | MaxLengthErrorCause
+  | NoPrimaryAuthenticatorErrorCause;
 
 export interface LocalErrorCause {
   location: string;
@@ -97,6 +98,13 @@ export interface MaxLengthErrorCause {
   details: {
     actual: number;
     expected: number;
+  };
+}
+export interface NoPrimaryAuthenticatorErrorCause {
+  location: string;
+  kind: "noPrimaryAuthenticator";
+  details: {
+    login_id_type: string;
   };
 }
 

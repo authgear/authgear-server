@@ -41,7 +41,6 @@ import FormContainer from "../../FormContainer";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
-import { ErrorParseRule } from "../../error/parse";
 
 interface AuthenticatorTypeFormState<
   T = PrimaryAuthenticatorType | SecondaryAuthenticatorType
@@ -479,19 +478,6 @@ const AuthenticationAuthenticatorSettingsScreen: React.FC = function Authenticat
   const { appID } = useParams();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-  const errorRules: ErrorParseRule[] = useMemo(
-    () => [
-      {
-        reason: "ValidationFailed",
-        kind: "general",
-        location: "/authentication/identities/\\d+",
-        errorMessageID:
-          "AuthenticationAuthenticatorSettingsScreen.error.no-primary-authenticator",
-      },
-    ],
-    []
-  );
-
   if (form.isLoading) {
     return <ShowLoading />;
   }
@@ -501,7 +487,7 @@ const AuthenticationAuthenticatorSettingsScreen: React.FC = function Authenticat
   }
 
   return (
-    <FormContainer form={form} errorRules={errorRules}>
+    <FormContainer form={form}>
       <AuthenticationAuthenticatorSettingsContent form={form} />
     </FormContainer>
   );

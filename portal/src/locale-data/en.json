@@ -59,6 +59,7 @@
   "errors.validation.maximum": "Expect number smaller than or equal to {maximum}",
   "errors.validation.minLength": "Expect string with length greater than or equal to {expected, plural, one{1 character} other{# characters}}",
   "errors.validation.maxLength": "Expect string with length less than or equal to {expected, plural, one{1 character} other{# characters}}",
+  "errors.validation.noPrimaryAuthenticator": "Can't save the config. At least one authenticator for type {login_id_type, select, email {email} username {username} phone {phone} other {}} is needed.",
   "errors.password-mismatch": "New password does not match with confirm password, please double check",
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",
   "errors.password-policy.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
@@ -244,7 +245,6 @@
   "AuthenticationAuthenticatorSettingsScreen.policy.require-mfa.if-requested": "Required if user enabled Multi-factor Authenticator",
   "AuthenticationAuthenticatorSettingsScreen.policy.recovery-code-number": "Number of Recovery Code",
   "AuthenticationAuthenticatorSettingsScreen.policy.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
-  "AuthenticationAuthenticatorSettingsScreen.error.no-primary-authenticator": "Maybe you have already enabled Username as Login ID but now attempted to only allow Passwordless? Username Login ID must be paired with a Password to perform authentication.",
 
   "VerificationConfigurationScreen.title": "User Verification",
   "VerificationConfigurationScreen.title.nav": "User Verification",
