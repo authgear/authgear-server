@@ -63,7 +63,10 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			}
 
 			return []interaction.Edge{
-				&nodes.EdgeDoUseIdentity{Identity: node.IdentityInfo},
+				&nodes.EdgeEnsureVerificationBegin{
+					Identity:        node.IdentityInfo,
+					RequestedByUser: false,
+				},
 			}, nil
 		case IntentAuthenticateKindSignup:
 			if node.IdentityInfo != nil {
@@ -87,7 +90,10 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			}
 
 			return []interaction.Edge{
-				&nodes.EdgeDoUseIdentity{Identity: node.IdentityInfo},
+				&nodes.EdgeEnsureVerificationBegin{
+					Identity:        node.IdentityInfo,
+					RequestedByUser: false,
+				},
 			}, nil
 		default:
 			panic("interaction: unknown authentication intent kind: " + i.Kind)
