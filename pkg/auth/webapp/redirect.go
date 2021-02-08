@@ -29,7 +29,10 @@ func DefaultPostLogoutRedirectURI(uiConfig *config.UIConfig) string {
 	return "/login"
 }
 
-func DefaultClientURI(uiConfig *config.UIConfig) string {
+func ResolveClientURI(client *config.OAuthClientConfig, uiConfig *config.UIConfig) string {
+	if client != nil && client.ClientURI != "" {
+		return client.ClientURI
+	}
 	if uiConfig != nil && uiConfig.DefaultClientURI != "" {
 		return uiConfig.DefaultClientURI
 	}

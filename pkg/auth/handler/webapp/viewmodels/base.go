@@ -27,13 +27,14 @@ type BaseViewModel struct {
 	RequestURL string
 	// RequestURI is the request URI as appeared in the first line of the HTTP textual format.
 	// That is, it is the path plus the optional query.
-	RequestURI            string
-	CSRFField             htmltemplate.HTML
-	Translations          TranslationService
-	StaticAssetURL        func(id string) (url string, err error)
-	DarkThemeEnabled      bool
-	CountryCallingCodes   []string
-	DefaultClientURI      string
+	RequestURI          string
+	CSRFField           htmltemplate.HTML
+	Translations        TranslationService
+	StaticAssetURL      func(id string) (url string, err error)
+	DarkThemeEnabled    bool
+	CountryCallingCodes []string
+	// ClientURI is the home page of the client.
+	ClientURI             string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
 	MakeCurrentStepURL    func(pairs ...string) string
@@ -74,6 +75,7 @@ type ErrorCookie interface {
 }
 
 type BaseViewModeler struct {
+	OAuth          *config.OAuthConfig
 	AuthUI         *config.UIConfig
 	StaticAssets   StaticAssetResolver
 	ForgotPassword *config.ForgotPasswordConfig
@@ -89,6 +91,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		Path:     r.URL.Path,
 		RawQuery: r.URL.RawQuery,
 	}
+	clientID := webapp.GetClientID(r.Context())
+	client, _ := m.OAuth.GetClient(clientID)
+	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
 	model := BaseViewModel{
 		RequestURL:          r.URL.String(),
 		RequestURI:          requestURI.String(),
@@ -97,7 +102,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		StaticAssetURL:      m.StaticAssets.StaticAssetURL,
 		DarkThemeEnabled:    !m.AuthUI.DarkThemeDisabled,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
-		DefaultClientURI:    m.AuthUI.DefaultClientURI,
+		ClientURI:           clientURI,
 		SliceContains:       sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL
