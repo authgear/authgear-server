@@ -262,11 +262,19 @@
 </div>
 
 
-<form class="flex flex-direction-column margin-v-12" method="post">
+<form class="flex flex-direction-row-reverse margin-v-6" method="post">
 {{ $.CSRFField }}
-<button class="btn secondary-btn align-self-center justify-self-end" type="submit" name="x_action" value="logout" data-form-xhr="false">
+<button class="btn secondary-btn align-self-center justify-self-end margin-6" type="submit" name="x_action" value="logout" data-form-xhr="false">
+  <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
   {{ template "logout-button-label" }}
 </button>
+{{ if $.ClientURI }}
+<div class="vertical-separator margin-h-8 margin-v-6"></div>
+<a class="link margin-6" href="{{ $.ClientURI }}">
+  <i class="fas fa-home"></i>
+  {{ template "back-to-app-label" }}
+</a>
+{{ end }}
 </form>
 
 </main>
