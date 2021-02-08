@@ -15,9 +15,23 @@ func GetRedirectURI(r *http.Request, trustProxy bool, defaultURI string) string 
 	return redirectURI
 }
 
-func DefaultRedirectURI(uiConfig *config.UIConfig) string {
-	if uiConfig != nil && uiConfig.HomeURI != "" {
-		return uiConfig.HomeURI
+func DefaultPostLoginRedirectURI(uiConfig *config.UIConfig) string {
+	if uiConfig != nil && uiConfig.DefaultRedirectURI != "" {
+		return uiConfig.DefaultRedirectURI
 	}
 	return "/settings"
+}
+
+func DefaultPostLogoutRedirectURI(uiConfig *config.UIConfig) string {
+	if uiConfig != nil && uiConfig.DefaultPostLogoutRedirectURI != "" {
+		return uiConfig.DefaultPostLogoutRedirectURI
+	}
+	return "/login"
+}
+
+func DefaultClientURI(uiConfig *config.UIConfig) string {
+	if uiConfig != nil && uiConfig.DefaultClientURI != "" {
+		return uiConfig.DefaultClientURI
+	}
+	return ""
 }

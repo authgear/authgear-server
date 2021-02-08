@@ -28,12 +28,12 @@ type BaseViewModel struct {
 	// RequestURI is the request URI as appeared in the first line of the HTTP textual format.
 	// That is, it is the path plus the optional query.
 	RequestURI            string
-	HomeURI               string
 	CSRFField             htmltemplate.HTML
 	Translations          TranslationService
 	StaticAssetURL        func(id string) (url string, err error)
 	DarkThemeEnabled      bool
 	CountryCallingCodes   []string
+	DefaultClientURI      string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
 	MakeCurrentStepURL    func(pairs ...string) string
@@ -92,12 +92,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	model := BaseViewModel{
 		RequestURL:          r.URL.String(),
 		RequestURI:          requestURI.String(),
-		HomeURI:             m.AuthUI.HomeURI,
 		CSRFField:           csrf.TemplateField(r),
 		Translations:        m.Translations,
 		StaticAssetURL:      m.StaticAssets.StaticAssetURL,
 		DarkThemeEnabled:    !m.AuthUI.DarkThemeDisabled,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
+		DefaultClientURI:    m.AuthUI.DefaultClientURI,
 		SliceContains:       sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL
