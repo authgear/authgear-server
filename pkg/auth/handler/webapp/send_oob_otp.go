@@ -26,9 +26,9 @@ var TemplateWebSendOOBOTPHTML = template.RegisterHTML(
 )
 
 type SendOOBOTPViewModel struct {
-	OOBOTPTarget     string
-	OOBOTPCodeLength int
-	OOBOTPChannel    authn.AuthenticatorOOBChannel
+	OOBOTPTarget            string
+	OOBOTPCodeLength        int
+	OOBOTPAuthenticatorType authn.AuthenticatorType
 }
 
 func ConfigureSendOOBOTPRoute(route httproute.Route) httproute.Route {
@@ -45,7 +45,7 @@ type SendOOBOTPHandler struct {
 
 type TriggerOOBOTPEdge interface {
 	GetOOBOTPTarget(idx int) string
-	GetOOBOTPChannel(idx int) authn.AuthenticatorOOBChannel
+	AuthenticatorType() authn.AuthenticatorType
 }
 
 func (h *SendOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -64,20 +64,23 @@ func (h *SendOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, gra
 		return nil, err
 	}
 
+	var sessionStep webapp.SessionStepKind
 	if edge, ok := edges[0].(TriggerOOBOTPEdge); ok {
-		viewModel.OOBOTPChannel = edge.GetOOBOTPChannel(DefaultAuthenticatorIndex)
-		switch viewModel.OOBOTPChannel {
-		case authn.AuthenticatorOOBChannelEmail:
+		viewModel.OOBOTPAuthenticatorType = edge.AuthenticatorType()
+		switch viewModel.OOBOTPAuthenticatorType {
+		case authn.AuthenticatorTypeOOBEmail:
 			viewModel.OOBOTPTarget = mail.MaskAddress(edge.GetOOBOTPTarget(DefaultAuthenticatorIndex))
-		case authn.AuthenticatorOOBChannelSMS:
+			sessionStep = webapp.SessionStepEnterOOBOTPAuthnEmail
+		case authn.AuthenticatorTypeOOBSMS:
 			viewModel.OOBOTPTarget = phone.Mask(edge.GetOOBOTPTarget(DefaultAuthenticatorIndex))
+			sessionStep = webapp.SessionStepEnterOOBOTPAuthnSMS
 		}
 	} else {
 		panic(fmt.Errorf("send_oob_otp: unexpected edge: %T", edges[0]))
 	}
 
 	alternatives := viewmodels.AlternativeStepsViewModel{}
-	err = alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthn)
+	err = alternatives.AddAuthenticationAlternatives(graph, sessionStep)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +116,10 @@ func (h *SendOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("send", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			input = &InputTriggerOOB{AuthenticatorIndex: DefaultAuthenticatorIndex}
+			input = &InputTriggerOOB{
+				AuthenticatorIndex: DefaultAuthenticatorIndex,
+				AuthenticatorType:  r.Form.Get("x_authenticator_type"),
+			}
 			return
 		})
 		if err != nil {

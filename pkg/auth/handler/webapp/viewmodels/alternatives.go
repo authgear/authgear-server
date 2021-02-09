@@ -74,7 +74,19 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 				})
 			}
 		case *nodes.EdgeAuthenticationOOBTrigger:
-			if currentStepKind != webapp.SessionStepEnterOOBOTPAuthn {
+			show := false
+			oobAuthenticatorType := edge.OOBAuthenticatorType
+			if oobAuthenticatorType == authn.AuthenticatorTypeOOBSMS &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS {
+				show = true
+			}
+
+			if oobAuthenticatorType == authn.AuthenticatorTypeOOBEmail &&
+				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnEmail {
+				show = true
+			}
+
+			if show {
 				currentTarget := ""
 				var node OOBOTPTriggerNode
 				if graph.FindLastNode(&node) {
@@ -82,17 +94,19 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 				}
 
 				for i := range edge.Authenticators {
-					channel := edge.GetOOBOTPChannel(i)
 					target := edge.GetOOBOTPTarget(i)
 
 					var maskedTarget string
-					switch channel {
-					case authn.AuthenticatorOOBChannelSMS:
+					var sessionStep webapp.SessionStepKind
+					switch oobAuthenticatorType {
+					case authn.AuthenticatorTypeOOBSMS:
 						maskedTarget = corephone.Mask(target)
-					case authn.AuthenticatorOOBChannelEmail:
+						sessionStep = webapp.SessionStepEnterOOBOTPAuthnSMS
+					case authn.AuthenticatorTypeOOBEmail:
 						maskedTarget = mail.MaskAddress(target)
+						sessionStep = webapp.SessionStepEnterOOBOTPAuthnEmail
 					default:
-						panic("authentication_begin: unexpected channel: " + channel)
+						panic("authentication_begin: unexpected oob authenticator type: " + oobAuthenticatorType)
 					}
 
 					if currentTarget == target {
@@ -100,8 +114,9 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 					}
 
 					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
-						Step: webapp.SessionStepEnterOOBOTPAuthn,
+						Step: sessionStep,
 						Input: map[string]string{
+							"x_authenticator_type":  string(oobAuthenticatorType),
 							"x_authenticator_index": strconv.Itoa(i),
 						},
 						Data: map[string]string{
@@ -142,13 +157,15 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 			oobType := edge.AuthenticatorType()
 			switch oobType {
 			case authn.AuthenticatorTypeOOBEmail:
-				if currentStepKind != webapp.SessionStepSetupOOBOTPEmail {
+				if currentStepKind != webapp.SessionStepSetupOOBOTPEmail &&
+					currentStepKind != webapp.SessionStepEnterOOBOTPSetupEmail {
 					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 						Step: webapp.SessionStepSetupOOBOTPEmail,
 					})
 				}
 			case authn.AuthenticatorTypeOOBSMS:
-				if currentStepKind != webapp.SessionStepSetupOOBOTPSMS {
+				if currentStepKind != webapp.SessionStepSetupOOBOTPSMS &&
+					currentStepKind != webapp.SessionStepEnterOOBOTPSetupSMS {
 					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 						Step: webapp.SessionStepSetupOOBOTPSMS,
 					})

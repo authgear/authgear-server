@@ -195,10 +195,18 @@ func (s *Service2) doPost(
 					graph.InstanceID,
 				))
 			case *nodes.EdgeAuthenticationOOBTrigger:
-				session.Steps = append(session.Steps, NewSessionStep(
-					SessionStepSendOOBOTPAuthn,
-					graph.InstanceID,
-				))
+				switch defaultEdge.OOBAuthenticatorType {
+				case authn.AuthenticatorTypeOOBEmail:
+					session.Steps = append(session.Steps, NewSessionStep(
+						SessionStepSendOOBOTPAuthnEmail,
+						graph.InstanceID,
+					))
+				case authn.AuthenticatorTypeOOBSMS:
+					session.Steps = append(session.Steps, NewSessionStep(
+						SessionStepSendOOBOTPAuthnSMS,
+						graph.InstanceID,
+					))
+				}
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))
 			}
@@ -397,7 +405,7 @@ func (s *Service2) afterPost(
 
 // nolint:gocyclo
 func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
-	switch graph.CurrentNode().(type) {
+	switch currentNode := graph.CurrentNode().(type) {
 	case *nodes.NodeUseIdentityOAuthProvider:
 		return SessionStepOAuthRedirect
 	case *nodes.NodeCreateIdentityBegin:
@@ -417,9 +425,23 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	case *nodes.NodeCreateAuthenticatorBegin:
 		return SessionStepCreateAuthenticator
 	case *nodes.NodeAuthenticationOOBTrigger:
-		return SessionStepEnterOOBOTPAuthn
+		switch currentNode.Authenticator.Type {
+		case authn.AuthenticatorTypeOOBEmail:
+			return SessionStepEnterOOBOTPAuthnEmail
+		case authn.AuthenticatorTypeOOBSMS:
+			return SessionStepEnterOOBOTPAuthnSMS
+		default:
+			panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", currentNode.Authenticator.Type))
+		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
-		return SessionStepEnterOOBOTPSetup
+		switch currentNode.Authenticator.Type {
+		case authn.AuthenticatorTypeOOBEmail:
+			return SessionStepEnterOOBOTPSetupEmail
+		case authn.AuthenticatorTypeOOBSMS:
+			return SessionStepEnterOOBOTPSetupSMS
+		default:
+			panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", currentNode.Authenticator.Type))
+		}
 	case *nodes.NodeCreateAuthenticatorTOTPSetup:
 		return SessionStepSetupTOTP
 	case *nodes.NodeGenerateRecoveryCodeBegin:

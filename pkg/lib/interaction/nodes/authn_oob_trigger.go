@@ -11,6 +11,7 @@ func init() {
 }
 
 type InputAuthenticationOOBTrigger interface {
+	GetOOBAuthenticatorType() string
 	GetOOBAuthenticatorIndex() int
 }
 
@@ -73,6 +74,14 @@ func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPChannel(idx int) authn.Authentic
 func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationOOBTrigger
 	if !interaction.Input(rawInput, &input) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
+	// It is possible that to have multiple EdgeAuthenticationOOBTrigger at the
+	// same time (e.g. email or sms), check the OOBAuthenticatorType in input
+	// to determine which authenticator we want to trigger
+	oobAuthenticatorType := input.GetOOBAuthenticatorType()
+	if authn.AuthenticatorType(oobAuthenticatorType) != e.OOBAuthenticatorType {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

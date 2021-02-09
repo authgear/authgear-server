@@ -228,7 +228,8 @@
   "enter-totp-instead": "Enter 6-digit authenticator code instead",
   "enter-password-instead": "Enter password instead",
   "enter-recovery-code-instead": "Enter recovery code instead",
-  "enter-oob-otp-instead": "Send code to {target} instead",
+  "enter-oob-otp-email-instead": "Send code to {target} instead via Email",
+  "enter-oob-otp-sms-instead": "Send code to {target} instead via SMS",
 
   "setup-oob-otp-title--sms": "Setup SMS 2-step verification",
   "setup-oob-otp-title--email": "Setup email 2-step verification",

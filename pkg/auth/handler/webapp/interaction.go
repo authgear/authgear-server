@@ -78,11 +78,15 @@ var _ nodes.InputRemoveIdentity = &InputRemoveIdentity{}
 func (i *InputRemoveIdentity) GetIdentityType() authn.IdentityType { return i.Type }
 func (i *InputRemoveIdentity) GetIdentityID() string               { return i.ID }
 
-type InputTriggerOOB struct{ AuthenticatorIndex int }
+type InputTriggerOOB struct {
+	AuthenticatorType  string
+	AuthenticatorIndex int
+}
 
 var _ nodes.InputAuthenticationOOBTrigger = &InputTriggerOOB{}
 
-func (i *InputTriggerOOB) GetOOBAuthenticatorIndex() int { return i.AuthenticatorIndex }
+func (i *InputTriggerOOB) GetOOBAuthenticatorType() string { return i.AuthenticatorType }
+func (i *InputTriggerOOB) GetOOBAuthenticatorIndex() int   { return i.AuthenticatorIndex }
 
 type InputSelectTOTP struct{}
 

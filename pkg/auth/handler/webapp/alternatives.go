@@ -38,9 +38,13 @@ func handleAlternativeSteps(ctrl *Controller) {
 				return &InputSelectTOTP{}, nil
 			}
 
-		case webapp.SessionStepEnterOOBOTPAuthn, webapp.SessionStepEnterOOBOTPSetup:
+		case webapp.SessionStepEnterOOBOTPAuthnEmail,
+			webapp.SessionStepEnterOOBOTPAuthnSMS,
+			webapp.SessionStepEnterOOBOTPSetupEmail,
+			webapp.SessionStepEnterOOBOTPSetupSMS:
 			// Trigger OOB-OTP code sending.
-			if stepKind == webapp.SessionStepEnterOOBOTPAuthn {
+			if stepKind == webapp.SessionStepEnterOOBOTPAuthnEmail ||
+				stepKind == webapp.SessionStepEnterOOBOTPAuthnSMS {
 				choiceStep = webapp.SessionStepAuthenticate
 			} else {
 				choiceStep = webapp.SessionStepCreateAuthenticator
@@ -50,7 +54,10 @@ func handleAlternativeSteps(ctrl *Controller) {
 				index = 0
 			}
 			inputFn = func() (interface{}, error) {
-				return &InputTriggerOOB{AuthenticatorIndex: index}, nil
+				return &InputTriggerOOB{
+					AuthenticatorType:  ctrl.request.Form.Get("x_authenticator_type"),
+					AuthenticatorIndex: index,
+				}, nil
 			}
 		}
 

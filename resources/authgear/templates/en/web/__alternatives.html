@@ -25,8 +25,11 @@
                 {{ if eq .Step "enter-password" }}
                     {{ template "enter-password-instead" .Data }}
                 {{ end }}
-                {{ if eq .Step "enter-oob-otp-authn" }}
-                    {{ template "enter-oob-otp-instead" .Data }}
+                {{ if eq .Step "enter-oob-otp-authn-email" }}
+                    {{ template "enter-oob-otp-email-instead" .Data }}
+                {{ end }}
+                {{ if eq .Step "enter-oob-otp-authn-sms" }}
+                    {{ template "enter-oob-otp-sms-instead" .Data }}
                 {{ end }}
                 {{ if eq .Step "enter-recovery-code" }}
                     {{ template "enter-recovery-code-instead" .Data }}
