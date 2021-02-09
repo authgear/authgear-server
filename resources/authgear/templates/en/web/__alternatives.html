@@ -10,8 +10,11 @@
                 {{ if eq .Step "setup-totp" }}
                     {{ template "setup-totp-instead" .Data }}
                 {{ end }}
-                {{ if eq .Step "setup-oob-otp" }}
-                    {{ template "setup-oob-otp-instead" .Data }}
+                {{ if eq .Step "setup-oob-otp-email" }}
+                    {{ template "setup-oob-otp-email-instead" .Data }}
+                {{ end }}
+                {{ if eq .Step "setup-oob-otp-sms" }}
+                    {{ template "setup-oob-otp-sms-instead" .Data }}
                 {{ end }}
                 {{ if eq .Step "create-password" }}
                     {{ template "setup-password-instead" .Data }}

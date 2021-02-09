@@ -26,8 +26,6 @@ type EdgeCreateAuthenticatorOOBSetup struct {
 	// Either have Channel and Target
 	Channel authn.AuthenticatorOOBChannel
 	Target  string
-	// Or have AllowedChannels
-	AllowedChannels []authn.AuthenticatorOOBChannel
 }
 
 func (e *EdgeCreateAuthenticatorOOBSetup) AuthenticatorType() authn.AuthenticatorType {
@@ -161,24 +159,22 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	}
 
 	return &NodeCreateAuthenticatorOOBSetup{
-		Stage:           e.Stage,
-		AllowedChannels: e.AllowedChannels,
-		Authenticator:   info,
-		Target:          target,
-		Channel:         result.Channel,
-		CodeLength:      result.CodeLength,
-		SendCooldown:    result.SendCooldown,
+		Stage:         e.Stage,
+		Authenticator: info,
+		Target:        target,
+		Channel:       result.Channel,
+		CodeLength:    result.CodeLength,
+		SendCooldown:  result.SendCooldown,
 	}, nil
 }
 
 type NodeCreateAuthenticatorOOBSetup struct {
-	Stage           interaction.AuthenticationStage `json:"stage"`
-	AllowedChannels []authn.AuthenticatorOOBChannel `json:"allowed_channels"`
-	Authenticator   *authenticator.Info             `json:"authenticator"`
-	Target          string                          `json:"target"`
-	Channel         string                          `json:"channel"`
-	CodeLength      int                             `json:"code_length"`
-	SendCooldown    int                             `json:"send_cooldown"`
+	Stage         interaction.AuthenticationStage `json:"stage"`
+	Authenticator *authenticator.Info             `json:"authenticator"`
+	Target        string                          `json:"target"`
+	Channel       string                          `json:"channel"`
+	CodeLength    int                             `json:"code_length"`
+	SendCooldown  int                             `json:"send_cooldown"`
 }
 
 // GetOOBOTPTarget implements OOBOTPNode.

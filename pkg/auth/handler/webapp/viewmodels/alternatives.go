@@ -131,7 +131,7 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 	}
 
 	for _, edge := range edges {
-		switch edge.(type) {
+		switch edge := edge.(type) {
 		case *nodes.EdgeCreateAuthenticatorPassword:
 			if currentStepKind != webapp.SessionStepCreatePassword {
 				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
@@ -139,10 +139,22 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 				})
 			}
 		case *nodes.EdgeCreateAuthenticatorOOBSetup:
-			if currentStepKind != webapp.SessionStepSetupOOBOTP {
-				m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
-					Step: webapp.SessionStepSetupOOBOTP,
-				})
+			oobType := edge.AuthenticatorType()
+			switch oobType {
+			case authn.AuthenticatorTypeOOBEmail:
+				if currentStepKind != webapp.SessionStepSetupOOBOTPEmail {
+					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+						Step: webapp.SessionStepSetupOOBOTPEmail,
+					})
+				}
+			case authn.AuthenticatorTypeOOBSMS:
+				if currentStepKind != webapp.SessionStepSetupOOBOTPSMS {
+					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
+						Step: webapp.SessionStepSetupOOBOTPSMS,
+					})
+				}
+			default:
+				panic(fmt.Errorf("create_authenticator_begin: authenticator type in oob edge: %s", oobType))
 			}
 		case *nodes.EdgeCreateAuthenticatorTOTPSetup:
 			if currentStepKind != webapp.SessionStepSetupTOTP {

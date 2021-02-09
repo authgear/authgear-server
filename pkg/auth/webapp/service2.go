@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -210,8 +211,17 @@ func (s *Service2) doPost(
 					graph.InstanceID,
 				))
 			case *nodes.EdgeCreateAuthenticatorOOBSetup:
+				var stepKind SessionStepKind
+				switch defaultEdge.AuthenticatorType() {
+				case authn.AuthenticatorTypeOOBEmail:
+					stepKind = SessionStepSetupOOBOTPEmail
+				case authn.AuthenticatorTypeOOBSMS:
+					stepKind = SessionStepSetupOOBOTPSMS
+				default:
+					panic(fmt.Errorf("webapp: unexpected authenticator type in oob edge: %s", defaultEdge.AuthenticatorType()))
+				}
 				session.Steps = append(session.Steps, NewSessionStep(
-					SessionStepSetupOOBOTP,
+					stepKind,
 					graph.InstanceID,
 				))
 			case *nodes.EdgeCreateAuthenticatorTOTPSetup:

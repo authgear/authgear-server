@@ -20,110 +20,75 @@ var TemplateWebSetupOOBOTPHTML = template.RegisterHTML(
 	components...,
 )
 
-var SetupOOBOTPSchema = validation.NewSimpleSchema(`
+var SetupOOBOTPEmailSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_input_type": { "type": "string", "enum": ["email", "phone"] },
-			"x_calling_code": { "type": "string" },
-			"x_national_number": { "type": "string" },
 			"x_email": { "type": "string" }
 		},
-		"required": ["x_input_type"],
-		"allOf": [
-			{
-				"if": {
-					"properties": {
-						"x_input_type": { "type": "string", "const": "phone" }
-					}
-				},
-				"then": {
-					"required": ["x_calling_code", "x_national_number"]
-				}
-			},
-			{
-				"if": {
-					"properties": {
-						"x_input_type": { "type": "string", "enum": ["email"] }
-					}
-				},
-				"then": {
-					"required": ["x_email"]
-				}
-			}
-		]
+		"required": ["x_email"]
+	}
+`)
+
+var SetupOOBOTPSMSSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_calling_code": { "type": "string" },
+			"x_national_number": { "type": "string" }
+		},
+		"required": ["x_calling_code", "x_national_number"]
 	}
 `)
 
 func ConfigureSetupOOBOTPRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/setup_oob_otp")
+		WithPathPattern("/setup_oob_otp_:channel")
 }
 
 type SetupOOBOTPNode interface {
-	GetAllowedChannels() ([]authn.AuthenticatorOOBChannel, error)
+	IsOOBAuthenticatorTypeAllowed(oobAuthenticatorType authn.AuthenticatorType) (bool, error)
 }
 
 type SetupOOBOTPViewModel struct {
-	// InputType is either phone or email.
-	InputType        string
-	AlternativeSteps []viewmodels.AlternativeStep
+	// OOBAuthenticatorType is either AuthenticatorTypeOOBSMS or AuthenticatorTypeOOBEmail.
+	OOBAuthenticatorType authn.AuthenticatorType
+	AlternativeSteps     []viewmodels.AlternativeStep
 }
 
-func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, inputType string) (*SetupOOBOTPViewModel, error) {
+func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType authn.AuthenticatorType) (*SetupOOBOTPViewModel, error) {
 	var node SetupOOBOTPNode
 	if !graph.FindLastNode(&node) {
 		panic("setup_oob_otp: expected graph has node implementing SetupOOBOTPNode")
 	}
 
-	allowedChannels, err := node.GetAllowedChannels()
+	allowedOOBAuthenticatorType, err := node.IsOOBAuthenticatorTypeAllowed(oobAuthenticatorType)
 	if err != nil {
 		panic(fmt.Errorf("setup_oob_otp: unexpected error: %w", err))
 	}
 
-	phoneAllowed := false
-	emailAllowed := false
-
-	for _, channel := range allowedChannels {
-		switch channel {
-		case authn.AuthenticatorOOBChannelEmail:
-			emailAllowed = true
-		case authn.AuthenticatorOOBChannelSMS:
-			phoneAllowed = true
-		}
+	if !allowedOOBAuthenticatorType {
+		panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", oobAuthenticatorType))
 	}
 
-	if !phoneAllowed && !emailAllowed {
-		panic("webapp: expected allowed channels to be non-empty")
-	}
-
-	switch inputType {
-	case "phone":
-		if !phoneAllowed {
-			inputType = "email"
-		}
-	case "email":
-		if !emailAllowed {
-			inputType = "phone"
-		}
-	default:
-		if phoneAllowed {
-			inputType = "phone"
-		} else if emailAllowed {
-			inputType = "email"
-		}
+	var stepKind webapp.SessionStepKind
+	switch oobAuthenticatorType {
+	case authn.AuthenticatorTypeOOBSMS:
+		stepKind = webapp.SessionStepSetupOOBOTPSMS
+	case authn.AuthenticatorTypeOOBEmail:
+		stepKind = webapp.SessionStepSetupOOBOTPEmail
 	}
 
 	alternatives := &viewmodels.AlternativeStepsViewModel{}
-	err = alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepSetupOOBOTP)
+	err = alternatives.AddCreateAuthenticatorAlternatives(graph, stepKind)
 	if err != nil {
 		return nil, err
 	}
 
 	return &SetupOOBOTPViewModel{
-		InputType:        inputType,
-		AlternativeSteps: alternatives.AlternativeSteps,
+		OOBAuthenticatorType: oobAuthenticatorType,
+		AlternativeSteps:     alternatives.AlternativeSteps,
 	}, nil
 }
 
@@ -133,10 +98,10 @@ type SetupOOBOTPHandler struct {
 	Renderer          Renderer
 }
 
-func (h *SetupOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *SetupOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType authn.AuthenticatorType) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewModel, err := NewSetupOOBOTPViewModel(session, graph, r.Form.Get("x_input_type"))
+	viewModel, err := NewSetupOOBOTPViewModel(session, graph, oobAuthenticatorType)
 	if err != nil {
 		return nil, err
 	}
@@ -152,12 +117,13 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
-
-	// Populate default values.
-	if _, ok := r.Form["x_input_type"]; !ok {
-		r.Form.Set("x_input_type", "email")
+	oc := httproute.GetParam(r, "channel")
+	oobAuthenticatorType, err := authn.GetOOBAuthenticatorType(authn.AuthenticatorOOBChannel(oc))
+	if err != nil {
+		http.Error(w, "404 page not found", http.StatusNotFound)
+		return
 	}
+	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
 		session, err := ctrl.InteractionSession()
@@ -170,7 +136,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		data, err := h.GetData(r, w, session, graph)
+		data, err := h.GetData(r, w, session, graph, oobAuthenticatorType)
 		if err != nil {
 			return err
 		}
@@ -181,12 +147,12 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("", func() error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = SetupOOBOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			err = GetValidationSchema(oobAuthenticatorType).Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}
 
-			target, inputType, err := FormToOOBTarget(r.Form)
+			target, inputType, err := FormToOOBTarget(oobAuthenticatorType, r.Form)
 
 			input = &InputSetupOOB{
 				InputType: inputType,
@@ -205,8 +171,19 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handleAlternativeSteps(ctrl)
 }
 
-func FormToOOBTarget(form url.Values) (target string, inputType string, err error) {
-	if form.Get("x_input_type") == "phone" {
+func GetValidationSchema(oobAuthenticatorType authn.AuthenticatorType) *validation.SimpleSchema {
+	switch oobAuthenticatorType {
+	case authn.AuthenticatorTypeOOBEmail:
+		return SetupOOBOTPEmailSchema
+	case authn.AuthenticatorTypeOOBSMS:
+		return SetupOOBOTPSMSSchema
+	}
+
+	return nil
+}
+
+func FormToOOBTarget(oobAuthenticatorType authn.AuthenticatorType, form url.Values) (target string, inputType string, err error) {
+	if oobAuthenticatorType == authn.AuthenticatorTypeOOBSMS {
 		nationalNumber := form.Get("x_national_number")
 		countryCallingCode := form.Get("x_calling_code")
 		var e164 string

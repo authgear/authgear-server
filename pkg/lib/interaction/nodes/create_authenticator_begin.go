@@ -75,21 +75,23 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(graph *interaction.Graph) ([]
 	return n.deriveEdges()
 }
 
-// GetAllowedChannels implements SetupOOBOTPNode.
-func (n *NodeCreateAuthenticatorBegin) GetAllowedChannels() ([]authn.AuthenticatorOOBChannel, error) {
+// IsOOBAuthenticatorTypeAllowed implements SetupOOBOTPNode.
+func (n *NodeCreateAuthenticatorBegin) IsOOBAuthenticatorTypeAllowed(oobAuthenticatorType authn.AuthenticatorType) (bool, error) {
 	edges, err := n.deriveEdges()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	for _, edge := range edges {
 		switch edge := edge.(type) {
 		case *EdgeCreateAuthenticatorOOBSetup:
-			return edge.AllowedChannels, nil
+			if edge.OOBAuthenticatorType == oobAuthenticatorType {
+				return true, nil
+			}
 		}
 	}
 
-	return nil, fmt.Errorf("interaction: expected to find EdgeCreateAuthenticatorOOBSetup")
+	return false, nil
 }
 
 // GetCreateAuthenticatorEdges implements CreateAuthenticatorBeginNode.
@@ -308,7 +310,6 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
 					OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
-					AllowedChannels:      []authn.AuthenticatorOOBChannel{authn.AuthenticatorOOBChannelEmail},
 				})
 			}
 		case authn.AuthenticatorTypeOOBSMS:
@@ -318,7 +319,6 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
 					OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
-					AllowedChannels:      []authn.AuthenticatorOOBChannel{authn.AuthenticatorOOBChannelSMS},
 				})
 			}
 		default:

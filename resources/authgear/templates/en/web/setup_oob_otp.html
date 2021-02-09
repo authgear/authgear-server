@@ -12,10 +12,10 @@
 <div class="padding-6 flex flex-direction-column">
 
 <h1 class="font-inherit margin-10 primary-txt">
-	{{ if eq $.InputType "phone" }}
+	{{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
 	{{ template "setup-oob-otp-title--sms" }}
 	{{ end }}
-	{{ if eq $.InputType "email" }}
+	{{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
 	{{ template "setup-oob-otp-title--email" }}
 	{{ end }}
 </h1>
@@ -24,7 +24,7 @@
 
 {{ $.CSRFField }}
 
-{{ if eq $.InputType "phone" }}
+{{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
 <div class="phone-input margin-10">
 	<select class="select primary-txt" name="x_calling_code">
 		{{ range $.CountryCallingCodes }}
@@ -56,15 +56,13 @@
 	tabindex="0"
 	autofocus
 	class="input text-input primary-txt margin-10"
-	type="{{ $.InputType }}"
+	type="email"
 	name="x_email"
 	autocomplete="email"
 	autocapitalize="none"
 	placeholder="{{ template "email-placeholder" }}"
 >
 {{ end }}
-
-<input type="hidden" name="x_input_type" value="{{ $.InputType }}">
 
 <button class="btn primary-btn align-self-flex-end margin-10" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
