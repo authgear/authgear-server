@@ -45,7 +45,6 @@ type SettingsSessionManager interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
 	Revoke(s session.Session) error
-	Logout(session.Session, http.ResponseWriter) error
 }
 
 type SettingsHandler struct {
@@ -179,22 +178,6 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		result.WriteResponse(w, r)
-		return nil
-	})
-
-	ctrl.PostAction("logout", func() error {
-		sess := session.GetSession(r.Context())
-		err := h.SessionManager.Logout(sess, w)
-
-		if err != nil {
-			return err
-		}
-
-		clientID := webapp.GetClientID(r.Context())
-		client, _ := h.OAuth.GetClient(clientID)
-		postLogoutRedirectURI := webapp.ResolvePostLogoutRedirectURI(client, r.FormValue("post_logout_redirect_uri"), h.UIConfig)
-		redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), postLogoutRedirectURI)
-		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 	})
 }

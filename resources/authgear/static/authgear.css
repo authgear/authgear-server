@@ -829,8 +829,3 @@ h1, h2, h3, h4, h5, h6 {
 .switch-link-group.switched .click-to-switch, .switch-link-group .switch-to-item {
   display: none;
 }
-
-.vertical-separator {
-  width: 1px;
-  background-color: var(--color-separator);
-}
