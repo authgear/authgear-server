@@ -1,0 +1,17 @@
+.root {
+  width: 220px;
+  border: 1px solid #cecece;
+}
+
+.page {
+  background-color: var(--color-background-unshaded);
+  height: 100%;
+}
+
+.content {
+  padding: 6px;
+}
+
+.pane {
+  box-shadow: 0px 3px 8px var(--color-pane-shadow);
+}
