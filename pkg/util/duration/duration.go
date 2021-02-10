@@ -14,4 +14,6 @@ const (
 	PerMinute = 1 * time.Minute
 	// ClockSkew is the duration of acceptable clock skew.
 	ClockSkew = 5 * time.Minute
+	// Long is a duration for something that persists for a certain time.
+	Long = 90 * 24 * time.Hour
 )

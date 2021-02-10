@@ -44,6 +44,7 @@ type Service2 struct {
 	Request              *http.Request
 	Sessions             SessionStore
 	SessionCookie        SessionCookieDef
+	SignedUpCookie       SignedUpCookieDef
 	MFADeviceTokenCookie mfa.CookieDef
 	ErrorCookie          *ErrorCookie
 	CookieFactory        CookieFactory
@@ -327,6 +328,10 @@ func (s *Service2) afterPost(
 		switch graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
 			result.NavigationAction = "redirect"
+			// Marked signed up in cookie after authorization.
+			// When user visit auth ui root "/", redirect user to "/login" if
+			// cookie exists
+			result.Cookies = append(result.Cookies, s.CookieFactory.ValueCookie(s.SignedUpCookie.Def, "true"))
 		default:
 			// Use the default navigation action for any other intents.
 			// That is, "advance" will be used.

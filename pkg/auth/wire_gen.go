@@ -109,6 +109,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Redis: redisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -522,6 +523,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -2294,7 +2296,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
-	rootHandler := &webapp2.RootHandler{}
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	rootHandler := &webapp2.RootHandler{
+		SignedUpCookie: signedUpCookieDef,
+	}
 	return rootHandler
 }
 
@@ -2314,6 +2323,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -2759,6 +2769,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -2827,6 +2838,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -3272,6 +3284,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -3340,6 +3353,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -3785,6 +3799,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -3853,6 +3868,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -4298,6 +4314,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -4359,6 +4376,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -4804,6 +4822,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -4868,6 +4887,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -5313,6 +5333,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -5378,6 +5399,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -5823,6 +5845,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -5885,6 +5908,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -6330,6 +6354,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -6391,6 +6416,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -6836,6 +6862,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -6898,6 +6925,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -7343,6 +7371,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -7406,6 +7435,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -7851,6 +7881,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -7912,6 +7943,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -8357,6 +8389,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -8418,6 +8451,7 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -8863,6 +8897,7 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -8924,6 +8959,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -9369,6 +9405,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -9430,6 +9467,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -9875,6 +9913,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -9936,6 +9975,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -10381,6 +10421,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -10442,6 +10483,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -10887,6 +10929,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -10949,6 +10992,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -11394,6 +11438,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -11455,6 +11500,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -11900,6 +11946,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -11966,6 +12013,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -12411,6 +12459,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -12472,6 +12521,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -12917,6 +12967,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -12979,6 +13030,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -13424,6 +13476,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -13485,6 +13538,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -13930,6 +13984,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -14007,6 +14062,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -14452,6 +14508,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -14517,6 +14574,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -14962,6 +15020,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -15028,6 +15087,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -15473,6 +15533,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -15537,6 +15598,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -15982,6 +16044,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -16046,6 +16109,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -16491,6 +16555,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -16556,6 +16621,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -17001,6 +17067,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -17069,6 +17136,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -17514,6 +17582,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -17576,6 +17645,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -18021,6 +18091,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -18083,6 +18154,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -18528,6 +18600,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
@@ -18953,6 +19026,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	httpConfig := appConfig.HTTP
 	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	authenticationConfig := appConfig.Authentication
 	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
@@ -19398,6 +19472,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Request:              request,
 		Sessions:             sessionStoreRedis,
 		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
 		CookieFactory:        cookieFactory,
