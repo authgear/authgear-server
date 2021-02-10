@@ -1,8 +1,19 @@
-import React, { useMemo } from "react";
+import React, {
+  useMemo,
+  useContext,
+  forwardRef,
+  ForwardedRef,
+  Ref,
+} from "react";
+import cn from "classnames";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { getShades } from "./util/theme";
 import styles from "./ThemePreviewWidget.module.scss";
+import appLogo from "./images/app_logo.png";
 
 export interface ThemePreviewWidgetProps {
+  ref?: Ref<HTMLElement>;
+  className?: string;
   isDarkMode: boolean;
   primaryColor: string;
   textColor: string;
@@ -173,30 +184,293 @@ function getDarkModeStyle(options: GetStyleOptions) {
   };
 }
 
-const ThemePreviewWidget: React.FC<ThemePreviewWidgetProps> = function ThemePreviewWidget(
-  props: ThemePreviewWidgetProps
-) {
-  const { isDarkMode, primaryColor, textColor, backgroundColor } = props;
-  const rootStyle = useMemo(() => {
-    return isDarkMode
-      ? getDarkModeStyle({
-          primaryColor,
-          textColor,
-          backgroundColor,
-        })
-      : getLightModeStyle({
-          primaryColor,
-          textColor,
-          backgroundColor,
-        });
-  }, [isDarkMode, primaryColor, textColor, backgroundColor]);
+function Banner() {
   return (
-    <div className={styles.root} style={rootStyle as any}>
-      <div className={styles.page}>
-        <div className={styles.content}></div>
-      </div>
+    <div className={styles.bannerFrame}>
+      <img className={styles.banner} src={appLogo} />
     </div>
   );
-};
+}
+
+function PageSwitch() {
+  return (
+    <div
+      className={cn(
+        styles.signinSignupSwitch,
+        styles.flex,
+        styles.flexDirectionRow
+      )}
+    >
+      <a
+        className={cn(
+          styles.notA,
+          styles.signinSignupLink,
+          styles.primaryTxt,
+          styles.current
+        )}
+      >
+        <FormattedMessage id="ThemePreviewWidget.page-switch.login" />
+      </a>
+      <a
+        className={cn(styles.notA, styles.signinSignupLink, styles.primaryTxt)}
+      >
+        <FormattedMessage id="ThemePreviewWidget.page-switch.signup" />
+      </a>
+    </div>
+  );
+}
+
+function LoginIDForm() {
+  const { renderToString } = useContext(Context);
+  return (
+    <div
+      className={cn(
+        styles.flex,
+        styles.flexDirectionColumn,
+        styles.margin6,
+        styles.widthFull
+      )}
+    >
+      <input
+        className={cn(
+          styles.margin6,
+          styles.input,
+          styles.textInput,
+          styles.primaryTxt
+        )}
+        placeholder={renderToString(
+          "ThemePreviewWidget.input-placeholder.email"
+        )}
+      />
+      <a
+        className={cn(
+          styles.link,
+          styles.fontSmaller,
+          styles.alignSelfFlexStart,
+          styles.block,
+          styles.marginV12,
+          styles.marginH6
+        )}
+      >
+        <FormattedMessage id="ThemePreviewWidget.use-phone-instead" />
+      </a>
+      <button
+        type="button"
+        className={cn(styles.btn, styles.primaryBtn, styles.margin6)}
+      >
+        <FormattedMessage id="ThemePreviewWidget.next-button-label" />
+      </button>
+    </div>
+  );
+}
+
+function Separator() {
+  return (
+    <div
+      className={cn(
+        styles.ssoLoginIDSeparator,
+        styles.flex,
+        styles.flexDirectionRow,
+        styles.alignItemsCenter,
+        styles.margin6,
+        styles.widthFull
+      )}
+    >
+      <span className={cn(styles.primaryTxt, styles.marginH6)}>
+        <FormattedMessage id="ThemePreviewWidget.separator-label" />
+      </span>
+    </div>
+  );
+}
+
+interface SimpleOAuthButtonProps {
+  providerType: string;
+  iconClassName: string;
+  title: React.ReactNode;
+}
+
+function SimpleOAuthButton(props: SimpleOAuthButtonProps) {
+  const { providerType, iconClassName, title } = props;
+  return (
+    <button
+      type="button"
+      className={cn(
+        styles.btn,
+        styles.ssoBtn,
+        styles.marginV4,
+        styles.marginH6,
+        styles[providerType]
+      )}
+    >
+      <span className={styles.ssoBtnContent}>
+        <div className={styles.ssoBtnIcon}>
+          <i className={cn("fab", iconClassName)} aria-hidden="true" />
+        </div>
+        <span className={styles.title}>{title}</span>
+      </span>
+    </button>
+  );
+}
+
+function GoogleButton() {
+  return (
+    <button
+      type="button"
+      className={cn(
+        styles.btn,
+        styles.ssoBtn,
+        styles.marginV4,
+        styles.marginH6,
+        styles.google
+      )}
+    >
+      <span className={styles.ssoBtnContent}>
+        <div className={cn(styles.ssoBtnIcon, styles.googleIcon)} />
+        <span className={styles.title}>
+          <FormattedMessage id="ThemePreviewWidget.google-button-label" />
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function OAuthForm() {
+  return (
+    <div
+      className={cn(
+        styles.flex,
+        styles.flexDirectionColumn,
+        styles.margin6,
+        styles.widthFull
+      )}
+    >
+      <SimpleOAuthButton
+        providerType="apple"
+        iconClassName="fa-apple"
+        title={<FormattedMessage id="ThemePreviewWidget.apple-button-label" />}
+      />
+      <GoogleButton />
+      <SimpleOAuthButton
+        providerType="facebook"
+        iconClassName="fa-facebook-f"
+        title={
+          <FormattedMessage id="ThemePreviewWidget.facebook-button-label" />
+        }
+      />
+      <SimpleOAuthButton
+        providerType="linkedin"
+        iconClassName="fa-linkedin-in"
+        title={
+          <FormattedMessage id="ThemePreviewWidget.linkedin-button-label" />
+        }
+      />
+      <SimpleOAuthButton
+        providerType="azureadv2"
+        iconClassName="fa-microsoft"
+        title={
+          <FormattedMessage id="ThemePreviewWidget.azureadv2-button-label" />
+        }
+      />
+      <SimpleOAuthButton
+        providerType="wechat"
+        iconClassName="fa-weixin"
+        title={<FormattedMessage id="ThemePreviewWidget.wechat-button-label" />}
+      />
+    </div>
+  );
+}
+
+function Disclaimer() {
+  return (
+    <p
+      className={cn(
+        styles.fontSmaller,
+        styles.primaryTxt,
+        styles.margin6,
+        styles.padding6,
+        styles.widthFull
+      )}
+    >
+      <FormattedMessage
+        id="ThemePreviewWidget.disclaimer"
+        values={{
+          className: styles.link,
+        }}
+      />
+    </p>
+  );
+}
+
+function Footer() {
+  return (
+    <div
+      className={cn(styles.footerWatermark, styles.margin12, styles.widthFull)}
+    />
+  );
+}
+
+type Props = Omit<ThemePreviewWidgetProps, "ref">;
+
+const ThemePreviewWidget: React.FC<Props> = forwardRef(
+  function ThemePreviewWidget(props: Props, ref: ForwardedRef<HTMLElement>) {
+    const {
+      className,
+      isDarkMode,
+      primaryColor,
+      textColor,
+      backgroundColor,
+    } = props;
+    const rootStyle = useMemo(() => {
+      return isDarkMode
+        ? getDarkModeStyle({
+            primaryColor,
+            textColor,
+            backgroundColor,
+          })
+        : getLightModeStyle({
+            primaryColor,
+            textColor,
+            backgroundColor,
+          });
+    }, [isDarkMode, primaryColor, textColor, backgroundColor]);
+    return (
+      <div
+        /* @ts-expect-error */
+        ref={ref}
+        className={cn(className, styles.root, isDarkMode && styles.dark)}
+        /* @ts-expect-error */
+        style={rootStyle}
+      >
+        <div className={styles.page}>
+          <div className={styles.content}>
+            <div
+              className={cn(
+                styles.pane,
+                styles.flex,
+                styles.flexDirectionColumn
+              )}
+            >
+              <Banner />
+              <div
+                className={cn(
+                  styles.flex,
+                  styles.flexDirectionColumn,
+                  styles.padding6
+                )}
+              >
+                <PageSwitch />
+                <LoginIDForm />
+                <Separator />
+                <OAuthForm />
+                <Disclaimer />
+                <Footer />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+);
 
 export default ThemePreviewWidget;
