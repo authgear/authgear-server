@@ -1,14 +1,9 @@
 import React from "react";
-import {
-  Checkbox,
-  TooltipHost,
-  ICheckboxProps,
-  DirectionalHint,
-  ITooltipProps,
-  Icon,
-} from "@fluentui/react";
+import cn from "classnames";
+import { Checkbox, ICheckboxProps } from "@fluentui/react";
 
 import styles from "./CheckboxWithTooltip.module.scss";
+import Tooltip from "./Tooltip";
 
 interface CheckboxWithTooltipProps extends ICheckboxProps {
   helpText: string;
@@ -17,26 +12,12 @@ interface CheckboxWithTooltipProps extends ICheckboxProps {
 const CheckboxWithTooltip: React.FC<CheckboxWithTooltipProps> = function CheckboxWithTooltip(
   props: CheckboxWithTooltipProps
 ) {
-  const { helpText, ...rest } = props;
-  const tooltipProps: ITooltipProps = React.useMemo(() => {
-    return {
-      onRenderContent: () => (
-        <div className={styles.tooltip}>
-          <span>{helpText}</span>
-        </div>
-      ),
-    };
-  }, [helpText]);
+  const { helpText, className, ...rest } = props;
 
   return (
-    <div className={styles.root}>
+    <div className={cn(styles.root, className)}>
       <Checkbox {...rest} />
-      <TooltipHost
-        tooltipProps={tooltipProps}
-        directionalHint={DirectionalHint.bottomCenter}
-      >
-        <Icon className={styles.infoIcon} iconName={"info"} />
-      </TooltipHost>
+      <Tooltip helpText={helpText} className={styles.tooltip} />
     </div>
   );
 };
