@@ -11,6 +11,7 @@ var DependencySet = wire.NewSet(
 	NewCSRFCookieDef,
 	NewSessionCookieDef,
 	NewErrorCookieDef,
+	NewSignedUpCookieDef,
 	wire.Struct(new(ErrorCookie), "*"),
 
 	wire.Struct(new(CSRFMiddleware), "*"),

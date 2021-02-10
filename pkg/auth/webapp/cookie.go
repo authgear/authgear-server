@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -53,6 +54,27 @@ func NewErrorCookieDef(httpCfg *config.HTTPConfig) ErrorCookieDef {
 	}
 
 	return ErrorCookieDef{Def: def}
+}
+
+type SignedUpCookieDef struct {
+	Def *httputil.CookieDef
+}
+
+func NewSignedUpCookieDef(httpCfg *config.HTTPConfig) SignedUpCookieDef {
+	long := int(duration.Long.Seconds())
+	def := &httputil.CookieDef{
+		Name:              httpCfg.CookiePrefix + "signed_up",
+		Path:              "/",
+		AllowScriptAccess: false,
+		SameSite:          http.SameSiteLaxMode,
+		MaxAge:            &long,
+	}
+
+	if httpCfg.CookieDomain != nil {
+		def.Domain = *httpCfg.CookieDomain
+	}
+
+	return SignedUpCookieDef{Def: def}
 }
 
 type ErrorCookie struct {
