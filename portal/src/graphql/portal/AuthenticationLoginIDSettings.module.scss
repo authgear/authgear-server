@@ -13,6 +13,10 @@
   .column {
     width: 80px;
     text-align: center;
+
+    .tooltip {
+      display: inline;
+    }
   }
 }
 
