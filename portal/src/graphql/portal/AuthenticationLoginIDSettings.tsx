@@ -32,6 +32,8 @@ import {
 } from "../../types";
 
 import styles from "./AuthenticationLoginIDSettings.module.scss";
+import CheckboxWithTooltip from "../../CheckboxWithTooltip";
+import Tooltip from "../../Tooltip";
 
 interface LoginIDKeyTypeFormState {
   isEnabled: boolean;
@@ -391,13 +393,16 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         checked={state.email.ignore_dot_sign}
         onChange={onEmailIgnoreDotLocalChange}
       />
-      <Checkbox
+      <CheckboxWithTooltip
         label={renderToString(
           "AuthenticationLoginIDSettingsScreen.email.allowPlus"
         )}
         className={styles.widgetCheckbox}
         checked={state.email.block_plus_sign}
         onChange={onEmailAllowPlusChange}
+        helpText={renderToString(
+          "AuthenticationLoginIDSettingsScreen.email.allowPlusTooltipMessage"
+        )}
       />
     </>
   );
@@ -532,6 +537,12 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         </Text>
         <Text className={styles.column}>
           <FormattedMessage id="AuthenticationLoginIDSettingsScreen.columns.order" />
+          <Tooltip
+            helpText={renderToString(
+              "AuthenticationLoginIDSettingsScreen.columns.orderTooltipMessage"
+            )}
+            className={styles.tooltip}
+          />
         </Text>
       </header>
 
