@@ -107,7 +107,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
       {
         key: "reset",
         text: renderToString("reset"),
-        iconProps: { iconName: "Delete" },
+        iconProps: { iconName: "Refresh" },
         disabled,
         theme: disabled ? themes.main : themes.destructive,
         onClick: () => setIsResetDialogVisible(true),

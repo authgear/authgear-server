@@ -50,6 +50,9 @@
 
 .cellName {
   grid-area: name;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cellDescUnverified {
@@ -76,8 +79,9 @@
 
 .controlButton {
   margin: 0 5px;
+  padding: 0 8px;
   border: 1px solid #d8d8d8;
-  width: 90px;
+  width: 140px;
   font-weight: 600;
 }
 

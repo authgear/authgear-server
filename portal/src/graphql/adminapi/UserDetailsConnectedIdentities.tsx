@@ -184,7 +184,7 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
         disabled={settingVerifiedStatus}
         theme={themes.defaultButton}
         onClick={onClickUnverify}
-        labelId="unverify"
+        labelId="make-as-unverified"
         loading={verifying}
       />
     );
@@ -197,7 +197,7 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
       theme={themes.verifyButton}
       onClick={onClickVerify}
       loading={verifying}
-      labelId="verify"
+      labelId="make-as-verified"
     />
   );
 };
