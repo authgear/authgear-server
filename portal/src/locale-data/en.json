@@ -522,6 +522,7 @@
   "ThemeConfigurationWidget.primary-color": "Primary Color",
   "ThemeConfigurationWidget.text-color": "Text Color",
   "ThemeConfigurationWidget.background-color": "Background Color",
+  "ThemeConfigurationWidget.preview-mode": "Preview Mode",
 
   "ThemePreviewWidget.page-switch.login": "Log in",
   "ThemePreviewWidget.page-switch.signup": "Sign up",

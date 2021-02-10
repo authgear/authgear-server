@@ -3,6 +3,12 @@
   max-width: 635px;
 }
 
+.rootSection {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
 .titleSection {
   display: flex;
   flex-direction: row;
@@ -39,4 +45,20 @@
 .colorControlLabel {
   margin: 10px;
   padding: 0;
+}
+
+.previewSection {
+  width: 223px;
+  margin: 0 10px 10px 0;
+}
+
+.previewContainer {
+  position: relative;
+}
+
+.previewWidget {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0 0;
 }
