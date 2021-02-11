@@ -205,6 +205,7 @@ interface DomainListActionButtonsProps {
   isVerified: boolean;
   isPublicOrigin: boolean;
   onDeleteClick: (domainID: string, domain: string) => void;
+  onSetPublicOriginClick: (urlOrigin: string) => void;
 }
 
 // eslint-disable-next-line complexity
@@ -214,10 +215,12 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
   const {
     domainID,
     domain,
+    urlOrigin,
     isCustomDomain,
     isVerified,
     isPublicOrigin,
     onDeleteClick: onDeleteClickProps,
+    onSetPublicOriginClick: onSetPublicOriginClickProps,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -226,6 +229,10 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
   const showDelete = domainID && isCustomDomain && !isPublicOrigin;
   const showVerify = domainID && !isVerified;
   const showSetPublicOrigin = domainID && isVerified && !isPublicOrigin;
+
+  const onSetPublicOriginClick = useCallback(() => {
+    onSetPublicOriginClickProps(urlOrigin);
+  }, [urlOrigin, onSetPublicOriginClickProps]);
 
   const onVerifyClicked = useCallback(() => {
     navigate(`./${domainID}/verify`);
@@ -253,6 +260,7 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
         key={`${domainID}-domain-set-public-origin`}
         className={styles.actionButton}
         theme={themes.actionButton}
+        onClick={onSetPublicOriginClick}
       >
         <FormattedMessage id="activate" />
       </ActionButton>
@@ -395,7 +403,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
 ) {
   const {
     domains,
-    appConfigForm: { state },
+    appConfigForm: { state, setState },
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -461,6 +469,16 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
     setConfirmDeleteDomainDialogVisible(true);
   }, []);
 
+  const onSetPublicOriginClick = useCallback(
+    (urlOrigin: string) => {
+      setState((state) => ({
+        ...state,
+        publicOrigin: urlOrigin,
+      }));
+    },
+    [setState]
+  );
+
   const dismissDeleteDomainDialog = useCallback(() => {
     setConfirmDeleteDomainDialogVisible(false);
   }, []);
@@ -503,13 +521,14 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
               isCustomDomain={item.isCustom}
               isPublicOrigin={item.isPublicOrigin}
               onDeleteClick={onDeleteClick}
+              onSetPublicOriginClick={onSetPublicOriginClick}
             />
           );
         default:
           return null;
       }
     },
-    [onDeleteClick]
+    [onDeleteClick, onSetPublicOriginClick]
   );
 
   const renderDomainListHeader = useCallback<
