@@ -35,6 +35,7 @@
   "search": "Search",
   "apply": "Apply",
   "applying": "Applying",
+  "activate": "Activate",
 
   "apple": "Apple",
   "google": "Google",
@@ -349,6 +350,7 @@
   "CustomDomainListScreen.domain-list.header.domain": "Domain",
   "CustomDomainListScreen.domain-list.header.status": "Status",
   "CustomDomainListScreen.domain-list.add-domain.placeholder": "Input New Domain",
+  "CustomDomainListScreen.domain-list.status.active": "Active",
   "CustomDomainListScreen.domain-list.status.not-verified": "Need Verify",
   "CustomDomainListScreen.domain-list.status.verified": "Configured",
   "CustomDomainListScreen.delete-domain-dialog.title": "Delete Domain",

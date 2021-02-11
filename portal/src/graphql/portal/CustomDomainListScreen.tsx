@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
+import produce from "immer";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
@@ -36,12 +37,58 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./CustomDomainListScreen.module.scss";
+import { PortalAPIAppConfig } from "../../types";
+import { clearEmptyObject } from "../../util/misc";
+import {
+  AppConfigFormModel,
+  useAppConfigForm,
+} from "../../hook/useAppConfigForm";
+
+function getOriginFromDomain(domain: string): string {
+  // assume domain has no scheme
+  // use https scheme
+  return `https://${domain}`;
+}
+
+function getHostFromOrigin(urlOrigin: string): string {
+  try {
+    return new URL(urlOrigin).host;
+  } catch (_: unknown) {
+    return "";
+  }
+}
 
 interface DomainListItem {
-  id: string;
+  id?: string;
   domain: string;
+  urlOrigin: string;
   isVerified: boolean;
   isCustom: boolean;
+  isPublicOrigin: boolean;
+}
+
+interface FormState {
+  publicOrigin: string;
+}
+
+function constructFormState(config: PortalAPIAppConfig): FormState {
+  return {
+    publicOrigin: config.http?.public_origin ?? "",
+  };
+}
+
+function constructConfig(
+  config: PortalAPIAppConfig,
+  initialState: FormState,
+  currentState: FormState
+): PortalAPIAppConfig {
+  return produce(config, (config) => {
+    config.http ??= {};
+    if (currentState.publicOrigin !== initialState.publicOrigin) {
+      config.http.public_origin = currentState.publicOrigin;
+    }
+    clearEmptyObject(config);
+  });
 }
 
 function makeDomainListColumn(renderToString: (messageID: string) => string) {
@@ -151,13 +198,16 @@ const AddDomainSection: React.FC = function AddDomainSection() {
 };
 
 interface DomainListActionButtonsProps {
-  domainID: string;
+  domainID?: string;
   domain: string;
+  urlOrigin: string;
   isCustomDomain: boolean;
   isVerified: boolean;
+  isPublicOrigin: boolean;
   onDeleteClick: (domainID: string, domain: string) => void;
 }
 
+// eslint-disable-next-line complexity
 const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function DomainListActionButtons(
   props
 ) {
@@ -166,24 +216,29 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
     domain,
     isCustomDomain,
     isVerified,
+    isPublicOrigin,
     onDeleteClick: onDeleteClickProps,
   } = props;
 
   const { themes } = useSystemConfig();
   const navigate = useNavigate();
 
-  const showDelete = isCustomDomain;
-  const showVerify = !isVerified;
+  const showDelete = domainID && isCustomDomain && !isPublicOrigin;
+  const showVerify = domainID && !isVerified;
+  const showSetPublicOrigin = domainID && isVerified && !isPublicOrigin;
 
   const onVerifyClicked = useCallback(() => {
     navigate(`./${domainID}/verify`);
   }, [domainID, navigate]);
 
   const onDeleteClick = useCallback(() => {
+    if (!domainID) {
+      return;
+    }
     onDeleteClickProps(domainID, domain);
   }, [domainID, domain, onDeleteClickProps]);
 
-  if (!showDelete && !showVerify) {
+  if (!showSetPublicOrigin && !showDelete && !showVerify) {
     return (
       <section className={styles.actionButtonContainer}>
         <Text>---</Text>
@@ -191,29 +246,59 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> = function
     );
   }
 
+  const buttonNodes: React.ReactNode[] = [];
+  if (showSetPublicOrigin) {
+    buttonNodes.push(
+      <ActionButton
+        key={`${domainID}-domain-set-public-origin`}
+        className={styles.actionButton}
+        theme={themes.actionButton}
+      >
+        <FormattedMessage id="activate" />
+      </ActionButton>
+    );
+  }
+
+  if (showVerify) {
+    buttonNodes.push(
+      <ActionButton
+        key={`${domainID}-domain-verify`}
+        className={styles.actionButton}
+        theme={themes.actionButton}
+        onClick={onVerifyClicked}
+      >
+        <FormattedMessage id="verify" />
+      </ActionButton>
+    );
+  }
+
+  if (showDelete) {
+    buttonNodes.push(
+      <ActionButton
+        key={`${domainID}-domain-delete`}
+        className={styles.actionButton}
+        theme={themes.destructive}
+        onClick={onDeleteClick}
+      >
+        <FormattedMessage id="delete" />
+      </ActionButton>
+    );
+  }
+
   return (
     <section className={styles.actionButtonContainer}>
-      {showVerify && (
-        <ActionButton
-          className={styles.actionButton}
-          theme={themes.actionButton}
-          onClick={onVerifyClicked}
-        >
-          <FormattedMessage id="verify" />
-        </ActionButton>
-      )}
-      {showVerify && showDelete && (
-        <VerticalDivider className={styles.divider} />
-      )}
-      {showDelete && (
-        <ActionButton
-          className={styles.actionButton}
-          theme={themes.destructive}
-          onClick={onDeleteClick}
-        >
-          <FormattedMessage id="delete" />
-        </ActionButton>
-      )}
+      {buttonNodes.map((node, idx) => {
+        if (idx !== 0) {
+          return [
+            <VerticalDivider
+              key={`${domainID}-domain-action-divider-${idx}`}
+              className={styles.divider}
+            />,
+            node,
+          ];
+        }
+        return node;
+      })}
     </section>
   );
 };
@@ -302,12 +387,16 @@ const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> = function DeleteDom
 
 interface CustomDomainListContentProps {
   domains: Domain[];
+  appConfigForm: AppConfigFormModel<FormState>;
 }
 
 const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function CustomDomainListContent(
   props
 ) {
-  const { domains } = props;
+  const {
+    domains,
+    appConfigForm: { state },
+  } = props;
 
   const { renderToString } = useContext(Context);
 
@@ -338,13 +427,31 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
   }, [renderToString]);
 
   const domainListItems: DomainListItem[] = useMemo(() => {
-    return domains.map((domain) => ({
-      id: domain.id,
-      domain: domain.domain,
-      isVerified: domain.isVerified,
-      isCustom: domain.isCustom,
-    }));
-  }, [domains]);
+    const list: DomainListItem[] = domains.map((domain) => {
+      const urlOrigin = getOriginFromDomain(domain.domain);
+      const isPublicOrigin = urlOrigin === state.publicOrigin;
+      return {
+        id: domain.id,
+        domain: domain.domain,
+        urlOrigin: urlOrigin,
+        isVerified: domain.isVerified,
+        isCustom: domain.isCustom,
+        isPublicOrigin: isPublicOrigin,
+      };
+    });
+    const found = list.find((domain) => domain.isPublicOrigin);
+
+    if (!found) {
+      list.unshift({
+        domain: getHostFromOrigin(state.publicOrigin) || state.publicOrigin,
+        urlOrigin: state.publicOrigin,
+        isCustom: false,
+        isVerified: false,
+        isPublicOrigin: true,
+      });
+    }
+    return list;
+  }, [domains, state.publicOrigin]);
 
   const onDeleteClick = useCallback((domainID: string, domain: string) => {
     setDeleteDomainDialogData({
@@ -366,6 +473,13 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
         case "domain":
           return <span>{item.domain}</span>;
         case "isVerified": {
+          if (item.isPublicOrigin) {
+            return (
+              <span className={styles.activeStatus}>
+                <FormattedMessage id="CustomDomainListScreen.domain-list.status.active" />
+              </span>
+            );
+          }
           if (item.isVerified) {
             return (
               <span>
@@ -384,8 +498,10 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
             <DomainListActionButtons
               domainID={item.id}
               domain={item.domain}
+              urlOrigin={item.urlOrigin}
               isVerified={item.isVerified}
               isCustomDomain={item.isCustom}
+              isPublicOrigin={item.isPublicOrigin}
               onDeleteClick={onDeleteClick}
             />
           );
@@ -444,6 +560,8 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
     refetch: refetchDomains,
   } = useDomainsQuery(appID);
 
+  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+
   const isVerifySuccessMessageVisible = useMemo(() => {
     const verify = searchParams.get("verify");
     return verify === "success";
@@ -453,12 +571,16 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
     navigate(".", { replace: true });
   }, [navigate]);
 
-  if (fetchingDomains) {
+  if (fetchingDomains || form.isLoading) {
     return <ShowLoading />;
   }
 
   if (fetchDomainsError) {
     return <ShowError error={fetchDomainsError} onRetry={refetchDomains} />;
+  }
+
+  if (form.loadError) {
+    return <ShowError error={form.loadError} onRetry={form.reload} />;
   }
 
   return (
@@ -473,7 +595,7 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
       >
         <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
       </MessageBar>
-      <CustomDomainListContent domains={domains ?? []} />
+      <CustomDomainListContent domains={domains ?? []} appConfigForm={form} />
     </main>
   );
 };
