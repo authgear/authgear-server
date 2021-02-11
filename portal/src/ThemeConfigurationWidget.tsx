@@ -93,7 +93,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
         </Text>
       </div>
       <div className={styles.rootSection}>
-        <div>
+        <div className={styles.leftSection}>
           <div className={styles.presetSection}>
             <Text as="h2" className={styles.presetTitle}>
               <FormattedMessage id="ThemeConfigurationWidget.preset-title" />
@@ -116,6 +116,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 <FormattedMessage id="ThemeConfigurationWidget.primary-color" />
               </Label>
               <PortalColorPicker
+                className={styles.colorPicker}
                 color={primaryColor}
                 onChange={onChangePrimaryColor}
                 disabled={isDarkMode && !darkModeEnabled}
@@ -126,6 +127,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 <FormattedMessage id="ThemeConfigurationWidget.text-color" />
               </Label>
               <PortalColorPicker
+                className={styles.colorPicker}
                 color={textColor}
                 onChange={onChangeTextColor}
                 disabled={isDarkMode && !darkModeEnabled}
@@ -136,6 +138,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 <FormattedMessage id="ThemeConfigurationWidget.background-color" />
               </Label>
               <PortalColorPicker
+                className={styles.colorPicker}
                 color={backgroundColor}
                 onChange={onChangeBackgroundColor}
                 disabled={isDarkMode && !darkModeEnabled}

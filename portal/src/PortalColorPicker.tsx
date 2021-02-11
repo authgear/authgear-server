@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useMemo } from "react";
+import cn from "classnames";
 import {
   Callout,
   ColorPicker,
@@ -8,6 +9,7 @@ import {
 import styles from "./PortalColorPicker.module.scss";
 
 export interface PortalColorPickerProps {
+  className?: string;
   disabled?: boolean;
   color: string;
   onChange: (color: string) => void;
@@ -16,7 +18,7 @@ export interface PortalColorPickerProps {
 const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColorPicker(
   props: PortalColorPickerProps
 ) {
-  const { disabled, color, onChange } = props;
+  const { className, disabled, color, onChange } = props;
   const [colorStr, setColorStr] = useState<string | undefined>();
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const colorboxRef = useRef(null);
@@ -67,7 +69,7 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
   }, [color]);
 
   return (
-    <div className={styles.root}>
+    <div className={cn(className, styles.root)}>
       <div
         ref={colorboxRef}
         className={styles.colorbox}

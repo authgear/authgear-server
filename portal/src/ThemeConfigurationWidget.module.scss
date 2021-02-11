@@ -33,22 +33,32 @@
   font-weight: 700;
 }
 
+.leftSection {
+  display: flex;
+  flex-direction: column;
+}
+
 .presetSection {
   align-self: flex-start;
+  margin: 10px;
 }
 
 .presetWidget {
-  margin: 10px;
+  margin: 10px 0;
 }
 
 .presetTitle {
-  margin: 10px;
+  margin: 10px 0;
   display: block;
   font-weight: 600;
 }
 
-.colorControlTitle {
+.colorControlSection {
   margin: 10px;
+}
+
+.colorControlTitle {
+  margin: 10px 0;
   display: block;
   font-weight: 600;
 }
@@ -58,17 +68,20 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 0 5px;
 }
 
 .colorControlLabel {
-  margin: 5px;
+  margin: 0;
   padding: 0;
+}
+
+.colorPicker {
+  margin: 0 -4px;
 }
 
 .previewSection {
   width: 223px;
-  margin: 0 10px 10px 0;
+  margin: 10px;
 }
 
 .previewContainer {
