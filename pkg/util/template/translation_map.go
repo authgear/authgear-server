@@ -6,6 +6,8 @@ import (
 	"strings"
 	texttemplate "text/template"
 	"text/template/parse"
+
+	messageformat "github.com/iawaknahc/gomessageformat"
 )
 
 type TranslationMap struct {
@@ -14,8 +16,8 @@ type TranslationMap struct {
 }
 
 func (t *TranslationMap) HasKey(key string) bool {
-	_, ok := t.items[key]
-	return ok
+	tree, ok := t.items[key]
+	return ok && !messageformat.IsEmptyParseTree(tree)
 }
 
 func (t *TranslationMap) RenderText(key string, args interface{}) (string, error) {
