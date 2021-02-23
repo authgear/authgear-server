@@ -15,6 +15,7 @@ package resource
 // |- AppFileView
 // |- EffectiveFileView
 // |- EffectiveResourceView
+// |- ValidateResourceView
 type View interface {
 	view()
 }
@@ -41,6 +42,12 @@ type EffectiveResourceView interface {
 	View
 	PreferredLanguageTags() []string
 	DefaultLanguageTag() string
+}
+
+// ValidateResourceView validates the resource itself.
+type ValidateResourceView interface {
+	View
+	validateResource()
 }
 
 type AppFile struct {
@@ -87,3 +94,10 @@ func (v EffectiveResource) PreferredLanguageTags() []string {
 func (v EffectiveResource) DefaultLanguageTag() string {
 	return v.DefaultTag
 }
+
+type ValidateResource struct{}
+
+var _ ValidateResourceView = ValidateResource{}
+
+func (v ValidateResource) view()             {}
+func (v ValidateResource) validateResource() {}

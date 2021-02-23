@@ -13,6 +13,57 @@ import (
 )
 
 func TestTranslationResource(t *testing.T) {
+	Convey("TranslationJSON ValidateResource", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+
+		r := &resource.Registry{}
+		r.Register(template.TranslationJSON)
+
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.AferoFs{Fs: fsA},
+			resource.AferoFs{Fs: fsB},
+		})
+
+		compact := func(s string) string {
+			buf := &bytes.Buffer{}
+			_ = json.Compact(buf, []byte(s))
+			return buf.String()
+		}
+
+		writeFile := func(fs afero.Fs, lang string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/translation.json", []byte(compact(data)), 0666)
+		}
+
+		read := func(view resource.View) (str string, err error) {
+			result, err := manager.Read(template.TranslationJSON, view)
+			if err != nil {
+				return
+			}
+
+			translations := result.(map[string]template.Translation)
+
+			bytes, err := json.Marshal(translations)
+			if err != nil {
+				return
+			}
+
+			return string(bytes), nil
+		}
+
+		Convey("it should validate", func() {
+			writeFile(fsA, "en", `{
+				"a": "{invalid",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
+			}`)
+
+			_, err := read(resource.ValidateResource{})
+			So(err, ShouldBeError, "translation `a` is invalid: unexpected token: <EOF>")
+		})
+	})
+
 	Convey("TranslationJSON EffectiveResource", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()

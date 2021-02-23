@@ -6,6 +6,9 @@ import (
 	"errors"
 	"fmt"
 
+	messageformat "github.com/iawaknahc/gomessageformat"
+	"golang.org/x/text/language"
+
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -42,6 +45,8 @@ func (t *translationJSON) ViewResources(resources []resource.ResourceFile, rawVi
 		return t.viewEffectiveFile(resources, view)
 	case resource.EffectiveResourceView:
 		return t.viewEffectiveResource(resources, view)
+	case resource.ValidateResourceView:
+		return t.viewValidateResource(resources, view)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -52,6 +57,30 @@ func (t *translationJSON) UpdateResource(resrc *resource.ResourceFile, data []by
 		Location: resrc.Location,
 		Data:     data,
 	}, nil
+}
+
+func (t *translationJSON) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+	for _, resrc := range resources {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+
+		var jsonObj map[string]interface{}
+		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {
+			return nil, fmt.Errorf("translation file must be JSON: %w", err)
+		}
+
+		for key, val := range jsonObj {
+			value, ok := val.(string)
+			if !ok {
+				return nil, fmt.Errorf("translation `%v` must be string (%T)", key, val)
+			}
+			tag := language.Make(langTag)
+			_, err := messageformat.FormatTemplateParseTree(tag, value)
+			if err != nil {
+				return nil, fmt.Errorf("translation `%v` is invalid: %w", key, err)
+			}
+		}
+	}
+	return nil, nil
 }
 
 func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
@@ -83,7 +112,7 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 		for key, val := range jsonObj {
 			value, ok := val.(string)
 			if !ok {
-				return nil, fmt.Errorf("translation value must be string: %s %T", key, val)
+				return nil, fmt.Errorf("translation `%v` must be string (%T)", key, val)
 			}
 			insertTranslation(langTag, key, value)
 		}

@@ -257,17 +257,25 @@ func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view reso
 }
 
 func viewHTMLTemplates(name string, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
-	bytes, err := viewTemplates(resources, view)
-	if err != nil {
-		return nil, err
-	}
 
 	switch view.(type) {
 	case resource.AppFileView:
+		bytes, err := viewTemplates(resources, view)
+		if err != nil {
+			return nil, err
+		}
 		return bytes, nil
 	case resource.EffectiveFileView:
+		bytes, err := viewTemplates(resources, view)
+		if err != nil {
+			return nil, err
+		}
 		return bytes, nil
 	case resource.EffectiveResourceView:
+		bytes, err := viewTemplates(resources, view)
+		if err != nil {
+			return nil, err
+		}
 		tpl := htmltemplate.New(name)
 		tpl.Funcs(templateFuncMap)
 		_, err = tpl.Parse(string(bytes.([]byte)))
@@ -275,6 +283,16 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 			return nil, fmt.Errorf("invalid HTML template: %w", err)
 		}
 		return tpl, nil
+	case resource.ValidateResourceView:
+		for _, resrc := range resources {
+			tpl := htmltemplate.New(name)
+			tpl.Funcs(templateFuncMap)
+			_, err := tpl.Parse(string(resrc.Data))
+			if err != nil {
+				return nil, fmt.Errorf("invalid HTML template: %w", err)
+			}
+		}
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", view)
 	}
@@ -282,17 +300,25 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 }
 
 func viewTextTemplates(name string, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
-	bytes, err := viewTemplates(resources, view)
-	if err != nil {
-		return nil, err
-	}
 
 	switch view.(type) {
 	case resource.AppFileView:
+		bytes, err := viewTemplates(resources, view)
+		if err != nil {
+			return nil, err
+		}
 		return bytes, nil
 	case resource.EffectiveFileView:
+		bytes, err := viewTemplates(resources, view)
+		if err != nil {
+			return nil, err
+		}
 		return bytes, nil
 	case resource.EffectiveResourceView:
+		bytes, err := viewTemplates(resources, view)
+		if err != nil {
+			return nil, err
+		}
 		tpl := texttemplate.New(name)
 		tpl.Funcs(templateFuncMap)
 		_, err = tpl.Parse(string(bytes.([]byte)))
@@ -300,6 +326,16 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, view reso
 			return nil, fmt.Errorf("invalid text template: %w", err)
 		}
 		return tpl, nil
+	case resource.ValidateResourceView:
+		for _, resrc := range resources {
+			tpl := texttemplate.New(name)
+			tpl.Funcs(templateFuncMap)
+			_, err := tpl.Parse(string(resrc.Data))
+			if err != nil {
+				return nil, fmt.Errorf("invalid text template: %w", err)
+			}
+		}
+		return nil, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", view)
 	}

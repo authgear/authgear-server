@@ -71,6 +71,8 @@ func (d SimpleDescriptor) ViewResources(resources []ResourceFile, rawView View) 
 		return d.viewResources(resources)
 	case EffectiveResourceView:
 		return d.viewResources(resources)
+	case ValidateResourceView:
+		return d.viewResources(resources)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -133,6 +135,15 @@ func (d NewlineJoinedDescriptor) ViewResources(resources []ResourceFile, rawView
 	case EffectiveFileView:
 		return d.viewResources(resources)
 	case EffectiveResourceView:
+		bytes, err := d.viewResources(resources)
+		if err != nil {
+			return nil, err
+		}
+		if d.Parse == nil {
+			return bytes, nil
+		}
+		return d.Parse(bytes)
+	case ValidateResourceView:
 		bytes, err := d.viewResources(resources)
 		if err != nil {
 			return nil, err

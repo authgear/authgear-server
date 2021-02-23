@@ -101,10 +101,12 @@ func (a ImageDescriptor) ViewResources(resources []resource.ResourceFile, rawVie
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return a.viewAppFile(resources, view)
-	case resource.EffectiveResourceView:
-		return a.viewEffectiveResource(resources, view)
 	case resource.EffectiveFileView:
 		return a.viewEffectiveFile(resources, view)
+	case resource.EffectiveResourceView:
+		return a.viewEffectiveResource(resources, view)
+	case resource.ValidateResourceView:
+		return a.viewValidateResource(resources, view)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -115,6 +117,42 @@ func (a ImageDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byt
 		Location: resrc.Location,
 		Data:     data,
 	}, nil
+}
+
+func (a ImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+	images := make(map[string]template.LanguageItem)
+	for _, resrc := range resources {
+		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		images[languageTag] = languageImage{
+			languageTag: languageTag,
+			data:        resrc.Data,
+		}
+	}
+
+	// Ensure there is at most one resource
+	// For each Fs and for each locale, remember how many paths we have seen.
+	seen := make(map[resource.Fs]map[string][]string)
+	for _, resrc := range resources {
+		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		m, ok := seen[resrc.Location.Fs]
+		if !ok {
+			m = make(map[string][]string)
+			seen[resrc.Location.Fs] = m
+		}
+		paths := m[languageTag]
+		paths = append(paths, resrc.Location.Path)
+		m[languageTag] = paths
+	}
+	for _, m := range seen {
+		for _, paths := range m {
+			if len(paths) > 1 {
+				sort.Strings(paths)
+				return nil, fmt.Errorf("duplicate resource: %v", paths)
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
