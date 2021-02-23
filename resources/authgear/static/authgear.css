@@ -226,6 +226,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 6px;
 }
 
+.margin-h-8 {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
 .margin-h-10 {
   margin-left: 10px;
   margin-right: 10px;

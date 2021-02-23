@@ -2775,8 +2775,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -3290,8 +3292,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -3805,8 +3809,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -4320,8 +4326,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -4828,8 +4836,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -5339,8 +5349,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -5851,8 +5863,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -6360,8 +6374,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -6868,8 +6884,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -7377,8 +7395,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -7887,8 +7907,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -8395,8 +8417,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -8903,8 +8927,10 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -9411,8 +9437,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -9919,8 +9947,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -10427,8 +10457,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -10935,8 +10967,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -11444,8 +11478,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -11952,8 +11988,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -12465,8 +12503,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -12973,8 +13013,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -13482,8 +13524,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -13990,8 +14034,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -14033,8 +14079,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
-		UIConfig:          uiConfig,
 		Authentication:    authenticationConfig,
+		OAuth:             oAuthConfig,
+		UIConfig:          uiConfig,
 		Identities:        serviceService,
 		Verification:      verificationService,
 		Authenticators:    service3,
@@ -14514,8 +14561,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -15026,8 +15075,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -15539,8 +15590,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -16050,8 +16103,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -16561,8 +16616,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -17073,8 +17130,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -17588,8 +17647,10 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -18097,8 +18158,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -18606,8 +18669,10 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -18654,6 +18719,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	trustProxy := environmentConfig.TrustProxy
 	config := appProvider.Config
 	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -18973,6 +19039,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -18989,6 +19056,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	logoutHandler := &webapp2.LogoutHandler{
 		Database:       handle,
 		TrustProxy:     trustProxy,
+		OAuth:          oAuthConfig,
 		UIConfig:       uiConfig,
 		SessionManager: manager2,
 		BaseViewModel:  baseViewModeler,
@@ -19478,8 +19546,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -19582,6 +19652,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	appConfig := config.AppConfig
+	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
@@ -19623,6 +19694,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	clockClock := _wireSystemClockValue
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
 		StaticAssets:   staticAssetResolver,
 		ForgotPassword: forgotPasswordConfig,
@@ -20080,6 +20152,19 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 		CookieFactory: cookieFactory,
 	}
 	return uiLocalesMiddleware
+}
+
+func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	clientIDMiddleware := &webapp.ClientIDMiddleware{
+		CookieFactory: cookieFactory,
+	}
+	return clientIDMiddleware
 }
 
 func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Middleware {

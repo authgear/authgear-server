@@ -342,24 +342,20 @@ config:
         min_length: 0
 
 ---
-name: invalid-home-uri
+name: invalid-default-uris
 error: |-
   invalid configuration:
-  /ui/home_uri: format
+  /ui/default_client_uri: format
+    map[error:input URL must be absolute format:uri]
+  /ui/default_post_logout_redirect_uri: format
+    map[error:input URL must be absolute format:uri]
+  /ui/default_redirect_uri: format
     map[error:input URL must be absolute format:uri]
 config:
   id: test
   http:
     public_origin: http://test
   ui:
-    home_uri: nonsense
-
----
-name: valid-home-uri
-error: null
-config:
-  id: test
-  http:
-    public_origin: http://test
-  ui:
-    home_uri: http://test
+    default_client_uri: nonsense
+    default_redirect_uri: nonsense
+    default_post_logout_redirect_uri: nonsense

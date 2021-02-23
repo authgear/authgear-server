@@ -185,7 +185,7 @@ func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Sessi
 		o.KeepAfterFinish = opts.KeepAfterFinish
 	} else {
 		if o.RedirectURI == "" {
-			o.RedirectURI = webapp.DefaultRedirectURI(c.UIConfig)
+			o.RedirectURI = webapp.DefaultPostLoginRedirectURI(c.UIConfig)
 		}
 	}
 	o.UpdatedAt = now
