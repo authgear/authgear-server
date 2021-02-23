@@ -95,8 +95,10 @@
 }
 
 .banner {
-  height: 90px;
+  height: 55px;
   width: initial;
+  // stylelint-disable-next-line shorthand-property-no-redundant-values
+  margin: 16px 16px;
 }
 
 .primaryTxt {
@@ -114,7 +116,7 @@
   border-radius: 0;
   border-bottom-style: solid;
   border-bottom-width: 1px;
-  // stylelint-disable-next-line
+  // stylelint-disable-next-line declaration-block-no-redundant-longhand-properties
   border-bottom-color: var(--color-text-shaded-3);
 }
 
