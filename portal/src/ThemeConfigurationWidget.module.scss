@@ -1,6 +1,14 @@
 .root {
   padding: 10px;
-  max-width: 635px;
+  max-width: 672px;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
 }
 
 .rootSection {
@@ -25,12 +33,32 @@
   font-weight: 700;
 }
 
+.leftSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.presetSection {
+  align-self: flex-start;
+  margin: 10px;
+}
+
+.presetWidget {
+  margin: 10px 0;
+}
+
+.presetTitle {
+  margin: 10px 0;
+  display: block;
+  font-weight: 600;
+}
+
 .colorControlSection {
-  max-width: 350px;
+  margin: 10px;
 }
 
 .colorControlTitle {
-  margin: 10px;
+  margin: 10px 0;
   display: block;
   font-weight: 600;
 }
@@ -43,13 +71,17 @@
 }
 
 .colorControlLabel {
-  margin: 10px;
+  margin: 0;
   padding: 0;
+}
+
+.colorPicker {
+  margin: 0 -4px;
 }
 
 .previewSection {
   width: 223px;
-  margin: 0 10px 10px 0;
+  margin: 10px;
 }
 
 .previewContainer {

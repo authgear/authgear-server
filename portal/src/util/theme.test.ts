@@ -6,9 +6,23 @@ import {
   getDarkTheme,
   lightThemeToCSS,
   darkThemeToCSS,
-  DEFAULT_LIGHT_THEME,
-  DEFAULT_DARK_THEME,
+  LightTheme,
+  DarkTheme,
 } from "./theme";
+
+const DEFAULT_LIGHT_THEME: LightTheme = {
+  isDarkTheme: false,
+  primaryColor: "#176df3",
+  textColor: "#000000",
+  backgroundColor: "#ffffff",
+};
+
+const DEFAULT_DARK_THEME: DarkTheme = {
+  isDarkTheme: true,
+  primaryColor: "#317BF4",
+  textColor: "#ffffff",
+  backgroundColor: "#000000",
+};
 
 describe("getShades", () => {
   it("gives the same result as https://fabricweb.z5.web.core.windows.net/pr-deploy-site/refs/heads/master/theming-designer/index.html does", () => {
@@ -100,9 +114,10 @@ describe("getLightTheme", () => {
     const root = parse(CSS);
     const actual = getLightTheme(root.nodes);
     expect(actual).toEqual({
-      lightModePrimaryColor: "#176df3",
-      lightModeTextColor: "#000000",
-      lightModeBackgroundColor: "#ffffff",
+      isDarkTheme: false,
+      primaryColor: "#176df3",
+      textColor: "#000000",
+      backgroundColor: "#ffffff",
     });
   });
 
@@ -117,9 +132,10 @@ describe("getDarkTheme", () => {
     const root = parse(CSS);
     const actual = getDarkTheme(root.nodes);
     expect(actual).toEqual({
-      darkModePrimaryColor: "#317BF4",
-      darkModeTextColor: "#ffffff",
-      darkModeBackgroundColor: "#000000",
+      isDarkTheme: true,
+      primaryColor: "#317BF4",
+      textColor: "#ffffff",
+      backgroundColor: "#000000",
     });
   });
 
