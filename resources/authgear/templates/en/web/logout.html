@@ -4,11 +4,12 @@
 <body class="page">
 <main class="content">
 
-{{ template "__header.html" . }}
 
 {{ template "__nav_bar.html" }}
 
-<section class="pane">
+<div class="pane margin-6 flex flex-direction-column">
+{{ template "__header.html" . }}
+<div class="padding-6 flex flex-direction-column">
   <section class="margin-h-14 padding-v-10 gap-8 row-sep grid grid-title-action">
     <h2 class="grid-area-title font-inherit primary-txt">
       {{ template "logout-button-hint" }}
@@ -19,7 +20,9 @@
       <button class="btn secondary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
     </form>
   </section>
-</section>
+
+</div>
+</div>
 
 </main>
 </body>

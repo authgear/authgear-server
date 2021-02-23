@@ -3,14 +3,13 @@
 {{ template "__html_head.html" . }}
 <body class="page">
 <div class="content">
-
-{{ template "__header.html" . }}
-
 {{ template "__nav_bar.html" }}
 
 {{ template "__error.html" . }}
 
-<div class="pane flex flex-direction-column">
+<div class="pane margin-6 flex flex-direction-column">
+{{ template "__header.html" . }}
+<div class="padding-6 flex flex-direction-column">
 
 {{ if $.OOBOTPChannel }}
 {{ if eq $.OOBOTPChannel "sms" }}
@@ -36,6 +35,7 @@
 {{ template "__alternatives.html" . }}
 </div>
 
+</div>
 </div>
 
 </div>

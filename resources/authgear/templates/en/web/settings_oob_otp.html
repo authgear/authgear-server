@@ -3,14 +3,13 @@
 {{ template "__html_head.html" . }}
 <body class="page">
 <main class="content">
-
-{{ template "__header.html" . }}
-
 {{ template "__nav_bar.html" }}
 
 {{ template "__error.html" . }}
 
-<section class="pane">
+<div class="pane margin-6 flex flex-direction-column">
+{{ template "__header.html" . }}
+<div class="padding-6 flex flex-direction-column">
   <section class="margin-h-14 padding-v-10 row-sep">
     <h1 class="font-inherit margin-0 primary-txt">
       {{ template "settings-oob-otp-title" }}
@@ -50,7 +49,9 @@
       </button>
     </form>
   </section>
-</section>
+
+</div>
+</div>
 
 </main>
 </body>

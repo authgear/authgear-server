@@ -437,23 +437,27 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
 }
 
+.banner-frame {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .banner {
-  /* The banner is intended to be fixed height */
-  display: block;
   height: 90px;
-  margin: 6px;
-  background-position: center;
-  background-size: auto 100%;
-  background-repeat: no-repeat;
-  border-radius: 4px;
+  width: initial;
 }
 
 .pane {
   background-color: var(--color-pane-background);
   box-shadow: 0px 3px 8px var(--color-pane-shadow);
   border-radius: 6px;
-  padding: 6px;
-  margin: 6px;
+}
+.pane > :first-child {
+  border-radius: 6px 6px 0 0;
+}
+.pane > :last-child {
+  border-radius: 0 0 6px 6px;
 }
 
 .nav-bar {

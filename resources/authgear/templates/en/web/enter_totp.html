@@ -3,14 +3,13 @@
 {{ template "__html_head.html" . }}
 <body class="page">
 <div class="content">
-
-{{ template "__header.html" . }}
-
 {{ template "__nav_bar.html" }}
 
 {{ template "__error.html" . }}
 
-<div class="pane flex flex-direction-column padding-6">
+<div class="pane margin-6 flex flex-direction-column">
+{{ template "__header.html" . }}
+<div class="padding-6 flex flex-direction-column">
 
 <h1 class="font-inherit margin-10 primary-txt">{{ template "enter-totp-title" }}</h1>
 
@@ -47,6 +46,7 @@
 {{ template "__alternatives.html" . }}
 </div>
 
+</div>
 </div>
 
 </div>

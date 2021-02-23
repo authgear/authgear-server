@@ -114,7 +114,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .banner {
+  .banner-frame {
     background-color: var(--color-text-unshaded);
   }
 }
