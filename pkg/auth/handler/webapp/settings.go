@@ -78,7 +78,8 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 		return nil, err
 	}
 	totp := false
-	oobotp := false
+	oobotpemail := false
+	oobotpsms := false
 	password := false
 	for _, typ := range h.Authentication.SecondaryAuthenticators {
 		switch typ {
@@ -86,15 +87,18 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 			password = true
 		case authn.AuthenticatorTypeTOTP:
 			totp = true
-		case authn.AuthenticatorTypeOOB:
-			oobotp = true
+		case authn.AuthenticatorTypeOOBEmail:
+			oobotpemail = true
+		case authn.AuthenticatorTypeOOBSMS:
+			oobotpsms = true
 		}
 	}
 	mfaViewModel := SettingsMFAViewModel{
-		Authenticators:           authenticators,
-		SecondaryTOTPAllowed:     totp,
-		SecondaryOOBOTPAllowed:   oobotp,
-		SecondaryPasswordAllowed: password,
+		Authenticators:              authenticators,
+		SecondaryTOTPAllowed:        totp,
+		SecondaryOOBOTPEmailAllowed: oobotpemail,
+		SecondaryOOBOTPSMSAllowed:   oobotpsms,
+		SecondaryPasswordAllowed:    password,
 	}
 	viewmodels.Embed(data, mfaViewModel)
 

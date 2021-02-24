@@ -6,8 +6,6 @@ const (
 )
 
 const (
-	// AuthenticatorClaimOOBOTPChannelType is a claim with string value for OOB OTP channel type.
-	AuthenticatorClaimOOBOTPChannelType string = "https://authgear.com/claims/oob_otp/channel_type"
 	// AuthenticatorClaimOOBOTPEmail is a claim with string value for OOB OTP email channel.
 	AuthenticatorClaimOOBOTPEmail string = "https://authgear.com/claims/oob_otp/email"
 	// AuthenticatorClaimOOBOTPPhone is a claim with string value for OOB OTP phone channel.

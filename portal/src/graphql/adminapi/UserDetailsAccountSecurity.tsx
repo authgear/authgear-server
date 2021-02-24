@@ -22,8 +22,12 @@ import styles from "./UserDetailsAccountSecurity.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
 // authenticator type recognized by portal
-type PrimaryAuthenticatorType = "PASSWORD" | "OOB_OTP";
-type SecondaryAuthenticatorType = "PASSWORD" | "TOTP" | "OOB_OTP";
+type PrimaryAuthenticatorType = "PASSWORD" | "OOB_OTP_EMAIL" | "OOB_OTP_SMS";
+type SecondaryAuthenticatorType =
+  | "PASSWORD"
+  | "TOTP"
+  | "OOB_OTP_EMAIL"
+  | "OOB_OTP_SMS";
 type AuthenticatorType = PrimaryAuthenticatorType | SecondaryAuthenticatorType;
 
 type AuthenticatorKind = "PRIMARY" | "SECONDARY";
@@ -32,7 +36,6 @@ type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
 interface AuthenticatorClaims {
   "https://authgear.com/claims/totp/display_name"?: string;
-  "https://authgear.com/claims/oob_otp/channel_type"?: string;
   "https://authgear.com/claims/oob_otp/email"?: string;
   "https://authgear.com/claims/oob_otp/phone"?: string;
 }
@@ -113,7 +116,8 @@ const primaryAuthenticatorTypeLocaleKeyMap: {
   [key in AuthenticatorType]?: string;
 } = {
   PASSWORD: "AuthenticatorType.primary.password",
-  OOB_OTP: "AuthenticatorType.primary.oob-otp",
+  OOB_OTP_EMAIL: "AuthenticatorType.primary.oob-otp-email",
+  OOB_OTP_SMS: "AuthenticatorType.primary.oob-otp-sms",
 };
 
 const secondaryAuthenticatorTypeLocaleKeyMap: {
@@ -121,7 +125,8 @@ const secondaryAuthenticatorTypeLocaleKeyMap: {
 } = {
   PASSWORD: "AuthenticatorType.secondary.password",
   TOTP: "AuthenticatorType.secondary.totp",
-  OOB_OTP: "AuthenticatorType.secondary.oob-otp",
+  OOB_OTP_EMAIL: "AuthenticatorType.secondary.oob-otp-email",
+  OOB_OTP_SMS: "AuthenticatorType.secondary.oob-otp-sms",
 };
 
 function getLocaleKeyWithAuthenticatorType(
@@ -178,12 +183,10 @@ function constructTotpAuthenticatorData(
 function getOobOtpVerificationMethod(
   authenticator: Authenticator
 ): OOBOTPVerificationMethod {
-  switch (
-    authenticator.claims["https://authgear.com/claims/oob_otp/channel_type"]
-  ) {
-    case "email":
+  switch (authenticator.type) {
+    case "OOB_OTP_EMAIL":
       return "email";
-    case "phone":
+    case "OOB_OTP_SMS":
       return "phone";
     default:
       return "unknown";
@@ -240,7 +243,8 @@ function constructAuthenticatorLists(
   locale: string
 ) {
   const passwordAuthenticatorList: PasswordAuthenticatorData[] = [];
-  const oobOtpAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+  const oobOtpEmailAuthenticatorList: OOBOTPAuthenticatorData[] = [];
+  const oobOtpSMSAuthenticatorList: OOBOTPAuthenticatorData[] = [];
   const totpAuthenticatorList: TOTPAuthenticatorData[] = [];
 
   const filteredAuthenticators = authenticators.filter((a) => a.kind === kind);
@@ -252,8 +256,13 @@ function constructAuthenticatorLists(
           constructPasswordAuthenticatorData(authenticator, locale)
         );
         break;
-      case "OOB_OTP":
-        oobOtpAuthenticatorList.push(
+      case "OOB_OTP_EMAIL":
+        oobOtpEmailAuthenticatorList.push(
+          constructOobOtpAuthenticatorData(authenticator, locale)
+        );
+        break;
+      case "OOB_OTP_SMS":
+        oobOtpSMSAuthenticatorList.push(
           constructOobOtpAuthenticatorData(authenticator, locale)
         );
         break;
@@ -273,19 +282,23 @@ function constructAuthenticatorLists(
   return kind === "PRIMARY"
     ? {
         password: passwordAuthenticatorList,
-        oobOtp: oobOtpAuthenticatorList,
+        oobOtpEmail: oobOtpEmailAuthenticatorList,
+        oobOtpSMS: oobOtpSMSAuthenticatorList,
         hasVisibleList: [
           passwordAuthenticatorList,
-          oobOtpAuthenticatorList,
+          oobOtpEmailAuthenticatorList,
+          oobOtpSMSAuthenticatorList,
         ].some((list) => list.length > 0),
       }
     : {
         password: passwordAuthenticatorList,
-        oobOtp: oobOtpAuthenticatorList,
+        oobOtpEmail: oobOtpEmailAuthenticatorList,
+        oobOtpSMS: oobOtpSMSAuthenticatorList,
         totp: totpAuthenticatorList,
         hasVisibleList: [
           passwordAuthenticatorList,
-          oobOtpAuthenticatorList,
+          oobOtpEmailAuthenticatorList,
+          oobOtpSMSAuthenticatorList,
           totpAuthenticatorList,
         ].some((list) => list.length > 0),
       };
@@ -488,6 +501,7 @@ const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> = function
   );
 };
 
+// eslint-disable-next-line complexity
 const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = function UserDetailsAccountSecurity(
   props: UserDetailsAccountSecurityProps
 ) {
@@ -618,17 +632,32 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
               onRenderCell={onRenderPasswordAuthenticatorDetailCell}
             />
           )}
-          {primaryAuthenticatorLists.oobOtp.length > 0 && (
+          {primaryAuthenticatorLists.oobOtpEmail.length > 0 && (
             <>
               <Text
                 as="h3"
                 className={cn(styles.header, styles.authenticatorTypeHeader)}
               >
-                <FormattedMessage id="AuthenticatorType.primary.oob-otp" />
+                <FormattedMessage id="AuthenticatorType.primary.oob-otp-email" />
               </Text>
               <List
                 className={cn(styles.list, styles.oobOtpList)}
-                items={primaryAuthenticatorLists.oobOtp}
+                items={primaryAuthenticatorLists.oobOtpEmail}
+                onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+              />
+            </>
+          )}
+          {primaryAuthenticatorLists.oobOtpSMS.length > 0 && (
+            <>
+              <Text
+                as="h3"
+                className={cn(styles.header, styles.authenticatorTypeHeader)}
+              >
+                <FormattedMessage id="AuthenticatorType.primary.oob-otp-sms" />
+              </Text>
+              <List
+                className={cn(styles.list, styles.oobOtpList)}
+                items={primaryAuthenticatorLists.oobOtpSMS}
                 onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
               />
             </>
@@ -659,17 +688,32 @@ const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = fu
                 />
               </>
             )}
-          {secondaryAuthenticatorLists.oobOtp.length > 0 && (
+          {secondaryAuthenticatorLists.oobOtpEmail.length > 0 && (
             <>
               <Text
                 as="h3"
                 className={cn(styles.header, styles.authenticatorTypeHeader)}
               >
-                <FormattedMessage id="AuthenticatorType.secondary.oob-otp" />
+                <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
               </Text>
               <List
                 className={cn(styles.list, styles.oobOtpList)}
-                items={secondaryAuthenticatorLists.oobOtp}
+                items={secondaryAuthenticatorLists.oobOtpEmail}
+                onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+              />
+            </>
+          )}
+          {secondaryAuthenticatorLists.oobOtpSMS.length > 0 && (
+            <>
+              <Text
+                as="h3"
+                className={cn(styles.header, styles.authenticatorTypeHeader)}
+              >
+                <FormattedMessage id="AuthenticatorType.secondary.oob-otp-sms" />
+              </Text>
+              <List
+                className={cn(styles.list, styles.oobOtpList)}
+                items={secondaryAuthenticatorLists.oobOtpSMS}
                 onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
               />
             </>

@@ -115,19 +115,28 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	for i, it := range c.Authentication.Identities {
 		hasPrimaryAuth := true
+		var loginIDKeyType LoginIDKeyType
 		switch it {
 		case authn.IdentityTypeLoginID:
 			_, hasPassword := authenticatorTypes[authn.AuthenticatorTypePassword]
-			_, hasOOB := authenticatorTypes[authn.AuthenticatorTypeOOB]
+			_, hasOOBEmail := authenticatorTypes[authn.AuthenticatorTypeOOBEmail]
+			_, hasOOBSMS := authenticatorTypes[authn.AuthenticatorTypeOOBSMS]
 			for _, k := range c.Identity.LoginID.Keys {
 				switch k.Type {
-				case LoginIDKeyTypeEmail, LoginIDKeyTypePhone:
-					if !hasPassword && !hasOOB {
+				case LoginIDKeyTypeEmail:
+					if !hasPassword && !hasOOBEmail {
 						hasPrimaryAuth = false
+						loginIDKeyType = k.Type
+					}
+				case LoginIDKeyTypePhone:
+					if !hasPassword && !hasOOBSMS {
+						hasPrimaryAuth = false
+						loginIDKeyType = k.Type
 					}
 				case LoginIDKeyTypeUsername:
 					if !hasPassword {
 						hasPrimaryAuth = false
+						loginIDKeyType = k.Type
 					}
 				}
 			}
@@ -138,7 +147,10 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 		if !hasPrimaryAuth {
 			ctx.Child("authentication", "identities", strconv.Itoa(i)).
-				EmitErrorMessage("no usable primary authenticator is enabled")
+				EmitError(
+					"noPrimaryAuthenticator",
+					map[string]interface{}{"login_id_type": loginIDKeyType},
+				)
 		}
 	}
 

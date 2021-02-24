@@ -58,18 +58,10 @@ func (i *Info) AMR() []string {
 		return []string{authn.AMRPWD}
 	case authn.AuthenticatorTypeTOTP:
 		return []string{authn.AMROTP}
-	case authn.AuthenticatorTypeOOB:
-		out := []string{authn.AMROTP}
-		channel := i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
-		switch authn.AuthenticatorOOBChannel(channel) {
-		case authn.AuthenticatorOOBChannelSMS:
-			out = append(out, authn.AMRSMS)
-		case authn.AuthenticatorOOBChannelEmail:
-			break
-		default:
-			panic("authenticator: unknown OOB channel: " + channel)
-		}
-		return out
+	case authn.AuthenticatorTypeOOBEmail:
+		return []string{authn.AMROTP}
+	case authn.AuthenticatorTypeOOBSMS:
+		return []string{authn.AMROTP, authn.AMRSMS}
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
 	}
@@ -95,31 +87,24 @@ func (i *Info) Equal(that *Info) bool {
 		}
 
 		return subtle.ConstantTimeCompare([]byte(i.Secret), []byte(that.Secret)) == 1
-	case authn.AuthenticatorTypeOOB:
+	case authn.AuthenticatorTypeOOBEmail:
 		// If they are OOB, they have the same channel, target, and primary/secondary tag.
 		if i.Kind != that.Kind {
 			return false
 		}
 
-		iChannel := i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
-		thatChannel := that.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
-		if iChannel != thatChannel {
+		iEmail := i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+		thatEmail := that.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+		return iEmail == thatEmail
+	case authn.AuthenticatorTypeOOBSMS:
+		// If they are OOB, they have the same channel, target, and primary/secondary tag.
+		if i.Kind != that.Kind {
 			return false
 		}
 
-		switch authn.AuthenticatorOOBChannel(iChannel) {
-		case authn.AuthenticatorOOBChannelEmail:
-			iEmail := i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
-			thatEmail := that.Claims[AuthenticatorClaimOOBOTPEmail].(string)
-			return iEmail == thatEmail
-		case authn.AuthenticatorOOBChannelSMS:
-			// Interesting identifier :)
-			iPhone := i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
-			thatPhone := that.Claims[AuthenticatorClaimOOBOTPPhone].(string)
-			return iPhone == thatPhone
-		default:
-			panic("authenticator: unknown OOB channel: " + iChannel)
-		}
+		iPhone := i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
+		thatPhone := that.Claims[AuthenticatorClaimOOBOTPPhone].(string)
+		return iPhone == thatPhone
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
 	}
@@ -132,16 +117,10 @@ func (i *Info) StandardClaims() map[authn.ClaimName]string {
 		break
 	case authn.AuthenticatorTypeTOTP:
 		break
-	case authn.AuthenticatorTypeOOB:
-		channel := i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)
-		switch authn.AuthenticatorOOBChannel(i.Claims[AuthenticatorClaimOOBOTPChannelType].(string)) {
-		case authn.AuthenticatorOOBChannelEmail:
-			claims[authn.ClaimEmail] = i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
-		case authn.AuthenticatorOOBChannelSMS:
-			claims[authn.ClaimPhoneNumber] = i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
-		default:
-			panic("authenticator: unknown OOB channel: " + channel)
-		}
+	case authn.AuthenticatorTypeOOBEmail:
+		claims[authn.ClaimEmail] = i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+	case authn.AuthenticatorTypeOOBSMS:
+		claims[authn.ClaimPhoneNumber] = i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}

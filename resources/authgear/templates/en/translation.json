@@ -178,7 +178,8 @@
   "settings-page-primary-oob-otp-title--email": "Passwordless via Email",
   "settings-page-primary-oob-otp-description": "Added at {time, datetime, long}",
   "settings-page-secondary-totp-title": "Authenticator Apps / Devices",
-  "settings-page-secondary-oob-otp-title": "Verification code via SMS / Email",
+  "settings-page-secondary-oob-otp-email-title": "Verification code via Email",
+  "settings-page-secondary-oob-otp-sms-title": "Verification code via SMS",
   "settings-page-secondary-password-title": "Additional Password",
   "settings-page-secondary-password-description": "Last updated at {time, datetime, long}",
   "settings-page-recovery-code-title": "Recovery Code",
@@ -212,7 +213,8 @@
   "settings-sessions-revoke-label": "Terminate",
   "settings-sessions-revoke-all-label": "Terminate all other sessions",
 
-  "settings-oob-otp-title": "Channels for receiving verification code via SMS / Email",
+  "settings-oob-otp-email-title": "Channels for receiving verification code via Email",
+  "settings-oob-otp-sms-title": "Channels for receiving verification code via SMS",
   "settings-oob-otp-item-description": "Added at {time, datetime, long}",
 
   "enter-login-id-page-title--change": "Change your {key}",
@@ -220,18 +222,17 @@
   "enter-login-id-page-description--change": "Your current {key} is <b>{displayID}</b>. Please enter your new {key}.",
 
   "setup-totp-instead": "Setup authenticator app / device instead",
-  "setup-oob-otp-instead": "Setup SMS / email 2-step verification instead",
+  "setup-oob-otp-email-instead": "Setup email 2-step verification instead",
+  "setup-oob-otp-sms-instead": "Setup SMS 2-step verification instead",
   "setup-password-instead": "Setup password instead",
   "enter-totp-instead": "Enter 6-digit authenticator code instead",
   "enter-password-instead": "Enter password instead",
   "enter-recovery-code-instead": "Enter recovery code instead",
-  "enter-oob-otp-instead": "Send code to {target} instead",
+  "enter-oob-otp-email-instead": "Send code to {target} instead via Email",
+  "enter-oob-otp-sms-instead": "Send code to {target} instead via SMS",
 
   "setup-oob-otp-title--sms": "Setup SMS 2-step verification",
   "setup-oob-otp-title--email": "Setup email 2-step verification",
-
-  "setup-oob-otp-use-phone-description": "Setup SMS 2-step verification instead",
-  "setup-oob-otp-use-email-description": "Setup email 2-step verification instead",
 
   "setup-totp-title": "Setup authenticator",
   "setup-totp-code-placeholder": "code",

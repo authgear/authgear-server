@@ -28,12 +28,13 @@ func ConfigureSettingsMFARoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsMFAViewModel struct {
-	Authenticators           []*authenticator.Info
-	SecondaryTOTPAllowed     bool
-	SecondaryOOBOTPAllowed   bool
-	SecondaryPasswordAllowed bool
-	HasDeviceTokens          bool
-	ListRecoveryCodesAllowed bool
+	Authenticators              []*authenticator.Info
+	SecondaryTOTPAllowed        bool
+	SecondaryOOBOTPEmailAllowed bool
+	SecondaryOOBOTPSMSAllowed   bool
+	SecondaryPasswordAllowed    bool
+	HasDeviceTokens             bool
+	ListRecoveryCodesAllowed    bool
 }
 
 type SettingsMFAService interface {
@@ -76,7 +77,8 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		totp := false
-		oobotp := false
+		oobotpemail := false
+		oobotpsms := false
 		password := false
 		for _, typ := range h.Authentication.SecondaryAuthenticators {
 			switch typ {
@@ -84,8 +86,10 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				password = true
 			case authn.AuthenticatorTypeTOTP:
 				totp = true
-			case authn.AuthenticatorTypeOOB:
-				oobotp = true
+			case authn.AuthenticatorTypeOOBEmail:
+				oobotpemail = true
+			case authn.AuthenticatorTypeOOBSMS:
+				oobotpsms = true
 			}
 		}
 
@@ -95,12 +99,13 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		viewModel := SettingsMFAViewModel{
-			Authenticators:           authenticators,
-			SecondaryTOTPAllowed:     totp,
-			SecondaryOOBOTPAllowed:   oobotp,
-			SecondaryPasswordAllowed: password,
-			HasDeviceTokens:          hasDeviceTokens,
-			ListRecoveryCodesAllowed: h.Authentication.RecoveryCode.ListEnabled,
+			Authenticators:              authenticators,
+			SecondaryTOTPAllowed:        totp,
+			SecondaryOOBOTPEmailAllowed: oobotpemail,
+			SecondaryOOBOTPSMSAllowed:   oobotpsms,
+			SecondaryPasswordAllowed:    password,
+			HasDeviceTokens:             hasDeviceTokens,
+			ListRecoveryCodesAllowed:    h.Authentication.RecoveryCode.ListEnabled,
 		}
 		viewmodels.Embed(data, viewModel)
 
@@ -181,14 +186,36 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("add_secondary_oob_otp", func() error {
+	ctrl.PostAction("add_secondary_oob_otp_email", func() error {
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
 			interaction.AuthenticationStageSecondary,
-			authn.AuthenticatorTypeOOB,
+			authn.AuthenticatorTypeOOBEmail,
+		)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			input = &InputCreateAuthenticator{}
+			return
+		})
+		if err != nil {
+			return err
+		}
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("add_secondary_oob_otp_sms", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		intent := intents.NewIntentAddAuthenticator(
+			userID,
+			interaction.AuthenticationStageSecondary,
+			authn.AuthenticatorTypeOOBSMS,
 		)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {

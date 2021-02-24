@@ -13,7 +13,8 @@ export enum AuthenticatorKind {
 }
 
 export enum AuthenticatorType {
-  OOB_OTP = "OOB_OTP",
+  OOB_OTP_EMAIL = "OOB_OTP_EMAIL",
+  OOB_OTP_SMS = "OOB_OTP_SMS",
   PASSWORD = "PASSWORD",
   TOTP = "TOTP",
 }

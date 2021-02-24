@@ -53,6 +53,7 @@ const errorCauseMessageIDs = {
   maximum: "errors.validation.maximum",
   minLength: "errors.validation.minLength",
   maxLength: "errors.validation.maxLength",
+  noPrimaryAuthenticator: "errors.validation.noPrimaryAuthenticator",
 };
 
 function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {

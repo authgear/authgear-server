@@ -11,12 +11,14 @@ func init() {
 }
 
 type InputAuthenticationOOBTrigger interface {
+	GetOOBAuthenticatorType() string
 	GetOOBAuthenticatorIndex() int
 }
 
 type EdgeAuthenticationOOBTrigger struct {
-	Stage          interaction.AuthenticationStage
-	Authenticators []*authenticator.Info
+	Stage                interaction.AuthenticationStage
+	OOBAuthenticatorType authn.AuthenticatorType
+	Authenticators       []*authenticator.Info
 }
 
 func (e *EdgeAuthenticationOOBTrigger) getAuthenticator(idx int) (*authenticator.Info, error) {
@@ -28,7 +30,7 @@ func (e *EdgeAuthenticationOOBTrigger) getAuthenticator(idx int) (*authenticator
 }
 
 func (e *EdgeAuthenticationOOBTrigger) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeOOB
+	return e.OOBAuthenticatorType
 }
 
 func (e *EdgeAuthenticationOOBTrigger) IsDefaultAuthenticator() bool {
@@ -42,28 +44,44 @@ func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPTarget(idx int) string {
 		return ""
 	}
 
-	channel := authn.AuthenticatorOOBChannel(info.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string))
 	var target string
-	switch channel {
-	case authn.AuthenticatorOOBChannelSMS:
+	switch info.Type {
+	case authn.AuthenticatorTypeOOBSMS:
 		target = info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
-	case authn.AuthenticatorOOBChannelEmail:
+	case authn.AuthenticatorTypeOOBEmail:
 		target = info.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+	default:
+		panic("interaction: incompatible authenticator type for oob: " + info.Type)
 	}
 	return target
 }
 
-func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPChannel(idx int) string {
+func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPChannel(idx int) authn.AuthenticatorOOBChannel {
 	info, err := e.getAuthenticator(idx)
 	if err != nil {
 		return ""
 	}
-	return info.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
+	switch info.Type {
+	case authn.AuthenticatorTypeOOBSMS:
+		return authn.AuthenticatorOOBChannelSMS
+	case authn.AuthenticatorTypeOOBEmail:
+		return authn.AuthenticatorOOBChannelEmail
+	default:
+		panic("interaction: incompatible authenticator type for oob: " + info.Type)
+	}
 }
 
 func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationOOBTrigger
 	if !interaction.Input(rawInput, &input) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
+	// It is possible that to have multiple EdgeAuthenticationOOBTrigger at the
+	// same time (e.g. email or sms), check the OOBAuthenticatorType in input
+	// to determine which authenticator we want to trigger
+	oobAuthenticatorType := input.GetOOBAuthenticatorType()
+	if authn.AuthenticatorType(oobAuthenticatorType) != e.OOBAuthenticatorType {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

@@ -165,7 +165,11 @@ export interface AuthenticatorConfig {
   totp?: Record<string, unknown>;
 }
 
-export const primaryAuthenticatorTypes = ["password", "oob_otp"] as const;
+export const primaryAuthenticatorTypes = [
+  "password",
+  "oob_otp_email",
+  "oob_otp_sms",
+] as const;
 export type PrimaryAuthenticatorType = typeof primaryAuthenticatorTypes[number];
 export function isPrimaryAuthenticatorType(
   type: any
@@ -175,7 +179,8 @@ export function isPrimaryAuthenticatorType(
 
 export const secondaryAuthenticatorTypes = [
   "password",
-  "oob_otp",
+  "oob_otp_email",
+  "oob_otp_sms",
   "totp",
 ] as const;
 export type SecondaryAuthenticatorType = typeof secondaryAuthenticatorTypes[number];

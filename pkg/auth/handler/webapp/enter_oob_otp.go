@@ -80,14 +80,26 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	alternatives := viewmodels.AlternativeStepsViewModel{}
 	switch currentNode.(type) {
 	case *nodes.NodeAuthenticationOOBTrigger:
-		err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthn)
-		if err != nil {
-			return nil, err
+		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
+		case authn.AuthenticatorOOBChannelEmail:
+			if err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthnEmail); err != nil {
+				return nil, err
+			}
+		case authn.AuthenticatorOOBChannelSMS:
+			if err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthnSMS); err != nil {
+				return nil, err
+			}
 		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
-		err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetup)
-		if err != nil {
-			return nil, err
+		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
+		case authn.AuthenticatorOOBChannelEmail:
+			if err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetupEmail); err != nil {
+				return nil, err
+			}
+		case authn.AuthenticatorOOBChannelSMS:
+			if err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetupSMS); err != nil {
+				return nil, err
+			}
 		}
 	default:
 		panic(fmt.Errorf("enter_oob_otp: unexpected node: %T", currentNode))

@@ -60,7 +60,10 @@ enum AuthenticatorKind {
 """"""
 enum AuthenticatorType {
   """"""
-  OOB_OTP
+  OOB_OTP_EMAIL
+
+  """"""
+  OOB_OTP_SMS
 
   """"""
   PASSWORD

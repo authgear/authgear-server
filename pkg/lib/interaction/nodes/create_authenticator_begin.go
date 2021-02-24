@@ -75,21 +75,23 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(graph *interaction.Graph) ([]
 	return n.deriveEdges()
 }
 
-// GetAllowedChannels implements SetupOOBOTPNode.
-func (n *NodeCreateAuthenticatorBegin) GetAllowedChannels() ([]authn.AuthenticatorOOBChannel, error) {
+// IsOOBAuthenticatorTypeAllowed implements SetupOOBOTPNode.
+func (n *NodeCreateAuthenticatorBegin) IsOOBAuthenticatorTypeAllowed(oobAuthenticatorType authn.AuthenticatorType) (bool, error) {
 	edges, err := n.deriveEdges()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 
 	for _, edge := range edges {
 		switch edge := edge.(type) {
 		case *EdgeCreateAuthenticatorOOBSetup:
-			return edge.AllowedChannels, nil
+			if edge.OOBAuthenticatorType == oobAuthenticatorType {
+				return true, nil
+			}
 		}
 	}
 
-	return nil, fmt.Errorf("interaction: expected to find EdgeCreateAuthenticatorOOBSetup")
+	return false, nil
 }
 
 // GetCreateAuthenticatorEdges implements CreateAuthenticatorBeginNode.
@@ -171,27 +173,33 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 				IsDefault: isDefault,
 			})
 
-		case authn.AuthenticatorTypeOOB:
+		case authn.AuthenticatorTypeOOBSMS:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
 
-			var channel authn.AuthenticatorOOBChannel
-			var target string
-			switch loginIDType {
-			case string(config.LoginIDKeyTypeEmail):
-				channel = authn.AuthenticatorOOBChannelEmail
-				target = loginID
-			case string(config.LoginIDKeyTypePhone):
-				channel = authn.AuthenticatorOOBChannelSMS
-				target = loginID
+			// check if identity login id type match oob type
+			if loginIDType == string(config.LoginIDKeyTypePhone) {
+				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+					Stage:                n.Stage,
+					IsDefault:            isDefault,
+					Target:               loginID,
+					Channel:              authn.AuthenticatorOOBChannelSMS,
+					OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
+				})
 			}
 
-			if target != "" {
+		case authn.AuthenticatorTypeOOBEmail:
+			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
+
+			// check if identity login id type match oob type
+			if loginIDType == string(config.LoginIDKeyTypeEmail) {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					Stage:     n.Stage,
-					IsDefault: isDefault,
-					Channel:   channel,
-					Target:    target,
+					Stage:                n.Stage,
+					IsDefault:            isDefault,
+					Target:               loginID,
+					Channel:              authn.AuthenticatorOOBChannelEmail,
+					OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
 				})
 			}
 		default:
@@ -269,16 +277,10 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 			passwordCount++
 		case authn.AuthenticatorTypeTOTP:
 			totpCount++
-		case authn.AuthenticatorTypeOOB:
-			channel := a.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
-			switch authn.AuthenticatorOOBChannel(channel) {
-			case authn.AuthenticatorOOBChannelEmail:
-				oobEmailCount++
-			case authn.AuthenticatorOOBChannelSMS:
-				oobSMSCount++
-			default:
-				panic("interaction: unknown OOB channel: " + channel)
-			}
+		case authn.AuthenticatorTypeOOBEmail:
+			oobEmailCount++
+		case authn.AuthenticatorTypeOOBSMS:
+			oobSMSCount++
 		default:
 			panic("interaction: unknown authenticator type: " + a.Type)
 		}
@@ -301,21 +303,22 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 					IsDefault: isDefault,
 				})
 			}
-		case authn.AuthenticatorTypeOOB:
-			var allowedChannels []authn.AuthenticatorOOBChannel
-			// Condition B and C.
-			if oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
-				allowedChannels = append(allowedChannels, authn.AuthenticatorOOBChannelSMS)
-			}
+		case authn.AuthenticatorTypeOOBEmail:
 			// Condition B and C.
 			if oobEmailCount < *n.AuthenticatorConfig.OOB.Email.Maximum {
-				allowedChannels = append(allowedChannels, authn.AuthenticatorOOBChannelEmail)
-			}
-			if len(allowedChannels) > 0 {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
-					Stage:           n.Stage,
-					IsDefault:       isDefault,
-					AllowedChannels: allowedChannels,
+					Stage:                n.Stage,
+					IsDefault:            isDefault,
+					OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
+				})
+			}
+		case authn.AuthenticatorTypeOOBSMS:
+			// Condition B and C.
+			if oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
+				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
+					Stage:                n.Stage,
+					IsDefault:            isDefault,
+					OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
 				})
 			}
 		default:

@@ -43,8 +43,6 @@ func sendOOBCode(
 ) (*otp.CodeSendResult, error) {
 	// TODO(interaction): handle rate limits
 
-	channel := authn.AuthenticatorOOBChannel(authenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string))
-
 	var messageType otp.MessageType
 	switch stage {
 	case interaction.AuthenticationStagePrimary:
@@ -63,12 +61,17 @@ func sendOOBCode(
 		panic("interaction: unknown authentication stage: " + stage)
 	}
 
+	var channel authn.AuthenticatorOOBChannel
 	var target string
-	switch channel {
-	case authn.AuthenticatorOOBChannelSMS:
+	switch authenticatorInfo.Type {
+	case authn.AuthenticatorTypeOOBSMS:
+		channel = authn.AuthenticatorOOBChannelSMS
 		target = authenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
-	case authn.AuthenticatorOOBChannelEmail:
+	case authn.AuthenticatorTypeOOBEmail:
+		channel = authn.AuthenticatorOOBChannelEmail
 		target = authenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+	default:
+		panic("interaction: incompatible authenticator type for sending oob code: " + authenticatorInfo.Type)
 	}
 
 	code, err := ctx.OOBAuthenticators.GetCode(authenticatorInfo.ID)

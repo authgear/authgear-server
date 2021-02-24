@@ -161,10 +161,15 @@ func (i *Info) PrimaryAuthenticatorTypes() []authn.AuthenticatorType {
 			return []authn.AuthenticatorType{
 				authn.AuthenticatorTypePassword,
 			}
-		case config.LoginIDKeyTypeEmail, config.LoginIDKeyTypePhone:
+		case config.LoginIDKeyTypeEmail:
 			return []authn.AuthenticatorType{
 				authn.AuthenticatorTypePassword,
-				authn.AuthenticatorTypeOOB,
+				authn.AuthenticatorTypeOOBEmail,
+			}
+		case config.LoginIDKeyTypePhone:
+			return []authn.AuthenticatorType{
+				authn.AuthenticatorTypePassword,
+				authn.AuthenticatorTypeOOBSMS,
 			}
 		default:
 			panic(fmt.Sprintf("identity: unexpected login ID type: %s", i.Claims[IdentityClaimLoginIDType]))

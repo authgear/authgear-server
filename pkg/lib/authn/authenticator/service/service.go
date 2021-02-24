@@ -40,7 +40,7 @@ type OOBOTPAuthenticatorProvider interface {
 	Get(userID, id string) (*oob.Authenticator, error)
 	GetMany(ids []string) ([]*oob.Authenticator, error)
 	List(userID string) ([]*oob.Authenticator, error)
-	New(userID string, channel authn.AuthenticatorOOBChannel, phone string, email string, isDefault bool, kind string) *oob.Authenticator
+	New(userID string, oobAuthenticatorType authn.AuthenticatorType, target string, isDefault bool, kind string) *oob.Authenticator
 	Create(*oob.Authenticator) error
 	Delete(*oob.Authenticator) error
 	VerifyCode(authenticatorID string, code string) (*oob.Code, error)
@@ -74,7 +74,8 @@ func (s *Service) Get(userID string, typ authn.AuthenticatorType, id string) (*a
 		}
 		return totpToAuthenticatorInfo(t), nil
 
-	case authn.AuthenticatorTypeOOB:
+	// FIXME(oob): handle getting different channel
+	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 		o, err := s.OOBOTP.Get(userID, id)
 		if err != nil {
 			return nil, err
@@ -93,7 +94,7 @@ func (s *Service) GetMany(refs []*authenticator.Ref) ([]*authenticator.Info, err
 			passwordIDs = append(passwordIDs, ref.ID)
 		case authn.AuthenticatorTypeTOTP:
 			totpIDs = append(totpIDs, ref.ID)
-		case authn.AuthenticatorTypeOOB:
+		case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 			oobIDs = append(oobIDs, ref.ID)
 		default:
 			panic("authenticator: unknown authenticator type " + ref.Type)
@@ -198,16 +199,14 @@ func (s *Service) New(spec *authenticator.Spec, secret string) (*authenticator.I
 		t := s.TOTP.New(spec.UserID, displayName, spec.IsDefault, string(spec.Kind))
 		return totpToAuthenticatorInfo(t), nil
 
-	case authn.AuthenticatorTypeOOB:
-		channel := spec.Claims[authenticator.AuthenticatorClaimOOBOTPChannelType].(string)
-		var phone, email string
-		switch authn.AuthenticatorOOBChannel(channel) {
-		case authn.AuthenticatorOOBChannelSMS:
-			phone = spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
-		case authn.AuthenticatorOOBChannelEmail:
-			email = spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
-		}
-		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorOOBChannel(channel), phone, email, spec.IsDefault, string(spec.Kind))
+	case authn.AuthenticatorTypeOOBEmail:
+		email := spec.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
+		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorTypeOOBEmail, email, spec.IsDefault, string(spec.Kind))
+		return oobotpToAuthenticatorInfo(o), nil
+
+	case authn.AuthenticatorTypeOOBSMS:
+		phone := spec.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
+		o := s.OOBOTP.New(spec.UserID, authn.AuthenticatorTypeOOBSMS, phone, spec.IsDefault, string(spec.Kind))
 		return oobotpToAuthenticatorInfo(o), nil
 	}
 
@@ -256,7 +255,7 @@ func (s *Service) Create(info *authenticator.Info) error {
 			return err
 		}
 
-	case authn.AuthenticatorTypeOOB:
+	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 		a := oobotpFromAuthenticatorInfo(info)
 		if err := s.OOBOTP.Create(a); err != nil {
 			return err
@@ -297,7 +296,7 @@ func (s *Service) Delete(info *authenticator.Info) error {
 			return err
 		}
 
-	case authn.AuthenticatorTypeOOB:
+	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 		a := oobotpFromAuthenticatorInfo(info)
 		if err := s.OOBOTP.Delete(a); err != nil {
 			return err
@@ -330,7 +329,7 @@ func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string
 		}
 		return nil
 
-	case authn.AuthenticatorTypeOOB:
+	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 		a := oobotpFromAuthenticatorInfo(info)
 		_, err := s.OOBOTP.VerifyCode(a.ID, secret)
 		if errors.Is(err, oob.ErrInvalidCode) {
@@ -355,7 +354,8 @@ func (s *Service) RemoveOrphans(identities []*identity.Info) error {
 	}
 
 	for _, a := range authenticators {
-		if a.Kind != authenticator.KindPrimary || a.Type != authn.AuthenticatorTypeOOB {
+		if a.Kind != authenticator.KindPrimary ||
+			(a.Type != authn.AuthenticatorTypeOOBEmail && a.Type != authn.AuthenticatorTypeOOBSMS) {
 			continue
 		}
 

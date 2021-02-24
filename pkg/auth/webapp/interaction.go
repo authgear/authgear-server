@@ -2,11 +2,15 @@ package webapp
 
 import "github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 
-type inputTriggerOOB struct{ AuthenticatorIndex int }
+type inputTriggerOOB struct {
+	AuthenticatorIndex int
+	AuthenticatorType  string
+}
 
 var _ nodes.InputAuthenticationOOBTrigger = &inputTriggerOOB{}
 
-func (i *inputTriggerOOB) GetOOBAuthenticatorIndex() int { return i.AuthenticatorIndex }
+func (i *inputTriggerOOB) GetOOBAuthenticatorIndex() int   { return i.AuthenticatorIndex }
+func (i *inputTriggerOOB) GetOOBAuthenticatorType() string { return i.AuthenticatorType }
 
 type inputSelectTOTP struct{}
 

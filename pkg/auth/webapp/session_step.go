@@ -8,22 +8,26 @@ import (
 type SessionStepKind string
 
 const (
-	SessionStepOAuthRedirect       SessionStepKind = "oauth-redirect"
-	SessionStepPromoteUser         SessionStepKind = "promote-user"
-	SessionStepAuthenticate        SessionStepKind = "authenticate"
-	SessionStepCreateAuthenticator SessionStepKind = "create-authenticator"
-	SessionStepEnterPassword       SessionStepKind = "enter-password"
-	SessionStepCreatePassword      SessionStepKind = "create-password"
-	SessionStepSendOOBOTPAuthn     SessionStepKind = "send-oob-otp-authn"
-	SessionStepEnterOOBOTPAuthn    SessionStepKind = "enter-oob-otp-authn"
-	SessionStepEnterOOBOTPSetup    SessionStepKind = "enter-oob-otp-setup"
-	SessionStepSetupOOBOTP         SessionStepKind = "setup-oob-otp"
-	SessionStepEnterTOTP           SessionStepKind = "enter-totp"
-	SessionStepSetupTOTP           SessionStepKind = "setup-totp"
-	SessionStepEnterRecoveryCode   SessionStepKind = "enter-recovery-code"
-	SessionStepSetupRecoveryCode   SessionStepKind = "setup-recovery-code"
-	SessionStepVerifyIdentity      SessionStepKind = "verify-identity"
-	SessionStepUserDisabled        SessionStepKind = "user-disabled"
+	SessionStepOAuthRedirect         SessionStepKind = "oauth-redirect"
+	SessionStepPromoteUser           SessionStepKind = "promote-user"
+	SessionStepAuthenticate          SessionStepKind = "authenticate"
+	SessionStepCreateAuthenticator   SessionStepKind = "create-authenticator"
+	SessionStepEnterPassword         SessionStepKind = "enter-password"
+	SessionStepCreatePassword        SessionStepKind = "create-password"
+	SessionStepSendOOBOTPAuthnEmail  SessionStepKind = "send-oob-otp-authn-email"
+	SessionStepSendOOBOTPAuthnSMS    SessionStepKind = "send-oob-otp-authn-sms"
+	SessionStepEnterOOBOTPAuthnEmail SessionStepKind = "enter-oob-otp-authn-email"
+	SessionStepEnterOOBOTPAuthnSMS   SessionStepKind = "enter-oob-otp-authn-sms"
+	SessionStepEnterOOBOTPSetupEmail SessionStepKind = "enter-oob-otp-setup-email"
+	SessionStepEnterOOBOTPSetupSMS   SessionStepKind = "enter-oob-otp-setup-sms"
+	SessionStepSetupOOBOTPEmail      SessionStepKind = "setup-oob-otp-email"
+	SessionStepSetupOOBOTPSMS        SessionStepKind = "setup-oob-otp-sms"
+	SessionStepEnterTOTP             SessionStepKind = "enter-totp"
+	SessionStepSetupTOTP             SessionStepKind = "setup-totp"
+	SessionStepEnterRecoveryCode     SessionStepKind = "enter-recovery-code"
+	SessionStepSetupRecoveryCode     SessionStepKind = "setup-recovery-code"
+	SessionStepVerifyIdentity        SessionStepKind = "verify-identity"
+	SessionStepUserDisabled          SessionStepKind = "user-disabled"
 )
 
 func NewSessionStep(kind SessionStepKind, graphID string) SessionStep {
@@ -42,12 +46,17 @@ func (k SessionStepKind) Path() string {
 		return "/enter_password"
 	case SessionStepCreatePassword:
 		return "/create_password"
-	case SessionStepSendOOBOTPAuthn:
+	case SessionStepSendOOBOTPAuthnEmail, SessionStepSendOOBOTPAuthnSMS:
 		return "/send_oob_otp"
-	case SessionStepEnterOOBOTPAuthn, SessionStepEnterOOBOTPSetup:
+	case SessionStepEnterOOBOTPAuthnEmail,
+		SessionStepEnterOOBOTPAuthnSMS,
+		SessionStepEnterOOBOTPSetupEmail,
+		SessionStepEnterOOBOTPSetupSMS:
 		return "/enter_oob_otp"
-	case SessionStepSetupOOBOTP:
-		return "/setup_oob_otp"
+	case SessionStepSetupOOBOTPEmail:
+		return "/setup_oob_otp_email"
+	case SessionStepSetupOOBOTPSMS:
+		return "/setup_oob_otp_sms"
 	case SessionStepEnterTOTP:
 		return "/enter_totp"
 	case SessionStepSetupTOTP:

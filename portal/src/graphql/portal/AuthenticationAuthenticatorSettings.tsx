@@ -41,7 +41,6 @@ import FormContainer from "../../FormContainer";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./AuthenticationAuthenticatorSettings.module.scss";
-import { ErrorParseRule } from "../../error/parse";
 
 interface AuthenticatorTypeFormState<
   T = PrimaryAuthenticatorType | SecondaryAuthenticatorType
@@ -159,12 +158,14 @@ const HIDDEN_REQUIRE_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
 ];
 
 const primaryAuthenticatorNameIds = {
-  oob_otp: "AuthenticatorType.primary.oob-otp",
+  oob_otp_email: "AuthenticatorType.primary.oob-otp-email",
+  oob_otp_sms: "AuthenticatorType.primary.oob-otp-sms",
   password: "AuthenticatorType.primary.password",
 };
 const secondaryAuthenticatorNameIds = {
   totp: "AuthenticatorType.secondary.totp",
-  oob_otp: "AuthenticatorType.secondary.oob-otp",
+  oob_otp_email: "AuthenticatorType.secondary.oob-otp-email",
+  oob_otp_sms: "AuthenticatorType.secondary.oob-otp-sms",
   password: "AuthenticatorType.secondary.password",
 };
 
@@ -477,19 +478,6 @@ const AuthenticationAuthenticatorSettingsScreen: React.FC = function Authenticat
   const { appID } = useParams();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-  const errorRules: ErrorParseRule[] = useMemo(
-    () => [
-      {
-        reason: "ValidationFailed",
-        kind: "general",
-        location: "/authentication/identities/\\d+",
-        errorMessageID:
-          "AuthenticationAuthenticatorSettingsScreen.error.no-primary-authenticator",
-      },
-    ],
-    []
-  );
-
   if (form.isLoading) {
     return <ShowLoading />;
   }
@@ -499,7 +487,7 @@ const AuthenticationAuthenticatorSettingsScreen: React.FC = function Authenticat
   }
 
   return (
-    <FormContainer form={form} errorRules={errorRules}>
+    <FormContainer form={form}>
       <AuthenticationAuthenticatorSettingsContent form={form} />
     </FormContainer>
   );

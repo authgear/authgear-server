@@ -22,8 +22,11 @@ var authenticatorType = graphql.NewEnum(graphql.EnumConfig{
 		"TOTP": &graphql.EnumValueConfig{
 			Value: "totp",
 		},
-		"OOB_OTP": &graphql.EnumValueConfig{
-			Value: "oob_otp",
+		"OOB_OTP_EMAIL": &graphql.EnumValueConfig{
+			Value: "oob_otp_email",
+		},
+		"OOB_OTP_SMS": &graphql.EnumValueConfig{
+			Value: "oob_otp_sms",
 		},
 	},
 })

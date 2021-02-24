@@ -8,22 +8,26 @@
 {{ template "__error.html" . }}
 
 {{ $has_secondary_totp := false }}
-{{ $has_secondary_oob_otp := false }}
+{{ $has_secondary_oob_otp_email := false }}
+{{ $has_secondary_oob_otp_sms := false }}
 {{ $secondary_password := false }}
 {{ range $.Authenticators }}
 {{ if eq .Kind "secondary" }}
   {{ if eq .Type "totp" }}
     {{ $has_secondary_totp = true }}
-  {{ else if eq .Type "oob_otp" }}
-    {{ $has_secondary_oob_otp = true }}
+  {{ else if eq .Type "oob_otp_email" }}
+    {{ $has_secondary_oob_otp_email = true }}
+  {{ else if eq .Type "oob_otp_sms" }}
+    {{ $has_secondary_oob_otp_sms = true }}
   {{ else if eq .Type "password" }}
     {{ $secondary_password = . }}
   {{ end }}
 {{ end }}
 {{ end }}
-{{ $has_mfa := (or $has_secondary_totp $has_secondary_oob_otp $secondary_password) }}
+{{ $has_mfa := (or $has_secondary_totp $has_secondary_oob_otp_email $has_secondary_oob_otp_sms $secondary_password) }}
 {{ $show_secondary_totp := (or $has_secondary_totp $.SecondaryTOTPAllowed) }}
-{{ $show_secondary_oob_otp := (or $has_secondary_oob_otp $.SecondaryOOBOTPAllowed) }}
+{{ $show_secondary_oob_otp_email := (or $has_secondary_oob_otp_email $.SecondaryOOBOTPEmailAllowed) }}
+{{ $show_secondary_oob_otp_sms := (or $has_secondary_oob_otp_sms $.SecondaryOOBOTPSMSAllowed) }}
 {{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
 
 <div class="pane margin-6 flex flex-direction-column">
@@ -63,17 +67,17 @@
   </section>
   {{ end }}
 
-  <!-- Secondary OOB OTP -->
-  {{ if $show_secondary_oob_otp }}
+  <!-- Secondary OOB OTP Email -->
+  {{ if $show_secondary_oob_otp_email }}
   <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
     <p class="grid-area-title margin-0 font-inherit primary-txt">
-      {{ template "settings-page-secondary-oob-otp-title" }}
+      {{ template "settings-page-secondary-oob-otp-email-title" }}
     </p>
-    {{ if $has_secondary_oob_otp }}
+    {{ if $has_secondary_oob_otp_email }}
     <p class="grid-area-desc margin-0 font-smaller good-txt">
       {{ template "activated-label" }}
     </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp">
+    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp_email">
       {{ template "details-button-label" }}
     </a>
     {{ else }}
@@ -82,13 +86,40 @@
     </p>
     <form class="grid-area-action1 justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="add_secondary_oob_otp">
+      <button class="btn secondary-btn" type="submit" name="x_action" value="add_secondary_oob_otp_email">
         {{ template "configure-button-label" }}
       </button>
     </form>
     {{ end }}
   </section>
   {{ end }}
+
+  {{ if $show_secondary_oob_otp_sms }}
+  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
+    <p class="grid-area-title margin-0 font-inherit primary-txt">
+      {{ template "settings-page-secondary-oob-otp-sms-title" }}
+    </p>
+    {{ if $has_secondary_oob_otp_sms }}
+    <p class="grid-area-desc margin-0 font-smaller good-txt">
+      {{ template "activated-label" }}
+    </p>
+    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp_sms">
+      {{ template "details-button-label" }}
+    </a>
+    {{ else }}
+    <p class="grid-area-desc margin-0 font-smaller warn-txt">
+      {{ template "inactive-label" }}
+    </p>
+    <form class="grid-area-action1 justify-self-end" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button class="btn secondary-btn" type="submit" name="x_action" value="add_secondary_oob_otp_sms">
+        {{ template "configure-button-label" }}
+      </button>
+    </form>
+    {{ end }}
+  </section>
+  {{ end }}
+
 
   <!-- Secondary Password -->
   {{ if $show_secondary_password }}

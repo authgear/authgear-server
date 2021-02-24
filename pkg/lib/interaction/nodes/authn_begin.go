@@ -128,15 +128,28 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		},
 	)
 
-	oobs := filterAuthenticators(
+	emailoobs := filterAuthenticators(
 		availableAuthenticators,
-		authenticator.KeepType(authn.AuthenticatorTypeOOB),
+		authenticator.KeepType(authn.AuthenticatorTypeOOBEmail),
 	)
 	interaction.SortAuthenticators(
 		nil,
-		oobs,
+		emailoobs,
 		func(i int) interaction.SortableAuthenticator {
-			a := interaction.SortableAuthenticatorInfo(*oobs[i])
+			a := interaction.SortableAuthenticatorInfo(*emailoobs[i])
+			return &a
+		},
+	)
+
+	smsoobs := filterAuthenticators(
+		availableAuthenticators,
+		authenticator.KeepType(authn.AuthenticatorTypeOOBSMS),
+	)
+	interaction.SortAuthenticators(
+		nil,
+		smsoobs,
+		func(i int) interaction.SortableAuthenticator {
+			a := interaction.SortableAuthenticatorInfo(*smsoobs[i])
 			return &a
 		},
 	)
@@ -155,10 +168,19 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		})
 	}
 
-	if len(oobs) > 0 {
+	if len(emailoobs) > 0 {
 		edges = append(edges, &EdgeAuthenticationOOBTrigger{
-			Stage:          n.Stage,
-			Authenticators: oobs,
+			Stage:                n.Stage,
+			Authenticators:       emailoobs,
+			OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
+		})
+	}
+
+	if len(smsoobs) > 0 {
+		edges = append(edges, &EdgeAuthenticationOOBTrigger{
+			Stage:                n.Stage,
+			Authenticators:       smsoobs,
+			OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
 		})
 	}
 
