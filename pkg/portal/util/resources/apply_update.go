@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -36,7 +37,10 @@ func ApplyUpdates(appID string, appFs resource.Fs, manager *resource.Manager, se
 	// Validate resource FS by viewing ValidateResource.
 	for _, desc := range newManager.Registry.Descriptors {
 		_, err := newManager.Read(desc, resource.ValidateResource{})
-		if err != nil {
+		// Some resource may not have builtin value, e.g. app_logo_dark.
+		if errors.Is(err, resource.ErrResourceNotFound) {
+			continue
+		} else if err != nil {
 			return nil, fmt.Errorf("invalid resource: %w", err)
 		}
 	}

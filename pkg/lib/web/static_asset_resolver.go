@@ -16,6 +16,7 @@ var StaticAssetResources = map[string]resource.Descriptor{
 	"web-js":                   WebJS,
 	"password-policy-js":       PasswordPolicyJS,
 	"app-logo":                 AppLogo,
+	"app-logo-dark":            AppLogoDark,
 	"favicon":                  Favicon,
 	"authgear.css":             AuthgearCSS,
 	"authgear-light-theme.css": AuthgearLightThemeCSS,
