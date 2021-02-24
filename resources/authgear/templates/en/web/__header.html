@@ -1,11 +1,29 @@
+{{ define "__banner.html" }}
+
+{{ $light := call $.StaticAssetURL "app-logo" }}
+{{ $dark := call $.StaticAssetURL "app-logo-dark" }}
+{{ if not $dark }}
+{{ $dark = $light }}
+{{ end }}
+
+{{ if $.DarkThemeEnabled }}
+<img class="banner light" src="{{ $light }}">
+<img class="banner dark" src="{{ $dark }}">
+{{ else }}
+<img class="banner" src="{{ $light }}">
+{{ end }}
+
+{{ end }}
+
+
 {{ define "__header.html" }}
 {{ if $.ClientURI }}
 <a class="not-a banner-frame" href="{{ $.ClientURI }}">
-    <img class="banner" src="{{ call $.StaticAssetURL "app-logo" }}">
+    {{ template "__banner.html" . }}
 </a>
 {{ else }}
 <div class="banner-frame">
-    <img class="banner" src="{{ call $.StaticAssetURL "app-logo" }}">
+    {{ template "__banner.html" . }}
 </div>
 {{ end }}
 {{ end }}
