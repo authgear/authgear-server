@@ -79,6 +79,8 @@ func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile,
 		return app()
 	case resource.EffectiveResourceView:
 		return effective()
+	case resource.ValidateResourceView:
+		return effective()
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}
@@ -128,6 +130,8 @@ func (d AuthgearSecretYAMLDescriptor) ViewResources(resources []resource.Resourc
 	case resource.EffectiveFileView:
 		return nil, ErrEffectiveSecretConfig
 	case resource.EffectiveResourceView:
+		return d.viewEffectiveResource(resources)
+	case resource.ValidateResourceView:
 		return d.viewEffectiveResource(resources)
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)

@@ -77,6 +77,12 @@ func (d CSSDescriptor) ViewResources(resources []resource.ResourceFile, rawView 
 			Path: d.Path,
 			Data: output.Bytes(),
 		}, nil
+	case resource.ValidateResourceView:
+		concat()
+		return &StaticAsset{
+			Path: d.Path,
+			Data: output.Bytes(),
+		}, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)
 	}

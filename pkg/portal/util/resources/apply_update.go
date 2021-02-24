@@ -33,13 +33,9 @@ func ApplyUpdates(appID string, appFs resource.Fs, manager *resource.Manager, se
 		return nil, err
 	}
 
-	// Validate resource FS by viewing EffectiveResource.
+	// Validate resource FS by viewing ValidateResource.
 	for _, desc := range newManager.Registry.Descriptors {
-		_, err := newManager.Read(desc, resource.EffectiveResource{
-			// The values using in here does not really matter.
-			PreferredTags: []string{"en"},
-			DefaultTag:    "en",
-		})
+		_, err := newManager.Read(desc, resource.ValidateResource{})
 		if err != nil {
 			return nil, fmt.Errorf("invalid resource: %w", err)
 		}
