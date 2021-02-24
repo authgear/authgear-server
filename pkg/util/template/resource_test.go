@@ -140,8 +140,7 @@ func TestTemplateResource(t *testing.T) {
 
 		read := func(lang string) (str string, err error) {
 			view := resource.EffectiveFile{
-				Path:       "templates/" + lang + "/resource.txt",
-				DefaultTag: "en",
+				Path: "templates/" + lang + "/resource.txt",
 			}
 			result, err := manager.Read(txt, view)
 			if err != nil {

@@ -239,7 +239,6 @@ func TestTranslationResource(t *testing.T) {
 		read := func(lang string) (str string, err error) {
 			view := resource.EffectiveFile{
 				Path:       "templates/" + lang + "/translation.json",
-				DefaultTag: "en",
 			}
 			result, err := manager.Read(template.TranslationJSON, view)
 			if err != nil {

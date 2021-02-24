@@ -32,7 +32,6 @@ type AppFileView interface {
 // Since the path is specific, so the view is single-locale.
 type EffectiveFileView interface {
 	View
-	DefaultLanguageTag() string
 	EffectiveFilePath() string
 }
 
@@ -66,16 +65,12 @@ func (v AppFile) SecretKeyAllowlist() []string {
 }
 
 type EffectiveFile struct {
-	DefaultTag string
-	Path       string
+	Path string
 }
 
 var _ EffectiveFileView = EffectiveFile{}
 
 func (v EffectiveFile) view() {}
-func (v EffectiveFile) DefaultLanguageTag() string {
-	return v.DefaultTag
-}
 func (v EffectiveFile) EffectiveFilePath() string {
 	return v.Path
 }

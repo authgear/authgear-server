@@ -19068,12 +19068,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	manager := appProvider.Resources
-	config := appProvider.Config
-	appConfig := config.AppConfig
-	localizationConfig := appConfig.Localization
 	staticAssetsHandler := &webapp2.StaticAssetsHandler{
-		Resources:    manager,
-		Localization: localizationConfig,
+		Resources: manager,
 	}
 	return staticAssetsHandler
 }
