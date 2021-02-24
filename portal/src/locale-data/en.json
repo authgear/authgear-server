@@ -35,6 +35,7 @@
   "search": "Search",
   "apply": "Apply",
   "applying": "Applying",
+  "activate": "Activate",
 
   "apple": "Apple",
   "google": "Google",
@@ -77,7 +78,6 @@
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
   "ScreenNav.client-applications": "Applications",
-  "ScreenNav.dns": "DNS",
   "ScreenNav.localization-appearance": "Appearance & Localization",
   "ScreenNav.settings": "Settings",
 
@@ -349,16 +349,17 @@
   "CustomDomainListScreen.domain-list.header.domain": "Domain",
   "CustomDomainListScreen.domain-list.header.status": "Status",
   "CustomDomainListScreen.domain-list.add-domain.placeholder": "Input New Domain",
+  "CustomDomainListScreen.domain-list.status.active": "Active",
   "CustomDomainListScreen.domain-list.status.not-verified": "Need Verify",
   "CustomDomainListScreen.domain-list.status.verified": "Configured",
   "CustomDomainListScreen.delete-domain-dialog.title": "Delete Domain",
   "CustomDomainListScreen.delete-domain-dialog.message": "Are you sure you want to delete {domain}",
   "CustomDomainListScreen.delete-domain-dialog.generic-error": "Failed to delete domain",
   "CustomDomainListScreen.delete-domain-dialog.forbidden-error": "You have no permission to delete domain",
+  "CustomDomainListScreen.activate-domain-dialog.title": "Activate Domain",
+  "CustomDomainListScreen.activate-domain-dialog.message": "Are you sure you want to activate {domain}? Only one domain can be active.",
+  "CustomDomainListScreen.activate-domain-dialog.generic-error": "Failed to activate domain",
   "CustomDomainListScreen.verify-success-message": "Verified domain successfully",
-
-  "PublicOriginConfigurationScreen.title": "Public Origin",
-  "PublicOriginConfigurationScreen.desc": "Pick a verified domain here as the public origin of your app. The public origin will appear in the messages sent from the app, e.g. reset password emails.",
 
   "VerifyDomainScreen.title": "Verify Domain",
   "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own ",

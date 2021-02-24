@@ -22,7 +22,6 @@ import ForgotPasswordSettingsScreen from "./graphql/portal/ForgotPasswordSetting
 import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigurationScreen";
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
-import PublicOriginConfigurationScreen from "./graphql/portal/PublicOriginConfigurationScreen";
 import CustomDomainListScreen from "./graphql/portal/CustomDomainListScreen";
 import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
 import ResourceConfigurationScreen from "./graphql/portal/ResourceConfigurationScreen";
@@ -130,10 +129,6 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/apps/oauth/:clientID/edit"
             element={<EditOAuthClientScreen />}
-          />
-          <Route
-            path="/configuration/dns/public-origin"
-            element={<PublicOriginConfigurationScreen />}
           />
           <Route
             path="/configuration/dns/custom-domains"
