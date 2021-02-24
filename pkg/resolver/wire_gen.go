@@ -322,10 +322,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	templateResolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: templateResolver,

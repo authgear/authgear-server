@@ -86,6 +86,12 @@ func (t *translationJSON) viewValidateResource(resources []resource.ResourceFile
 func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
+	supportedLanguageTags := view.SupportedLanguageTags()
+
+	supportedSet := make(map[string]struct{})
+	for _, tag := range supportedLanguageTags {
+		supportedSet[tag] = struct{}{}
+	}
 
 	type LanguageTag string
 	type TranslationKey string
@@ -103,6 +109,12 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 
 	for _, resrc := range resources {
 		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+
+		// Ignore resources in unsupported languages.
+		_, supported := supportedSet[langTag]
+		if !supported {
+			continue
+		}
 
 		var jsonObj map[string]interface{}
 		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {

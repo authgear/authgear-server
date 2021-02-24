@@ -43,8 +43,9 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context)
 	result, err := r.Resources.Read(desc, resource.EffectiveResource{
-		PreferredTags: preferredLanguageTags,
+		SupportedTags: r.Localization.SupportedLanguages,
 		DefaultTag:    *r.Localization.FallbackLanguage,
+		PreferredTags: preferredLanguageTags,
 	})
 	if err != nil {
 		return "", err
