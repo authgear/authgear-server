@@ -2,12 +2,14 @@ package validation
 
 import (
 	"errors"
+	"fmt"
 	"net/mail"
 	"net/url"
 	"path/filepath"
 	"strings"
 
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
+	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -19,6 +21,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["uri"] = FormatURI{}
 	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
+	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -135,6 +138,22 @@ func (f FormatWeChatAccountID) CheckFormat(value interface{}) error {
 
 	if !strings.HasPrefix(str, "gh_") {
 		return errors.New("expect WeChat account id start with gh_")
+	}
+
+	return nil
+}
+
+type FormatBCP47 struct{}
+
+func (f FormatBCP47) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	_, err := language.Parse(str)
+	if err != nil {
+		return fmt.Errorf("invalid BCP 47 tag: %w", err)
 	}
 
 	return nil
