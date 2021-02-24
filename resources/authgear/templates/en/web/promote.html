@@ -155,9 +155,11 @@
 				{{ end }}
 			</div>
 
+			{{ if ($.Translations.HasKey "toc-pp-footer") }}
 			<p class="font-smaller primary-txt margin-6 padding-6 width-full">
 			{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
 			</p>
+			{{ end }}
 
 			<div class="footer-watermark margin-12 width-full"></div>
 		</div>
