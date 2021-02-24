@@ -98,18 +98,8 @@ const links: NavLinkProps[] = [
     ],
   },
   {
-    textKey: "ScreenNav.dns",
-    url: "configuration/dns",
-    children: [
-      {
-        textKey: "PublicOriginConfigurationScreen.title",
-        url: "configuration/dns/public-origin",
-      },
-      {
-        textKey: "CustomDomainListScreen.title",
-        url: "configuration/dns/custom-domains",
-      },
-    ],
+    textKey: "CustomDomainListScreen.title",
+    url: "configuration/dns/custom-domains",
   },
   {
     textKey: "ScreenNav.localization-appearance",
