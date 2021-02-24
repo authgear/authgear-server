@@ -40,7 +40,7 @@ var configDeps = wire.NewSet(
 )
 
 func ProvideDefaultTemplateLanguage(c *config.Config) template.DefaultTemplateLanguage {
-	return template.DefaultTemplateLanguage(c.AppConfig.Localization.FallbackLanguage)
+	return template.DefaultTemplateLanguage(*c.AppConfig.Localization.FallbackLanguage)
 }
 
 var secretDeps = wire.NewSet(

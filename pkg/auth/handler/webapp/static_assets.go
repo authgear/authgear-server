@@ -47,7 +47,7 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 	// The static asset URLs in the templates are computed by the resolver using EffectiveResource, which has handled localization.
 	result, err := h.Resources.Read(desc, resource.EffectiveFile{
 		Path:       p,
-		DefaultTag: h.Localization.FallbackLanguage,
+		DefaultTag: *h.Localization.FallbackLanguage,
 	})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, os.ErrNotExist

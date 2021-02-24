@@ -56,7 +56,7 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 				r := p.Source.(*model.AppResource)
 				result, err := r.Context.Resources.Read(r.DescriptedPath.Descriptor, resource.EffectiveFile{
 					Path:       r.DescriptedPath.Path,
-					DefaultTag: r.Context.Config.AppConfig.Localization.FallbackLanguage,
+					DefaultTag: *r.Context.Config.AppConfig.Localization.FallbackLanguage,
 				})
 				if errors.Is(err, resource.ErrResourceNotFound) {
 					return nil, nil

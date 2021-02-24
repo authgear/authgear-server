@@ -170,6 +170,15 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		ctx.Child("ui", "country_calling_code", "pinned_list").
 			EmitErrorMessage("pinned country calling code is unlisted")
 	}
+
+	supportedLanguagesSet := make(map[string]struct{})
+	for _, tag := range c.Localization.SupportedLanguages {
+		supportedLanguagesSet[tag] = struct{}{}
+	}
+	_, fallbackLanguageOK := supportedLanguagesSet[*c.Localization.FallbackLanguage]
+	if !fallbackLanguageOK {
+		ctx.Child("localization", "supported_languages").EmitErrorMessage("supported_languages must contain fallback_language")
+	}
 }
 
 func Parse(inputYAML []byte) (*AppConfig, error) {
