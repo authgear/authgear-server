@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import cn from "classnames";
 import produce from "immer";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -510,10 +517,18 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
     return makeDomainListColumn(renderToString);
   }, [renderToString]);
 
+  const savedPublicOriginRef = useRef<string>("");
+  useEffect(() => {
+    if (!isDirty) {
+      savedPublicOriginRef.current = state.publicOrigin;
+    }
+  }, [isDirty, state]);
+  const prevSavedPublicOrigin = savedPublicOriginRef.current;
+
   const domainListItems: DomainListItem[] = useMemo(() => {
     const list: DomainListItem[] = domains.map((domain) => {
       const urlOrigin = getOriginFromDomain(domain.domain);
-      const isPublicOrigin = urlOrigin === state.publicOrigin;
+      const isPublicOrigin = urlOrigin === prevSavedPublicOrigin;
       return {
         id: domain.id,
         domain: domain.domain,
@@ -527,15 +542,16 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
 
     if (!found) {
       list.unshift({
-        domain: getHostFromOrigin(state.publicOrigin) || state.publicOrigin,
-        urlOrigin: state.publicOrigin,
+        domain:
+          getHostFromOrigin(prevSavedPublicOrigin) || prevSavedPublicOrigin,
+        urlOrigin: prevSavedPublicOrigin,
         isCustom: false,
         isVerified: false,
         isPublicOrigin: true,
       });
     }
     return list;
-  }, [domains, state.publicOrigin]);
+  }, [domains, prevSavedPublicOrigin]);
 
   const onDeleteClick = useCallback((domainID: string, domain: string) => {
     setDeleteDomainDialogData({
