@@ -393,6 +393,74 @@ const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> = function DeleteDom
   );
 };
 
+interface UpdatePublicOriginDialogProps {
+  urlOrigin: string;
+  visible: boolean;
+  isSaving: boolean;
+  updateError: unknown;
+  onConfirmClick: () => void;
+  dismissDialog: () => void;
+}
+
+const UpdatePublicOriginDialog: React.FC<UpdatePublicOriginDialogProps> = function UpdatePublicOriginDialog(
+  props: UpdatePublicOriginDialogProps
+) {
+  const {
+    urlOrigin,
+    visible,
+    isSaving,
+    updateError,
+    onConfirmClick,
+    dismissDialog,
+  } = props;
+  const { renderToString } = useContext(Context);
+  const { themes } = useSystemConfig();
+
+  const dialogContentProps: IDialogProps["dialogContentProps"] = useMemo(() => {
+    return {
+      title: (
+        <FormattedMessage id="CustomDomainListScreen.activate-domain-dialog.title" />
+      ),
+      subText: renderToString(
+        "CustomDomainListScreen.activate-domain-dialog.message",
+        { domain: getHostFromOrigin(urlOrigin) }
+      ),
+    };
+  }, [renderToString, urlOrigin]);
+
+  return (
+    <>
+      <Dialog
+        hidden={!visible}
+        dialogContentProps={dialogContentProps}
+        modalProps={{ isBlocking: isSaving }}
+        onDismiss={dismissDialog}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            theme={themes.actionButton}
+            loading={isSaving}
+            onClick={onConfirmClick}
+            disabled={!visible}
+            labelId="confirm"
+          />
+          <DefaultButton
+            onClick={dismissDialog}
+            disabled={isSaving || !visible}
+          >
+            <FormattedMessage id="cancel" />
+          </DefaultButton>
+        </DialogFooter>
+      </Dialog>
+      <ErrorDialog
+        error={updateError}
+        rules={[]}
+        fallbackErrorMessageID="CustomDomainListScreen.activate-domain-dialog.generic-error"
+      />
+    </>
+  );
+};
+
 interface CustomDomainListContentProps {
   domains: Domain[];
   appConfigForm: AppConfigFormModel<FormState>;
@@ -403,7 +471,15 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
 ) {
   const {
     domains,
-    appConfigForm: { state, setState },
+    appConfigForm: {
+      state,
+      setState,
+      isDirty,
+      isUpdating,
+      save,
+      reset,
+      updateError,
+    },
   } = props;
 
   const { renderToString } = useContext(Context);
@@ -482,6 +558,16 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
   const dismissDeleteDomainDialog = useCallback(() => {
     setConfirmDeleteDomainDialogVisible(false);
   }, []);
+
+  const confirmUpdatePublicOrigin = useCallback(() => {
+    // save app config form
+    save();
+  }, [save]);
+
+  const dismissUpdatePublicOriginDialog = useCallback(() => {
+    // reset app config form
+    reset();
+  }, [reset]);
 
   const renderDomainListColumn = useCallback<
     Required<IDetailsListProps>["onRenderItemColumn"]
@@ -562,6 +648,15 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
         domainID={deleteDomainDialogData.domainID}
         visible={deleteDomainDialogVisible}
         dismissDialog={dismissDeleteDomainDialog}
+      />
+      {/* UpdatePublicOriginDialog depends on app config form state */}
+      <UpdatePublicOriginDialog
+        urlOrigin={state.publicOrigin}
+        visible={isDirty}
+        isSaving={isUpdating}
+        updateError={updateError}
+        onConfirmClick={confirmUpdatePublicOrigin}
+        dismissDialog={dismissUpdatePublicOriginDialog}
       />
     </div>
   );
