@@ -72,7 +72,12 @@
                     <li>{{ . }}</li>
                 {{ end }}
             {{ else if eq .Error.reason "InvalidVerificationCode" }}
-                <li>{{ template "error-verification-code-invalid" }}</li>
+                <li>
+                    {{ template "error-verification-code-invalid" }}
+                    <a href="#" data-submit-link="verify-identity-resend">
+                        {{ template "error-verification-code-invalid-click-to-resend" }}
+                    </a>
+                </li>
             {{ else if eq .Error.reason "WebUIInvalidSession" }}
                 <!-- This error is handled as fatal error -->
             {{ else if eq .Error.reason "RateLimited" }}

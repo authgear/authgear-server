@@ -65,7 +65,9 @@
 <button id="resend-button" class="btn secondary-btn font-smaller" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.VerificationCodeSendCooldown }}"
 	data-label="{{ template "verify-user-resend-button-label" }}"
-	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}">{{ template "verify-user-resend-button-label" }}</button>
+	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}"
+	data-submit-form="verify-identity-resend"
+>{{ template "verify-user-resend-button-label" }}</button>
 {{ end }}
 
 </form>

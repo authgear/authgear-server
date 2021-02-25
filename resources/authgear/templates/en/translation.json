@@ -32,6 +32,7 @@
   "error-duplicated-identity": "This identity has been claimed by another user.",
   "error-duplicated-authenticator": "This authenticator already has been added.",
   "error-verification-code-invalid": "Verification code is invalid, used or expired. Please request a new one.",
+  "error-verification-code-invalid-click-to-resend": "Click to resend.",
   "error-remove-last-identity": "Cannot disconnect. You need to keep at least 1 identity.",
   "error-remove-last-primary-authenticator": "Cannot remove. You need to keep at least 1 primary authenticator for an identity.",
   "error-remove-last-secondary-authenticator": "Cannot remove. Multi-factor authentication is required.",
