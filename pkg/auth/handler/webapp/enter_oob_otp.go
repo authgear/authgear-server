@@ -8,8 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -48,12 +50,12 @@ type EnterOOBOTPHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
+	RateLimiter       RateLimiter
 }
 
 type EnterOOBOTPNode interface {
 	GetOOBOTPTarget() string
 	GetOOBOTPChannel() string
-	GetOOBOTPCodeSendCooldown() int
 	GetOOBOTPCodeLength() int
 }
 
@@ -64,15 +66,28 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	viewModel := EnterOOBOTPViewModel{}
 	var n EnterOOBOTPNode
 	if graph.FindLastNode(&n) {
-		viewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
 		viewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		viewModel.OOBOTPChannel = n.GetOOBOTPChannel()
-
+		target := n.GetOOBOTPTarget()
+		var bucket ratelimit.Bucket
 		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
 		case authn.AuthenticatorOOBChannelEmail:
-			viewModel.OOBOTPTarget = mail.MaskAddress(n.GetOOBOTPTarget())
+			viewModel.OOBOTPTarget = mail.MaskAddress(target)
+			bucket = mail.RateLimitBucket(target)
 		case authn.AuthenticatorOOBChannelSMS:
-			viewModel.OOBOTPTarget = phone.Mask(n.GetOOBOTPTarget())
+			viewModel.OOBOTPTarget = phone.Mask(target)
+			bucket = sms.RateLimitBucket(target)
+		}
+
+		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
+		if err != nil {
+			return nil, err
+		}
+		if pass {
+			// allow sending immediately
+			viewModel.OOBOTPCodeSendCooldown = 0
+		} else {
+			viewModel.OOBOTPCodeSendCooldown = int(resetDuration.Seconds())
 		}
 	}
 

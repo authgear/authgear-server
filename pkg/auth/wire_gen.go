@@ -9513,6 +9513,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
+		RateLimiter:       limiter,
 	}
 	return enterOOBOTPHandler
 }

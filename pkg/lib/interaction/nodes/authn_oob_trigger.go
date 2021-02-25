@@ -102,7 +102,6 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 		Target:        result.Target,
 		Channel:       result.Channel,
 		CodeLength:    result.CodeLength,
-		SendCooldown:  result.SendCooldown,
 	}, nil
 }
 
@@ -112,7 +111,6 @@ type NodeAuthenticationOOBTrigger struct {
 	Target        string                          `json:"target"`
 	Channel       string                          `json:"channel"`
 	CodeLength    int                             `json:"code_length"`
-	SendCooldown  int                             `json:"send_cooldown"`
 }
 
 // GetOOBOTPTarget implements OOBOTPNode.
@@ -123,11 +121,6 @@ func (n *NodeAuthenticationOOBTrigger) GetOOBOTPTarget() string {
 // GetOOBOTPChannel implements OOBOTPNode.
 func (n *NodeAuthenticationOOBTrigger) GetOOBOTPChannel() string {
 	return n.Channel
-}
-
-// GetOOBOTPCodeSendCooldown implements OOBOTPNode.
-func (n *NodeAuthenticationOOBTrigger) GetOOBOTPCodeSendCooldown() int {
-	return n.SendCooldown
 }
 
 // GetOOBOTPCodeLength implements OOBOTPNode.

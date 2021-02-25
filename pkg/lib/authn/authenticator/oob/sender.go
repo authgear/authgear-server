@@ -39,10 +39,9 @@ func (s *CodeSender) SendCode(
 	}
 
 	result = &otp.CodeSendResult{
-		Target:       target,
-		Channel:      string(channel),
-		CodeLength:   len(code),
-		SendCooldown: OOBOTPSendCooldownSeconds,
+		Target:     target,
+		Channel:    string(channel),
+		CodeLength: len(code),
 	}
 	return
 }
