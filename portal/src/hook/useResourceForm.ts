@@ -1,10 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
-import deepEqual from "deep-equal";
 import {
   Resource,
   ResourceSpecifier,
+  ResourcesDiffResult,
   diffResourceUpdates,
-  specifierId,
 } from "../util/resource";
 import { useAppTemplatesQuery } from "../graphql/portal/query/appTemplatesQuery";
 import { useUpdateAppTemplatesMutation } from "../graphql/portal/mutations/updateAppTemplatesMutation";
@@ -24,29 +23,6 @@ export interface ResourceFormModel<State> {
 
 export type StateConstructor<State> = (resources: Resource[]) => State;
 export type ResourcesConstructor<State> = (state: State) => Resource[];
-
-function cmp(a: Resource, b: Resource) {
-  const ai = specifierId(a.specifier);
-  const bi = specifierId(b.specifier);
-  return ai === bi ? 0 : ai < bi ? -1 : 1;
-}
-
-function mergeResources(
-  initialResources: Resource[],
-  newResources: Resource[]
-): Resource[] {
-  const resources = new Map(
-    initialResources.map((r) => [specifierId(r.specifier), r])
-  );
-  for (const r of newResources) {
-    const id = specifierId(r.specifier);
-    if (r.value === "" && !resources.has(id)) {
-      continue;
-    }
-    resources.set(id, r);
-  }
-  return Array.from(resources.values()).sort(cmp);
-}
 
 export function useResourceForm<State>(
   appID: string,
@@ -73,16 +49,26 @@ export function useResourceForm<State>(
   ]);
   const [currentState, setCurrentState] = useState<State | null>(null);
 
-  const isDirty = useMemo(() => {
+  const newResources: Resource[] | null = useMemo(() => {
     if (!currentState) {
+      return null;
+    }
+    return constructResources(currentState);
+  }, [currentState, constructResources]);
+
+  const diff: ResourcesDiffResult | null = useMemo(() => {
+    if (newResources == null) {
+      return null;
+    }
+    return diffResourceUpdates(resources, newResources);
+  }, [resources, newResources]);
+
+  const isDirty = useMemo(() => {
+    if (diff == null) {
       return false;
     }
-    return !deepEqual(
-      mergeResources(resources, constructResources(initialState)),
-      mergeResources(resources, constructResources(currentState)),
-      { strict: true }
-    );
-  }, [constructResources, resources, initialState, currentState]);
+    return diff.needUpdate;
+  }, [diff]);
 
   const reset = useCallback(() => {
     if (isUpdating) {
@@ -93,19 +79,9 @@ export function useResourceForm<State>(
   }, [isUpdating, resetError]);
 
   const save = useCallback(() => {
-    if (!currentState) {
+    if (!diff) {
       return;
     } else if (isUpdating) {
-      return;
-    }
-
-    const newResources = mergeResources(
-      resources,
-      constructResources(currentState)
-    );
-    const diff = diffResourceUpdates(resources, newResources);
-    if (!diff.needUpdate) {
-      setCurrentState(null);
       return;
     }
 
@@ -116,13 +92,7 @@ export function useResourceForm<State>(
     ])
       .then(() => setCurrentState(null))
       .catch(() => {});
-  }, [
-    isUpdating,
-    constructResources,
-    resources,
-    currentState,
-    updateResources,
-  ]);
+  }, [diff, isUpdating, updateResources]);
 
   const state = currentState ?? initialState;
   const setState = useCallback(

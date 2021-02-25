@@ -107,66 +107,6 @@ export function specifierId(specifier: ResourceSpecifier): string {
   });
 }
 
-export type LocaleInvalidReason =
-  | "required-default-resource"
-  | "locale-without-resources";
-
-export interface LocaleValidationResult {
-  invalidReason: LocaleInvalidReason | null;
-  invalidLocales: LanguageTag[];
-}
-
-// eslint-disable-next-line complexity
-export function validateLocales(
-  defaultLocale: LanguageTag,
-  locales: LanguageTag[],
-  resources: Resource[]
-): LocaleValidationResult {
-  // For convenience, report only one invalid reason.
-  let invalidReason: LocaleInvalidReason | null = null;
-  const invalidLocales = new Set<LanguageTag>();
-
-  // Locale is valid iff there is at least 1 resource with that locale.
-  const orphanedLocales = new Set<LanguageTag>(locales);
-  for (const r of resources) {
-    const locale = r.specifier.locale;
-    if (!locale) {
-      continue;
-    }
-
-    if (r.value !== "") {
-      orphanedLocales.delete(locale);
-    }
-    if (
-      r.value === "" &&
-      locale === defaultLocale &&
-      // Built-in locale has built-in fallback values for required resources
-      locale !== BUILTIN_LOCALE &&
-      !r.specifier.def.optional
-    ) {
-      // An non-optional resource for default locale without value:
-      invalidLocales.add(locale);
-      invalidReason = "required-default-resource";
-    }
-  }
-
-  // Built-in locale always has built-in value as fallback, so not considered orphaned.
-  orphanedLocales.delete(BUILTIN_LOCALE);
-  if (orphanedLocales.size > 0) {
-    for (const l of orphanedLocales) {
-      invalidLocales.add(l);
-    }
-    if (!invalidReason) {
-      invalidReason = "locale-without-resources";
-    }
-  }
-
-  return {
-    invalidReason,
-    invalidLocales: Array.from(invalidLocales),
-  };
-}
-
 export interface ResourcesDiffResult {
   needUpdate: boolean;
   newResources: ResourceUpdate[];

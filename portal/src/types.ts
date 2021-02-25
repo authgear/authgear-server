@@ -248,6 +248,7 @@ export interface UIConfig {
 
 // LocalizationConfig
 export interface LocalizationConfig {
+  supported_languages?: string[];
   fallback_language?: string;
 }
 
