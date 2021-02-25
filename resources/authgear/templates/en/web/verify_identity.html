@@ -2,7 +2,9 @@
 <html>
 {{ template "__html_head.html" . }}
 <body class="page">
+{{ template "__error.html" . }}
 <div class="content">
+
 {{ if eq $.Action "update_session_step" }}
 {{ template "__nav_bar.html" true }}
 {{ else if $.IdentityDisplayID }}
@@ -10,8 +12,6 @@
 {{ else }}
 {{ template "__nav_bar.html" true }}
 {{ end }}
-
-{{ template "__error.html" . }}
 
 <div class="pane margin-6 flex flex-direction-column">
 {{ template "__header.html" . }}
