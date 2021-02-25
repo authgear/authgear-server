@@ -9,19 +9,54 @@ window.api.onLoad(() => {
   document.body.classList.add("js");
 });
 
+// Handle error close button
+window.api.onLoad(() => {
+  const field = document.querySelector(".errors-wrapper");
+  if (!field) {
+    return;
+  }
+  const errorBar = field.querySelector(".errors");
+  const close = field.querySelector(".close");
+  if (!close) {
+    return;
+  }
+  function onCloseButtonClick(e: Event) {
+    errorBar?.classList.add("display-none");
+  }
+  close.addEventListener("click", onCloseButtonClick);
+
+  return () => {
+    close.removeEventListener("click", onCloseButtonClick);
+  };
+});
+
 // Handle form submission
 
 function setNetworkError() {
-  const field = document.querySelector(".errors");
+  const field = document.querySelector(".errors-wrapper");
   if (field) {
-    field.textContent = field.getAttribute("data-network-error");
+    const errorBar = field.querySelector(".errors");
+    const list = field.querySelector(".error-txt");
+    var li = document.createElement("li");
+    li.appendChild(
+      document.createTextNode(field.getAttribute("data-network-error") || "")
+    );
+    if (list) list.innerHTML = li.outerHTML;
+    errorBar?.classList.remove("display-none");
   }
 }
 
 function setServerError() {
-  const field = document.querySelector(".errors");
+  const field = document.querySelector(".errors-wrapper");
   if (field) {
-    field.textContent = field.getAttribute("data-server-error");
+    const errorBar = field.querySelector(".errors");
+    const list = field.querySelector(".error-txt");
+    var li = document.createElement("li");
+    li.appendChild(
+      document.createTextNode(field.getAttribute("data-server-error") || "")
+    );
+    if (list) list.innerHTML = li.outerHTML;
+    errorBar?.classList.remove("display-none");
   }
 }
 

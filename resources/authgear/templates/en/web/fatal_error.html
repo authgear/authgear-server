@@ -2,6 +2,11 @@
 <html>
 {{ template "__html_head.html" . }}
 <body class="page">
+{{ if .Error }}
+{{ if not (eq .Error.reason "WebUIInvalidSession") }}
+{{ template "__error.html" . }}
+{{ end }}
+{{ end }}
 <main class="content">
 
 {{ template "__header.html" . }}
@@ -21,8 +26,6 @@
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ end }}
-{{ else }}
-{{ template "__error.html" . }}
 {{ end }}
 {{ end }}
 </main>

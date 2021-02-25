@@ -104,9 +104,9 @@ h1, h2, h3, h4, h5, h6 {
 @media (min-width: 1025px) {
   .page {
     display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
   }
   .content {
     width: 546px;
@@ -313,9 +313,55 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
+.errors-wrapper {
+  width: 100%;
+  min-height: 32px;
+}
+
 .errors {
-  list-style-type: none;
+  display: flex;
+  flex-direction: row;
+  background-color: var(--color-error-shaded-2);
+}
+
+.errors.display-none {
+  display: none;
+}
+
+.errors .icon {
+  font-size: 16px;
+  min-width: 16px;
+  min-height: 16px;
+  display: flex;
+  flex-shrink: 0;
+  margin: 8px 0px 8px 12px;
+  color: var(--color-error-unshaded);
+}
+
+.errors .error-txt {
+  min-width: 0px;
+  display: flex;
+  flex-grow: 1;
   padding: 0;
+  margin: 4px 8px;
+  list-style-type: none;
+  color: var(--color-black-shaded-4);
+  font-size: smaller;
+  flex-direction: column;
+}
+
+.errors .error-txt li {
+  margin: 4px 0;
+}
+
+.errors .close {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  cursor: pointer;
+  justify-content: center;
+  align-items: center;
 }
 
 .primary-txt {
@@ -328,10 +374,6 @@ h1, h2, h3, h4, h5, h6 {
 
 .warn-txt {
   color: var(--color-warn);
-}
-
-.error-txt {
-  color: var(--color-error-unshaded);
 }
 
 .input {
