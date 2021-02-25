@@ -54,6 +54,19 @@ func (s storageRedisConn) TakeToken(bucket Bucket, now time.Time) (int, error) {
 	return int(tokens), nil
 }
 
+func (s storageRedisConn) CheckToken(bucket Bucket) (int, error) {
+	ctx := context.Background()
+	tokenTaken, err := s.Conn.HGet(ctx, redisBucketKey(s.AppID, bucket), "token_taken").Int64()
+	if errors.Is(err, goredis.Nil) {
+		tokenTaken = 0
+	} else if err != nil {
+		return 0, err
+	}
+
+	tokens := int64(bucket.Size) - tokenTaken
+	return int(tokens), nil
+}
+
 func (s storageRedisConn) GetResetTime(bucket Bucket, now time.Time) (time.Time, error) {
 	ctx := context.Background()
 	resetTime, err := s.Conn.HGet(ctx, redisBucketKey(s.AppID, bucket), "reset_time").Result()

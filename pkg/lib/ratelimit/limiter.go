@@ -1,6 +1,8 @@
 package ratelimit
 
 import (
+	"time"
+
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -57,4 +59,34 @@ func (l *Limiter) TakeToken(bucket Bucket) error {
 
 		return nil
 	})
+}
+
+// CheckToken return resetDuration and pass based on the given bucket
+func (l *Limiter) CheckToken(bucket Bucket) (pass bool, resetDuration time.Duration, err error) {
+	err = l.Storage.WithConn(func(conn StorageConn) error {
+		now := l.Clock.NowUTC()
+
+		resetTime, err := conn.GetResetTime(bucket, now)
+		if err != nil {
+			return err
+		}
+		if !now.Before(resetTime) {
+			// Exceed the reset time, bucket will be reset
+			pass = true
+			return nil
+		}
+
+		// Check the token
+		tokens, err := conn.CheckToken(bucket)
+		if err != nil {
+			return err
+		}
+
+		resetDuration = resetTime.Sub(now)
+		// We need at least 1 token to consume next time.
+		pass = tokens >= 1
+		return nil
+	})
+
+	return
 }
