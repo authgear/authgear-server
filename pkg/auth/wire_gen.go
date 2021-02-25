@@ -11050,6 +11050,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Verifications:     verificationService,
+		RateLimiter:       limiter,
 	}
 	return verifyIdentityHandler
 }

@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -9,8 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -57,17 +60,21 @@ type VerifyIdentityVerificationService interface {
 	GetCode(id string) (*verification.Code, error)
 }
 
+type RateLimiter interface {
+	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
+}
 type VerifyIdentityHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Verifications     VerifyIdentityVerificationService
+	RateLimiter       RateLimiter
 }
 
 type VerifyIdentityNode interface {
 	GetVerificationIdentity() *identity.Info
 	GetVerificationCodeChannel() string
-	GetVerificationCodeSendCooldown() int
+	GetVerificationCodeTarget() string
 	GetVerificationCodeLength() int
 	GetRequestedByUser() bool
 }
@@ -94,16 +101,30 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	var n VerifyIdentityNode
 	if graph.FindLastNode(&n) {
 		rawIdentityDisplayID := n.GetVerificationIdentity().DisplayID()
-		viewModel.VerificationCodeSendCooldown = n.GetVerificationCodeSendCooldown()
 		viewModel.VerificationCodeLength = n.GetVerificationCodeLength()
 		viewModel.VerificationCodeChannel = n.GetVerificationCodeChannel()
+		target := n.GetVerificationCodeTarget()
+		var bucket ratelimit.Bucket
 		switch authn.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel) {
 		case authn.AuthenticatorOOBChannelSMS:
 			viewModel.IdentityDisplayID = phone.Mask(rawIdentityDisplayID)
+			bucket = sms.RateLimitBucket(target)
 		case authn.AuthenticatorOOBChannelEmail:
 			viewModel.IdentityDisplayID = mail.MaskAddress(rawIdentityDisplayID)
+			bucket = mail.RateLimitBucket(target)
 		default:
-			viewModel.IdentityDisplayID = rawIdentityDisplayID
+			panic("webapp: unknown verification channel")
+		}
+
+		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
+		if err != nil {
+			return nil, err
+		}
+		if pass {
+			// allow sending immediately
+			viewModel.VerificationCodeSendCooldown = 0
+		} else {
+			viewModel.VerificationCodeSendCooldown = int(resetDuration.Seconds())
 		}
 	}
 
