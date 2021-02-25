@@ -62,6 +62,20 @@ func (mr *MockCodeStoreMockRecorder) Get(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCodeStore)(nil).Get), id)
 }
 
+// Update mocks base method
+func (m *MockCodeStore) Update(code *Code) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", code)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockCodeStoreMockRecorder) Update(code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockCodeStore)(nil).Update), code)
+}
+
 // Delete mocks base method
 func (m *MockCodeStore) Delete(id string) error {
 	m.ctrl.T.Helper()

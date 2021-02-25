@@ -11006,6 +11006,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Verifications:     verificationService,
+		Clock:             clockClock,
 	}
 	return verifyIdentityHandler
 }

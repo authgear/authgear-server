@@ -62,6 +62,28 @@ func (s *StoreRedis) Get(id string) (*Code, error) {
 	return codeModel, err
 }
 
+func (s *StoreRedis) Update(code *Code) error {
+	ctx := context.Background()
+	data, err := json.Marshal(code)
+	if err != nil {
+		return err
+	}
+
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		codeKey := redisCodeKey(s.AppID, code.ID)
+		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
+		_, err = conn.SetXX(ctx, codeKey, data, ttl).Result()
+		if errors.Is(err, goredis.Nil) {
+			return ErrCodeNotFound
+		}
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
+}
+
 func (s *StoreRedis) Delete(id string) error {
 	ctx := context.Background()
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {

@@ -69,6 +69,11 @@ func (n *NodeVerifyIdentity) GetVerificationIdentity() *identity.Info {
 	return n.Identity
 }
 
+// GetVerificationCodeID implements VerifyIdentityNode.
+func (n *NodeVerifyIdentity) GetVerificationCodeID() string {
+	return n.CodeID
+}
+
 // GetVerificationCodeChannel implements VerifyIdentityNode.
 func (n *NodeVerifyIdentity) GetVerificationCodeChannel() string {
 	return n.Channel
@@ -124,11 +129,17 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		}
 	}
 
-	result, err := ctx.VerificationCodeSender.SendCode(code)
+	err = ctx.VerificationCodeSender.SendCode(code)
 	if err != nil {
 		return nil, err
 	}
 
+	err = ctx.Verification.UpdateCodeSentAt(code)
+	if err != nil {
+		return nil, err
+	}
+
+	result := code.SendResult()
 	return result, nil
 }
 

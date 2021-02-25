@@ -24,6 +24,7 @@ type Code struct {
 	LoginIDType string    `json:"login_id_type"`
 	LoginID     string    `json:"login_id"`
 	Code        string    `json:"code"`
+	SentAt      time.Time `json:"sent_at"`
 	ExpireAt    time.Time `json:"expire_at"`
 
 	WebSessionID string `json:"web_session_id"`
@@ -47,6 +48,7 @@ func (c *Code) SendResult() *otp.CodeSendResult {
 		Channel:      channel,
 		CodeLength:   len(c.Code),
 		SendCooldown: SendCooldownSeconds,
+		SentAt:       c.SentAt,
 	}
 }
 

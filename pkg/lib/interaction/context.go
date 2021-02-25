@@ -133,13 +133,14 @@ type VerificationService interface {
 		requestedByUser bool,
 	) (*verification.Code, error)
 	GetCode(id string) (*verification.Code, error)
+	UpdateCodeSentAt(code *verification.Code) error
 	VerifyCode(id string, code string) (*verification.Code, error)
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 }
 
 type VerificationCodeSender interface {
-	SendCode(code *verification.Code) (*otp.CodeSendResult, error)
+	SendCode(code *verification.Code) error
 }
 
 type CookieFactory interface {

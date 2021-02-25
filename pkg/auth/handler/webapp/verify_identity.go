@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -11,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -45,12 +47,12 @@ const (
 )
 
 type VerifyIdentityViewModel struct {
-	VerificationCode             string
-	VerificationCodeSendCooldown int
-	VerificationCodeLength       int
-	VerificationCodeChannel      string
-	IdentityDisplayID            string
-	Action                       string
+	VerificationCode                 string
+	VerificationCodeSendCooldownLeft int
+	VerificationCodeLength           int
+	VerificationCodeChannel          string
+	IdentityDisplayID                string
+	Action                           string
 }
 
 type VerifyIdentityVerificationService interface {
@@ -62,10 +64,12 @@ type VerifyIdentityHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Verifications     VerifyIdentityVerificationService
+	Clock             clock.Clock
 }
 
 type VerifyIdentityNode interface {
 	GetVerificationIdentity() *identity.Info
+	GetVerificationCodeID() string
 	GetVerificationCodeChannel() string
 	GetVerificationCodeSendCooldown() int
 	GetVerificationCodeLength() int
@@ -94,7 +98,23 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	var n VerifyIdentityNode
 	if graph.FindLastNode(&n) {
 		rawIdentityDisplayID := n.GetVerificationIdentity().DisplayID()
-		viewModel.VerificationCodeSendCooldown = n.GetVerificationCodeSendCooldown()
+
+		cooldownLeft := n.GetVerificationCodeSendCooldown()
+		sentAt := time.Time{}
+		code, err := h.Verifications.GetCode(n.GetVerificationCodeID())
+		if err == nil {
+			sentAt = code.SentAt
+		}
+		if !sentAt.IsZero() {
+			now := h.Clock.NowUTC()
+			diff := now.Sub(sentAt).Seconds()
+			cooldownLeft = cooldownLeft - int(diff)
+			if cooldownLeft < 0 {
+				cooldownLeft = 0
+			}
+		}
+
+		viewModel.VerificationCodeSendCooldownLeft = cooldownLeft
 		viewModel.VerificationCodeLength = n.GetVerificationCodeLength()
 		viewModel.VerificationCodeChannel = n.GetVerificationCodeChannel()
 		switch authn.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel) {

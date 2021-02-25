@@ -21,6 +21,7 @@ import (
 type CodeStore interface {
 	Create(code *Code) error
 	Get(id string) (*Code, error)
+	Update(code *Code) error
 	Delete(id string) error
 }
 
@@ -264,6 +265,11 @@ func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID str
 
 func (s *Service) GetCode(id string) (*Code, error) {
 	return s.CodeStore.Get(id)
+}
+
+func (s *Service) UpdateCodeSentAt(code *Code) error {
+	code.SentAt = s.Clock.NowUTC()
+	return s.CodeStore.Update(code)
 }
 
 func (s *Service) VerifyCode(id string, code string) (*Code, error) {
