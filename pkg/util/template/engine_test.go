@@ -16,8 +16,9 @@ func TestEngine(t *testing.T) {
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{resource.AferoFs{Fs: fs}})
 		resolver := &template.Resolver{
-			Resources:          manager,
-			DefaultLanguageTag: "en",
+			Resources:             manager,
+			DefaultLanguageTag:    "en",
+			SupportedLanguageTags: []string{"zh", "en"},
 		}
 		engine := &template.Engine{Resolver: resolver}
 

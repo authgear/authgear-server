@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -156,29 +157,25 @@ func (a ImageDescriptor) viewValidateResource(resources []resource.ResourceFile,
 }
 
 func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
-	supportedLanguageTags := view.SupportedLanguageTags()
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
 
-	supportedSet := make(map[string]struct{})
-	for _, tag := range supportedLanguageTags {
-		supportedSet[tag] = struct{}{}
-	}
-
 	images := make(map[string]template.LanguageItem)
-	for _, resrc := range resources {
-		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
-
-		// Ignore resources in unsupported languages.
-		_, supported := supportedSet[languageTag]
-		if !supported {
-			continue
-		}
-
-		images[languageTag] = languageImage{
-			languageTag: languageTag,
+	add := func(langTag string, resrc resource.ResourceFile) error {
+		images[langTag] = languageImage{
+			languageTag: langTag,
 			data:        resrc.Data,
 		}
+		return nil
+	}
+	extractLanguageTag := func(resrc resource.ResourceFile) string {
+		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		return langTag
+	}
+
+	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
+	if err != nil {
+		return nil, err
 	}
 
 	// Ensure there is at most one resource

@@ -9,6 +9,7 @@ import (
 	messageformat "github.com/iawaknahc/gomessageformat"
 	"golang.org/x/text/language"
 
+	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -84,50 +85,42 @@ func (t *translationJSON) viewValidateResource(resources []resource.ResourceFile
 }
 
 func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
-	preferredLanguageTags := view.PreferredLanguageTags()
-	defaultLanguageTag := view.DefaultLanguageTag()
-	supportedLanguageTags := view.SupportedLanguageTags()
-
-	supportedSet := make(map[string]struct{})
-	for _, tag := range supportedLanguageTags {
-		supportedSet[tag] = struct{}{}
-	}
-
 	type LanguageTag string
 	type TranslationKey string
 	type TranslationValue string
 
+	preferredLanguageTags := view.PreferredLanguageTags()
+	defaultLanguageTag := view.DefaultLanguageTag()
+
 	translationMap := make(map[TranslationKey]map[LanguageTag]TranslationValue)
-	insertTranslation := func(tag, key, value string) {
-		keyTranslations, ok := translationMap[TranslationKey(key)]
-		if !ok {
-			keyTranslations = make(map[LanguageTag]TranslationValue)
-			translationMap[TranslationKey(key)] = keyTranslations
-		}
-		keyTranslations[LanguageTag(tag)] = TranslationValue(value)
-	}
-
-	for _, resrc := range resources {
-		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
-
-		// Ignore resources in unsupported languages.
-		_, supported := supportedSet[langTag]
-		if !supported {
-			continue
-		}
-
+	add := func(langTag string, resrc resource.ResourceFile) error {
 		var jsonObj map[string]interface{}
 		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {
-			return nil, fmt.Errorf("translation file must be JSON: %w", err)
+			return fmt.Errorf("translation file must be JSON: %w", err)
 		}
 
 		for key, val := range jsonObj {
 			value, ok := val.(string)
 			if !ok {
-				return nil, fmt.Errorf("translation `%v` must be string (%T)", key, val)
+				return fmt.Errorf("translation `%v` must be string (%T)", key, val)
 			}
-			insertTranslation(langTag, key, value)
+			keyTranslations, ok := translationMap[TranslationKey(key)]
+			if !ok {
+				keyTranslations = make(map[LanguageTag]TranslationValue)
+				translationMap[TranslationKey(key)] = keyTranslations
+			}
+			keyTranslations[LanguageTag(langTag)] = TranslationValue(value)
 		}
+		return nil
+	}
+	extractLanguageTag := func(resrc resource.ResourceFile) string {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		return langTag
+	}
+
+	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
+	if err != nil {
+		return nil, err
 	}
 
 	translationData := make(map[string]Translation)

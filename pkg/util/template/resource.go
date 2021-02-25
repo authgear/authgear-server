@@ -10,6 +10,7 @@ import (
 	texttemplate "text/template"
 
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -221,30 +222,26 @@ func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource
 }
 
 func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
-	supportedLanguageTags := view.SupportedLanguageTags()
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
 
-	supportedSet := make(map[string]struct{})
-	for _, tag := range supportedLanguageTags {
-		supportedSet[tag] = struct{}{}
-	}
-
 	languageTemplates := make(map[string]languageTemplate)
-	for _, resrc := range resources {
-		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
-
-		// Ignore resources in unsupported languages.
-		_, supported := supportedSet[langTag]
-		if !supported {
-			continue
-		}
-
+	add := func(langTag string, resrc resource.ResourceFile) error {
 		t := languageTemplate{
 			languageTag: langTag,
 			data:        resrc.Data,
 		}
 		languageTemplates[langTag] = t
+		return nil
+	}
+	extractLanguageTag := func(resrc resource.ResourceFile) string {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		return langTag
+	}
+
+	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
+	if err != nil {
+		return nil, err
 	}
 
 	var items []LanguageItem
