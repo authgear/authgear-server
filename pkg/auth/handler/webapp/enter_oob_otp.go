@@ -51,6 +51,7 @@ type EnterOOBOTPHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	RateLimiter       RateLimiter
+	FlashMessage      FlashMessage
 }
 
 type EnterOOBOTPNode interface {
@@ -164,6 +165,9 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
+		if !result.IsInteractionErr {
+			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendCodeSuccess))
+		}
 		result.WriteResponse(w, r)
 		return nil
 	})

@@ -9570,6 +9570,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		RateLimiter:       limiter,
+		FlashMessage:      flashMessage,
 	}
 	return enterOOBOTPHandler
 }
