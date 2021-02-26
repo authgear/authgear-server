@@ -30,7 +30,7 @@ type BaseViewModel struct {
 	RequestURI          string
 	CSRFField           htmltemplate.HTML
 	Translations        TranslationService
-	StaticAssetURL      func(id string) (url string, err error)
+	StaticAssetURL      func(id string) (url string)
 	DarkThemeEnabled    bool
 	CountryCallingCodes []string
 	// ClientURI is the home page of the client.
@@ -95,11 +95,19 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	client, _ := m.OAuth.GetClient(clientID)
 	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
 	model := BaseViewModel{
-		RequestURL:          r.URL.String(),
-		RequestURI:          requestURI.String(),
-		CSRFField:           csrf.TemplateField(r),
-		Translations:        m.Translations,
-		StaticAssetURL:      m.StaticAssets.StaticAssetURL,
+		RequestURL:   r.URL.String(),
+		RequestURI:   requestURI.String(),
+		CSRFField:    csrf.TemplateField(r),
+		Translations: m.Translations,
+		// This function has to return 1-value only.
+		// Otherwise it cannot be used in template variable declartion.
+		// What I mean here is that
+		// {{ $a, $b := call $.StaticAssetURL "foobar" }}
+		// is NOT supported at all.
+		StaticAssetURL: func(id string) (url string) {
+			url, _ = m.StaticAssets.StaticAssetURL(id)
+			return
+		},
 		DarkThemeEnabled:    !m.AuthUI.DarkThemeDisabled,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
 		ClientURI:           clientURI,
