@@ -54,7 +54,7 @@ import {
   darkThemeToCSS,
 } from "../../util/theme";
 
-import styles from "./ResourceConfigurationScreen.module.scss";
+import styles from "./UISettingsScreen.module.scss";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
@@ -730,7 +730,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   );
 };
 
-const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScreen() {
+const UISettingsScreen: React.FC = function UISettingsScreen() {
   const { appID } = useParams();
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageTag | null>(
     null
@@ -837,4 +837,4 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   );
 };
 
-export default ResourceConfigurationScreen;
+export default UISettingsScreen;

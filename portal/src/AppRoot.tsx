@@ -24,7 +24,8 @@ import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
 import CustomDomainListScreen from "./graphql/portal/CustomDomainListScreen";
 import VerifyDomainScreen from "./graphql/portal/VerifyDomainScreen";
-import ResourceConfigurationScreen from "./graphql/portal/ResourceConfigurationScreen";
+import UISettingsScreen from "./graphql/portal/UISettingsScreen";
+import LocalizationConfigurationScreen from "./graphql/portal/LocalizationConfigurationScreen";
 import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
 import SessionSettings from "./graphql/portal/SessionSettings";
@@ -140,11 +141,11 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route
             path="/configuration/ui-settings"
-            element={<ResourceConfigurationScreen />}
+            element={<UISettingsScreen />}
           />
           <Route
             path="/configuration/localization"
-            element={<ResourceConfigurationScreen />}
+            element={<LocalizationConfigurationScreen />}
           />
           <Route
             path="/configuration/settings/portal-admins"
