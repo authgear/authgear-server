@@ -19,6 +19,7 @@ var utilsDeps = wire.NewSet(
 		wire.Bind(new(session.CookieFactory), new(*httputil.CookieFactory)),
 		wire.Bind(new(idpsession.CookieFactory), new(*httputil.CookieFactory)),
 		wire.Bind(new(interaction.CookieFactory), new(*httputil.CookieFactory)),
+		wire.Bind(new(httputil.CookieFactoryInterface), new(*httputil.CookieFactory)),
 	),
 )
 

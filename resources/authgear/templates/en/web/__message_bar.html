@@ -1,0 +1,20 @@
+{{ define "__message_bar.html" }}
+<div class="messages-bar-wrapper">
+
+{{ template "__error.html" . }}
+
+{{ if .FlashMessageType }}
+<div class="messages-bar success">
+    <div class="icon"><i class="far fa-check-circle"></i></div>
+    <ul class="messages-txt">
+        {{ if (eq .FlashMessageType "resend_code_success") }}
+            <li>{{ template "success-resend-code" }}</li>
+        {{ end }}
+    </ul>
+    <div class="close"><i class="fas fa-times"></i></div>
+</div>
+</div>
+{{ end }}
+
+</div>
+{{ end }}

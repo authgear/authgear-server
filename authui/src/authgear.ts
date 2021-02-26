@@ -9,54 +9,57 @@ window.api.onLoad(() => {
   document.body.classList.add("js");
 });
 
-// Handle error close button
+// Handle message bar close button
 window.api.onLoad(() => {
-  const field = document.querySelector(".errors-wrapper");
-  if (!field) {
-    return;
+  const wrappers = document.querySelectorAll(".messages-bar");
+  const disposers: Array<() => void> = [];
+  for (let i = 0; i < wrappers.length; i++) {
+    const wrapper = wrappers[i];
+    const close = wrapper.querySelector(".close");
+    if (!close) {
+      continue;
+    }
+    const onCloseButtonClick = (e: Event) => {
+      wrapper.classList.add("display-none");
+    };
+    close.addEventListener("click", onCloseButtonClick);
+    disposers.push(() => {
+      close.removeEventListener("click", onCloseButtonClick);
+    });
   }
-  const errorBar = field.querySelector(".errors");
-  const close = field.querySelector(".close");
-  if (!close) {
-    return;
-  }
-  function onCloseButtonClick(e: Event) {
-    errorBar?.classList.add("display-none");
-  }
-  close.addEventListener("click", onCloseButtonClick);
 
   return () => {
-    close.removeEventListener("click", onCloseButtonClick);
+    for (const disposer of disposers) {
+      disposer();
+    }
   };
 });
 
 // Handle form submission
 
 function setNetworkError() {
-  const field = document.querySelector(".errors-wrapper");
-  if (field) {
-    const errorBar = field.querySelector(".errors");
-    const list = field.querySelector(".error-txt");
+  const errorBar = document.querySelector(".errors-messages-bar");
+  if (errorBar) {
+    const list = errorBar.querySelector(".error-txt");
     var li = document.createElement("li");
     li.appendChild(
-      document.createTextNode(field.getAttribute("data-network-error") || "")
+      document.createTextNode(errorBar.getAttribute("data-network-error") || "")
     );
     if (list) list.innerHTML = li.outerHTML;
-    errorBar?.classList.remove("display-none");
+    errorBar.classList.remove("display-none");
   }
 }
 
 function setServerError() {
-  const field = document.querySelector(".errors-wrapper");
-  if (field) {
-    const errorBar = field.querySelector(".errors");
-    const list = field.querySelector(".error-txt");
+  const errorBar = document.querySelector(".errors-messages-bar");
+  if (errorBar) {
+    const list = errorBar.querySelector(".error-txt");
     var li = document.createElement("li");
     li.appendChild(
-      document.createTextNode(field.getAttribute("data-server-error") || "")
+      document.createTextNode(errorBar.getAttribute("data-server-error") || "")
     );
     if (list) list.innerHTML = li.outerHTML;
-    errorBar?.classList.remove("display-none");
+    errorBar.classList.remove("display-none");
   }
 }
 

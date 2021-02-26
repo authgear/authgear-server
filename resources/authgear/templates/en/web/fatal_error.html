@@ -4,7 +4,7 @@
 <body class="page">
 {{ if .Error }}
 {{ if not (eq .Error.reason "WebUIInvalidSession") }}
-{{ template "__error.html" . }}
+{{ template "__message_bar.html" . }}
 {{ end }}
 {{ end }}
 <main class="content">

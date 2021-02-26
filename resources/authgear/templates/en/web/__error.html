@@ -1,8 +1,7 @@
 {{ define "__error.html" }}
-<div class="errors-wrapper" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
-<div class="errors {{ if not .Error }}display-none{{ end }}">
+<div class="messages-bar errors-messages-bar errors {{ if not .Error }}display-none{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
     <div class="icon"><i class="far fa-times-circle"></i></div>
-    <ul class="error-txt">
+    <ul class="messages-txt error-txt">
         {{ if .Error }}
             {{ if eq .Error.reason "ValidationFailed" }}
                 {{ range .Error.info.causes }}
@@ -88,6 +87,5 @@
         {{ end }}
     </ul>
     <div class="close"><i class="fas fa-times"></i></div>
-</div>
 </div>
 {{ end }}
