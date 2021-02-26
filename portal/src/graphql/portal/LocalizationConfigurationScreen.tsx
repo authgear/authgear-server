@@ -4,16 +4,9 @@ import { Pivot, PivotItem } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
-import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ManageLanguageWidget from "./ManageLanguageWidget";
-import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
-import {
-  DEFAULT_LIGHT_THEME,
-  DEFAULT_DARK_THEME,
-} from "../../ThemePresetWidget";
-import ImageFilePicker from "../../ImageFilePicker";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
@@ -22,8 +15,6 @@ import {
   ALL_EDITABLE_RESOURCES,
   ALL_TEMPLATES,
   renderPath,
-  RESOURCE_FAVICON,
-  RESOURCE_APP_LOGO,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
@@ -34,9 +25,6 @@ import {
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
   RESOURCE_TRANSLATION_JSON,
-  RESOURCE_AUTHGEAR_CSS,
-  RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
-  RESOURCE_AUTHGEAR_DARK_THEME_CSS,
 } from "../../resources";
 import {
   LanguageTag,
@@ -45,29 +33,18 @@ import {
   ResourceSpecifier,
   specifierId,
 } from "../../util/resource";
-import {
-  LightTheme,
-  DarkTheme,
-  getLightTheme,
-  getDarkTheme,
-  lightThemeToCSS,
-  darkThemeToCSS,
-} from "../../util/theme";
-
-import styles from "./LocalizationConfigurationScreen.module.scss";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import styles from "./LocalizationConfigurationScreen.module.scss";
 
 interface ConfigFormState {
   supportedLanguages: string[];
   fallbackLanguage: string;
   darkThemeDisabled: boolean;
 }
-
-const NOOP = () => {};
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
   const fallbackLanguage = config.localization?.fallback_language ?? "en";
@@ -155,22 +132,16 @@ interface ResourcesConfigurationContentProps {
   supportedLanguages: LanguageTag[];
 }
 
-const PIVOT_KEY_APPEARANCE = "appearance";
-const PIVOT_KEY_CUSTOM_CSS = "custom-css";
 const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
 const PIVOT_KEY_PASSWORDLESS = "passwordless";
-const PIVOT_KEY_THEME = "theme";
 const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
 
-const PIVOT_KEY_DEFAULT = PIVOT_KEY_APPEARANCE;
+const PIVOT_KEY_DEFAULT = PIVOT_KEY_TRANSLATION_JSON;
 
 const ALL_PIVOT_KEYS = [
-  PIVOT_KEY_APPEARANCE,
-  PIVOT_KEY_CUSTOM_CSS,
   PIVOT_KEY_FORGOT_PASSWORD,
   PIVOT_KEY_PASSWORDLESS,
   PIVOT_KEY_TRANSLATION_JSON,
-  PIVOT_KEY_THEME,
 ];
 
 const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
@@ -184,7 +155,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     return [
       {
         to: ".",
-        label: <FormattedMessage id="ResourceConfigurationScreen.title" />,
+        label: <FormattedMessage id="LocalizationConfigurationScreen.title" />,
       },
     ];
   }, []);
@@ -267,21 +238,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     }
   }, []);
 
-  const getValueIgnoreEmptyString = useCallback(
-    (def: ResourceDefinition) => {
-      const specifier: ResourceSpecifier = {
-        def,
-        locale: state.selectedLanguage,
-      };
-      const resource = state.resources[specifierId(specifier)];
-      if (resource == null || resource.value === "") {
-        return undefined;
-      }
-      return resource.value;
-    },
-    [state.resources, state.selectedLanguage]
-  );
-
   const getValue = useCallback(
     (def: ResourceDefinition) => {
       const specifier: ResourceSpecifier = {
@@ -317,185 +273,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [state.selectedLanguage, setState]
   );
 
-  const getOnChangeImage = useCallback(
-    (def: ResourceDefinition) => {
-      const specifier: ResourceSpecifier = {
-        def,
-        locale: state.selectedLanguage,
-      };
-      return (base64EncodedData?: string, extension?: string) => {
-        setState((prev) => {
-          const updatedResources = { ...prev.resources };
-
-          // We always remove the old one first.
-          const oldResource = prev.resources[specifierId(specifier)];
-          if (oldResource != null) {
-            updatedResources[specifierId(specifier)] = {
-              ...oldResource,
-              value: "",
-            };
-          }
-
-          // Add the new one.
-          if (base64EncodedData != null && extension != null) {
-            const resource: Resource = {
-              specifier,
-              path: renderPath(specifier.def.resourcePath, {
-                locale: specifier.locale,
-                extension,
-              }),
-              value: base64EncodedData,
-            };
-            updatedResources[specifierId(specifier)] = resource;
-          }
-
-          return { ...prev, resources: updatedResources };
-        });
-      };
-    },
-    [state.selectedLanguage, setState]
-  );
-
-  const lightTheme = useMemo(() => {
-    let lightTheme = null;
-    for (const r of Object.values(state.resources)) {
-      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS) {
-        const root = parse(r.value);
-        lightTheme = getLightTheme(root.nodes);
-      }
-    }
-
-    return lightTheme;
-  }, [state.resources]);
-
-  const darkTheme = useMemo(() => {
-    let darkTheme = null;
-    for (const r of Object.values(state.resources)) {
-      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
-        const root = parse(r.value);
-        darkTheme = getDarkTheme(root.nodes);
-      }
-    }
-    return darkTheme;
-  }, [state.resources]);
-
-  const setLightTheme = useCallback(
-    (newLightTheme: LightTheme) => {
-      setState((prev) => {
-        const specifier: ResourceSpecifier = {
-          def: RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
-          locale: state.selectedLanguage,
-        };
-        const updatedResources = { ...prev.resources };
-        const css = lightThemeToCSS(newLightTheme);
-        const newResource: Resource = {
-          specifier,
-          path: renderPath(specifier.def.resourcePath, {
-            locale: specifier.locale,
-          }),
-          value: css,
-        };
-        updatedResources[specifierId(newResource.specifier)] = newResource;
-        return {
-          ...prev,
-          resources: updatedResources,
-        };
-      });
-    },
-    [setState, state.selectedLanguage]
-  );
-
-  const setDarkTheme = useCallback(
-    (newDarkTheme: DarkTheme) => {
-      setState((prev) => {
-        const specifier: ResourceSpecifier = {
-          def: RESOURCE_AUTHGEAR_DARK_THEME_CSS,
-          locale: state.selectedLanguage,
-        };
-        const updatedResources = { ...prev.resources };
-        const css = darkThemeToCSS(newDarkTheme);
-        const newResource: Resource = {
-          specifier,
-          path: renderPath(specifier.def.resourcePath, {
-            locale: specifier.locale,
-          }),
-          value: css,
-        };
-        updatedResources[specifierId(newResource.specifier)] = newResource;
-        return {
-          ...prev,
-          resources: updatedResources,
-        };
-      });
-    },
-    [setState, state.selectedLanguage]
-  );
-
-  const getOnChangeLightThemeColor = useCallback(
-    (key: keyof LightTheme) => {
-      return (color: string) => {
-        const newLightTheme: LightTheme = {
-          ...(lightTheme ?? DEFAULT_LIGHT_THEME),
-          [key]: color,
-        };
-        setLightTheme(newLightTheme);
-      };
-    },
-    [lightTheme, setLightTheme]
-  );
-
-  const getOnChangeDarkThemeColor = useCallback(
-    (key: keyof DarkTheme) => {
-      return (color: string) => {
-        const newDarkTheme: DarkTheme = {
-          ...(darkTheme ?? DEFAULT_DARK_THEME),
-          [key]: color,
-        };
-        setDarkTheme(newDarkTheme);
-      };
-    },
-    [darkTheme, setDarkTheme]
-  );
-
-  const onChangeLightModePrimaryColor = getOnChangeLightThemeColor(
-    "primaryColor"
-  );
-  const onChangeLightModeTextColor = getOnChangeLightThemeColor("textColor");
-  const onChangeLightModeBackgroundColor = getOnChangeLightThemeColor(
-    "backgroundColor"
-  );
-  const onChangeDarkModePrimaryColor = getOnChangeDarkThemeColor(
-    "primaryColor"
-  );
-  const onChangeDarkModeTextColor = getOnChangeDarkThemeColor("textColor");
-  const onChangeDarkModeBackgroundColor = getOnChangeDarkThemeColor(
-    "backgroundColor"
-  );
-
-  const onChangeDarkModeEnabled = useCallback(
-    (enabled) => {
-      if (enabled) {
-        // Become enabled, copy the light theme with text color and background color swapped.
-        const base = lightTheme ?? DEFAULT_LIGHT_THEME;
-        const newDarkTheme: DarkTheme = {
-          isDarkTheme: true,
-          primaryColor: base.primaryColor,
-          textColor: base.backgroundColor,
-          backgroundColor: base.textColor,
-        };
-        setDarkTheme(newDarkTheme);
-      }
-
-      setState((prev) => {
-        return {
-          ...prev,
-          darkThemeDisabled: !enabled,
-        };
-      });
-    },
-    [setState, lightTheme, setDarkTheme]
-  );
-
   const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
     {
       key: "translation.json",
@@ -511,24 +288,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           language: "json",
           value: getValue(RESOURCE_TRANSLATION_JSON),
           onChange: getOnChange(RESOURCE_TRANSLATION_JSON),
-        },
-      ],
-    },
-  ];
-
-  const sectionsCustomCSS: EditTemplatesWidgetSection[] = [
-    {
-      key: "custom-css",
-      title: <FormattedMessage id="EditTemplatesWidget.custom-css.title" />,
-      items: [
-        {
-          key: "custom-css",
-          title: (
-            <FormattedMessage id="EditTemplatesWidget.custom-css.subtitle" />
-          ),
-          language: "css",
-          value: getValue(RESOURCE_AUTHGEAR_CSS),
-          onChange: getOnChange(RESOURCE_AUTHGEAR_CSS),
         },
       ],
     },
@@ -645,57 +404,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
         <PivotItem
           headerText={renderToString(
-            "ResourceConfigurationScreen.appearance.title"
-          )}
-          itemKey={PIVOT_KEY_APPEARANCE}
-        >
-          <div className={styles.pivotItemAppearance}>
-            <ImageFilePicker
-              title={renderToString("ResourceConfigurationScreen.favicon")}
-              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
-              onChange={getOnChangeImage(RESOURCE_FAVICON)}
-            />
-            <ImageFilePicker
-              title={renderToString("ResourceConfigurationScreen.app-logo")}
-              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
-              onChange={getOnChangeImage(RESOURCE_APP_LOGO)}
-            />
-          </div>
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString("ResourceConfigurationScreen.theme.title")}
-          itemKey={PIVOT_KEY_THEME}
-        >
-          <ThemeConfigurationWidget
-            className={styles.themeWidget}
-            darkTheme={darkTheme}
-            lightTheme={lightTheme}
-            isDarkMode={false}
-            darkModeEnabled={false}
-            onChangeDarkModeEnabled={NOOP}
-            onChangeLightTheme={setLightTheme}
-            onChangeDarkTheme={setDarkTheme}
-            onChangePrimaryColor={onChangeLightModePrimaryColor}
-            onChangeTextColor={onChangeLightModeTextColor}
-            onChangeBackgroundColor={onChangeLightModeBackgroundColor}
-          />
-          <ThemeConfigurationWidget
-            className={styles.themeWidget}
-            darkTheme={darkTheme}
-            lightTheme={lightTheme}
-            isDarkMode={true}
-            darkModeEnabled={!state.darkThemeDisabled}
-            onChangeLightTheme={setLightTheme}
-            onChangeDarkTheme={setDarkTheme}
-            onChangeDarkModeEnabled={onChangeDarkModeEnabled}
-            onChangePrimaryColor={onChangeDarkModePrimaryColor}
-            onChangeTextColor={onChangeDarkModeTextColor}
-            onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
-          />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
-            "ResourceConfigurationScreen.translationjson.title"
+            "LocalizationConfigurationScreen.translationjson.title"
           )}
           itemKey={PIVOT_KEY_TRANSLATION_JSON}
         >
@@ -703,7 +412,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         </PivotItem>
         <PivotItem
           headerText={renderToString(
-            "ResourceConfigurationScreen.forgot-password.title"
+            "LocalizationConfigurationScreen.forgot-password.title"
           )}
           itemKey={PIVOT_KEY_FORGOT_PASSWORD}
         >
@@ -711,19 +420,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         </PivotItem>
         <PivotItem
           headerText={renderToString(
-            "ResourceConfigurationScreen.passwordless-authenticator.title"
+            "LocalizationConfigurationScreen.passwordless-authenticator.title"
           )}
           itemKey={PIVOT_KEY_PASSWORDLESS}
         >
           <EditTemplatesWidget sections={sectionsPasswordless} />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
-            "ResourceConfigurationScreen.custom-css.title"
-          )}
-          itemKey={PIVOT_KEY_CUSTOM_CSS}
-        >
-          <EditTemplatesWidget sections={sectionsCustomCSS} />
         </PivotItem>
       </Pivot>
     </div>

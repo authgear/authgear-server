@@ -388,14 +388,15 @@
 
   "ResourceConfigurationScreen.title": "Appearance & Localization",
   "ResourceConfigurationScreen.appearance.title": "Appearance",
-  "ResourceConfigurationScreen.translationjson.title": "Translations",
-  "ResourceConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
-  "ResourceConfigurationScreen.forgot-password.title": "Forgot Password",
   "ResourceConfigurationScreen.custom-css.title": "Custom CSS",
   "ResourceConfigurationScreen.theme.title": "Theme",
-
   "ResourceConfigurationScreen.favicon": "Favicon",
   "ResourceConfigurationScreen.app-logo": "App Logo",
+
+  "LocalizationConfigurationScreen.title": "Localization",
+  "LocalizationConfigurationScreen.translationjson.title": "Translations",
+  "LocalizationConfigurationScreen.forgot-password.title": "Forgot Password",
+  "LocalizationConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
 
   "EditTemplatesWidget.email": "Email",
   "EditTemplatesWidget.html-email": "HTML Email",
