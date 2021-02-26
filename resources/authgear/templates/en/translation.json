@@ -48,6 +48,8 @@
   "error-network": "There is a problem with the network.",
   "error-server": "Server encountered an internal error.",
 
+  "success-resend-code": "Resent code successfully!",
+
   "public-signup-disabled-notice": "Please contact the system administrator for creating new accounts.",
 
   "google-play-store-label": "Google Play Store",

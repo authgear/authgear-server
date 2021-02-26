@@ -83,6 +83,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
 	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*webapp.ErrorCookie)),
 	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
+	wire.Bind(new(viewmodelswebapp.FlashMessage), new(*httputil.FlashMessage)),
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
@@ -98,4 +99,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.VerifyIdentityVerificationService), new(*verification.Service)),
 	wire.Bind(new(handlerwebapp.RateLimiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(handlerwebapp.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(handlerwebapp.FlashMessage), new(*httputil.FlashMessage)),
 )

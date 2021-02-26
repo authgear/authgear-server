@@ -63,12 +63,17 @@ type VerifyIdentityVerificationService interface {
 type RateLimiter interface {
 	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
 }
+
+type FlashMessage interface {
+	Flash(rw http.ResponseWriter, messageType string)
+}
 type VerifyIdentityHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Verifications     VerifyIdentityVerificationService
 	RateLimiter       RateLimiter
+	FlashMessage      FlashMessage
 }
 
 type VerifyIdentityNode interface {
@@ -259,6 +264,9 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return err
 		}
 
+		if !result.IsInteractionErr {
+			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendCodeSuccess))
+		}
 		result.WriteResponse(w, r)
 		return nil
 	})

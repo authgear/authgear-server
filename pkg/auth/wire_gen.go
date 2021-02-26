@@ -2789,6 +2789,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -2798,6 +2801,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -3308,6 +3312,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -3317,6 +3324,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -3827,6 +3835,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -3836,6 +3847,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -4346,6 +4358,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -4355,6 +4370,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -4858,6 +4874,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -4867,6 +4886,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -5373,6 +5393,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -5382,6 +5405,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -5889,6 +5913,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -5898,6 +5925,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6402,6 +6430,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -6411,6 +6442,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6914,6 +6946,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -6923,6 +6958,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -7427,6 +7463,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -7436,6 +7475,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -7941,6 +7981,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -7950,6 +7993,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8453,6 +8497,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -8462,6 +8509,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8965,6 +9013,9 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -8974,6 +9025,7 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -9477,6 +9529,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -9486,6 +9541,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -9990,6 +10046,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -9999,6 +10058,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10502,6 +10562,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -10511,6 +10574,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -11014,6 +11078,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -11023,6 +11090,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -11052,6 +11120,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:          responseRenderer,
 		Verifications:     verificationService,
 		RateLimiter:       limiter,
+		FlashMessage:      flashMessage,
 	}
 	return verifyIdentityHandler
 }
@@ -11528,6 +11597,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -11537,6 +11609,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -12040,6 +12113,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -12049,6 +12125,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -12557,6 +12634,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -12566,6 +12646,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -13069,6 +13150,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -13078,6 +13162,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -13582,6 +13667,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -13591,6 +13679,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -14094,6 +14183,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -14103,6 +14195,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -14623,6 +14716,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -14632,6 +14728,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -15139,6 +15236,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -15148,6 +15248,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -15656,6 +15757,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -15665,6 +15769,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -16171,6 +16276,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -16180,6 +16288,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -16686,6 +16795,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -16695,6 +16807,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -17202,6 +17315,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -17211,6 +17327,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -17721,6 +17838,9 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -17730,6 +17850,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -18234,6 +18355,9 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -18243,6 +18367,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -18747,6 +18872,9 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -18756,6 +18884,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -19116,6 +19245,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -19125,6 +19257,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -19624,6 +19757,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -19633,6 +19769,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -19771,6 +19908,9 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		StaticAssets:      staticAssetResolver,
 	}
 	clockClock := _wireSystemClockValue
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:          oAuthConfig,
 		AuthUI:         uiConfig,
@@ -19780,6 +19920,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ErrorCookie:    errorCookie,
 		Translations:   translationService,
 		Clock:          clockClock,
+		FlashMessage:   flashMessage,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
