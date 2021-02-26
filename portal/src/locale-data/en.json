@@ -386,12 +386,12 @@
   "ManageLanguageWidget.error.locale-without-resources": "Some of the languages are invalid. A language must have at least 1 localization to become valid",
   "ManageLanguageWidget.error.required-default-resource": "Some of the languages are invalid. Some required resources do not have localizations in default language",
 
-  "ResourceConfigurationScreen.title": "Appearance & Localization",
-  "ResourceConfigurationScreen.appearance.title": "Appearance",
-  "ResourceConfigurationScreen.custom-css.title": "Custom CSS",
-  "ResourceConfigurationScreen.theme.title": "Theme",
-  "ResourceConfigurationScreen.favicon": "Favicon",
-  "ResourceConfigurationScreen.app-logo": "App Logo",
+  "UISettingsScreen.title": "UI Settings",
+  "UISettingsScreen.appearance.title": "Appearance",
+  "UISettingsScreen.custom-css.title": "Custom CSS",
+  "UISettingsScreen.theme.title": "Theme",
+  "UISettingsScreen.favicon": "Favicon",
+  "UISettingsScreen.app-logo": "App Logo",
 
   "LocalizationConfigurationScreen.title": "Localization",
   "LocalizationConfigurationScreen.translationjson.title": "Translations",
