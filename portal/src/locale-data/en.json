@@ -530,6 +530,7 @@
   "ThemeConfigurationWidget.text-color": "Text Color",
   "ThemeConfigurationWidget.background-color": "Background Color",
   "ThemeConfigurationWidget.preview-mode": "Preview Mode",
+  "ThemeConfigurationWidget.custom": "Custom",
   "ThemeConfigurationWidget.preset.0": "Default",
   "ThemeConfigurationWidget.preset.1": "Tropical",
   "ThemeConfigurationWidget.preset.2": "Sunrise",

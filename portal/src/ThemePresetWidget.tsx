@@ -3,20 +3,23 @@ import cn from "classnames";
 import {
   LightTheme,
   DarkTheme,
-  isLightThemeEqual,
   isDarkThemeEqual,
+  isLightThemeEqual,
 } from "./util/theme";
-import { Text, DefaultEffects } from "@fluentui/react";
+import { Text, DefaultEffects, Icon } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import styles from "./ThemePresetWidget.module.scss";
 
 export interface ThemePresetWidgetProps {
   className?: string;
   isDarkMode: boolean;
-  lightTheme?: LightTheme | null;
-  darkTheme?: DarkTheme | null;
+  highlightedLightTheme?: LightTheme | null;
+  highlightedDarkTheme?: DarkTheme | null;
+  darkThemeIsCustom: boolean;
+  lightThemeIsCustom: boolean;
   onClickLightTheme?: (lightTheme: LightTheme) => void;
   onClickDarkTheme?: (darkTheme: DarkTheme) => void;
+  onClickCustom: () => void;
 }
 
 export const LIGHT_THEME_PRESETS: LightTheme[] = [
@@ -127,9 +130,9 @@ export const DEFAULT_DARK_THEME = DARK_THEME_PRESETS[0];
 
 interface ThemePresetProps {
   isDarkMode: boolean;
-  index: number;
-  lightTheme?: LightTheme | null;
-  darkTheme?: DarkTheme | null;
+  isSelected: boolean;
+  presetNameID: string;
+  presetTheme: LightTheme | DarkTheme;
   onClickLightTheme?: (lightTheme: LightTheme) => void;
   onClickDarkTheme?: (darkTheme: DarkTheme) => void;
 }
@@ -137,29 +140,23 @@ interface ThemePresetProps {
 function ThemePreset(props: ThemePresetProps) {
   const {
     isDarkMode,
-    index,
-    lightTheme,
-    darkTheme,
+    isSelected,
+    presetNameID,
+    presetTheme,
     onClickLightTheme,
     onClickDarkTheme,
   } = props;
-  const theme = isDarkMode
-    ? DARK_THEME_PRESETS[index]
-    : LIGHT_THEME_PRESETS[index];
-  const isSelected = isDarkMode
-    ? isDarkThemeEqual(theme as any, darkTheme ?? DEFAULT_DARK_THEME)
-    : isLightThemeEqual(theme as any, lightTheme ?? DEFAULT_LIGHT_THEME);
   const onClick = useCallback(
     (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (isDarkMode) {
-        onClickDarkTheme?.(theme as any);
+        onClickDarkTheme?.(presetTheme as any);
       } else {
-        onClickLightTheme?.(theme as any);
+        onClickLightTheme?.(presetTheme as any);
       }
     },
-    [theme, isDarkMode, onClickLightTheme, onClickDarkTheme]
+    [presetTheme, isDarkMode, onClickLightTheme, onClickDarkTheme]
   );
   return (
     <div
@@ -170,16 +167,18 @@ function ThemePreset(props: ThemePresetProps) {
         className={styles.background}
         style={{
           boxShadow: DefaultEffects.elevation4,
-          backgroundColor: theme.backgroundColor,
+          backgroundColor: presetTheme.backgroundColor,
         }}
       >
         <div
           className={styles.foreground}
-          style={{ backgroundColor: theme.primaryColor }}
+          style={{ backgroundColor: presetTheme.primaryColor }}
         >
           <Text
             style={{
-              color: isDarkMode ? theme.textColor : theme.backgroundColor,
+              color: isDarkMode
+                ? presetTheme.textColor
+                : presetTheme.backgroundColor,
             }}
           >
             <FormattedMessage id="ThemeConfigurationWidget.sample-text" />
@@ -187,9 +186,27 @@ function ThemePreset(props: ThemePresetProps) {
         </div>
       </div>
       <Text className={styles.presetName}>
-        <FormattedMessage
-          id={"ThemeConfigurationWidget.preset." + String(index)}
-        />
+        <FormattedMessage id={presetNameID} />
+      </Text>
+    </div>
+  );
+}
+
+interface CustomProps {
+  isSelected: boolean;
+  onClickCustom: () => void;
+}
+
+function Custom(props: CustomProps) {
+  const { onClickCustom, isSelected } = props;
+  return (
+    <div
+      className={cn(styles.preset, isSelected && styles.selected)}
+      onClick={onClickCustom}
+    >
+      <Icon iconName="Add" className={styles.customIcon} />
+      <Text className={styles.presetName}>
+        <FormattedMessage id="ThemeConfigurationWidget.custom" />
       </Text>
     </div>
   );
@@ -201,25 +218,62 @@ const ThemePresetWidget: React.FC<ThemePresetWidgetProps> = function ThemePreset
   const {
     className,
     isDarkMode,
-    lightTheme,
-    darkTheme,
+    highlightedLightTheme,
+    highlightedDarkTheme,
+    darkThemeIsCustom,
+    lightThemeIsCustom,
     onClickLightTheme,
     onClickDarkTheme,
+    onClickCustom,
   } = props;
   const children = [];
-  for (let i = 0; i < LIGHT_THEME_PRESETS.length; i++) {
-    children.push(
-      <ThemePreset
-        key={String(i)}
-        index={i}
-        isDarkMode={isDarkMode}
-        lightTheme={lightTheme}
-        darkTheme={darkTheme}
-        onClickLightTheme={onClickLightTheme}
-        onClickDarkTheme={onClickDarkTheme}
-      />
-    );
+
+  if (isDarkMode) {
+    for (let i = 0; i < DARK_THEME_PRESETS.length; i++) {
+      const presetTheme = DARK_THEME_PRESETS[i];
+      const isSelected =
+        highlightedDarkTheme != null &&
+        isDarkThemeEqual(presetTheme, highlightedDarkTheme);
+      children.push(
+        <ThemePreset
+          key={String(i)}
+          isDarkMode={isDarkMode}
+          isSelected={isSelected}
+          presetNameID={"ThemeConfigurationWidget.preset." + String(i)}
+          presetTheme={presetTheme}
+          onClickLightTheme={onClickLightTheme}
+          onClickDarkTheme={onClickDarkTheme}
+        />
+      );
+    }
+  } else {
+    for (let i = 0; i < LIGHT_THEME_PRESETS.length; i++) {
+      const presetTheme = LIGHT_THEME_PRESETS[i];
+      const isSelected =
+        highlightedLightTheme != null &&
+        isLightThemeEqual(presetTheme, highlightedLightTheme);
+      children.push(
+        <ThemePreset
+          key={String(i)}
+          isDarkMode={isDarkMode}
+          isSelected={isSelected}
+          presetNameID={"ThemeConfigurationWidget.preset." + String(i)}
+          presetTheme={presetTheme}
+          onClickLightTheme={onClickLightTheme}
+          onClickDarkTheme={onClickDarkTheme}
+        />
+      );
+    }
   }
+
+  children.push(
+    <Custom
+      key="custom"
+      onClickCustom={onClickCustom}
+      isSelected={isDarkMode ? darkThemeIsCustom : lightThemeIsCustom}
+    />
+  );
+
   return <div className={cn(styles.root, className)}>{children}</div>;
 };
 
