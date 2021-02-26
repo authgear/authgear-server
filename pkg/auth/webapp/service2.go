@@ -329,6 +329,7 @@ func (s *Service2) afterPost(
 		if err != nil {
 			return err
 		}
+		result.IsInteractionErr = true
 		result.Cookies = append(result.Cookies, errCookie)
 	} else if isFinished {
 		// Loop from start to end to collect cookies.
