@@ -102,8 +102,12 @@ const links: NavLinkProps[] = [
     url: "configuration/dns/custom-domains",
   },
   {
-    textKey: "ScreenNav.localization-appearance",
-    url: "configuration/localization-appearance",
+    textKey: "ScreenNav.ui-settings",
+    url: "configuration/ui-settings",
+  },
+  {
+    textKey: "ScreenNav.localization",
+    url: "configuration/localization",
   },
   {
     textKey: "ScreenNav.settings",

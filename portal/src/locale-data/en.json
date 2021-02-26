@@ -78,7 +78,8 @@
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
   "ScreenNav.client-applications": "Applications",
-  "ScreenNav.localization-appearance": "Appearance & Localization",
+  "ScreenNav.ui-settings": "UI Settings",
+  "ScreenNav.localization": "Localization",
   "ScreenNav.settings": "Settings",
 
   "NavBreadcrumb.label": "Nested navigation",

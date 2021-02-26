@@ -139,7 +139,11 @@ const AppRoot: React.FC = function AppRoot() {
             element={<VerifyDomainScreen />}
           />
           <Route
-            path="/configuration/localization-appearance"
+            path="/configuration/ui-settings"
+            element={<ResourceConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/localization"
             element={<ResourceConfigurationScreen />}
           />
           <Route
