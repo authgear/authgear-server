@@ -56,6 +56,18 @@ export const LIGHT_THEME_PRESETS: LightTheme[] = [
     textColor: "#000000",
     backgroundColor: "#ffffff",
   },
+  {
+    isDarkTheme: false,
+    primaryColor: "#ff8a00",
+    textColor: "#000000",
+    backgroundColor: "#ffffff",
+  },
+  {
+    isDarkTheme: false,
+    primaryColor: "#dbc26b",
+    textColor: "#000000",
+    backgroundColor: "#ffffff",
+  },
 ];
 
 export const DEFAULT_LIGHT_THEME = LIGHT_THEME_PRESETS[0];
@@ -94,6 +106,18 @@ export const DARK_THEME_PRESETS: DarkTheme[] = [
   {
     isDarkTheme: true,
     primaryColor: "#874bff",
+    textColor: "#ffffff",
+    backgroundColor: "#000000",
+  },
+  {
+    isDarkTheme: true,
+    primaryColor: "#ff8a00",
+    textColor: "#ffffff",
+    backgroundColor: "#000000",
+  },
+  {
+    isDarkTheme: true,
+    primaryColor: "#dbc26b",
     textColor: "#ffffff",
     backgroundColor: "#000000",
   },
