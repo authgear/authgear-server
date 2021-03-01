@@ -517,7 +517,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
     return makeDomainListColumn(renderToString);
   }, [renderToString]);
 
-  const savedPublicOriginRef = useRef<string>("");
+  const savedPublicOriginRef = useRef<string>(state.publicOrigin);
   useEffect(() => {
     if (!isDirty) {
       savedPublicOriginRef.current = state.publicOrigin;
