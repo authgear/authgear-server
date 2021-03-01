@@ -12,7 +12,6 @@ import EditTemplatesWidget, {
 } from "./EditTemplatesWidget";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  ALL_EDITABLE_RESOURCES,
   ALL_TEMPLATES,
   renderPath,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
@@ -454,7 +453,7 @@ const LocalizationConfigurationScreen: React.FC = function LocalizationConfigura
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of initialSupportedLanguages) {
-      for (const def of ALL_EDITABLE_RESOURCES) {
+      for (const def of ALL_TEMPLATES) {
         specifiers.push({
           def,
           locale,

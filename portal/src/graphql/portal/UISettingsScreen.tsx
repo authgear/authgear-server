@@ -16,7 +16,6 @@ import {
 import ImageFilePicker from "../../ImageFilePicker";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  ALL_EDITABLE_RESOURCES,
   ALL_TEMPLATES,
   renderPath,
   RESOURCE_FAVICON,
@@ -54,6 +53,13 @@ interface ConfigFormState {
 }
 
 const NOOP = () => {};
+
+const RESOURCES_ON_THIS_SCREEN = [
+  RESOURCE_FAVICON,
+  RESOURCE_APP_LOGO,
+  RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
+  RESOURCE_AUTHGEAR_DARK_THEME_CSS,
+];
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
   const fallbackLanguage = config.localization?.fallback_language ?? "en";
@@ -524,7 +530,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of initialSupportedLanguages) {
-      for (const def of ALL_EDITABLE_RESOURCES) {
+      for (const def of RESOURCES_ON_THIS_SCREEN) {
         specifiers.push({
           def,
           locale,

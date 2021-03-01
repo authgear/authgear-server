@@ -129,15 +129,6 @@ export const RESOURCE_AUTHGEAR_DARK_THEME_CSS: ResourceDefinition = {
   optional: true,
 };
 
-export const ALL_EDITABLE_RESOURCES = [
-  ...ALL_TEMPLATES,
-  RESOURCE_APP_LOGO,
-  RESOURCE_FAVICON,
-  RESOURCE_AUTHGEAR_CSS,
-  RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
-  RESOURCE_AUTHGEAR_DARK_THEME_CSS,
-];
-
 export interface RenderPathArguments {
   locale?: LanguageTag;
   extension?: string;
