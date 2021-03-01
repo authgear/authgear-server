@@ -5,6 +5,7 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 import ScaleContainer from "./ScaleContainer";
 import ThemePreviewWidget from "./ThemePreviewWidget";
 import PortalColorPicker from "./PortalColorPicker";
+import ImageFilePicker, { ImageFilePickerProps } from "./ImageFilePicker";
 import ThemePresetWidget, {
   DEFAULT_LIGHT_THEME,
   DEFAULT_DARK_THEME,
@@ -25,6 +26,8 @@ export interface ThemeConfigurationWidgetProps {
   darkTheme?: DarkTheme | null;
   isDarkMode: boolean;
   darkModeEnabled: boolean;
+  appLogoValue: string | undefined;
+  onChangeAppLogo: ImageFilePickerProps["onChange"];
   onChangeLightTheme: (lightTheme: LightTheme) => void;
   onChangeDarkTheme: (darkTheme: DarkTheme) => void;
   onChangeDarkModeEnabled: (enabled: boolean) => void;
@@ -44,6 +47,8 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     darkTheme,
     isDarkMode,
     darkModeEnabled,
+    appLogoValue,
+    onChangeAppLogo,
     onChangeLightTheme: onChangeLightThemeProp,
     onChangeDarkTheme: onChangeDarkThemeProp,
     onChangeDarkModeEnabled,
@@ -152,7 +157,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
       <div className={styles.rootSection}>
         <div className={styles.leftSection}>
           <div className={styles.themeColorSection}>
-            <Text as="h2" className={styles.themeColorTitle}>
+            <Text as="h2" className={styles.sectionTitle}>
               <FormattedMessage id="ThemeConfigurationWidget.theme-color-title" />
             </Text>
             <ThemePresetWidget
@@ -200,9 +205,21 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
               />
             </div>
           </div>
+          <div className={styles.appLogoSection}>
+            <Text as="h2" className={styles.sectionTitle}>
+              <FormattedMessage id="ThemeConfigurationWidget.app-logo-title" />
+            </Text>
+            <Text variant="small" className={styles.themeColorTitle}>
+              <FormattedMessage id="ThemeConfigurationWidget.app-logo-description" />
+            </Text>
+            <ImageFilePicker
+              base64EncodedData={appLogoValue}
+              onChange={onChangeAppLogo}
+            />
+          </div>
         </div>
         <div className={styles.previewSection}>
-          <Text as="h2" className={styles.colorControlTitle}>
+          <Text as="h2" className={styles.sectionTitle}>
             <FormattedMessage id="ThemeConfigurationWidget.preview-mode" />
           </Text>
           <ScaleContainer

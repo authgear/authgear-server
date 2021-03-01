@@ -47,13 +47,7 @@
   margin: 10px 0;
 }
 
-.themeColorTitle {
-  margin: 10px 0;
-  display: block;
-  font-weight: 600;
-}
-
-.colorControlTitle {
+.sectionTitle {
   margin: 10px 0;
   display: block;
   font-weight: 600;
@@ -90,4 +84,8 @@
   top: 0;
   transform-origin: 0 0 0;
   width: 360px;
+}
+
+.appLogoSection {
+  margin: 10px;
 }

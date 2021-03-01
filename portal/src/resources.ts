@@ -81,6 +81,14 @@ export const RESOURCE_APP_LOGO: ResourceDefinition = {
   optional: true,
 };
 
+export const RESOURCE_APP_LOGO_DARK: ResourceDefinition = {
+  resourcePath: resourcePath`static/${"locale"}/app_logo_dark${"extension"}`,
+  type: "binary",
+  extensions: IMAGE_EXTENSIONS,
+  usesEffectiveDataAsFallbackValue: false,
+  optional: true,
+};
+
 export const RESOURCE_FAVICON: ResourceDefinition = {
   resourcePath: resourcePath`static/${"locale"}/favicon${"extension"}`,
   type: "binary",

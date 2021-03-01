@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Pivot, PivotItem } from "@fluentui/react";
 import deepEqual from "deep-equal";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { DefaultEffects, Text } from "@fluentui/react";
+import { FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
@@ -20,6 +20,7 @@ import {
   renderPath,
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
+  RESOURCE_APP_LOGO_DARK,
   RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
   RESOURCE_AUTHGEAR_DARK_THEME_CSS,
 } from "../../resources";
@@ -57,6 +58,7 @@ const NOOP = () => {};
 const RESOURCES_ON_THIS_SCREEN = [
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
+  RESOURCE_APP_LOGO_DARK,
   RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
   RESOURCE_AUTHGEAR_DARK_THEME_CSS,
 ];
@@ -147,19 +149,11 @@ interface ResourcesConfigurationContentProps {
   supportedLanguages: LanguageTag[];
 }
 
-const PIVOT_KEY_APPEARANCE = "appearance";
-const PIVOT_KEY_THEME = "theme";
-
-const PIVOT_KEY_DEFAULT = PIVOT_KEY_APPEARANCE;
-
-const ALL_PIVOT_KEYS = [PIVOT_KEY_APPEARANCE, PIVOT_KEY_THEME];
-
 const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
   props
 ) {
   const { state, setState } = props.form;
   const { supportedLanguages } = props;
-  const { renderToString } = useContext(Context);
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
@@ -236,17 +230,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     },
     [setState]
   );
-
-  const [selectedKey, setSelectedKey] = useState<string>(PIVOT_KEY_DEFAULT);
-  const onLinkClick = useCallback((item?: PivotItem) => {
-    const itemKey = item?.props.itemKey;
-    if (itemKey != null) {
-      const idx = ALL_PIVOT_KEYS.indexOf(itemKey);
-      if (idx >= 0) {
-        setSelectedKey(itemKey);
-      }
-    }
-  }, []);
 
   const getValueIgnoreEmptyString = useCallback(
     (def: ResourceDefinition) => {
@@ -453,56 +436,49 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         fallbackLanguage={state.fallbackLanguage}
         onChangeFallbackLanguage={setFallbackLanguage}
       />
-      <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
-        <PivotItem
-          headerText={renderToString("UISettingsScreen.appearance.title")}
-          itemKey={PIVOT_KEY_APPEARANCE}
-        >
-          <div className={styles.pivotItemAppearance}>
-            <ImageFilePicker
-              title={renderToString("UISettingsScreen.favicon")}
-              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
-              onChange={getOnChangeImage(RESOURCE_FAVICON)}
-            />
-            <ImageFilePicker
-              title={renderToString("UISettingsScreen.app-logo")}
-              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
-              onChange={getOnChangeImage(RESOURCE_APP_LOGO)}
-            />
-          </div>
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString("UISettingsScreen.theme.title")}
-          itemKey={PIVOT_KEY_THEME}
-        >
-          <ThemeConfigurationWidget
-            className={styles.themeWidget}
-            darkTheme={darkTheme}
-            lightTheme={lightTheme}
-            isDarkMode={false}
-            darkModeEnabled={false}
-            onChangeDarkModeEnabled={NOOP}
-            onChangeLightTheme={setLightTheme}
-            onChangeDarkTheme={setDarkTheme}
-            onChangePrimaryColor={onChangeLightModePrimaryColor}
-            onChangeTextColor={onChangeLightModeTextColor}
-            onChangeBackgroundColor={onChangeLightModeBackgroundColor}
-          />
-          <ThemeConfigurationWidget
-            className={styles.themeWidget}
-            darkTheme={darkTheme}
-            lightTheme={lightTheme}
-            isDarkMode={true}
-            darkModeEnabled={!state.darkThemeDisabled}
-            onChangeLightTheme={setLightTheme}
-            onChangeDarkTheme={setDarkTheme}
-            onChangeDarkModeEnabled={onChangeDarkModeEnabled}
-            onChangePrimaryColor={onChangeDarkModePrimaryColor}
-            onChangeTextColor={onChangeDarkModeTextColor}
-            onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
-          />
-        </PivotItem>
-      </Pivot>
+      <div
+        className={styles.faviconWidget}
+        style={{ boxShadow: DefaultEffects.elevation4 }}
+      >
+        <Text as="h2" className={styles.faviconTitle}>
+          <FormattedMessage id="UISettingsScreen.favicon-title" />
+        </Text>
+        <ImageFilePicker
+          className={styles.faviconImagePicker}
+          base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
+          onChange={getOnChangeImage(RESOURCE_FAVICON)}
+        />
+      </div>
+      <ThemeConfigurationWidget
+        className={styles.themeWidget}
+        darkTheme={darkTheme}
+        lightTheme={lightTheme}
+        isDarkMode={false}
+        darkModeEnabled={false}
+        appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
+        onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO)}
+        onChangeDarkModeEnabled={NOOP}
+        onChangeLightTheme={setLightTheme}
+        onChangeDarkTheme={setDarkTheme}
+        onChangePrimaryColor={onChangeLightModePrimaryColor}
+        onChangeTextColor={onChangeLightModeTextColor}
+        onChangeBackgroundColor={onChangeLightModeBackgroundColor}
+      />
+      <ThemeConfigurationWidget
+        className={styles.themeWidget}
+        darkTheme={darkTheme}
+        lightTheme={lightTheme}
+        isDarkMode={true}
+        darkModeEnabled={!state.darkThemeDisabled}
+        appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO_DARK)}
+        onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO_DARK)}
+        onChangeLightTheme={setLightTheme}
+        onChangeDarkTheme={setDarkTheme}
+        onChangeDarkModeEnabled={onChangeDarkModeEnabled}
+        onChangePrimaryColor={onChangeDarkModePrimaryColor}
+        onChangeTextColor={onChangeDarkModeTextColor}
+        onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
+      />
     </div>
   );
 };

@@ -1,12 +1,6 @@
 import React, { useMemo, useRef, useCallback } from "react";
 import cn from "classnames";
-import {
-  Image,
-  DefaultButton,
-  PrimaryButton,
-  ImageFit,
-  Label,
-} from "@fluentui/react";
+import { Image, DefaultButton, PrimaryButton, ImageFit } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 
@@ -15,7 +9,6 @@ import styles from "./ImageFilePicker.module.scss";
 export type ImageFileExtension = ".jpeg" | ".png" | ".gif";
 
 export interface ImageFilePickerProps {
-  title: string;
   className?: string;
   base64EncodedData?: string;
   onChange?: (
@@ -52,7 +45,7 @@ function dataURIToBase64EncodedData(dataURI: string): string {
 const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker(
   props: ImageFilePickerProps
 ) {
-  const { className, base64EncodedData, onChange, title } = props;
+  const { className, base64EncodedData, onChange } = props;
 
   const hasImage = base64EncodedData != null;
 
@@ -121,11 +114,9 @@ const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker
         accept="image/png, image/jpeg, image/gif"
         onChange={onInputChange}
       />
-      <Label className={styles.label}>{title}</Label>
       <Image
         src={src}
         className={styles.image}
-        alt={title}
         styles={{
           root: {
             borderColor,
@@ -142,11 +133,11 @@ const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker
           onClick={onClickRemoveImage}
           theme={themes.destructive}
         >
-          <FormattedMessage id={"ImageFilePicker.remove-image"} />
+          <FormattedMessage id={"ImageFilePicker.remove"} />
         </PrimaryButton>
       ) : (
         <DefaultButton className={styles.button} onClick={onClickSelectImage}>
-          <FormattedMessage id="ImageFilePicker.select-image" />
+          <FormattedMessage id="ImageFilePicker.upload" />
         </DefaultButton>
       )}
     </div>
