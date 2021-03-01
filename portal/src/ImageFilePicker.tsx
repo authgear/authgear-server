@@ -3,6 +3,10 @@ import cn from "classnames";
 import { Image, DefaultButton, PrimaryButton, ImageFit } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
+import {
+  base64EncodedDataToDataURI,
+  dataURIToBase64EncodedData,
+} from "./util/uri";
 
 import styles from "./ImageFilePicker.module.scss";
 
@@ -28,18 +32,6 @@ function mediaTypeToExtension(mime: string): ImageFileExtension {
     default:
       throw new Error(`unsupported media type: ${mime}`);
   }
-}
-
-function base64EncodedDataToDataURI(base64EncodedData: string): string {
-  return `data:;base64,${base64EncodedData}`;
-}
-
-function dataURIToBase64EncodedData(dataURI: string): string {
-  const idx = dataURI.indexOf(",");
-  if (idx < 0) {
-    throw new Error("not a data URI: " + dataURI);
-  }
-  return dataURI.slice(idx + 1);
 }
 
 const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker(

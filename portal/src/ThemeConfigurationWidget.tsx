@@ -232,6 +232,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
               ref={previewWidgetRef}
               className={styles.previewWidget}
               isDarkMode={isDarkMode}
+              appLogoValue={appLogoValue}
               primaryColor={primaryColor}
               textColor={textColor}
               backgroundColor={backgroundColor}

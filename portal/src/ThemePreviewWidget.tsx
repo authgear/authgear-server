@@ -8,11 +8,13 @@ import React, {
 import cn from "classnames";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { getShades } from "./util/theme";
+import { base64EncodedDataToDataURI } from "./util/uri";
 import styles from "./ThemePreviewWidget.module.scss";
 import appLogo from "./images/app_logo.png";
 
 export interface ThemePreviewWidgetProps {
   ref?: Ref<HTMLElement>;
+  appLogoValue: string | undefined;
   className?: string;
   isDarkMode: boolean;
   primaryColor: string;
@@ -184,10 +186,21 @@ function getDarkModeStyle(options: GetStyleOptions) {
   };
 }
 
-function Banner() {
+interface BannerProps {
+  appLogoValue: string | undefined;
+}
+
+function Banner(props: BannerProps) {
+  const { appLogoValue } = props;
+  const src = useMemo(() => {
+    if (appLogoValue != null) {
+      return base64EncodedDataToDataURI(appLogoValue);
+    }
+    return undefined;
+  }, [appLogoValue]);
   return (
     <div className={styles.bannerFrame}>
-      <img className={styles.banner} src={appLogo} />
+      <img className={styles.banner} src={src ?? appLogo} />
     </div>
   );
 }
@@ -419,6 +432,7 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
       primaryColor,
       textColor,
       backgroundColor,
+      appLogoValue,
     } = props;
     const rootStyle = useMemo(() => {
       return isDarkMode
@@ -450,7 +464,7 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
                 styles.flexDirectionColumn
               )}
             >
-              <Banner />
+              <Banner appLogoValue={appLogoValue} />
               <div
                 className={cn(
                   styles.flex,
