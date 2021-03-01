@@ -523,9 +523,8 @@
 
   "ThemeConfigurationWidget.light-mode": "Light Mode",
   "ThemeConfigurationWidget.dark-mode": "Dark Mode",
-  "ThemeConfigurationWidget.preset-title": "Theme Color Recommendation",
+  "ThemeConfigurationWidget.theme-color-title": "Theme Color",
   "ThemeConfigurationWidget.sample-text": "Hello",
-  "ThemeConfigurationWidget.custom-color": "Custom Color",
   "ThemeConfigurationWidget.primary-color": "Primary Color",
   "ThemeConfigurationWidget.text-color": "Text Color",
   "ThemeConfigurationWidget.background-color": "Background Color",

@@ -151,9 +151,9 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
       </div>
       <div className={styles.rootSection}>
         <div className={styles.leftSection}>
-          <div className={styles.presetSection}>
-            <Text as="h2" className={styles.presetTitle}>
-              <FormattedMessage id="ThemeConfigurationWidget.preset-title" />
+          <div className={styles.themeColorSection}>
+            <Text as="h2" className={styles.themeColorTitle}>
+              <FormattedMessage id="ThemeConfigurationWidget.theme-color-title" />
             </Text>
             <ThemePresetWidget
               className={styles.presetWidget}
@@ -166,11 +166,6 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
               onClickDarkTheme={onChangeDarkTheme}
               onClickCustom={onClickCustom}
             />
-          </div>
-          <div className={styles.colorControlSection}>
-            <Text as="h2" className={styles.colorControlTitle}>
-              <FormattedMessage id="ThemeConfigurationWidget.custom-color" />
-            </Text>
             <div className={styles.colorControl}>
               <Label className={styles.colorControlLabel}>
                 <FormattedMessage id="ThemeConfigurationWidget.primary-color" />
