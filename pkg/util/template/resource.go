@@ -244,13 +244,13 @@ func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view reso
 		return nil, err
 	}
 
-	var items []LanguageItem
+	var items []intlresource.LanguageItem
 	for _, i := range languageTemplates {
 		items = append(items, i)
 	}
 
-	matched, err := MatchLanguage(preferredLanguageTags, defaultLanguageTag, items)
-	if errors.Is(err, ErrNoLanguageMatch) {
+	matched, err := intlresource.Match(preferredLanguageTags, defaultLanguageTag, items)
+	if errors.Is(err, intlresource.ErrNoLanguageMatch) {
 		if len(items) > 0 {
 			// Use first item in case of no match, to ensure resolution always succeed
 			matched = items[0]

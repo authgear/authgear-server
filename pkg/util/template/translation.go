@@ -125,16 +125,16 @@ func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFil
 
 	translationData := make(map[string]Translation)
 	for key, translations := range translationMap {
-		var items []LanguageItem
+		var items []intlresource.LanguageItem
 		for languageTag, value := range translations {
 			items = append(items, Translation{
 				LanguageTag: string(languageTag),
 				Value:       string(value),
 			})
 		}
-		var matched LanguageItem
-		matched, err := MatchLanguage(preferredLanguageTags, defaultLanguageTag, items)
-		if errors.Is(err, ErrNoLanguageMatch) {
+		var matched intlresource.LanguageItem
+		matched, err := intlresource.Match(preferredLanguageTags, defaultLanguageTag, items)
+		if errors.Is(err, intlresource.ErrNoLanguageMatch) {
 			if len(items) > 0 {
 				// Use first item in case of no match, to ensure resolution always succeed
 				matched = items[0]
