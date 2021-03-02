@@ -128,10 +128,7 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsB, "en", ".png", pngB)
 			writeFile(fsB, "en", ".jpg", pngB)
 
-			_, err := read(resource.EffectiveResource{
-				DefaultTag:    "en",
-				SupportedTags: []string{"en"},
-			})
+			_, err := read(resource.ValidateResource{})
 			So(err, ShouldBeError, "duplicate resource: [static/en/myimage.jpg static/en/myimage.png]")
 		})
 	})
