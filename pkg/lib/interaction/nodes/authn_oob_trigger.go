@@ -123,6 +123,18 @@ func (n *NodeAuthenticationOOBTrigger) GetOOBOTPChannel() string {
 	return n.Channel
 }
 
+// GetOOBOTPOOBType implements OOBOTPNode.
+func (n *NodeAuthenticationOOBTrigger) GetOOBOTPOOBType() interaction.OOBType {
+	switch n.Stage {
+	case interaction.AuthenticationStagePrimary:
+		return interaction.OOBTypeAuthenticatePrimary
+	case interaction.AuthenticationStageSecondary:
+		return interaction.OOBTypeAuthenticateSecondary
+	default:
+		panic("interaction: unknown authentication stage: " + n.Stage)
+	}
+}
+
 // GetOOBOTPCodeLength implements OOBOTPNode.
 func (n *NodeAuthenticationOOBTrigger) GetOOBOTPCodeLength() int {
 	return n.CodeLength

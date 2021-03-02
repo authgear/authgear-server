@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -109,18 +108,16 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		viewModel.VerificationCodeLength = n.GetVerificationCodeLength()
 		viewModel.VerificationCodeChannel = n.GetVerificationCodeChannel()
 		target := n.GetVerificationCodeTarget()
-		var bucket ratelimit.Bucket
 		switch authn.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel) {
 		case authn.AuthenticatorOOBChannelSMS:
 			viewModel.IdentityDisplayID = phone.Mask(rawIdentityDisplayID)
-			bucket = sms.RateLimitBucket(target)
 		case authn.AuthenticatorOOBChannelEmail:
 			viewModel.IdentityDisplayID = mail.MaskAddress(rawIdentityDisplayID)
-			bucket = mail.RateLimitBucket(target)
 		default:
 			panic("webapp: unknown verification channel")
 		}
 
+		bucket := interaction.SendVerificationCodeRateLimitBucket(target)
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err

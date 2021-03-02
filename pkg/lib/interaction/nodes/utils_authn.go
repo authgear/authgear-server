@@ -44,18 +44,23 @@ func sendOOBCode(
 	// TODO(interaction): handle rate limits
 
 	var messageType otp.MessageType
+	var oobType interaction.OOBType
 	switch stage {
 	case interaction.AuthenticationStagePrimary:
 		if isAuthenticating {
 			messageType = otp.MessageTypeAuthenticatePrimaryOOB
+			oobType = interaction.OOBTypeAuthenticatePrimary
 		} else {
 			messageType = otp.MessageTypeSetupPrimaryOOB
+			oobType = interaction.OOBTypeSetupPrimary
 		}
 	case interaction.AuthenticationStageSecondary:
 		if isAuthenticating {
 			messageType = otp.MessageTypeAuthenticateSecondaryOOB
+			oobType = interaction.OOBTypeAuthenticateSecondary
 		} else {
 			messageType = otp.MessageTypeSetupSecondaryOOB
+			oobType = interaction.OOBTypeSetupSecondary
 		}
 	default:
 		panic("interaction: unknown authentication stage: " + stage)
@@ -86,6 +91,11 @@ func sendOOBCode(
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	err = ctx.RateLimiter.TakeToken(interaction.SendOOBCodeRateLimitBucket(oobType, target))
+	if err != nil {
+		return nil, err
 	}
 
 	return ctx.OOBCodeSender.SendCode(channel, target, code.Code, messageType)

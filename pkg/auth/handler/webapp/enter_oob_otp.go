@@ -8,10 +8,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -58,6 +56,7 @@ type EnterOOBOTPNode interface {
 	GetOOBOTPTarget() string
 	GetOOBOTPChannel() string
 	GetOOBOTPCodeLength() int
+	GetOOBOTPOOBType() interaction.OOBType
 }
 
 func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -70,16 +69,15 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		viewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		viewModel.OOBOTPChannel = n.GetOOBOTPChannel()
 		target := n.GetOOBOTPTarget()
-		var bucket ratelimit.Bucket
+		oobType := n.GetOOBOTPOOBType()
 		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
 		case authn.AuthenticatorOOBChannelEmail:
 			viewModel.OOBOTPTarget = mail.MaskAddress(target)
-			bucket = mail.RateLimitBucket(target)
 		case authn.AuthenticatorOOBChannelSMS:
 			viewModel.OOBOTPTarget = phone.Mask(target)
-			bucket = sms.RateLimitBucket(target)
 		}
 
+		bucket := interaction.SendOOBCodeRateLimitBucket(oobType, target)
 		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
 		if err != nil {
 			return nil, err

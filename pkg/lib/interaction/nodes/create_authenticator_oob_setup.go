@@ -185,6 +185,18 @@ func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPChannel() string {
 	return n.Channel
 }
 
+// GetOOBOTPOOBType implements OOBOTPNode.
+func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPOOBType() interaction.OOBType {
+	switch n.Stage {
+	case interaction.AuthenticationStagePrimary:
+		return interaction.OOBTypeSetupPrimary
+	case interaction.AuthenticationStageSecondary:
+		return interaction.OOBTypeSetupSecondary
+	default:
+		panic("interaction: unknown authentication stage: " + n.Stage)
+	}
+}
+
 // GetOOBOTPCodeLength implements OOBOTPNode.
 func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPCodeLength() int {
 	return n.CodeLength

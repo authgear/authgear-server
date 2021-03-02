@@ -124,6 +124,11 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		}
 	}
 
+	err = ctx.RateLimiter.TakeToken(interaction.SendVerificationCodeRateLimitBucket(code.LoginID))
+	if err != nil {
+		return nil, err
+	}
+
 	result, err := ctx.VerificationCodeSender.SendCode(code)
 	if err != nil {
 		return nil, err
