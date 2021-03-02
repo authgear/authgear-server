@@ -21,7 +21,7 @@ var _ = Schema.Add("VerificationConfig", `
 	"properties": {
 		"claims": { "$ref": "#/$defs/VerificationClaimsConfig" },
 		"criteria": { "$ref": "#/$defs/VerificationCriteria" },
-		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds" }
+		"code_expiry_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 60 }
 	}
 }
 `)

@@ -424,3 +424,16 @@ config:
   localization:
     fallback_language: en
     supported_languages: [zh-TW]
+
+---
+name: invalid-verification-code-expiry
+error: |-
+  invalid configuration:
+  /verification/code_expiry_seconds: minimum
+    map[actual:10 minimum:60]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  verification:
+    code_expiry_seconds: 10
