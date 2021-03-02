@@ -11,6 +11,7 @@ import {
   Label,
   IconButton,
   DefaultButton,
+  SearchBox,
   Link,
   Dialog,
   DialogFooter,
@@ -27,6 +28,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { LanguageTag } from "../../util/resource";
+import { useExactKeywordSearch } from "../../util/search";
 
 import styles from "./ManageLanguageWidget.module.scss";
 
@@ -136,7 +138,18 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
     onChangeLanguages,
   } = props;
 
+  const { renderToString } = useContext(Context);
+
   const { supportedResourceLocales } = useSystemConfig();
+
+  const originalItems = useMemo(() => {
+    return supportedResourceLocales.map((a) => {
+      return {
+        language: a,
+        text: renderToString(getLanguageLocaleKey(a)),
+      };
+    });
+  }, [supportedResourceLocales, renderToString]);
 
   const [newSupportedLanguages, setNewSupportedLanguages] = useState<
     LanguageTag[]
@@ -146,10 +159,24 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
     fallbackLanguage
   );
 
+  const [searchString, setSearchString] = useState<string>("");
+  const { search } = useExactKeywordSearch(originalItems, ["text"]);
+  const filteredItems = useMemo(() => {
+    return search(searchString);
+  }, [search, searchString]);
+
+  const onSearch = useCallback((_e, value?: string) => {
+    if (value == null) {
+      return;
+    }
+    setSearchString(value);
+  }, []);
+
   useEffect(() => {
     if (presented) {
       setNewSupportedLanguages(supportedLanguages);
       setNewFallbackLanguage(fallbackLanguage);
+      setSearchString("");
     }
   }, [presented, supportedLanguages, fallbackLanguage]);
 
@@ -169,7 +196,8 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
 
   const listItems = useMemo(() => {
     const items: CellProps[] = [];
-    for (const language of supportedResourceLocales) {
+    for (const listItem of filteredItems) {
+      const { language } = listItem;
       items.push({
         language,
         checked: newSupportedLanguages.includes(language),
@@ -182,9 +210,9 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
   }, [
     onToggleLanguage,
     onClickSetAsFallback,
-    supportedResourceLocales,
     newSupportedLanguages,
     newFallbackLanguage,
+    filteredItems,
   ]);
 
   const renderLocaleListItemCell = useCallback<
@@ -234,6 +262,11 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> = fu
       <Text className={styles.dialogDesc}>
         <FormattedMessage id="ManageLanguageWidget.default-language-description" />
       </Text>
+      <SearchBox
+        className={styles.searchBox}
+        placeholder={renderToString("search")}
+        onChange={onSearch}
+      />
       <Text variant="small" className={styles.dialogColumnHeader}>
         <FormattedMessage id="ManageLanguageWidget.languages" />
       </Text>
