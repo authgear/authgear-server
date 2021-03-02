@@ -11,6 +11,7 @@ import { getShades } from "./util/theme";
 import { base64EncodedDataToDataURI } from "./util/uri";
 import styles from "./ThemePreviewWidget.module.scss";
 import appLogo from "./images/app_logo.png";
+import appLogoDark from "./images/app_logo_dark.png";
 
 export interface ThemePreviewWidgetProps {
   ref?: Ref<HTMLElement>;
@@ -187,11 +188,12 @@ function getDarkModeStyle(options: GetStyleOptions) {
 }
 
 interface BannerProps {
+  isDarkMode: boolean;
   appLogoValue: string | undefined;
 }
 
 function Banner(props: BannerProps) {
-  const { appLogoValue } = props;
+  const { appLogoValue, isDarkMode } = props;
   const src = useMemo(() => {
     if (appLogoValue != null) {
       return base64EncodedDataToDataURI(appLogoValue);
@@ -200,7 +202,10 @@ function Banner(props: BannerProps) {
   }, [appLogoValue]);
   return (
     <div className={styles.bannerFrame}>
-      <img className={styles.banner} src={src ?? appLogo} />
+      <img
+        className={styles.banner}
+        src={src ?? (isDarkMode ? appLogoDark : appLogo)}
+      />
     </div>
   );
 }
@@ -464,7 +469,7 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
                 styles.flexDirectionColumn
               )}
             >
-              <Banner appLogoValue={appLogoValue} />
+              <Banner appLogoValue={appLogoValue} isDarkMode={isDarkMode} />
               <div
                 className={cn(
                   styles.flex,

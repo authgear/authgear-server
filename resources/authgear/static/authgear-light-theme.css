@@ -187,10 +187,6 @@ a:not(.not-a):active, .link:active {
   color: var(--color-primary-shaded-7);
 }
 
-.banner-frame {
-  background-color: var(--color-background-unshaded);
-}
-
 .apple {
   color: var(--color-white-unshaded);
   background-color: var(--color-apple-unshaded);
