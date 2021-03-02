@@ -10,6 +10,7 @@ import (
 	texttemplate "text/template"
 
 	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -225,22 +226,31 @@ func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view reso
 	defaultLanguageTag := view.DefaultLanguageTag()
 
 	languageTemplates := make(map[string]languageTemplate)
-	for _, resrc := range resources {
-		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+	add := func(langTag string, resrc resource.ResourceFile) error {
 		t := languageTemplate{
 			languageTag: langTag,
 			data:        resrc.Data,
 		}
 		languageTemplates[langTag] = t
+		return nil
+	}
+	extractLanguageTag := func(resrc resource.ResourceFile) string {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		return langTag
 	}
 
-	var items []LanguageItem
+	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []intlresource.LanguageItem
 	for _, i := range languageTemplates {
 		items = append(items, i)
 	}
 
-	matched, err := MatchLanguage(preferredLanguageTags, defaultLanguageTag, items)
-	if errors.Is(err, ErrNoLanguageMatch) {
+	matched, err := intlresource.Match(preferredLanguageTags, defaultLanguageTag, items)
+	if errors.Is(err, intlresource.ErrNoLanguageMatch) {
 		if len(items) > 0 {
 			// Use first item in case of no match, to ensure resolution always succeed
 			matched = items[0]

@@ -35,12 +35,17 @@ var configDeps = wire.NewSet(
 		"TOTP",
 		"OOB",
 	),
-	ProvideDefaultTemplateLanguage,
+	ProvideDefaultLanguageTag,
+	ProvideSupportedLanguageTags,
 	secretDeps,
 )
 
-func ProvideDefaultTemplateLanguage(c *config.Config) template.DefaultTemplateLanguage {
-	return template.DefaultTemplateLanguage(c.AppConfig.Localization.FallbackLanguage)
+func ProvideDefaultLanguageTag(c *config.Config) template.DefaultLanguageTag {
+	return template.DefaultLanguageTag(*c.AppConfig.Localization.FallbackLanguage)
+}
+
+func ProvideSupportedLanguageTags(c *config.Config) template.SupportedLanguageTags {
+	return template.SupportedLanguageTags(c.AppConfig.Localization.SupportedLanguages)
 }
 
 var secretDeps = wire.NewSet(

@@ -16,6 +16,7 @@ export interface AppConfigFormModel<State> {
   reload: () => void;
   reset: () => void;
   save: () => void;
+  effectiveConfig: PortalAPIAppConfig;
 }
 
 export type StateConstructor<State> = (config: PortalAPIAppConfig) => State;
@@ -130,5 +131,6 @@ export function useAppConfigForm<State>(
     reload,
     reset,
     save,
+    effectiveConfig,
   };
 }

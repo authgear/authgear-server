@@ -155,10 +155,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: requestOriginProvider,
 	}
 	manager := rootProvider.Resources
-	defaultTemplateLanguage := _wireDefaultTemplateLanguageValue
+	defaultLanguageTag := _wireDefaultLanguageTagValue
+	supportedLanguageTags := _wireSupportedLanguageTagsValue
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -226,8 +228,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 }
 
 var (
-	_wireSystemClockValue             = clock.NewSystemClock()
-	_wireDefaultTemplateLanguageValue = template.DefaultTemplateLanguage(intl.DefaultLanguage)
+	_wireSystemClockValue           = clock.NewSystemClock()
+	_wireDefaultLanguageTagValue    = template.DefaultLanguageTag(intl.DefaultLanguage)
+	_wireSupportedLanguageTagsValue = template.SupportedLanguageTags([]string{intl.DefaultLanguage})
 )
 
 func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
@@ -307,10 +310,12 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: requestOriginProvider,
 	}
 	manager := rootProvider.Resources
-	defaultTemplateLanguage := _wireDefaultTemplateLanguageValue
+	defaultLanguageTag := _wireDefaultLanguageTagValue
+	supportedLanguageTags := _wireSupportedLanguageTagsValue
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,

@@ -111,7 +111,8 @@ func TestTranslationResource(t *testing.T) {
 			}`)
 
 			data, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -133,7 +134,8 @@ func TestTranslationResource(t *testing.T) {
 			}`)
 
 			data, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -145,6 +147,7 @@ func TestTranslationResource(t *testing.T) {
 			data, err = read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"en"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -156,6 +159,7 @@ func TestTranslationResource(t *testing.T) {
 			data, err = read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"zh"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -180,7 +184,8 @@ func TestTranslationResource(t *testing.T) {
 			}`)
 
 			data, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -192,6 +197,7 @@ func TestTranslationResource(t *testing.T) {
 			data, err = read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"en"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -203,6 +209,7 @@ func TestTranslationResource(t *testing.T) {
 			data, err = read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"zh"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
@@ -238,8 +245,7 @@ func TestTranslationResource(t *testing.T) {
 
 		read := func(lang string) (str string, err error) {
 			view := resource.EffectiveFile{
-				Path:       "templates/" + lang + "/translation.json",
-				DefaultTag: "en",
+				Path: "templates/" + lang + "/translation.json",
 			}
 			result, err := manager.Read(template.TranslationJSON, view)
 			if err != nil {

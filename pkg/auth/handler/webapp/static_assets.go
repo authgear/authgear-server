@@ -8,7 +8,6 @@ import (
 
 	aferomem "github.com/spf13/afero/mem"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -26,8 +25,7 @@ type ResourceManager interface {
 }
 
 type StaticAssetsHandler struct {
-	Resources    ResourceManager
-	Localization *config.LocalizationConfig
+	Resources ResourceManager
 }
 
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -46,8 +44,7 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 	// We use EffectiveFile here because we want to return an exact match.
 	// The static asset URLs in the templates are computed by the resolver using EffectiveResource, which has handled localization.
 	result, err := h.Resources.Read(desc, resource.EffectiveFile{
-		Path:       p,
-		DefaultTag: h.Localization.FallbackLanguage,
+		Path: p,
 	})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, os.ErrNotExist

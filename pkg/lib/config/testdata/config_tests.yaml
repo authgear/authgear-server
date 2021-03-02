@@ -398,3 +398,29 @@ config:
     default_client_uri: nonsense
     default_redirect_uri: nonsense
     default_post_logout_redirect_uri: nonsense
+
+---
+name: invalid-language
+error: |-
+  invalid configuration:
+  /localization/fallback_language: format
+    map[error:invalid BCP 47 tag: language: tag is not well-formed format:bcp47]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  localization:
+    fallback_language: foobar
+
+---
+name: invalid-supported-languages
+error: |-
+  invalid configuration:
+  /localization/supported_languages: supported_languages must contain fallback_language
+config:
+  id: test
+  http:
+    public_origin: http://test
+  localization:
+    fallback_language: en
+    supported_languages: [zh-TW]

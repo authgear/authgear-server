@@ -49,5 +49,6 @@ var DependencySet = wire.NewSet(
 	ProvideConfigSource,
 	ProvideAppBaseResources,
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
-	wire.Value(template.DefaultTemplateLanguage(intl.DefaultLanguage)),
+	wire.Value(template.DefaultLanguageTag(intl.DefaultLanguage)),
+	wire.Value(template.SupportedLanguageTags([]string{intl.DefaultLanguage})),
 )

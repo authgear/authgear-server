@@ -237,6 +237,7 @@ ui:
       - '998'
 localization:
   fallback_language: en
+  supported_languages: ["en"]
 messaging:
   default_email_message:
     sender: "no-reply@authgear.com"

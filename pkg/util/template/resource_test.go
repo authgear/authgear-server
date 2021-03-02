@@ -51,7 +51,8 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsA, "en", "en in fs A")
 
 			data, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
@@ -62,7 +63,8 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsA, "zh", "zh in fs A")
 
 			data, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
@@ -70,6 +72,7 @@ func TestTemplateResource(t *testing.T) {
 			data, err = read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"en"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
@@ -77,6 +80,7 @@ func TestTemplateResource(t *testing.T) {
 			data, err = read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"zh"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "zh in fs A")
@@ -90,6 +94,7 @@ func TestTemplateResource(t *testing.T) {
 			data, err := read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"ja"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
@@ -100,7 +105,8 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsA, "en", "en in fs A")
 
 			data, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
@@ -108,6 +114,7 @@ func TestTemplateResource(t *testing.T) {
 			data, err = read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"en"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "en in fs A")
@@ -115,6 +122,7 @@ func TestTemplateResource(t *testing.T) {
 			data, err = read(resource.EffectiveResource{
 				DefaultTag:    "en",
 				PreferredTags: []string{"zh"},
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "zh in fs B")
@@ -140,8 +148,7 @@ func TestTemplateResource(t *testing.T) {
 
 		read := func(lang string) (str string, err error) {
 			view := resource.EffectiveFile{
-				Path:       "templates/" + lang + "/resource.txt",
-				DefaultTag: "en",
+				Path: "templates/" + lang + "/resource.txt",
 			}
 			result, err := manager.Read(txt, view)
 			if err != nil {

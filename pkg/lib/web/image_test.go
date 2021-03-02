@@ -88,7 +88,8 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsA, "en", ".png", pngA)
 
 			asset, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"en"},
 			})
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/en/myimage.png")
@@ -102,6 +103,7 @@ func TestTemplateResource(t *testing.T) {
 			asset, err := read(resource.EffectiveResource{
 				PreferredTags: []string{"zh", "en"},
 				DefaultTag:    "en",
+				SupportedTags: []string{"zh", "en"},
 			})
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/zh/myimage.png")
@@ -113,7 +115,8 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsB, "en", ".png", pngB)
 
 			asset, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"en"},
 			})
 			So(err, ShouldBeNil)
 			So(asset.Path, ShouldEqual, "static/en/myimage.png")
@@ -126,7 +129,8 @@ func TestTemplateResource(t *testing.T) {
 			writeFile(fsB, "en", ".jpg", pngB)
 
 			_, err := read(resource.EffectiveResource{
-				DefaultTag: "en",
+				DefaultTag:    "en",
+				SupportedTags: []string{"en"},
 			})
 			So(err, ShouldBeError, "duplicate resource: [static/en/myimage.jpg static/en/myimage.png]")
 		})

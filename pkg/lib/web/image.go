@@ -10,8 +10,8 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type languageImage struct {
@@ -120,7 +120,7 @@ func (a ImageDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byt
 }
 
 func (a ImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
-	images := make(map[string]template.LanguageItem)
+	images := make(map[string]intlresource.LanguageItem)
 	for _, resrc := range resources {
 		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		images[languageTag] = languageImage{
@@ -159,13 +159,22 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
 
-	images := make(map[string]template.LanguageItem)
-	for _, resrc := range resources {
-		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
-		images[languageTag] = languageImage{
-			languageTag: languageTag,
+	images := make(map[string]intlresource.LanguageItem)
+	add := func(langTag string, resrc resource.ResourceFile) error {
+		images[langTag] = languageImage{
+			languageTag: langTag,
 			data:        resrc.Data,
 		}
+		return nil
+	}
+	extractLanguageTag := func(resrc resource.ResourceFile) string {
+		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		return langTag
+	}
+
+	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
+	if err != nil {
+		return nil, err
 	}
 
 	// Ensure there is at most one resource
@@ -191,13 +200,13 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 		}
 	}
 
-	var items []template.LanguageItem
+	var items []intlresource.LanguageItem
 	for _, i := range images {
 		items = append(items, i)
 	}
 
-	matched, err := template.MatchLanguage(preferredLanguageTags, defaultLanguageTag, items)
-	if errors.Is(err, template.ErrNoLanguageMatch) {
+	matched, err := intlresource.Match(preferredLanguageTags, defaultLanguageTag, items)
+	if errors.Is(err, intlresource.ErrNoLanguageMatch) {
 		if len(items) > 0 {
 			// Use first item in case of no match, to ensure resolution always succeed
 			matched = items[0]

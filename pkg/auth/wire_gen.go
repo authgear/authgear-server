@@ -290,10 +290,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -810,10 +812,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -1333,10 +1337,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -1639,10 +1645,12 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -2041,10 +2049,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -2516,10 +2526,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -3033,10 +3045,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -3550,10 +3564,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -4067,10 +4083,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -4577,10 +4595,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -5090,10 +5110,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -5604,10 +5626,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -6115,10 +6139,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -6625,10 +6651,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -7136,10 +7164,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -7648,10 +7678,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -8158,10 +8190,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -8668,10 +8702,12 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -9178,10 +9214,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -9688,10 +9726,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -10198,10 +10238,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -10708,10 +10750,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -11219,10 +11263,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -11729,10 +11775,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -12244,10 +12292,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -12754,10 +12804,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -13265,10 +13317,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -13775,10 +13829,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -14302,10 +14358,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -14816,10 +14874,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -15331,10 +15391,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -15844,10 +15906,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -16357,10 +16421,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -16871,10 +16937,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -17388,10 +17456,12 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -17899,10 +17969,12 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -18410,10 +18482,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -18906,10 +18980,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -19068,12 +19144,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	manager := appProvider.Resources
-	config := appProvider.Config
-	appConfig := config.AppConfig
-	localizationConfig := appConfig.Localization
 	staticAssetsHandler := &webapp2.StaticAssetsHandler{
-		Resources:    manager,
-		Localization: localizationConfig,
+		Resources: manager,
 	}
 	return staticAssetsHandler
 }
@@ -19287,10 +19359,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -19678,10 +19752,12 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Cookie:        errorCookieDef,
 		CookieFactory: cookieFactory,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	resolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: resolver,
@@ -20014,10 +20090,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
-	defaultTemplateLanguage := deps.ProvideDefaultTemplateLanguage(config)
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
 	templateResolver := &template.Resolver{
-		Resources:          manager,
-		DefaultLanguageTag: defaultTemplateLanguage,
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	engine := &template.Engine{
 		Resolver: templateResolver,

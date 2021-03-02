@@ -32,7 +32,6 @@ type AppFileView interface {
 // Since the path is specific, so the view is single-locale.
 type EffectiveFileView interface {
 	View
-	DefaultLanguageTag() string
 	EffectiveFilePath() string
 }
 
@@ -40,8 +39,9 @@ type EffectiveFileView interface {
 // Since there is no path, the view is locale-resolved.
 type EffectiveResourceView interface {
 	View
-	PreferredLanguageTags() []string
+	SupportedLanguageTags() []string
 	DefaultLanguageTag() string
+	PreferredLanguageTags() []string
 }
 
 // ValidateResourceView validates the resource itself.
@@ -66,33 +66,33 @@ func (v AppFile) SecretKeyAllowlist() []string {
 }
 
 type EffectiveFile struct {
-	DefaultTag string
-	Path       string
+	Path string
 }
 
 var _ EffectiveFileView = EffectiveFile{}
 
 func (v EffectiveFile) view() {}
-func (v EffectiveFile) DefaultLanguageTag() string {
-	return v.DefaultTag
-}
 func (v EffectiveFile) EffectiveFilePath() string {
 	return v.Path
 }
 
 type EffectiveResource struct {
-	PreferredTags []string
+	SupportedTags []string
 	DefaultTag    string
+	PreferredTags []string
 }
 
 var _ EffectiveResourceView = EffectiveResource{}
 
 func (v EffectiveResource) view() {}
-func (v EffectiveResource) PreferredLanguageTags() []string {
-	return v.PreferredTags
+func (v EffectiveResource) SupportedLanguageTags() []string {
+	return v.SupportedTags
 }
 func (v EffectiveResource) DefaultLanguageTag() string {
 	return v.DefaultTag
+}
+func (v EffectiveResource) PreferredLanguageTags() []string {
+	return v.PreferredTags
 }
 
 type ValidateResource struct{}

@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
+import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse } from "postcss";
@@ -16,7 +17,6 @@ import ImageFilePicker from "../../ImageFilePicker";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
 } from "./EditTemplatesWidget";
-import { useTemplateLocaleQuery } from "./query/templateLocaleQuery";
 import { PortalAPIAppConfig } from "../../types";
 import {
   ALL_EDITABLE_RESOURCES,
@@ -40,12 +40,10 @@ import {
 } from "../../resources";
 import {
   LanguageTag,
-  LocaleInvalidReason,
   Resource,
   ResourceDefinition,
   ResourceSpecifier,
   specifierId,
-  validateLocales,
 } from "../../util/resource";
 import {
   LightTheme,
@@ -64,15 +62,20 @@ import FormContainer from "../../FormContainer";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 interface ConfigFormState {
-  defaultLocale: string;
+  supportedLanguages: string[];
+  fallbackLanguage: string;
   darkThemeDisabled: boolean;
 }
 
 const NOOP = () => {};
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
+  const fallbackLanguage = config.localization?.fallback_language ?? "en";
   return {
-    defaultLocale: config.localization?.fallback_language ?? "en",
+    fallbackLanguage,
+    supportedLanguages: config.localization?.supported_languages ?? [
+      fallbackLanguage,
+    ],
     darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
   };
 }
@@ -84,9 +87,20 @@ function constructConfig(
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.localization = config.localization ?? {};
-    if (initialState.defaultLocale !== currentState.defaultLocale) {
-      config.localization.fallback_language = currentState.defaultLocale;
+
+    if (initialState.fallbackLanguage !== currentState.fallbackLanguage) {
+      config.localization.fallback_language = currentState.fallbackLanguage;
     }
+    if (
+      !deepEqual(
+        initialState.supportedLanguages,
+        currentState.supportedLanguages,
+        { strict: true }
+      )
+    ) {
+      config.localization.supported_languages = currentState.supportedLanguages;
+    }
+
     config.ui = config.ui ?? {};
     if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
       config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
@@ -120,7 +134,7 @@ function constructResources(state: ResourcesFormState): Resource[] {
 }
 
 interface FormState extends ConfigFormState, ResourcesFormState {
-  selectedLocale: string;
+  selectedLanguage: string;
 }
 
 interface FormModel {
@@ -138,9 +152,7 @@ interface FormModel {
 
 interface ResourcesConfigurationContentProps {
   form: FormModel;
-  locales: LanguageTag[];
-  invalidLocaleReason: LocaleInvalidReason | null;
-  invalidLocales: LanguageTag[];
+  supportedLanguages: LanguageTag[];
 }
 
 const PIVOT_KEY_APPEARANCE = "appearance";
@@ -165,7 +177,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   props
 ) {
   const { state, setState } = props.form;
-  const { locales, invalidLocaleReason, invalidLocales } = props;
+  const { supportedLanguages } = props;
   const { renderToString } = useContext(Context);
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
@@ -177,64 +189,71 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     ];
   }, []);
 
-  const setDefaultLocale = useCallback(
-    (defaultLocale: LanguageTag) => {
-      setState((s) => ({ ...s, defaultLocale }));
+  const setFallbackLanguage = useCallback(
+    (fallbackLanguage: LanguageTag) => {
+      setState((s) => ({ ...s, fallbackLanguage }));
     },
     [setState]
   );
 
-  const setSelectedLocale = useCallback(
-    (selectedLocale: LanguageTag) => {
-      setState((s) => ({ ...s, selectedLocale }));
+  const setSelectedLanguage = useCallback(
+    (selectedLanguage: LanguageTag) => {
+      setState((s) => ({ ...s, selectedLanguage }));
     },
     [setState]
   );
 
-  const onChangeLocales = useCallback(
-    (newLocales: LanguageTag[]) => {
+  const setSupportedLanguages = useCallback(
+    (supportedLanguages: LanguageTag[]) => {
       setState((prev) => {
-        let { selectedLocale, resources } = prev;
+        // Reset selected language to fallback language if it was removed.
+        let { selectedLanguage, resources } = prev;
         resources = { ...resources };
-
-        // Reset selected locale to default if it's removed.
-        if (!newLocales.includes(state.selectedLocale)) {
-          selectedLocale = state.defaultLocale;
+        if (!supportedLanguages.includes(selectedLanguage)) {
+          selectedLanguage = prev.fallbackLanguage;
         }
 
-        // Populate initial resources for added locales from default locale.
-        const addedLocales = newLocales.filter((l) => !locales.includes(l));
-        for (const locale of addedLocales) {
-          for (const resource of ALL_TEMPLATES) {
+        // Populate initial values for added languages from fallback language.
+        const addedLanguages = supportedLanguages.filter(
+          (l) => !prev.supportedLanguages.includes(l)
+        );
+        for (const language of addedLanguages) {
+          for (const def of ALL_TEMPLATES) {
             const defaultResource =
-              state.resources[
-                specifierId({ def: resource, locale: prev.defaultLocale })
+              prev.resources[
+                specifierId({ def, locale: prev.fallbackLanguage })
               ];
             const newResource: Resource = {
               specifier: {
-                def: resource,
-                locale,
+                def,
+                locale: language,
               },
-              path: renderPath(resource.resourcePath, { locale }),
+              path: renderPath(def.resourcePath, { locale: language }),
               value: defaultResource?.value ?? "",
             };
             resources[specifierId(newResource.specifier)] = newResource;
           }
         }
 
-        // Remove resources of removed locales.
-        const removedLocales = locales.filter((l) => !newLocales.includes(l));
+        // Remove resources of removed languges
+        const removedLanguages = prev.supportedLanguages.filter(
+          (l) => !supportedLanguages.includes(l)
+        );
         for (const [id, resource] of Object.entries(resources)) {
-          const locale = resource?.specifier.locale;
-          if (resource && locale && removedLocales.includes(locale)) {
+          const language = resource?.specifier.locale;
+          if (
+            resource != null &&
+            language != null &&
+            removedLanguages.includes(language)
+          ) {
             resources[id] = { ...resource, value: "" };
           }
         }
 
-        return { ...prev, selectedLocale, resources };
+        return { ...prev, selectedLanguage, supportedLanguages, resources };
       });
     },
-    [locales, setState, state]
+    [setState]
   );
 
   const [selectedKey, setSelectedKey] = useState<string>(PIVOT_KEY_DEFAULT);
@@ -252,7 +271,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     (def: ResourceDefinition) => {
       const specifier: ResourceSpecifier = {
         def,
-        locale: state.selectedLocale,
+        locale: state.selectedLanguage,
       };
       const resource = state.resources[specifierId(specifier)];
       if (resource == null || resource.value === "") {
@@ -260,26 +279,25 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       }
       return resource.value;
     },
-    [state.resources, state.selectedLocale]
+    [state.resources, state.selectedLanguage]
   );
 
   const getValue = useCallback(
     (def: ResourceDefinition) => {
       const specifier: ResourceSpecifier = {
         def,
-        locale: state.selectedLocale,
+        locale: state.selectedLanguage,
       };
-      const resource = state.resources[specifierId(specifier)];
-      return resource?.value ?? "";
+      return state.resources[specifierId(specifier)]?.value ?? "";
     },
-    [state.resources, state.selectedLocale]
+    [state.resources, state.selectedLanguage]
   );
 
   const getOnChange = useCallback(
     (def: ResourceDefinition) => {
       const specifier: ResourceSpecifier = {
         def,
-        locale: state.selectedLocale,
+        locale: state.selectedLanguage,
       };
       return (_e: unknown, value?: string) => {
         setState((prev) => {
@@ -296,32 +314,46 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         });
       };
     },
-    [state.selectedLocale, setState]
+    [state.selectedLanguage, setState]
   );
 
   const getOnChangeImage = useCallback(
     (def: ResourceDefinition) => {
       const specifier: ResourceSpecifier = {
         def,
-        locale: state.selectedLocale,
+        locale: state.selectedLanguage,
       };
       return (base64EncodedData?: string, extension?: string) => {
         setState((prev) => {
           const updatedResources = { ...prev.resources };
-          const resource: Resource = {
-            specifier,
-            path: renderPath(specifier.def.resourcePath, {
-              locale: specifier.locale,
-              extension,
-            }),
-            value: base64EncodedData ?? "",
-          };
-          updatedResources[specifierId(resource.specifier)] = resource;
+
+          // We always remove the old one first.
+          const oldResource = prev.resources[specifierId(specifier)];
+          if (oldResource != null) {
+            updatedResources[specifierId(specifier)] = {
+              ...oldResource,
+              value: "",
+            };
+          }
+
+          // Add the new one.
+          if (base64EncodedData != null && extension != null) {
+            const resource: Resource = {
+              specifier,
+              path: renderPath(specifier.def.resourcePath, {
+                locale: specifier.locale,
+                extension,
+              }),
+              value: base64EncodedData,
+            };
+            updatedResources[specifierId(specifier)] = resource;
+          }
+
           return { ...prev, resources: updatedResources };
         });
       };
     },
-    [state.selectedLocale, setState]
+    [state.selectedLanguage, setState]
   );
 
   const lightTheme = useMemo(() => {
@@ -352,7 +384,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       setState((prev) => {
         const specifier: ResourceSpecifier = {
           def: RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
-          locale: state.selectedLocale,
+          locale: state.selectedLanguage,
         };
         const updatedResources = { ...prev.resources };
         const css = lightThemeToCSS(newLightTheme);
@@ -370,7 +402,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         };
       });
     },
-    [setState, state.selectedLocale]
+    [setState, state.selectedLanguage]
   );
 
   const setDarkTheme = useCallback(
@@ -378,7 +410,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       setState((prev) => {
         const specifier: ResourceSpecifier = {
           def: RESOURCE_AUTHGEAR_DARK_THEME_CSS,
-          locale: state.selectedLocale,
+          locale: state.selectedLanguage,
         };
         const updatedResources = { ...prev.resources };
         const css = darkThemeToCSS(newDarkTheme);
@@ -396,7 +428,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         };
       });
     },
-    [setState, state.selectedLocale]
+    [setState, state.selectedLanguage]
   );
 
   const getOnChangeLightThemeColor = useCallback(
@@ -603,14 +635,12 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     <div className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
       <ManageLanguageWidget
-        templateLocales={locales}
-        onChangeTemplateLocales={onChangeLocales}
-        templateLocale={state.selectedLocale}
-        defaultTemplateLocale={state.defaultLocale}
-        onSelectTemplateLocale={setSelectedLocale}
-        onSelectDefaultTemplateLocale={setDefaultLocale}
-        invalidLocaleReason={invalidLocaleReason}
-        invalidTemplateLocales={invalidLocales}
+        supportedLanguages={supportedLanguages}
+        onChangeSupportedLanguages={setSupportedLanguages}
+        selectedLanguage={state.selectedLanguage}
+        onChangeSelectedLanguage={setSelectedLanguage}
+        fallbackLanguage={state.fallbackLanguage}
+        onChangeFallbackLanguage={setFallbackLanguage}
       />
       <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
         <PivotItem
@@ -702,28 +732,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
 
 const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScreen() {
   const { appID } = useParams();
-
-  const {
-    templateLocales: resourceLocales,
-    loading: isLoadingLocales,
-    error: loadLocalesError,
-    refetch: reloadLocales,
-  } = useTemplateLocaleQuery(appID);
-
-  const specifiers = useMemo<ResourceSpecifier[]>(() => {
-    const specifiers = [];
-    for (const locale of resourceLocales) {
-      for (const def of ALL_EDITABLE_RESOURCES) {
-        specifiers.push({
-          def,
-          locale,
-        });
-      }
-    }
-    return specifiers;
-  }, [resourceLocales]);
-
-  const [selectedLocale, setSelectedLocale] = useState<LanguageTag | null>(
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageTag | null>(
     null
   );
 
@@ -732,83 +741,83 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
     constructConfigFormState,
     constructConfig
   );
+
+  const initialSupportedLanguages = useMemo(() => {
+    return (
+      config.effectiveConfig.localization?.supported_languages ?? [
+        config.effectiveConfig.localization?.fallback_language ?? "en",
+      ]
+    );
+  }, [config.effectiveConfig.localization]);
+
+  const specifiers = useMemo<ResourceSpecifier[]>(() => {
+    const specifiers = [];
+    for (const locale of initialSupportedLanguages) {
+      for (const def of ALL_EDITABLE_RESOURCES) {
+        specifiers.push({
+          def,
+          locale,
+        });
+      }
+    }
+    return specifiers;
+  }, [initialSupportedLanguages]);
+
   const resources = useResourceForm(
     appID,
     specifiers,
     constructResourcesFormState,
     constructResources
   );
+
   const state = useMemo<FormState>(
     () => ({
-      defaultLocale: config.state.defaultLocale,
+      supportedLanguages: config.state.supportedLanguages,
+      fallbackLanguage: config.state.fallbackLanguage,
       resources: resources.state.resources,
-      selectedLocale: selectedLocale ?? config.state.defaultLocale,
+      selectedLanguage: selectedLanguage ?? config.state.fallbackLanguage,
       darkThemeDisabled: config.state.darkThemeDisabled,
     }),
     [
-      config.state.defaultLocale,
+      config.state.supportedLanguages,
+      config.state.fallbackLanguage,
       config.state.darkThemeDisabled,
       resources.state.resources,
-      selectedLocale,
+      selectedLanguage,
     ]
   );
 
   const form: FormModel = {
-    isLoading: isLoadingLocales || config.isLoading || resources.isLoading,
+    isLoading: config.isLoading || resources.isLoading,
     isUpdating: config.isUpdating || resources.isUpdating,
     isDirty: config.isDirty || resources.isDirty,
-    loadError: loadLocalesError ?? config.loadError ?? resources.loadError,
+    loadError: config.loadError ?? resources.loadError,
     updateError: config.updateError ?? resources.updateError,
     state,
     setState: (fn) => {
       const newState = fn(state);
       config.setState(() => ({
-        defaultLocale: newState.defaultLocale,
+        supportedLanguages: newState.supportedLanguages,
+        fallbackLanguage: newState.fallbackLanguage,
         darkThemeDisabled: newState.darkThemeDisabled,
       }));
       resources.setState(() => ({ resources: newState.resources }));
-      setSelectedLocale(newState.selectedLocale);
+      setSelectedLanguage(newState.selectedLanguage);
     },
     reload: () => {
-      reloadLocales().catch(() => {});
       config.reload();
       resources.reload();
     },
     reset: () => {
       config.reset();
       resources.reset();
-      setSelectedLocale(config.state.defaultLocale);
+      setSelectedLanguage(config.state.fallbackLanguage);
     },
     save: () => {
       config.save();
       resources.save();
     },
   };
-
-  const locales = useMemo<LanguageTag[]>(() => {
-    const locales = new Set<LanguageTag>();
-    for (const r of Object.values(resources.state.resources)) {
-      if (r?.specifier.locale && r.value.length !== 0) {
-        locales.add(r.specifier.locale);
-      }
-    }
-    if (selectedLocale) {
-      locales.add(selectedLocale);
-    }
-    locales.add(config.state.defaultLocale);
-    // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
-    return Array.from(locales).sort();
-  }, [selectedLocale, resources.state, config.state]);
-
-  const { invalidReason: invalidLocaleReason, invalidLocales } = useMemo(
-    () =>
-      validateLocales(
-        config.state.defaultLocale,
-        locales,
-        Object.values(resources.state.resources).filter(Boolean) as Resource[]
-      ),
-    [locales, config.state, resources.state]
-  );
 
   if (form.isLoading) {
     return <ShowLoading />;
@@ -819,12 +828,10 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   }
 
   return (
-    <FormContainer form={form} canSave={invalidLocaleReason == null}>
+    <FormContainer form={form} canSave={true}>
       <ResourcesConfigurationContent
         form={form}
-        locales={locales}
-        invalidLocaleReason={invalidLocaleReason}
-        invalidLocales={invalidLocales}
+        supportedLanguages={config.state.supportedLanguages}
       />
     </FormContainer>
   );

@@ -9,6 +9,7 @@ import (
 	messageformat "github.com/iawaknahc/gomessageformat"
 	"golang.org/x/text/language"
 
+	"github.com/authgear/authgear-server/pkg/util/intlresource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -84,52 +85,56 @@ func (t *translationJSON) viewValidateResource(resources []resource.ResourceFile
 }
 
 func (t *translationJSON) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
-	preferredLanguageTags := view.PreferredLanguageTags()
-	defaultLanguageTag := view.DefaultLanguageTag()
-
 	type LanguageTag string
 	type TranslationKey string
 	type TranslationValue string
 
+	preferredLanguageTags := view.PreferredLanguageTags()
+	defaultLanguageTag := view.DefaultLanguageTag()
+
 	translationMap := make(map[TranslationKey]map[LanguageTag]TranslationValue)
-	insertTranslation := func(tag, key, value string) {
-		keyTranslations, ok := translationMap[TranslationKey(key)]
-		if !ok {
-			keyTranslations = make(map[LanguageTag]TranslationValue)
-			translationMap[TranslationKey(key)] = keyTranslations
-		}
-		keyTranslations[LanguageTag(tag)] = TranslationValue(value)
-	}
-
-	for _, resrc := range resources {
-		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
-
+	add := func(langTag string, resrc resource.ResourceFile) error {
 		var jsonObj map[string]interface{}
 		if err := json.Unmarshal(resrc.Data, &jsonObj); err != nil {
-			return nil, fmt.Errorf("translation file must be JSON: %w", err)
+			return fmt.Errorf("translation file must be JSON: %w", err)
 		}
 
 		for key, val := range jsonObj {
 			value, ok := val.(string)
 			if !ok {
-				return nil, fmt.Errorf("translation `%v` must be string (%T)", key, val)
+				return fmt.Errorf("translation `%v` must be string (%T)", key, val)
 			}
-			insertTranslation(langTag, key, value)
+			keyTranslations, ok := translationMap[TranslationKey(key)]
+			if !ok {
+				keyTranslations = make(map[LanguageTag]TranslationValue)
+				translationMap[TranslationKey(key)] = keyTranslations
+			}
+			keyTranslations[LanguageTag(langTag)] = TranslationValue(value)
 		}
+		return nil
+	}
+	extractLanguageTag := func(resrc resource.ResourceFile) string {
+		langTag := templateLanguageTagRegex.FindStringSubmatch(resrc.Location.Path)[1]
+		return langTag
+	}
+
+	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
+	if err != nil {
+		return nil, err
 	}
 
 	translationData := make(map[string]Translation)
 	for key, translations := range translationMap {
-		var items []LanguageItem
+		var items []intlresource.LanguageItem
 		for languageTag, value := range translations {
 			items = append(items, Translation{
 				LanguageTag: string(languageTag),
 				Value:       string(value),
 			})
 		}
-		var matched LanguageItem
-		matched, err := MatchLanguage(preferredLanguageTags, defaultLanguageTag, items)
-		if errors.Is(err, ErrNoLanguageMatch) {
+		var matched intlresource.LanguageItem
+		matched, err := intlresource.Match(preferredLanguageTags, defaultLanguageTag, items)
+		if errors.Is(err, intlresource.ErrNoLanguageMatch) {
 			if len(items) > 0 {
 				// Use first item in case of no match, to ensure resolution always succeed
 				matched = items[0]
