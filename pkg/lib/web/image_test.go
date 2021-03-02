@@ -123,6 +123,18 @@ func TestTemplateResource(t *testing.T) {
 			So(asset.Data, ShouldResemble, pngB)
 		})
 
+		Convey("it should not fail when fallback is not en", func() {
+			writeFile(fsA, "en", ".png", pngA)
+
+			asset, err := read(resource.EffectiveResource{
+				DefaultTag:    "zh",
+				SupportedTags: []string{"zh"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/en/myimage.png")
+			So(asset.Data, ShouldResemble, pngA)
+		})
+
 		Convey("it should disallow duplicate resource", func() {
 			writeFile(fsA, "en", ".png", pngA)
 			writeFile(fsB, "en", ".png", pngB)

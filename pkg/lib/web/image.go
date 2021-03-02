@@ -15,12 +15,13 @@ import (
 )
 
 type languageImage struct {
-	languageTag string
-	data        []byte
+	LanguageTag     string
+	RealLanguageTag string
+	Data            []byte
 }
 
 func (i languageImage) GetLanguageTag() string {
-	return i.languageTag
+	return i.LanguageTag
 }
 
 var preferredExtensions = map[string]string{
@@ -151,16 +152,17 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	defaultLanguageTag := view.DefaultLanguageTag()
 
 	images := make(map[string]intlresource.LanguageItem)
-	add := func(langTag string, resrc resource.ResourceFile) error {
-		images[langTag] = languageImage{
-			languageTag: langTag,
-			data:        resrc.Data,
-		}
-		return nil
-	}
 	extractLanguageTag := func(resrc resource.ResourceFile) string {
 		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		return langTag
+	}
+	add := func(langTag string, resrc resource.ResourceFile) error {
+		images[langTag] = languageImage{
+			LanguageTag:     langTag,
+			RealLanguageTag: extractLanguageTag(resrc),
+			Data:            resrc.Data,
+		}
+		return nil
 	}
 
 	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
@@ -187,18 +189,17 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	}
 
 	tagger := matched.(languageImage)
-	resolvedLanguageTag := tagger.languageTag
 
-	mimeType := http.DetectContentType(tagger.data)
+	mimeType := http.DetectContentType(tagger.Data)
 	ext, ok := preferredExtensions[mimeType]
 	if !ok {
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}
 
-	path := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, resolvedLanguageTag, a.Name, ext)
+	path := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, tagger.RealLanguageTag, a.Name, ext)
 	return &StaticAsset{
 		Path: path,
-		Data: tagger.data,
+		Data: tagger.Data,
 	}, nil
 }
 

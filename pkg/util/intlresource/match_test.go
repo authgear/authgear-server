@@ -35,12 +35,5 @@ func TestMatch(t *testing.T) {
 		})
 		So(err, ShouldBeNil)
 		So(matched, ShouldEqual, testItem("ja"))
-
-		// Match intl.DefaultLanguageTag if possible
-		matched, err = Match([]string{"zh"}, "ja", []LanguageItem{
-			testItem(intl.DefaultLanguage),
-		})
-		So(err, ShouldBeNil)
-		So(matched, ShouldEqual, testItem(intl.DefaultLanguage))
 	})
 }
