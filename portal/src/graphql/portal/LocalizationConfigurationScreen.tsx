@@ -393,6 +393,8 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     <div className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
       <ManageLanguageWidget
+        className={styles.languageWidget}
+        selectOnly={false}
         supportedLanguages={supportedLanguages}
         onChangeSupportedLanguages={setSupportedLanguages}
         selectedLanguage={state.selectedLanguage}

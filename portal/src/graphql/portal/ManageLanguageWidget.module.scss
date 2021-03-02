@@ -1,13 +1,16 @@
-.templateLocaleManagement {
-  margin: 16px 8px;
-}
-
-.inputContainer {
-  margin-bottom: 15px;
+.root {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .dropdown {
-  width: 200px;
+  margin: 4px;
+  width: 160px;
+}
+
+.titleLabel {
+  margin: 4px;
 }
 
 .dialogDesc {
@@ -67,8 +70,4 @@
 
 .tooltipMessage {
   font-size: 13px;
-}
-
-.contextualMenu {
-  margin: 26px 0 0;
 }

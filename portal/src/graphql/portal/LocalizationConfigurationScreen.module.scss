@@ -1,12 +1,14 @@
 .root {
   margin: 0 32px;
   min-width: 750px;
-}
-
-.pivotItemAppearance {
-  margin: 16px 8px;
+  display: flex;
+  flex-direction: column;
 }
 
 .themeWidget {
-  margin: 10px;
+  margin: 5px;
+}
+
+.languageWidget {
+  align-self: flex-end;
 }

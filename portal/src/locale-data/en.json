@@ -375,7 +375,8 @@
   "VerifyDomainScreen.error.not-custom-error": "Requested domain is not a custom domain",
   "VerifyDomainScreen.error.verification-error": "Failed to verify domain",
 
-  "ManageLanguageWidget.title": "Selected Language",
+  "ManageLanguageWidget.title": "Language",
+  "ManageLanguageWidget.dropdown-title": "{LANG}{IS_FALLBACK, select, true{ (Default)} other{}}",
   "ManageLanguageWidget.manage-languages": "Manage Languages",
   "ManageLanguageWidget.change-default-language": "Change Default Language",
   "ManageLanguageWidget.add-or-remove-languages": "Add or Remove Languages",
@@ -383,8 +384,6 @@
   "ManageLanguageWidget.all-languages": "All Languages",
   "ManageLanguageWidget.app-languages": "App Languages",
   "ManageLanguageWidget.warning.remove-default-language": "Default language cannot be removed.",
-  "ManageLanguageWidget.error.locale-without-resources": "Some of the languages are invalid. A language must have at least 1 localization to become valid",
-  "ManageLanguageWidget.error.required-default-resource": "Some of the languages are invalid. Some required resources do not have localizations in default language",
 
   "UISettingsScreen.title": "UI Settings",
   "UISettingsScreen.favicon-title": "Favicon",

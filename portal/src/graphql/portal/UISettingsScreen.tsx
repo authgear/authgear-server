@@ -16,7 +16,6 @@ import {
 import ImageFilePicker from "../../ImageFilePicker";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  ALL_TEMPLATES,
   renderPath,
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
@@ -164,69 +163,9 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     ];
   }, []);
 
-  const setFallbackLanguage = useCallback(
-    (fallbackLanguage: LanguageTag) => {
-      setState((s) => ({ ...s, fallbackLanguage }));
-    },
-    [setState]
-  );
-
   const setSelectedLanguage = useCallback(
     (selectedLanguage: LanguageTag) => {
       setState((s) => ({ ...s, selectedLanguage }));
-    },
-    [setState]
-  );
-
-  const setSupportedLanguages = useCallback(
-    (supportedLanguages: LanguageTag[]) => {
-      setState((prev) => {
-        // Reset selected language to fallback language if it was removed.
-        let { selectedLanguage, resources } = prev;
-        resources = { ...resources };
-        if (!supportedLanguages.includes(selectedLanguage)) {
-          selectedLanguage = prev.fallbackLanguage;
-        }
-
-        // Populate initial values for added languages from fallback language.
-        const addedLanguages = supportedLanguages.filter(
-          (l) => !prev.supportedLanguages.includes(l)
-        );
-        for (const language of addedLanguages) {
-          for (const def of ALL_TEMPLATES) {
-            const defaultResource =
-              prev.resources[
-                specifierId({ def, locale: prev.fallbackLanguage })
-              ];
-            const newResource: Resource = {
-              specifier: {
-                def,
-                locale: language,
-              },
-              path: renderPath(def.resourcePath, { locale: language }),
-              value: defaultResource?.value ?? "",
-            };
-            resources[specifierId(newResource.specifier)] = newResource;
-          }
-        }
-
-        // Remove resources of removed languges
-        const removedLanguages = prev.supportedLanguages.filter(
-          (l) => !supportedLanguages.includes(l)
-        );
-        for (const [id, resource] of Object.entries(resources)) {
-          const language = resource?.specifier.locale;
-          if (
-            resource != null &&
-            language != null &&
-            removedLanguages.includes(language)
-          ) {
-            resources[id] = { ...resource, value: "" };
-          }
-        }
-
-        return { ...prev, selectedLanguage, supportedLanguages, resources };
-      });
     },
     [setState]
   );
@@ -429,12 +368,12 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     <div className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
       <ManageLanguageWidget
+        className={styles.languageWidget}
+        selectOnly={true}
         supportedLanguages={supportedLanguages}
-        onChangeSupportedLanguages={setSupportedLanguages}
         selectedLanguage={state.selectedLanguage}
-        onChangeSelectedLanguage={setSelectedLanguage}
         fallbackLanguage={state.fallbackLanguage}
-        onChangeFallbackLanguage={setFallbackLanguage}
+        onChangeSelectedLanguage={setSelectedLanguage}
       />
       <div
         className={styles.faviconWidget}
