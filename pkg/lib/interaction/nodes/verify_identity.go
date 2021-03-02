@@ -31,8 +31,8 @@ func (e *EdgeVerifyIdentity) Instantiate(ctx *interaction.Context, graph *intera
 	}
 
 	node.Channel = result.Channel
+	node.Target = result.Target
 	node.CodeLength = result.CodeLength
-	node.SendCooldown = result.SendCooldown
 	return node, nil
 }
 
@@ -44,11 +44,11 @@ type EdgeVerifyIdentityResume struct {
 func (e *EdgeVerifyIdentityResume) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	r := e.Code.SendResult()
 	return &NodeVerifyIdentity{
-		Identity:     e.Identity,
-		CodeID:       e.Code.ID,
-		Channel:      r.Channel,
-		CodeLength:   r.CodeLength,
-		SendCooldown: r.SendCooldown,
+		Identity:   e.Identity,
+		CodeID:     e.Code.ID,
+		Target:     r.Target,
+		Channel:    r.Channel,
+		CodeLength: r.CodeLength,
 		// VerifyIdentityResume is always requested by user.
 		RequestedByUser: true,
 	}, nil
@@ -59,9 +59,9 @@ type NodeVerifyIdentity struct {
 	CodeID          string         `json:"code_id"`
 	RequestedByUser bool           `json:"requested_by_user"`
 
-	Channel      string `json:"channel"`
-	CodeLength   int    `json:"code_length"`
-	SendCooldown int    `json:"send_cooldown"`
+	Channel    string `json:"channel"`
+	Target     string `json:"target"`
+	CodeLength int    `json:"code_length"`
 }
 
 // GetVerificationIdentity implements VerifyIdentityNode.
@@ -74,9 +74,9 @@ func (n *NodeVerifyIdentity) GetVerificationCodeChannel() string {
 	return n.Channel
 }
 
-// GetVerificationCodeSendCooldown implements VerifyIdentityNode.
-func (n *NodeVerifyIdentity) GetVerificationCodeSendCooldown() int {
-	return n.SendCooldown
+// GetVerificationCodeTarget implements VerifyIdentityNode.
+func (n *NodeVerifyIdentity) GetVerificationCodeTarget() string {
+	return n.Target
 }
 
 // GetVerificationCodeLength implements VerifyIdentityNode.
@@ -122,6 +122,11 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	err = ctx.RateLimiter.TakeToken(interaction.SendVerificationCodeRateLimitBucket(code.LoginID))
+	if err != nil {
+		return nil, err
 	}
 
 	result, err := ctx.VerificationCodeSender.SendCode(code)

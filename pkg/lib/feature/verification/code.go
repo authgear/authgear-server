@@ -10,11 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
-const (
-	// SendCooldownSeconds is 60 seconds.
-	SendCooldownSeconds = 60
-)
-
 type Code struct {
 	ID           string `json:"id"`
 	UserID       string `json:"user_id"`
@@ -43,10 +38,9 @@ func (c *Code) SendResult() *otp.CodeSendResult {
 	}
 
 	return &otp.CodeSendResult{
-		Target:       c.LoginID,
-		Channel:      channel,
-		CodeLength:   len(c.Code),
-		SendCooldown: SendCooldownSeconds,
+		Target:     c.LoginID,
+		Channel:    channel,
+		CodeLength: len(c.Code),
 	}
 }
 

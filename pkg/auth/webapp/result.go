@@ -13,6 +13,7 @@ type Result struct {
 	RedirectURI      string
 	NavigationAction string
 	Cookies          []*http.Cookie
+	IsInteractionErr bool
 }
 
 func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {

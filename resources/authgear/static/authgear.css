@@ -313,32 +313,31 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
-.errors-wrapper {
+.messages-bar-wrapper {
   width: 100%;
   min-height: 32px;
 }
 
-.errors {
+.messages-bar {
   display: flex;
   flex-direction: row;
-  background-color: var(--color-error-shaded-2);
+  
 }
 
-.errors.display-none {
+.messages-bar.display-none {
   display: none;
 }
 
-.errors .icon {
+.messages-bar .icon {
   font-size: 16px;
   min-width: 16px;
   min-height: 16px;
   display: flex;
   flex-shrink: 0;
   margin: 8px 0px 8px 12px;
-  color: var(--color-error-unshaded);
 }
 
-.errors .error-txt {
+.messages-bar .messages-txt {
   min-width: 0px;
   display: flex;
   flex-grow: 1;
@@ -350,11 +349,11 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: column;
 }
 
-.errors .error-txt li {
+.messages-bar .messages-txt li {
   margin: 4px 0;
 }
 
-.errors .close {
+.messages-bar .close {
   width: 32px;
   height: 32px;
   flex-shrink: 0;
@@ -362,6 +361,22 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   justify-content: center;
   align-items: center;
+}
+
+.messages-bar.errors {
+  background-color: var(--color-error-shaded-2);
+}
+
+.messages-bar.errors .icon {
+  color: var(--color-error-unshaded);
+}
+
+.messages-bar.success {
+  background-color: var(--color-success-shaded-2);
+}
+
+.messages-bar.success .icon {
+  color: var(--color-success-unshaded);
 }
 
 .primary-txt {

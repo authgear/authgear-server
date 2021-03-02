@@ -48,13 +48,15 @@ type EnterOOBOTPHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
+	RateLimiter       RateLimiter
+	FlashMessage      FlashMessage
 }
 
 type EnterOOBOTPNode interface {
 	GetOOBOTPTarget() string
 	GetOOBOTPChannel() string
-	GetOOBOTPCodeSendCooldown() int
 	GetOOBOTPCodeLength() int
+	GetOOBOTPOOBType() interaction.OOBType
 }
 
 func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -64,15 +66,27 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	viewModel := EnterOOBOTPViewModel{}
 	var n EnterOOBOTPNode
 	if graph.FindLastNode(&n) {
-		viewModel.OOBOTPCodeSendCooldown = n.GetOOBOTPCodeSendCooldown()
 		viewModel.OOBOTPCodeLength = n.GetOOBOTPCodeLength()
 		viewModel.OOBOTPChannel = n.GetOOBOTPChannel()
-
+		target := n.GetOOBOTPTarget()
+		oobType := n.GetOOBOTPOOBType()
 		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
 		case authn.AuthenticatorOOBChannelEmail:
-			viewModel.OOBOTPTarget = mail.MaskAddress(n.GetOOBOTPTarget())
+			viewModel.OOBOTPTarget = mail.MaskAddress(target)
 		case authn.AuthenticatorOOBChannelSMS:
-			viewModel.OOBOTPTarget = phone.Mask(n.GetOOBOTPTarget())
+			viewModel.OOBOTPTarget = phone.Mask(target)
+		}
+
+		bucket := interaction.SendOOBCodeRateLimitBucket(oobType, target)
+		pass, resetDuration, err := h.RateLimiter.CheckToken(bucket)
+		if err != nil {
+			return nil, err
+		}
+		if pass {
+			// allow sending immediately
+			viewModel.OOBOTPCodeSendCooldown = 0
+		} else {
+			viewModel.OOBOTPCodeSendCooldown = int(resetDuration.Seconds())
 		}
 	}
 
@@ -149,6 +163,9 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
+		if !result.IsInteractionErr {
+			h.FlashMessage.Flash(w, string(webapp.FlashMessageTypeResendCodeSuccess))
+		}
 		result.WriteResponse(w, r)
 		return nil
 	})

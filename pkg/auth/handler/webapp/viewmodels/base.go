@@ -45,6 +45,7 @@ type BaseViewModel struct {
 	PublicSignupDisabled  bool
 	PageLoadedAt          int
 	IsNativePlatform      bool
+	FlashMessageType      string
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -74,6 +75,10 @@ type ErrorCookie interface {
 	ResetError() *http.Cookie
 }
 
+type FlashMessage interface {
+	Pop(r *http.Request, rw http.ResponseWriter) string
+}
+
 type BaseViewModeler struct {
 	OAuth          *config.OAuthConfig
 	AuthUI         *config.UIConfig
@@ -83,6 +88,7 @@ type BaseViewModeler struct {
 	ErrorCookie    ErrorCookie
 	Translations   TranslationService
 	Clock          clock.Clock
+	FlashMessage   FlashMessage
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
@@ -135,6 +141,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		ForgotPasswordEnabled: *m.ForgotPassword.Enabled,
 		PublicSignupDisabled:  m.Authentication.PublicSignupDisabled,
 		PageLoadedAt:          int(now),
+		FlashMessageType:      m.FlashMessage.Pop(r, rw),
 	}
 
 	if apiError, ok := m.ErrorCookie.GetError(r); ok {

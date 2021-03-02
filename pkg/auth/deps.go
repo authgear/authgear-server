@@ -23,6 +23,7 @@ import (
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	oidchandler "github.com/authgear/authgear-server/pkg/lib/oauth/oidc/handler"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -82,6 +83,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
 	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*webapp.ErrorCookie)),
 	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
+	wire.Bind(new(viewmodelswebapp.FlashMessage), new(*httputil.FlashMessage)),
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
@@ -95,5 +97,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.PageService), new(*webapp.Service2)),
 	wire.Bind(new(handlerwebapp.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(handlerwebapp.VerifyIdentityVerificationService), new(*verification.Service)),
+	wire.Bind(new(handlerwebapp.RateLimiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(handlerwebapp.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(handlerwebapp.FlashMessage), new(*httputil.FlashMessage)),
 )
