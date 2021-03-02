@@ -53,8 +53,15 @@ Each OAuth client has its own configuration of offline grant.
 
 Offline grant consists of a refresh token and access token. As long as the refresh token remains valid, access tokens can be refreshed with the refresh token independent of the IdP session. Offline grant is intended for use in native application.
 
+If the refresh token is used when the OAuth client is deleted, the refresh token is considered invalid.
+The SDK will log the user out in that case.
+However, if the OAuth client is restored, subsequent usage of refresh token will NOT be affected.
+
+Since offline grant must always reference to its OAuth client, changes in the configuration of the OAuth client will take effect immediately.
+
 Access token has a configurable lifetime.
 
-Refresh token has a configurable lifetime. It cannot be refreshed. The old access token is invalidated during refresh. At any time there is at most one valid access token.
+Refresh token has a configurable lifetime. Refresh token may optionally have idle timeout. The session must be accessed before the timeout, or the session is expired.
+The old access token is invalidated during refresh. At any time there is at most one valid access token.
 
 The lifetime of offline grant is the lifetime of its refresh token.
