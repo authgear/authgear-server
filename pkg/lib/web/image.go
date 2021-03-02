@@ -206,7 +206,7 @@ func (a ImageDescriptor) viewAppFile(resources []resource.ResourceFile, view res
 	path := view.AppFilePath()
 	var appResources []resource.ResourceFile
 	for _, resrc := range resources {
-		if resrc.Location.Fs.AppFs() {
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
 			appResources = append(appResources, resrc)
 		}
 	}

@@ -22,26 +22,35 @@ type File interface {
 	Readdirnames(n int) ([]string, error)
 }
 
+type FsLevel int
+
+const (
+	FsLevelBuiltin FsLevel = iota + 1
+	FsLevelCustom
+	FsLevelApp
+)
+
 type Fs interface {
 	Open(name string) (File, error)
 	Stat(name string) (os.FileInfo, error)
-	AppFs() bool
+	GetFsLevel() FsLevel
 }
 
-type AferoFs struct {
+type LeveledAferoFs struct {
 	Fs      afero.Fs
-	IsAppFs bool
+	FsLevel FsLevel
 }
 
-func (f AferoFs) Open(name string) (File, error) {
+func (f LeveledAferoFs) Open(name string) (File, error) {
 	return f.Fs.Open(name)
 }
 
-func (f AferoFs) Stat(name string) (os.FileInfo, error) {
+func (f LeveledAferoFs) Stat(name string) (os.FileInfo, error) {
 	return f.Fs.Stat(name)
 }
-func (f AferoFs) AppFs() bool {
-	return f.IsAppFs
+
+func (f LeveledAferoFs) GetFsLevel() FsLevel {
+	return f.FsLevel
 }
 
 func ReadLocation(location Location) ([]byte, error) {

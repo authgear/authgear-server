@@ -180,7 +180,7 @@ func viewTemplatesAppFile(resources []resource.ResourceFile, view resource.AppFi
 	var found bool
 	var bytes []byte
 	for _, resrc := range resources {
-		if resrc.Location.Fs.AppFs() && resrc.Location.Path == path {
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && resrc.Location.Path == path {
 			found = true
 			bytes = resrc.Data
 		}

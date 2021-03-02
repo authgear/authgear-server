@@ -14,7 +14,10 @@ func TestEngine(t *testing.T) {
 	Convey("Engine", t, func() {
 		fs := afero.NewMemMapFs()
 		r := &resource.Registry{}
-		manager := resource.NewManager(r, []resource.Fs{resource.AferoFs{Fs: fs}})
+		manager := resource.NewManager(r, []resource.Fs{resource.LeveledAferoFs{
+			Fs:      fs,
+			FsLevel: resource.FsLevelBuiltin,
+		}})
 		resolver := &template.Resolver{
 			Resources:             manager,
 			DefaultLanguageTag:    "en",

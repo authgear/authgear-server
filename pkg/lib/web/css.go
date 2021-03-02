@@ -41,7 +41,7 @@ func (d CSSDescriptor) ViewResources(resources []resource.ResourceFile, rawView 
 	app := func() error {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
-			if resrc.Location.Fs.AppFs() {
+			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
 				s := resrc
 				target = &s
 			}

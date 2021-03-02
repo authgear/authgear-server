@@ -160,7 +160,7 @@ func (t *translationJSON) viewAppFile(resources []resource.ResourceFile, view re
 	found := false
 	var bytes []byte
 	for _, resrc := range resources {
-		if resrc.Location.Fs.AppFs() && path == resrc.Location.Path {
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp && path == resrc.Location.Path {
 			found = true
 			bytes = resrc.Data
 		}

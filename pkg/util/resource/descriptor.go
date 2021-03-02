@@ -61,7 +61,7 @@ func (d SimpleDescriptor) ViewResources(resources []ResourceFile, rawView View) 
 	case AppFileView:
 		var appResources []ResourceFile
 		for _, resrc := range resources {
-			if resrc.Location.Fs.AppFs() {
+			if resrc.Location.Fs.GetFsLevel() == FsLevelApp {
 				s := resrc
 				appResources = append(appResources, s)
 			}
@@ -126,7 +126,7 @@ func (d NewlineJoinedDescriptor) ViewResources(resources []ResourceFile, rawView
 	case AppFileView:
 		var appResources []ResourceFile
 		for _, resrc := range resources {
-			if resrc.Location.Fs.AppFs() {
+			if resrc.Location.Fs.GetFsLevel() == FsLevelApp {
 				s := resrc
 				appResources = append(appResources, s)
 			}

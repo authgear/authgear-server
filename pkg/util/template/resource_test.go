@@ -18,8 +18,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		txt := &template.HTML{Name: "resource.txt"}
@@ -134,8 +134,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		txt := &template.HTML{Name: "resource.txt"}
@@ -202,8 +202,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB, IsAppFs: true},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		txt := &template.HTML{Name: "resource.txt"}
