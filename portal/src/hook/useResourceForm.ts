@@ -81,6 +81,8 @@ export function useResourceForm<State>(
   const save = useCallback(() => {
     if (!diff) {
       return;
+    } else if (!diff.needUpdate) {
+      return;
     } else if (isUpdating) {
       return;
     }
