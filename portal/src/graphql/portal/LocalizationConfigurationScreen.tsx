@@ -159,13 +159,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     ];
   }, []);
 
-  const setFallbackLanguage = useCallback(
-    (fallbackLanguage: LanguageTag) => {
-      setState((s) => ({ ...s, fallbackLanguage }));
-    },
-    [setState]
-  );
-
   const setSelectedLanguage = useCallback(
     (selectedLanguage: LanguageTag) => {
       setState((s) => ({ ...s, selectedLanguage }));
@@ -173,14 +166,14 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [setState]
   );
 
-  const setSupportedLanguages = useCallback(
-    (supportedLanguages: LanguageTag[]) => {
+  const onChangeLanguages = useCallback(
+    (supportedLanguages: LanguageTag[], fallbackLanguage: LanguageTag) => {
       setState((prev) => {
         // Reset selected language to fallback language if it was removed.
         let { selectedLanguage, resources } = prev;
         resources = { ...resources };
         if (!supportedLanguages.includes(selectedLanguage)) {
-          selectedLanguage = prev.fallbackLanguage;
+          selectedLanguage = fallbackLanguage;
         }
 
         // Populate initial values for added languages from fallback language.
@@ -220,7 +213,13 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           }
         }
 
-        return { ...prev, selectedLanguage, supportedLanguages, resources };
+        return {
+          ...prev,
+          selectedLanguage,
+          supportedLanguages,
+          fallbackLanguage,
+          resources,
+        };
       });
     },
     [setState]
@@ -396,11 +395,10 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         className={styles.languageWidget}
         selectOnly={false}
         supportedLanguages={supportedLanguages}
-        onChangeSupportedLanguages={setSupportedLanguages}
         selectedLanguage={state.selectedLanguage}
         onChangeSelectedLanguage={setSelectedLanguage}
         fallbackLanguage={state.fallbackLanguage}
-        onChangeFallbackLanguage={setFallbackLanguage}
+        onChangeLanguages={onChangeLanguages}
       />
       <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
         <PivotItem

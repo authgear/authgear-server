@@ -376,14 +376,12 @@
   "VerifyDomainScreen.error.verification-error": "Failed to verify domain",
 
   "ManageLanguageWidget.title": "Language",
-  "ManageLanguageWidget.dropdown-title": "{LANG}{IS_FALLBACK, select, true{ (Default)} other{}}",
+  "ManageLanguageWidget.language-label": "{LANG}{IS_FALLBACK, select, true{ - Default} other{}}",
   "ManageLanguageWidget.manage-languages": "Manage Languages",
-  "ManageLanguageWidget.change-default-language": "Change Default Language",
   "ManageLanguageWidget.add-or-remove-languages": "Add or Remove Languages",
   "ManageLanguageWidget.default-language-description": "For any languages you don’t provide localization, your default language will be used.",
-  "ManageLanguageWidget.all-languages": "All Languages",
-  "ManageLanguageWidget.app-languages": "App Languages",
-  "ManageLanguageWidget.warning.remove-default-language": "Default language cannot be removed.",
+  "ManageLanguageWidget.languages": "Languages",
+  "ManageLanguageWidget.set-as-default": "Set as Default",
 
   "UISettingsScreen.title": "UI Settings",
   "UISettingsScreen.favicon-title": "Favicon",
