@@ -320,6 +320,8 @@ func (s *Service2) afterPost(
 		interactionErr = s.Graph.Run(session.ID, graph)
 	}
 
+	isFinishedSuccess := isFinished && interactionErr == nil
+
 	// Populate cookies.
 	if interactionErr != nil {
 		if !apierrors.IsAPIError(interactionErr) {
@@ -342,7 +344,7 @@ func (s *Service2) afterPost(
 	}
 
 	// Transition to redirect URI
-	if isFinished {
+	if isFinishedSuccess {
 		result.RedirectURI = deriveFinishRedirectURI(session, graph)
 		switch graph.Intent.(type) {
 		case *intents.IntentAuthenticate:
@@ -382,7 +384,7 @@ func (s *Service2) afterPost(
 	session.Extra = collectExtras(graph.CurrentNode())
 
 	// Persist/discard session
-	if isFinished && !session.KeepAfterFinish {
+	if isFinishedSuccess && !session.KeepAfterFinish {
 		err := s.Sessions.Delete(session.ID)
 		if err != nil {
 			return err

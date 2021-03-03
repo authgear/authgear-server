@@ -41,6 +41,7 @@
   "error-web-ui-invalid-session-return": "<p>This page is no longer active. Please return to the current page.</p>",
   "error-web-ui-invalid-session-action": "Return",
   "error-rate-limited": "Please wait for a moment before retrying.",
+  "error-webhook-disallowed": "Operation is not disallowed.",
   "error-disabled-user": "Administrator has disabled your account.",
   "error-disabled-user-reason": "Reason: {reason}",
   "error-disabled-user-no-reason": "Please contact administrator for details.",
