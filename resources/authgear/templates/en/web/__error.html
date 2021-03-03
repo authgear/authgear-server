@@ -81,6 +81,13 @@
                 <!-- This error is handled as fatal error -->
             {{ else if eq .Error.reason "RateLimited" }}
                 <li>{{ template "error-rate-limited" }}</li>
+            {{ else if eq .Error.reason "WebHookDisallowed" }}
+                <li>
+                    {{ template "error-webhook-disallowed" }}
+                </li>
+                {{ range .Error.info.reasons }}
+                    <li>{{ .reason }}</li>
+                {{ end }}
             {{ else }}
                 <li>{{ .Error.message }}</li>
             {{ end }}
