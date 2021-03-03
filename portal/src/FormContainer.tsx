@@ -4,18 +4,16 @@ import {
   Dialog,
   DialogFooter,
   ICommandBarItemProps,
-  MessageBar,
-  MessageBarType,
   PrimaryButton,
-  Text,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import NavigationBlockerDialog from "./NavigationBlockerDialog";
 import CommandBarContainer from "./CommandBarContainer";
 import { APIError } from "./error/error";
-import { FormProvider, useFormTopErrors } from "./form";
-import { ErrorParseRule, renderError } from "./error/parse";
+import { FormProvider } from "./form";
+import { ErrorParseRule } from "./error/parse";
+import { FormErrorMessageBar } from "./FormErrorMessageBar";
 
 export interface FormModel {
   updateError: unknown;
@@ -24,23 +22,6 @@ export interface FormModel {
   reset: () => void;
   save: () => void;
 }
-
-const FormErrorMessageBar: React.FC = (props) => {
-  const { renderToString } = useContext(Context);
-
-  const errors = useFormTopErrors();
-  if (errors.length === 0) {
-    return <>{props.children}</>;
-  }
-
-  return (
-    <MessageBar messageBarType={MessageBarType.error}>
-      {errors.map((err, i) => (
-        <Text key={i}>{renderError(null, err, renderToString)}</Text>
-      ))}
-    </MessageBar>
-  );
-};
 
 export interface SaveButtonProps {
   labelId: string;
