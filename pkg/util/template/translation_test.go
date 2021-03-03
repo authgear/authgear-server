@@ -21,8 +21,8 @@ func TestTranslationResource(t *testing.T) {
 		r.Register(template.TranslationJSON)
 
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		compact := func(s string) string {
@@ -72,8 +72,8 @@ func TestTranslationResource(t *testing.T) {
 		r.Register(template.TranslationJSON)
 
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		compact := func(s string) string {
@@ -218,6 +218,31 @@ func TestTranslationResource(t *testing.T) {
 				"c": { "LanguageTag": "zh", "Value": "zh c in fs B" }
 			}`))
 		})
+
+		Convey("it should not fail when fallback is not en", func() {
+			writeFile(fsA, "en", `{
+				"a": "en a in fs A",
+				"b": "en b in fs A",
+				"c": "en c in fs A"
+			}`)
+			writeFile(fsB, "en", `{
+				"b": "en b in fs B",
+			}`)
+			writeFile(fsB, "zh", `{
+				"c": "zh c in fs B"
+			}`)
+
+			data, err := read(resource.EffectiveResource{
+				DefaultTag:    "zh",
+				SupportedTags: []string{"zh"},
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, compact(`{
+				"a": { "LanguageTag": "zh", "Value": "en a in fs A" },
+				"b": { "LanguageTag": "zh", "Value": "en b in fs A" },
+				"c": { "LanguageTag": "zh", "Value": "zh c in fs B" }
+			}`))
+		})
 	})
 
 	Convey("TranslationJSON EffectiveFile", t, func() {
@@ -228,8 +253,8 @@ func TestTranslationResource(t *testing.T) {
 		r.Register(template.TranslationJSON)
 
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		compact := func(s string) string {
@@ -338,8 +363,8 @@ func TestTranslationResource(t *testing.T) {
 		r.Register(template.TranslationJSON)
 
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB, IsAppFs: true},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		compact := func(s string) string {

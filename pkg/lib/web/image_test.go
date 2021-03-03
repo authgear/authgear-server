@@ -37,8 +37,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		img := web.ImageDescriptor{
@@ -123,15 +123,24 @@ func TestTemplateResource(t *testing.T) {
 			So(asset.Data, ShouldResemble, pngB)
 		})
 
+		Convey("it should not fail when fallback is not en", func() {
+			writeFile(fsA, "en", ".png", pngA)
+
+			asset, err := read(resource.EffectiveResource{
+				DefaultTag:    "zh",
+				SupportedTags: []string{"zh"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/en/myimage.png")
+			So(asset.Data, ShouldResemble, pngA)
+		})
+
 		Convey("it should disallow duplicate resource", func() {
 			writeFile(fsA, "en", ".png", pngA)
 			writeFile(fsB, "en", ".png", pngB)
 			writeFile(fsB, "en", ".jpg", pngB)
 
-			_, err := read(resource.EffectiveResource{
-				DefaultTag:    "en",
-				SupportedTags: []string{"en"},
-			})
+			_, err := read(resource.ValidateResource{})
 			So(err, ShouldBeError, "duplicate resource: [static/en/myimage.jpg static/en/myimage.png]")
 		})
 	})
@@ -141,8 +150,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		img := web.ImageDescriptor{
@@ -242,8 +251,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB, IsAppFs: true},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		img := web.ImageDescriptor{

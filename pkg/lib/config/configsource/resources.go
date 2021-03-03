@@ -47,7 +47,7 @@ func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile,
 	app := func() (interface{}, error) {
 		var target *resource.ResourceFile
 		for _, resrc := range resources {
-			if resrc.Location.Fs.AppFs() {
+			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
 				s := resrc
 				target = &s
 			}
@@ -143,7 +143,7 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 
 	var target *resource.ResourceFile
 	for _, resrc := range resources {
-		if resrc.Location.Fs.AppFs() {
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
 			s := resrc
 			target = &s
 		}

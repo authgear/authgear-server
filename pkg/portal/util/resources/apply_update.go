@@ -64,7 +64,7 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 		return nil, nil, err
 	}
 
-	newAppFs := resource.AferoFs{Fs: newFs, IsAppFs: true}
+	newAppFs := resource.LeveledAferoFs{Fs: newFs, FsLevel: resource.FsLevelApp}
 
 	var files []*resource.ResourceFile
 	for _, u := range updates {

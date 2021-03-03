@@ -15,12 +15,13 @@ import (
 )
 
 type languageImage struct {
-	languageTag string
-	data        []byte
+	LanguageTag     string
+	RealLanguageTag string
+	Data            []byte
 }
 
 func (i languageImage) GetLanguageTag() string {
-	return i.languageTag
+	return i.LanguageTag
 }
 
 var preferredExtensions = map[string]string{
@@ -120,15 +121,6 @@ func (a ImageDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byt
 }
 
 func (a ImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
-	images := make(map[string]intlresource.LanguageItem)
-	for _, resrc := range resources {
-		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
-		images[languageTag] = languageImage{
-			languageTag: languageTag,
-			data:        resrc.Data,
-		}
-	}
-
 	// Ensure there is at most one resource
 	// For each Fs and for each locale, remember how many paths we have seen.
 	seen := make(map[resource.Fs]map[string][]string)
@@ -160,44 +152,22 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	defaultLanguageTag := view.DefaultLanguageTag()
 
 	images := make(map[string]intlresource.LanguageItem)
-	add := func(langTag string, resrc resource.ResourceFile) error {
-		images[langTag] = languageImage{
-			languageTag: langTag,
-			data:        resrc.Data,
-		}
-		return nil
-	}
 	extractLanguageTag := func(resrc resource.ResourceFile) string {
 		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		return langTag
+	}
+	add := func(langTag string, resrc resource.ResourceFile) error {
+		images[langTag] = languageImage{
+			LanguageTag:     langTag,
+			RealLanguageTag: extractLanguageTag(resrc),
+			Data:            resrc.Data,
+		}
+		return nil
 	}
 
 	err := intlresource.Prepare(resources, view, extractLanguageTag, add)
 	if err != nil {
 		return nil, err
-	}
-
-	// Ensure there is at most one resource
-	// For each Fs and for each locale, remember how many paths we have seen.
-	seen := make(map[resource.Fs]map[string][]string)
-	for _, resrc := range resources {
-		languageTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
-		m, ok := seen[resrc.Location.Fs]
-		if !ok {
-			m = make(map[string][]string)
-			seen[resrc.Location.Fs] = m
-		}
-		paths := m[languageTag]
-		paths = append(paths, resrc.Location.Path)
-		m[languageTag] = paths
-	}
-	for _, m := range seen {
-		for _, paths := range m {
-			if len(paths) > 1 {
-				sort.Strings(paths)
-				return nil, fmt.Errorf("duplicate resource: %v", paths)
-			}
-		}
 	}
 
 	var items []intlresource.LanguageItem
@@ -219,18 +189,17 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	}
 
 	tagger := matched.(languageImage)
-	resolvedLanguageTag := tagger.languageTag
 
-	mimeType := http.DetectContentType(tagger.data)
+	mimeType := http.DetectContentType(tagger.Data)
 	ext, ok := preferredExtensions[mimeType]
 	if !ok {
 		return nil, fmt.Errorf("invalid image format: %s", mimeType)
 	}
 
-	path := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, resolvedLanguageTag, a.Name, ext)
+	path := fmt.Sprintf("%s%s/%s%s", StaticAssetResourcePrefix, tagger.RealLanguageTag, a.Name, ext)
 	return &StaticAsset{
 		Path: path,
-		Data: tagger.data,
+		Data: tagger.Data,
 	}, nil
 }
 
@@ -238,7 +207,7 @@ func (a ImageDescriptor) viewAppFile(resources []resource.ResourceFile, view res
 	path := view.AppFilePath()
 	var appResources []resource.ResourceFile
 	for _, resrc := range resources {
-		if resrc.Location.Fs.AppFs() {
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
 			appResources = append(appResources, resrc)
 		}
 	}

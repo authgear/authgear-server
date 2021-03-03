@@ -18,8 +18,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		txt := &template.HTML{Name: "resource.txt"}
@@ -127,6 +127,17 @@ func TestTemplateResource(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, "zh in fs B")
 		})
+
+		Convey("it should not fail when fallback is not en", func() {
+			writeFile(fsA, "en", "en in fs A")
+
+			data, err := read(resource.EffectiveResource{
+				DefaultTag:    "zh",
+				SupportedTags: []string{"zh"},
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldEqual, "en in fs A")
+		})
 	})
 
 	Convey("HTML EffectiveFile", t, func() {
@@ -134,8 +145,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		txt := &template.HTML{Name: "resource.txt"}
@@ -202,8 +213,8 @@ func TestTemplateResource(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB, IsAppFs: true},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		txt := &template.HTML{Name: "resource.txt"}

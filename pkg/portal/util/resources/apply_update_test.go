@@ -24,8 +24,8 @@ func TestApplyUpdates(t *testing.T) {
 
 		baseFs := afero.NewMemMapFs()
 		appFs := afero.NewMemMapFs()
-		baseResourceFs := &resource.AferoFs{Fs: baseFs}
-		appResourceFs := &resource.AferoFs{Fs: appFs}
+		baseResourceFs := &resource.LeveledAferoFs{Fs: baseFs, FsLevel: resource.FsLevelBuiltin}
+		appResourceFs := &resource.LeveledAferoFs{Fs: appFs, FsLevel: resource.FsLevelApp}
 		resMgr := resource.NewManager(resource.DefaultRegistry, []resource.Fs{
 			baseResourceFs,
 			appResourceFs,

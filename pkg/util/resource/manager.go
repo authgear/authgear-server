@@ -21,11 +21,17 @@ func NewManager(registry *Registry, fs []Fs) *Manager {
 func NewManagerWithDir(registry *Registry, builtinResourceDir string, customResourceDir string) *Manager {
 	var fs []Fs
 	fs = append(fs,
-		AferoFs{Fs: afero.NewBasePathFs(afero.OsFs{}, builtinResourceDir)},
+		LeveledAferoFs{
+			Fs:      afero.NewBasePathFs(afero.OsFs{}, builtinResourceDir),
+			FsLevel: FsLevelBuiltin,
+		},
 	)
 	if customResourceDir != "" {
 		fs = append(fs,
-			AferoFs{Fs: afero.NewBasePathFs(afero.OsFs{}, customResourceDir)},
+			LeveledAferoFs{
+				Fs:      afero.NewBasePathFs(afero.OsFs{}, customResourceDir),
+				FsLevel: FsLevelCustom,
+			},
 		)
 	}
 	return &Manager{

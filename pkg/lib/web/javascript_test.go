@@ -17,8 +17,8 @@ func TestJavaScriptDescriptor(t *testing.T) {
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
 		manager := resource.NewManager(r, []resource.Fs{
-			resource.AferoFs{Fs: fsA},
-			resource.AferoFs{Fs: fsB, IsAppFs: true},
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		myJS := web.JavaScriptDescriptor{

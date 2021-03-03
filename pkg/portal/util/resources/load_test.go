@@ -16,8 +16,8 @@ func TestList(t *testing.T) {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
 		res := resource.NewManager(reg, []resource.Fs{
-			&resource.AferoFs{Fs: fsA},
-			&resource.AferoFs{Fs: fsB},
+			&resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			&resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
 		reg.Register(resource.SimpleDescriptor{Path: "test/a/x.txt"})

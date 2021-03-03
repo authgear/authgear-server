@@ -290,7 +290,7 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 		_ = afero.WriteFile(fs, p, data, 0666)
 	}
 
-	appFs := resource.AferoFs{Fs: fs, IsAppFs: true}
+	appFs := resource.LeveledAferoFs{Fs: fs, FsLevel: resource.FsLevelApp}
 	resMgr := (*resource.Manager)(s.AppBaseResources).Overlay(appFs)
 	_, err = resources.ApplyUpdates(appID, appFs, resMgr, s.SecretKeyAllowlist, nil)
 	if err != nil {
