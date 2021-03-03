@@ -1,13 +1,20 @@
-.templateLocaleManagement {
-  margin: 16px 8px;
-}
-
-.inputContainer {
-  margin-bottom: 15px;
+.root {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .dropdown {
-  width: 200px;
+  margin: 4px;
+  width: 210px;
+}
+
+.searchBox {
+  width: 300px;
+}
+
+.titleLabel {
+  margin: 4px;
 }
 
 .dialogDesc {
@@ -16,59 +23,30 @@
   margin-bottom: 15px;
 }
 
-.dialogContent {
-  display: flex;
-  border: 1px solid #b0b0b0;
-}
-
-.dialogDivider {
-  width: 1px;
-  color: #b0b0b0;
-  height: auto;
-}
-
-.dialogColumn {
-  flex: 1;
-}
-
 .dialogColumnHeader {
   display: block;
-  width: 100%;
-  border-bottom: 1px solid #b0b0b0;
   padding: 12px 16px;
-  font-weight: 600;
 }
 
 .dialogListWrapper {
   position: relative;
   height: 50vh;
   overflow-y: scroll;
-}
-.dialogLocaleListItem {
-  display: flex;
-  margin: 16px;
+  border: 1px solid #b0b0b0;
 }
 
-.dialogLocaleListItemText {
-  display: block;
-  padding-left: 5px;
-}
-
-.dialogSelectedItem {
+.cellRoot {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  margin: 5px 16px;
+  margin: 6px;
 }
 
-.tooltip {
-  max-width: 340px;
-  padding: 10px 15px 15px;
+.cellCheckbox {
+  margin: 4px;
 }
 
-.tooltipMessage {
-  font-size: 13px;
-}
-
-.contextualMenu {
-  margin: 26px 0 0;
+.cellText {
+  display: block;
+  flex: 1;
 }
