@@ -80,7 +80,7 @@ type Provider struct {
 // The code becomes invalid if it is consumed.
 // Finally the code is sent to the login ID asynchronously.
 func (p *Provider) SendCode(loginID string) error {
-	err := p.RateLimiter.TakeToken(GenerateRateLimitBucket(loginID))
+	err := p.RateLimiter.TakeToken(SendResetPasswordCodeRateLimitBucket(loginID))
 	if err != nil {
 		return err
 	}
