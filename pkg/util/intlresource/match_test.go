@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/authgear/authgear-server/pkg/util/intl"
 )
 
 type testItem string
@@ -23,7 +21,6 @@ func TestMatch(t *testing.T) {
 		matched, err = Match([]string{"zh"}, "ja", []LanguageItem{
 			testItem("zh"),
 			testItem("ja"),
-			testItem(intl.DefaultLanguage),
 		})
 		So(err, ShouldBeNil)
 		So(matched, ShouldEqual, testItem("zh"))
@@ -31,7 +28,6 @@ func TestMatch(t *testing.T) {
 		// Match fallback if possible
 		matched, err = Match([]string{"zh"}, "ja", []LanguageItem{
 			testItem("ja"),
-			testItem(intl.DefaultLanguage),
 		})
 		So(err, ShouldBeNil)
 		So(matched, ShouldEqual, testItem("ja"))
