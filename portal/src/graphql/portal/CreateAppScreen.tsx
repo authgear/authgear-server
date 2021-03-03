@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { Label, Text } from "@fluentui/react";
 import ScreenHeader from "../../ScreenHeader";
-import NavBreadcrumb from "../../NavBreadcrumb";
 import { useCreateAppMutation } from "./mutations/createAppMutation";
 import { useTextField } from "../../hook/useInput";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -12,7 +11,7 @@ import styles from "./CreateAppScreen.module.scss";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import { ErrorParseRule } from "../../error/parse";
 import FormTextField from "../../FormTextField";
-import FormContainer from "../../FormContainer";
+import OnboardingFormContainer from "./OnboardingFormContainer";
 
 interface FormState {
   appID: string;
@@ -49,26 +48,21 @@ const CreateAppContent: React.FC<CreateAppContentProps> = function CreateAppCont
   const { state, setState } = props.form;
   const systemConfig = useSystemConfig();
 
-  const navBreadcrumbItems = React.useMemo(() => {
-    return [
-      { to: "..", label: <FormattedMessage id="AppsScreen.title" /> },
-      { to: ".", label: <FormattedMessage id="CreateAppScreen.title" /> },
-    ];
-  }, []);
-
   const { onChange: onAppIDChange } = useTextField((value) =>
     setState((prev) => ({ ...prev, appID: value }))
   );
 
   return (
-    <main className={styles.content}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
+    <main>
+      <Text className={styles.pageTitle} block={true} variant="xLarge">
+        <FormattedMessage id="CreateAppScreen.title" />
+      </Text>
+      <Text className={styles.pageDesc} block={true} variant="small">
+        <FormattedMessage id="CreateAppScreen.desc" />
+      </Text>
       <Label className={styles.fieldLabel}>
         <FormattedMessage id="CreateAppScreen.app-id.label" />
       </Label>
-      <Text className={styles.fieldDesc}>
-        <FormattedMessage id="CreateAppScreen.app-id.desc" />
-      </Text>
       <FormTextField
         className={styles.appIDField}
         parentJSONPointer="/"
@@ -105,7 +99,6 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
 
   const saveButtonProps = useMemo(
     () => ({
-      iconName: "Add",
       labelId: "create",
     }),
     []
@@ -114,9 +107,9 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
   return (
     <div className={styles.root}>
       <ScreenHeader />
-      <FormContainer form={form} saveButtonProps={saveButtonProps}>
+      <OnboardingFormContainer form={form} saveButtonProps={saveButtonProps}>
         <CreateAppContent form={form} />
-      </FormContainer>
+      </OnboardingFormContainer>
     </div>
   );
 };
