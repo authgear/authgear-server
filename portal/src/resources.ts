@@ -81,6 +81,14 @@ export const RESOURCE_APP_LOGO: ResourceDefinition = {
   optional: true,
 };
 
+export const RESOURCE_APP_LOGO_DARK: ResourceDefinition = {
+  resourcePath: resourcePath`static/${"locale"}/app_logo_dark${"extension"}`,
+  type: "binary",
+  extensions: IMAGE_EXTENSIONS,
+  usesEffectiveDataAsFallbackValue: false,
+  optional: true,
+};
+
 export const RESOURCE_FAVICON: ResourceDefinition = {
   resourcePath: resourcePath`static/${"locale"}/favicon${"extension"}`,
   type: "binary",
@@ -128,15 +136,6 @@ export const RESOURCE_AUTHGEAR_DARK_THEME_CSS: ResourceDefinition = {
   usesEffectiveDataAsFallbackValue: false,
   optional: true,
 };
-
-export const ALL_EDITABLE_RESOURCES = [
-  ...ALL_TEMPLATES,
-  RESOURCE_APP_LOGO,
-  RESOURCE_FAVICON,
-  RESOURCE_AUTHGEAR_CSS,
-  RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
-  RESOURCE_AUTHGEAR_DARK_THEME_CSS,
-];
 
 export interface RenderPathArguments {
   locale?: LanguageTag;

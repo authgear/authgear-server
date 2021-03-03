@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useRef, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  useEffect,
+} from "react";
 import cn from "classnames";
 import {
   Callout,
@@ -22,6 +28,11 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
   const [colorStr, setColorStr] = useState<string | undefined>();
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const colorboxRef = useRef(null);
+
+  // Set text field value when color changes.
+  useEffect(() => {
+    setColorStr(color);
+  }, [color]);
 
   const onTextFieldChange = useCallback(
     (_e, newValue) => {

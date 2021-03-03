@@ -1,15 +1,23 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import cn from "classnames";
 import { DefaultEffects, Text, Label, Toggle } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ScaleContainer from "./ScaleContainer";
 import ThemePreviewWidget from "./ThemePreviewWidget";
 import PortalColorPicker from "./PortalColorPicker";
+import ImageFilePicker, { ImageFilePickerProps } from "./ImageFilePicker";
 import ThemePresetWidget, {
   DEFAULT_LIGHT_THEME,
   DEFAULT_DARK_THEME,
+  LIGHT_THEME_PRESETS,
+  DARK_THEME_PRESETS,
 } from "./ThemePresetWidget";
-import { LightTheme, DarkTheme } from "./util/theme";
+import {
+  LightTheme,
+  DarkTheme,
+  isLightThemeEqual,
+  isDarkThemeEqual,
+} from "./util/theme";
 import styles from "./ThemeConfigurationWidget.module.scss";
 
 export interface ThemeConfigurationWidgetProps {
@@ -18,6 +26,8 @@ export interface ThemeConfigurationWidgetProps {
   darkTheme?: DarkTheme | null;
   isDarkMode: boolean;
   darkModeEnabled: boolean;
+  appLogoValue: string | undefined;
+  onChangeAppLogo: ImageFilePickerProps["onChange"];
   onChangeLightTheme: (lightTheme: LightTheme) => void;
   onChangeDarkTheme: (darkTheme: DarkTheme) => void;
   onChangeDarkModeEnabled: (enabled: boolean) => void;
@@ -25,9 +35,6 @@ export interface ThemeConfigurationWidgetProps {
   onChangeTextColor: (color: string) => void;
   onChangeBackgroundColor: (color: string) => void;
 }
-
-/*
- */
 
 // eslint-disable-next-line complexity
 const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = function ThemeConfigurationWidget(
@@ -40,8 +47,10 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     darkTheme,
     isDarkMode,
     darkModeEnabled,
-    onChangeLightTheme,
-    onChangeDarkTheme,
+    appLogoValue,
+    onChangeAppLogo,
+    onChangeLightTheme: onChangeLightThemeProp,
+    onChangeDarkTheme: onChangeDarkThemeProp,
     onChangeDarkModeEnabled,
     onChangePrimaryColor,
     onChangeTextColor,
@@ -56,6 +65,59 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     },
     [onChangeDarkModeEnabled]
   );
+
+  const [darkThemeIsCustom, setDarkThemeIsCustom] = useState(() => {
+    let equal = false;
+    for (const theme of DARK_THEME_PRESETS) {
+      if (isDarkThemeEqual(theme, darkTheme ?? DEFAULT_DARK_THEME)) {
+        equal = true;
+      }
+    }
+    return !equal;
+  });
+
+  const [lightThemeIsCustom, setLightThemeIsCustom] = useState(() => {
+    let equal = false;
+    for (const theme of LIGHT_THEME_PRESETS) {
+      if (isLightThemeEqual(theme, lightTheme ?? DEFAULT_LIGHT_THEME)) {
+        equal = true;
+      }
+    }
+    return !equal;
+  });
+
+  const onChangeLightTheme = useCallback(
+    (lightTheme: LightTheme) => {
+      setLightThemeIsCustom(false);
+      onChangeLightThemeProp(lightTheme);
+    },
+    [onChangeLightThemeProp]
+  );
+
+  const onChangeDarkTheme = useCallback(
+    (darkTheme: DarkTheme) => {
+      setDarkThemeIsCustom(false);
+      onChangeDarkThemeProp(darkTheme);
+    },
+    [onChangeDarkThemeProp]
+  );
+
+  const onClickCustom = useCallback(() => {
+    setLightThemeIsCustom(true);
+    setDarkThemeIsCustom(true);
+  }, []);
+
+  const disabled =
+    (isDarkMode && !darkModeEnabled) ||
+    (isDarkMode ? !darkThemeIsCustom : !lightThemeIsCustom);
+
+  const highlightedLightTheme = lightThemeIsCustom
+    ? null
+    : lightTheme ?? DEFAULT_LIGHT_THEME;
+
+  const highlightedDarkTheme = darkThemeIsCustom
+    ? null
+    : darkTheme ?? DEFAULT_DARK_THEME;
 
   const primaryColor = isDarkMode
     ? (darkTheme ?? DEFAULT_DARK_THEME).primaryColor
@@ -94,23 +156,21 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
       </div>
       <div className={styles.rootSection}>
         <div className={styles.leftSection}>
-          <div className={styles.presetSection}>
-            <Text as="h2" className={styles.presetTitle}>
-              <FormattedMessage id="ThemeConfigurationWidget.preset-title" />
+          <div className={styles.themeColorSection}>
+            <Text as="h2" className={styles.sectionTitle}>
+              <FormattedMessage id="ThemeConfigurationWidget.theme-color-title" />
             </Text>
             <ThemePresetWidget
               className={styles.presetWidget}
               isDarkMode={isDarkMode}
-              lightTheme={lightTheme}
-              darkTheme={darkTheme}
+              highlightedLightTheme={highlightedLightTheme}
+              highlightedDarkTheme={highlightedDarkTheme}
+              darkThemeIsCustom={darkThemeIsCustom}
+              lightThemeIsCustom={lightThemeIsCustom}
               onClickLightTheme={onChangeLightTheme}
               onClickDarkTheme={onChangeDarkTheme}
+              onClickCustom={onClickCustom}
             />
-          </div>
-          <div className={styles.colorControlSection}>
-            <Text as="h2" className={styles.colorControlTitle}>
-              <FormattedMessage id="ThemeConfigurationWidget.custom-color" />
-            </Text>
             <div className={styles.colorControl}>
               <Label className={styles.colorControlLabel}>
                 <FormattedMessage id="ThemeConfigurationWidget.primary-color" />
@@ -119,7 +179,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 className={styles.colorPicker}
                 color={primaryColor}
                 onChange={onChangePrimaryColor}
-                disabled={isDarkMode && !darkModeEnabled}
+                disabled={disabled}
               />
             </div>
             <div className={styles.colorControl}>
@@ -130,7 +190,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 className={styles.colorPicker}
                 color={textColor}
                 onChange={onChangeTextColor}
-                disabled={isDarkMode && !darkModeEnabled}
+                disabled={disabled}
               />
             </div>
             <div className={styles.colorControl}>
@@ -141,13 +201,25 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 className={styles.colorPicker}
                 color={backgroundColor}
                 onChange={onChangeBackgroundColor}
-                disabled={isDarkMode && !darkModeEnabled}
+                disabled={disabled}
               />
             </div>
           </div>
+          <div className={styles.appLogoSection}>
+            <Text as="h2" className={styles.sectionTitle}>
+              <FormattedMessage id="ThemeConfigurationWidget.app-logo-title" />
+            </Text>
+            <Text variant="small" className={styles.themeColorTitle}>
+              <FormattedMessage id="ThemeConfigurationWidget.app-logo-description" />
+            </Text>
+            <ImageFilePicker
+              base64EncodedData={appLogoValue}
+              onChange={onChangeAppLogo}
+            />
+          </div>
         </div>
         <div className={styles.previewSection}>
-          <Text as="h2" className={styles.colorControlTitle}>
+          <Text as="h2" className={styles.sectionTitle}>
             <FormattedMessage id="ThemeConfigurationWidget.preview-mode" />
           </Text>
           <ScaleContainer
@@ -160,6 +232,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
               ref={previewWidgetRef}
               className={styles.previewWidget}
               isDarkMode={isDarkMode}
+              appLogoValue={appLogoValue}
               primaryColor={primaryColor}
               textColor={textColor}
               backgroundColor={backgroundColor}

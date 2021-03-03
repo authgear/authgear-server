@@ -1,7 +1,6 @@
 .root {
   display: grid;
   gap: 10px;
-  grid-template-rows: auto auto;
   grid-template-columns: auto auto auto;
 }
 
@@ -37,4 +36,10 @@
 
 .presetName {
   margin: 5px;
+}
+
+.customIcon {
+  color: #8a8886;
+  margin: 8px;
+  font-size: 26px;
 }

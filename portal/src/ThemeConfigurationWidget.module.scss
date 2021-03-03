@@ -38,7 +38,7 @@
   flex-direction: column;
 }
 
-.presetSection {
+.themeColorSection {
   align-self: flex-start;
   margin: 10px;
 }
@@ -47,17 +47,7 @@
   margin: 10px 0;
 }
 
-.presetTitle {
-  margin: 10px 0;
-  display: block;
-  font-weight: 600;
-}
-
-.colorControlSection {
-  margin: 10px;
-}
-
-.colorControlTitle {
+.sectionTitle {
   margin: 10px 0;
   display: block;
   font-weight: 600;
@@ -94,4 +84,8 @@
   top: 0;
   transform-origin: 0 0 0;
   width: 360px;
+}
+
+.appLogoSection {
+  margin: 10px;
 }

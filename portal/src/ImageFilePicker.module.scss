@@ -1,7 +1,6 @@
 .root {
   display: flex;
   flex-direction: column;
-  width: 150px;
 }
 
 .label {
@@ -13,11 +12,11 @@
 }
 
 .image {
-  height: 150px;
+  height: 90px;
   margin: 5px 0;
 }
 
 .button {
-  align-self: stretch;
+  align-self: flex-start;
   margin: 5px 0;
 }

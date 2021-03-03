@@ -1,8 +1,8 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Pivot, PivotItem } from "@fluentui/react";
 import deepEqual from "deep-equal";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { DefaultEffects, Text } from "@fluentui/react";
+import { FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
@@ -14,27 +14,13 @@ import {
   DEFAULT_DARK_THEME,
 } from "../../ThemePresetWidget";
 import ImageFilePicker from "../../ImageFilePicker";
-import EditTemplatesWidget, {
-  EditTemplatesWidgetSection,
-} from "./EditTemplatesWidget";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  ALL_EDITABLE_RESOURCES,
   ALL_TEMPLATES,
   renderPath,
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
-  RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
-  RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
-  RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
-  RESOURCE_FORGOT_PASSWORD_EMAIL_HTML,
-  RESOURCE_FORGOT_PASSWORD_EMAIL_TXT,
-  RESOURCE_FORGOT_PASSWORD_SMS_TXT,
-  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,
-  RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT,
-  RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT,
-  RESOURCE_TRANSLATION_JSON,
-  RESOURCE_AUTHGEAR_CSS,
+  RESOURCE_APP_LOGO_DARK,
   RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
   RESOURCE_AUTHGEAR_DARK_THEME_CSS,
 } from "../../resources";
@@ -54,7 +40,7 @@ import {
   darkThemeToCSS,
 } from "../../util/theme";
 
-import styles from "./ResourceConfigurationScreen.module.scss";
+import styles from "./UISettingsScreen.module.scss";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
@@ -68,6 +54,14 @@ interface ConfigFormState {
 }
 
 const NOOP = () => {};
+
+const RESOURCES_ON_THIS_SCREEN = [
+  RESOURCE_FAVICON,
+  RESOURCE_APP_LOGO,
+  RESOURCE_APP_LOGO_DARK,
+  RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
+  RESOURCE_AUTHGEAR_DARK_THEME_CSS,
+];
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
   const fallbackLanguage = config.localization?.fallback_language ?? "en";
@@ -155,36 +149,17 @@ interface ResourcesConfigurationContentProps {
   supportedLanguages: LanguageTag[];
 }
 
-const PIVOT_KEY_APPEARANCE = "appearance";
-const PIVOT_KEY_CUSTOM_CSS = "custom-css";
-const PIVOT_KEY_FORGOT_PASSWORD = "forgot_password";
-const PIVOT_KEY_PASSWORDLESS = "passwordless";
-const PIVOT_KEY_THEME = "theme";
-const PIVOT_KEY_TRANSLATION_JSON = "translation.json";
-
-const PIVOT_KEY_DEFAULT = PIVOT_KEY_APPEARANCE;
-
-const ALL_PIVOT_KEYS = [
-  PIVOT_KEY_APPEARANCE,
-  PIVOT_KEY_CUSTOM_CSS,
-  PIVOT_KEY_FORGOT_PASSWORD,
-  PIVOT_KEY_PASSWORDLESS,
-  PIVOT_KEY_TRANSLATION_JSON,
-  PIVOT_KEY_THEME,
-];
-
 const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
   props
 ) {
   const { state, setState } = props.form;
   const { supportedLanguages } = props;
-  const { renderToString } = useContext(Context);
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
       {
         to: ".",
-        label: <FormattedMessage id="ResourceConfigurationScreen.title" />,
+        label: <FormattedMessage id="UISettingsScreen.title" />,
       },
     ];
   }, []);
@@ -256,17 +231,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [setState]
   );
 
-  const [selectedKey, setSelectedKey] = useState<string>(PIVOT_KEY_DEFAULT);
-  const onLinkClick = useCallback((item?: PivotItem) => {
-    const itemKey = item?.props.itemKey;
-    if (itemKey != null) {
-      const idx = ALL_PIVOT_KEYS.indexOf(itemKey);
-      if (idx >= 0) {
-        setSelectedKey(itemKey);
-      }
-    }
-  }, []);
-
   const getValueIgnoreEmptyString = useCallback(
     (def: ResourceDefinition) => {
       const specifier: ResourceSpecifier = {
@@ -280,41 +244,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       return resource.value;
     },
     [state.resources, state.selectedLanguage]
-  );
-
-  const getValue = useCallback(
-    (def: ResourceDefinition) => {
-      const specifier: ResourceSpecifier = {
-        def,
-        locale: state.selectedLanguage,
-      };
-      return state.resources[specifierId(specifier)]?.value ?? "";
-    },
-    [state.resources, state.selectedLanguage]
-  );
-
-  const getOnChange = useCallback(
-    (def: ResourceDefinition) => {
-      const specifier: ResourceSpecifier = {
-        def,
-        locale: state.selectedLanguage,
-      };
-      return (_e: unknown, value?: string) => {
-        setState((prev) => {
-          const updatedResources = { ...prev.resources };
-          const resource: Resource = {
-            specifier,
-            path: renderPath(specifier.def.resourcePath, {
-              locale: specifier.locale,
-            }),
-            value: value ?? "",
-          };
-          updatedResources[specifierId(resource.specifier)] = resource;
-          return { ...prev, resources: updatedResources };
-        });
-      };
-    },
-    [state.selectedLanguage, setState]
   );
 
   const getOnChangeImage = useCallback(
@@ -496,141 +425,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [setState, lightTheme, setDarkTheme]
   );
 
-  const sectionsTranslationJSON: EditTemplatesWidgetSection[] = [
-    {
-      key: "translation.json",
-      title: (
-        <FormattedMessage id="EditTemplatesWidget.translationjson.title" />
-      ),
-      items: [
-        {
-          key: "translation.json",
-          title: (
-            <FormattedMessage id="EditTemplatesWidget.translationjson.subtitle" />
-          ),
-          language: "json",
-          value: getValue(RESOURCE_TRANSLATION_JSON),
-          onChange: getOnChange(RESOURCE_TRANSLATION_JSON),
-        },
-      ],
-    },
-  ];
-
-  const sectionsCustomCSS: EditTemplatesWidgetSection[] = [
-    {
-      key: "custom-css",
-      title: <FormattedMessage id="EditTemplatesWidget.custom-css.title" />,
-      items: [
-        {
-          key: "custom-css",
-          title: (
-            <FormattedMessage id="EditTemplatesWidget.custom-css.subtitle" />
-          ),
-          language: "css",
-          value: getValue(RESOURCE_AUTHGEAR_CSS),
-          onChange: getOnChange(RESOURCE_AUTHGEAR_CSS),
-        },
-      ],
-    },
-  ];
-
-  const sectionsForgotPassword: EditTemplatesWidgetSection[] = [
-    {
-      key: "email",
-      title: <FormattedMessage id="EditTemplatesWidget.email" />,
-      items: [
-        {
-          key: "html-email",
-          title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
-          language: "html",
-          value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_HTML),
-          onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_HTML),
-        },
-        {
-          key: "plaintext-email",
-          title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
-          language: "plaintext",
-          value: getValue(RESOURCE_FORGOT_PASSWORD_EMAIL_TXT),
-          onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_EMAIL_TXT),
-        },
-      ],
-    },
-    {
-      key: "sms",
-      title: <FormattedMessage id="EditTemplatesWidget.sms" />,
-      items: [
-        {
-          key: "sms",
-          title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
-          language: "plaintext",
-          value: getValue(RESOURCE_FORGOT_PASSWORD_SMS_TXT),
-          onChange: getOnChange(RESOURCE_FORGOT_PASSWORD_SMS_TXT),
-        },
-      ],
-    },
-  ];
-
-  const sectionsPasswordless: EditTemplatesWidgetSection[] = [
-    {
-      key: "setup",
-      title: (
-        <FormattedMessage id="EditTemplatesWidget.passwordless.setup.title" />
-      ),
-      items: [
-        {
-          key: "html-email",
-          title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
-          language: "html",
-          value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML),
-          onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML),
-        },
-        {
-          key: "plaintext-email",
-          title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
-          language: "plaintext",
-          value: getValue(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
-          onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_EMAIL_TXT),
-        },
-        {
-          key: "sms",
-          title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
-          language: "plaintext",
-          value: getValue(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
-          onChange: getOnChange(RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT),
-        },
-      ],
-    },
-    {
-      key: "login",
-      title: (
-        <FormattedMessage id="EditTemplatesWidget.passwordless.login.title" />
-      ),
-      items: [
-        {
-          key: "html-email",
-          title: <FormattedMessage id="EditTemplatesWidget.html-email" />,
-          language: "html",
-          value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML),
-          onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML),
-        },
-        {
-          key: "plaintext-email",
-          title: <FormattedMessage id="EditTemplatesWidget.plaintext-email" />,
-          language: "plaintext",
-          value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
-          onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT),
-        },
-        {
-          key: "sms",
-          title: <FormattedMessage id="EditTemplatesWidget.sms-body" />,
-          language: "plaintext",
-          value: getValue(RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT),
-          onChange: getOnChange(RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT),
-        },
-      ],
-    },
-  ];
-
   return (
     <div className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
@@ -642,95 +436,54 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         fallbackLanguage={state.fallbackLanguage}
         onChangeFallbackLanguage={setFallbackLanguage}
       />
-      <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
-        <PivotItem
-          headerText={renderToString(
-            "ResourceConfigurationScreen.appearance.title"
-          )}
-          itemKey={PIVOT_KEY_APPEARANCE}
-        >
-          <div className={styles.pivotItemAppearance}>
-            <ImageFilePicker
-              title={renderToString("ResourceConfigurationScreen.favicon")}
-              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
-              onChange={getOnChangeImage(RESOURCE_FAVICON)}
-            />
-            <ImageFilePicker
-              title={renderToString("ResourceConfigurationScreen.app-logo")}
-              base64EncodedData={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
-              onChange={getOnChangeImage(RESOURCE_APP_LOGO)}
-            />
-          </div>
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString("ResourceConfigurationScreen.theme.title")}
-          itemKey={PIVOT_KEY_THEME}
-        >
-          <ThemeConfigurationWidget
-            className={styles.themeWidget}
-            darkTheme={darkTheme}
-            lightTheme={lightTheme}
-            isDarkMode={false}
-            darkModeEnabled={false}
-            onChangeDarkModeEnabled={NOOP}
-            onChangeLightTheme={setLightTheme}
-            onChangeDarkTheme={setDarkTheme}
-            onChangePrimaryColor={onChangeLightModePrimaryColor}
-            onChangeTextColor={onChangeLightModeTextColor}
-            onChangeBackgroundColor={onChangeLightModeBackgroundColor}
-          />
-          <ThemeConfigurationWidget
-            className={styles.themeWidget}
-            darkTheme={darkTheme}
-            lightTheme={lightTheme}
-            isDarkMode={true}
-            darkModeEnabled={!state.darkThemeDisabled}
-            onChangeLightTheme={setLightTheme}
-            onChangeDarkTheme={setDarkTheme}
-            onChangeDarkModeEnabled={onChangeDarkModeEnabled}
-            onChangePrimaryColor={onChangeDarkModePrimaryColor}
-            onChangeTextColor={onChangeDarkModeTextColor}
-            onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
-          />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
-            "ResourceConfigurationScreen.translationjson.title"
-          )}
-          itemKey={PIVOT_KEY_TRANSLATION_JSON}
-        >
-          <EditTemplatesWidget sections={sectionsTranslationJSON} />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
-            "ResourceConfigurationScreen.forgot-password.title"
-          )}
-          itemKey={PIVOT_KEY_FORGOT_PASSWORD}
-        >
-          <EditTemplatesWidget sections={sectionsForgotPassword} />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
-            "ResourceConfigurationScreen.passwordless-authenticator.title"
-          )}
-          itemKey={PIVOT_KEY_PASSWORDLESS}
-        >
-          <EditTemplatesWidget sections={sectionsPasswordless} />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
-            "ResourceConfigurationScreen.custom-css.title"
-          )}
-          itemKey={PIVOT_KEY_CUSTOM_CSS}
-        >
-          <EditTemplatesWidget sections={sectionsCustomCSS} />
-        </PivotItem>
-      </Pivot>
+      <div
+        className={styles.faviconWidget}
+        style={{ boxShadow: DefaultEffects.elevation4 }}
+      >
+        <Text as="h2" className={styles.faviconTitle}>
+          <FormattedMessage id="UISettingsScreen.favicon-title" />
+        </Text>
+        <ImageFilePicker
+          className={styles.faviconImagePicker}
+          base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
+          onChange={getOnChangeImage(RESOURCE_FAVICON)}
+        />
+      </div>
+      <ThemeConfigurationWidget
+        className={styles.themeWidget}
+        darkTheme={darkTheme}
+        lightTheme={lightTheme}
+        isDarkMode={false}
+        darkModeEnabled={false}
+        appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
+        onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO)}
+        onChangeDarkModeEnabled={NOOP}
+        onChangeLightTheme={setLightTheme}
+        onChangeDarkTheme={setDarkTheme}
+        onChangePrimaryColor={onChangeLightModePrimaryColor}
+        onChangeTextColor={onChangeLightModeTextColor}
+        onChangeBackgroundColor={onChangeLightModeBackgroundColor}
+      />
+      <ThemeConfigurationWidget
+        className={styles.themeWidget}
+        darkTheme={darkTheme}
+        lightTheme={lightTheme}
+        isDarkMode={true}
+        darkModeEnabled={!state.darkThemeDisabled}
+        appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO_DARK)}
+        onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO_DARK)}
+        onChangeLightTheme={setLightTheme}
+        onChangeDarkTheme={setDarkTheme}
+        onChangeDarkModeEnabled={onChangeDarkModeEnabled}
+        onChangePrimaryColor={onChangeDarkModePrimaryColor}
+        onChangeTextColor={onChangeDarkModeTextColor}
+        onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
+      />
     </div>
   );
 };
 
-const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScreen() {
+const UISettingsScreen: React.FC = function UISettingsScreen() {
   const { appID } = useParams();
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageTag | null>(
     null
@@ -753,7 +506,7 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of initialSupportedLanguages) {
-      for (const def of ALL_EDITABLE_RESOURCES) {
+      for (const def of RESOURCES_ON_THIS_SCREEN) {
         specifiers.push({
           def,
           locale,
@@ -837,4 +590,4 @@ const ResourceConfigurationScreen: React.FC = function ResourceConfigurationScre
   );
 };
 
-export default ResourceConfigurationScreen;
+export default UISettingsScreen;

@@ -114,12 +114,6 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  .banner-frame {
-    background-color: var(--color-text-unshaded);
-  }
-}
-
-@media (prefers-color-scheme: dark) {
   .apple {
     color: var(--color-black-unshaded);
     background-color: var(--color-white-unshaded);
