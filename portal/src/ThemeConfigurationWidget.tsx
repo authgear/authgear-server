@@ -1,8 +1,9 @@
 import React, { useCallback, useRef, useState } from "react";
 import cn from "classnames";
-import { DefaultEffects, Text, Label, Toggle } from "@fluentui/react";
+import { Text, Label, Toggle } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ScaleContainer from "./ScaleContainer";
+import Widget from "./Widget";
 import WidgetTitle from "./WidgetTitle";
 import ThemePreviewWidget from "./ThemePreviewWidget";
 import PortalColorPicker from "./PortalColorPicker";
@@ -133,10 +134,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     : (lightTheme ?? DEFAULT_LIGHT_THEME).backgroundColor;
 
   return (
-    <div
-      className={cn(styles.root, className)}
-      style={{ boxShadow: DefaultEffects.elevation4 }}
-    >
+    <Widget className={cn(styles.root, className)}>
       <div className={styles.titleSection}>
         {isDarkMode && (
           <Toggle
@@ -158,7 +156,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
       <div className={styles.rootSection}>
         <div className={styles.leftSection}>
           <div className={styles.themeColorSection}>
-            <Text as="h2" className={styles.sectionTitle}>
+            <Text as="h3" className={styles.sectionTitle}>
               <FormattedMessage id="ThemeConfigurationWidget.theme-color-title" />
             </Text>
             <ThemePresetWidget
@@ -207,7 +205,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
             </div>
           </div>
           <div className={styles.appLogoSection}>
-            <Text as="h2" className={styles.sectionTitle}>
+            <Text as="h3" className={styles.sectionTitle}>
               <FormattedMessage id="ThemeConfigurationWidget.app-logo-title" />
             </Text>
             <Text variant="small" className={styles.themeColorTitle}>
@@ -220,7 +218,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
           </div>
         </div>
         <div className={styles.previewSection}>
-          <Text as="h2" className={styles.sectionTitle}>
+          <Text as="h3" className={styles.sectionTitle}>
             <FormattedMessage id="ThemeConfigurationWidget.preview-mode" />
           </Text>
           <ScaleContainer
@@ -241,7 +239,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
           </ScaleContainer>
         </div>
       </div>
-    </div>
+    </Widget>
   );
 };
 

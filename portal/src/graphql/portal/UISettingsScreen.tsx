@@ -1,8 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import cn from "classnames";
 import { useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
-import { DefaultEffects } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse } from "postcss";
@@ -12,6 +10,7 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
 import {
@@ -376,10 +375,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       <ScreenDescription className={styles.widget}>
         <FormattedMessage id="UISettingsScreen.description" />
       </ScreenDescription>
-      <div
-        className={cn(styles.widget, styles.faviconWidget)}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
-      >
+      <Widget className={styles.widget}>
         <WidgetTitle>
           <FormattedMessage id="UISettingsScreen.favicon-title" />
         </WidgetTitle>
@@ -388,7 +384,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
           onChange={getOnChangeImage(RESOURCE_FAVICON)}
         />
-      </div>
+      </Widget>
       <ThemeConfigurationWidget
         className={styles.widget}
         darkTheme={darkTheme}
