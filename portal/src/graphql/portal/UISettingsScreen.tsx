@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import cn from "classnames";
 import { useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
-import { DefaultEffects, Text } from "@fluentui/react";
+import { DefaultEffects } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse } from "postcss";
@@ -11,6 +11,7 @@ import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
 import {
@@ -379,9 +380,9 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         className={cn(styles.widget, styles.faviconWidget)}
         style={{ boxShadow: DefaultEffects.elevation4 }}
       >
-        <Text as="h2" className={styles.faviconTitle}>
+        <WidgetTitle>
           <FormattedMessage id="UISettingsScreen.favicon-title" />
-        </Text>
+        </WidgetTitle>
         <ImageFilePicker
           className={styles.faviconImagePicker}
           base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}

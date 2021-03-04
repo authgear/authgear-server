@@ -3,6 +3,7 @@ import cn from "classnames";
 import { DefaultEffects, Text, Label, Toggle } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import ScaleContainer from "./ScaleContainer";
+import WidgetTitle from "./WidgetTitle";
 import ThemePreviewWidget from "./ThemePreviewWidget";
 import PortalColorPicker from "./PortalColorPicker";
 import ImageFilePicker, { ImageFilePickerProps } from "./ImageFilePicker";
@@ -144,7 +145,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
             onChange={onChangeChecked}
           />
         )}
-        <Text as="h1" className={styles.title}>
+        <WidgetTitle>
           <FormattedMessage
             id={
               isDarkMode
@@ -152,7 +153,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 : "ThemeConfigurationWidget.light-mode"
             }
           />
-        </Text>
+        </WidgetTitle>
       </div>
       <div className={styles.rootSection}>
         <div className={styles.leftSection}>
