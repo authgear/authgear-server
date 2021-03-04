@@ -1,8 +1,19 @@
 {{ define "__error.html" }}
-<div class="messages-bar errors-messages-bar errors {{ if not .Error }}display-none{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
+{{ $display_error := false }}
+{{ if .Error }}
+    {{ $display_error = true }}
+    {{ if eq .Error.reason "PasswordPolicyViolated" }}
+        <!-- This error is handled differently -->
+        {{ $display_error = false }}
+    {{ else if eq .Error.reason "WebUIInvalidSession" }}
+        <!-- This error is handled as fatal error -->
+        {{ $display_error = false }}
+    {{ end }}
+{{ end }}
+<div class="messages-bar errors-messages-bar errors {{ if not $display_error }}display-none{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
     <div class="icon"><i class="far fa-times-circle"></i></div>
     <ul class="messages-txt error-txt">
-        {{ if .Error }}
+        {{ if $display_error }}
             {{ if eq .Error.reason "ValidationFailed" }}
                 {{ range .Error.info.causes }}
                     {{ if (eq .kind "required") }}
@@ -49,8 +60,6 @@
                 {{ end }}
             {{ else if eq .Error.reason "InvalidCredentials" }}
                 <li>{{ template "error-invalid-credentials" }}</li>
-            {{ else if eq .Error.reason "PasswordPolicyViolated" }}
-                <!-- This error is handled differently -->
             {{ else if eq .Error.reason "PasswordResetFailed" }}
                 <li>{{ template "error-password-reset-failed" }}</li>
             {{ else if eq .Error.reason "NewPasswordTypo" }}
@@ -77,10 +86,15 @@
                         {{ template "error-verification-code-invalid-click-to-resend" }}
                     </a>
                 </li>
-            {{ else if eq .Error.reason "WebUIInvalidSession" }}
-                <!-- This error is handled as fatal error -->
             {{ else if eq .Error.reason "RateLimited" }}
                 <li>{{ template "error-rate-limited" }}</li>
+            {{ else if eq .Error.reason "WebHookDisallowed" }}
+                <li>
+                    {{ template "error-webhook-disallowed" }}
+                </li>
+                {{ range .Error.info.reasons }}
+                    <li>{{ .reason }}</li>
+                {{ end }}
             {{ else }}
                 <li>{{ .Error.message }}</li>
             {{ end }}

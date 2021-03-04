@@ -318,6 +318,9 @@ func (s *Service2) afterPost(
 		// The graph finished. Apply its effect permanently.
 		s.Logger.Debugf("interaction: commit graph")
 		interactionErr = s.Graph.Run(session.ID, graph)
+		// The interaction should not be finished, if there is error when
+		// applying effects.
+		isFinished = interactionErr == nil
 	}
 
 	// Populate cookies.
