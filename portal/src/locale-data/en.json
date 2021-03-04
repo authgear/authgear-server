@@ -388,6 +388,11 @@
   "UISettingsScreen.favicon-title": "Favicon",
   "UISettingsScreen.app-name-title": "Organization / Product Name",
   "UISettingsScreen.app-name-label": "It will be used as some placeholder text for your authentication screen, emails, etc. You can always change it later.",
+  "UISettingsScreen.link-settings-title": "Link Settings",
+  "UISettingsScreen.privacy-policy-link-label": "Privacy Policy Link",
+  "UISettingsScreen.privacy-policy-link-description": "This link can lead users to your privacy policy",
+  "UISettingsScreen.terms-of-service-link-label": "Terms of Service Link",
+  "UISettingsScreen.terms-of-service-link-description": "This link can lead users to your terms of service",
 
   "LocalizationConfigurationScreen.title": "Localization",
   "LocalizationConfigurationScreen.translationjson.title": "Translations",

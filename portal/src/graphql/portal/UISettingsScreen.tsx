@@ -441,6 +441,29 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       </Widget>
       <Widget className={styles.widget}>
         <WidgetTitle>
+          <FormattedMessage id="UISettingsScreen.link-settings-title" />
+        </WidgetTitle>
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.privacy-policy-link-label")}
+          description={renderToString(
+            "UISettingsScreen.privacy-policy-link-description"
+          )}
+          value={valueForTranslationJSON("privacy-policy-link")}
+          onChange={onChangeForTranslationJSON("privacy-policy-link")}
+        />
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.terms-of-service-link-label")}
+          description={renderToString(
+            "UISettingsScreen.terms-of-service-link-description"
+          )}
+          value={valueForTranslationJSON("terms-of-service-link")}
+          onChange={onChangeForTranslationJSON("terms-of-service-link")}
+        />
+      </Widget>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
           <FormattedMessage id="UISettingsScreen.favicon-title" />
         </WidgetTitle>
         <ImageFilePicker
