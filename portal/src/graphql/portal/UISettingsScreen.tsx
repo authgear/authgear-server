@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
+import cn from "classnames";
 import { useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import { DefaultEffects, Text } from "@fluentui/react";
@@ -9,6 +10,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
 import {
@@ -370,8 +372,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           onChangeSelectedLanguage={setSelectedLanguage}
         />
       </div>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="UISettingsScreen.description" />
+      </ScreenDescription>
       <div
-        className={styles.faviconWidget}
+        className={cn(styles.widget, styles.faviconWidget)}
         style={{ boxShadow: DefaultEffects.elevation4 }}
       >
         <Text as="h2" className={styles.faviconTitle}>
@@ -384,7 +389,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         />
       </div>
       <ThemeConfigurationWidget
-        className={styles.themeWidget}
+        className={styles.widget}
         darkTheme={darkTheme}
         lightTheme={lightTheme}
         isDarkMode={false}
@@ -399,7 +404,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         onChangeBackgroundColor={onChangeLightModeBackgroundColor}
       />
       <ThemeConfigurationWidget
-        className={styles.themeWidget}
+        className={styles.widget}
         darkTheme={darkTheme}
         lightTheme={lightTheme}
         isDarkMode={true}
