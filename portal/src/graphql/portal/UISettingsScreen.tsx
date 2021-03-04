@@ -55,6 +55,10 @@ interface ConfigFormState {
   supportedLanguages: string[];
   fallbackLanguage: string;
   darkThemeDisabled: boolean;
+
+  default_client_uri: string;
+  default_redirect_uri: string;
+  default_post_logout_redirect_uri: string;
 }
 
 const NOOP = () => {};
@@ -76,7 +80,17 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       fallbackLanguage,
     ],
     darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
+    default_client_uri: config.ui?.default_client_uri ?? "",
+    default_redirect_uri: config.ui?.default_redirect_uri ?? "",
+    default_post_logout_redirect_uri:
+      config.ui?.default_post_logout_redirect_uri ?? "",
   };
+}
+
+interface PropertyNames {
+  default_client_uri: string;
+  default_redirect_uri: string;
+  default_post_logout_redirect_uri: string;
 }
 
 function constructConfig(
@@ -104,6 +118,22 @@ function constructConfig(
     if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
       config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
     }
+
+    const propertyNames: (keyof PropertyNames)[] = [
+      "default_client_uri",
+      "default_redirect_uri",
+      "default_post_logout_redirect_uri",
+    ];
+
+    for (const propertyName of propertyNames) {
+      if (initialState[propertyName] !== currentState[propertyName]) {
+        config.ui[propertyName] =
+          currentState[propertyName] === ""
+            ? undefined
+            : currentState[propertyName];
+      }
+    }
+
     clearEmptyObject(config);
   });
 }
@@ -269,6 +299,33 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       };
     },
     [state.selectedLanguage, setState]
+  );
+
+  const valueForState = useCallback(
+    (key: keyof PropertyNames) => {
+      return state[key];
+    },
+    [state]
+  );
+
+  const onChangeForState = useCallback(
+    (key: keyof PropertyNames) => {
+      return (
+        _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        value?: string
+      ) => {
+        if (value == null) {
+          return;
+        }
+        setState((prev) => {
+          return {
+            ...prev,
+            [key]: value,
+          };
+        });
+      };
+    },
+    [setState]
   );
 
   const lightTheme = useMemo(() => {
@@ -461,6 +518,35 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           value={valueForTranslationJSON("terms-of-service-link")}
           onChange={onChangeForTranslationJSON("terms-of-service-link")}
         />
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.default-client-uri-label")}
+          description={renderToString(
+            "UISettingsScreen.default-client-uri-description"
+          )}
+          value={valueForState("default_client_uri")}
+          onChange={onChangeForState("default_client_uri")}
+        />
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.default-redirect-uri-label")}
+          description={renderToString(
+            "UISettingsScreen.default-redirect-uri-description"
+          )}
+          value={valueForState("default_redirect_uri")}
+          onChange={onChangeForState("default_redirect_uri")}
+        />
+        <TextField
+          className={styles.textField}
+          label={renderToString(
+            "UISettingsScreen.default-post-logout-redirect-uri-label"
+          )}
+          description={renderToString(
+            "UISettingsScreen.default-post-logout-redirect-uri-description"
+          )}
+          value={valueForState("default_post_logout_redirect_uri")}
+          onChange={onChangeForState("default_post_logout_redirect_uri")}
+        />
       </Widget>
       <Widget className={styles.widget}>
         <WidgetTitle>
@@ -553,11 +639,18 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
       resources: resources.state.resources,
       selectedLanguage: selectedLanguage ?? config.state.fallbackLanguage,
       darkThemeDisabled: config.state.darkThemeDisabled,
+      default_client_uri: config.state.default_client_uri,
+      default_redirect_uri: config.state.default_redirect_uri,
+      default_post_logout_redirect_uri:
+        config.state.default_post_logout_redirect_uri,
     }),
     [
       config.state.supportedLanguages,
       config.state.fallbackLanguage,
       config.state.darkThemeDisabled,
+      config.state.default_client_uri,
+      config.state.default_redirect_uri,
+      config.state.default_post_logout_redirect_uri,
       resources.state.resources,
       selectedLanguage,
     ]
@@ -576,6 +669,10 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
         supportedLanguages: newState.supportedLanguages,
         fallbackLanguage: newState.fallbackLanguage,
         darkThemeDisabled: newState.darkThemeDisabled,
+        default_client_uri: newState.default_client_uri,
+        default_redirect_uri: newState.default_redirect_uri,
+        default_post_logout_redirect_uri:
+          newState.default_post_logout_redirect_uri,
       }));
       resources.setState(() => ({ resources: newState.resources }));
       setSelectedLanguage(newState.selectedLanguage);
