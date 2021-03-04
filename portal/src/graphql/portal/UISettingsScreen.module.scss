@@ -1,16 +1,21 @@
 .root {
-  margin: 0 32px;
-  min-width: 750px;
   display: flex;
   flex-direction: column;
 }
 
+.titleContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .themeWidget {
-  margin: 10px;
+  margin: 10px 15px;
 }
 
 .faviconWidget {
-  margin: 10px;
+  margin: 10px 15px;
   padding: 10px;
   max-width: 672px;
 }
@@ -21,8 +26,4 @@
 
 .faviconImagePicker {
   margin: 10px;
-}
-
-.languageWidget {
-  align-self: flex-end;
 }

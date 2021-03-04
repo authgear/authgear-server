@@ -7,6 +7,8 @@ import { produce } from "immer";
 import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
 import {
@@ -44,7 +46,6 @@ import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -153,15 +154,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
 ) {
   const { state, setState } = props.form;
   const { supportedLanguages } = props;
-
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="UISettingsScreen.title" />,
-      },
-    ];
-  }, []);
 
   const setSelectedLanguage = useCallback(
     (selectedLanguage: LanguageTag) => {
@@ -365,16 +357,19 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <ManageLanguageWidget
-        className={styles.languageWidget}
-        selectOnly={true}
-        supportedLanguages={supportedLanguages}
-        selectedLanguage={state.selectedLanguage}
-        fallbackLanguage={state.fallbackLanguage}
-        onChangeSelectedLanguage={setSelectedLanguage}
-      />
+    <ScreenContent className={styles.root}>
+      <div className={styles.titleContainer}>
+        <ScreenTitle>
+          <FormattedMessage id="UISettingsScreen.title" />
+        </ScreenTitle>
+        <ManageLanguageWidget
+          selectOnly={true}
+          supportedLanguages={supportedLanguages}
+          selectedLanguage={state.selectedLanguage}
+          fallbackLanguage={state.fallbackLanguage}
+          onChangeSelectedLanguage={setSelectedLanguage}
+        />
+      </div>
       <div
         className={styles.faviconWidget}
         style={{ boxShadow: DefaultEffects.elevation4 }}
@@ -418,7 +413,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         onChangeTextColor={onChangeDarkModeTextColor}
         onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
       />
-    </div>
+    </ScreenContent>
   );
 };
 
