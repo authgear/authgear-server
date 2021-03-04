@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
+import { TextField } from "@fluentui/react";
 import deepEqual from "deep-equal";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
@@ -21,6 +22,7 @@ import ImageFilePicker from "../../ImageFilePicker";
 import { PortalAPIAppConfig } from "../../types";
 import {
   renderPath,
+  RESOURCE_TRANSLATION_JSON,
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
   RESOURCE_APP_LOGO_DARK,
@@ -58,6 +60,7 @@ interface ConfigFormState {
 const NOOP = () => {};
 
 const RESOURCES_ON_THIS_SCREEN = [
+  RESOURCE_TRANSLATION_JSON,
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
   RESOURCE_APP_LOGO_DARK,
@@ -157,6 +160,8 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   const { state, setState } = props.form;
   const { supportedLanguages } = props;
 
+  const { renderToString } = useContext(Context);
+
   const setSelectedLanguage = useCallback(
     (selectedLanguage: LanguageTag) => {
       setState((s) => ({ ...s, selectedLanguage }));
@@ -211,6 +216,54 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             updatedResources[specifierId(specifier)] = resource;
           }
 
+          return { ...prev, resources: updatedResources };
+        });
+      };
+    },
+    [state.selectedLanguage, setState]
+  );
+
+  const valueForTranslationJSON = useCallback(
+    (key: string) => {
+      const specifier: ResourceSpecifier = {
+        def: RESOURCE_TRANSLATION_JSON,
+        locale: state.selectedLanguage,
+      };
+      const resource = state.resources[specifierId(specifier)];
+      if (resource == null) {
+        return "";
+      }
+      const jsonValue = JSON.parse(resource.value);
+      return jsonValue[key] ?? "";
+    },
+    [state.selectedLanguage, state.resources]
+  );
+
+  const onChangeForTranslationJSON = useCallback(
+    (key: string) => {
+      const specifier: ResourceSpecifier = {
+        def: RESOURCE_TRANSLATION_JSON,
+        locale: state.selectedLanguage,
+      };
+      return (
+        _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        value?: string
+      ) => {
+        if (value == null) {
+          return;
+        }
+        setState((prev) => {
+          const updatedResources = { ...prev.resources };
+          const oldResource = prev.resources[specifierId(specifier)];
+          if (oldResource == null) {
+            return prev;
+          }
+          const jsonValue = JSON.parse(oldResource.value);
+          jsonValue[key] = value;
+          updatedResources[specifierId(specifier)] = {
+            ...oldResource,
+            value: JSON.stringify(jsonValue, null, 2),
+          };
           return { ...prev, resources: updatedResources };
         });
       };
@@ -375,6 +428,17 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       <ScreenDescription className={styles.widget}>
         <FormattedMessage id="UISettingsScreen.description" />
       </ScreenDescription>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
+          <FormattedMessage id="UISettingsScreen.app-name-title" />
+        </WidgetTitle>
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.app-name-label")}
+          value={valueForTranslationJSON("app.name")}
+          onChange={onChangeForTranslationJSON("app.name")}
+        />
+      </Widget>
       <Widget className={styles.widget}>
         <WidgetTitle>
           <FormattedMessage id="UISettingsScreen.favicon-title" />
