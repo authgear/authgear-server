@@ -3,6 +3,7 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -36,21 +37,15 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
 	}
 
-	if !bypassRateLimit {
-		ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-		err := ctx.RateLimiter.TakeToken(interaction.SignupRateLimitBucket(ip))
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return &NodeDoCreateUser{
-		CreateUserID: uuid.New(),
+		CreateUserID:    uuid.New(),
+		BypassRateLimit: bypassRateLimit,
 	}, nil
 }
 
 type NodeDoCreateUser struct {
-	CreateUserID string `json:"create_user_id"`
+	CreateUserID    string `json:"create_user_id"`
+	BypassRateLimit bool   `json:"bypass_rate_limit"`
 }
 
 func (n *NodeDoCreateUser) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -64,11 +59,38 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 			return err
 		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
+			// check the rate limit only to ensure that we can run the effects
+			// the token will be token after running the effects successfully
+			if !n.BypassRateLimit {
+				pass, _, err := ctx.RateLimiter.CheckToken(interaction.SignupRateLimitBucket(ip))
+				if err != nil {
+					return err
+				}
+				if !pass {
+					return ratelimit.ErrTooManyRequests
+				}
+			}
+
 			u, err := ctx.Users.GetRaw(n.CreateUserID)
 			if err != nil {
 				return err
 			}
-			return ctx.Users.AfterCreate(u, graph.GetUserNewIdentities())
+
+			// run the effects
+			err = ctx.Users.AfterCreate(u, graph.GetUserNewIdentities())
+			if err != nil {
+				return err
+			}
+
+			// take the token after running the effects successfully
+			if !n.BypassRateLimit {
+				err := ctx.RateLimiter.TakeToken(interaction.SignupRateLimitBucket(ip))
+				if err != nil {
+					return err
+				}
+			}
+			return nil
 		}),
 	}, nil
 }

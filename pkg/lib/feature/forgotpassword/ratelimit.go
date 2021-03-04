@@ -9,10 +9,10 @@ import (
 
 // TODO(rate-limit): allow configuration of bucket size & reset period
 
-func GenerateRateLimitBucket(loginID string) ratelimit.Bucket {
+func SendResetPasswordCodeRateLimitBucket(loginID string) ratelimit.Bucket {
 	return ratelimit.Bucket{
-		Key:         fmt.Sprintf("reset-password-generate-code:%s", loginID),
-		Size:        10,
+		Key:         fmt.Sprintf("reset-password-send-code:%s", loginID),
+		Size:        1,
 		ResetPeriod: duration.PerMinute,
 	}
 }

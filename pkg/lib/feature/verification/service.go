@@ -229,11 +229,6 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 }
 
 func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID string, requestedByUser bool) (*Code, error) {
-	err := s.RateLimiter.TakeToken(GenerateRateLimitBucket(id))
-	if err != nil {
-		return nil, err
-	}
-
 	if info.Type != authn.IdentityTypeLoginID {
 		panic("verification: expect login ID identity")
 	}
@@ -254,7 +249,7 @@ func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID str
 		RequestedByUser: requestedByUser,
 	}
 
-	err = s.CodeStore.Create(codeModel)
+	err := s.CodeStore.Create(codeModel)
 	if err != nil {
 		return nil, err
 	}
