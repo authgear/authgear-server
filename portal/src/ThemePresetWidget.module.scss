@@ -9,7 +9,6 @@
   border-radius: 2px;
   display: flex;
   flex-direction: column;
-  align-items: center;
   padding: 5px;
   cursor: pointer;
 }
@@ -24,7 +23,6 @@
 }
 
 .foreground {
-  width: 77px;
   height: 24px;
   border-radius: 2px;
   display: flex;
@@ -36,9 +34,11 @@
 
 .presetName {
   margin: 5px;
+  text-align: center;
 }
 
 .customIcon {
+  align-self: center;
   color: #8a8886;
   margin: 8px;
   font-size: 26px;
