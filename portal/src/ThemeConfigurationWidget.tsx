@@ -1,7 +1,13 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useRef,
+  useState,
+  useContext,
+  useMemo,
+} from "react";
 import cn from "classnames";
-import { Text, Label, Toggle } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Text, Label, Toggle, Dropdown, TextField } from "@fluentui/react";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScaleContainer from "./ScaleContainer";
 import Widget from "./Widget";
 import WidgetTitle from "./WidgetTitle";
@@ -24,18 +30,20 @@ import styles from "./ThemeConfigurationWidget.module.scss";
 
 export interface ThemeConfigurationWidgetProps {
   className?: string;
+
   lightTheme?: LightTheme | null;
   darkTheme?: DarkTheme | null;
   isDarkMode: boolean;
   darkModeEnabled: boolean;
-  appLogoValue: string | undefined;
-  onChangeAppLogo: ImageFilePickerProps["onChange"];
   onChangeLightTheme: (lightTheme: LightTheme) => void;
   onChangeDarkTheme: (darkTheme: DarkTheme) => void;
   onChangeDarkModeEnabled: (enabled: boolean) => void;
   onChangePrimaryColor: (color: string) => void;
   onChangeTextColor: (color: string) => void;
   onChangeBackgroundColor: (color: string) => void;
+
+  appLogoValue: string | undefined;
+  onChangeAppLogo: ImageFilePickerProps["onChange"];
 }
 
 // eslint-disable-next-line complexity
@@ -58,6 +66,21 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     onChangeTextColor,
     onChangeBackgroundColor,
   } = props;
+
+  const { renderToString } = useContext(Context);
+
+  const appLogoOptions = useMemo(() => {
+    return [
+      {
+        key: "fixed-width",
+        text: renderToString("ThemeConfigurationWidget.fixed-width"),
+      },
+      {
+        key: "fixed-height",
+        text: renderToString("ThemeConfigurationWidget.fixed-height"),
+      },
+    ];
+  }, [renderToString]);
 
   const onChangeChecked = useCallback(
     (_e, checked) => {
@@ -215,6 +238,41 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
               base64EncodedData={appLogoValue}
               onChange={onChangeAppLogo}
             />
+            <div className={styles.appLogoControl}>
+              <Dropdown
+                className={styles.appLogoDropdown}
+                label={renderToString(
+                  "ThemeConfigurationWidget.app-logo-dropown-title"
+                )}
+                options={appLogoOptions}
+              />
+              <TextField
+                className={styles.appLogoDimension}
+                label={renderToString("ThemeConfigurationWidget.value")}
+              />
+            </div>
+            <div className={styles.appLogoControl}>
+              <TextField
+                className={styles.appLogoMargin}
+                label={renderToString(
+                  "ThemeConfigurationWidget.left-right-margin"
+                )}
+              />
+              <TextField
+                className={styles.appLogoMargin}
+                label={renderToString(
+                  "ThemeConfigurationWidget.top-bottom-margin"
+                )}
+              />
+            </div>
+            <div
+              className={cn(styles.colorControl, styles.appLogoColorControl)}
+            >
+              <Label className={styles.colorControlLabel}>
+                <FormattedMessage id="ThemeConfigurationWidget.background-color" />
+              </Label>
+              <PortalColorPicker className={styles.colorPicker} />
+            </div>
           </div>
         </div>
         <div className={styles.previewSection}>

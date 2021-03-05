@@ -83,3 +83,28 @@
   width: 350px;
   margin: 10px;
 }
+
+.appLogoControl {
+  display: flex;
+  flex-direction: row;
+  margin: -5px;
+}
+
+.appLogoDropdown {
+  margin: 5px;
+  flex: 3 0 0;
+}
+
+.appLogoDimension {
+  margin: 5px;
+  flex: 1 0 0;
+}
+
+.appLogoMargin {
+  margin: 5px;
+  flex: 1 0 0;
+}
+
+.appLogoColorControl {
+  margin: 10px 0;
+}
