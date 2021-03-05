@@ -49,6 +49,18 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  .banner {
+    height: 55px;
+    width: initial;
+    margin-top: 16px;
+    margin-right: 16px;
+    margin-bottom: 16px;
+    margin-left: 16px;
+    background-color: transparent;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
   .input:focus {
     border-bottom-color: var(--color-primary-shaded-5);
   }

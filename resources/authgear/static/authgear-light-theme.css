@@ -145,6 +145,16 @@
   --color-password-strength-meter-5: var(--color-good);
 }
 
+.banner {
+  height: 55px;
+  width: initial;
+  margin-top: 16px;
+  margin-right: 16px;
+  margin-bottom: 16px;
+  margin-left: 16px;
+  background-color: transparent;
+}
+
 .secondary-txt {
   color: var(--color-text-shaded-1);
 }
