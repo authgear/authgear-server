@@ -20,6 +20,26 @@ export interface DarkTheme {
   backgroundColor: string;
 }
 
+export interface BannerConfiguration {
+  width: string;
+  height: string;
+  marginTop: string;
+  marginBottom: string;
+  marginLeft: string;
+  marginRight: string;
+  backgroundColor: string;
+}
+
+export const DEFAULT_BANNER_CONFIGURATION: BannerConfiguration = {
+  width: "initial",
+  height: "55px",
+  marginTop: "16px",
+  marginRight: "16px",
+  marginBottom: "16px",
+  marginLeft: "16px",
+  backgroundColor: "transparent",
+};
+
 // getShades takes a color and then return the shades.
 // The return value is 9-element array, with the first element being the originally given color.
 // The remaining 8 elements are the shades, ordered from Shade.Shade1 to Shade.Shade8
@@ -72,9 +92,9 @@ export function getLightTheme(nodes: Node[]): LightTheme | null {
   let textColor;
   let backgroundColor;
 
-  for (const pseudoRoot of nodes) {
-    if (pseudoRoot instanceof Rule && pseudoRoot.selector === ":root") {
-      for (const decl of pseudoRoot.nodes) {
+  for (const rule of nodes) {
+    if (rule instanceof Rule && rule.selector === ":root") {
+      for (const decl of rule.nodes) {
         if (decl instanceof Declaration) {
           switch (decl.prop) {
             case "--color-primary-unshaded":
@@ -105,6 +125,73 @@ export function getLightTheme(nodes: Node[]): LightTheme | null {
 }
 
 // eslint-disable-next-line complexity
+export function getLightBannerConfiguration(
+  nodes: Node[]
+): BannerConfiguration | null {
+  let width;
+  let height;
+  let marginTop;
+  let marginRight;
+  let marginBottom;
+  let marginLeft;
+  let backgroundColor;
+
+  for (const rule of nodes) {
+    if (rule instanceof Rule && rule.selector === ".banner") {
+      for (const decl of rule.nodes) {
+        if (decl instanceof Declaration) {
+          switch (decl.prop) {
+            case "width":
+              width = decl.value;
+              break;
+            case "height":
+              height = decl.value;
+              break;
+            case "margin-top":
+              marginTop = decl.value;
+              break;
+            case "margin-right":
+              marginRight = decl.value;
+              break;
+            case "margin-bottom":
+              marginBottom = decl.value;
+              break;
+            case "margin-left":
+              marginLeft = decl.value;
+              break;
+            case "background-color":
+              backgroundColor = decl.value;
+              break;
+          }
+        }
+      }
+    }
+  }
+
+  if (
+    width != null &&
+    height != null &&
+    marginTop != null &&
+    marginRight != null &&
+    marginBottom != null &&
+    marginLeft != null &&
+    backgroundColor != null
+  ) {
+    return {
+      width,
+      height,
+      marginTop,
+      marginRight,
+      marginBottom,
+      marginLeft,
+      backgroundColor,
+    };
+  }
+
+  return null;
+}
+
+// eslint-disable-next-line complexity
 export function getDarkTheme(nodes: Node[]): DarkTheme | null {
   let primaryColor;
   let textColor;
@@ -115,9 +202,10 @@ export function getDarkTheme(nodes: Node[]): DarkTheme | null {
       atRule instanceof AtRule &&
       atRule.params === "(prefers-color-scheme: dark)"
     ) {
-      for (const pseudoRoot of atRule.nodes) {
-        if (pseudoRoot instanceof Rule && pseudoRoot.selector === ":root") {
-          for (const decl of pseudoRoot.nodes) {
+      for (const rule of atRule.nodes) {
+        // Extract theme
+        if (rule instanceof Rule && rule.selector === ":root") {
+          for (const decl of rule.nodes) {
             if (decl instanceof Declaration) {
               switch (decl.prop) {
                 case "--color-primary-unshaded":
@@ -142,6 +230,80 @@ export function getDarkTheme(nodes: Node[]): DarkTheme | null {
       isDarkTheme: true,
       primaryColor,
       textColor,
+      backgroundColor,
+    };
+  }
+
+  return null;
+}
+
+// eslint-disable-next-line complexity
+export function getDarkBannerConfiguration(
+  nodes: Node[]
+): BannerConfiguration | null {
+  let width;
+  let height;
+  let marginTop;
+  let marginRight;
+  let marginBottom;
+  let marginLeft;
+  let backgroundColor;
+
+  for (const atRule of nodes) {
+    if (
+      atRule instanceof AtRule &&
+      atRule.params === "(prefers-color-scheme: dark)"
+    ) {
+      for (const rule of atRule.nodes) {
+        if (rule instanceof Rule && rule.selector === ".banner") {
+          for (const decl of rule.nodes) {
+            if (decl instanceof Declaration) {
+              switch (decl.prop) {
+                case "width":
+                  width = decl.value;
+                  break;
+                case "height":
+                  height = decl.value;
+                  break;
+                case "margin-top":
+                  marginTop = decl.value;
+                  break;
+                case "margin-right":
+                  marginRight = decl.value;
+                  break;
+                case "margin-bottom":
+                  marginBottom = decl.value;
+                  break;
+                case "margin-left":
+                  marginLeft = decl.value;
+                  break;
+                case "background-color":
+                  backgroundColor = decl.value;
+                  break;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (
+    width != null &&
+    height != null &&
+    marginTop != null &&
+    marginRight != null &&
+    marginBottom != null &&
+    marginLeft != null &&
+    backgroundColor != null
+  ) {
+    return {
+      width,
+      height,
+      marginTop,
+      marginRight,
+      marginBottom,
+      marginLeft,
       backgroundColor,
     };
   }

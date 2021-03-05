@@ -4,6 +4,8 @@ import {
   getShades,
   getLightTheme,
   getDarkTheme,
+  getLightBannerConfiguration,
+  getDarkBannerConfiguration,
   lightThemeToCSS,
   darkThemeToCSS,
   LightTheme,
@@ -74,6 +76,7 @@ const CSS = `
   --color-background-shaded-7: #f4f4f4;
   --color-background-shaded-8: #f8f8f8;
 }
+
 @media (prefers-color-scheme: dark) {
   :root {
     --color-primary-unshaded: #317BF4;
@@ -105,6 +108,28 @@ const CSS = `
     --color-background-shaded-6: #252525;
     --color-background-shaded-7: #151515;
     --color-background-shaded-8: #0b0b0b;
+  }
+}
+
+.banner {
+  width: initial;
+  height: 1px;
+  margin-top: 2px;
+  margin-right: 3px;
+  margin-bottom: 4px;
+  margin-left: 5px;
+  background-color: red;
+}
+
+@media (prefers-color-scheme: dark) {
+  .banner {
+    width: initial;
+    height: 2px;
+    margin-top: 3px;
+    margin-right: 4px;
+    margin-bottom: 5px;
+    margin-left: 6px;
+    background-color: blue;
   }
 }
 `;
@@ -141,6 +166,48 @@ describe("getDarkTheme", () => {
 
   it("returns null", () => {
     const actual = getDarkTheme([]);
+    expect(actual).toEqual(null);
+  });
+});
+
+describe("getLightBannerConfiguration", () => {
+  it("extracts banner configuration", () => {
+    const root = parse(CSS);
+    const actual = getLightBannerConfiguration(root.nodes);
+    expect(actual).toEqual({
+      width: "initial",
+      height: "1px",
+      marginTop: "2px",
+      marginRight: "3px",
+      marginBottom: "4px",
+      marginLeft: "5px",
+      backgroundColor: "red",
+    });
+  });
+
+  it("returns null", () => {
+    const actual = getLightBannerConfiguration([]);
+    expect(actual).toEqual(null);
+  });
+});
+
+describe("getDarkBannerConfiguration", () => {
+  it("extracts banner configuration", () => {
+    const root = parse(CSS);
+    const actual = getDarkBannerConfiguration(root.nodes);
+    expect(actual).toEqual({
+      width: "initial",
+      height: "2px",
+      marginTop: "3px",
+      marginRight: "4px",
+      marginBottom: "5px",
+      marginLeft: "6px",
+      backgroundColor: "blue",
+    });
+  });
+
+  it("returns null", () => {
+    const actual = getDarkBannerConfiguration([]);
     expect(actual).toEqual(null);
   });
 });
