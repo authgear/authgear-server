@@ -1,28 +1,25 @@
 .root {
-  margin: 0 32px;
-  min-width: 750px;
   display: flex;
   flex-direction: column;
 }
 
-.themeWidget {
-  margin: 10px;
+.titleContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.faviconWidget {
-  margin: 10px;
-  padding: 10px;
+.widget {
+  margin: 10px 15px;
   max-width: 672px;
-}
-
-.faviconTitle {
-  margin: 10px;
 }
 
 .faviconImagePicker {
   margin: 10px;
+  width: 350px;
 }
 
-.languageWidget {
-  align-self: flex-end;
+.textField {
+  margin: 10px;
 }

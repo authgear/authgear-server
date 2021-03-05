@@ -1,12 +1,17 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
+import { TextField } from "@fluentui/react";
 import deepEqual from "deep-equal";
-import { DefaultEffects, Text } from "@fluentui/react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import { parse } from "postcss";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import ThemeConfigurationWidget from "../../ThemeConfigurationWidget";
 import {
@@ -17,6 +22,7 @@ import ImageFilePicker from "../../ImageFilePicker";
 import { PortalAPIAppConfig } from "../../types";
 import {
   renderPath,
+  RESOURCE_TRANSLATION_JSON,
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
   RESOURCE_APP_LOGO_DARK,
@@ -44,17 +50,21 @@ import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 interface ConfigFormState {
   supportedLanguages: string[];
   fallbackLanguage: string;
   darkThemeDisabled: boolean;
+
+  default_client_uri: string;
+  default_redirect_uri: string;
+  default_post_logout_redirect_uri: string;
 }
 
 const NOOP = () => {};
 
 const RESOURCES_ON_THIS_SCREEN = [
+  RESOURCE_TRANSLATION_JSON,
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
   RESOURCE_APP_LOGO_DARK,
@@ -70,7 +80,17 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       fallbackLanguage,
     ],
     darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
+    default_client_uri: config.ui?.default_client_uri ?? "",
+    default_redirect_uri: config.ui?.default_redirect_uri ?? "",
+    default_post_logout_redirect_uri:
+      config.ui?.default_post_logout_redirect_uri ?? "",
   };
+}
+
+interface PropertyNames {
+  default_client_uri: string;
+  default_redirect_uri: string;
+  default_post_logout_redirect_uri: string;
 }
 
 function constructConfig(
@@ -98,6 +118,22 @@ function constructConfig(
     if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
       config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
     }
+
+    const propertyNames: (keyof PropertyNames)[] = [
+      "default_client_uri",
+      "default_redirect_uri",
+      "default_post_logout_redirect_uri",
+    ];
+
+    for (const propertyName of propertyNames) {
+      if (initialState[propertyName] !== currentState[propertyName]) {
+        config.ui[propertyName] =
+          currentState[propertyName] === ""
+            ? undefined
+            : currentState[propertyName];
+      }
+    }
+
     clearEmptyObject(config);
   });
 }
@@ -154,14 +190,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   const { state, setState } = props.form;
   const { supportedLanguages } = props;
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="UISettingsScreen.title" />,
-      },
-    ];
-  }, []);
+  const { renderToString } = useContext(Context);
 
   const setSelectedLanguage = useCallback(
     (selectedLanguage: LanguageTag) => {
@@ -222,6 +251,81 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       };
     },
     [state.selectedLanguage, setState]
+  );
+
+  const valueForTranslationJSON = useCallback(
+    (key: string) => {
+      const specifier: ResourceSpecifier = {
+        def: RESOURCE_TRANSLATION_JSON,
+        locale: state.selectedLanguage,
+      };
+      const resource = state.resources[specifierId(specifier)];
+      if (resource == null) {
+        return "";
+      }
+      const jsonValue = JSON.parse(resource.value);
+      return jsonValue[key] ?? "";
+    },
+    [state.selectedLanguage, state.resources]
+  );
+
+  const onChangeForTranslationJSON = useCallback(
+    (key: string) => {
+      const specifier: ResourceSpecifier = {
+        def: RESOURCE_TRANSLATION_JSON,
+        locale: state.selectedLanguage,
+      };
+      return (
+        _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        value?: string
+      ) => {
+        if (value == null) {
+          return;
+        }
+        setState((prev) => {
+          const updatedResources = { ...prev.resources };
+          const oldResource = prev.resources[specifierId(specifier)];
+          if (oldResource == null) {
+            return prev;
+          }
+          const jsonValue = JSON.parse(oldResource.value);
+          jsonValue[key] = value;
+          updatedResources[specifierId(specifier)] = {
+            ...oldResource,
+            value: JSON.stringify(jsonValue, null, 2),
+          };
+          return { ...prev, resources: updatedResources };
+        });
+      };
+    },
+    [state.selectedLanguage, setState]
+  );
+
+  const valueForState = useCallback(
+    (key: keyof PropertyNames) => {
+      return state[key];
+    },
+    [state]
+  );
+
+  const onChangeForState = useCallback(
+    (key: keyof PropertyNames) => {
+      return (
+        _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+        value?: string
+      ) => {
+        if (value == null) {
+          return;
+        }
+        setState((prev) => {
+          return {
+            ...prev,
+            [key]: value,
+          };
+        });
+      };
+    },
+    [setState]
   );
 
   const lightTheme = useMemo(() => {
@@ -365,31 +469,97 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <ManageLanguageWidget
-        className={styles.languageWidget}
-        selectOnly={true}
-        supportedLanguages={supportedLanguages}
-        selectedLanguage={state.selectedLanguage}
-        fallbackLanguage={state.fallbackLanguage}
-        onChangeSelectedLanguage={setSelectedLanguage}
-      />
-      <div
-        className={styles.faviconWidget}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
-      >
-        <Text as="h2" className={styles.faviconTitle}>
+    <ScreenContent className={styles.root}>
+      <div className={styles.titleContainer}>
+        <ScreenTitle>
+          <FormattedMessage id="UISettingsScreen.title" />
+        </ScreenTitle>
+        <ManageLanguageWidget
+          selectOnly={true}
+          supportedLanguages={supportedLanguages}
+          selectedLanguage={state.selectedLanguage}
+          fallbackLanguage={state.fallbackLanguage}
+          onChangeSelectedLanguage={setSelectedLanguage}
+        />
+      </div>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="UISettingsScreen.description" />
+      </ScreenDescription>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
+          <FormattedMessage id="UISettingsScreen.app-name-title" />
+        </WidgetTitle>
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.app-name-label")}
+          value={valueForTranslationJSON("app.name")}
+          onChange={onChangeForTranslationJSON("app.name")}
+        />
+      </Widget>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
+          <FormattedMessage id="UISettingsScreen.link-settings-title" />
+        </WidgetTitle>
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.privacy-policy-link-label")}
+          description={renderToString(
+            "UISettingsScreen.privacy-policy-link-description"
+          )}
+          value={valueForTranslationJSON("privacy-policy-link")}
+          onChange={onChangeForTranslationJSON("privacy-policy-link")}
+        />
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.terms-of-service-link-label")}
+          description={renderToString(
+            "UISettingsScreen.terms-of-service-link-description"
+          )}
+          value={valueForTranslationJSON("terms-of-service-link")}
+          onChange={onChangeForTranslationJSON("terms-of-service-link")}
+        />
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.default-client-uri-label")}
+          description={renderToString(
+            "UISettingsScreen.default-client-uri-description"
+          )}
+          value={valueForState("default_client_uri")}
+          onChange={onChangeForState("default_client_uri")}
+        />
+        <TextField
+          className={styles.textField}
+          label={renderToString("UISettingsScreen.default-redirect-uri-label")}
+          description={renderToString(
+            "UISettingsScreen.default-redirect-uri-description"
+          )}
+          value={valueForState("default_redirect_uri")}
+          onChange={onChangeForState("default_redirect_uri")}
+        />
+        <TextField
+          className={styles.textField}
+          label={renderToString(
+            "UISettingsScreen.default-post-logout-redirect-uri-label"
+          )}
+          description={renderToString(
+            "UISettingsScreen.default-post-logout-redirect-uri-description"
+          )}
+          value={valueForState("default_post_logout_redirect_uri")}
+          onChange={onChangeForState("default_post_logout_redirect_uri")}
+        />
+      </Widget>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
           <FormattedMessage id="UISettingsScreen.favicon-title" />
-        </Text>
+        </WidgetTitle>
         <ImageFilePicker
           className={styles.faviconImagePicker}
           base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
           onChange={getOnChangeImage(RESOURCE_FAVICON)}
         />
-      </div>
+      </Widget>
       <ThemeConfigurationWidget
-        className={styles.themeWidget}
+        className={styles.widget}
         darkTheme={darkTheme}
         lightTheme={lightTheme}
         isDarkMode={false}
@@ -404,7 +574,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         onChangeBackgroundColor={onChangeLightModeBackgroundColor}
       />
       <ThemeConfigurationWidget
-        className={styles.themeWidget}
+        className={styles.widget}
         darkTheme={darkTheme}
         lightTheme={lightTheme}
         isDarkMode={true}
@@ -418,7 +588,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         onChangeTextColor={onChangeDarkModeTextColor}
         onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
       />
-    </div>
+    </ScreenContent>
   );
 };
 
@@ -469,11 +639,18 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
       resources: resources.state.resources,
       selectedLanguage: selectedLanguage ?? config.state.fallbackLanguage,
       darkThemeDisabled: config.state.darkThemeDisabled,
+      default_client_uri: config.state.default_client_uri,
+      default_redirect_uri: config.state.default_redirect_uri,
+      default_post_logout_redirect_uri:
+        config.state.default_post_logout_redirect_uri,
     }),
     [
       config.state.supportedLanguages,
       config.state.fallbackLanguage,
       config.state.darkThemeDisabled,
+      config.state.default_client_uri,
+      config.state.default_redirect_uri,
+      config.state.default_post_logout_redirect_uri,
       resources.state.resources,
       selectedLanguage,
     ]
@@ -492,6 +669,10 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
         supportedLanguages: newState.supportedLanguages,
         fallbackLanguage: newState.fallbackLanguage,
         darkThemeDisabled: newState.darkThemeDisabled,
+        default_client_uri: newState.default_client_uri,
+        default_redirect_uri: newState.default_redirect_uri,
+        default_post_logout_redirect_uri:
+          newState.default_post_logout_redirect_uri,
       }));
       resources.setState(() => ({ resources: newState.resources }));
       setSelectedLanguage(newState.selectedLanguage);
