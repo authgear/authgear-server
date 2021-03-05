@@ -324,9 +324,7 @@ function addShadeDeclarations(rule: Rule, shades: string[], name: string) {
   }
 }
 
-export function lightThemeToCSS(lightTheme: LightTheme): string {
-  const root = new Root();
-
+export function addLightTheme(root: Root, lightTheme: LightTheme): void {
   const pseudoRoot = new Rule({ selector: ":root" });
   addShadeDeclarations(
     pseudoRoot,
@@ -340,13 +338,9 @@ export function lightThemeToCSS(lightTheme: LightTheme): string {
     "background"
   );
   root.append(pseudoRoot);
-
-  return root.toResult().css;
 }
 
-export function darkThemeToCSS(darkTheme: DarkTheme): string {
-  const root = new Root();
-
+export function addDarkTheme(root: Root, darkTheme: DarkTheme): void {
   const atRule = new AtRule({
     name: "media",
     params: "(prefers-color-scheme: dark)",
@@ -365,8 +359,6 @@ export function darkThemeToCSS(darkTheme: DarkTheme): string {
   );
   atRule.append(darkPseudoRoot);
   root.append(atRule);
-
-  return root.toResult().css;
 }
 
 export function isLightThemeEqual(a: LightTheme, b: LightTheme): boolean {

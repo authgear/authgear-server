@@ -1,13 +1,13 @@
 /* global describe, it, expect */
-import { parse } from "postcss";
+import { parse, Root } from "postcss";
 import {
   getShades,
   getLightTheme,
   getDarkTheme,
   getLightBannerConfiguration,
   getDarkBannerConfiguration,
-  lightThemeToCSS,
-  darkThemeToCSS,
+  addLightTheme,
+  addDarkTheme,
   LightTheme,
   DarkTheme,
 } from "./theme";
@@ -212,9 +212,11 @@ describe("getDarkBannerConfiguration", () => {
   });
 });
 
-describe("lightThemeToCSS", () => {
+describe("addLightTheme", () => {
   it("renders theme into CSS", () => {
-    const actual = lightThemeToCSS(DEFAULT_LIGHT_THEME);
+    const root = new Root();
+    addLightTheme(root, DEFAULT_LIGHT_THEME);
+    const actual = root.toResult().css;
     const expected = `:root {
     --color-primary-unshaded: #176df3;
     --color-primary-shaded-1: #f5f9fe;
@@ -248,9 +250,11 @@ describe("lightThemeToCSS", () => {
   });
 });
 
-describe("darkThemeToCSS", () => {
+describe("addDarkTheme", () => {
   it("renders theme into CSS", () => {
-    const actual = darkThemeToCSS(DEFAULT_DARK_THEME);
+    const root = new Root();
+    addDarkTheme(root, DEFAULT_DARK_THEME);
+    const actual = root.toResult().css;
     const expected = `@media (prefers-color-scheme: dark) {
     :root {
         --color-primary-unshaded: #317BF4;

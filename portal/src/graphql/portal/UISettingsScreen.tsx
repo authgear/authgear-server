@@ -4,7 +4,7 @@ import { TextField } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
-import { parse } from "postcss";
+import { parse, Root } from "postcss";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -41,8 +41,8 @@ import {
   DarkTheme,
   getLightTheme,
   getDarkTheme,
-  lightThemeToCSS,
-  darkThemeToCSS,
+  addLightTheme,
+  addDarkTheme,
 } from "../../util/theme";
 
 import styles from "./UISettingsScreen.module.scss";
@@ -359,7 +359,9 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           locale: state.selectedLanguage,
         };
         const updatedResources = { ...prev.resources };
-        const css = lightThemeToCSS(newLightTheme);
+        const root = new Root();
+        addLightTheme(root, newLightTheme);
+        const css = root.toResult().css;
         const newResource: Resource = {
           specifier,
           path: renderPath(specifier.def.resourcePath, {
@@ -385,7 +387,9 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           locale: state.selectedLanguage,
         };
         const updatedResources = { ...prev.resources };
-        const css = darkThemeToCSS(newDarkTheme);
+        const root = new Root();
+        addDarkTheme(root, newDarkTheme);
+        const css = root.toResult().css;
         const newResource: Resource = {
           specifier,
           path: renderPath(specifier.def.resourcePath, {
