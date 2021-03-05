@@ -8,8 +8,11 @@ import {
   getDarkBannerConfiguration,
   addLightTheme,
   addDarkTheme,
+  addLightBannerConfiguration,
+  addDarkBannerConfiguration,
   LightTheme,
   DarkTheme,
+  DEFAULT_BANNER_CONFIGURATION,
 } from "./theme";
 
 const DEFAULT_LIGHT_THEME: LightTheme = {
@@ -245,6 +248,44 @@ describe("addLightTheme", () => {
     --color-background-shaded-6: #eaeaea;
     --color-background-shaded-7: #f4f4f4;
     --color-background-shaded-8: #f8f8f8
+}`;
+    expect(actual).toEqual(expected);
+  });
+});
+
+describe("addLightBannerConfiguration", () => {
+  it("renders banner configuration into CSS", () => {
+    const root = new Root();
+    addLightBannerConfiguration(root, DEFAULT_BANNER_CONFIGURATION);
+    const actual = root.toResult().css;
+    const expected = `.banner {
+    width: initial;
+    height: 55px;
+    margin-top: 16px;
+    margin-right: 16px;
+    margin-bottom: 16px;
+    margin-left: 16px;
+    background-color: transparent
+}`;
+    expect(actual).toEqual(expected);
+  });
+});
+
+describe("addDarkBannerConfiguration", () => {
+  it("renders banner configuration into CSS", () => {
+    const root = new Root();
+    addDarkBannerConfiguration(root, DEFAULT_BANNER_CONFIGURATION);
+    const actual = root.toResult().css;
+    const expected = `@media (prefers-color-scheme: dark) {
+    .banner {
+        width: initial;
+        height: 55px;
+        margin-top: 16px;
+        margin-right: 16px;
+        margin-bottom: 16px;
+        margin-left: 16px;
+        background-color: transparent
+    }
 }`;
     expect(actual).toEqual(expected);
   });

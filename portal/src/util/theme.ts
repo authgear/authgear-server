@@ -361,6 +361,49 @@ export function addDarkTheme(root: Root, darkTheme: DarkTheme): void {
   root.append(atRule);
 }
 
+export function addLightBannerConfiguration(
+  root: Root,
+  c: BannerConfiguration
+): void {
+  const rule = new Rule({ selector: ".banner" });
+  rule.append(new Declaration({ prop: "width", value: c.width }));
+  rule.append(new Declaration({ prop: "height", value: c.height }));
+  rule.append(new Declaration({ prop: "margin-top", value: c.marginTop }));
+  rule.append(new Declaration({ prop: "margin-right", value: c.marginRight }));
+  rule.append(
+    new Declaration({ prop: "margin-bottom", value: c.marginBottom })
+  );
+  rule.append(new Declaration({ prop: "margin-left", value: c.marginLeft }));
+  rule.append(
+    new Declaration({ prop: "background-color", value: c.backgroundColor })
+  );
+  root.append(rule);
+}
+
+export function addDarkBannerConfiguration(
+  root: Root,
+  c: BannerConfiguration
+): void {
+  const atRule = new AtRule({
+    name: "media",
+    params: "(prefers-color-scheme: dark)",
+  });
+  const rule = new Rule({ selector: ".banner" });
+  rule.append(new Declaration({ prop: "width", value: c.width }));
+  rule.append(new Declaration({ prop: "height", value: c.height }));
+  rule.append(new Declaration({ prop: "margin-top", value: c.marginTop }));
+  rule.append(new Declaration({ prop: "margin-right", value: c.marginRight }));
+  rule.append(
+    new Declaration({ prop: "margin-bottom", value: c.marginBottom })
+  );
+  rule.append(new Declaration({ prop: "margin-left", value: c.marginLeft }));
+  rule.append(
+    new Declaration({ prop: "background-color", value: c.backgroundColor })
+  );
+  atRule.append(rule);
+  root.append(atRule);
+}
+
 export function isLightThemeEqual(a: LightTheme, b: LightTheme): boolean {
   return (
     a.primaryColor === b.primaryColor &&
