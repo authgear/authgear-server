@@ -1,11 +1,15 @@
-import React, { useCallback, useMemo } from "react";
-import { Text } from "@fluentui/react";
+import React, { useCallback } from "react";
+import cn from "classnames";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useParams } from "react-router-dom";
 import produce from "immer";
-
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import FormTextFieldList from "../../FormTextFieldList";
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
@@ -14,7 +18,6 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./CORSConfigurationScreen.module.scss";
 
@@ -49,15 +52,6 @@ const CORSConfigurationContent: React.FC<CORSConfigurationContentProps> = functi
 ) {
   const { state, setState } = props.form;
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="CORSConfigurationScreen.title" />,
-      },
-    ];
-  }, []);
-
   const onAllowedOriginsChange = useCallback(
     (allowedOrigins: string[]) => {
       setState((state) => ({ ...state, allowedOrigins }));
@@ -66,20 +60,27 @@ const CORSConfigurationContent: React.FC<CORSConfigurationContentProps> = functi
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <Text className={styles.description}>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="CORSConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
         <FormattedMessage id="CORSConfigurationScreen.desc" />
-      </Text>
-      <FormTextFieldList
-        className={styles.fieldList}
-        parentJSONPointer="/http"
-        fieldName="allowed_origins"
-        list={state.allowedOrigins}
-        onListChange={onAllowedOriginsChange}
-        addButtonLabelMessageID="add"
-      />
-    </div>
+      </ScreenDescription>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="CORSConfigurationScreen.title" />
+        </WidgetTitle>
+        <FormTextFieldList
+          className={styles.control}
+          parentJSONPointer="/http"
+          fieldName="allowed_origins"
+          list={state.allowedOrigins}
+          onListChange={onAllowedOriginsChange}
+          addButtonLabelMessageID="add"
+        />
+      </Widget>
+    </ScreenContent>
   );
 };
 

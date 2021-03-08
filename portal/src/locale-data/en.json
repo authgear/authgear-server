@@ -313,7 +313,7 @@
   "ForgotPasswordSettingsScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
 
   "CORSConfigurationScreen.title": "Allowed Origins",
-  "CORSConfigurationScreen.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here",
+  "CORSConfigurationScreen.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
 
   "OAuthClientConfigurationScreen.title": "Applications",
   "OAuthClientConfigurationScreen.client-endpoint.desc": "Configure applications to be used at the endpoint:\n{a, react, href{{clientEndpoint}} children{{clientEndpoint}}}\nYou can change this endpoint at the {Link, react, to{{dnsUrl}} children{Custom Domains configuration}} with your custom domains.",
