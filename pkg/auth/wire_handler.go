@@ -327,6 +327,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.ErrorHandler)),
+	))
+}
+
 func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

@@ -2,17 +2,13 @@
 <html>
 {{ template "__html_head.html" . }}
 <body class="page">
-{{ if .Error }}
-{{ if not (eq .Error.reason "WebUIInvalidSession") }}
 {{ template "__message_bar.html" . }}
-{{ end }}
-{{ end }}
 <main class="content">
-
-{{ template "__header.html" . }}
-
 {{ template "__nav_bar.html" true }}
 
+<div class="pane margin-6 flex flex-direction-column">
+{{ template "__header.html" . }}
+<div class="padding-6 flex flex-direction-column">
 {{ if .Error }}
 {{ if eq .Error.reason "WebUIInvalidSession" }}
     {{ if len .SessionStepURLs }}
@@ -26,8 +22,20 @@
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ end }}
+{{ else if eq .Error.reason "WebHookDisallowed" }}
+<h1 class="font-inherit primary-txt margin-10">{{ template "error-webhook-disallowed" }}</h1>
+{{ range .Error.info.reasons }}
+<p class="font-smaller overflow-wrap-break-word primary-txt margin-10">{{ .reason }}</p>
+{{ end }}
+<a class="as-btn not-a btn primary-btn margin-10" href="/" data-turbolinks="false">
+    {{ template "error-webhook-disallowed-action" }}
+</a>
+{{ else }}
+<h1 class="font-inherit primary-txt margin-10">{{ template "error-server" }}</h1>
 {{ end }}
 {{ end }}
+</div>
+</div>
 </main>
 </body>
 </html>

@@ -314,6 +314,7 @@ func (s *Service2) afterPost(
 	isFinished bool,
 	isNewGraph bool,
 ) error {
+	isEffectsErr := false
 	if isFinished {
 		// The graph finished. Apply its effect permanently.
 		s.Logger.Debugf("interaction: commit graph")
@@ -321,6 +322,7 @@ func (s *Service2) afterPost(
 		// The interaction should not be finished, if there is error when
 		// applying effects.
 		isFinished = interactionErr == nil
+		isEffectsErr = true
 	}
 
 	// Populate cookies.
@@ -369,7 +371,9 @@ func (s *Service2) afterPost(
 			result.RedirectURI = session.CurrentStep().URL().String()
 		}
 	} else {
-		if a, ok := graph.CurrentNode().(interface{ GetErrorRedirectURI() string }); ok {
+		if isEffectsErr {
+			result.RedirectURI = "/error"
+		} else if a, ok := graph.CurrentNode().(interface{ GetErrorRedirectURI() string }); ok {
 			result.RedirectURI = a.GetErrorRedirectURI()
 		} else {
 			u := url.URL{
