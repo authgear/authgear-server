@@ -32,7 +32,7 @@ import SessionConfigurationScreen from "./graphql/portal/SessionConfigurationScr
 import WebhookConfigurationScreen from "./graphql/portal/WebhookConfigurationScreen";
 import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
 import AuthenticationLoginIDSettingsScreen from "./graphql/portal/AuthenticationLoginIDSettings";
-import AuthenticationAuthenticatorSettingsScreen from "./graphql/portal/AuthenticationAuthenticatorSettings";
+import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConfigurationScreen";
 import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
@@ -93,7 +93,7 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route
             path="/configuration/authentication/authenticators"
-            element={<AuthenticationAuthenticatorSettingsScreen />}
+            element={<AuthenticatorConfigurationScreen />}
           />
           <Route
             path="/configuration/authentication/verification"

@@ -1,17 +1,15 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import {
   Checkbox,
-  DefaultEffects,
   Dropdown,
   IColumn,
   SelectionMode,
-  Text,
   Toggle,
 } from "@fluentui/react";
 import produce from "immer";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-
+import cn from "classnames";
 import DetailsListWithOrdering from "../../DetailsListWithOrdering";
 import { swap } from "../../OrderButtons";
 import FormTextField from "../../FormTextField";
@@ -37,10 +35,14 @@ import {
 } from "../../hook/useAppConfigForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
-import styles from "./AuthenticationAuthenticatorSettings.module.scss";
+import styles from "./AuthenticatorConfigurationScreen.module.scss";
 
 interface AuthenticatorTypeFormState<
   T = PrimaryAuthenticatorType | SecondaryAuthenticatorType
@@ -202,24 +204,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
 
   const { renderToString } = useContext(Context);
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: (
-          <FormattedMessage id="AuthenticationAuthenticatorSettingsScreen.title" />
-        ),
-      },
-    ];
-  }, []);
-
   const authenticatorColumns: IColumn[] = [
     {
       key: "activated",
       fieldName: "activated",
-      name: renderToString(
-        "AuthenticationAuthenticatorSettingsScreen.columns.activate"
-      ),
+      name: renderToString("AuthenticatorConfigurationScreen.columns.activate"),
       className: styles.authenticatorColumn,
       minWidth: 120,
       maxWidth: 120,
@@ -228,7 +217,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
       key: "key",
       fieldName: "key",
       name: renderToString(
-        "AuthenticationAuthenticatorSettingsScreen.columns.authenticator"
+        "AuthenticatorConfigurationScreen.columns.authenticator"
       ),
       className: styles.authenticatorColumn,
       minWidth: 300,
@@ -240,11 +229,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     (key: SecondaryAuthenticationMode) => {
       const messageIdMap: Record<SecondaryAuthenticationMode, string> = {
         required:
-          "AuthenticationAuthenticatorSettingsScreen.policy.require-mfa.required",
+          "AuthenticatorConfigurationScreen.policy.require-mfa.required",
         if_exists:
-          "AuthenticationAuthenticatorSettingsScreen.policy.require-mfa.if-exists",
+          "AuthenticatorConfigurationScreen.policy.require-mfa.if-exists",
         if_requested:
-          "AuthenticationAuthenticatorSettingsScreen.policy.require-mfa.if-requested",
+          "AuthenticatorConfigurationScreen.policy.require-mfa.if-requested",
       };
 
       return renderToString(messageIdMap[key]);
@@ -402,16 +391,17 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-
-      <div
-        className={styles.widget}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
-      >
-        <Text as="h2" className={styles.widgetHeader}>
-          <FormattedMessage id="AuthenticationAuthenticatorSettingsScreen.primary-authenticators.title" />
-        </Text>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="AuthenticatorConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="AuthenticatorConfigurationScreen.description" />
+      </ScreenDescription>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
+          <FormattedMessage id="AuthenticatorConfigurationScreen.primary-authenticators.title" />
+        </WidgetTitle>
         <DetailsListWithOrdering
           items={primaryItems}
           columns={authenticatorColumns}
@@ -420,15 +410,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           selectionMode={SelectionMode.none}
           renderAriaLabel={renderPrimaryAriaLabel}
         />
-      </div>
-
-      <div
-        className={styles.widget}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
-      >
-        <Text as="h2" className={styles.widgetHeader}>
-          <FormattedMessage id="AuthenticationAuthenticatorSettingsScreen.secondary-authenticators.title" />
-        </Text>
+      </Widget>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
+          <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.title" />
+        </WidgetTitle>
         <DetailsListWithOrdering
           items={secondaryItems}
           columns={authenticatorColumns}
@@ -437,16 +423,15 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           selectionMode={SelectionMode.none}
           renderAriaLabel={renderSecondaryAriaLabel}
         />
-      </div>
-
-      <section className={styles.policy}>
-        <Text className={styles.policyHeader} as="h2">
-          <FormattedMessage id="AuthenticationAuthenticatorSettingsScreen.policy.title" />
-        </Text>
+      </Widget>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="AuthenticatorConfigurationScreen.policy.title" />
+        </WidgetTitle>
         <Dropdown
-          className={styles.requireMFADropdown}
+          className={styles.control}
           label={renderToString(
-            "AuthenticationAuthenticatorSettingsScreen.policy.require-mfa"
+            "AuthenticatorConfigurationScreen.policy.require-mfa"
           )}
           options={requireMFAOptions}
           selectedKey={state.mfaMode}
@@ -455,26 +440,26 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
         <FormTextField
           parentJSONPointer="/authentication/recovery_code"
           fieldName="count"
-          fieldNameMessageID="AuthenticationAuthenticatorSettingsScreen.policy.recovery-code-number"
-          className={styles.recoveryCodeNumber}
+          fieldNameMessageID="AuthenticatorConfigurationScreen.policy.recovery-code-number"
+          className={styles.control}
           value={String(state.numRecoveryCode)}
           onChange={onRecoveryCodeNumberChange}
         />
         <Toggle
-          className={styles.allowRetrieveRecoveryCode}
+          className={styles.control}
           inlineLabel={true}
           label={
-            <FormattedMessage id="AuthenticationAuthenticatorSettingsScreen.policy.allow-retrieve-recovery-code" />
+            <FormattedMessage id="AuthenticatorConfigurationScreen.policy.allow-retrieve-recovery-code" />
           }
           checked={state.allowListRecoveryCode}
           onChange={onAllowRetrieveRecoveryCodeChange}
         />
-      </section>
-    </div>
+      </Widget>
+    </ScreenContent>
   );
 };
 
-const AuthenticationAuthenticatorSettingsScreen: React.FC = function AuthenticationAuthenticatorSettingsScreen() {
+const AuthenticatorConfigurationScreen: React.FC = function AuthenticatorConfigurationScreen() {
   const { appID } = useParams();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
@@ -493,4 +478,4 @@ const AuthenticationAuthenticatorSettingsScreen: React.FC = function Authenticat
   );
 };
 
-export default AuthenticationAuthenticatorSettingsScreen;
+export default AuthenticatorConfigurationScreen;
