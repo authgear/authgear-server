@@ -39,10 +39,15 @@ import {
 import {
   LightTheme,
   DarkTheme,
+  BannerConfiguration,
   getLightTheme,
   getDarkTheme,
+  getLightBannerConfiguration,
+  getDarkBannerConfiguration,
   addLightTheme,
   addDarkTheme,
+  addLightBannerConfiguration,
+  addDarkBannerConfiguration,
 } from "../../util/theme";
 
 import styles from "./UISettingsScreen.module.scss";
@@ -351,8 +356,33 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     return darkTheme;
   }, [state.resources]);
 
-  const setLightTheme = useCallback(
-    (newLightTheme: LightTheme) => {
+  const lightBannerConfiguration = useMemo(() => {
+    let bannerConfiguration = null;
+    for (const r of Object.values(state.resources)) {
+      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS) {
+        const root = parse(r.value);
+        bannerConfiguration = getLightBannerConfiguration(root.nodes);
+      }
+    }
+    return bannerConfiguration;
+  }, [state.resources]);
+
+  const darkBannerConfiguration = useMemo(() => {
+    let bannerConfiguration = null;
+    for (const r of Object.values(state.resources)) {
+      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
+        const root = parse(r.value);
+        bannerConfiguration = getDarkBannerConfiguration(root.nodes);
+      }
+    }
+    return bannerConfiguration;
+  }, [state.resources]);
+
+  const setLightThemeAndBannerConfiguration = useCallback(
+    (
+      newLightTheme: LightTheme | null,
+      bannerConfiguration: BannerConfiguration | null
+    ) => {
       setState((prev) => {
         const specifier: ResourceSpecifier = {
           def: RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
@@ -360,7 +390,12 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         };
         const updatedResources = { ...prev.resources };
         const root = new Root();
-        addLightTheme(root, newLightTheme);
+        if (newLightTheme != null) {
+          addLightTheme(root, newLightTheme);
+        }
+        if (bannerConfiguration != null) {
+          addLightBannerConfiguration(root, bannerConfiguration);
+        }
         const css = root.toResult().css;
         const newResource: Resource = {
           specifier,
@@ -379,8 +414,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     [setState, state.selectedLanguage]
   );
 
-  const setDarkTheme = useCallback(
-    (newDarkTheme: DarkTheme) => {
+  const setDarkThemeAndBannerConfiguration = useCallback(
+    (
+      newDarkTheme: DarkTheme | null,
+      bannerConfiguration: BannerConfiguration | null
+    ) => {
       setState((prev) => {
         const specifier: ResourceSpecifier = {
           def: RESOURCE_AUTHGEAR_DARK_THEME_CSS,
@@ -388,7 +426,12 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         };
         const updatedResources = { ...prev.resources };
         const root = new Root();
-        addDarkTheme(root, newDarkTheme);
+        if (newDarkTheme != null) {
+          addDarkTheme(root, newDarkTheme);
+        }
+        if (bannerConfiguration != null) {
+          addDarkBannerConfiguration(root, bannerConfiguration);
+        }
         const css = root.toResult().css;
         const newResource: Resource = {
           specifier,
@@ -405,6 +448,37 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       });
     },
     [setState, state.selectedLanguage]
+  );
+
+  const setLightTheme = useCallback(
+    (newLightTheme: LightTheme) => {
+      setLightThemeAndBannerConfiguration(
+        newLightTheme,
+        lightBannerConfiguration
+      );
+    },
+    [lightBannerConfiguration, setLightThemeAndBannerConfiguration]
+  );
+
+  const setLightBannerConfiguration = useCallback(
+    (bannerConfiguration: BannerConfiguration) => {
+      setLightThemeAndBannerConfiguration(lightTheme, bannerConfiguration);
+    },
+    [lightTheme, setLightThemeAndBannerConfiguration]
+  );
+
+  const setDarkTheme = useCallback(
+    (newDarkTheme: DarkTheme) => {
+      setDarkThemeAndBannerConfiguration(newDarkTheme, darkBannerConfiguration);
+    },
+    [darkBannerConfiguration, setDarkThemeAndBannerConfiguration]
+  );
+
+  const setDarkBannerConfiguration = useCallback(
+    (bannerConfiguration: BannerConfiguration) => {
+      setDarkThemeAndBannerConfiguration(darkTheme, bannerConfiguration);
+    },
+    [darkTheme, setDarkThemeAndBannerConfiguration]
   );
 
   const getOnChangeLightThemeColor = useCallback(
@@ -576,6 +650,8 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         onChangePrimaryColor={onChangeLightModePrimaryColor}
         onChangeTextColor={onChangeLightModeTextColor}
         onChangeBackgroundColor={onChangeLightModeBackgroundColor}
+        bannerConfiguration={lightBannerConfiguration}
+        onChangeBannerConfiguration={setLightBannerConfiguration}
       />
       <ThemeConfigurationWidget
         className={styles.widget}
@@ -591,6 +667,8 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         onChangePrimaryColor={onChangeDarkModePrimaryColor}
         onChangeTextColor={onChangeDarkModeTextColor}
         onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
+        bannerConfiguration={darkBannerConfiguration}
+        onChangeBannerConfiguration={setDarkBannerConfiguration}
       />
     </ScreenContent>
   );

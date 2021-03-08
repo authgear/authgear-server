@@ -6,7 +6,14 @@ import React, {
   useMemo,
 } from "react";
 import cn from "classnames";
-import { Text, Label, Toggle, Dropdown, TextField } from "@fluentui/react";
+import {
+  Text,
+  Label,
+  Toggle,
+  Dropdown,
+  TextField,
+  IDropdownOption,
+} from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScaleContainer from "./ScaleContainer";
 import Widget from "./Widget";
@@ -25,6 +32,8 @@ import {
   DarkTheme,
   isLightThemeEqual,
   isDarkThemeEqual,
+  BannerConfiguration,
+  DEFAULT_BANNER_CONFIGURATION,
 } from "./util/theme";
 import styles from "./ThemeConfigurationWidget.module.scss";
 
@@ -44,12 +53,18 @@ export interface ThemeConfigurationWidgetProps {
 
   appLogoValue: string | undefined;
   onChangeAppLogo: ImageFilePickerProps["onChange"];
+
+  bannerConfiguration?: BannerConfiguration | null;
+  onChangeBannerConfiguration?: (c: BannerConfiguration) => void;
 }
+
+type DropdownKey = "fixed-height" | "fixed-width";
 
 // eslint-disable-next-line complexity
 const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = function ThemeConfigurationWidget(
   props: ThemeConfigurationWidgetProps
 ) {
+  const { renderToString } = useContext(Context);
   const previewWidgetRef = useRef<HTMLElement | null>(null);
   const {
     className,
@@ -65,9 +80,114 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     onChangePrimaryColor,
     onChangeTextColor,
     onChangeBackgroundColor,
+    bannerConfiguration: bannerConfigurationProp,
+    onChangeBannerConfiguration,
   } = props;
 
-  const { renderToString } = useContext(Context);
+  const bannerConfiguration =
+    bannerConfigurationProp ?? DEFAULT_BANNER_CONFIGURATION;
+
+  const dropdownSelectedKey: DropdownKey =
+    bannerConfiguration.width === "initial" ? "fixed-height" : "fixed-width";
+
+  const onChangeDropdown = useCallback(
+    (_e: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
+      if (item == null) {
+        return;
+      }
+      switch (item.key) {
+        case "fixed-width":
+          onChangeBannerConfiguration?.({
+            ...bannerConfiguration,
+            width: bannerConfiguration.height,
+            height: "initial",
+          });
+          break;
+        case "fixed-height":
+          onChangeBannerConfiguration?.({
+            ...bannerConfiguration,
+            height: bannerConfiguration.width,
+            width: "initial",
+          });
+          break;
+        default:
+          break;
+      }
+    },
+    [bannerConfiguration, onChangeBannerConfiguration]
+  );
+
+  const appLogoDimensionValue =
+    dropdownSelectedKey === "fixed-height"
+      ? bannerConfiguration.height
+      : bannerConfiguration.width;
+
+  const onChangeAppLogoDimensionValue = useCallback(
+    (
+      _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+      value?: string
+    ) => {
+      if (value == null) {
+        return;
+      }
+      if (dropdownSelectedKey === "fixed-height") {
+        onChangeBannerConfiguration?.({
+          ...bannerConfiguration,
+          height: value,
+        });
+      } else {
+        onChangeBannerConfiguration?.({
+          ...bannerConfiguration,
+          width: value,
+        });
+      }
+    },
+    [bannerConfiguration, onChangeBannerConfiguration, dropdownSelectedKey]
+  );
+
+  const appLogoHorizontalMargin = bannerConfiguration.marginLeft;
+  const appLogoVerticalMargin = bannerConfiguration.marginTop;
+  const onChangeAppLogoHorizontalMargin = useCallback(
+    (
+      _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+      value?: string
+    ) => {
+      if (value == null) {
+        return;
+      }
+      onChangeBannerConfiguration?.({
+        ...bannerConfiguration,
+        marginLeft: value,
+        marginRight: value,
+      });
+    },
+    [bannerConfiguration, onChangeBannerConfiguration]
+  );
+  const onChangeAppLogoVerticalMargin = useCallback(
+    (
+      _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+      value?: string
+    ) => {
+      if (value == null) {
+        return;
+      }
+      onChangeBannerConfiguration?.({
+        ...bannerConfiguration,
+        marginTop: value,
+        marginBottom: value,
+      });
+    },
+    [bannerConfiguration, onChangeBannerConfiguration]
+  );
+  const onChangeAppLogoBackgroundColor = useCallback(
+    (color: string) => {
+      onChangeBannerConfiguration?.({
+        ...bannerConfiguration,
+        backgroundColor: color,
+      });
+    },
+    [bannerConfiguration, onChangeBannerConfiguration]
+  );
 
   const appLogoOptions = useMemo(() => {
     return [
@@ -132,9 +252,11 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     setDarkThemeIsCustom(true);
   }, []);
 
-  const disabled =
-    (isDarkMode && !darkModeEnabled) ||
-    (isDarkMode ? !darkThemeIsCustom : !lightThemeIsCustom);
+  const disabled = isDarkMode && !darkModeEnabled;
+
+  const colorControlsDisabled = isDarkMode
+    ? !darkThemeIsCustom
+    : !lightThemeIsCustom;
 
   const highlightedLightTheme = lightThemeIsCustom
     ? null
@@ -183,6 +305,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
               <FormattedMessage id="ThemeConfigurationWidget.theme-color-title" />
             </Text>
             <ThemePresetWidget
+              disabled={disabled}
               className={styles.presetWidget}
               isDarkMode={isDarkMode}
               highlightedLightTheme={highlightedLightTheme}
@@ -201,7 +324,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 className={styles.colorPicker}
                 color={primaryColor}
                 onChange={onChangePrimaryColor}
-                disabled={disabled}
+                disabled={disabled || colorControlsDisabled}
               />
             </div>
             <div className={styles.colorControl}>
@@ -212,7 +335,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 className={styles.colorPicker}
                 color={textColor}
                 onChange={onChangeTextColor}
-                disabled={disabled}
+                disabled={disabled || colorControlsDisabled}
               />
             </div>
             <div className={styles.colorControl}>
@@ -223,7 +346,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 className={styles.colorPicker}
                 color={backgroundColor}
                 onChange={onChangeBackgroundColor}
-                disabled={disabled}
+                disabled={disabled || colorControlsDisabled}
               />
             </div>
           </div>
@@ -235,6 +358,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
               <FormattedMessage id="ThemeConfigurationWidget.app-logo-description" />
             </Text>
             <ImageFilePicker
+              disabled={disabled}
               base64EncodedData={appLogoValue}
               onChange={onChangeAppLogo}
             />
@@ -245,10 +369,16 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                   "ThemeConfigurationWidget.app-logo-dropown-title"
                 )}
                 options={appLogoOptions}
+                selectedKey={dropdownSelectedKey}
+                onChange={onChangeDropdown}
+                disabled={disabled}
               />
               <TextField
                 className={styles.appLogoDimension}
                 label={renderToString("ThemeConfigurationWidget.value")}
+                value={appLogoDimensionValue}
+                onChange={onChangeAppLogoDimensionValue}
+                disabled={disabled}
               />
             </div>
             <div className={styles.appLogoControl}>
@@ -257,12 +387,18 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
                 label={renderToString(
                   "ThemeConfigurationWidget.left-right-margin"
                 )}
+                value={appLogoHorizontalMargin}
+                onChange={onChangeAppLogoHorizontalMargin}
+                disabled={disabled}
               />
               <TextField
                 className={styles.appLogoMargin}
                 label={renderToString(
                   "ThemeConfigurationWidget.top-bottom-margin"
                 )}
+                value={appLogoVerticalMargin}
+                onChange={onChangeAppLogoVerticalMargin}
+                disabled={disabled}
               />
             </div>
             <div
@@ -271,7 +407,13 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
               <Label className={styles.colorControlLabel}>
                 <FormattedMessage id="ThemeConfigurationWidget.background-color" />
               </Label>
-              <PortalColorPicker className={styles.colorPicker} />
+              <PortalColorPicker
+                className={styles.colorPicker}
+                color={bannerConfiguration.backgroundColor}
+                onChange={onChangeAppLogoBackgroundColor}
+                disabled={disabled}
+                alphaType="alpha"
+              />
             </div>
           </div>
         </div>
