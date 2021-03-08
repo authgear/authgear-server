@@ -252,6 +252,8 @@
   "AuthenticationAuthenticatorSettingsScreen.policy.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
 
   "VerificationConfigurationScreen.title": "User Verification",
+  "VerificationConfigurationScreen.description": "Configure if the email or phone number of your users could be verified and if it is required",
+  "VerificationConfigurationScreen.basic-settings": "Basic Settings",
   "VerificationConfigurationScreen.title.nav": "User Verification",
   "VerificationConfigurationScreen.code-expiry-seconds.label": "Verification code valid duration (seconds)",
   "VerificationConfigurationScreen.criteria.label": "Verified user criteria",
