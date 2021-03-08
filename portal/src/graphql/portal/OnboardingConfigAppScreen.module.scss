@@ -1,0 +1,84 @@
+@import "../../styles/variable.scss";
+
+.root {
+  background-color: #faf8f8;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+.pageTitle {
+  margin-bottom: 20px;
+}
+
+.pageDesc {
+  margin-bottom: 20px;
+}
+
+.fieldLabel {
+  .icon {
+    margin-right: 5px;
+  }
+  margin-bottom: 10px;
+}
+
+.fieldDesc {
+  display: block;
+  margin: 10px 0;
+  font-size: 12px;
+}
+
+.helpText {
+  margin: 10px 0;
+}
+
+.alertText {
+  margin: 10px 0;
+  color: $error-color;
+  .icon {
+    margin-right: 5px;
+  }
+}
+
+.sections {
+  margin-bottom: 30px;
+}
+
+.identityList {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
+.identityListItem {
+  background-color: $neutral-lighter-color;
+  position: relative;
+  width: 96px;
+  height: 106px;
+  cursor: pointer;
+
+  .checkbox {
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin-right: -4px;
+  }
+
+  .label {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    margin-top: 18px;
+
+    .icon {
+      font-size: 32px;
+      line-height: 40px;
+    }
+  }
+}
+
+.checkboxGroup {
+  padding-bottom: 10px;
+}

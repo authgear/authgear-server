@@ -101,6 +101,41 @@
   "CreateAppScreen.error.invalid-app-id": "Invalid App ID. App ID should start and end with lowercase alphanumeric characters or numbers, and it should contain only lowercase alphanumeric characters, numbers or '-'",
   "CreateAppScreen.error.generic": "Failed to create app",
 
+  "Onboarding.title": "Configure your project",
+  "Onboarding.desc": "Here are a series of questions to help you configure the authentication scenario. You can further configure other settings in the Portal after this setup wizard.",
+
+  "Onboarding.identities.label": "How can a user identify themselves?",
+  "Onboarding.identities.email": "Email",
+  "Onboarding.identities.phone": "Phone",
+  "Onboarding.identities.username": "Username",
+  "Onboarding.identities.sso": "External / Social Login",
+  "Onboarding.identities.anonymous-user": "Anonymous Users",
+  "Onboarding.identities.username-only-alert": "We don't recommend using Username without Email or Phone. It's always easier for end-users to remember their email / phone for login, and it also serve purposes like forgot password etc.",
+
+  "Onboarding.primary-authenticators.title": "What should be the primary authenticator authentication?",
+  "Onboarding.primary-authenticators.tooltip-message": "If you select Username, only Password will be supported",
+  "Onboarding.primary-authenticators.password": "Password",
+  "Onboarding.primary-authenticators.oob": "Receive one-time password",
+
+  "Onboarding.secondary-authenticators.title": "How should a user perform two-factor authentication",
+  "Onboarding.secondary-authenticators.oob-email": "Receive one-time password via Email",
+  "Onboarding.secondary-authenticators.oob-sms": "Receive one-time password via SMS",
+  "Onboarding.secondary-authenticators.totp": "Use TOTP Devices/Applications",
+  "Onboarding.secondary-authenticators.additional-password": "Additional Password",
+
+  "Onboarding.secondary-authentication-mode.title": "Is Multi-factor authentication required?",
+  "Onboarding.secondary-authentication-mode.desc": "Multi-Factor Authentication (MFA) enhance security of your end-user greatly! According to research simply having SMS as 2FA block 100% of automated bots, 96% of bulk phishing attacks, and 76% of targeted attacks. Using on-device 2FA is even better at handling targeted attacks!",
+  "Onboarding.secondary-authentication-mode.required": "Always required",
+  "Onboarding.secondary-authentication-mode.if-exists": "Required if user has Mutli-factor Authenticator",
+  "Onboarding.secondary-authentication-mode.if-requested": "Optional",
+
+  "Onboarding.verification.email-enabled.title" :"Should we verify email?",
+  "Onboarding.verification.phone-enabled.title" :"Should we verify phone?",
+  "Onboarding.verification.desc" :"If verification is optional, the user is not required to perform verification at account creation. The user can later trigger verification at the settings page.",
+  "Onboarding.verification.required" :"Required",
+  "Onboarding.verification.optional" :"Optional",
+  "Onboarding.verification.disabled" :"Disabled",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
 
