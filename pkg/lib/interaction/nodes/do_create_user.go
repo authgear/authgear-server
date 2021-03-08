@@ -37,6 +37,19 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
 	}
 
+	if !bypassRateLimit {
+		// check the rate limit only to ensure that we have token to signup
+		// the token will be token after running the effects successfully
+		ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
+		pass, _, err := ctx.RateLimiter.CheckToken(interaction.SignupRateLimitBucket(ip))
+		if err != nil {
+			return nil, err
+		}
+		if !pass {
+			return nil, ratelimit.ErrTooManyRequests
+		}
+	}
+
 	return &NodeDoCreateUser{
 		CreateUserID:    uuid.New(),
 		BypassRateLimit: bypassRateLimit,
@@ -59,19 +72,6 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 			return err
 		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-			// check the rate limit only to ensure that we can run the effects
-			// the token will be token after running the effects successfully
-			if !n.BypassRateLimit {
-				pass, _, err := ctx.RateLimiter.CheckToken(interaction.SignupRateLimitBucket(ip))
-				if err != nil {
-					return err
-				}
-				if !pass {
-					return ratelimit.ErrTooManyRequests
-				}
-			}
-
 			u, err := ctx.Users.GetRaw(n.CreateUserID)
 			if err != nil {
 				return err
@@ -85,6 +85,7 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 
 			// take the token after running the effects successfully
 			if !n.BypassRateLimit {
+				ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
 				err := ctx.RateLimiter.TakeToken(interaction.SignupRateLimitBucket(ip))
 				if err != nil {
 					return err
