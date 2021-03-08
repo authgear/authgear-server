@@ -41,6 +41,7 @@ interface PendingFormState {
   primaryAuthenticator: PrimaryAuthenticatorType;
   secondaryAuthenticationMode: SecondaryAuthenticationMode;
   secondaryAuthenticators: Set<SecondaryAuthenticatorType>;
+  verificationClaims: VerificationClaimsConfig;
 }
 
 interface FormState {
@@ -58,6 +59,10 @@ function constructFormState(_config: PortalAPIAppConfig): FormState {
         "totp",
         "oob_otp_sms",
       ]),
+      verificationClaims: {
+        email: { enabled: true, required: true },
+        phone_number: { enabled: true, required: true },
+      },
     },
   };
 }
@@ -488,6 +493,110 @@ const SecondaryAuthenticatorsContent: React.FC<SecondaryAuthenticatorsContentPro
     </section>
   );
 };
+
+interface VerificationContentProps {
+  form: AppConfigFormModel<FormState>;
+  labelIconName: string;
+  labelId: string;
+  //  email or phone_number
+  claimName: keyof VerificationClaimsConfig;
+}
+
+const VerificationContent: React.FC<VerificationContentProps> = function VerificationContent(
+  props
+) {
+  const {
+    form: { state, setState },
+    labelIconName,
+    labelId,
+    claimName,
+  } = props;
+
+  const { renderToString } = useContext(Context);
+  const options: IDropdownOption[] = useMemo(
+    () => [
+      {
+        key: "required",
+        text: renderToString("Onboarding.verification.required"),
+      },
+      {
+        key: "optional",
+        text: renderToString("Onboarding.verification.optional"),
+      },
+      {
+        key: "disabled",
+        text: renderToString("Onboarding.verification.disabled"),
+      },
+    ],
+    [renderToString]
+  );
+
+  const getSelectedKey = useCallback(() => {
+    if (state.pendingForm.verificationClaims[claimName]?.enabled) {
+      if (state.pendingForm.verificationClaims[claimName]?.required) {
+        return "required";
+      }
+      return "optional";
+    }
+    return "disabled";
+  }, [state, claimName]);
+
+  const onChange = useCallback(
+    (_event, option?: IDropdownOption) => {
+      let enabled = false;
+      let required = false;
+      switch (option?.key) {
+        case "required":
+          enabled = true;
+          required = true;
+          break;
+        case "optional":
+          enabled = true;
+          required = false;
+          break;
+        case "disabled":
+          enabled = false;
+          required = false;
+          break;
+        default:
+          return;
+      }
+
+      setState((prev) => ({
+        ...prev,
+        pendingForm: {
+          ...prev.pendingForm,
+          verificationClaims: {
+            ...prev.pendingForm.verificationClaims,
+            [claimName]: {
+              required,
+              enabled,
+            },
+          },
+        },
+      }));
+    },
+    [setState, claimName]
+  );
+
+  return (
+    <section className={styles.sections}>
+      <Label className={styles.fieldLabel}>
+        <FontIcon iconName={labelIconName} className={styles.icon} />
+        <FormattedMessage id={labelId} />
+      </Label>
+      <Dropdown
+        options={options}
+        selectedKey={getSelectedKey()}
+        onChange={onChange}
+      />
+      <Text className={styles.helpText} block={true} variant="small">
+        <FormattedMessage id="Onboarding.verification.desc" />
+      </Text>
+    </section>
+  );
+};
+
 interface OnboardingConfigAppScreenFormProps {
   form: AppConfigFormModel<FormState>;
 }
@@ -508,6 +617,18 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
       <PrimaryAuthenticatorsContent form={form} />
       <SecondaryAuthenticationModeContent form={form} />
       <SecondaryAuthenticatorsContent form={form} />
+      <VerificationContent
+        form={form}
+        claimName="email"
+        labelIconName="Mail"
+        labelId="Onboarding.verification.email-enabled.title"
+      />
+      <VerificationContent
+        form={form}
+        claimName="phone_number"
+        labelIconName="CellPhone"
+        labelId="Onboarding.verification.phone-enabled.title"
+      />
     </div>
   );
 };
