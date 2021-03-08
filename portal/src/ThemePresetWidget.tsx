@@ -12,6 +12,7 @@ import styles from "./ThemePresetWidget.module.scss";
 
 export interface ThemePresetWidgetProps {
   className?: string;
+  disabled?: boolean;
   isDarkMode: boolean;
   highlightedLightTheme?: LightTheme | null;
   highlightedDarkTheme?: DarkTheme | null;
@@ -129,6 +130,7 @@ export const DARK_THEME_PRESETS: DarkTheme[] = [
 export const DEFAULT_DARK_THEME = DARK_THEME_PRESETS[0];
 
 interface ThemePresetProps {
+  disabled?: boolean;
   isDarkMode: boolean;
   isSelected: boolean;
   presetNameID: string;
@@ -139,6 +141,7 @@ interface ThemePresetProps {
 
 function ThemePreset(props: ThemePresetProps) {
   const {
+    disabled,
     isDarkMode,
     isSelected,
     presetNameID,
@@ -161,7 +164,7 @@ function ThemePreset(props: ThemePresetProps) {
   return (
     <div
       className={cn(styles.preset, isSelected && styles.selected)}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
     >
       <div
         className={styles.background}
@@ -193,16 +196,17 @@ function ThemePreset(props: ThemePresetProps) {
 }
 
 interface CustomProps {
+  disabled?: boolean;
   isSelected: boolean;
   onClickCustom: () => void;
 }
 
 function Custom(props: CustomProps) {
-  const { onClickCustom, isSelected } = props;
+  const { disabled, onClickCustom, isSelected } = props;
   return (
     <div
       className={cn(styles.preset, isSelected && styles.selected)}
-      onClick={onClickCustom}
+      onClick={disabled ? undefined : onClickCustom}
     >
       <Icon iconName="Add" className={styles.customIcon} />
       <Text className={styles.presetName}>
@@ -216,6 +220,7 @@ const ThemePresetWidget: React.FC<ThemePresetWidgetProps> = function ThemePreset
   props: ThemePresetWidgetProps
 ) {
   const {
+    disabled,
     className,
     isDarkMode,
     highlightedLightTheme,
@@ -237,6 +242,7 @@ const ThemePresetWidget: React.FC<ThemePresetWidgetProps> = function ThemePreset
       children.push(
         <ThemePreset
           key={String(i)}
+          disabled={disabled}
           isDarkMode={isDarkMode}
           isSelected={isSelected}
           presetNameID={"ThemeConfigurationWidget.preset." + String(i)}
@@ -269,6 +275,7 @@ const ThemePresetWidget: React.FC<ThemePresetWidgetProps> = function ThemePreset
   children.push(
     <Custom
       key="custom"
+      disabled={disabled}
       onClickCustom={onClickCustom}
       isSelected={isDarkMode ? darkThemeIsCustom : lightThemeIsCustom}
     />
