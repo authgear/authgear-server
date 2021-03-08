@@ -17,7 +17,7 @@ import ResetPasswordScreen from "./graphql/adminapi/ResetPasswordScreen";
 
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
-import PasswordPolicySettingsScreen from "./graphql/portal/PasswordPolicySettings";
+import PasswordPolicyConfigurationScreen from "./graphql/portal/PasswordPolicyConfigurationScreen";
 import ForgotPasswordConfigurationScreen from "./graphql/portal/ForgotPasswordConfigurationScreen";
 import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigurationScreen";
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
@@ -109,7 +109,7 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route
             path="/configuration/passwords/policy"
-            element={<PasswordPolicySettingsScreen />}
+            element={<PasswordPolicyConfigurationScreen />}
           />
           <Route
             path="/configuration/passwords/forgot-password"

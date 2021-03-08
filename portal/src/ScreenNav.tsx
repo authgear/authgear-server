@@ -74,7 +74,7 @@ const links: NavLinkProps[] = [
     url: "configuration/passwords",
     children: [
       {
-        textKey: "PasswordPolicySettingsScreen.title",
+        textKey: "ScreenNav.password-policy",
         url: "configuration/passwords/policy",
       },
       {
