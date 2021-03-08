@@ -1,8 +1,15 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import produce from "immer";
-import { FormattedMessage } from "@oursky/react-messageformat";
-import { Checkbox, FontIcon, Label, Text } from "@fluentui/react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import {
+  Checkbox,
+  ChoiceGroup,
+  FontIcon,
+  IChoiceGroupOption,
+  Label,
+  Text,
+} from "@fluentui/react";
 
 import {
   IdentityType,
@@ -23,9 +30,13 @@ import { useAppConfigQuery } from "./query/appConfigQuery";
 import OnboardingFormContainer from "./OnboardingFormContainer";
 import styles from "./OnboardingConfigAppScreen.module.scss";
 
+const primaryAuthenticatorTypes = ["password", "oob"] as const;
+type PrimaryAuthenticatorType = typeof primaryAuthenticatorTypes[number];
+
 interface PendingFormState {
   identities: Set<IdentityType>;
   loginIDKeys: Set<LoginIDKeyType>;
+  primaryAuthenticator: PrimaryAuthenticatorType;
 }
 
 interface FormState {
@@ -37,6 +48,7 @@ function constructFormState(_config: PortalAPIAppConfig): FormState {
     pendingForm: {
       identities: new Set<IdentityType>(),
       loginIDKeys: new Set<LoginIDKeyType>(),
+      primaryAuthenticator: "password",
     },
   };
 }
@@ -237,6 +249,62 @@ const IdentitiesListContent: React.FC<IdentitiesListContentProps> = function Ide
   );
 };
 
+interface PrimaryAuthenticatorsContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const PrimaryAuthenticatorsContent: React.FC<PrimaryAuthenticatorsContentProps> = function PrimaryAuthenticatorsContent(
+  props
+) {
+  const {
+    form: { state, setState },
+  } = props;
+
+  const { renderToString } = useContext(Context);
+  const options: IChoiceGroupOption[] = useMemo(
+    () => [
+      {
+        key: "password",
+        text: renderToString("Onboarding.primary-authenticators.password"),
+      },
+      {
+        key: "oob",
+        text: renderToString("Onboarding.primary-authenticators.oob"),
+        disabled: state.pendingForm.loginIDKeys.has("username"),
+      },
+    ],
+    [renderToString, state.pendingForm.loginIDKeys]
+  );
+
+  const onChange = useCallback(
+    (_event, option?: IChoiceGroupOption) => {
+      if (option?.key) {
+        setState((prev) => ({
+          ...prev,
+          pendingForm: {
+            ...prev.pendingForm,
+            primaryAuthenticator: option.key as PrimaryAuthenticatorType,
+          },
+        }));
+      }
+    },
+    [setState]
+  );
+
+  return (
+    <section className={styles.sections}>
+      <Label className={styles.fieldLabel}>
+        <FontIcon iconName="AutoFillTemplate" className={styles.icon} />
+        <FormattedMessage id="Onboarding.primary-authenticators.title" />
+      </Label>
+      <ChoiceGroup
+        selectedKey={state.pendingForm.primaryAuthenticator}
+        options={options}
+        onChange={onChange}
+      />
+    </section>
+  );
+};
 interface OnboardingConfigAppScreenFormProps {
   form: AppConfigFormModel<FormState>;
 }
@@ -254,6 +322,7 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
         <FormattedMessage id="Onboarding.desc" />
       </Text>
       <IdentitiesListContent form={form} />
+      <PrimaryAuthenticatorsContent form={form} />
     </div>
   );
 };
