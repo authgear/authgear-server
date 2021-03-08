@@ -5,8 +5,10 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   Checkbox,
   ChoiceGroup,
+  Dropdown,
   FontIcon,
   IChoiceGroupOption,
+  IDropdownOption,
   Label,
   Text,
 } from "@fluentui/react";
@@ -37,6 +39,7 @@ interface PendingFormState {
   identities: Set<IdentityType>;
   loginIDKeys: Set<LoginIDKeyType>;
   primaryAuthenticator: PrimaryAuthenticatorType;
+  secondaryAuthenticationMode: SecondaryAuthenticationMode;
 }
 
 interface FormState {
@@ -49,6 +52,7 @@ function constructFormState(_config: PortalAPIAppConfig): FormState {
       identities: new Set<IdentityType>(),
       loginIDKeys: new Set<LoginIDKeyType>(),
       primaryAuthenticator: "password",
+      secondaryAuthenticationMode: "if_exists",
     },
   };
 }
@@ -305,6 +309,76 @@ const PrimaryAuthenticatorsContent: React.FC<PrimaryAuthenticatorsContentProps> 
     </section>
   );
 };
+
+interface SecondaryAuthenticationModeContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const SecondaryAuthenticationModeContent: React.FC<SecondaryAuthenticationModeContentProps> = function SecondaryAuthenticationModeContent(
+  props
+) {
+  const {
+    form: { state, setState },
+  } = props;
+
+  const { renderToString } = useContext(Context);
+  const options: IDropdownOption[] = useMemo(
+    () => [
+      {
+        key: "required",
+        text: renderToString(
+          "Onboarding.secondary-authentication-mode.required"
+        ),
+      },
+      {
+        key: "if_exists",
+        text: renderToString(
+          "Onboarding.secondary-authentication-mode.if-exists"
+        ),
+      },
+      {
+        key: "if_requested",
+        text: renderToString(
+          "Onboarding.secondary-authentication-mode.if-requested"
+        ),
+      },
+    ],
+    [renderToString]
+  );
+
+  const onChange = useCallback(
+    (_event, option?: IDropdownOption) => {
+      if (option?.key) {
+        setState((prev) => ({
+          ...prev,
+          pendingForm: {
+            ...prev.pendingForm,
+            secondaryAuthenticationMode: option.key as SecondaryAuthenticationMode,
+          },
+        }));
+      }
+    },
+    [setState]
+  );
+
+  return (
+    <section className={styles.sections}>
+      <Label className={styles.fieldLabel}>
+        <FontIcon iconName="Permissions" className={styles.icon} />
+        <FormattedMessage id="Onboarding.secondary-authentication-mode.title" />
+      </Label>
+      <Dropdown
+        options={options}
+        selectedKey={state.pendingForm.secondaryAuthenticationMode}
+        onChange={onChange}
+      />
+      <p className={styles.helpText}>
+        <FormattedMessage id="Onboarding.secondary-authentication-mode.desc" />
+      </p>
+    </section>
+  );
+};
+
 interface OnboardingConfigAppScreenFormProps {
   form: AppConfigFormModel<FormState>;
 }
@@ -323,6 +397,7 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
       </Text>
       <IdentitiesListContent form={form} />
       <PrimaryAuthenticatorsContent form={form} />
+      <SecondaryAuthenticationModeContent form={form} />
     </div>
   );
 };
