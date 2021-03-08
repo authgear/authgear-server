@@ -1,14 +1,16 @@
 .root {
-  margin: 0 32px;
-  min-width: 750px;
   display: flex;
   flex-direction: column;
 }
 
-.themeWidget {
-  margin: 5px;
+.titleContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.languageWidget {
-  align-self: flex-end;
+.widget {
+  margin: 10px 15px;
+  max-width: 1024px;
 }

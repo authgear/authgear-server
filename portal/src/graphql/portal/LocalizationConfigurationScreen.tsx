@@ -6,6 +6,11 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import ManageLanguageWidget from "./ManageLanguageWidget";
 import EditTemplatesWidget, {
   EditTemplatesWidgetSection,
@@ -36,7 +41,6 @@ import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import styles from "./LocalizationConfigurationScreen.module.scss";
 
 interface ConfigFormState {
@@ -149,15 +153,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   const { state, setState } = props.form;
   const { supportedLanguages } = props;
   const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="LocalizationConfigurationScreen.title" />,
-      },
-    ];
-  }, []);
 
   const setSelectedLanguage = useCallback(
     (selectedLanguage: LanguageTag) => {
@@ -389,44 +384,55 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   ];
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <ManageLanguageWidget
-        className={styles.languageWidget}
-        selectOnly={false}
-        supportedLanguages={supportedLanguages}
-        selectedLanguage={state.selectedLanguage}
-        onChangeSelectedLanguage={setSelectedLanguage}
-        fallbackLanguage={state.fallbackLanguage}
-        onChangeLanguages={onChangeLanguages}
-      />
-      <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
-        <PivotItem
-          headerText={renderToString(
-            "LocalizationConfigurationScreen.translationjson.title"
-          )}
-          itemKey={PIVOT_KEY_TRANSLATION_JSON}
-        >
-          <EditTemplatesWidget sections={sectionsTranslationJSON} />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
-            "LocalizationConfigurationScreen.forgot-password.title"
-          )}
-          itemKey={PIVOT_KEY_FORGOT_PASSWORD}
-        >
-          <EditTemplatesWidget sections={sectionsForgotPassword} />
-        </PivotItem>
-        <PivotItem
-          headerText={renderToString(
-            "LocalizationConfigurationScreen.passwordless-authenticator.title"
-          )}
-          itemKey={PIVOT_KEY_PASSWORDLESS}
-        >
-          <EditTemplatesWidget sections={sectionsPasswordless} />
-        </PivotItem>
-      </Pivot>
-    </div>
+    <ScreenContent className={styles.root}>
+      <div className={styles.titleContainer}>
+        <ScreenTitle>
+          <FormattedMessage id="LocalizationConfigurationScreen.title" />
+        </ScreenTitle>
+        <ManageLanguageWidget
+          selectOnly={false}
+          supportedLanguages={supportedLanguages}
+          selectedLanguage={state.selectedLanguage}
+          onChangeSelectedLanguage={setSelectedLanguage}
+          fallbackLanguage={state.fallbackLanguage}
+          onChangeLanguages={onChangeLanguages}
+        />
+      </div>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="LocalizationConfigurationScreen.description" />
+      </ScreenDescription>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
+          <FormattedMessage id="LocalizationConfigurationScreen.template-content-title" />
+        </WidgetTitle>
+        <Pivot onLinkClick={onLinkClick} selectedKey={selectedKey}>
+          <PivotItem
+            headerText={renderToString(
+              "LocalizationConfigurationScreen.translationjson.title"
+            )}
+            itemKey={PIVOT_KEY_TRANSLATION_JSON}
+          >
+            <EditTemplatesWidget sections={sectionsTranslationJSON} />
+          </PivotItem>
+          <PivotItem
+            headerText={renderToString(
+              "LocalizationConfigurationScreen.forgot-password.title"
+            )}
+            itemKey={PIVOT_KEY_FORGOT_PASSWORD}
+          >
+            <EditTemplatesWidget sections={sectionsForgotPassword} />
+          </PivotItem>
+          <PivotItem
+            headerText={renderToString(
+              "LocalizationConfigurationScreen.passwordless-authenticator.title"
+            )}
+            itemKey={PIVOT_KEY_PASSWORDLESS}
+          >
+            <EditTemplatesWidget sections={sectionsPasswordless} />
+          </PivotItem>
+        </Pivot>
+      </Widget>
+    </ScreenContent>
   );
 };
 

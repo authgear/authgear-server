@@ -401,6 +401,8 @@
   "UISettingsScreen.default-post-logout-redirect-uri-description": "If this link is provided, the user will be redirected after logout with non-OAuth flow.",
 
   "LocalizationConfigurationScreen.title": "Localization",
+  "LocalizationConfigurationScreen.description": "Manage languages and template contents.",
+  "LocalizationConfigurationScreen.template-content-title": "Manage Template Contents",
   "LocalizationConfigurationScreen.translationjson.title": "Translations",
   "LocalizationConfigurationScreen.forgot-password.title": "Forgot Password",
   "LocalizationConfigurationScreen.passwordless-authenticator.title": "Passwordless Authenticator",
