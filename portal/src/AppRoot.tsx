@@ -31,7 +31,7 @@ import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
 import SessionConfigurationScreen from "./graphql/portal/SessionConfigurationScreen";
 import WebhookConfigurationScreen from "./graphql/portal/WebhookConfigurationScreen";
 import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
-import AuthenticationLoginIDSettingsScreen from "./graphql/portal/AuthenticationLoginIDSettings";
+import LoginIDConfigurationScreen from "./graphql/portal/LoginIDConfigurationScreen";
 import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConfigurationScreen";
 import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
 
@@ -89,7 +89,7 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route
             path="/configuration/authentication/login-id"
-            element={<AuthenticationLoginIDSettingsScreen />}
+            element={<LoginIDConfigurationScreen />}
           />
           <Route
             path="/configuration/authentication/authenticators"

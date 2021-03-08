@@ -32,7 +32,8 @@ import { useExactKeywordSearch } from "../../util/search";
 
 import styles from "./AuthenticationCountryCallingCodeList.module.scss";
 
-interface CountryCallingCodeListProps {
+export interface CountryCallingCodeListProps {
+  className?: string;
   allCountryCallingCodes: string[];
   pinnedCountryCallingCodes: string[];
   selectedCountryCallingCodes: string[];
@@ -89,9 +90,7 @@ function makeCountryCodeListColumns(
     {
       key: "selected",
       fieldName: "selected",
-      name: renderToString(
-        "AuthenticationLoginIDSettingsScreen.phone.columns.active"
-      ),
+      name: renderToString("LoginIDConfigurationScreen.phone.columns.active"),
       minWidth: 90,
       maxWidth: 90,
       className: styles.callingCodeListColumn,
@@ -100,7 +99,7 @@ function makeCountryCodeListColumns(
       key: "countryName",
       fieldName: "countryName",
       name: renderToString(
-        "AuthenticationLoginIDSettingsScreen.phone.columns.country-or-area"
+        "LoginIDConfigurationScreen.phone.columns.country-or-area"
       ),
       minWidth: 180,
       maxWidth: 180,
@@ -110,18 +109,14 @@ function makeCountryCodeListColumns(
     {
       key: "callingCode",
       fieldName: "callingCode",
-      name: renderToString(
-        "AuthenticationLoginIDSettingsScreen.phone.columns.code"
-      ),
+      name: renderToString("LoginIDConfigurationScreen.phone.columns.code"),
       minWidth: 65,
       maxWidth: 65,
       className: styles.callingCodeListColumn,
     },
     {
       key: "order",
-      name: renderToString(
-        "AuthenticationLoginIDSettingsScreen.phone.columns.order"
-      ),
+      name: renderToString("LoginIDConfigurationScreen.phone.columns.order"),
       fieldName: "order",
       minWidth: 140,
       maxWidth: 140,
@@ -129,9 +124,7 @@ function makeCountryCodeListColumns(
     },
     {
       key: "pinned",
-      name: renderToString(
-        "AuthenticationLoginIDSettingsScreen.phone.columns.pinned"
-      ),
+      name: renderToString("LoginIDConfigurationScreen.phone.columns.pinned"),
       fieldName: "pinned",
       minWidth: 140,
       maxWidth: 140,
@@ -302,6 +295,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
   props: CountryCallingCodeListProps
 ) {
   const {
+    className,
     allCountryCallingCodes,
     pinnedCountryCallingCodes,
     selectedCountryCallingCodes,
@@ -475,7 +469,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
           }
           return (
             <span>
-              <FormattedMessage id="AuthenticationLoginIDSettingsScreen.phone.default-order" />
+              <FormattedMessage id="LoginIDConfigurationScreen.phone.default-order" />
             </span>
           );
         case "pinned":
@@ -570,7 +564,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
   );
 
   return (
-    <section className={styles.root}>
+    <div className={className}>
       <SearchBox
         className={styles.searchBox}
         placeholder={renderToString("search")}
@@ -590,7 +584,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> = function C
           />
         </ScrollablePane>
       </div>
-    </section>
+    </div>
   );
 };
 

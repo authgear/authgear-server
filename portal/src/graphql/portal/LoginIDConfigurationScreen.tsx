@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Checkbox, Label, TagPicker, Text, Toggle } from "@fluentui/react";
+import { Checkbox, Label, TagPicker, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
@@ -16,12 +16,14 @@ import {
 } from "../../hook/useAppConfigForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
 import FormContainer from "../../FormContainer";
 import {
   LocalValidationError,
   makeLocalValidationError,
 } from "../../error/validation";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import {
   LoginIDEmailConfig,
   LoginIDKeyType,
@@ -31,9 +33,8 @@ import {
   UICountryCallingCodeConfig,
 } from "../../types";
 
-import styles from "./AuthenticationLoginIDSettings.module.scss";
+import styles from "./LoginIDConfigurationScreen.module.scss";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
-import Tooltip from "../../Tooltip";
 
 interface LoginIDKeyTypeFormState {
   isEnabled: boolean;
@@ -224,7 +225,7 @@ function validateForm(
   if (state.phone.allowlist.length === 0) {
     errors.push({
       message: renderToString(
-        "AuthenticationLoginIDSettingsScreen.error.calling-code-min-items"
+        "LoginIDConfigurationScreen.error.calling-code-min-items"
       ),
     });
   }
@@ -257,9 +258,9 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> = function LoginIDTypeEdit
   );
 
   const titleId = {
-    email: "AuthenticationLoginIDSettingsScreen.email.title",
-    username: "AuthenticationLoginIDSettingsScreen.username.title",
-    phone: "AuthenticationLoginIDSettingsScreen.phone.title",
+    email: "LoginIDConfigurationScreen.email.title",
+    username: "LoginIDConfigurationScreen.username.title",
+    phone: "LoginIDConfigurationScreen.phone.title",
   }[loginIDType];
 
   const renderAriaLabel = useCallback(() => renderToString(titleId), [
@@ -282,7 +283,7 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> = function LoginIDTypeEdit
 
   return (
     <WidgetWithOrdering
-      className={styles.section}
+      className={styles.widget}
       index={index}
       itemCount={loginIDKeyTypes.length}
       onSwapClicked={swapPosition}
@@ -305,17 +306,6 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
   const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: (
-          <FormattedMessage id="AuthenticationLoginIDSettingsScreen.title" />
-        ),
-      },
-    ];
-  }, []);
 
   const swapPosition = useCallback(
     (index1: number, index2: number) => {
@@ -376,35 +366,31 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     [change]
   );
   const emailSection = (
-    <>
+    <div className={styles.widgetContent}>
       <Checkbox
-        label={renderToString(
-          "AuthenticationLoginIDSettingsScreen.email.caseSensitive"
-        )}
-        className={styles.widgetCheckbox}
+        label={renderToString("LoginIDConfigurationScreen.email.caseSensitive")}
+        className={styles.control}
         checked={state.email.case_sensitive}
         onChange={onEmailCaseSensitiveChange}
       />
       <Checkbox
         label={renderToString(
-          "AuthenticationLoginIDSettingsScreen.email.ignoreDotLocal"
+          "LoginIDConfigurationScreen.email.ignoreDotLocal"
         )}
-        className={styles.widgetCheckbox}
+        className={styles.control}
         checked={state.email.ignore_dot_sign}
         onChange={onEmailIgnoreDotLocalChange}
       />
       <CheckboxWithTooltip
-        label={renderToString(
-          "AuthenticationLoginIDSettingsScreen.email.allowPlus"
-        )}
-        className={styles.widgetCheckbox}
+        label={renderToString("LoginIDConfigurationScreen.email.allowPlus")}
+        className={styles.control}
         checked={state.email.block_plus_sign}
         onChange={onEmailAllowPlusChange}
         helpText={renderToString(
-          "AuthenticationLoginIDSettingsScreen.email.allowPlusTooltipMessage"
+          "LoginIDConfigurationScreen.email.allowPlusTooltipMessage"
         )}
       />
-    </>
+    </div>
   );
 
   const onUsernameBlockReservedUsernameChange = useCallback(
@@ -451,30 +437,30 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     onUsernameExcludedKeywordsChange
   );
   const usernameSection = (
-    <>
+    <div className={styles.widgetContent}>
       <Checkbox
         label={renderToString(
-          "AuthenticationLoginIDSettingsScreen.username.blockReservedUsername"
+          "LoginIDConfigurationScreen.username.blockReservedUsername"
         )}
         checked={state.username.block_reserved_usernames}
         onChange={onUsernameBlockReservedUsernameChange}
-        className={styles.checkboxWithContent}
+        className={styles.control}
       />
       <CheckboxWithContent
         ariaLabel={renderToString(
-          "AuthenticationLoginIDSettingsScreen.username.excludeKeywords"
+          "LoginIDConfigurationScreen.username.excludeKeywords"
         )}
         checked={state.isUsernameExcludedKeywordEnabled}
         onChange={onUsernameIsExcludedKeywordsEnabledChange}
-        className={styles.checkboxWithContent}
+        className={styles.control}
       >
         <Label className={styles.checkboxLabel}>
-          <FormattedMessage id="AuthenticationLoginIDSettingsScreen.username.excludeKeywords" />
+          <FormattedMessage id="LoginIDConfigurationScreen.username.excludeKeywords" />
         </Label>
         <TagPicker
           inputProps={{
             "aria-label": renderToString(
-              "AuthenticationLoginIDSettingsScreen.username.excludeKeywords"
+              "LoginIDConfigurationScreen.username.excludeKeywords"
             ),
           }}
           className={styles.widgetInputField}
@@ -486,21 +472,19 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       </CheckboxWithContent>
       <Checkbox
         label={renderToString(
-          "AuthenticationLoginIDSettingsScreen.username.caseSensitive"
+          "LoginIDConfigurationScreen.username.caseSensitive"
         )}
-        className={styles.widgetCheckbox}
+        className={styles.control}
         checked={state.username.case_sensitive}
         onChange={onUsernameCaseSensitiveChange}
       />
       <Checkbox
-        label={renderToString(
-          "AuthenticationLoginIDSettingsScreen.username.asciiOnly"
-        )}
-        className={styles.widgetCheckbox}
+        label={renderToString("LoginIDConfigurationScreen.username.asciiOnly")}
+        className={styles.control}
         checked={state.username.ascii_only}
         onChange={onUsernameASCIIOnlyChange}
       />
-    </>
+    </div>
   );
 
   const onPhoneListChange = useCallback(
@@ -512,14 +496,15 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     [change]
   );
   const phoneSection = (
-    <>
+    <div className={styles.widgetContent}>
       <CountryCallingCodeList
+        className={styles.control}
         allCountryCallingCodes={supportedCountryCallingCodes}
         selectedCountryCallingCodes={state.phone.allowlist}
         pinnedCountryCallingCodes={state.phone.pinned_list}
         onChange={onPhoneListChange}
       />
-    </>
+    </div>
   );
 
   const sections = {
@@ -529,23 +514,13 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
   };
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <header className={styles.header}>
-        <Text className={styles.column}>
-          <FormattedMessage id="AuthenticationLoginIDSettingsScreen.columns.login-id" />
-        </Text>
-        <Text className={styles.column}>
-          <FormattedMessage id="AuthenticationLoginIDSettingsScreen.columns.order" />
-          <Tooltip
-            helpText={renderToString(
-              "AuthenticationLoginIDSettingsScreen.columns.orderTooltipMessage"
-            )}
-            className={styles.tooltip}
-          />
-        </Text>
-      </header>
-
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="LoginIDConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="LoginIDConfigurationScreen.columns.orderTooltipMessage" />
+      </ScreenDescription>
       {state.types.map(({ type }, index) => (
         <LoginIDTypeEdit
           key={type}
@@ -558,11 +533,11 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           {sections[type]}
         </LoginIDTypeEdit>
       ))}
-    </div>
+    </ScreenContent>
   );
 };
 
-const AuthenticationLoginIDSettingsScreen: React.FC = function AuthenticationLoginIDSettingsScreen() {
+const LoginIDConfigurationScreen: React.FC = function LoginIDConfigurationScreen() {
   const { appID } = useParams();
   const { renderToString } = useContext(Context);
 
@@ -584,4 +559,4 @@ const AuthenticationLoginIDSettingsScreen: React.FC = function AuthenticationLog
   );
 };
 
-export default AuthenticationLoginIDSettingsScreen;
+export default LoginIDConfigurationScreen;
