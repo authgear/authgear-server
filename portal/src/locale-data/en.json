@@ -262,6 +262,7 @@
   "VerificationConfigurationScreen.verification.required.label": "Required",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
+  "AnonymousUsersConfigurationScreen.description": "Enable or disable anonymous users. Anonymous users do not have identity. They can be promoted to normal users.",
   "AnonymousUsersConfigurationScreen.enable.label": "Enable anonymous users?",
   "AnonymousUsersConfigurationScreen.conflict-droplist.label": "User identity conflict when promote to normal user",
 
