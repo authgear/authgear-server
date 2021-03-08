@@ -145,6 +145,9 @@
   --color-password-strength-meter-5: var(--color-good);
 }
 
+.banner-frame {
+  background-color: transparent;
+}
 .banner {
   height: 55px;
   width: initial;
@@ -152,7 +155,6 @@
   margin-right: 16px;
   margin-bottom: 16px;
   margin-left: 16px;
-  background-color: transparent;
 }
 
 .secondary-txt {

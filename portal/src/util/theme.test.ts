@@ -114,6 +114,9 @@ const CSS = `
   }
 }
 
+.banner-frame {
+  background-color: red;
+}
 .banner {
   width: initial;
   height: 1px;
@@ -121,10 +124,12 @@ const CSS = `
   margin-right: 3px;
   margin-bottom: 4px;
   margin-left: 5px;
-  background-color: red;
 }
 
 @media (prefers-color-scheme: dark) {
+  .banner-frame {
+    background-color: blue;
+  }
   .banner {
     width: initial;
     height: 2px;
@@ -132,7 +137,6 @@ const CSS = `
     margin-right: 4px;
     margin-bottom: 5px;
     margin-left: 6px;
-    background-color: blue;
   }
 }
 `;
@@ -264,7 +268,9 @@ describe("addLightBannerConfiguration", () => {
     margin-top: 16px;
     margin-right: 16px;
     margin-bottom: 16px;
-    margin-left: 16px;
+    margin-left: 16px
+}
+.banner-frame {
     background-color: transparent
 }`;
     expect(actual).toEqual(expected);
@@ -283,7 +289,9 @@ describe("addDarkBannerConfiguration", () => {
         margin-top: 16px;
         margin-right: 16px;
         margin-bottom: 16px;
-        margin-left: 16px;
+        margin-left: 16px
+    }
+    .banner-frame {
         background-color: transparent
     }
 }`;

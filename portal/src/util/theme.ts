@@ -137,31 +137,35 @@ export function getLightBannerConfiguration(
   let backgroundColor;
 
   for (const rule of nodes) {
-    if (rule instanceof Rule && rule.selector === ".banner") {
+    if (rule instanceof Rule) {
       for (const decl of rule.nodes) {
         if (decl instanceof Declaration) {
-          switch (decl.prop) {
-            case "width":
-              width = decl.value;
-              break;
-            case "height":
-              height = decl.value;
-              break;
-            case "margin-top":
-              marginTop = decl.value;
-              break;
-            case "margin-right":
-              marginRight = decl.value;
-              break;
-            case "margin-bottom":
-              marginBottom = decl.value;
-              break;
-            case "margin-left":
-              marginLeft = decl.value;
-              break;
-            case "background-color":
+          if (rule.selector === ".banner") {
+            switch (decl.prop) {
+              case "width":
+                width = decl.value;
+                break;
+              case "height":
+                height = decl.value;
+                break;
+              case "margin-top":
+                marginTop = decl.value;
+                break;
+              case "margin-right":
+                marginRight = decl.value;
+                break;
+              case "margin-bottom":
+                marginBottom = decl.value;
+                break;
+              case "margin-left":
+                marginLeft = decl.value;
+                break;
+            }
+          }
+          if (rule.selector === ".banner-frame") {
+            if (decl.prop === "background-color") {
               backgroundColor = decl.value;
-              break;
+            }
           }
         }
       }
@@ -255,31 +259,35 @@ export function getDarkBannerConfiguration(
       atRule.params === "(prefers-color-scheme: dark)"
     ) {
       for (const rule of atRule.nodes) {
-        if (rule instanceof Rule && rule.selector === ".banner") {
+        if (rule instanceof Rule) {
           for (const decl of rule.nodes) {
             if (decl instanceof Declaration) {
-              switch (decl.prop) {
-                case "width":
-                  width = decl.value;
-                  break;
-                case "height":
-                  height = decl.value;
-                  break;
-                case "margin-top":
-                  marginTop = decl.value;
-                  break;
-                case "margin-right":
-                  marginRight = decl.value;
-                  break;
-                case "margin-bottom":
-                  marginBottom = decl.value;
-                  break;
-                case "margin-left":
-                  marginLeft = decl.value;
-                  break;
-                case "background-color":
+              if (rule.selector === ".banner") {
+                switch (decl.prop) {
+                  case "width":
+                    width = decl.value;
+                    break;
+                  case "height":
+                    height = decl.value;
+                    break;
+                  case "margin-top":
+                    marginTop = decl.value;
+                    break;
+                  case "margin-right":
+                    marginRight = decl.value;
+                    break;
+                  case "margin-bottom":
+                    marginBottom = decl.value;
+                    break;
+                  case "margin-left":
+                    marginLeft = decl.value;
+                    break;
+                }
+              }
+              if (rule.selector === ".banner-frame") {
+                if (decl.prop === "background-color") {
                   backgroundColor = decl.value;
-                  break;
+                }
               }
             }
           }
@@ -365,19 +373,27 @@ export function addLightBannerConfiguration(
   root: Root,
   c: BannerConfiguration
 ): void {
-  const rule = new Rule({ selector: ".banner" });
-  rule.append(new Declaration({ prop: "width", value: c.width }));
-  rule.append(new Declaration({ prop: "height", value: c.height }));
-  rule.append(new Declaration({ prop: "margin-top", value: c.marginTop }));
-  rule.append(new Declaration({ prop: "margin-right", value: c.marginRight }));
-  rule.append(
+  const bannerRule = new Rule({ selector: ".banner" });
+  bannerRule.append(new Declaration({ prop: "width", value: c.width }));
+  bannerRule.append(new Declaration({ prop: "height", value: c.height }));
+  bannerRule.append(
+    new Declaration({ prop: "margin-top", value: c.marginTop })
+  );
+  bannerRule.append(
+    new Declaration({ prop: "margin-right", value: c.marginRight })
+  );
+  bannerRule.append(
     new Declaration({ prop: "margin-bottom", value: c.marginBottom })
   );
-  rule.append(new Declaration({ prop: "margin-left", value: c.marginLeft }));
-  rule.append(
+  bannerRule.append(
+    new Declaration({ prop: "margin-left", value: c.marginLeft })
+  );
+  const bannerFrameRule = new Rule({ selector: ".banner-frame" });
+  bannerFrameRule.append(
     new Declaration({ prop: "background-color", value: c.backgroundColor })
   );
-  root.append(rule);
+  root.append(bannerRule);
+  root.append(bannerFrameRule);
 }
 
 export function addDarkBannerConfiguration(
@@ -388,19 +404,27 @@ export function addDarkBannerConfiguration(
     name: "media",
     params: "(prefers-color-scheme: dark)",
   });
-  const rule = new Rule({ selector: ".banner" });
-  rule.append(new Declaration({ prop: "width", value: c.width }));
-  rule.append(new Declaration({ prop: "height", value: c.height }));
-  rule.append(new Declaration({ prop: "margin-top", value: c.marginTop }));
-  rule.append(new Declaration({ prop: "margin-right", value: c.marginRight }));
-  rule.append(
+  const bannerRule = new Rule({ selector: ".banner" });
+  bannerRule.append(new Declaration({ prop: "width", value: c.width }));
+  bannerRule.append(new Declaration({ prop: "height", value: c.height }));
+  bannerRule.append(
+    new Declaration({ prop: "margin-top", value: c.marginTop })
+  );
+  bannerRule.append(
+    new Declaration({ prop: "margin-right", value: c.marginRight })
+  );
+  bannerRule.append(
     new Declaration({ prop: "margin-bottom", value: c.marginBottom })
   );
-  rule.append(new Declaration({ prop: "margin-left", value: c.marginLeft }));
-  rule.append(
+  bannerRule.append(
+    new Declaration({ prop: "margin-left", value: c.marginLeft })
+  );
+  const bannerFrameRule = new Rule({ selector: ".banner-frame" });
+  bannerFrameRule.append(
     new Declaration({ prop: "background-color", value: c.backgroundColor })
   );
-  atRule.append(rule);
+  atRule.append(bannerRule);
+  atRule.append(bannerFrameRule);
   root.append(atRule);
 }
 
