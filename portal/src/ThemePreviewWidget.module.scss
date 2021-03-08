@@ -89,13 +89,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: transparent;
 }
 
 .banner {
   height: 55px;
   width: initial;
-  // stylelint-disable-next-line shorthand-property-no-redundant-values
-  margin: 16px 16px;
+  margin-top: 16px;
+  margin-right: 16px;
+  margin-bottom: 16px;
+  margin-left: 16px;
 }
 
 .primaryTxt {
