@@ -78,7 +78,7 @@ const links: NavLinkProps[] = [
         url: "configuration/passwords/policy",
       },
       {
-        textKey: "ForgotPasswordSettingsScreen.title",
+        textKey: "ScreenNav.forgot-password",
         url: "configuration/passwords/forgot-password",
       },
     ],

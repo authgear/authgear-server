@@ -78,6 +78,7 @@
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
   "ScreenNav.client-applications": "Applications",
+  "ScreenNav.forgot-password": "Forgot Password",
   "ScreenNav.ui-settings": "UI Settings",
   "ScreenNav.localization": "Localization",
   "ScreenNav.sessions": "Sessions",
@@ -309,8 +310,10 @@
   "PasswordPolicySettingsScreen.history-size.label": "No. of password history to keep",
   "PasswordPolicySettingsScreen.excluded-keywords.label": "Keywords to be excluded",
 
-  "ForgotPasswordSettingsScreen.title": "Forgot Password",
-  "ForgotPasswordSettingsScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
+  "ForgotPasswordConfigurationScreen.title": "Forgot Password",
+  "ForgotPasswordConfigurationScreen.description": "Configure forgot password code lifetime.",
+  "ForgotPasswordConfigurationScreen.code-settings": "Code Settings",
+  "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
 
   "CORSConfigurationScreen.title": "Allowed Origins",
   "CORSConfigurationScreen.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
