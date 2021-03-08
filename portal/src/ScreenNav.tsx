@@ -122,7 +122,7 @@ const links: NavLinkProps[] = [
         url: "configuration/settings/sessions",
       },
       {
-        textKey: "HooksSettings.title",
+        textKey: "ScreenNav.webhooks",
         url: "configuration/settings/web-hooks",
       },
     ],

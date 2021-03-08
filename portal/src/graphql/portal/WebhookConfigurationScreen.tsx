@@ -1,4 +1,5 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import cn from "classnames";
 import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -9,9 +10,13 @@ import {
   TextField,
 } from "@fluentui/react";
 import produce from "immer";
-
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import { PortalAPIAppConfig } from "../../types";
 import {
   AppConfigFormModel,
@@ -21,8 +26,7 @@ import { useFormField } from "../../form";
 import FieldList from "../../FieldList";
 import FormContainer from "../../FormContainer";
 import { clearEmptyObject } from "../../util/misc";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import styles from "./HooksSettings.module.scss";
+import styles from "./WebhookConfigurationScreen.module.scss";
 import { renderErrors } from "../../error/parse";
 
 interface HookEventHandler {
@@ -119,14 +123,18 @@ const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHan
   const renderEventDropdownItem = useCallback((item?: ISelectableOption) => {
     return (
       <span>
-        <FormattedMessage id={`HooksSettings.event-type.${item?.key}`} />
+        <FormattedMessage
+          id={`WebhookConfigurationScreen.event-type.${item?.key}`}
+        />
       </span>
     );
   }, []);
   const renderEventDropdownTitle = useCallback((items?: IDropdownOption[]) => {
     return (
       <span>
-        <FormattedMessage id={`HooksSettings.event-type.${items?.[0].key}`} />
+        <FormattedMessage
+          id={`WebhookConfigurationScreen.event-type.${items?.[0].key}`}
+        />
       </span>
     );
   }, []);
@@ -140,7 +148,7 @@ const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHan
         onChange={onEventChange}
         onRenderOption={renderEventDropdownItem}
         onRenderTitle={renderEventDropdownTitle}
-        ariaLabel={"HooksSettings.events.label"}
+        ariaLabel={"WebhookConfigurationScreen.events.label"}
         errorMessage={eventErrorMessage}
       />
       <TextField
@@ -153,20 +161,16 @@ const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHan
   );
 };
 
-interface HooksSettingsContentProps {
+interface WebhookConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function HooksSettingsContent(
+const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenContentProps> = function WebhookConfigurationScreenContent(
   props
 ) {
   const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [{ to: ".", label: <FormattedMessage id="HooksSettings.title" /> }];
-  }, []);
 
   const onTimeoutChange = useCallback(
     (_, value?: string) => {
@@ -210,47 +214,58 @@ const HooksSettingsContent: React.FC<HooksSettingsContentProps> = function Hooks
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <TextField
-        className={styles.textField}
-        type="number"
-        min="1"
-        step="1"
-        label={renderToString("HooksSettings.total-timeout.label")}
-        value={String(state.totalTimeout)}
-        onChange={onTotalTimeoutChange}
-      />
-      <TextField
-        className={styles.textField}
-        type="number"
-        min="1"
-        step="1"
-        label={renderToString("HooksSettings.timeout.label")}
-        value={String(state.timeout)}
-        onChange={onTimeoutChange}
-      />
-
-      <FieldList
-        className={styles.handlerList}
-        label={
-          <Label>
-            <FormattedMessage id="HooksSettings.handlers.label" />
-          </Label>
-        }
-        parentJSONPointer="/hook"
-        fieldName="handlers"
-        list={state.handlers}
-        onListChange={onHandlersChange}
-        makeDefaultItem={makeDefaultHandler}
-        renderListItem={renderHandlerItem}
-        addButtonLabelMessageID="add"
-      />
-    </div>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="WebhookConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="WebhookConfigurationScreen.description" />
+      </ScreenDescription>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="WebhookConfigurationScreen.webhook-settings" />
+        </WidgetTitle>
+        <TextField
+          className={styles.control}
+          type="number"
+          min="1"
+          step="1"
+          label={renderToString(
+            "WebhookConfigurationScreen.total-timeout.label"
+          )}
+          value={String(state.totalTimeout)}
+          onChange={onTotalTimeoutChange}
+        />
+        <TextField
+          className={styles.control}
+          type="number"
+          min="1"
+          step="1"
+          label={renderToString("WebhookConfigurationScreen.timeout.label")}
+          value={String(state.timeout)}
+          onChange={onTimeoutChange}
+        />
+        <FieldList
+          className={styles.control}
+          label={
+            <Label>
+              <FormattedMessage id="WebhookConfigurationScreen.handlers.label" />
+            </Label>
+          }
+          parentJSONPointer="/hook"
+          fieldName="handlers"
+          list={state.handlers}
+          onListChange={onHandlersChange}
+          makeDefaultItem={makeDefaultHandler}
+          renderListItem={renderHandlerItem}
+          addButtonLabelMessageID="add"
+        />
+      </Widget>
+    </ScreenContent>
   );
 };
 
-const HooksSettings: React.FC = function HooksSettings() {
+const WebhookConfigurationScreen: React.FC = function WebhookConfigurationScreen() {
   const { appID } = useParams();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
@@ -264,9 +279,9 @@ const HooksSettings: React.FC = function HooksSettings() {
 
   return (
     <FormContainer form={form}>
-      <HooksSettingsContent form={form} />
+      <WebhookConfigurationScreenContent form={form} />
     </FormContainer>
   );
 };
 
-export default HooksSettings;
+export default WebhookConfigurationScreen;

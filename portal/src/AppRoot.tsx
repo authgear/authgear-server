@@ -29,7 +29,7 @@ import LocalizationConfigurationScreen from "./graphql/portal/LocalizationConfig
 import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
 import SessionConfigurationScreen from "./graphql/portal/SessionConfigurationScreen";
-import HooksSettings from "./graphql/portal/HooksSettings";
+import WebhookConfigurationScreen from "./graphql/portal/WebhookConfigurationScreen";
 import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
 import AuthenticationLoginIDSettingsScreen from "./graphql/portal/AuthenticationLoginIDSettings";
 import AuthenticationAuthenticatorSettingsScreen from "./graphql/portal/AuthenticationAuthenticatorSettings";
@@ -161,7 +161,7 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route
             path="/configuration/settings/web-hooks"
-            element={<HooksSettings />}
+            element={<WebhookConfigurationScreen />}
           />
         </Routes>
       </ScreenLayout>

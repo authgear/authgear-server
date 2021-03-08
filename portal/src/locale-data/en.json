@@ -81,6 +81,7 @@
   "ScreenNav.ui-settings": "UI Settings",
   "ScreenNav.localization": "Localization",
   "ScreenNav.sessions": "Sessions",
+  "ScreenNav.webhooks": "Webhooks",
   "ScreenNav.settings": "Settings",
 
   "NavBreadcrumb.label": "Nested navigation",
@@ -460,7 +461,7 @@
   "SettingsScreen.general.title": "General",
   "SettingsScreen.portal_admins.title": "Portal Admins",
   "SettingsScreen.session.title": "Session",
-  "SettingsScreen.hooks.title": "Web-hooks",
+  "SettingsScreen.hooks.title": "Webhooks",
 
   "PortalAdminSettings.title": "Portal Admins",
   "PortalAdminsSettings.invite": "Invite",
@@ -500,13 +501,15 @@
   "SessionConfigurationScreen.invalidate-session-after-idling.label": "Invalidate session after idling",
   "SessionConfigurationScreen.idle-timeout.label": "Idle Timeout (seconds)",
 
-  "HooksSettings.title": "Web-hooks",
-  "HooksSettings.total-timeout.label": "Timeout (seconds)",
-  "HooksSettings.timeout.label": "Per-handler timeout (seconds)",
-  "HooksSettings.handlers.label": "Handlers",
-  "HooksSettings.events.label": "Handler event type",
-  "HooksSettings.event-type.before_user_create": "Before user creation",
-  "HooksSettings.event-type.after_user_create": "After user creation",
+  "WebhookConfigurationScreen.title": "Webhooks",
+  "WebhookConfigurationScreen.description": "Authgear can deliver webhook events to your server when important events such as new user signup happen.",
+  "WebhookConfigurationScreen.webhook-settings": "Webhook Settings",
+  "WebhookConfigurationScreen.total-timeout.label": "Timeout (seconds)",
+  "WebhookConfigurationScreen.timeout.label": "Per-handler timeout (seconds)",
+  "WebhookConfigurationScreen.handlers.label": "Handlers",
+  "WebhookConfigurationScreen.events.label": "Handler event type",
+  "WebhookConfigurationScreen.event-type.before_user_create": "Before user creation",
+  "WebhookConfigurationScreen.event-type.after_user_create": "After user creation",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 

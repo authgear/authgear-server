@@ -1,0 +1,31 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.widget {
+  margin: 10px 15px;
+  max-width: 672px;
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.control {
+  margin: 10px;
+}
+
+.handlerEdit {
+  flex-grow: 1;
+  display: flex;
+
+  .handlerEventField {
+    width: 200px;
+    margin-right: 8px;
+  }
+  .handlerURLField {
+    flex: 1 0 0;
+  }
+}
