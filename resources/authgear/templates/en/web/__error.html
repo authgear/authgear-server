@@ -8,6 +8,9 @@
     {{ else if eq .Error.reason "WebUIInvalidSession" }}
         <!-- This error is handled as fatal error -->
         {{ $display_error = false }}
+    {{ else if eq .Error.reason "WebHookDisallowed" }}
+        <!-- This error is handled as fatal error -->
+        {{ $display_error = false }}
     {{ end }}
 {{ end }}
 <div class="messages-bar errors-messages-bar errors {{ if not $display_error }}display-none{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
