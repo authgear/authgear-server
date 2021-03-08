@@ -269,8 +269,7 @@
   "AnonymousIdentityConflictBehaviour.error": "Show Error",
 
   "SingleSignOnConfigurationScreen.title": "Single-Sign On",
-  "SingleSignOnConfigurationScreen.help-link-label": "Need help? View our SSO integration documentations",
-  "SingleSignOnConfigurationScreen.help-link-href": "https://docs.authgear.com/how-tos/how-to-setup-sso-integrations",
+  "SingleSignOnConfigurationScreen.description": "Configure and enable your users to login via SSO. Read the {Link, react, href{{HREF}} target{_blank} children{SSO integration guide}} if you need help",
   "SingleSignOnConfigurationScreen.widget.alias": "Alias",
   "SingleSignOnConfigurationScreen.widget.client-id": "Client ID",
   "SingleSignOnConfigurationScreen.widget.client-secret": "Client Secret",
