@@ -40,6 +40,7 @@ interface PendingFormState {
   loginIDKeys: Set<LoginIDKeyType>;
   primaryAuthenticator: PrimaryAuthenticatorType;
   secondaryAuthenticationMode: SecondaryAuthenticationMode;
+  secondaryAuthenticators: Set<SecondaryAuthenticatorType>;
 }
 
 interface FormState {
@@ -53,6 +54,10 @@ function constructFormState(_config: PortalAPIAppConfig): FormState {
       loginIDKeys: new Set<LoginIDKeyType>(),
       primaryAuthenticator: "password",
       secondaryAuthenticationMode: "if_exists",
+      secondaryAuthenticators: new Set<SecondaryAuthenticatorType>([
+        "totp",
+        "oob_otp_sms",
+      ]),
     },
   };
 }
@@ -379,6 +384,110 @@ const SecondaryAuthenticationModeContent: React.FC<SecondaryAuthenticationModeCo
   );
 };
 
+interface SecondaryAuthenticatorOption {
+  labelId: string;
+  authenticatorType: SecondaryAuthenticatorType;
+}
+
+interface SecondaryAuthenticatorCheckboxProps {
+  form: AppConfigFormModel<FormState>;
+  option: SecondaryAuthenticatorOption;
+}
+
+const SecondaryAuthenticatorCheckbox: React.FC<SecondaryAuthenticatorCheckboxProps> = function SecondaryAuthenticatorCheckbox(
+  props
+) {
+  const { renderToString } = useContext(Context);
+  const {
+    form: { state, setState },
+    option,
+  } = props;
+
+  const getCheckedState = useCallback(
+    (authenticatorType: SecondaryAuthenticatorType) =>
+      state.pendingForm.secondaryAuthenticators.has(authenticatorType),
+    [state]
+  );
+
+  const onChange = useCallback(
+    (_event, checked?: boolean) => {
+      const secondaryAuthenticators = new Set(
+        state.pendingForm.secondaryAuthenticators
+      );
+      if (checked) {
+        secondaryAuthenticators.add(option.authenticatorType);
+      } else {
+        secondaryAuthenticators.delete(option.authenticatorType);
+      }
+
+      setState((prev) => ({
+        ...prev,
+        pendingForm: {
+          ...prev.pendingForm,
+          secondaryAuthenticators,
+        },
+      }));
+    },
+    [state, setState, option]
+  );
+
+  return (
+    <Checkbox
+      className={styles.checkboxGroup}
+      checked={getCheckedState(option.authenticatorType)}
+      label={renderToString(option.labelId)}
+      onChange={onChange}
+    />
+  );
+};
+
+interface SecondaryAuthenticatorsContentProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const SecondaryAuthenticatorsContent: React.FC<SecondaryAuthenticatorsContentProps> = function SecondaryAuthenticatorsContent(
+  props
+) {
+  const { form } = props;
+
+  const options: SecondaryAuthenticatorOption[] = useMemo(
+    () => [
+      {
+        labelId: "Onboarding.secondary-authenticators.totp",
+        authenticatorType: "totp",
+      },
+      {
+        labelId: "Onboarding.secondary-authenticators.oob-sms",
+        authenticatorType: "oob_otp_sms",
+      },
+      {
+        labelId: "Onboarding.secondary-authenticators.oob-email",
+        authenticatorType: "oob_otp_email",
+      },
+      {
+        labelId: "Onboarding.secondary-authenticators.additional-password",
+        authenticatorType: "password",
+      },
+    ],
+    []
+  );
+
+  return (
+    <section className={styles.sections}>
+      <Label className={styles.fieldLabel}>
+        <FontIcon iconName="PlayerSettings" className={styles.icon} />
+        <FormattedMessage id="Onboarding.secondary-authenticators.title" />
+      </Label>
+      {options.map((o, idx) => (
+        <SecondaryAuthenticatorCheckbox
+          key={`secondary-authenticator-${idx}`}
+          form={form}
+          option={o}
+        />
+      ))}
+    </section>
+  );
+};
 interface OnboardingConfigAppScreenFormProps {
   form: AppConfigFormModel<FormState>;
 }
@@ -398,6 +507,7 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
       <IdentitiesListContent form={form} />
       <PrimaryAuthenticatorsContent form={form} />
       <SecondaryAuthenticationModeContent form={form} />
+      <SecondaryAuthenticatorsContent form={form} />
     </div>
   );
 };
