@@ -1,21 +1,25 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { TextField, Toggle } from "@fluentui/react";
 import cn from "classnames";
 import produce from "immer";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 
-import styles from "./SessionSettings.module.scss";
+import styles from "./SessionConfigurationScreen.module.scss";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 interface FormState {
   persistentCookie: boolean;
@@ -66,18 +70,12 @@ interface HooksSettingsContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const SessionSettingsContent: React.FC<HooksSettingsContentProps> = function SessionSettingsContent(
+const SessionConfigurationScreenContent: React.FC<HooksSettingsContentProps> = function SessionConfigurationScreenContent(
   props
 ) {
   const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      { to: ".", label: <FormattedMessage id="SessionSettings.title" /> },
-    ];
-  }, []);
 
   const onPersistentCookieChange = useCallback(
     (_, value?: boolean) => {
@@ -120,52 +118,64 @@ const SessionSettingsContent: React.FC<HooksSettingsContentProps> = function Ses
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <section className={styles.section}>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="SessionConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="SessionConfigurationScreen.description" />
+      </ScreenDescription>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="SessionConfigurationScreen.session-settings" />
+        </WidgetTitle>
         <Toggle
+          className={styles.control}
           inlineLabel={true}
-          label={renderToString("SessionSettings.persistent-cookie.label")}
+          label={renderToString(
+            "SessionConfigurationScreen.persistent-cookie.label"
+          )}
           checked={state.persistentCookie}
           onChange={onPersistentCookieChange}
         />
-      </section>
-      <section className={styles.section}>
         <TextField
-          className={styles.textField}
+          className={styles.control}
           type="number"
           min="1"
           step="1"
-          label={renderToString("SessionSettings.session-lifetime.label")}
+          label={renderToString(
+            "SessionConfigurationScreen.session-lifetime.label"
+          )}
           value={String(state.sessionLifetimeSeconds)}
           onChange={onSessionLifetimeSecondsChange}
         />
-      </section>
-      <section className={styles.section}>
         <Toggle
+          className={styles.control}
           inlineLabel={true}
           label={renderToString(
-            "SessionSettings.invalidate-session-after-idling.label"
+            "SessionConfigurationScreen.invalidate-session-after-idling.label"
           )}
           checked={state.idleTimeoutEnabled}
           onChange={onIdleTimeoutEnabledChange}
         />
         <TextField
-          className={cn(styles.textField, styles.toggleContent)}
+          className={styles.control}
           type="number"
           min="1"
           step="1"
           disabled={!state.idleTimeoutEnabled}
-          label={renderToString("SessionSettings.idle-timeout.label")}
+          label={renderToString(
+            "SessionConfigurationScreen.idle-timeout.label"
+          )}
           value={String(state.idleTimeoutSeconds)}
           onChange={onIdleTimeoutSecondsChange}
         />
-      </section>
-    </div>
+      </Widget>
+    </ScreenContent>
   );
 };
 
-const SessionSettings: React.FC = function SessionSettings() {
+const SessionConfigurationScreen: React.FC = function SessionConfigurationScreen() {
   const { appID } = useParams();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
@@ -179,9 +189,9 @@ const SessionSettings: React.FC = function SessionSettings() {
 
   return (
     <FormContainer form={form}>
-      <SessionSettingsContent form={form} />
+      <SessionConfigurationScreenContent form={form} />
     </FormContainer>
   );
 };
 
-export default SessionSettings;
+export default SessionConfigurationScreen;

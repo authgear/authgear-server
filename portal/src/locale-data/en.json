@@ -80,6 +80,7 @@
   "ScreenNav.client-applications": "Applications",
   "ScreenNav.ui-settings": "UI Settings",
   "ScreenNav.localization": "Localization",
+  "ScreenNav.sessions": "Sessions",
   "ScreenNav.settings": "Settings",
 
   "NavBreadcrumb.label": "Nested navigation",
@@ -491,11 +492,13 @@
 
   "GeneralSettings.app-id.label": "App ID",
 
-  "SessionSettings.title": "Sessions",
-  "SessionSettings.persistent-cookie.label": "Persistent Cookie",
-  "SessionSettings.session-lifetime.label": "Session Lifetime (seconds)",
-  "SessionSettings.invalidate-session-after-idling.label": "Invalidate session after idling",
-  "SessionSettings.idle-timeout.label": "Idle Timeout (seconds)",
+  "SessionConfigurationScreen.title": "Sessions",
+  "SessionConfigurationScreen.description": "Configure the session configuration of the web UI",
+  "SessionConfigurationScreen.session-settings": "Session Settings",
+  "SessionConfigurationScreen.persistent-cookie.label": "Persistent Cookie",
+  "SessionConfigurationScreen.session-lifetime.label": "Session Lifetime (seconds)",
+  "SessionConfigurationScreen.invalidate-session-after-idling.label": "Invalidate session after idling",
+  "SessionConfigurationScreen.idle-timeout.label": "Idle Timeout (seconds)",
 
   "HooksSettings.title": "Web-hooks",
   "HooksSettings.total-timeout.label": "Timeout (seconds)",

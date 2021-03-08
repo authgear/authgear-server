@@ -118,7 +118,7 @@ const links: NavLinkProps[] = [
         url: "configuration/settings/portal-admins",
       },
       {
-        textKey: "SessionSettings.title",
+        textKey: "ScreenNav.sessions",
         url: "configuration/settings/sessions",
       },
       {
