@@ -207,6 +207,10 @@ function Banner(props: BannerProps) {
       className={styles.bannerFrame}
       style={{
         backgroundColor: bannerConfiguration.backgroundColor,
+        paddingTop: bannerConfiguration.paddingTop,
+        paddingRight: bannerConfiguration.paddingRight,
+        paddingBottom: bannerConfiguration.paddingBottom,
+        paddingLeft: bannerConfiguration.paddingLeft,
       }}
     >
       <img
@@ -215,10 +219,6 @@ function Banner(props: BannerProps) {
         style={{
           width: bannerConfiguration.width,
           height: bannerConfiguration.height,
-          marginTop: bannerConfiguration.marginTop,
-          marginRight: bannerConfiguration.marginRight,
-          marginBottom: bannerConfiguration.marginBottom,
-          marginLeft: bannerConfiguration.marginLeft,
         }}
       />
     </div>

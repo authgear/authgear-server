@@ -99,14 +99,14 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
         case "fixed-width":
           onChangeBannerConfiguration?.({
             ...bannerConfiguration,
-            width: bannerConfiguration.height,
+            width: "100%",
             height: "initial",
           });
           break;
         case "fixed-height":
           onChangeBannerConfiguration?.({
             ...bannerConfiguration,
-            height: bannerConfiguration.width,
+            height: DEFAULT_BANNER_CONFIGURATION.height,
             width: "initial",
           });
           break;
@@ -145,9 +145,9 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
     [bannerConfiguration, onChangeBannerConfiguration, dropdownSelectedKey]
   );
 
-  const appLogoHorizontalMargin = bannerConfiguration.marginLeft;
-  const appLogoVerticalMargin = bannerConfiguration.marginTop;
-  const onChangeAppLogoHorizontalMargin = useCallback(
+  const appLogoHorizontalPadding = bannerConfiguration.paddingLeft;
+  const appLogoVerticalPadding = bannerConfiguration.paddingTop;
+  const onChangeAppLogoHorizontalPadding = useCallback(
     (
       _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
       value?: string
@@ -157,13 +157,13 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
       }
       onChangeBannerConfiguration?.({
         ...bannerConfiguration,
-        marginLeft: value,
-        marginRight: value,
+        paddingLeft: value,
+        paddingRight: value,
       });
     },
     [bannerConfiguration, onChangeBannerConfiguration]
   );
-  const onChangeAppLogoVerticalMargin = useCallback(
+  const onChangeAppLogoVerticalPadding = useCallback(
     (
       _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
       value?: string
@@ -173,8 +173,8 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
       }
       onChangeBannerConfiguration?.({
         ...bannerConfiguration,
-        marginTop: value,
-        marginBottom: value,
+        paddingTop: value,
+        paddingBottom: value,
       });
     },
     [bannerConfiguration, onChangeBannerConfiguration]
@@ -383,21 +383,21 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> = functi
             </div>
             <div className={styles.appLogoControl}>
               <TextField
-                className={styles.appLogoMargin}
+                className={styles.appLogoPadding}
                 label={renderToString(
-                  "ThemeConfigurationWidget.left-right-margin"
+                  "ThemeConfigurationWidget.left-right-padding"
                 )}
-                value={appLogoHorizontalMargin}
-                onChange={onChangeAppLogoHorizontalMargin}
+                value={appLogoHorizontalPadding}
+                onChange={onChangeAppLogoHorizontalPadding}
                 disabled={disabled}
               />
               <TextField
-                className={styles.appLogoMargin}
+                className={styles.appLogoPadding}
                 label={renderToString(
-                  "ThemeConfigurationWidget.top-bottom-margin"
+                  "ThemeConfigurationWidget.top-bottom-padding"
                 )}
-                value={appLogoVerticalMargin}
-                onChange={onChangeAppLogoVerticalMargin}
+                value={appLogoVerticalPadding}
+                onChange={onChangeAppLogoVerticalPadding}
                 disabled={disabled}
               />
             </div>

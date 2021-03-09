@@ -116,27 +116,27 @@ const CSS = `
 
 .banner-frame {
   background-color: red;
+  padding-top: 2px;
+  padding-right: 3px;
+  padding-bottom: 4px;
+  padding-left: 5px;
 }
 .banner {
   width: initial;
   height: 1px;
-  margin-top: 2px;
-  margin-right: 3px;
-  margin-bottom: 4px;
-  margin-left: 5px;
 }
 
 @media (prefers-color-scheme: dark) {
   .banner-frame {
     background-color: blue;
+    padding-top: 3px;
+    padding-right: 4px;
+    padding-bottom: 5px;
+    padding-left: 6px;
   }
   .banner {
     width: initial;
     height: 2px;
-    margin-top: 3px;
-    margin-right: 4px;
-    margin-bottom: 5px;
-    margin-left: 6px;
   }
 }
 `;
@@ -184,10 +184,10 @@ describe("getLightBannerConfiguration", () => {
     expect(actual).toEqual({
       width: "initial",
       height: "1px",
-      marginTop: "2px",
-      marginRight: "3px",
-      marginBottom: "4px",
-      marginLeft: "5px",
+      paddingTop: "2px",
+      paddingRight: "3px",
+      paddingBottom: "4px",
+      paddingLeft: "5px",
       backgroundColor: "red",
     });
   });
@@ -205,10 +205,10 @@ describe("getDarkBannerConfiguration", () => {
     expect(actual).toEqual({
       width: "initial",
       height: "2px",
-      marginTop: "3px",
-      marginRight: "4px",
-      marginBottom: "5px",
-      marginLeft: "6px",
+      paddingTop: "3px",
+      paddingRight: "4px",
+      paddingBottom: "5px",
+      paddingLeft: "6px",
       backgroundColor: "blue",
     });
   });
@@ -265,13 +265,13 @@ describe("addLightBannerConfiguration", () => {
     const expected = `.banner {
     width: initial;
     height: 55px;
-    margin-top: 16px;
-    margin-right: 16px;
-    margin-bottom: 16px;
-    margin-left: 16px
 }
 .banner-frame {
     background-color: transparent
+    padding-top: 16px;
+    padding-right: 16px;
+    padding-bottom: 16px;
+    padding-left: 16px
 }`;
     expect(actual).toEqual(expected);
   });
@@ -286,13 +286,13 @@ describe("addDarkBannerConfiguration", () => {
     .banner {
         width: initial;
         height: 55px;
-        margin-top: 16px;
-        margin-right: 16px;
-        margin-bottom: 16px;
-        margin-left: 16px
     }
     .banner-frame {
         background-color: transparent
+        padding-top: 16px;
+        padding-right: 16px;
+        padding-bottom: 16px;
+        padding-left: 16px
     }
 }`;
     expect(actual).toEqual(expected);

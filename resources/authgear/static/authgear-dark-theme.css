@@ -51,14 +51,14 @@
 @media (prefers-color-scheme: dark) {
   .banner-frame {
     background-color: transparent;
+    padding-top: 16px;
+    padding-right: 16px;
+    padding-bottom: 16px;
+    padding-left: 16px;
   }
   .banner {
     height: 55px;
     width: initial;
-    margin-top: 16px;
-    margin-right: 16px;
-    margin-bottom: 16px;
-    margin-left: 16px;
   }
 }
 
