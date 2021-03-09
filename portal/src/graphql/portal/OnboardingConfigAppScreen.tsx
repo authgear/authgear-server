@@ -72,7 +72,58 @@ function constructConfig(
   _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
-  return produce(config, (config) => {});
+  return produce(config, (config) => {
+    config.authentication ??= {};
+    config.authentication.identities = Array.from(
+      currentState.pendingForm.identities
+    );
+
+    config.identity ??= {};
+    config.identity.login_id ??= {};
+    config.identity.login_id.keys = Array.from(
+      currentState.pendingForm.loginIDKeys
+    ).map((t) => {
+      return { type: t, key: t };
+    });
+
+    if (!currentState.pendingForm.identities.has("login_id")) {
+      return;
+    }
+
+    config.authentication.primary_authenticators = [];
+    if (currentState.pendingForm.primaryAuthenticator === "password") {
+      config.authentication.primary_authenticators.push("password");
+    }
+    if (currentState.pendingForm.primaryAuthenticator === "oob") {
+      if (currentState.pendingForm.loginIDKeys.has("email")) {
+        config.authentication.primary_authenticators.push("oob_otp_email");
+      }
+      if (currentState.pendingForm.loginIDKeys.has("phone")) {
+        config.authentication.primary_authenticators.push("oob_otp_sms");
+      }
+    }
+
+    config.authentication.secondary_authentication_mode =
+      currentState.pendingForm.secondaryAuthenticationMode;
+
+    config.authentication.secondary_authenticators = Array.from(
+      currentState.pendingForm.secondaryAuthenticators
+    );
+
+    if (currentState.pendingForm.loginIDKeys.has("email")) {
+      config.verification ??= {};
+      config.verification.claims ??= {};
+      config.verification.claims.email =
+        currentState.pendingForm.verificationClaims.email;
+    }
+
+    if (currentState.pendingForm.loginIDKeys.has("phone")) {
+      config.verification ??= {};
+      config.verification.claims ??= {};
+      config.verification.claims.phone_number =
+        currentState.pendingForm.verificationClaims.phone_number;
+    }
+  });
 }
 
 interface IdentitiesButton {
