@@ -9,6 +9,7 @@ import cn from "classnames";
 import {
   Callout,
   ColorPicker,
+  IColorPickerProps,
   TextField,
   getColorFromString,
 } from "@fluentui/react";
@@ -19,15 +20,23 @@ export interface PortalColorPickerProps {
   disabled?: boolean;
   color: string;
   onChange: (color: string) => void;
+  alphaType?: IColorPickerProps["alphaType"];
 }
 
 const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColorPicker(
   props: PortalColorPickerProps
 ) {
-  const { className, disabled, color, onChange } = props;
+  const {
+    className,
+    disabled,
+    color,
+    onChange,
+    alphaType: alphaTypeProp,
+  } = props;
   const [colorStr, setColorStr] = useState<string | undefined>();
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const colorboxRef = useRef(null);
+  const alphaType = alphaTypeProp ?? "none";
 
   // Set text field value when color changes.
   useEffect(() => {
@@ -104,7 +113,7 @@ const PortalColorPicker: React.FC<PortalColorPickerProps> = function PortalColor
           <ColorPicker
             color={iColor}
             onChange={onColorPickerChange}
-            alphaType="none"
+            alphaType={alphaType}
           />
         </Callout>
       )}

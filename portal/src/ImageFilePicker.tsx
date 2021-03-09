@@ -13,6 +13,7 @@ import styles from "./ImageFilePicker.module.scss";
 export type ImageFileExtension = ".jpeg" | ".png" | ".gif";
 
 export interface ImageFilePickerProps {
+  disabled?: boolean;
   className?: string;
   base64EncodedData?: string;
   onChange?: (
@@ -37,7 +38,7 @@ function mediaTypeToExtension(mime: string): ImageFileExtension {
 const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker(
   props: ImageFilePickerProps
 ) {
-  const { className, base64EncodedData, onChange } = props;
+  const { disabled, className, base64EncodedData, onChange } = props;
 
   const hasImage = base64EncodedData != null;
 
@@ -105,6 +106,7 @@ const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker
         type="file"
         accept="image/png, image/jpeg, image/gif"
         onChange={onInputChange}
+        disabled={disabled}
       />
       <Image
         src={src}
@@ -124,11 +126,16 @@ const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker
           className={styles.button}
           onClick={onClickRemoveImage}
           theme={themes.destructive}
+          disabled={disabled}
         >
           <FormattedMessage id={"ImageFilePicker.remove"} />
         </PrimaryButton>
       ) : (
-        <DefaultButton className={styles.button} onClick={onClickSelectImage}>
+        <DefaultButton
+          className={styles.button}
+          onClick={onClickSelectImage}
+          disabled={disabled}
+        >
           <FormattedMessage id="ImageFilePicker.upload" />
         </DefaultButton>
       )}

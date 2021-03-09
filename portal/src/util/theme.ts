@@ -20,6 +20,26 @@ export interface DarkTheme {
   backgroundColor: string;
 }
 
+export interface BannerConfiguration {
+  width: string;
+  height: string;
+  paddingTop: string;
+  paddingBottom: string;
+  paddingLeft: string;
+  paddingRight: string;
+  backgroundColor: string;
+}
+
+export const DEFAULT_BANNER_CONFIGURATION: BannerConfiguration = {
+  width: "initial",
+  height: "55px",
+  paddingTop: "16px",
+  paddingRight: "16px",
+  paddingBottom: "16px",
+  paddingLeft: "16px",
+  backgroundColor: "transparent",
+};
+
 // getShades takes a color and then return the shades.
 // The return value is 9-element array, with the first element being the originally given color.
 // The remaining 8 elements are the shades, ordered from Shade.Shade1 to Shade.Shade8
@@ -72,9 +92,9 @@ export function getLightTheme(nodes: Node[]): LightTheme | null {
   let textColor;
   let backgroundColor;
 
-  for (const pseudoRoot of nodes) {
-    if (pseudoRoot instanceof Rule && pseudoRoot.selector === ":root") {
-      for (const decl of pseudoRoot.nodes) {
+  for (const rule of nodes) {
+    if (rule instanceof Rule && rule.selector === ":root") {
+      for (const decl of rule.nodes) {
         if (decl instanceof Declaration) {
           switch (decl.prop) {
             case "--color-primary-unshaded":
@@ -105,6 +125,79 @@ export function getLightTheme(nodes: Node[]): LightTheme | null {
 }
 
 // eslint-disable-next-line complexity
+export function getLightBannerConfiguration(
+  nodes: Node[]
+): BannerConfiguration | null {
+  let width;
+  let height;
+  let paddingTop;
+  let paddingRight;
+  let paddingBottom;
+  let paddingLeft;
+  let backgroundColor;
+
+  for (const rule of nodes) {
+    if (rule instanceof Rule) {
+      for (const decl of rule.nodes) {
+        if (decl instanceof Declaration) {
+          if (rule.selector === ".banner") {
+            switch (decl.prop) {
+              case "width":
+                width = decl.value;
+                break;
+              case "height":
+                height = decl.value;
+                break;
+            }
+          }
+          if (rule.selector === ".banner-frame") {
+            switch (decl.prop) {
+              case "padding-top":
+                paddingTop = decl.value;
+                break;
+              case "padding-right":
+                paddingRight = decl.value;
+                break;
+              case "padding-bottom":
+                paddingBottom = decl.value;
+                break;
+              case "padding-left":
+                paddingLeft = decl.value;
+                break;
+              case "background-color":
+                backgroundColor = decl.value;
+                break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (
+    width != null &&
+    height != null &&
+    paddingTop != null &&
+    paddingRight != null &&
+    paddingBottom != null &&
+    paddingLeft != null &&
+    backgroundColor != null
+  ) {
+    return {
+      width,
+      height,
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft,
+      backgroundColor,
+    };
+  }
+
+  return null;
+}
+
+// eslint-disable-next-line complexity
 export function getDarkTheme(nodes: Node[]): DarkTheme | null {
   let primaryColor;
   let textColor;
@@ -115,9 +208,10 @@ export function getDarkTheme(nodes: Node[]): DarkTheme | null {
       atRule instanceof AtRule &&
       atRule.params === "(prefers-color-scheme: dark)"
     ) {
-      for (const pseudoRoot of atRule.nodes) {
-        if (pseudoRoot instanceof Rule && pseudoRoot.selector === ":root") {
-          for (const decl of pseudoRoot.nodes) {
+      for (const rule of atRule.nodes) {
+        // Extract theme
+        if (rule instanceof Rule && rule.selector === ":root") {
+          for (const decl of rule.nodes) {
             if (decl instanceof Declaration) {
               switch (decl.prop) {
                 case "--color-primary-unshaded":
@@ -149,6 +243,86 @@ export function getDarkTheme(nodes: Node[]): DarkTheme | null {
   return null;
 }
 
+// eslint-disable-next-line complexity
+export function getDarkBannerConfiguration(
+  nodes: Node[]
+): BannerConfiguration | null {
+  let width;
+  let height;
+  let paddingTop;
+  let paddingRight;
+  let paddingBottom;
+  let paddingLeft;
+  let backgroundColor;
+
+  for (const atRule of nodes) {
+    if (
+      atRule instanceof AtRule &&
+      atRule.params === "(prefers-color-scheme: dark)"
+    ) {
+      for (const rule of atRule.nodes) {
+        if (rule instanceof Rule) {
+          for (const decl of rule.nodes) {
+            if (decl instanceof Declaration) {
+              if (rule.selector === ".banner") {
+                switch (decl.prop) {
+                  case "width":
+                    width = decl.value;
+                    break;
+                  case "height":
+                    height = decl.value;
+                    break;
+                }
+              }
+              if (rule.selector === ".banner-frame") {
+                switch (decl.prop) {
+                  case "padding-top":
+                    paddingTop = decl.value;
+                    break;
+                  case "padding-right":
+                    paddingRight = decl.value;
+                    break;
+                  case "padding-bottom":
+                    paddingBottom = decl.value;
+                    break;
+                  case "padding-left":
+                    paddingLeft = decl.value;
+                    break;
+                  case "background-color":
+                    backgroundColor = decl.value;
+                    break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (
+    width != null &&
+    height != null &&
+    paddingTop != null &&
+    paddingRight != null &&
+    paddingBottom != null &&
+    paddingLeft != null &&
+    backgroundColor != null
+  ) {
+    return {
+      width,
+      height,
+      paddingTop,
+      paddingRight,
+      paddingBottom,
+      paddingLeft,
+      backgroundColor,
+    };
+  }
+
+  return null;
+}
+
 function addShadeDeclarations(rule: Rule, shades: string[], name: string) {
   for (let i = 0; i < shades.length; i++) {
     const value = shades[i];
@@ -162,9 +336,7 @@ function addShadeDeclarations(rule: Rule, shades: string[], name: string) {
   }
 }
 
-export function lightThemeToCSS(lightTheme: LightTheme): string {
-  const root = new Root();
-
+export function addLightTheme(root: Root, lightTheme: LightTheme): void {
   const pseudoRoot = new Rule({ selector: ":root" });
   addShadeDeclarations(
     pseudoRoot,
@@ -178,13 +350,9 @@ export function lightThemeToCSS(lightTheme: LightTheme): string {
     "background"
   );
   root.append(pseudoRoot);
-
-  return root.toResult().css;
 }
 
-export function darkThemeToCSS(darkTheme: DarkTheme): string {
-  const root = new Root();
-
+export function addDarkTheme(root: Root, darkTheme: DarkTheme): void {
   const atRule = new AtRule({
     name: "media",
     params: "(prefers-color-scheme: dark)",
@@ -203,8 +371,69 @@ export function darkThemeToCSS(darkTheme: DarkTheme): string {
   );
   atRule.append(darkPseudoRoot);
   root.append(atRule);
+}
 
-  return root.toResult().css;
+export function addLightBannerConfiguration(
+  root: Root,
+  c: BannerConfiguration
+): void {
+  const bannerRule = new Rule({ selector: ".banner" });
+  bannerRule.append(new Declaration({ prop: "width", value: c.width }));
+  bannerRule.append(new Declaration({ prop: "height", value: c.height }));
+
+  const bannerFrameRule = new Rule({ selector: ".banner-frame" });
+  bannerFrameRule.append(
+    new Declaration({ prop: "padding-top", value: c.paddingTop })
+  );
+  bannerFrameRule.append(
+    new Declaration({ prop: "padding-right", value: c.paddingRight })
+  );
+  bannerFrameRule.append(
+    new Declaration({ prop: "padding-bottom", value: c.paddingBottom })
+  );
+  bannerFrameRule.append(
+    new Declaration({ prop: "padding-left", value: c.paddingLeft })
+  );
+  bannerFrameRule.append(
+    new Declaration({ prop: "background-color", value: c.backgroundColor })
+  );
+
+  root.append(bannerRule);
+  root.append(bannerFrameRule);
+}
+
+export function addDarkBannerConfiguration(
+  root: Root,
+  c: BannerConfiguration
+): void {
+  const atRule = new AtRule({
+    name: "media",
+    params: "(prefers-color-scheme: dark)",
+  });
+  const bannerRule = new Rule({ selector: ".banner" });
+  bannerRule.append(new Declaration({ prop: "width", value: c.width }));
+  bannerRule.append(new Declaration({ prop: "height", value: c.height }));
+
+  const bannerFrameRule = new Rule({ selector: ".banner-frame" });
+  bannerFrameRule.append(
+    new Declaration({ prop: "padding-top", value: c.paddingTop })
+  );
+  bannerFrameRule.append(
+    new Declaration({ prop: "padding-right", value: c.paddingRight })
+  );
+  bannerFrameRule.append(
+    new Declaration({ prop: "padding-bottom", value: c.paddingBottom })
+  );
+  bannerFrameRule.append(
+    new Declaration({ prop: "padding-left", value: c.paddingLeft })
+  );
+  bannerFrameRule.append(
+    new Declaration({ prop: "background-color", value: c.backgroundColor })
+  );
+
+  atRule.append(bannerRule);
+  atRule.append(bannerFrameRule);
+  root.append(atRule);
 }
 
 export function isLightThemeEqual(a: LightTheme, b: LightTheme): boolean {

@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import cn from "classnames";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import { getShades } from "./util/theme";
+import { getShades, BannerConfiguration } from "./util/theme";
 import { base64EncodedDataToDataURI } from "./util/uri";
 import styles from "./ThemePreviewWidget.module.scss";
 import appLogo from "./images/app_logo.png";
@@ -16,6 +16,7 @@ import appLogoDark from "./images/app_logo_dark.png";
 export interface ThemePreviewWidgetProps {
   ref?: Ref<HTMLElement>;
   appLogoValue: string | undefined;
+  bannerConfiguration: BannerConfiguration;
   className?: string;
   isDarkMode: boolean;
   primaryColor: string;
@@ -190,10 +191,11 @@ function getDarkModeStyle(options: GetStyleOptions) {
 interface BannerProps {
   isDarkMode: boolean;
   appLogoValue: string | undefined;
+  bannerConfiguration: BannerConfiguration;
 }
 
 function Banner(props: BannerProps) {
-  const { appLogoValue, isDarkMode } = props;
+  const { appLogoValue, isDarkMode, bannerConfiguration } = props;
   const src = useMemo(() => {
     if (appLogoValue != null) {
       return base64EncodedDataToDataURI(appLogoValue);
@@ -201,10 +203,23 @@ function Banner(props: BannerProps) {
     return undefined;
   }, [appLogoValue]);
   return (
-    <div className={styles.bannerFrame}>
+    <div
+      className={styles.bannerFrame}
+      style={{
+        backgroundColor: bannerConfiguration.backgroundColor,
+        paddingTop: bannerConfiguration.paddingTop,
+        paddingRight: bannerConfiguration.paddingRight,
+        paddingBottom: bannerConfiguration.paddingBottom,
+        paddingLeft: bannerConfiguration.paddingLeft,
+      }}
+    >
       <img
         className={styles.banner}
         src={src ?? (isDarkMode ? appLogoDark : appLogo)}
+        style={{
+          width: bannerConfiguration.width,
+          height: bannerConfiguration.height,
+        }}
       />
     </div>
   );
@@ -438,6 +453,7 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
       textColor,
       backgroundColor,
       appLogoValue,
+      bannerConfiguration,
     } = props;
     const rootStyle = useMemo(() => {
       return isDarkMode
@@ -469,7 +485,11 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
                 styles.flexDirectionColumn
               )}
             >
-              <Banner appLogoValue={appLogoValue} isDarkMode={isDarkMode} />
+              <Banner
+                appLogoValue={appLogoValue}
+                isDarkMode={isDarkMode}
+                bannerConfiguration={bannerConfiguration}
+              />
               <div
                 className={cn(
                   styles.flex,

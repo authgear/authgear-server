@@ -89,13 +89,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: transparent;
+  padding-top: 16px;
+  padding-right: 16px;
+  padding-bottom: 16px;
+  // stylelint-disable-next-line declaration-block-no-redundant-longhand-properties
+  padding-left: 16px;
 }
 
 .banner {
   height: 55px;
   width: initial;
-  // stylelint-disable-next-line shorthand-property-no-redundant-values
-  margin: 16px 16px;
 }
 
 .primaryTxt {

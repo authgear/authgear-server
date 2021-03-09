@@ -17,6 +17,11 @@
   border: 2px solid #176df3;
 }
 
+.preset.disabled {
+  opacity: 0.4;
+  cursor: initial;
+}
+
 .background {
   margin: 5px;
   border-radius: 2px;

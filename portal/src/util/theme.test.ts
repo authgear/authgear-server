@@ -1,13 +1,18 @@
 /* global describe, it, expect */
-import { parse } from "postcss";
+import { parse, Root } from "postcss";
 import {
   getShades,
   getLightTheme,
   getDarkTheme,
-  lightThemeToCSS,
-  darkThemeToCSS,
+  getLightBannerConfiguration,
+  getDarkBannerConfiguration,
+  addLightTheme,
+  addDarkTheme,
+  addLightBannerConfiguration,
+  addDarkBannerConfiguration,
   LightTheme,
   DarkTheme,
+  DEFAULT_BANNER_CONFIGURATION,
 } from "./theme";
 
 const DEFAULT_LIGHT_THEME: LightTheme = {
@@ -74,6 +79,7 @@ const CSS = `
   --color-background-shaded-7: #f4f4f4;
   --color-background-shaded-8: #f8f8f8;
 }
+
 @media (prefers-color-scheme: dark) {
   :root {
     --color-primary-unshaded: #317BF4;
@@ -105,6 +111,32 @@ const CSS = `
     --color-background-shaded-6: #252525;
     --color-background-shaded-7: #151515;
     --color-background-shaded-8: #0b0b0b;
+  }
+}
+
+.banner-frame {
+  background-color: red;
+  padding-top: 2px;
+  padding-right: 3px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+}
+.banner {
+  width: initial;
+  height: 1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .banner-frame {
+    background-color: blue;
+    padding-top: 3px;
+    padding-right: 4px;
+    padding-bottom: 5px;
+    padding-left: 6px;
+  }
+  .banner {
+    width: initial;
+    height: 2px;
   }
 }
 `;
@@ -145,9 +177,53 @@ describe("getDarkTheme", () => {
   });
 });
 
-describe("lightThemeToCSS", () => {
+describe("getLightBannerConfiguration", () => {
+  it("extracts banner configuration", () => {
+    const root = parse(CSS);
+    const actual = getLightBannerConfiguration(root.nodes);
+    expect(actual).toEqual({
+      width: "initial",
+      height: "1px",
+      paddingTop: "2px",
+      paddingRight: "3px",
+      paddingBottom: "4px",
+      paddingLeft: "5px",
+      backgroundColor: "red",
+    });
+  });
+
+  it("returns null", () => {
+    const actual = getLightBannerConfiguration([]);
+    expect(actual).toEqual(null);
+  });
+});
+
+describe("getDarkBannerConfiguration", () => {
+  it("extracts banner configuration", () => {
+    const root = parse(CSS);
+    const actual = getDarkBannerConfiguration(root.nodes);
+    expect(actual).toEqual({
+      width: "initial",
+      height: "2px",
+      paddingTop: "3px",
+      paddingRight: "4px",
+      paddingBottom: "5px",
+      paddingLeft: "6px",
+      backgroundColor: "blue",
+    });
+  });
+
+  it("returns null", () => {
+    const actual = getDarkBannerConfiguration([]);
+    expect(actual).toEqual(null);
+  });
+});
+
+describe("addLightTheme", () => {
   it("renders theme into CSS", () => {
-    const actual = lightThemeToCSS(DEFAULT_LIGHT_THEME);
+    const root = new Root();
+    addLightTheme(root, DEFAULT_LIGHT_THEME);
+    const actual = root.toResult().css;
     const expected = `:root {
     --color-primary-unshaded: #176df3;
     --color-primary-shaded-1: #f5f9fe;
@@ -181,9 +257,53 @@ describe("lightThemeToCSS", () => {
   });
 });
 
-describe("darkThemeToCSS", () => {
+describe("addLightBannerConfiguration", () => {
+  it("renders banner configuration into CSS", () => {
+    const root = new Root();
+    addLightBannerConfiguration(root, DEFAULT_BANNER_CONFIGURATION);
+    const actual = root.toResult().css;
+    const expected = `.banner {
+    width: initial;
+    height: 55px;
+}
+.banner-frame {
+    background-color: transparent
+    padding-top: 16px;
+    padding-right: 16px;
+    padding-bottom: 16px;
+    padding-left: 16px
+}`;
+    expect(actual).toEqual(expected);
+  });
+});
+
+describe("addDarkBannerConfiguration", () => {
+  it("renders banner configuration into CSS", () => {
+    const root = new Root();
+    addDarkBannerConfiguration(root, DEFAULT_BANNER_CONFIGURATION);
+    const actual = root.toResult().css;
+    const expected = `@media (prefers-color-scheme: dark) {
+    .banner {
+        width: initial;
+        height: 55px;
+    }
+    .banner-frame {
+        background-color: transparent
+        padding-top: 16px;
+        padding-right: 16px;
+        padding-bottom: 16px;
+        padding-left: 16px
+    }
+}`;
+    expect(actual).toEqual(expected);
+  });
+});
+
+describe("addDarkTheme", () => {
   it("renders theme into CSS", () => {
-    const actual = darkThemeToCSS(DEFAULT_DARK_THEME);
+    const root = new Root();
+    addDarkTheme(root, DEFAULT_DARK_THEME);
+    const actual = root.toResult().css;
     const expected = `@media (prefers-color-scheme: dark) {
     :root {
         --color-primary-unshaded: #317BF4;
