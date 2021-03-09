@@ -656,6 +656,38 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
   props
 ) {
   const { form } = props;
+
+  const showPrimaryAuthenticators = useMemo(
+    () => form.state.pendingForm.identities.has("login_id"),
+    [form.state.pendingForm.identities]
+  );
+
+  // oauth and anonymous doesn't have 2fa
+  const showSecondaryAuthenticationMode = useMemo(
+    () => form.state.pendingForm.identities.has("login_id"),
+    [form.state.pendingForm.identities]
+  );
+
+  // oauth and anonymous doesn't have 2fa
+  const showSecondaryAuthenticators = useMemo(
+    () => form.state.pendingForm.identities.has("login_id"),
+    [form.state.pendingForm.identities]
+  );
+
+  const showEmailVerification = useMemo(
+    () =>
+      form.state.pendingForm.identities.has("login_id") &&
+      form.state.pendingForm.loginIDKeys.has("email"),
+    [form.state.pendingForm.identities, form.state.pendingForm.loginIDKeys]
+  );
+
+  const showPhoneVerification = useMemo(
+    () =>
+      form.state.pendingForm.identities.has("login_id") &&
+      form.state.pendingForm.loginIDKeys.has("phone"),
+    [form.state.pendingForm.identities, form.state.pendingForm.loginIDKeys]
+  );
+
   return (
     <div>
       <Text className={styles.pageTitle} block={true} variant="xLarge">
@@ -665,21 +697,31 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
         <FormattedMessage id="Onboarding.desc" />
       </Text>
       <IdentitiesListContent form={form} />
-      <PrimaryAuthenticatorsContent form={form} />
-      <SecondaryAuthenticationModeContent form={form} />
-      <SecondaryAuthenticatorsContent form={form} />
-      <VerificationContent
-        form={form}
-        claimName="email"
-        labelIconName="Mail"
-        labelId="Onboarding.verification.email-enabled.title"
-      />
-      <VerificationContent
-        form={form}
-        claimName="phone_number"
-        labelIconName="CellPhone"
-        labelId="Onboarding.verification.phone-enabled.title"
-      />
+      {showPrimaryAuthenticators && (
+        <PrimaryAuthenticatorsContent form={form} />
+      )}
+      {showSecondaryAuthenticationMode && (
+        <SecondaryAuthenticationModeContent form={form} />
+      )}
+      {showSecondaryAuthenticators && (
+        <SecondaryAuthenticatorsContent form={form} />
+      )}
+      {showEmailVerification && (
+        <VerificationContent
+          form={form}
+          claimName="email"
+          labelIconName="Mail"
+          labelId="Onboarding.verification.email-enabled.title"
+        />
+      )}
+      {showPhoneVerification && (
+        <VerificationContent
+          form={form}
+          claimName="phone_number"
+          labelIconName="CellPhone"
+          labelId="Onboarding.verification.phone-enabled.title"
+        />
+      )}
     </div>
   );
 };
