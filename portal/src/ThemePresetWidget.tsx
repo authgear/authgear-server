@@ -163,7 +163,11 @@ function ThemePreset(props: ThemePresetProps) {
   );
   return (
     <div
-      className={cn(styles.preset, isSelected && styles.selected)}
+      className={cn(
+        styles.preset,
+        isSelected && styles.selected,
+        disabled && styles.disabled
+      )}
       onClick={disabled ? undefined : onClick}
     >
       <div
@@ -205,7 +209,11 @@ function Custom(props: CustomProps) {
   const { disabled, onClickCustom, isSelected } = props;
   return (
     <div
-      className={cn(styles.preset, isSelected && styles.selected)}
+      className={cn(
+        styles.preset,
+        isSelected && styles.selected,
+        disabled && styles.disabled
+      )}
       onClick={disabled ? undefined : onClickCustom}
     >
       <Icon iconName="Add" className={styles.customIcon} />
