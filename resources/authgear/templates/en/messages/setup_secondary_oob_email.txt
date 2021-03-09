@@ -1,7 +1,7 @@
-Sign up on {{ template "app.name" }}
+Setup Two-Step Verification on {{ template "app.name" }}
 
-Please use the following one-time-password to complete the sign up process.
+Please use the following one-time-password to setup two-step verification.
 
 {{ .Code }}
 
-If you didn't sign up, please ignore this email.
+If you didn't trigger this setup, please ignore this email.

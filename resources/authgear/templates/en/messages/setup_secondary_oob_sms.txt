@@ -1,5 +1,5 @@
-Sign up on {{ template "app.name" }} with this one-time password {{ .Code }}.
+Setup two-step verification on {{ template "app.name" }} with this one-time password {{ .Code }}.
 
-Ignore this if you are not signing up.
+Ignore this if you didn't trigger this setup.
 
 @{{ .Host }} #{{ .Code }}

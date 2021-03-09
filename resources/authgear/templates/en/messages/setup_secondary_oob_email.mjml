@@ -12,9 +12,9 @@
   </mj-section>
   <mj-section padding-top="10px">
     <mj-column>
-      <mj-text font-weight="bold" font-size="24px">Sign up on {{ template "app.name" }}</mj-text>
+      <mj-text font-weight="bold" font-size="24px">Setup Two-Step Verification on {{ template "app.name" }}</mj-text>
       <mj-text font-size="16px" padding-top="10px" line-height="24px">
-        The textbox below contains a one-time password generated to complete your sign up process.
+        The textbox below contains a one-time password generated to setup two-step verification.
       </mj-text>
     </mj-column>
   </mj-section>
@@ -25,8 +25,8 @@
   </mj-section>
   <mj-section>
     <mj-column>
-      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">If you didn't trigger a sign up, please ignore this email.</mj-text>
+      <mj-text font-size="14px" color="#555555" font-weight="light" align="left">If you didn't trigger this setup, please ignore this email.</mj-text>
     </mj-column>
-  </mj-section>  
+  </mj-section>
 </mj-body>
 </mjml>
