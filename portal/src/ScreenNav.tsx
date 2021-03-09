@@ -48,11 +48,11 @@ const links: NavLinkProps[] = [
     url: "configuration/authentication",
     children: [
       {
-        textKey: "AuthenticationLoginIDSettingsScreen.title.nav",
+        textKey: "ScreenNav.login-id",
         url: "configuration/authentication/login-id",
       },
       {
-        textKey: "AuthenticationAuthenticatorSettingsScreen.title.nav",
+        textKey: "ScreenNav.authenticators",
         url: "configuration/authentication/authenticators",
       },
       {
@@ -74,11 +74,11 @@ const links: NavLinkProps[] = [
     url: "configuration/passwords",
     children: [
       {
-        textKey: "PasswordPolicySettingsScreen.title",
+        textKey: "ScreenNav.password-policy",
         url: "configuration/passwords/policy",
       },
       {
-        textKey: "ForgotPasswordSettingsScreen.title",
+        textKey: "ScreenNav.forgot-password",
         url: "configuration/passwords/forgot-password",
       },
     ],
@@ -118,11 +118,11 @@ const links: NavLinkProps[] = [
         url: "configuration/settings/portal-admins",
       },
       {
-        textKey: "SessionSettings.title",
+        textKey: "ScreenNav.sessions",
         url: "configuration/settings/sessions",
       },
       {
-        textKey: "HooksSettings.title",
+        textKey: "ScreenNav.webhooks",
         url: "configuration/settings/web-hooks",
       },
     ],

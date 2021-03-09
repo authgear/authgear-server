@@ -1,15 +1,9 @@
 .root {
-  margin: 0 32px;
-}
-
-.helpLink {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 16px 8px;
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .widget {
-  margin: 16px 8px;
+  margin: 10px 15px;
   width: 600px;
 }

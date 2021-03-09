@@ -5,7 +5,6 @@ import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   Checkbox,
-  DefaultEffects,
   Dropdown,
   IDropdownOption,
   TextField,
@@ -20,18 +19,18 @@ import {
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import FormContainer from "../../FormContainer";
 
 import styles from "./VerificationConfigurationScreen.module.scss";
-
-const cardStyle = {
-  boxShadow: DefaultEffects.elevation4,
-};
 
 interface FormState {
   codeExpirySeconds: number;
@@ -105,15 +104,6 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
   const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="VerificationConfigurationScreen.title" />,
-      },
-    ];
-  }, []);
 
   const onCodeExpirySecondsChange = useCallback(
     (_, value?: string) => {
@@ -191,32 +181,41 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <TextField
-        className={styles.formField}
-        type="number"
-        min="0"
-        step="1"
-        label={renderToString(
-          "VerificationConfigurationScreen.code-expiry-seconds.label"
-        )}
-        value={String(state.codeExpirySeconds)}
-        onChange={onCodeExpirySecondsChange}
-      />
-      <Dropdown
-        className={styles.formField}
-        label={renderToString("VerificationConfigurationScreen.criteria.label")}
-        options={criteriaOptions}
-        selectedKey={state.criteria}
-        onChange={onCriteriaChange}
-      />
-      <div
-        className={cn(styles.formField, styles.claimConfigCard)}
-        style={cardStyle}
-      >
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="VerificationConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="VerificationConfigurationScreen.description" />
+      </ScreenDescription>
+      <Widget className={cn(styles.controlGroup, styles.widget)}>
+        <WidgetTitle>
+          <FormattedMessage id="VerificationConfigurationScreen.basic-settings" />
+        </WidgetTitle>
+        <TextField
+          className={styles.control}
+          type="number"
+          min="0"
+          step="1"
+          label={renderToString(
+            "VerificationConfigurationScreen.code-expiry-seconds.label"
+          )}
+          value={String(state.codeExpirySeconds)}
+          onChange={onCodeExpirySecondsChange}
+        />
+        <Dropdown
+          className={styles.control}
+          label={renderToString(
+            "VerificationConfigurationScreen.criteria.label"
+          )}
+          options={criteriaOptions}
+          selectedKey={state.criteria}
+          onChange={onCriteriaChange}
+        />
+      </Widget>
+      <Widget className={cn(styles.controlGroup, styles.widget)}>
         <Toggle
-          className={styles.claimConfigTitle}
+          className={styles.control}
           checked={state.email.enabled}
           onChange={onEmailEnabledChange}
           label={renderToString(
@@ -225,6 +224,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           inlineLabel={true}
         />
         <Checkbox
+          className={styles.control}
           disabled={!state.email.enabled}
           checked={state.email.required}
           onChange={onEmailRequiredChange}
@@ -232,13 +232,10 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             "VerificationConfigurationScreen.verification.required.label"
           )}
         />
-      </div>
-      <div
-        className={cn(styles.formField, styles.claimConfigCard)}
-        style={cardStyle}
-      >
+      </Widget>
+      <Widget className={cn(styles.controlGroup, styles.widget)}>
         <Toggle
-          className={styles.claimConfigTitle}
+          className={styles.control}
           checked={state.phone.enabled}
           onChange={onPhoneEnabledChange}
           label={renderToString(
@@ -247,6 +244,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           inlineLabel={true}
         />
         <Checkbox
+          className={styles.control}
           disabled={!state.phone.enabled}
           checked={state.phone.required}
           onChange={onPhoneRequiredChange}
@@ -254,8 +252,8 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             "VerificationConfigurationScreen.verification.required.label"
           )}
         />
-      </div>
-    </div>
+      </Widget>
+    </ScreenContent>
   );
 };
 

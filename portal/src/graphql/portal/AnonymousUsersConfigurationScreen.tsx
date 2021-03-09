@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Dropdown, IDropdownOption, Toggle } from "@fluentui/react";
+import cn from "classnames";
 import {
   isPromotionConflictBehaviour,
   PortalAPIAppConfig,
@@ -12,14 +13,17 @@ import {
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-
-import styles from "./AnonymousUsersConfigurationScreen.module.scss";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import FormContainer from "../../FormContainer";
+import styles from "./AnonymousUsersConfigurationScreen.module.scss";
 
 const dropDownStyles = {
   dropdown: {
@@ -90,17 +94,6 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
 
   const { renderToString } = useContext(Context);
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: (
-          <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
-        ),
-      },
-    ];
-  }, []);
-
   const conflictBehaviourOptions = useMemo(
     () =>
       promotionConflictBehaviours.map((behaviour) => {
@@ -137,27 +130,39 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <Toggle
-        className={styles.toggle}
-        checked={state.enabled}
-        onChange={onEnableChange}
-        label={renderToString("AnonymousUsersConfigurationScreen.enable.label")}
-        inlineLabel={true}
-      />
-      <Dropdown
-        className={styles.dropdown}
-        styles={dropDownStyles}
-        label={renderToString(
-          "AnonymousUsersConfigurationScreen.conflict-droplist.label"
-        )}
-        disabled={!state.enabled}
-        options={conflictBehaviourOptions}
-        selectedKey={state.promotionConflictBehaviour}
-        onChange={onConflictOptionChange}
-      />
-    </div>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
+      </ScreenDescription>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
+        </WidgetTitle>
+        <Toggle
+          className={styles.control}
+          checked={state.enabled}
+          onChange={onEnableChange}
+          label={renderToString(
+            "AnonymousUsersConfigurationScreen.enable.label"
+          )}
+          inlineLabel={true}
+        />
+        <Dropdown
+          className={styles.control}
+          styles={dropDownStyles}
+          label={renderToString(
+            "AnonymousUsersConfigurationScreen.conflict-droplist.label"
+          )}
+          disabled={!state.enabled}
+          options={conflictBehaviourOptions}
+          selectedKey={state.promotionConflictBehaviour}
+          onChange={onConflictOptionChange}
+        />
+      </Widget>
+    </ScreenContent>
   );
 };
 

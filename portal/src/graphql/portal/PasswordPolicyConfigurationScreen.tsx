@@ -11,7 +11,7 @@ import {
 } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import produce from "immer";
-
+import cn from "classnames";
 import ToggleWithContent from "../../ToggleWithContent";
 import { clearEmptyObject } from "../../util/misc";
 import {
@@ -27,10 +27,14 @@ import {
 } from "../../hook/useAppConfigForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
-import styles from "./PasswordPolicySettings.module.scss";
+import styles from "./PasswordPolicyConfigurationScreen.module.scss";
 
 interface FormState {
   policy: Required<PasswordPolicyConfig>;
@@ -119,31 +123,22 @@ function constructConfig(
   });
 }
 
-interface PasswordPolicySettingsContentProps {
+interface PasswordPolicyConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const PasswordPolicySettingsContent: React.FC<PasswordPolicySettingsContentProps> = function PasswordPolicySettingsContent(
+const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigurationScreenContentProps> = function PasswordPolicyConfigurationScreenContent(
   props
 ) {
   const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="PasswordPolicySettingsScreen.title" />,
-      },
-    ];
-  }, []);
-
   const minGuessableLevelOptions: IDropdownOption[] = useMemo(() => {
     return passwordPolicyGuessableLevels.map((level) => ({
       key: level,
       text: renderToString(
-        `PasswordPolicySettingsScreen.min-guessable-level.${level}`
+        `PasswordPolicyConfigurationScreen.min-guessable-level.${level}`
       ),
       isSelected: level === state.policy.minimum_guessable_level,
     }));
@@ -278,114 +273,130 @@ const PasswordPolicySettingsContent: React.FC<PasswordPolicySettingsContentProps
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <TextField
-        className={styles.textField}
-        type="number"
-        min="1"
-        step="1"
-        label={renderToString("PasswordPolicySettingsScreen.min-length.label")}
-        value={String(state.policy.min_length)}
-        onChange={onMinLengthChange}
-      />
-      <Checkbox
-        className={styles.checkbox}
-        label={renderToString(
-          "PasswordPolicySettingsScreen.require-digit.label"
-        )}
-        checked={state.policy.digit_required}
-        onChange={onDigitRequiredChange}
-      />
-      <Checkbox
-        className={styles.checkbox}
-        label={renderToString(
-          "PasswordPolicySettingsScreen.require-lowercase.label"
-        )}
-        checked={state.policy.lowercase_required}
-        onChange={onLowercaseRequiredChange}
-      />
-      <Checkbox
-        className={styles.checkbox}
-        label={renderToString(
-          "PasswordPolicySettingsScreen.require-uppercase.label"
-        )}
-        checked={state.policy.uppercase_required}
-        onChange={onUppercaseRequiredChange}
-      />
-      <Checkbox
-        className={styles.checkbox}
-        label={renderToString(
-          "PasswordPolicySettingsScreen.require-symbol.label"
-        )}
-        checked={state.policy.symbol_required}
-        onChange={onSymbolRequiredChange}
-      />
-
-      <Dropdown
-        className={styles.dropdown}
-        label={renderToString(
-          "PasswordPolicySettingsScreen.min-guessable-level.label"
-        )}
-        options={minGuessableLevelOptions}
-        selectedKey={state.policy.minimum_guessable_level}
-        onChange={onMinimumGuessableLevelChange}
-      />
-
-      <ToggleWithContent
-        className={styles.toggleWithContent}
-        checked={state.isPreventPasswordReuseEnabled}
-        inlineLabel={true}
-        onChange={onPreventReuseChange}
-      >
-        <Label className={styles.toggleLabel}>
-          <FormattedMessage id="PasswordPolicySettingsScreen.prevent-reuse.label" />
-        </Label>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="PasswordPolicyConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="PasswordPolicyConfigurationScreen.description" />
+      </ScreenDescription>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="PasswordPolicyConfigurationScreen.basic-policies" />
+        </WidgetTitle>
         <TextField
-          className={styles.textField}
+          className={styles.control}
           type="number"
-          min="0"
+          min="1"
           step="1"
-          disabled={!state.isPreventPasswordReuseEnabled}
           label={renderToString(
-            "PasswordPolicySettingsScreen.history-days.label"
+            "PasswordPolicyConfigurationScreen.min-length.label"
           )}
-          value={String(state.policy.history_days)}
-          onChange={onHistoryDaysChange}
+          value={String(state.policy.min_length)}
+          onChange={onMinLengthChange}
         />
-        <TextField
-          className={styles.textField}
-          type="number"
-          min="0"
-          step="1"
-          disabled={!state.isPreventPasswordReuseEnabled}
+        <Checkbox
+          className={styles.control}
           label={renderToString(
-            "PasswordPolicySettingsScreen.history-size.label"
+            "PasswordPolicyConfigurationScreen.require-digit.label"
           )}
-          value={String(state.policy.history_size)}
-          onChange={onHistorySizeChange}
+          checked={state.policy.digit_required}
+          onChange={onDigitRequiredChange}
         />
-      </ToggleWithContent>
+        <Checkbox
+          className={styles.control}
+          label={renderToString(
+            "PasswordPolicyConfigurationScreen.require-lowercase.label"
+          )}
+          checked={state.policy.lowercase_required}
+          onChange={onLowercaseRequiredChange}
+        />
+        <Checkbox
+          className={styles.control}
+          label={renderToString(
+            "PasswordPolicyConfigurationScreen.require-uppercase.label"
+          )}
+          checked={state.policy.uppercase_required}
+          onChange={onUppercaseRequiredChange}
+        />
+        <Checkbox
+          className={styles.control}
+          label={renderToString(
+            "PasswordPolicyConfigurationScreen.require-symbol.label"
+          )}
+          checked={state.policy.symbol_required}
+          onChange={onSymbolRequiredChange}
+        />
+      </Widget>
 
-      <Label className={styles.tagPickerLabel}>
-        <FormattedMessage id="PasswordPolicySettingsScreen.excluded-keywords.label" />
-      </Label>
-      <TagPicker
-        className={styles.tagPicker}
-        inputProps={{
-          "aria-label": renderToString(
-            "PasswordPolicySettingsScreen.excluded-keywords.label"
-          ),
-        }}
-        defaultSelectedItems={defaultSelectedExcludedKeywordItems}
-        onResolveSuggestions={onResolveExcludedKeywordSuggestions}
-        onChange={onExcludedKeywordsChange}
-      />
-    </div>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="PasswordPolicyConfigurationScreen.advanced-policies" />
+        </WidgetTitle>
+        <Dropdown
+          className={styles.control}
+          label={renderToString(
+            "PasswordPolicyConfigurationScreen.min-guessable-level.label"
+          )}
+          options={minGuessableLevelOptions}
+          selectedKey={state.policy.minimum_guessable_level}
+          onChange={onMinimumGuessableLevelChange}
+        />
+        <ToggleWithContent
+          className={styles.control}
+          checked={state.isPreventPasswordReuseEnabled}
+          inlineLabel={true}
+          onChange={onPreventReuseChange}
+        >
+          <Label className={styles.toggleLabel}>
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.prevent-reuse.label" />
+          </Label>
+          <TextField
+            className={styles.control}
+            type="number"
+            min="0"
+            step="1"
+            disabled={!state.isPreventPasswordReuseEnabled}
+            label={renderToString(
+              "PasswordPolicyConfigurationScreen.history-days.label"
+            )}
+            value={String(state.policy.history_days)}
+            onChange={onHistoryDaysChange}
+          />
+          <TextField
+            className={styles.control}
+            type="number"
+            min="0"
+            step="1"
+            disabled={!state.isPreventPasswordReuseEnabled}
+            label={renderToString(
+              "PasswordPolicyConfigurationScreen.history-size.label"
+            )}
+            value={String(state.policy.history_size)}
+            onChange={onHistorySizeChange}
+          />
+        </ToggleWithContent>
+        <div className={styles.control}>
+          <Label>
+            <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
+          </Label>
+          <TagPicker
+            inputProps={{
+              "aria-label": renderToString(
+                "PasswordPolicyConfigurationScreen.excluded-keywords.label"
+              ),
+            }}
+            defaultSelectedItems={defaultSelectedExcludedKeywordItems}
+            onResolveSuggestions={onResolveExcludedKeywordSuggestions}
+            onChange={onExcludedKeywordsChange}
+          />
+        </div>
+      </Widget>
+    </ScreenContent>
   );
 };
 
-const PasswordPolicySettingsScreen: React.FC = function PasswordPolicySettingsScreen() {
+const PasswordPolicyConfigurationScreen: React.FC = function PasswordPolicyConfigurationScreen() {
   const { appID } = useParams();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
@@ -399,9 +410,9 @@ const PasswordPolicySettingsScreen: React.FC = function PasswordPolicySettingsSc
 
   return (
     <FormContainer form={form}>
-      <PasswordPolicySettingsContent form={form} />
+      <PasswordPolicyConfigurationScreenContent form={form} />
     </FormContainer>
   );
 };
 
-export default PasswordPolicySettingsScreen;
+export default PasswordPolicyConfigurationScreen;

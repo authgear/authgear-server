@@ -5,7 +5,13 @@
 
 .widget {
   margin: 10px 15px;
-  max-width: 672px;
+  max-width: 630px;
+}
+
+.authenticatorColumn {
+  justify-content: flex-start;
+  align-items: center;
+  display: flex;
 }
 
 .controlGroup {

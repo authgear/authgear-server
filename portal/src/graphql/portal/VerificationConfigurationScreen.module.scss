@@ -1,18 +1,18 @@
 .root {
-  margin: 0 32px;
+  display: flex;
+  flex-direction: column;
 }
 
-.formField {
-  width: 600px;
-  margin: 16px 8px;
+.widget {
+  margin: 10px 15px;
+  max-width: 672px;
 }
 
-.claimConfigCard {
-  padding: 20px;
-  margin-top: 32px;
-  margin-bottom: 32px;
+.controlGroup {
+  display: flex;
+  flex-direction: column;
 }
 
-.claimConfigTitle {
-  margin-bottom: 24px;
+.control {
+  margin: 10px;
 }

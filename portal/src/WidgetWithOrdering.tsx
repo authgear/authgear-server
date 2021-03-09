@@ -1,9 +1,7 @@
 import React from "react";
-import { DefaultEffects } from "@fluentui/react";
+import Widget from "./Widget";
 import cn from "classnames";
-
 import OrderButtons from "./OrderButtons";
-
 import styles from "./WidgetWithOrdering.module.scss";
 
 interface WidgetWithOrderingProps {
@@ -32,9 +30,9 @@ const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> = function WidgetWit
   } = props;
 
   return (
-    <div className={className} style={{ boxShadow: DefaultEffects.elevation4 }}>
+    <Widget className={className}>
       <div className={styles.header}>
-        <div className={styles.propsHeader}>{HeaderComponent}</div>
+        {HeaderComponent}
         <OrderButtons
           index={index}
           itemCount={itemCount}
@@ -42,12 +40,8 @@ const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> = function WidgetWit
           renderAriaLabel={renderAriaLabel}
         />
       </div>
-      <div className={styles.contentContainer}>
-        <div className={cn(styles.content, { [styles.readOnly]: readOnly })}>
-          {children}
-        </div>
-      </div>
-    </div>
+      <div className={cn({ [styles.readOnly]: readOnly })}>{children}</div>
+    </Widget>
   );
 };
 

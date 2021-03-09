@@ -17,8 +17,8 @@ import ResetPasswordScreen from "./graphql/adminapi/ResetPasswordScreen";
 
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
-import PasswordPolicySettingsScreen from "./graphql/portal/PasswordPolicySettings";
-import ForgotPasswordSettingsScreen from "./graphql/portal/ForgotPasswordSettings";
+import PasswordPolicyConfigurationScreen from "./graphql/portal/PasswordPolicyConfigurationScreen";
+import ForgotPasswordConfigurationScreen from "./graphql/portal/ForgotPasswordConfigurationScreen";
 import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigurationScreen";
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
@@ -28,11 +28,11 @@ import UISettingsScreen from "./graphql/portal/UISettingsScreen";
 import LocalizationConfigurationScreen from "./graphql/portal/LocalizationConfigurationScreen";
 import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
-import SessionSettings from "./graphql/portal/SessionSettings";
-import HooksSettings from "./graphql/portal/HooksSettings";
+import SessionConfigurationScreen from "./graphql/portal/SessionConfigurationScreen";
+import WebhookConfigurationScreen from "./graphql/portal/WebhookConfigurationScreen";
 import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
-import AuthenticationLoginIDSettingsScreen from "./graphql/portal/AuthenticationLoginIDSettings";
-import AuthenticationAuthenticatorSettingsScreen from "./graphql/portal/AuthenticationAuthenticatorSettings";
+import LoginIDConfigurationScreen from "./graphql/portal/LoginIDConfigurationScreen";
+import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConfigurationScreen";
 import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
@@ -89,11 +89,11 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route
             path="/configuration/authentication/login-id"
-            element={<AuthenticationLoginIDSettingsScreen />}
+            element={<LoginIDConfigurationScreen />}
           />
           <Route
             path="/configuration/authentication/authenticators"
-            element={<AuthenticationAuthenticatorSettingsScreen />}
+            element={<AuthenticatorConfigurationScreen />}
           />
           <Route
             path="/configuration/authentication/verification"
@@ -109,11 +109,11 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route
             path="/configuration/passwords/policy"
-            element={<PasswordPolicySettingsScreen />}
+            element={<PasswordPolicyConfigurationScreen />}
           />
           <Route
             path="/configuration/passwords/forgot-password"
-            element={<ForgotPasswordSettingsScreen />}
+            element={<ForgotPasswordConfigurationScreen />}
           />
           <Route
             path="/configuration/apps/cors"
@@ -157,11 +157,11 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route
             path="/configuration/settings/sessions"
-            element={<SessionSettings />}
+            element={<SessionConfigurationScreen />}
           />
           <Route
             path="/configuration/settings/web-hooks"
-            element={<HooksSettings />}
+            element={<WebhookConfigurationScreen />}
           />
         </Routes>
       </ScreenLayout>

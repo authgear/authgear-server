@@ -1,13 +1,20 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Link } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
-
+import { FormattedMessage } from "@oursky/react-messageformat";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
 import { clearEmptyObject } from "../../util/misc";
+import FormContainer from "../../FormContainer";
+import {
+  AppSecretConfigFormModel,
+  useAppSecretConfigForm,
+} from "../../hook/useAppSecretConfigForm";
 import {
   createOAuthSSOProviderItemKey,
   isOAuthSSOProvider,
@@ -22,14 +29,7 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
 } from "../../types";
-
 import styles from "./SingleSignOnConfigurationScreen.module.scss";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
-import FormContainer from "../../FormContainer";
-import {
-  AppSecretConfigFormModel,
-  useAppSecretConfigForm,
-} from "../../hook/useAppSecretConfigForm";
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
@@ -260,28 +260,23 @@ interface SingleSignOnConfigurationContentProps {
 const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationContentProps> = function SingleSignOnConfigurationContent(
   props
 ) {
-  const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="SingleSignOnConfigurationScreen.title" />,
-      },
-    ];
-  }, []);
-
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <Link
-        href={renderToString("SingleSignOnConfigurationScreen.help-link-href")}
-        target="_blank"
-        className={styles.helpLink}
-      >
-        <FormattedMessage id="SingleSignOnConfigurationScreen.help-link-label" />
-      </Link>
-
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage
+          id="SingleSignOnConfigurationScreen.description"
+          values={{
+            HREF:
+              "https://docs.authgear.com/how-tos/how-to-setup-sso-integrations",
+          }}
+          components={{
+            Link,
+          }}
+        />
+      </ScreenDescription>
       {oauthSSOProviderItemKeys.map((providerItemKey) => (
         <OAuthClientItem
           key={providerItemKey}
@@ -289,7 +284,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
           form={props.form}
         />
       ))}
-    </div>
+    </ScreenContent>
   );
 };
 

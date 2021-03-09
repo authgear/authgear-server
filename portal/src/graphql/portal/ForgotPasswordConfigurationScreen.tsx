@@ -1,20 +1,24 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { TextField } from "@fluentui/react";
 import produce from "immer";
+import cn from "classnames";
 import { clearEmptyObject } from "../../util/misc";
 import { PortalAPIAppConfig } from "../../types";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import { useParams } from "react-router-dom";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import ScreenDescription from "../../ScreenDescription";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
-
-import styles from "./ForgotPasswordSettings.module.scss";
+import styles from "./ForgotPasswordConfigurationScreen.module.scss";
 
 interface FormState {
   codeExpirySeconds: number;
@@ -42,25 +46,16 @@ function constructConfig(
   });
 }
 
-interface ForgotPasswordSettingsContentProps {
+interface ForgotPasswordConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const ForgotPasswordSettingsContent: React.FC<ForgotPasswordSettingsContentProps> = function ForgotPasswordSettingsContent(
+const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigurationScreenContentProps> = function ForgotPasswordConfigurationScreenContent(
   props
 ) {
   const { state, setState } = props.form;
 
   const { renderToString } = useContext(Context);
-
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="ForgotPasswordSettingsScreen.title" />,
-      },
-    ];
-  }, []);
 
   const onCodeExpirySecondsChange = useCallback(
     (_, value?: string) => {
@@ -73,24 +68,34 @@ const ForgotPasswordSettingsContent: React.FC<ForgotPasswordSettingsContentProps
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <TextField
-        className={styles.textField}
-        type="number"
-        min="0"
-        step="1"
-        label={renderToString(
-          "ForgotPasswordSettingsScreen.reset-code-valid-duration.label"
-        )}
-        value={String(state.codeExpirySeconds)}
-        onChange={onCodeExpirySecondsChange}
-      />
-    </div>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="ForgotPasswordConfigurationScreen.title" />
+      </ScreenTitle>
+      <ScreenDescription className={styles.widget}>
+        <FormattedMessage id="ForgotPasswordConfigurationScreen.description" />
+      </ScreenDescription>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="ForgotPasswordConfigurationScreen.code-settings" />
+        </WidgetTitle>
+        <TextField
+          className={styles.control}
+          type="number"
+          min="0"
+          step="1"
+          label={renderToString(
+            "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
+          )}
+          value={String(state.codeExpirySeconds)}
+          onChange={onCodeExpirySecondsChange}
+        />
+      </Widget>
+    </ScreenContent>
   );
 };
 
-const ForgotPasswordSettingsScreen: React.FC = function ForgotPasswordSettingsScreen() {
+const ForgotPasswordConfigurationScreenScreen: React.FC = function ForgotPasswordConfigurationScreenScreen() {
   const { appID } = useParams();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
@@ -104,9 +109,9 @@ const ForgotPasswordSettingsScreen: React.FC = function ForgotPasswordSettingsSc
 
   return (
     <FormContainer form={form}>
-      <ForgotPasswordSettingsContent form={form} />
+      <ForgotPasswordConfigurationScreenContent form={form} />
     </FormContainer>
   );
 };
 
-export default ForgotPasswordSettingsScreen;
+export default ForgotPasswordConfigurationScreenScreen;

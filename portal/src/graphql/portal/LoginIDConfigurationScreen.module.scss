@@ -1,0 +1,30 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.widget {
+  margin: 10px 15px;
+  width: 850px;
+}
+
+.widgetContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkboxLabel {
+  font-size: 14px;
+  font-weight: 400;
+  margin-bottom: 5px;
+  padding: 2px 0;
+}
+
+.widgetInputField {
+  width: 490px;
+  margin-bottom: 10px;
+}
+
+.control {
+  margin: 10px;
+}
