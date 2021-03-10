@@ -18,11 +18,18 @@ const OAuthRedirect: React.FC = function OAuthRedirect() {
       .finishAuthorization()
       .then((result) => {
         const state = result.state ? decodeOAuthState(result.state) : null;
+        let navigateToPath = "/";
         if (state && isString(state.originalPath)) {
-          navigate(state.originalPath);
-          return;
+          navigateToPath = state.originalPath;
         }
-        navigate("/");
+        // if user start the authorization from "/"
+        // redirect to /onboarding-redirect
+        // OnboardingRedirect will further redirect user to create app
+        // if the user doesn't have any apps
+        if (navigateToPath === "/") {
+          navigateToPath = "/onboarding-redirect";
+        }
+        navigate(navigateToPath);
       })
       .catch((err) => {
         console.error(err);
