@@ -41,6 +41,8 @@ var _ = Schema.Add("OAuthClientConfig", `
 		"post_logout_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
 		"access_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds", "minimum": 300 },
 		"refresh_token_lifetime_seconds": { "$ref": "#/$defs/DurationSeconds" },
+		"refresh_token_idle_timeout_enabled": { "type": "boolean" },
+		"refresh_token_idle_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"issue_jwt_access_token": { "type": "boolean" },
 		"is_first_party": { "type": "boolean" }
 	},
@@ -49,28 +51,39 @@ var _ = Schema.Add("OAuthClientConfig", `
 `)
 
 type OAuthClientConfig struct {
-	ClientID               string          `json:"client_id,omitempty"`
-	ClientURI              string          `json:"client_uri,omitempty"`
-	Name                   string          `json:"name,omitempty"`
-	RedirectURIs           []string        `json:"redirect_uris,omitempty"`
-	GrantTypes             []string        `json:"grant_types,omitempty"`
-	ResponseTypes          []string        `json:"response_types,omitempty"`
-	PostLogoutRedirectURIs []string        `json:"post_logout_redirect_uris,omitempty"`
-	AccessTokenLifetime    DurationSeconds `json:"access_token_lifetime_seconds,omitempty"`
-	RefreshTokenLifetime   DurationSeconds `json:"refresh_token_lifetime_seconds,omitempty"`
-	IssueJWTAccessToken    bool            `json:"issue_jwt_access_token,omitempty"`
-	IsFirstParty           bool            `json:"is_first_party,omitempty"`
+	ClientID                       string          `json:"client_id,omitempty"`
+	ClientURI                      string          `json:"client_uri,omitempty"`
+	Name                           string          `json:"name,omitempty"`
+	RedirectURIs                   []string        `json:"redirect_uris,omitempty"`
+	GrantTypes                     []string        `json:"grant_types,omitempty"`
+	ResponseTypes                  []string        `json:"response_types,omitempty"`
+	PostLogoutRedirectURIs         []string        `json:"post_logout_redirect_uris,omitempty"`
+	AccessTokenLifetime            DurationSeconds `json:"access_token_lifetime_seconds,omitempty"`
+	RefreshTokenLifetime           DurationSeconds `json:"refresh_token_lifetime_seconds,omitempty"`
+	RefreshTokenIdleTimeoutEnabled *bool           `json:"refresh_token_idle_timeout_enabled,omitempty"`
+	RefreshTokenIdleTimeout        DurationSeconds `json:"refresh_token_idle_timeout_seconds,omitempty"`
+	IssueJWTAccessToken            bool            `json:"issue_jwt_access_token,omitempty"`
+	IsFirstParty                   bool            `json:"is_first_party,omitempty"`
 }
 
 func (c *OAuthClientConfig) SetDefaults() {
 	if c.AccessTokenLifetime == 0 {
 		c.AccessTokenLifetime = DefaultAccessTokenLifetime
 	}
+
 	if c.RefreshTokenLifetime == 0 {
 		if c.AccessTokenLifetime > DefaultSessionLifetime {
 			c.RefreshTokenLifetime = c.AccessTokenLifetime
 		} else {
 			c.RefreshTokenLifetime = DefaultSessionLifetime
 		}
+	}
+
+	if c.RefreshTokenIdleTimeoutEnabled == nil {
+		b := DefaultSessionIdleTimeoutEnabled
+		c.RefreshTokenIdleTimeoutEnabled = &b
+	}
+	if c.RefreshTokenIdleTimeout == 0 {
+		c.RefreshTokenIdleTimeout = DefaultSessionIdleTimeout
 	}
 }
