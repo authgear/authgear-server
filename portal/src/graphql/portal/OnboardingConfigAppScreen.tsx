@@ -11,6 +11,8 @@ import {
   IDropdownOption,
   Label,
   Text,
+  Link,
+  DirectionalHint,
 } from "@fluentui/react";
 
 import {
@@ -31,6 +33,7 @@ import {
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import OnboardingFormContainer from "./OnboardingFormContainer";
 import styles from "./OnboardingConfigAppScreen.module.scss";
+import LabelWithTooltip from "../../LabelWithTooltip";
 
 const primaryAuthenticatorTypes = ["password", "oob"] as const;
 type PrimaryAuthenticatorType = typeof primaryAuthenticatorTypes[number];
@@ -358,10 +361,14 @@ const PrimaryAuthenticatorsContent: React.FC<PrimaryAuthenticatorsContentProps> 
 
   return (
     <section className={styles.sections}>
-      <Label className={styles.fieldLabel}>
-        <FontIcon iconName="AutoFillTemplate" className={styles.icon} />
-        <FormattedMessage id="Onboarding.primary-authenticators.title" />
-      </Label>
+      <LabelWithTooltip
+        className={styles.fieldLabel}
+        labelId="Onboarding.primary-authenticators.title"
+        tooltipHeaderId=""
+        tooltipMessageId="Onboarding.primary-authenticators.tooltip-message"
+        directionalHint={DirectionalHint.bottomLeftEdge}
+        labelIIconProps={{ iconName: "AutoFillTemplate" }}
+      />
       <ChoiceGroup
         selectedKey={state.pendingForm.primaryAuthenticator}
         options={options}
@@ -433,9 +440,12 @@ const SecondaryAuthenticationModeContent: React.FC<SecondaryAuthenticationModeCo
         selectedKey={state.pendingForm.secondaryAuthenticationMode}
         onChange={onChange}
       />
-      <p className={styles.helpText}>
-        <FormattedMessage id="Onboarding.secondary-authentication-mode.desc" />
-      </p>
+      <Text className={styles.helpText} block={true} variant="small">
+        <FormattedMessage
+          id="Onboarding.secondary-authentication-mode.desc"
+          components={{ Link }}
+        />
+      </Text>
     </section>
   );
 };

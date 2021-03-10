@@ -124,7 +124,7 @@
   "Onboarding.secondary-authenticators.additional-password": "Additional Password",
 
   "Onboarding.secondary-authentication-mode.title": "Is Multi-factor authentication required?",
-  "Onboarding.secondary-authentication-mode.desc": "Multi-Factor Authentication (MFA) enhance security of your end-user greatly! According to research simply having SMS as 2FA block 100% of automated bots, 96% of bulk phishing attacks, and 76% of targeted attacks. Using on-device 2FA is even better at handling targeted attacks!",
+  "Onboarding.secondary-authentication-mode.desc": "Multi-Factor Authentication (MFA) enhance security of your end-user greatly! According to {Link, react, href{https://security.googleblog.com/2019/05/new-research-how-effective-is-basic.html} target{_blank} rel{noreferrer} children{research}} simply having SMS as 2FA block 100% of automated bots, 96% of bulk phishing attacks, and 76% of targeted attacks. Using on-device 2FA is even better at handling targeted attacks!",
   "Onboarding.secondary-authentication-mode.required": "Always required",
   "Onboarding.secondary-authentication-mode.if-exists": "Required if user has Mutli-factor Authenticator",
   "Onboarding.secondary-authentication-mode.if-requested": "Optional",
