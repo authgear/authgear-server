@@ -136,6 +136,21 @@
   "Onboarding.verification.optional" :"Optional",
   "Onboarding.verification.disabled" :"Disabled",
 
+  "OnboardingCompletion.title": "Done",
+  "OnboardingCompletion.desc": "You can always change these configuration in the portal, or configure an even more complicated authentication system.",
+  "OnboardingCompletion.completion-message": "You just setup a full feature login, signup and setting page for your next app!",
+  "OnboardingCompletion.signup-login.title": "Sign up & Login",
+  "OnboardingCompletion.signup-login.desc": "You just setup a full feature login, signup and setting page for your next app!",
+  "OnboardingCompletion.signup-login.action": "Try it out now!",
+  "OnboardingCompletion.settings.title": "Setting Page",
+  "OnboardingCompletion.settings.desc": "After your first sign up, you will be redirected to a setting page. {br, react} {br, react} You can change where to redirect users after sign up or login, and trigger setting page from your apps.",
+  "OnboardingCompletion.sso.title": "Single-Sign On Setting",
+  "OnboardingCompletion.sso.desc": "You need to configure different social logins setting in the portal.",
+  "OnboardingCompletion.sso.action": "Setup now",
+  "OnboardingCompletion.now-you-may.title": "Now you may",
+  "OnboardingCompletion.now-you-may.portal.label": "Continue to Portal for further Customization",
+  "OnboardingCompletion.now-you-may.doc.label": "Learn how to integrate Authgear in minutes with your web / mobile apps.",
+
   "UsersScreen.title": "Users",
   "UsersScreen.add-user": "Add User",
 
