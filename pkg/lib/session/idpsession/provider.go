@@ -2,6 +2,7 @@ package idpsession
 
 import (
 	"crypto/subtle"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -79,7 +80,7 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 
 	s, err := p.Store.Get(id)
 	if err != nil {
-		if !errorutil.Is(err, ErrSessionNotFound) {
+		if !errors.Is(err, ErrSessionNotFound) {
 			err = errorutil.HandledWithMessage(err, "failed to get session")
 		}
 		return nil, err
@@ -103,7 +104,7 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 func (p *Provider) Get(id string) (*IDPSession, error) {
 	session, err := p.Store.Get(id)
 	if err != nil {
-		if !errorutil.Is(err, ErrSessionNotFound) {
+		if !errors.Is(err, ErrSessionNotFound) {
 			err = errorutil.HandledWithMessage(err, "failed to get session")
 		}
 		return nil, err

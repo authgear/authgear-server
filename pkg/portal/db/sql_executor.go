@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
@@ -71,7 +72,7 @@ func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
 
 func isWriteConflict(err error) bool {
 	var pqErr *pq.Error
-	if errorutil.As(err, &pqErr) {
+	if errors.As(err, &pqErr) {
 		// 40001: serialization_failure
 		// 40P01: deadlock_detected
 		return pqErr.Code == "40001" || pqErr.Code == "40P01"

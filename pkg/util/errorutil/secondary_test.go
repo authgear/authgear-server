@@ -16,8 +16,8 @@ func TestSecondary(t *testing.T) {
 		err := errorutil.WithSecondaryError(primary, secondary)
 
 		So(err, ShouldBeError, "primary")
-		So(errorutil.Is(err, primary), ShouldBeTrue)
-		So(errorutil.Is(err, secondary), ShouldBeFalse)
+		So(errors.Is(err, primary), ShouldBeTrue)
+		So(errors.Is(err, secondary), ShouldBeFalse)
 
 		details := errorutil.CollectDetails(err, nil)
 		So(details, ShouldContainKey, "data1")

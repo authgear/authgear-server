@@ -2,6 +2,7 @@ package apierrors
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -122,17 +123,17 @@ func IsAPIError(err error) bool {
 	}
 
 	var e *skyerr
-	if errorutil.As(err, &e) {
+	if errors.As(err, &e) {
 		return true
 	}
 
 	var c APIErrorConvertible
-	if errorutil.As(err, &c) {
+	if errors.As(err, &c) {
 		return true
 	}
 
 	var v *validation.AggregatedError
-	return errorutil.As(err, &v)
+	return errors.As(err, &v)
 }
 
 func AsAPIError(err error) *APIError {
@@ -141,12 +142,12 @@ func AsAPIError(err error) *APIError {
 	}
 
 	var apiError *APIError
-	if errorutil.As(err, &apiError) {
+	if errors.As(err, &apiError) {
 		return apiError
 	}
 
 	var e *skyerr
-	if errorutil.As(err, &e) {
+	if errors.As(err, &e) {
 		details := errorutil.CollectDetails(err, nil)
 		return &APIError{
 			Kind:    e.kind,
@@ -157,12 +158,12 @@ func AsAPIError(err error) *APIError {
 	}
 
 	var c APIErrorConvertible
-	if errorutil.As(err, &c) {
+	if errors.As(err, &c) {
 		return c.AsAPIError()
 	}
 
 	var v *validation.AggregatedError
-	if errorutil.As(err, &v) {
+	if errors.As(err, &v) {
 		causes := make([]Cause, len(v.Errors))
 		for i, c := range v.Errors {
 			c := c

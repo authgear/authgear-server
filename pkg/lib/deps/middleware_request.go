@@ -1,9 +1,8 @@
 package deps
 
 import (
+	"errors"
 	"net/http"
-
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 )
@@ -25,7 +24,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 		}).Debug("serving request")
 		appCtx, err := m.ConfigSource.ProvideContext(r)
 		if err != nil {
-			if errorutil.Is(err, configsource.ErrAppNotFound) {
+			if errors.Is(err, configsource.ErrAppNotFound) {
 				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)
 			} else {
 				logger.WithError(err).Error("failed to resolve config")
