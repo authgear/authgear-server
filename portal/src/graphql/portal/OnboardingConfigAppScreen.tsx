@@ -1,5 +1,5 @@
-import React, { useCallback, useContext, useMemo } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import React, { useCallback, useContext, useEffect, useMemo } from "react";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
@@ -728,7 +728,14 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
 
 const OnboardingConfigAppScreenContent: React.FC = function OnboardingConfigAppScreenContent() {
   const { appID } = useParams();
+  const navigate = useNavigate();
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
+
+  useEffect(() => {
+    if (form.isSubmitted) {
+      navigate(`/app/${encodeURIComponent(appID)}/done`);
+    }
+  }, [form.isSubmitted, navigate, appID]);
 
   if (form.isLoading) {
     return <ShowLoading />;
