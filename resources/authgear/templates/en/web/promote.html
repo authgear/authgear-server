@@ -13,7 +13,8 @@
 		<div class="pane margin-6 flex flex-direction-column">
 		{{ template "__header.html" . }}
 		<div class="padding-6 flex flex-direction-column">
-			<p class="margin-12 primary-txt">{{ template "public-signup-disabled-notice" }}</p>
+			<p class="primary-txt margin-10">{{ template "public-signup-disabled-notice" }}</p>
+			<a class="as-btn not-a btn primary-btn margin-10" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
 		</div>
 		</div>
 		{{ else }}
