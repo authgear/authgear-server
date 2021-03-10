@@ -2309,10 +2309,12 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	appConfig := config.AppConfig
+	authenticationConfig := appConfig.Authentication
 	httpConfig := appConfig.HTTP
 	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
 	rootHandler := &webapp2.RootHandler{
-		SignedUpCookie: signedUpCookieDef,
+		AuthenticationConfig: authenticationConfig,
+		SignedUpCookie:       signedUpCookieDef,
 	}
 	return rootHandler
 }
