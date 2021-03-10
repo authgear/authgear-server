@@ -44,6 +44,7 @@ func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, tpl 
 
 	body := []byte(out)
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
+	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(body)
 	if err != nil {
 		panic(err)
