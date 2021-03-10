@@ -135,9 +135,9 @@ func (s *Store) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 	return g, nil
 }
 
-func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
+func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
 	ctx := context.Background()
-	expiry, err := grant.ExpireAt.MarshalText()
+	expiry, err := expireAt.MarshalText()
 	if err != nil {
 		return err
 	}
@@ -148,7 +148,7 @@ func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
-		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAt, true)
+		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, expireAt, true)
 		if err != nil {
 			return err
 		}
@@ -162,9 +162,9 @@ func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 	return nil
 }
 
-func (s *Store) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
+func (s *Store) UpdateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
 	ctx := context.Background()
-	expiry, err := grant.ExpireAt.MarshalText()
+	expiry, err := expireAt.MarshalText()
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func (s *Store) UpdateOfflineGrant(grant *oauth.OfflineGrant) error {
 			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
-		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAt, false)
+		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, expireAt, false)
 		if err != nil {
 			return err
 		}

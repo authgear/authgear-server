@@ -234,7 +234,14 @@ func (h *TokenHandler) parseRefreshToken(token string) (*oauth.Authorization, *o
 		return nil, nil, err
 	}
 
-	if h.Clock.NowUTC().After(offlineGrant.ExpireAt) {
+	expiry, err := oauth.ComputeOfflineGrantExpiryWithClients(offlineGrant, h.Config)
+	if errors.Is(err, oauth.ErrGrantNotFound) {
+		return nil, nil, errInvalidRefreshToken
+	} else if err != nil {
+		return nil, nil, err
+	}
+
+	if h.Clock.NowUTC().After(expiry) {
 		return nil, nil, errInvalidRefreshToken
 	}
 
@@ -502,7 +509,6 @@ func (h *TokenHandler) issueOfflineGrant(
 		ClientID:        client.ClientID,
 
 		CreatedAt: now,
-		ExpireAt:  now.Add(client.RefreshTokenLifetime.Duration()),
 		Scopes:    scopes,
 		TokenHash: oauth.HashToken(token),
 
@@ -512,7 +518,9 @@ func (h *TokenHandler) issueOfflineGrant(
 			LastAccess:    accessEvent,
 		},
 	}
-	err := h.OfflineGrants.CreateOfflineGrant(offlineGrant)
+
+	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
+	err := h.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
 	if err != nil {
 		return nil, err
 	}

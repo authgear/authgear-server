@@ -345,8 +345,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef:     cookieDef2,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: store,
-		Clock: clock,
+		Store:  store,
+		Clock:  clock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -541,6 +542,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
 	loginHintResolver := &handler.LoginHintResolver{
+		Config:           oAuthConfig,
 		Anonymous:        anonymousProvider,
 		OfflineGrants:    store,
 		AppSessionTokens: store,
@@ -861,8 +863,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef:     cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: store,
-		Clock: clockClock,
+		Store:  store,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -1406,9 +1409,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -1714,9 +1719,11 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -2098,8 +2105,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		CookieDef:     cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: store,
-		Clock: clockClock,
+		Store:  store,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -2593,9 +2601,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -2787,7 +2797,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -3116,9 +3125,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -3310,7 +3321,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -3639,9 +3649,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -3833,7 +3845,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -4162,9 +4173,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -4356,7 +4369,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -4678,9 +4690,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -4872,7 +4886,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -5197,9 +5210,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -5391,7 +5406,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -5717,9 +5731,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -5911,7 +5927,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -6234,9 +6249,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -6428,7 +6445,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -6750,9 +6766,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -6944,7 +6962,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -7267,9 +7284,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -7461,7 +7480,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -7785,9 +7803,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -7979,7 +7999,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -8301,9 +8320,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -8495,7 +8516,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -8817,9 +8837,11 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -9011,7 +9033,6 @@ func newWebAppSendOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -9333,9 +9354,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -9527,7 +9550,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -9851,9 +9873,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -10045,7 +10069,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -10367,9 +10390,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -10561,7 +10586,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -10883,9 +10907,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -11077,7 +11103,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -11402,9 +11427,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -11596,7 +11623,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -11918,9 +11944,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -12112,7 +12140,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -12439,9 +12466,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -12633,7 +12662,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -12955,9 +12983,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -13149,7 +13179,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -13472,9 +13501,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -13666,7 +13697,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -13988,9 +14018,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -14182,7 +14214,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -14521,9 +14552,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -14715,7 +14748,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -15041,9 +15073,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -15235,7 +15269,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -15562,9 +15595,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -15756,7 +15791,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -16081,9 +16115,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -16275,7 +16311,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -16600,9 +16635,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -16794,7 +16831,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -17120,9 +17156,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -17314,7 +17352,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -17643,9 +17680,11 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -17837,7 +17876,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -18160,9 +18198,11 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -18354,7 +18394,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -18677,9 +18716,11 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -18871,7 +18912,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -19182,8 +19222,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -19562,9 +19603,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -19756,7 +19799,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -20078,9 +20120,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -20272,7 +20316,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory:        cookieFactory,
 		Graph:                interactionService,
 	}
-	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
@@ -20548,6 +20591,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy: trustProxy,
 		Clock:      clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -20796,8 +20840,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieDef:     cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: store,
-		Clock: clockClock,
+		Store:  store,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -20832,6 +20877,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		BaseURL:    endpointsProvider,
 	}
 	oauthResolver := &oauth2.Resolver{
+		OAuthConfig:        oAuthConfig,
 		TrustProxy:         trustProxy,
 		Authorizations:     authorizationStore,
 		AccessGrants:       store,

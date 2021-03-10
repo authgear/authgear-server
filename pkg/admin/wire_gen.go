@@ -376,9 +376,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store: redisStore,
-		Clock: clockClock,
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
