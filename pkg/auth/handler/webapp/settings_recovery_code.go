@@ -99,7 +99,8 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 			return err
 		}
 
-		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data, setRecoveryCodeAttachmentHeaders)
+		setRecoveryCodeAttachmentHeaders(w)
+		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})
 
