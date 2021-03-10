@@ -111,6 +111,7 @@
   "Onboarding.identities.sso": "External / Social Login",
   "Onboarding.identities.anonymous-user": "Anonymous Users",
   "Onboarding.identities.username-only-alert": "We don't recommend using Username without Email or Phone. It's always easier for end-users to remember their email / phone for login, and it also serve purposes like forgot password etc.",
+  "Onboarding.identities.anonymous-users-only-alert": "We don't recommend enable anonymous user only without other identities. Enabling other identities allow end-users to promote their account and login their account again.",
 
   "Onboarding.primary-authenticators.title": "What should be the primary authenticator authentication?",
   "Onboarding.primary-authenticators.tooltip-message": "If you select Username, only Password will be supported",

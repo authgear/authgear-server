@@ -290,6 +290,13 @@ const IdentitiesListContent: React.FC<IdentitiesListContentProps> = function Ide
     [form.state.pendingForm.loginIDKeys]
   );
 
+  const showAnonymousOnlyAlert = useMemo(
+    () =>
+      form.state.pendingForm.identities.size === 1 &&
+      form.state.pendingForm.identities.has("anonymous"),
+    [form.state.pendingForm.identities]
+  );
+
   return (
     <section className={styles.sections}>
       <Label className={styles.fieldLabel}>
@@ -311,6 +318,12 @@ const IdentitiesListContent: React.FC<IdentitiesListContentProps> = function Ide
         <Text className={styles.alertText} block={true} variant="small">
           <FontIcon iconName="AlertSolid" className={styles.icon} />
           <FormattedMessage id="Onboarding.identities.username-only-alert" />
+        </Text>
+      )}
+      {showAnonymousOnlyAlert && (
+        <Text className={styles.alertText} block={true} variant="small">
+          <FontIcon iconName="AlertSolid" className={styles.icon} />
+          <FormattedMessage id="Onboarding.identities.anonymous-users-only-alert" />
         </Text>
       )}
     </section>
