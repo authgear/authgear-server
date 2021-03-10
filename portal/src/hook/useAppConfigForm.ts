@@ -9,6 +9,7 @@ export interface AppConfigFormModel<State> {
   isLoading: boolean;
   isUpdating: boolean;
   isDirty: boolean;
+  isSubmitted: boolean;
   loadError: unknown;
   updateError: unknown;
   state: State;
@@ -43,6 +44,7 @@ export function useAppConfigForm<State>(
   const { updateAppConfig: updateConfig } = useUpdateAppConfigMutation(appID);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<unknown>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const effectiveConfig = useMemo(() => effectiveAppConfig ?? { id: appID }, [
     effectiveAppConfig,
@@ -97,7 +99,10 @@ export function useAppConfigForm<State>(
     setIsUpdating(true);
     setUpdateError(null);
     updateConfig(newConfig)
-      .then(() => setCurrentState(null))
+      .then(() => {
+        setCurrentState(null);
+        setIsSubmitted(true);
+      })
       .catch((err) => setUpdateError(err))
       .finally(() => setIsUpdating(false));
   }, [
@@ -124,6 +129,7 @@ export function useAppConfigForm<State>(
     isLoading,
     isUpdating,
     isDirty,
+    isSubmitted,
     loadError,
     updateError,
     state,
