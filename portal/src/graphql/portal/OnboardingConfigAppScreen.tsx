@@ -244,12 +244,19 @@ const IdentitiesItemContent: React.FC<IdentitiesItemContentProps> = function Ide
         identities.delete("login_id");
       }
 
+      // if username is selected, the primary authenticator must be password
+      let primaryAuthenticator = state.pendingForm.primaryAuthenticator;
+      if (loginIDKeys.has("username")) {
+        primaryAuthenticator = "password";
+      }
+
       setState((prev) => ({
         ...prev,
         pendingForm: {
           ...prev.pendingForm,
           identities,
           loginIDKeys,
+          primaryAuthenticator,
         },
       }));
     },
