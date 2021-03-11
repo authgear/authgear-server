@@ -85,6 +85,40 @@ const secondaryAuthenticatorOptions: SecondaryAuthenticatorOption[] = [
   },
 ];
 
+// sort login id based on button order
+function sortLoginIDKeyTypes(loginIDTypes: LoginIDKeyType[]): LoginIDKeyType[] {
+  const indexMap = new Map<LoginIDKeyType, number>();
+  identitiesButtonItems.forEach((btn: IdentitiesButton, idx) => {
+    if (btn.loginIDType) {
+      indexMap.set(btn.loginIDType, idx);
+    }
+  });
+
+  return loginIDTypes.sort((a, b) => {
+    if (indexMap.get(a) === undefined) return 1;
+    if (indexMap.get(b) === undefined) return -1;
+    return (indexMap.get(a) as number) - (indexMap.get(b) as number);
+  });
+}
+
+// sort secondary authenticators based on checkbox order
+function sortSecondaryAuthenticatorTypes(
+  authenticatorTypes: SecondaryAuthenticatorType[]
+): SecondaryAuthenticatorType[] {
+  const indexMap = new Map<SecondaryAuthenticatorType, number>();
+  secondaryAuthenticatorOptions.forEach(
+    (option: SecondaryAuthenticatorOption, idx) => {
+      indexMap.set(option.authenticatorType, idx);
+    }
+  );
+
+  return authenticatorTypes.sort((a, b) => {
+    if (indexMap.get(a) === undefined) return 1;
+    if (indexMap.get(b) === undefined) return -1;
+    return (indexMap.get(a) as number) - (indexMap.get(b) as number);
+  });
+}
+
 interface PendingFormState {
   identities: Set<IdentityType>;
   loginIDKeys: Set<LoginIDKeyType>;
@@ -132,8 +166,8 @@ function constructConfig(
 
     config.identity ??= {};
     config.identity.login_id ??= {};
-    config.identity.login_id.keys = Array.from(
-      currentState.pendingForm.loginIDKeys
+    config.identity.login_id.keys = sortLoginIDKeyTypes(
+      Array.from(currentState.pendingForm.loginIDKeys)
     ).map((t) => {
       return { type: t, key: t };
     });
@@ -158,8 +192,8 @@ function constructConfig(
     config.authentication.secondary_authentication_mode =
       currentState.pendingForm.secondaryAuthenticationMode;
 
-    config.authentication.secondary_authenticators = Array.from(
-      currentState.pendingForm.secondaryAuthenticators
+    config.authentication.secondary_authenticators = sortSecondaryAuthenticatorTypes(
+      Array.from(currentState.pendingForm.secondaryAuthenticators)
     );
 
     if (currentState.pendingForm.loginIDKeys.has("email")) {
