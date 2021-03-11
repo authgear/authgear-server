@@ -11,8 +11,7 @@ import (
 
 type Renderer interface {
 	// Render renders the template into response body.
-	// Content-Length is set before calling beforeWrite.
-	Render(w http.ResponseWriter, r *http.Request, tpl template.Resource, data interface{}, beforeWrite func(w http.ResponseWriter))
+	Render(w http.ResponseWriter, r *http.Request, tpl template.Resource, data interface{})
 	// RenderHTML is a shorthand of Render that renders HTML.
 	RenderHTML(w http.ResponseWriter, r *http.Request, tpl *template.HTML, data interface{})
 }
@@ -28,7 +27,7 @@ type ResponseRenderer struct {
 	Logger         ResponseRendererLogger
 }
 
-func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, tpl template.Resource, data interface{}, beforeWrite func(w http.ResponseWriter)) {
+func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, tpl template.Resource, data interface{}) {
 	r.Logger.WithFields(map[string]interface{}{
 		"data": data,
 	}).Debug("render with data")
@@ -45,9 +44,7 @@ func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, tpl 
 
 	body := []byte(out)
 	w.Header().Set("Content-Length", strconv.Itoa(len(body)))
-	if beforeWrite != nil {
-		beforeWrite(w)
-	}
+	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(body)
 	if err != nil {
 		panic(err)
@@ -55,9 +52,8 @@ func (r *ResponseRenderer) Render(w http.ResponseWriter, req *http.Request, tpl 
 }
 
 func (r *ResponseRenderer) RenderHTML(w http.ResponseWriter, req *http.Request, tpl *template.HTML, data interface{}) {
-	r.Render(w, req, tpl, data, func(w http.ResponseWriter) {
-		// It is very important to specify the encoding because browsers assume ASCII if encoding is not specified.
-		// No need to use FormatMediaType because the value is constant.
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	})
+	// It is very important to specify the encoding because browsers assume ASCII if encoding is not specified.
+	// No need to use FormatMediaType because the value is constant.
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	r.Render(w, req, tpl, data)
 }
