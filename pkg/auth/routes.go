@@ -38,6 +38,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	staticChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
+		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
 	oauthAPIChain := httproute.Chain(
