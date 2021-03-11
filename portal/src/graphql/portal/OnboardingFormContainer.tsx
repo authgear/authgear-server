@@ -12,6 +12,7 @@ export interface FormModel {
   updateError: unknown;
   isDirty: boolean;
   isUpdating: boolean;
+  canSave?: boolean;
   reset: () => void;
   save: () => void;
 }
@@ -34,7 +35,13 @@ export interface OnboardingFormContainerProps {
 const OnboardingFormContainer: React.FC<OnboardingFormContainerProps> = function OnboardingFormContainer(
   props
 ) {
-  const { updateError, isDirty, isUpdating, save } = props.form;
+  const {
+    updateError,
+    isDirty,
+    isUpdating,
+    save,
+    canSave: formCanSave,
+  } = props.form;
   const {
     canSave = true,
     saveButtonProps = { labelId: "save" },
@@ -60,8 +67,8 @@ const OnboardingFormContainer: React.FC<OnboardingFormContainerProps> = function
     },
     [save]
   );
-
-  const disabled = isUpdating || !isDirty;
+  const allowSave = formCanSave !== undefined ? formCanSave : isDirty;
+  const disabled = isUpdating || !allowSave;
 
   return (
     <FormProvider

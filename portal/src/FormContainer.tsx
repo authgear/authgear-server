@@ -19,6 +19,7 @@ export interface FormModel {
   updateError: unknown;
   isDirty: boolean;
   isUpdating: boolean;
+  canSave?: boolean;
   reset: () => void;
   save: () => void;
 }
@@ -42,7 +43,14 @@ export interface FormContainerProps {
 const FormContainer: React.FC<FormContainerProps> = function FormContainer(
   props
 ) {
-  const { updateError, isDirty, isUpdating, reset, save } = props.form;
+  const {
+    updateError,
+    isDirty,
+    isUpdating,
+    reset,
+    save,
+    canSave: formCanSave,
+  } = props.form;
   const {
     canSave = true,
     saveButtonProps = { labelId: "save", iconName: "Save" },
@@ -75,7 +83,8 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     setTimeout(() => setIsResetDialogVisible(false), 0);
   }, [reset]);
 
-  const disabled = isUpdating || !isDirty;
+  const allowSave = formCanSave !== undefined ? formCanSave : isDirty;
+  const disabled = isUpdating || !allowSave;
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
     return [
       {
