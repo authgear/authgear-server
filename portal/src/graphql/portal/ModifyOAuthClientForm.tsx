@@ -1,7 +1,8 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useContext } from "react";
 import cn from "classnames";
 import produce from "immer";
 import { Checkbox, DirectionalHint } from "@fluentui/react";
+import { Context } from "@oursky/react-messageformat";
 
 import LabelWithTooltip from "../../LabelWithTooltip";
 import FormTextField from "../../FormTextField";
@@ -11,6 +12,12 @@ import { OAuthClientConfig } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
 
 import styles from "./ModifyOAuthClientForm.module.scss";
+
+const CHECKBOX_STYLES = {
+  label: {
+    fontWeight: "600",
+  },
+};
 
 interface ModifyOAuthClientFormProps {
   className?: string;
@@ -56,6 +63,8 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
 ) {
   const { className, clientConfig, onClientConfigChange } = props;
 
+  const { renderToString } = useContext(Context);
+
   const { onChange: onClientNameChange } = useTextField((value) => {
     onClientConfigChange(
       updateClientConfig(clientConfig, "name", ensureNonEmptyString(value))
@@ -84,6 +93,15 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
       );
     }
   );
+  const { onChange: onIdleTimeoutChange } = useIntegerTextField((value) => {
+    onClientConfigChange(
+      updateClientConfig(
+        clientConfig,
+        "refresh_token_idle_timeout_seconds",
+        convertIntegerStringToNumber(value)
+      )
+    );
+  });
 
   const onRedirectUrisChange = useCallback(
     (list: string[]) => {
@@ -101,6 +119,22 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
           clientConfig,
           "post_logout_redirect_uris",
           list.length > 0 ? list : undefined
+        )
+      );
+    },
+    [onClientConfigChange, clientConfig]
+  );
+
+  const onChangeRefreshTokenIdleTimeoutEnabled = useCallback(
+    (_, value?: boolean) => {
+      if (value == null) {
+        return;
+      }
+      onClientConfigChange(
+        updateClientConfig(
+          clientConfig,
+          "refresh_token_idle_timeout_enabled",
+          value
         )
       );
     },
@@ -155,6 +189,26 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         className={styles.inputField}
         value={clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""}
         onChange={onRefreshTokenLifetimeChange}
+      />
+      <Checkbox
+        className={styles.inputField}
+        checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
+        onChange={onChangeRefreshTokenIdleTimeoutEnabled}
+        label={renderToString(
+          "ModifyOAuthClientForm.refresh-token-idle-timeout-enabled.label"
+        )}
+        styles={CHECKBOX_STYLES}
+      />
+      <FormTextField
+        parentJSONPointer="/oauth/clients/\d+"
+        fieldName="refresh_token_idle_timeout_seconds"
+        fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
+        className={styles.inputField}
+        value={
+          clientConfig.refresh_token_idle_timeout_seconds?.toString() ?? ""
+        }
+        onChange={onIdleTimeoutChange}
+        disabled={!(clientConfig.refresh_token_idle_timeout_enabled ?? true)}
       />
       <div className={cn(styles.inputField, styles.checkboxContainer)}>
         <Checkbox

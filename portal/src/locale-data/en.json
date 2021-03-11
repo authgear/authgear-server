@@ -344,6 +344,8 @@
   "ModifyOAuthClientForm.name-label": "Name",
   "ModifyOAuthClientForm.acces-token-lifetime-label": "Access Token Lifetime (in seconds)",
   "ModifyOAuthClientForm.refresh-token-lifetime-label": "Refresh Token Lifetime (in seconds)",
+  "ModifyOAuthClientForm.refresh-token-idle-timeout-enabled.label": "Invalidate refresh token after idling",
+  "ModifyOAuthClientForm.refresh-token-idle-timeout-label": "Refresh Token Idle Timeout (in seconds)",
   "ModifyOAuthClientForm.redirect-uris-label": "Redirect URIs",
   "ModifyOAuthClientForm.redirect-uris-tooltip-message": "Users will be redirected to this path after they have authenticated.",
   "ModifyOAuthClientForm.post-logout-redirect-uris-label": "Post Logout Redirect URIs",
