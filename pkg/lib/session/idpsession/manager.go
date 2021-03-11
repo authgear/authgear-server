@@ -1,6 +1,7 @@
 package idpsession
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -28,7 +29,7 @@ func (m *Manager) ClearCookie() *http.Cookie {
 
 func (m *Manager) Get(id string) (session.Session, error) {
 	s, err := m.Store.Get(id)
-	if errorutil.Is(err, ErrSessionNotFound) {
+	if errors.Is(err, ErrSessionNotFound) {
 		return nil, session.ErrSessionNotFound
 	} else if err != nil {
 		return nil, errorutil.HandledWithMessage(err, "failed to get session")

@@ -16,7 +16,6 @@ type OfflineGrant struct {
 	AuthorizationID string                 `json:"authz_id"`
 
 	CreatedAt time.Time `json:"created_at"`
-	ExpireAt  time.Time `json:"expire_at"`
 	Scopes    []string  `json:"scopes"`
 	TokenHash string    `json:"token_hash"`
 

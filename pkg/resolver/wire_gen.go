@@ -124,6 +124,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		TrustProxy: trustProxy,
 		Clock:      clock,
 	}
+	oAuthConfig := appConfig.OAuth
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
@@ -368,8 +369,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieDef:     cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
-		Store: store,
-		Clock: clock,
+		Store:  store,
+		Clock:  clock,
+		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
 		Identities:      serviceService,
@@ -404,6 +406,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		BaseURL:    endpointsProvider,
 	}
 	oauthResolver := &oauth2.Resolver{
+		OAuthConfig:        oAuthConfig,
 		TrustProxy:         trustProxy,
 		Authorizations:     authorizationStore,
 		AccessGrants:       store,

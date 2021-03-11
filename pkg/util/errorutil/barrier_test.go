@@ -15,10 +15,10 @@ func TestBarrier(t *testing.T) {
 
 		err1 := errorutil.Handled(inner)
 		So(err1, ShouldBeError, "error")
-		So(errorutil.Unwrap(err1), ShouldBeNil)
+		So(errors.Unwrap(err1), ShouldBeNil)
 
 		err2 := errorutil.HandledWithMessage(inner, "test")
 		So(err2, ShouldBeError, "test")
-		So(errorutil.Unwrap(err2), ShouldBeNil)
+		So(errors.Unwrap(err2), ShouldBeNil)
 	})
 }

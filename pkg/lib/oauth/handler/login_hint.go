@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -16,6 +17,7 @@ type AnonymousIdentityProvider interface {
 }
 
 type LoginHintResolver struct {
+	Config           *config.OAuthConfig
 	Anonymous        AnonymousIdentityProvider
 	OfflineGrants    oauth.OfflineGrantStore
 	AppSessionTokens oauth.AppSessionTokenStore
@@ -74,6 +76,11 @@ func (r *LoginHintResolver) resolveAppSessionToken(token string) (string, error)
 		return "", err
 	}
 
+	expiry, err := oauth.ComputeOfflineGrantExpiryWithClients(offlineGrant, r.Config)
+	if err != nil {
+		return "", err
+	}
+
 	err = r.AppSessionTokens.DeleteAppSessionToken(sToken)
 	if err != nil {
 		return "", err
@@ -85,7 +92,7 @@ func (r *LoginHintResolver) resolveAppSessionToken(token string) (string, error)
 		AppID:          offlineGrant.AppID,
 		OfflineGrantID: offlineGrant.ID,
 		CreatedAt:      r.Clock.NowUTC(),
-		ExpireAt:       offlineGrant.ExpireAt,
+		ExpireAt:       expiry,
 		TokenHash:      oauth.HashToken(token),
 	}
 	err = r.AppSessions.CreateAppSession(appSession)

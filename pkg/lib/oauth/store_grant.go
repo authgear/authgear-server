@@ -1,5 +1,9 @@
 package oauth
 
+import (
+	"time"
+)
+
 type CodeGrantStore interface {
 	GetCodeGrant(codeHash string) (*CodeGrant, error)
 	CreateCodeGrant(*CodeGrant) error
@@ -8,8 +12,8 @@ type CodeGrantStore interface {
 
 type OfflineGrantStore interface {
 	GetOfflineGrant(id string) (*OfflineGrant, error)
-	CreateOfflineGrant(*OfflineGrant) error
-	UpdateOfflineGrant(*OfflineGrant) error
+	CreateOfflineGrant(offlineGrant *OfflineGrant, expireAt time.Time) error
+	UpdateOfflineGrant(offlineGrant *OfflineGrant, expireAt time.Time) error
 	DeleteOfflineGrant(*OfflineGrant) error
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)

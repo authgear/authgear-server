@@ -272,6 +272,8 @@ export interface OAuthClientConfig {
   post_logout_redirect_uris?: string[];
   access_token_lifetime_seconds?: number;
   refresh_token_lifetime_seconds?: number;
+  refresh_token_idle_timeout_seconds?: number;
+  refresh_token_idle_timeout_enabled?: boolean;
   issue_jwt_access_token?: boolean;
   is_first_party?: boolean;
 }

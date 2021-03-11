@@ -1,16 +1,18 @@
 package oauth
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type SessionManager struct {
-	Store OfflineGrantStore
-	Clock clock.Clock
+	Store  OfflineGrantStore
+	Clock  clock.Clock
+	Config *config.OAuthConfig
 }
 
 func (m *SessionManager) ClearCookie() *http.Cookie {
@@ -19,18 +21,27 @@ func (m *SessionManager) ClearCookie() *http.Cookie {
 
 func (m *SessionManager) Get(id string) (session.Session, error) {
 	grant, err := m.Store.GetOfflineGrant(id)
-	if errorutil.Is(err, ErrGrantNotFound) {
+	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrSessionNotFound
 	} else if err != nil {
-		return nil, errorutil.HandledWithMessage(err, "failed to get session")
+		return nil, err
 	}
 	return grant, nil
 }
 
-func (m *SessionManager) Update(session session.Session) error {
-	err := m.Store.UpdateOfflineGrant(session.(*OfflineGrant))
+func (m *SessionManager) Update(iSession session.Session) error {
+	s := iSession.(*OfflineGrant)
+
+	expiry, err := ComputeOfflineGrantExpiryWithClients(s, m.Config)
+	if errors.Is(err, ErrGrantNotFound) {
+		return session.ErrSessionNotFound
+	} else if err != nil {
+		return err
+	}
+
+	err = m.Store.UpdateOfflineGrant(s, expiry)
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to update session")
+		return err
 	}
 	return nil
 }
@@ -38,7 +49,7 @@ func (m *SessionManager) Update(session session.Session) error {
 func (m *SessionManager) Delete(session session.Session) error {
 	err := m.Store.DeleteOfflineGrant(session.(*OfflineGrant))
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to invalidate session")
+		return err
 	}
 	return nil
 }
@@ -46,14 +57,23 @@ func (m *SessionManager) Delete(session session.Session) error {
 func (m *SessionManager) List(userID string) ([]session.Session, error) {
 	grants, err := m.Store.ListOfflineGrants(userID)
 	if err != nil {
-		return nil, errorutil.HandledWithMessage(err, "failed to list sessions")
+		return nil, err
 	}
 
 	now := m.Clock.NowUTC()
 	var sessions []session.Session
 	for _, session := range grants {
+		maxExpiry, err := ComputeOfflineGrantExpiryWithClients(session, m.Config)
+
+		// ignore sessions without client
+		if errors.Is(err, ErrGrantNotFound) {
+			continue
+		} else if err != nil {
+			return nil, err
+		}
+
 		// ignore expired sessions
-		if now.After(session.ExpireAt) {
+		if now.After(maxExpiry) {
 			continue
 		}
 

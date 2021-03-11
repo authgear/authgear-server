@@ -22,6 +22,7 @@ type AccessTokenDecoder interface {
 }
 
 type Resolver struct {
+	OAuthConfig        *config.OAuthConfig
 	TrustProxy         config.TrustProxy
 	Authorizations     AuthorizationStore
 	AccessGrants       AccessGrantStore
@@ -118,8 +119,16 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 		} else if err != nil {
 			return nil, err
 		}
+
+		expiry, err := ComputeOfflineGrantExpiryWithClients(g, re.OAuthConfig)
+		if errors.Is(err, ErrGrantNotFound) {
+			return nil, session.ErrInvalidSession
+		} else if err != nil {
+			return nil, err
+		}
+
 		g.AccessInfo.LastAccess = event
-		if err = re.OfflineGrants.UpdateOfflineGrant(g); err != nil {
+		if err = re.OfflineGrants.UpdateOfflineGrant(g, expiry); err != nil {
 			return nil, err
 		}
 
@@ -164,9 +173,16 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, session.ErrInvalidSession
 	}
 
+	expiry, err := ComputeOfflineGrantExpiryWithClients(offlineGrant, re.OAuthConfig)
+	if errors.Is(err, ErrGrantNotFound) {
+		return nil, session.ErrInvalidSession
+	} else if err != nil {
+		return nil, err
+	}
+
 	event := access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
 	offlineGrant.AccessInfo.LastAccess = event
-	if err = re.OfflineGrants.UpdateOfflineGrant(offlineGrant); err != nil {
+	if err = re.OfflineGrants.UpdateOfflineGrant(offlineGrant, expiry); err != nil {
 		return nil, err
 	}
 
