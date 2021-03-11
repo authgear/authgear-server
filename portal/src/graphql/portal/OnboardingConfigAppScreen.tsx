@@ -94,26 +94,28 @@ interface PendingFormState {
   verificationClaims: VerificationClaimsConfig;
 }
 
+const defaultPendingFormState: PendingFormState = {
+  identities: new Set<IdentityType>(["login_id"]),
+  loginIDKeys: new Set<LoginIDKeyType>(["email"]),
+  primaryAuthenticator: "password",
+  secondaryAuthenticationMode: "if_exists",
+  secondaryAuthenticators: new Set<SecondaryAuthenticatorType>([
+    "totp",
+    "oob_otp_sms",
+  ]),
+  verificationClaims: {
+    email: { enabled: true, required: true },
+    phone_number: { enabled: true, required: true },
+  },
+};
+
 interface FormState {
   pendingForm: PendingFormState;
 }
 
 function constructFormState(_config: PortalAPIAppConfig): FormState {
   return {
-    pendingForm: {
-      identities: new Set<IdentityType>(),
-      loginIDKeys: new Set<LoginIDKeyType>(),
-      primaryAuthenticator: "password",
-      secondaryAuthenticationMode: "if_exists",
-      secondaryAuthenticators: new Set<SecondaryAuthenticatorType>([
-        "totp",
-        "oob_otp_sms",
-      ]),
-      verificationClaims: {
-        email: { enabled: true, required: true },
-        phone_number: { enabled: true, required: true },
-      },
-    },
+    pendingForm: defaultPendingFormState,
   };
 }
 
