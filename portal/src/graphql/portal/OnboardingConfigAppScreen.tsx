@@ -38,6 +38,53 @@ import LabelWithTooltip from "../../LabelWithTooltip";
 const primaryAuthenticatorTypes = ["password", "oob"] as const;
 type PrimaryAuthenticatorType = typeof primaryAuthenticatorTypes[number];
 
+const identitiesButtonItems: IdentitiesButton[] = [
+  {
+    labelId: "Onboarding.identities.email",
+    iconName: "Mail",
+    loginIDType: "email",
+  },
+  {
+    labelId: "Onboarding.identities.phone",
+    iconName: "CellPhone",
+    loginIDType: "phone",
+  },
+  {
+    labelId: "Onboarding.identities.username",
+    iconName: "ContactCard",
+    loginIDType: "username",
+  },
+  {
+    labelId: "Onboarding.identities.sso",
+    iconName: "Globe",
+    identityType: "oauth",
+  },
+  {
+    labelId: "Onboarding.identities.anonymous-user",
+    iconName: "FollowUser",
+    identityType: "anonymous",
+  },
+];
+
+const secondaryAuthenticatorOptions: SecondaryAuthenticatorOption[] = [
+  {
+    labelId: "Onboarding.secondary-authenticators.totp",
+    authenticatorType: "totp",
+  },
+  {
+    labelId: "Onboarding.secondary-authenticators.oob-sms",
+    authenticatorType: "oob_otp_sms",
+  },
+  {
+    labelId: "Onboarding.secondary-authenticators.oob-email",
+    authenticatorType: "oob_otp_email",
+  },
+  {
+    labelId: "Onboarding.secondary-authenticators.additional-password",
+    authenticatorType: "password",
+  },
+];
+
 interface PendingFormState {
   identities: Set<IdentityType>;
   loginIDKeys: Set<LoginIDKeyType>;
@@ -251,37 +298,6 @@ const IdentitiesListContent: React.FC<IdentitiesListContentProps> = function Ide
   props
 ) {
   const { form } = props;
-
-  const identitiesButtonItems: IdentitiesButton[] = useMemo(
-    () => [
-      {
-        labelId: "Onboarding.identities.email",
-        iconName: "Mail",
-        loginIDType: "email",
-      },
-      {
-        labelId: "Onboarding.identities.phone",
-        iconName: "CellPhone",
-        loginIDType: "phone",
-      },
-      {
-        labelId: "Onboarding.identities.username",
-        iconName: "ContactCard",
-        loginIDType: "username",
-      },
-      {
-        labelId: "Onboarding.identities.sso",
-        iconName: "Globe",
-        identityType: "oauth",
-      },
-      {
-        labelId: "Onboarding.identities.anonymous-user",
-        iconName: "FollowUser",
-        identityType: "anonymous",
-      },
-    ],
-    []
-  );
 
   const showUsernameOnlyAlert = useMemo(
     () =>
@@ -529,35 +545,13 @@ const SecondaryAuthenticatorsContent: React.FC<SecondaryAuthenticatorsContentPro
 ) {
   const { form } = props;
 
-  const options: SecondaryAuthenticatorOption[] = useMemo(
-    () => [
-      {
-        labelId: "Onboarding.secondary-authenticators.totp",
-        authenticatorType: "totp",
-      },
-      {
-        labelId: "Onboarding.secondary-authenticators.oob-sms",
-        authenticatorType: "oob_otp_sms",
-      },
-      {
-        labelId: "Onboarding.secondary-authenticators.oob-email",
-        authenticatorType: "oob_otp_email",
-      },
-      {
-        labelId: "Onboarding.secondary-authenticators.additional-password",
-        authenticatorType: "password",
-      },
-    ],
-    []
-  );
-
   return (
     <section className={styles.sections}>
       <Label className={styles.fieldLabel}>
         <FontIcon iconName="PlayerSettings" className={styles.icon} />
         <FormattedMessage id="Onboarding.secondary-authenticators.title" />
       </Label>
-      {options.map((o, idx) => (
+      {secondaryAuthenticatorOptions.map((o, idx) => (
         <SecondaryAuthenticatorCheckbox
           key={`secondary-authenticator-${idx}`}
           form={form}
