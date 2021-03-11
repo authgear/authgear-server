@@ -151,7 +151,7 @@ const IdentitiesItemContent: React.FC<IdentitiesItemContentProps> = function Ide
     btnItem,
   } = props;
 
-  const getCheckedState = useCallback(() => {
+  const identityChecked = useMemo(() => {
     // check only if button item has loginIDType (e.g. email, phone and username)
     if (btnItem.loginIDType) {
       return state.pendingForm.loginIDKeys.has(btnItem.loginIDType);
@@ -211,10 +211,10 @@ const IdentitiesItemContent: React.FC<IdentitiesItemContentProps> = function Ide
     (event: React.FormEvent) => {
       event.preventDefault();
       event.stopPropagation();
-      const currentChecked = getCheckedState();
+      const currentChecked = identityChecked;
       onCheckedChange(!currentChecked);
     },
-    [getCheckedState, onCheckedChange]
+    [identityChecked, onCheckedChange]
   );
 
   const onCheckboxChange = useCallback(
@@ -236,7 +236,7 @@ const IdentitiesItemContent: React.FC<IdentitiesItemContentProps> = function Ide
       </div>
       <Checkbox
         className={styles.checkbox}
-        checked={getCheckedState()}
+        checked={identityChecked}
         onChange={onCheckboxChange}
       />
     </div>
@@ -605,7 +605,7 @@ const VerificationContent: React.FC<VerificationContentProps> = function Verific
     [renderToString]
   );
 
-  const getSelectedKey = useCallback(() => {
+  const selectedKey = useMemo(() => {
     if (state.pendingForm.verificationClaims[claimName]?.enabled) {
       if (state.pendingForm.verificationClaims[claimName]?.required) {
         return "required";
@@ -661,7 +661,7 @@ const VerificationContent: React.FC<VerificationContentProps> = function Verific
       </Label>
       <Dropdown
         options={options}
-        selectedKey={getSelectedKey()}
+        selectedKey={selectedKey}
         onChange={onChange}
       />
       <Text className={styles.helpText} block={true} variant="small">
