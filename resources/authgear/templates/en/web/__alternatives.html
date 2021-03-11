@@ -2,7 +2,7 @@
     {{ range .AlternativeSteps }}
         <form method="post" novalidate>
             {{ $.CSRFField }}
-            <input type="hidden" name="x_step" value="{{ .Step }}">
+            <input type="hidden" name="x_step_kind" value="{{ .Step }}">
             {{ range $name, $value := .Input }}
                 <input type="hidden" name="{{ $name }}" value="{{ $value }}">
             {{ end }}
