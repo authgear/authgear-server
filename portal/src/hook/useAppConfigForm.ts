@@ -78,6 +78,7 @@ export function useAppConfigForm<State>(
     }
     setUpdateError(null);
     setCurrentState(null);
+    setIsSubmitted(false);
   }, [isUpdating]);
 
   const save = useCallback(() => {
