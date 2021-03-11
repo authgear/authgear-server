@@ -9,6 +9,8 @@ export interface AppConfigFormModel<State> {
   isLoading: boolean;
   isUpdating: boolean;
   isDirty: boolean;
+  isSubmitted: boolean;
+  canSave?: boolean;
   loadError: unknown;
   updateError: unknown;
   state: State;
@@ -16,6 +18,7 @@ export interface AppConfigFormModel<State> {
   reload: () => void;
   reset: () => void;
   save: () => void;
+  setCanSave: (canSave?: boolean) => void;
   effectiveConfig: PortalAPIAppConfig;
 }
 
@@ -31,7 +34,8 @@ export function useAppConfigForm<State>(
   appID: string,
   constructState: StateConstructor<State>,
   constructConfig: ConfigConstructor<State>,
-  validate?: (state: State) => APIError | null
+  validate?: (state: State) => APIError | null,
+  initialCanSave?: boolean
 ): AppConfigFormModel<State> {
   const {
     loading: isLoading,
@@ -43,6 +47,8 @@ export function useAppConfigForm<State>(
   const { updateAppConfig: updateConfig } = useUpdateAppConfigMutation(appID);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<unknown>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [canSave, setCanSave] = useState<boolean | undefined>(initialCanSave);
 
   const effectiveConfig = useMemo(() => effectiveAppConfig ?? { id: appID }, [
     effectiveAppConfig,
@@ -72,16 +78,18 @@ export function useAppConfigForm<State>(
     }
     setUpdateError(null);
     setCurrentState(null);
+    setIsSubmitted(false);
   }, [isUpdating]);
 
   const save = useCallback(() => {
-    if (!rawConfig || !initialState || !currentState) {
+    const allowSave = canSave !== undefined ? canSave : isDirty;
+    if (!rawConfig || !initialState) {
       return;
-    } else if (!isDirty || isUpdating) {
+    } else if (!allowSave || isUpdating) {
       return;
     }
 
-    const err = validate?.(currentState);
+    const err = validate?.(currentState ?? initialState);
     if (err) {
       setUpdateError(err);
       return;
@@ -90,14 +98,17 @@ export function useAppConfigForm<State>(
     const newConfig = constructConfig(
       rawConfig,
       initialState,
-      currentState,
+      currentState ?? initialState,
       effectiveConfig
     );
 
     setIsUpdating(true);
     setUpdateError(null);
     updateConfig(newConfig)
-      .then(() => setCurrentState(null))
+      .then(() => {
+        setCurrentState(null);
+        setIsSubmitted(true);
+      })
       .catch((err) => setUpdateError(err))
       .finally(() => setIsUpdating(false));
   }, [
@@ -110,6 +121,7 @@ export function useAppConfigForm<State>(
     currentState,
     updateConfig,
     validate,
+    canSave,
   ]);
 
   const state = currentState ?? initialState;
@@ -124,8 +136,11 @@ export function useAppConfigForm<State>(
     isLoading,
     isUpdating,
     isDirty,
+    isSubmitted,
     loadError,
     updateError,
+    canSave,
+    setCanSave,
     state,
     setState,
     reload,

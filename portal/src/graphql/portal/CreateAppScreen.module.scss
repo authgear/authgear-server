@@ -1,26 +1,23 @@
 .root {
+  background-color: #faf8f8;
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
 }
 
-.content {
-  margin: 0 32px;
+.pageTitle {
+  margin-bottom: 10px;
+}
+
+.pageDesc {
+  margin-bottom: 20px;
 }
 
 .fieldLabel {
-  padding-bottom: 6px;
-  font-size: 14px;
-}
-
-.fieldDesc {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 12px;
+  margin-bottom: 10px;
 }
 
 .appIDField {
-  max-width: 350px;
   margin-bottom: 25px;
 }

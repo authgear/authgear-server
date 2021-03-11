@@ -3,6 +3,7 @@ import cn from "classnames";
 import {
   DirectionalHint,
   Icon,
+  IIconProps,
   ITooltipHostProps,
   ITooltipProps,
   Label,
@@ -22,6 +23,7 @@ interface LabelWithTooltipProps {
   tooltipMessageId: string;
   directionalHint?: ITooltipHostProps["directionalHint"];
   required?: boolean;
+  labelIIconProps?: IIconProps;
 }
 
 const LabelWithTooltip: React.FC<LabelWithTooltipProps> = function LabelWithTooltip(
@@ -36,6 +38,7 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> = function LabelWithTool
     tooltipMessageId,
     directionalHint,
     required,
+    labelIIconProps,
   } = props;
 
   const tooltipProps: ITooltipProps = useMemo(() => {
@@ -58,6 +61,9 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> = function LabelWithTool
   return (
     <div className={cn(styles.root, className)}>
       <Label className={labelClassName} required={required}>
+        {labelIIconProps && (
+          <Icon {...labelIIconProps} className={styles.labelIcon} />
+        )}
         <FormattedMessage id={labelId} />
       </Label>
       <TooltipHost

@@ -28,6 +28,9 @@ import {
   mergeSystemConfig,
 } from "./system-config";
 import { loadTheme } from "@fluentui/react";
+import OnboardingConfigAppScreen from "./graphql/portal/OnboardingConfigAppScreen";
+import OnboardingCompletionScreen from "./graphql/portal/OnboardingCompletionScreen";
+import OnboardingRedirect from "./OnboardingRedirect";
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -53,7 +56,16 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
         <Route path="/apps/" element={<AppsScreen />} />
         <Route path="/apps/create" element={<CreateAppScreen />} />
         <Route path="/app/:appID/*" element={<AppRoot />} />
+        <Route
+          path="/app/:appID/onboarding"
+          element={<OnboardingConfigAppScreen />}
+        />
+        <Route
+          path="/app/:appID/done"
+          element={<OnboardingCompletionScreen />}
+        />
         <Route path="/oauth-redirect" element={<OAuthRedirect />} />
+        <Route path="/onboarding-redirect" element={<OnboardingRedirect />} />
         <Route
           path="/collaborators/invitation"
           element={<AcceptAdminInvitationScreen />}

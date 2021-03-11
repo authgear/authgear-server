@@ -1,0 +1,130 @@
+@import "../../styles/variable.scss";
+
+.root {
+  background-color: #faf8f8;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+.pageWrapper {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.page {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0 20px;
+}
+
+.pageContent {
+  background-color: $white;
+  width: 596px;
+}
+
+.mainSection {
+  padding: 30px;
+}
+
+.pageTitle {
+  margin-bottom: 10px;
+}
+
+.pageDesc {
+  margin-bottom: 20px;
+}
+
+.completionMessage {
+  text-align: center;
+  font-weight: 600;
+  margin: 35px 0;
+}
+
+.actionButton {
+  display: flex;
+  background: $white;
+  color: $black;
+  height: 34px;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+
+  .actionIcon {
+    padding: 0 15px;
+  }
+
+  .labelText {
+    flex-grow: 1;
+    font-size: 12px;
+  }
+
+  .arrowIcon {
+    color: $theme-primary-color;
+    padding: 0 15px;
+  }
+}
+
+.nowYouMaySection {
+  background: #f1f1f1;
+  padding: 30px;
+
+  .title {
+    display: block;
+    text-align: center;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  .actionButton {
+    margin: 10px 0;
+    font-size: smaller;
+  }
+}
+
+.stepSection {
+  display: flex;
+  flex-direction: row;
+  margin: 20px 0;
+
+  .screenshot {
+    width: 55%;
+
+    img {
+      max-width: 100%;
+    }
+  }
+
+  .info {
+    width: 45%;
+    align-self: center;
+    margin: 0 15px;
+
+    .title {
+      line-height: 20px;
+      margin-bottom: 15px;
+
+      .stepCount {
+        display: inline-block;
+        background: $theme-primary-color;
+        color: $white;
+        text-align: center;
+        border-radius: 10px;
+        width: 20px;
+        line-height: 20px;
+        margin-right: 5px;
+      }
+    }
+
+    .desc {
+      color: $neutral-secondary-color;
+      margin-bottom: 15px;
+    }
+  }
+}
+
+.stepSection.rightScreenshot {
+  flex-direction: row-reverse;
+}
