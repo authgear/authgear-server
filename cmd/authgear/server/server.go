@@ -75,9 +75,6 @@ func (c *Controller) Start() {
 			Handler: auth.NewRouter(
 				p,
 				configSrcController.GetConfigSource(),
-				auth.StaticAssetConfig{
-					ServingEnabled: cfg.StaticAsset.ServingEnabled,
-				},
 			),
 		}
 
