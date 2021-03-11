@@ -33,6 +33,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		p.Middleware(newSessionMiddleware),
 		p.Middleware(newSecHeadersMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
+		p.Middleware(newPublicOriginMiddleware),
 	)
 
 	oauthAPIChain := httproute.Chain(
