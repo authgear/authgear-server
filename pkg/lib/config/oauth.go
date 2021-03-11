@@ -72,18 +72,18 @@ func (c *OAuthClientConfig) SetDefaults() {
 	}
 
 	if c.RefreshTokenLifetime == 0 {
-		if c.AccessTokenLifetime > DefaultSessionLifetime {
+		if c.AccessTokenLifetime > DefaultRefreshTokenLifetime {
 			c.RefreshTokenLifetime = c.AccessTokenLifetime
 		} else {
-			c.RefreshTokenLifetime = DefaultSessionLifetime
+			c.RefreshTokenLifetime = DefaultRefreshTokenLifetime
 		}
 	}
 
 	if c.RefreshTokenIdleTimeoutEnabled == nil {
-		b := DefaultSessionIdleTimeoutEnabled
+		b := DefaultRefreshTokenIdleTimeoutEnabled
 		c.RefreshTokenIdleTimeoutEnabled = &b
 	}
 	if c.RefreshTokenIdleTimeout == 0 {
-		c.RefreshTokenIdleTimeout = DefaultSessionIdleTimeout
+		c.RefreshTokenIdleTimeout = DefaultRefreshTokenIdleTimeout
 	}
 }

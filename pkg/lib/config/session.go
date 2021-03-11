@@ -14,14 +14,21 @@ var _ = Schema.Add("SessionConfig", `
 `)
 
 const (
-	// DefaultSessionLifetime is 52 weeks (364 days).
-	DefaultSessionLifetime DurationSeconds = 52 * 7 * 86400
-	// DefaultSessionIdleTimeout is 30 days.
-	DefaultSessionIdleTimeout DurationSeconds = 30 * 86400
-	// DefaultSessionIdleTimeoutEnabled is true.
-	DefaultSessionIdleTimeoutEnabled bool = true
+	// DefaultIDPSessionLifetime is 52 weeks (364 days).
+	DefaultIDPSessionLifetime DurationSeconds = 52 * 7 * 86400
+	// DefaultIDPSessionIdleTimeout is 30 days.
+	DefaultIDPSessionIdleTimeout DurationSeconds = 30 * 86400
+	// DefaultIDPSessionIdleTimeoutEnabled is true.
+	DefaultIDPSessionIdleTimeoutEnabled bool = true
 	// These default configuration offers a relatively long session lifetime, and disallow prolonged inactivity.
 	// For reference, the cookie max age on facebook.com and google.com are 1 year and 2 years respectively.
+
+	// DefaultRefreshTokenLifetime is DefaultIDPSessionLifetime.
+	DefaultRefreshTokenLifetime DurationSeconds = DefaultIDPSessionLifetime
+	// DefaultRefreshTokenIdleTimeout is DefaultIDPSessionIdleTimeout.
+	DefaultRefreshTokenIdleTimeout DurationSeconds = DefaultIDPSessionIdleTimeout
+	// DefaultRefreshTokenIdleTimeoutEnabled is DefaultIDPSessionIdleTimeoutEnabled.
+	DefaultRefreshTokenIdleTimeoutEnabled bool = DefaultIDPSessionIdleTimeoutEnabled
 
 	// DefaultAccessTokenLifetime is 30 minutes.
 	DefaultAccessTokenLifetime DurationSeconds = 30 * 60
@@ -36,13 +43,13 @@ type SessionConfig struct {
 
 func (c *SessionConfig) SetDefaults() {
 	if c.Lifetime == 0 {
-		c.Lifetime = DefaultSessionLifetime
+		c.Lifetime = DefaultIDPSessionLifetime
 	}
 	if c.IdleTimeoutEnabled == nil {
-		b := DefaultSessionIdleTimeoutEnabled
+		b := DefaultIDPSessionIdleTimeoutEnabled
 		c.IdleTimeoutEnabled = &b
 	}
 	if c.IdleTimeout == 0 {
-		c.IdleTimeout = DefaultSessionIdleTimeout
+		c.IdleTimeout = DefaultIDPSessionIdleTimeout
 	}
 }
