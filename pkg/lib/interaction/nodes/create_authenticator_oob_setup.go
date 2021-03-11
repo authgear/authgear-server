@@ -153,7 +153,13 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	result, err := sendOOBCode(ctx, e.Stage, false, info)
+	result, err := (&SendOOBCode{
+		Context:              ctx,
+		Stage:                e.Stage,
+		IsAuthenticating:     false,
+		AuthenticatorInfo:    info,
+		IgnoreRatelimitError: true,
+	}).Do()
 	if err != nil {
 		return nil, err
 	}

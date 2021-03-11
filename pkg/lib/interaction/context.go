@@ -61,7 +61,7 @@ type OOBCodeSender interface {
 		target string,
 		code string,
 		messageType otp.MessageType,
-	) (*otp.CodeSendResult, error)
+	) error
 }
 
 type AnonymousIdentityProvider interface {
@@ -139,7 +139,7 @@ type VerificationService interface {
 }
 
 type VerificationCodeSender interface {
-	SendCode(code *verification.Code) (*otp.CodeSendResult, error)
+	SendCode(code *verification.Code) error
 }
 
 type CookieFactory interface {
