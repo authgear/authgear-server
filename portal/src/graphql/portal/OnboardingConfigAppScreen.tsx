@@ -755,13 +755,33 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
 const OnboardingConfigAppScreenContent: React.FC = function OnboardingConfigAppScreenContent() {
   const { appID } = useParams();
   const navigate = useNavigate();
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+  const form = useAppConfigForm(
+    appID,
+    constructFormState,
+    constructConfig,
+    undefined,
+    true
+  );
+
+  const {
+    state: {
+      pendingForm: { identities },
+    },
+    setCanSave,
+  } = form;
 
   useEffect(() => {
     if (form.isSubmitted) {
       navigate(`/app/${encodeURIComponent(appID)}/done`);
     }
   }, [form.isSubmitted, navigate, appID]);
+
+  // Change form canSave state if selected identities is changed
+  // at least one identity is needed
+  useEffect(() => {
+    const canSave = identities.size > 0;
+    setCanSave(canSave);
+  }, [identities, setCanSave]);
 
   if (form.isLoading) {
     return <ShowLoading />;
