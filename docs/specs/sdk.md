@@ -23,24 +23,46 @@ It is more preferable to have ephemeral refresh token that are only stored in me
 
 The SDK can be configured to store refresh token in memory only.
 
+## Logout
+
+Logout is provided by the following API
+
+```typescript
+/**
+ * This function can be called when the user has logged in.
+ * This function WILL trigger biometric authentication if necessary.
+ *
+ * This function will perform cleanup so that logging in a different user is possible.
+ */
+function logout(): Promise<void>;
+```
+
 ## Biometric authentication
 
 Biometric authentication is provided by the following API
 
 ```typescript
-interface BiometricKey {
-  userID: string;
-  kid: string;
-  createdAt: Date;
-}
+/**
+ * This function can be called at anytime.
+ * This function reports whether biometric authentication is available.
+ */
+function isBiometricAvailable(): Promise<boolean>;
 
 /**
  * This function can be called at anytime.
- * This function access the keychain to find out biometric key IDs on this device.
- * The list of the keys is stored with kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+ * This function returns the user ID of last logged in user.
+ * The data is stored with kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
  * therefore the data is not included in backup, nor transfered to new device.
  */
-function listBiometricKeys(): Promise<BiometricKey[]>;
+function getLastUserID(): Promise<string | null>;
+
+/**
+ * This function can be called at anytime.
+ * This function tells if the last logged in user has enabled biometric authentication.
+ * The data is stored with kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+ * therefore the data is not included in backup, nor transfered to new device.
+ */
+function isBiometricEnabled(): Promise<boolean>;
 
 /**
  * This function can be called when the user has logged in.
@@ -55,7 +77,7 @@ function listBiometricKeys(): Promise<BiometricKey[]>;
  * therefore the data is not included in backup, nor transfered to new device,
  * biometric authentication or password code is prompted if necessary.
  */
-function addBiometric(): Promise<BiometricKey>;
+function enabledBiometric(): Promise<void>;
 
 /**
  * This function can be called when the user has logged in.
@@ -72,7 +94,7 @@ function addBiometric(): Promise<BiometricKey>;
  * therefore the data is not included in backup, nor transfered to new device,
  * biometric authentication or password code is prompted if necessary.
  */
-function removeBiometric(kid: string): Promise<void>;
+function disableBiometric(): Promise<void>;
 
 /**
  * This function can be called at anytime.
@@ -84,29 +106,8 @@ function removeBiometric(kid: string): Promise<void>;
  * 4. If the identity is not found, do the following steps.
  *   4.1. Remove the kid from the list of keys so that listBiometricKeys no longer includes that kid.
  */
-function authenticateBiometric(kid: string): Promise<AuthorizeResult>;
+function authenticateBiometric(): Promise<AuthorizeResult>;
 ```
-
-### Open questions
-
-#### Should we allow only 1 private key per container name?
-
-If yes, consider the following scenario:
-
-1. User A logs in and sets up biometric.
-1. User A logs out.
-1. User B logs in and sets up biometric. User A's kid is forgotten. Note that the identity is still stored in the server so the identity is still listed in the settings page.
-1. User B logs out.
-1. User A logs in and they HAVE TO set up biometric AGAIN.
-
-If no, we have to introduce `kid` as argument in some functions.
-However, the above scenario would become:
-
-1. User A logs in and sets up biometric.
-1. User A logs out.
-1. User B logs in and sets up biometric. 2 keys is known to the SDK.
-1. User B logs out.
-1. It is possible to show a screen to let the user to log in either User A or User B with biometric only. However, in normal condition, the app should remember the last login user via non-biometric means. Biometric screen is only shown when there is such user. It is the application logic to make this happen.
 
 ### Intended usage
 
@@ -114,35 +115,54 @@ However, the above scenario would become:
 // Authenticate the user via non-biometric means.
 await authgear.authorize({ ... });
 
-// Store the last login user via non-biometric means.
-myapp.setUserID(userID);
+
+// Check if the device supports biometric authentication.
+const available = await authgear.isBiometricAvailable();
+if (available) {
+  // Show a screen to ask the user if they want to enable biometric authentication.
+  await authgear.enabledBiometric();
+}
 
 
 // When the session has expired.
-let kid;
-const userID = await myapp.getUserID();
-if (userID != null) {
-  const keys = await authgear.listBiometricKeys();
-  for (const key of keys) {
-    if (key.userID === userID) {
-      // The user MAY have biometric set up previously.
-      // Show a screen to ask if they want to authenticate with biometric.
-      kid = key.kid;
+const userID = await authgear.getLastUserID();
+const enabled = await authgear.isBiometricEnabled();
+
+if (userID != null && enabled) {
+  // The user MAY have biometric set up previously.
+  // Show a screen to ask if they want to authenticate with biometric.
+  if (userHasAgreedToUseBiometric) {
+    try {
+      await authgear.authenticateBiometric();
+    } catch(e) {
+      // Inspect the error to see if it is identity not found.
+      // Fallback to non-biometric login screen.
+      // This is necessary because the biometric identity can be removed from the settings page.
     }
   }
 }
 
-if (userHasAgreedToUseBiometric && kid != null) {
-  try {
-    await authgear.authenticateBiometric(kid);
-  } catch(e) {
-    // Inspect the error to see if it is identity not found.
-    // Fallback to non-biometric login screen.
-    // This is necessary because the biometric identity can be removed from the settings page.
+
+// When the user want to "logout".
+//
+// The meaning of "logout" varies between applications.
+// In app like HSBC, logout means terminating the current session but
+// logging in another account is NOT allowed.
+//
+// If your application interprets logout as allowing logging into different account,
+// then your should prompt to the user to disable biometric first.
+//
+// If you fail to do so, logout() will call disableBiometric() for you.
+// However, this behavior may surprise the user.
+// Disabling biometric authentication requires biometric authentication
+// because access to the keypair (in this case, deletion) requires biometric authentication.
+
+const onClickLogout = () => {
+  const userID = await authgear.getLastUserID();
+  const enabled = await authgear.isBiometricEnabled();
+  if (userID != null && enabled) {
+    // Prompt the user we have to disable biometric first.
+    // So they will not be scared by the biometric authentication UI.
   }
-}
-
-
-// When the user disables biometric.
-authgear.removeBiometric(kid);
+};
 ```
