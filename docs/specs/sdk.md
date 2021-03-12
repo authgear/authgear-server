@@ -15,6 +15,14 @@ Everything stored by a container is scoped by its name.
 Therefore, if the developer wants to implement multiple account,
 they must create different container instances with distinct names.
 
+## The use of persistent storage
+
+The SDK by default will store refresh tokens in persistent storage.
+In some applications such as banking applications,
+It is more preferable to have ephemeral refresh token that are only stored in memory.
+
+The SDK can be configured to store refresh token in memory only.
+
 ## Biometric authentication
 
 Biometric authentication is provided by the following API
