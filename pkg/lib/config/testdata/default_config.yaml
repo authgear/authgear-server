@@ -270,6 +270,9 @@ identity:
         case_sensitive: false
         block_plus_sign: false
         ignore_dot_sign: false
+        domain_blacklist_enabled: false
+        domain_whitelist_enabled: false
+        include_default_blacklisted_domains: false
       username:
         block_reserved_usernames: true
         ascii_only: true
