@@ -19980,6 +19980,21 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	return panicMiddleware
 }
 
+func newPublicOriginMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	publicOriginMiddleware := &webapp.PublicOriginMiddleware{
+		Config:     httpConfig,
+		TrustProxy: trustProxy,
+	}
+	return publicOriginMiddleware
+}
+
 func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config

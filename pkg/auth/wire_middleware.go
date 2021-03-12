@@ -65,6 +65,13 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	))
 }
 
+func newPublicOriginMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.PublicOriginMiddleware)),
+	))
+}
+
 func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,
