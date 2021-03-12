@@ -13,7 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, staticAsset StaticAssetConfig) *httproute.Router {
+func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 	router := httproute.NewRouter()
 
 	router.Add(httproute.Route{
@@ -32,24 +32,38 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(newSessionMiddleware),
 		p.Middleware(newSecHeadersMiddleware),
-		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(newPublicOriginMiddleware),
+	)
+
+	staticChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newCORSMiddleware),
+		httproute.MiddlewareFunc(httputil.ETag),
+	)
+
+	oauthStaticChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newCORSMiddleware),
+		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
 	oauthAPIChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 	)
 
 	apiChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(newPanicAPIMiddleware),
 		p.Middleware(newCORSMiddleware),
 	)
 
 	scopedChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(newPanicWriteEmptyResponseMiddleware),
 		p.Middleware(newCORSMiddleware),
 		// Current we only require valid session and do not require any scope.
@@ -58,6 +72,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 
 	webappChain := httproute.Chain(
 		rootChain,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newWebAppSessionMiddleware),
@@ -85,10 +100,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 		webapp.RequireAuthenticatedMiddleware{},
 	)
 
+	staticRoute := httproute.Route{Middleware: staticChain}
+	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
 	scopedRoute := httproute.Route{Middleware: scopedChain}
-	webappRoute := httproute.Route{Middleware: webappChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
@@ -135,22 +151,22 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, st
 	router.Add(webapphandler.ConfigureWechatAuthRoute(webappPageRoute), p.Handler(newWechatAuthHandler))
 	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
-	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthAPIRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthAPIRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureJWKSRoute(oauthAPIRoute), p.Handler(newOAuthJWKSHandler))
+	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureJWKSRoute(oauthStaticRoute), p.Handler(newOAuthJWKSHandler))
+
 	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthAPIRoute), p.Handler(newOAuthAuthorizeHandler))
 	router.Add(oauthhandler.ConfigureTokenRoute(oauthAPIRoute), p.Handler(newOAuthTokenHandler))
 	router.Add(oauthhandler.ConfigureRevokeRoute(oauthAPIRoute), p.Handler(newOAuthRevokeHandler))
 	router.Add(oauthhandler.ConfigureEndSessionRoute(oauthAPIRoute), p.Handler(newOAuthEndSessionHandler))
+
 	router.Add(oauthhandler.ConfigureChallengeRoute(apiRoute), p.Handler(newOAuthChallengeHandler))
 	router.Add(oauthhandler.ConfigureAppSessionTokenRoute(apiRoute), p.Handler(newOAuthAppSessionTokenHandler))
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
 	router.Add(webapphandler.ConfigureWebsocketRoute(webappWebsocketRoute), p.Handler(newWebAppWebsocketHandler))
 
-	if staticAsset.ServingEnabled {
-		router.Add(webapphandler.ConfigureStaticAssetsRoute(webappRoute), p.Handler(newWebAppStaticAssetsHandler))
-	}
+	router.Add(webapphandler.ConfigureStaticAssetsRoute(staticRoute), p.Handler(newWebAppStaticAssetsHandler))
 
 	return router
 }
