@@ -33,7 +33,11 @@ Next time the app is launched, the user can just use biometric authentication to
 
 It makes sense for a banking application to keep session lifetime short.
 
-## Design
+Once a user has logged in the HSBC app, the app remembers the user forever.
+It is impossible to switch user unless the app is uninstalled and installed again.
+The uninstallation wipes the keychain.
+
+## Design Overview
 
 Storing the refresh token implies long session lifetime.
 Storing the password poses a hard restriction on the authenticator the user can use.
@@ -43,3 +47,35 @@ we must store something unique.
 Borrowing the design of anonymous user, a keypair is stored in the keychain.
 Biometric authentication is required to retrieve the private key.
 The keypair is used to both identify and authenticate the user.
+
+## Security Concerns
+
+The common user experience of biometric authentication is by scanning fingerprint or face to
+log in an account which was signed in previously with non-biometric means.
+
+This means enabling biometric authentication binds biometric authentication to the application authentication.
+If the application is not a single-user application like the HSBC app,
+then we must ensure when User B logs in, User B can never access the keypair of User A.
+
+The SDK stores the following things:
+
+1. The keypair is stored in the device keychain per container, requiring biometric authentication to access.
+2. The last logged in user ID (LastUserID) is stored in the device keychain per container, NOT requiring biometric authentication to access.
+3. The user ID of last biometric setup (BiometricUserID) is stored in the device keychain per container, NOT requiring biometric authentication to access.
+
+Under normal condition, when biometric authentication is enabled, the user should log in with it.
+For some reasons like the user is wearing a mask or gloves, biometric authentication is impossible,
+the application should perform the typical web-based authentication flow to authenticate the user.
+It is possible that the user could log into a different account, which can lead to the situation that
+User B is logged in and the keypair of User A is still in the keychain.
+
+The HSBC app avoid this situation by making itself a single-user application.
+However, it is impossible for the SDK to enforce this.
+
+Instead, the SDK has the following behavior.
+If the BiometricUserID is not null, the SDK includes the BiometricUserID as `login_hint` in the authorization URL.
+The server will complain if the user tries to sign in a different user.
+If the developer really wants the user to sign in different accounts,
+they should prompt the user to disable biometric authentication first.
+
+Disabling biometric authentication deletes the keypair, which requires biometric authentication.
