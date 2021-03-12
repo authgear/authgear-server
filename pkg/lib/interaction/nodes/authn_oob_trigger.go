@@ -91,7 +91,13 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 	}
 	targetInfo := e.Authenticators[idx]
 
-	result, err := sendOOBCode(ctx, e.Stage, true, targetInfo)
+	result, err := (&SendOOBCode{
+		Context:              ctx,
+		Stage:                e.Stage,
+		IsAuthenticating:     true,
+		AuthenticatorInfo:    targetInfo,
+		IgnoreRatelimitError: true,
+	}).Do()
 	if err != nil {
 		return nil, err
 	}

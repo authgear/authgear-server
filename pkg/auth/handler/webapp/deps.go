@@ -28,7 +28,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SetupTOTPHandler), "*"),
 	wire.Struct(new(EnterTOTPHandler), "*"),
 	wire.Struct(new(SetupOOBOTPHandler), "*"),
-	wire.Struct(new(SendOOBOTPHandler), "*"),
 	wire.Struct(new(EnterOOBOTPHandler), "*"),
 	wire.Struct(new(EnterRecoveryCodeHandler), "*"),
 	wire.Struct(new(SetupRecoveryCodeHandler), "*"),

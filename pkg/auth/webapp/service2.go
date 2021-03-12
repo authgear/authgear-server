@@ -195,17 +195,12 @@ func (s *Service2) doPost(
 					graph.InstanceID,
 				))
 			case *nodes.EdgeAuthenticationOOBTrigger:
-				switch defaultEdge.OOBAuthenticatorType {
-				case authn.AuthenticatorTypeOOBEmail:
-					session.Steps = append(session.Steps, NewSessionStep(
-						SessionStepSendOOBOTPAuthnEmail,
-						graph.InstanceID,
-					))
-				case authn.AuthenticatorTypeOOBSMS:
-					session.Steps = append(session.Steps, NewSessionStep(
-						SessionStepSendOOBOTPAuthnSMS,
-						graph.InstanceID,
-					))
+				inputFn = func() (input interface{}, err error) {
+					input = &inputTriggerOOB{
+						AuthenticatorType:  string(defaultEdge.OOBAuthenticatorType),
+						AuthenticatorIndex: 0,
+					}
+					return
 				}
 			default:
 				panic(fmt.Errorf("webapp: unexpected edge: %T", defaultEdge))

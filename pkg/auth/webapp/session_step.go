@@ -14,8 +14,6 @@ const (
 	SessionStepCreateAuthenticator   SessionStepKind = "create-authenticator"
 	SessionStepEnterPassword         SessionStepKind = "enter-password"
 	SessionStepCreatePassword        SessionStepKind = "create-password"
-	SessionStepSendOOBOTPAuthnEmail  SessionStepKind = "send-oob-otp-authn-email"
-	SessionStepSendOOBOTPAuthnSMS    SessionStepKind = "send-oob-otp-authn-sms"
 	SessionStepEnterOOBOTPAuthnEmail SessionStepKind = "enter-oob-otp-authn-email"
 	SessionStepEnterOOBOTPAuthnSMS   SessionStepKind = "enter-oob-otp-authn-sms"
 	SessionStepEnterOOBOTPSetupEmail SessionStepKind = "enter-oob-otp-setup-email"
@@ -46,8 +44,6 @@ func (k SessionStepKind) Path() string {
 		return "/enter_password"
 	case SessionStepCreatePassword:
 		return "/create_password"
-	case SessionStepSendOOBOTPAuthnEmail, SessionStepSendOOBOTPAuthnSMS:
-		return "/send_oob_otp"
 	case SessionStepEnterOOBOTPAuthnEmail,
 		SessionStepEnterOOBOTPAuthnSMS,
 		SessionStepEnterOOBOTPSetupEmail,
@@ -89,7 +85,7 @@ func (k SessionStepKind) MatchPath(path string) bool {
 			strings.HasPrefix(path, "/sso/oauth2/callback/")
 	case SessionStepAuthenticate:
 		switch path {
-		case "/enter_totp", "/enter_password", "/enter_oob_otp", "/enter_recovery_code", "/send_oob_otp":
+		case "/enter_totp", "/enter_password", "/enter_oob_otp", "/enter_recovery_code":
 			return true
 		default:
 			return false

@@ -21,14 +21,13 @@ type CodeSender struct {
 	WebAppURLs       WebAppURLProvider
 }
 
-func (s *CodeSender) SendCode(code *Code) (*otp.CodeSendResult, error) {
+func (s *CodeSender) SendCode(code *Code) (err error) {
 	opts := otp.SendOptions{
 		OTP:         code.Code,
 		URL:         s.WebAppURLs.VerifyIdentityURL(code.Code, code.ID).String(),
 		MessageType: otp.MessageTypeVerification,
 	}
 
-	var err error
 	switch config.LoginIDKeyType(code.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
 		err = s.OTPMessageSender.SendEmail(code.LoginID, opts)
@@ -38,8 +37,8 @@ func (s *CodeSender) SendCode(code *Code) (*otp.CodeSendResult, error) {
 		panic("verification: unsupported login ID type: " + code.LoginIDType)
 	}
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return code.SendResult(), nil
+	return
 }

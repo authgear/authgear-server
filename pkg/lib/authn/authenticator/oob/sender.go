@@ -19,7 +19,7 @@ func (s *CodeSender) SendCode(
 	target string,
 	code string,
 	messageType otp.MessageType,
-) (result *otp.CodeSendResult, err error) {
+) (err error) {
 	opts := otp.SendOptions{
 		OTP:         code,
 		URL:         "", // TODO(interaction): Include login link in email.
@@ -38,10 +38,5 @@ func (s *CodeSender) SendCode(
 		return
 	}
 
-	result = &otp.CodeSendResult{
-		Target:     target,
-		Channel:    string(channel),
-		CodeLength: len(code),
-	}
 	return
 }

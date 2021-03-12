@@ -13,7 +13,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 			return err
 		}
 
-		stepKind := webapp.SessionStepKind(ctrl.request.Form.Get("x_step"))
+		stepKind := webapp.SessionStepKind(ctrl.request.Form.Get("x_step_kind"))
 		var choiceStep webapp.SessionStepKind
 		var inputFn func() (interface{}, error)
 		switch stepKind {

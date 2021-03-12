@@ -21,7 +21,13 @@ func (e *EdgeOOBResendCode) Instantiate(ctx *interaction.Context, graph *interac
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	_, err := sendOOBCode(ctx, e.Stage, e.IsAuthenticating, e.Authenticator)
+	_, err := (&SendOOBCode{
+		Context:              ctx,
+		Stage:                e.Stage,
+		IsAuthenticating:     e.IsAuthenticating,
+		AuthenticatorInfo:    e.Authenticator,
+		IgnoreRatelimitError: false,
+	}).Do()
 	if err != nil {
 		return nil, err
 	}

@@ -129,12 +129,12 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		return nil, err
 	}
 
-	result, err := ctx.VerificationCodeSender.SendCode(code)
+	err = ctx.VerificationCodeSender.SendCode(code)
 	if err != nil {
 		return nil, err
 	}
 
-	return result, nil
+	return code.SendResult(), nil
 }
 
 type InputVerifyIdentityCheckCode interface {
