@@ -41,6 +41,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		httproute.MiddlewareFunc(httputil.ETag),
 	)
 
+	oauthStaticChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newCORSMiddleware),
+		httproute.MiddlewareFunc(httputil.ETag),
+	)
+
 	oauthAPIChain := httproute.Chain(
 		rootChain,
 		httproute.MiddlewareFunc(httputil.NoCache),
@@ -95,6 +101,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 
 	staticRoute := httproute.Route{Middleware: staticChain}
+	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
 	scopedRoute := httproute.Route{Middleware: scopedChain}
@@ -144,9 +151,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureWechatAuthRoute(webappPageRoute), p.Handler(newWechatAuthHandler))
 	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
-	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(staticRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(staticRoute), p.Handler(newOAuthMetadataHandler))
-	router.Add(oauthhandler.ConfigureJWKSRoute(staticRoute), p.Handler(newOAuthJWKSHandler))
+	router.Add(oauthhandler.ConfigureOIDCMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureOAuthMetadataRoute(oauthStaticRoute), p.Handler(newOAuthMetadataHandler))
+	router.Add(oauthhandler.ConfigureJWKSRoute(oauthStaticRoute), p.Handler(newOAuthJWKSHandler))
 
 	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthAPIRoute), p.Handler(newOAuthAuthorizeHandler))
 	router.Add(oauthhandler.ConfigureTokenRoute(oauthAPIRoute), p.Handler(newOAuthTokenHandler))
