@@ -17,6 +17,22 @@ func (f FilterFunc) Keep(ai *Info) bool {
 	return f(ai)
 }
 
+func ApplyFilters(ais []*Info, filters ...Filter) (out []*Info) {
+	for _, a := range ais {
+		keep := true
+		for _, f := range filters {
+			if !f.Keep(a) {
+				keep = false
+				break
+			}
+		}
+		if keep {
+			out = append(out, a)
+		}
+	}
+	return
+}
+
 var KeepDefault FilterFunc = func(ai *Info) bool {
 	return ai.IsDefault
 }

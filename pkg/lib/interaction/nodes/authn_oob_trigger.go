@@ -34,7 +34,7 @@ func (e *EdgeAuthenticationOOBTrigger) AuthenticatorType() authn.AuthenticatorTy
 }
 
 func (e *EdgeAuthenticationOOBTrigger) IsDefaultAuthenticator() bool {
-	filtered := filterAuthenticators(e.Authenticators, authenticator.KeepDefault)
+	filtered := authenticator.ApplyFilters(e.Authenticators, authenticator.KeepDefault)
 	return len(filtered) > 0
 }
 
