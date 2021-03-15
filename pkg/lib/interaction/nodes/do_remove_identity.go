@@ -36,6 +36,10 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			if err != nil {
 				return err
 			}
+			identityInfos = identity.ApplyFilters(
+				identityInfos,
+				identity.KeepIdentifiable,
+			)
 
 			if len(identityInfos) <= 1 {
 				return interaction.NewInvariantViolated(
