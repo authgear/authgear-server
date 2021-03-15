@@ -366,6 +366,69 @@ config:
           type: phone
 
 ---
+name: login-id-email-blacklist-whitelist-mutually-exclusive
+error: |-
+  invalid configuration:
+  /identity/login_id/types/email/domain_whitelist_enabled: enum
+    map[actual:true expected:[false]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    login_id:
+      types:
+        email:
+          domain_blacklist_enabled: true
+          domain_whitelist_enabled: true
+
+---
+name: login-id-email-block-free-email-provider-require-blacklist-enabled
+error: |-
+  invalid configuration:
+  /identity/login_id/types/email/domain_blacklist_enabled: enum
+    map[actual:false expected:[true]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    login_id:
+      types:
+        email:
+          domain_blacklist_enabled: false
+          block_free_email_provider_domains: true
+
+---
+name: login-id-email-block-free-email-provider-domains
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    login_id:
+      types:
+        email:
+          domain_blacklist_enabled: true
+          block_free_email_provider_domains: true
+
+---
+name: login-id-email-domain-whitelist-enabled
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  identity:
+    login_id:
+      types:
+        email:
+          domain_whitelist_enabled: true
+          domain_blacklist_enabled: false
+          block_free_email_provider_domains: false
+
+---
 name: invalid-password-policy-for-min-length
 error: |-
   invalid configuration:
