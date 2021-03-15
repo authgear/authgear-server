@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -59,6 +60,17 @@ type AnonymousIdentityProvider interface {
 	Delete(i *anonymous.Identity) error
 }
 
+type BiometricIdentityProvider interface {
+	Get(userID, id string) (*biometric.Identity, error)
+	GetMany(ids []string) ([]*biometric.Identity, error)
+	GetByKeyID(keyID string) (*biometric.Identity, error)
+	List(userID string) ([]*biometric.Identity, error)
+	ListByClaim(name string, value string) ([]*biometric.Identity, error)
+	New(userID string, keyID string, key []byte, deviceInfo map[string]interface{}) *biometric.Identity
+	Create(i *biometric.Identity) error
+	Delete(i *biometric.Identity) error
+}
+
 type Service struct {
 	Authentication *config.AuthenticationConfig
 	Identity       *config.IdentityConfig
@@ -66,6 +78,7 @@ type Service struct {
 	LoginID        LoginIDIdentityProvider
 	OAuth          OAuthIdentityProvider
 	Anonymous      AnonymousIdentityProvider
+	Biometric      BiometricIdentityProvider
 }
 
 func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -90,13 +103,19 @@ func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identi
 			return nil, err
 		}
 		return anonymousToIdentityInfo(a), nil
+	case authn.IdentityTypeBiometric:
+		b, err := s.Biometric.Get(userID, id)
+		if err != nil {
+			return nil, err
+		}
+		return biometricToIdentityInfo(b), nil
 	}
 
 	panic("identity: unknown identity type " + typ)
 }
 
 func (s *Service) GetMany(refs []*identity.Ref) ([]*identity.Info, error) {
-	var loginIDs, oauthIDs, anonymousIDs []string
+	var loginIDs, oauthIDs, anonymousIDs, biometricIDs []string
 	for _, ref := range refs {
 		switch ref.Type {
 		case authn.IdentityTypeLoginID:
@@ -105,6 +124,8 @@ func (s *Service) GetMany(refs []*identity.Ref) ([]*identity.Info, error) {
 			oauthIDs = append(oauthIDs, ref.ID)
 		case authn.IdentityTypeAnonymous:
 			anonymousIDs = append(anonymousIDs, ref.ID)
+		case authn.IdentityTypeBiometric:
+			biometricIDs = append(biometricIDs, ref.ID)
 		default:
 			panic("identity: unknown identity type " + ref.Type)
 		}
@@ -134,6 +155,14 @@ func (s *Service) GetMany(refs []*identity.Ref) ([]*identity.Info, error) {
 	}
 	for _, i := range a {
 		infos = append(infos, anonymousToIdentityInfo(i))
+	}
+
+	b, err := s.Biometric.GetMany(biometricIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range b {
+		infos = append(infos, biometricToIdentityInfo(i))
 	}
 
 	return infos, nil
@@ -167,6 +196,14 @@ func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
 			return nil, err
 		}
 		return anonymousToIdentityInfo(a), nil
+
+	case authn.IdentityTypeBiometric:
+		keyID, _, _ := extractBiometricClaims(spec.Claims)
+		b, err := s.Biometric.GetByKeyID(keyID)
+		if err != nil {
+			return nil, err
+		}
+		return biometricToIdentityInfo(b), nil
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
@@ -200,6 +237,15 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 	}
 	for _, i := range ais {
 		infos = append(infos, anonymousToIdentityInfo(i))
+	}
+
+	// biometric
+	bis, err := s.Biometric.List(userID)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range bis {
+		infos = append(infos, biometricToIdentityInfo(i))
 	}
 
 	return infos, nil
@@ -243,6 +289,15 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 		infos = append(infos, anonymousToIdentityInfo(i))
 	}
 
+	// biometric
+	bis, err := s.Biometric.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range bis {
+		infos = append(infos, biometricToIdentityInfo(i))
+	}
+
 	return infos, nil
 }
 
@@ -274,6 +329,10 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		keyID, key := extractAnonymousClaims(spec.Claims)
 		a := s.Anonymous.New(userID, keyID, []byte(key))
 		return anonymousToIdentityInfo(a), nil
+	case authn.IdentityTypeBiometric:
+		keyID, key, deviceInfo := extractBiometricClaims(spec.Claims)
+		b := s.Biometric.New(userID, keyID, []byte(key), deviceInfo)
+		return biometricToIdentityInfo(b), nil
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
@@ -297,6 +356,12 @@ func (s *Service) Create(info *identity.Info) error {
 	case authn.IdentityTypeAnonymous:
 		i := anonymousFromIdentityInfo(info)
 		if err := s.Anonymous.Create(i); err != nil {
+			return err
+		}
+
+	case authn.IdentityTypeBiometric:
+		i := biometricFromIdentityInfo(info)
+		if err := s.Biometric.Create(i); err != nil {
 			return err
 		}
 
@@ -336,6 +401,8 @@ func (s *Service) Update(info *identity.Info) error {
 		}
 	case authn.IdentityTypeAnonymous:
 		panic("identity: update no support for identity type " + info.Type)
+	case authn.IdentityTypeBiometric:
+		panic("identity: update no support for identity type " + info.Type)
 	default:
 		panic("identity: unknown identity type " + info.Type)
 	}
@@ -358,6 +425,11 @@ func (s *Service) Delete(info *identity.Info) error {
 	case authn.IdentityTypeAnonymous:
 		i := anonymousFromIdentityInfo(info)
 		if err := s.Anonymous.Delete(i); err != nil {
+			return err
+		}
+	case authn.IdentityTypeBiometric:
+		i := biometricFromIdentityInfo(info)
+		if err := s.Biometric.Delete(i); err != nil {
 			return err
 		}
 	default:
@@ -396,6 +468,8 @@ func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Inf
 
 	// No need to consider anonymous identity
 
+	// No need to consider biometric identity
+
 	return
 }
 
@@ -413,6 +487,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 			return
 		}
 		// No need to consider anonymous identity
+		// No need to consider biometric identity
 	}
 
 	for _, i := range s.Authentication.Identities {
@@ -564,6 +639,25 @@ func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key st
 	if v, ok := claims[identity.IdentityClaimAnonymousKey]; ok {
 		if key, ok = v.(string); !ok {
 			panic(fmt.Sprintf("identity: expect string key, got %T", claims[identity.IdentityClaimAnonymousKey]))
+		}
+	}
+	return
+}
+
+func extractBiometricClaims(claims map[string]interface{}) (keyID string, key string, deviceInfo map[string]interface{}) {
+	if v, ok := claims[identity.IdentityClaimBiometricKeyID]; ok {
+		if keyID, ok = v.(string); !ok {
+			panic(fmt.Sprintf("identity: expect string key ID, got %T", claims[identity.IdentityClaimBiometricKeyID]))
+		}
+	}
+	if v, ok := claims[identity.IdentityClaimBiometricKey]; ok {
+		if key, ok = v.(string); !ok {
+			panic(fmt.Sprintf("identity: expect string key, got %T", claims[identity.IdentityClaimBiometricKey]))
+		}
+	}
+	if v, ok := claims[identity.IdentityClaimBiometricDeviceInfo]; ok {
+		if deviceInfo, ok = v.(map[string]interface{}); !ok {
+			panic(fmt.Sprintf("identity: expect map device info, got %T", claims[identity.IdentityClaimBiometricDeviceInfo]))
 		}
 	}
 	return
