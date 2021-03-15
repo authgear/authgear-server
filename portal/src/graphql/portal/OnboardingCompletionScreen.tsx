@@ -13,6 +13,7 @@ import ScreenHeader from "../../ScreenHeader";
 import styles from "./OnboardingCompletionScreen.module.scss";
 import SignupScreenImg from "../../images/onboarding_signup_screen.png";
 import SettingScreenImg from "../../images/onboarding_settings_screen.png";
+import SSOLogoImg from "../../images/onboarding_sso_logo.png";
 import { useAppConfigQuery } from "./query/appConfigQuery";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ShowLoading from "../../ShowLoading";
@@ -161,7 +162,7 @@ const OnboardingCompletionContent: React.FC<OnboardingCompletionContentProps> = 
             )}
             {loginIDDisabled && (
               <OnboardingCompletionStepContent
-                image={SettingScreenImg}
+                image={SSOLogoImg}
                 titleId="OnboardingCompletion.sso.title"
                 messageId="OnboardingCompletion.sso.desc"
                 actionLabelId="OnboardingCompletion.sso.action"
