@@ -30,7 +30,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *
 			return nil, err
 		}
 
-		newSecondary := filterAuthenticators(
+		newSecondary := authenticator.ApplyFilters(
 			graph.GetUserNewAuthenticators(),
 			authenticator.KeepKind(authenticator.KindSecondary),
 		)

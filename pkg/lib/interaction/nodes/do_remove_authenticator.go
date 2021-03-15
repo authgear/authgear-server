@@ -50,7 +50,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 				}
 
 				for _, i := range is {
-					primaryAuths := filterAuthenticators(as, authenticator.KeepPrimaryAuthenticatorOfIdentity(i))
+					primaryAuths := authenticator.ApplyFilters(as, authenticator.KeepPrimaryAuthenticatorOfIdentity(i))
 					if len(primaryAuths) == 1 && primaryAuths[0].ID == n.Authenticator.ID {
 						return interaction.NewInvariantViolated(
 							"RemoveLastPrimaryAuthenticator",
@@ -65,7 +65,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 				if n.BypassMFARequirement {
 					break
 				}
-				secondaries := filterAuthenticators(as, authenticator.KeepKind(authenticator.KindSecondary))
+				secondaries := authenticator.ApplyFilters(as, authenticator.KeepKind(authenticator.KindSecondary))
 				mode := ctx.Config.Authentication.SecondaryAuthenticationMode
 				if mode == config.SecondaryAuthenticationModeRequired &&
 					len(secondaries) == 1 && secondaries[0].ID == n.Authenticator.ID {

@@ -26,7 +26,7 @@ func (e *EdgeAuthenticationPassword) AuthenticatorType() authn.AuthenticatorType
 }
 
 func (e *EdgeAuthenticationPassword) IsDefaultAuthenticator() bool {
-	filtered := filterAuthenticators(e.Authenticators, authenticator.KeepDefault)
+	filtered := authenticator.ApplyFilters(e.Authenticators, authenticator.KeepDefault)
 	return len(filtered) > 0
 }
 

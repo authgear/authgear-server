@@ -146,7 +146,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 
 	// 3. Find out whether the identity has the preferred primary authenticator.
 	// If it does not, creation is needed.
-	ais := filterAuthenticators(
+	ais := authenticator.ApplyFilters(
 		n.Authenticators,
 		authenticator.KeepType(types...),
 		authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
@@ -156,7 +156,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 	}
 
 	// Primary authenticator is default if it is the first primary authenticator of the user.
-	isDefault := len(filterAuthenticators(n.Authenticators, authenticator.KeepKind(authenticator.KindPrimary))) == 0
+	isDefault := len(authenticator.ApplyFilters(n.Authenticators, authenticator.KeepKind(authenticator.KindPrimary))) == 0
 
 	var edges []interaction.Edge
 	for _, t := range types {
@@ -226,7 +226,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		return nil
 	}
 
-	ais := filterAuthenticators(
+	ais := authenticator.ApplyFilters(
 		n.Authenticators,
 		authenticator.KeepKind(authenticator.KindSecondary),
 	)
@@ -258,7 +258,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 
 	// The created authenticator is default if no other default authenticator
 	// exists
-	isDefault := len(filterAuthenticators(ais, authenticator.KeepDefault)) == 0
+	isDefault := len(authenticator.ApplyFilters(ais, authenticator.KeepDefault)) == 0
 
 	// 3. Determine what secondary authenticator we allow the user to create.
 	// We have the following conditions to hold:
