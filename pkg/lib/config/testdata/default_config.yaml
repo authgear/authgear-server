@@ -272,7 +272,7 @@ identity:
         ignore_dot_sign: false
         domain_blacklist_enabled: false
         domain_whitelist_enabled: false
-        include_default_blacklisted_domains: false
+        block_free_email_provider_domains: false
       username:
         block_reserved_usernames: true
         ascii_only: true
