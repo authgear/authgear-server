@@ -77,6 +77,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		availableAuthenticators = filterAuthenticators(
 			n.Authenticators,
 			authenticator.KeepKind(authenticator.KindSecondary),
+			authenticator.KeepSecondaryAuthenticatorOfIdentity(n.Identity),
 		)
 
 		switch n.AuthenticationConfig.SecondaryAuthenticationMode {
