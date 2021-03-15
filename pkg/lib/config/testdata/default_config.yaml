@@ -277,6 +277,7 @@ identity:
         block_reserved_usernames: true
         ascii_only: true
         case_sensitive: false
+        exclude_keywords_enabled: false
     keys:
       - key: email
         type: email

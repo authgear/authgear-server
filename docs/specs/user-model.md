@@ -173,7 +173,8 @@ Login ID type determines the validation, normalization and unique key generation
 - Disallow confusing homoglyphs
 - Validate against PRECIS IdentifierClass profile
 - Disallow builtin reserved usernames (Configurable, default ON)
-- Disallow developer-provided reserved usernames (Configurable, default empty list)
+- Disallow username contains developer-provided keywords (Configurable, default OFF)
+  - Developer will need to provide their exclude keywords in txt file, separated by newline.
 - Check ASCII Only (`a-zA-Z0-9_-.`) (Configurable, default ON)
 
 ###### Normalization of Username Login ID
