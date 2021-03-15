@@ -11,6 +11,7 @@ import (
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
@@ -201,6 +202,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: anonymousStore,
 		Clock: clock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -208,6 +217,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -496,6 +506,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -503,6 +521,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	factory := appProvider.LoggerFactory
 	logger := verification.NewLogger(factory)
