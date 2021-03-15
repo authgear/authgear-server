@@ -6,6 +6,7 @@ package service
 
 import (
 	anonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
+	biometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	config "github.com/authgear/authgear-server/pkg/lib/config"
@@ -520,4 +521,144 @@ func (m *MockAnonymousIdentityProvider) Delete(i *anonymous.Identity) error {
 func (mr *MockAnonymousIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Delete), i)
+}
+
+// MockBiometricIdentityProvider is a mock of BiometricIdentityProvider interface
+type MockBiometricIdentityProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockBiometricIdentityProviderMockRecorder
+}
+
+// MockBiometricIdentityProviderMockRecorder is the mock recorder for MockBiometricIdentityProvider
+type MockBiometricIdentityProviderMockRecorder struct {
+	mock *MockBiometricIdentityProvider
+}
+
+// NewMockBiometricIdentityProvider creates a new mock instance
+func NewMockBiometricIdentityProvider(ctrl *gomock.Controller) *MockBiometricIdentityProvider {
+	mock := &MockBiometricIdentityProvider{ctrl: ctrl}
+	mock.recorder = &MockBiometricIdentityProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockBiometricIdentityProvider) EXPECT() *MockBiometricIdentityProviderMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method
+func (m *MockBiometricIdentityProvider) Get(userID, id string) (*biometric.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret0, _ := ret[0].(*biometric.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get
+func (mr *MockBiometricIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Get), userID, id)
+}
+
+// GetMany mocks base method
+func (m *MockBiometricIdentityProvider) GetMany(ids []string) ([]*biometric.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret0, _ := ret[0].([]*biometric.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMany indicates an expected call of GetMany
+func (mr *MockBiometricIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).GetMany), ids)
+}
+
+// GetByKeyID mocks base method
+func (m *MockBiometricIdentityProvider) GetByKeyID(keyID string) (*biometric.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByKeyID", keyID)
+	ret0, _ := ret[0].(*biometric.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByKeyID indicates an expected call of GetByKeyID
+func (mr *MockBiometricIdentityProviderMockRecorder) GetByKeyID(keyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyID", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).GetByKeyID), keyID)
+}
+
+// List mocks base method
+func (m *MockBiometricIdentityProvider) List(userID string) ([]*biometric.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", userID)
+	ret0, _ := ret[0].([]*biometric.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List
+func (mr *MockBiometricIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).List), userID)
+}
+
+// ListByClaim mocks base method
+func (m *MockBiometricIdentityProvider) ListByClaim(name, value string) ([]*biometric.Identity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByClaim", name, value)
+	ret0, _ := ret[0].([]*biometric.Identity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByClaim indicates an expected call of ListByClaim
+func (mr *MockBiometricIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).ListByClaim), name, value)
+}
+
+// New mocks base method
+func (m *MockBiometricIdentityProvider) New(userID, keyID string, key []byte, deviceInfo map[string]interface{}) *biometric.Identity {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "New", userID, keyID, key, deviceInfo)
+	ret0, _ := ret[0].(*biometric.Identity)
+	return ret0
+}
+
+// New indicates an expected call of New
+func (mr *MockBiometricIdentityProviderMockRecorder) New(userID, keyID, key, deviceInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).New), userID, keyID, key, deviceInfo)
+}
+
+// Create mocks base method
+func (m *MockBiometricIdentityProvider) Create(i *biometric.Identity) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", i)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create
+func (mr *MockBiometricIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Create), i)
+}
+
+// Delete mocks base method
+func (m *MockBiometricIdentityProvider) Delete(i *biometric.Identity) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", i)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockBiometricIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Delete), i)
 }
