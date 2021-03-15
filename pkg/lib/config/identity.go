@@ -83,15 +83,50 @@ var _ = Schema.Add("LoginIDEmailConfig", `
 	"properties": {
 		"case_sensitive": { "type": "boolean" },
 		"block_plus_sign": { "type": "boolean" },
-		"ignore_dot_sign": { "type": "boolean" }
-	}
+		"ignore_dot_sign": { "type": "boolean" },
+		"domain_blocklist_enabled" : {"type": "boolean"},
+		"domain_allowlist_enabled" : {"type": "boolean"},
+		"block_free_email_provider_domains" : {"type": "boolean"}
+	},
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"domain_blocklist_enabled": { "enum": [true] }
+				},
+				"required": ["domain_blocklist_enabled"]
+			},
+			"then": {
+				"properties": {
+					"domain_allowlist_enabled": { "enum": [false] }
+				}
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"block_free_email_provider_domains": { "enum": [true] }
+				},
+				"required": ["block_free_email_provider_domains"]
+			},
+			"then": {
+				"properties": {
+					"domain_blocklist_enabled": { "enum": [true] }
+				},
+				"required": ["domain_blocklist_enabled"]
+			}
+		}
+	]
 }
 `)
 
 type LoginIDEmailConfig struct {
-	CaseSensitive *bool `json:"case_sensitive,omitempty"`
-	BlockPlusSign *bool `json:"block_plus_sign,omitempty"`
-	IgnoreDotSign *bool `json:"ignore_dot_sign,omitempty"`
+	CaseSensitive                 *bool `json:"case_sensitive,omitempty"`
+	BlockPlusSign                 *bool `json:"block_plus_sign,omitempty"`
+	IgnoreDotSign                 *bool `json:"ignore_dot_sign,omitempty"`
+	DomainBlocklistEnabled        *bool `json:"domain_blocklist_enabled,omitempty"`
+	DomainAllowlistEnabled        *bool `json:"domain_allowlist_enabled,omitempty"`
+	BlockFreeEmailProviderDomains *bool `json:"block_free_email_provider_domains,omitempty"`
 }
 
 func (c *LoginIDEmailConfig) SetDefaults() {
@@ -103,6 +138,15 @@ func (c *LoginIDEmailConfig) SetDefaults() {
 	}
 	if c.IgnoreDotSign == nil {
 		c.IgnoreDotSign = newBool(false)
+	}
+	if c.DomainBlocklistEnabled == nil {
+		c.DomainBlocklistEnabled = newBool(false)
+	}
+	if c.DomainAllowlistEnabled == nil {
+		c.DomainAllowlistEnabled = newBool(false)
+	}
+	if c.BlockFreeEmailProviderDomains == nil {
+		c.BlockFreeEmailProviderDomains = newBool(false)
 	}
 }
 
