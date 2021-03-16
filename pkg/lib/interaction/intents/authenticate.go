@@ -170,9 +170,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			if node.Identity.Type == authn.IdentityTypeAnonymous {
 				// Create new identity for the anonymous user
 				return []interaction.Edge{
-					&nodes.EdgeCreateIdentityBegin{
-						AllowAnonymousUser: false,
-					},
+					&nodes.EdgeCreateIdentityBegin{},
 				}, nil
 			}
 
