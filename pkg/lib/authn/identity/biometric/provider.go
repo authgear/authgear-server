@@ -171,6 +171,28 @@ func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err er
 	return
 }
 
+func (p *Provider) ParseRequest(requestJWT string, identity *Identity) (*Request, error) {
+	key, err := identity.toJWK()
+	if err != nil {
+		return nil, err
+	}
+
+	payload, err := jws.VerifyWithJWK([]byte(requestJWT), key)
+	if err != nil {
+		return nil, fmt.Errorf("invalid JWT: %w", err)
+	}
+
+	req := &Request{}
+	err = json.Unmarshal(payload, req)
+	if err != nil {
+		return nil, fmt.Errorf("invalid JWT payload: %w", err)
+	}
+
+	req.KeyID = identity.KeyID
+	req.Key = key
+	return req, nil
+}
+
 func sortIdentities(is []*Identity) {
 	sort.Slice(is, func(i, j int) bool {
 		return is[i].CreatedAt.Before(is[j].CreatedAt)
