@@ -1,6 +1,8 @@
 package config
 
 import (
+	"encoding/json"
+
 	"github.com/lestrrat-go/jwx/jwk"
 )
 
@@ -242,7 +244,20 @@ var _ = SecretConfigSchema.Add("JWS", `
 var _ = SecretConfigSchema.Add("OAuthKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type OAuthKeyMaterials struct {
-	jwk.Set `json:",inline"`
+	jwk.Set
+}
+
+var _ json.Marshaler = &OAuthKeyMaterials{}
+var _ json.Unmarshaler = &OAuthKeyMaterials{}
+
+func (c *OAuthKeyMaterials) MarshalJSON() ([]byte, error) {
+	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+}
+func (c *OAuthKeyMaterials) UnmarshalJSON(b []byte) error {
+	if c.Set == nil {
+		c.Set = jwk.NewSet()
+	}
+	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *OAuthKeyMaterials) SensitiveStrings() []string {
@@ -252,7 +267,20 @@ func (c *OAuthKeyMaterials) SensitiveStrings() []string {
 var _ = SecretConfigSchema.Add("CSRFKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type CSRFKeyMaterials struct {
-	jwk.Set `json:",inline"`
+	jwk.Set
+}
+
+var _ json.Marshaler = &CSRFKeyMaterials{}
+var _ json.Unmarshaler = &CSRFKeyMaterials{}
+
+func (c *CSRFKeyMaterials) MarshalJSON() ([]byte, error) {
+	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+}
+func (c *CSRFKeyMaterials) UnmarshalJSON(b []byte) error {
+	if c.Set == nil {
+		c.Set = jwk.NewSet()
+	}
+	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *CSRFKeyMaterials) SensitiveStrings() []string {
@@ -262,7 +290,20 @@ func (c *CSRFKeyMaterials) SensitiveStrings() []string {
 var _ = SecretConfigSchema.Add("WebhookKeyMaterials", `{ "$ref": "#/$defs/JWS" }`)
 
 type WebhookKeyMaterials struct {
-	jwk.Set `json:",inline"`
+	jwk.Set
+}
+
+var _ json.Marshaler = &WebhookKeyMaterials{}
+var _ json.Unmarshaler = &WebhookKeyMaterials{}
+
+func (c *WebhookKeyMaterials) MarshalJSON() ([]byte, error) {
+	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+}
+func (c *WebhookKeyMaterials) UnmarshalJSON(b []byte) error {
+	if c.Set == nil {
+		c.Set = jwk.NewSet()
+	}
+	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *WebhookKeyMaterials) SensitiveStrings() []string {
@@ -272,7 +313,20 @@ func (c *WebhookKeyMaterials) SensitiveStrings() []string {
 var _ = SecretConfigSchema.Add("AdminAPIAuthKey", `{ "$ref": "#/$defs/JWS" }`)
 
 type AdminAPIAuthKey struct {
-	jwk.Set `json:",inline"`
+	jwk.Set
+}
+
+var _ json.Marshaler = &AdminAPIAuthKey{}
+var _ json.Unmarshaler = &AdminAPIAuthKey{}
+
+func (c *AdminAPIAuthKey) MarshalJSON() ([]byte, error) {
+	return c.Set.(interface{}).(json.Marshaler).MarshalJSON()
+}
+func (c *AdminAPIAuthKey) UnmarshalJSON(b []byte) error {
+	if c.Set == nil {
+		c.Set = jwk.NewSet()
+	}
+	return c.Set.(interface{}).(json.Unmarshaler).UnmarshalJSON(b)
 }
 
 func (c *AdminAPIAuthKey) SensitiveStrings() []string {

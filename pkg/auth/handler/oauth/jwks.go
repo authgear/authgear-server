@@ -17,7 +17,7 @@ func ConfigureJWKSRoute(route httproute.Route) httproute.Route {
 }
 
 type JWSSource interface {
-	GetPublicKeySet() (*jwk.Set, error)
+	GetPublicKeySet() (jwk.Set, error)
 }
 
 type JWKSHandlerLogger struct{ *log.Logger }

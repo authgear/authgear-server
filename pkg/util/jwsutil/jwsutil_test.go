@@ -11,7 +11,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
@@ -33,11 +32,10 @@ func TestVerifyWithSet(t *testing.T) {
 		token, err := jwtutil.Sign(payload, alg, jwkKey)
 		So(err, ShouldBeNil)
 
-		privateKeySet := &jwk.Set{
-			Keys: []jwk.Key{jwkKey},
-		}
+		privateKeySet := jwk.NewSet()
+		_ = privateKeySet.Add(jwkKey)
 
-		publicKeySet, err := jwkutil.PublicKeySet(privateKeySet)
+		publicKeySet, err := jwk.PublicSetOf(privateKeySet)
 		So(err, ShouldBeNil)
 
 		_, _, err = VerifyWithSet(publicKeySet, token)

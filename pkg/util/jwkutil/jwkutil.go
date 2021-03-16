@@ -1,42 +1,18 @@
 package jwkutil
 
 import (
+	"context"
 	"errors"
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
 )
 
-func PublicKeySet(set *jwk.Set) (*jwk.Set, error) {
-	jwks := &jwk.Set{}
-	for _, key := range set.Keys {
-		var ptrKey interface{}
-		err := key.Raw(&ptrKey)
-		if err != nil {
-			return nil, err
-		}
+func ExtractOctetKey(set jwk.Set, id string) ([]byte, error) {
+	for it := set.Iterate(context.Background()); it.Next(context.Background()); {
+		pair := it.Pair()
+		key := pair.Value.(jwk.Key)
 
-		pk, err := jwk.PublicKeyOf(ptrKey)
-		if err != nil {
-			return nil, err
-		}
-
-		pkey, err := jwk.New(pk)
-		if err != nil {
-			return nil, err
-		}
-
-		if kid := key.KeyID(); kid != "" {
-			_ = pkey.Set(jwk.KeyIDKey, kid)
-		}
-
-		jwks.Keys = append(jwks.Keys, pkey)
-	}
-	return jwks, nil
-}
-
-func ExtractOctetKey(set *jwk.Set, id string) ([]byte, error) {
-	for _, key := range set.Keys {
 		if id != "" && key.KeyID() != id {
 			continue
 		}
@@ -52,6 +28,5 @@ func ExtractOctetKey(set *jwk.Set, id string) ([]byte, error) {
 			return nil, errors.New("unexpected key type (key type should be octet)")
 		}
 	}
-
 	return nil, errors.New("octet key not found")
 }
