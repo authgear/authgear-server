@@ -56,13 +56,22 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 		return nil, interaction.ErrInvalidCredentials
 	}
 
+	var iden *identitybiometric.Identity
 	switch request.Action {
 	case identitybiometric.RequestActionSetup:
+		// FIXME(biometric): validate device info
 		if request.Key == nil {
 			return nil, interaction.ErrInvalidCredentials
 		}
-		// FIXME(biometric): validate device info
-		// FIXME(biometric): authenticate
+	case identitybiometric.RequestActionAuthenticate:
+		iden, err = ctx.BiometricIdentities.GetByKeyID(request.KeyID)
+		if err != nil {
+			return nil, interaction.ErrInvalidCredentials
+		}
+		request, err = ctx.BiometricIdentities.ParseRequest(jwt, iden)
+		if err != nil {
+			return nil, interaction.ErrInvalidCredentials
+		}
 	}
 
 	key, err := json.Marshal(request.Key)

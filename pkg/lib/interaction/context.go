@@ -73,6 +73,8 @@ type AnonymousIdentityProvider interface {
 
 type BiometricIdentityProvider interface {
 	ParseRequestUnverified(requestJWT string) (*biometric.Request, error)
+	GetByKeyID(keyID string) (*biometric.Identity, error)
+	ParseRequest(requestJWT string, identity *biometric.Identity) (*biometric.Request, error)
 }
 
 type ChallengeProvider interface {
