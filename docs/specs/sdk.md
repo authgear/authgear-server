@@ -55,9 +55,9 @@ Biometric authentication is provided by the following API
 ```typescript
 /**
  * This function can be called at anytime.
- * This function reports whether biometric authentication is available.
+ * This function reports whether biometric authentication is supported on the current device.
  */
-function isBiometricAvailable(): Promise<boolean>;
+function isBiometricSupported(): Promise<boolean>;
 
 /**
  * This function can be called at anytime.
@@ -125,8 +125,8 @@ await authgear.authorize({ ... });
 
 
 // Check if the device supports biometric authentication.
-const available = await authgear.isBiometricAvailable();
-if (available) {
+const isSupported = await authgear.isBiometricSupported();
+if (isSupported) {
   // Show a screen to ask the user if they want to enable biometric authentication.
   await authgear.enableBiometric();
 }
