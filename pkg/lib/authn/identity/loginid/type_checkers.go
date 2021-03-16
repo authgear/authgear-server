@@ -11,6 +11,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
+	"github.com/authgear/authgear-server/pkg/util/exactmatchlist"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -62,27 +63,78 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) Ty
 
 type EmailChecker struct {
 	Config *config.LoginIDEmailConfig
+	// DomainBlockList, DomainAllowList and BlockFreeEmailProviderDomains
+	// are provided by TypeCheckerFactory based on config, so the related
+	// resources will only be loaded when it is enabled
+	// EmailChecker will not further check the config before performing
+	// validation
+	DomainBlockList               *exactmatchlist.ExactMatchList
+	DomainAllowList               *exactmatchlist.ExactMatchList
+	BlockFreeEmailProviderDomains *exactmatchlist.ExactMatchList
+	Error                         error
 }
 
 func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
+	if c.Error != nil {
+		ctx.AddError(c.Error)
+		return
+	}
+
 	err := validation.FormatEmail{}.CheckFormat(loginID)
 	if err != nil {
 		ctx.EmitError("format", map[string]interface{}{"format": "email"})
 		return
 	}
 
-	if *c.Config.BlockPlusSign {
-		// refs from stdlib
-		// https://golang.org/src/net/mail/message.go?s=5217:5250#L172
-		at := strings.LastIndex(loginID, "@")
-		if at < 0 {
-			panic("password: malformed address, should be rejected by the email format checker")
-		}
+	// refs from stdlib
+	// https://golang.org/src/net/mail/message.go?s=5217:5250#L172
+	at := strings.LastIndex(loginID, "@")
+	if at < 0 {
+		panic("password: malformed address, should be rejected by the email format checker")
+	}
 
-		local := loginID[:at]
+	local, domain := loginID[:at], loginID[at+1:]
+
+	if *c.Config.BlockPlusSign {
 		if strings.Contains(local, "+") {
 			ctx.EmitError("format", map[string]interface{}{"format": "email"})
 			return
+		}
+	}
+
+	if c.DomainBlockList != nil {
+		matched, err := c.DomainBlockList.Matched(domain)
+		if err != nil {
+			// email that the domain cannot be fold case
+			ctx.EmitError("format", map[string]interface{}{"format": "email"})
+			return
+		}
+		if matched {
+			ctx.EmitErrorMessage("email domain is not allowed")
+		}
+	}
+
+	if c.BlockFreeEmailProviderDomains != nil {
+		matched, err := c.BlockFreeEmailProviderDomains.Matched(domain)
+		if err != nil {
+			// email that the domain cannot be fold case
+			ctx.EmitError("format", map[string]interface{}{"format": "email"})
+			return
+		}
+		if matched {
+			ctx.EmitErrorMessage("email domain is not allowed")
+		}
+	}
+
+	if c.DomainAllowList != nil {
+		matched, err := c.DomainAllowList.Matched(domain)
+		if err != nil {
+			// email that the domain cannot be fold case
+			ctx.EmitError("format", map[string]interface{}{"format": "email"})
+			return
+		}
+		if !matched {
+			ctx.EmitErrorMessage("email domain is not allowed")
 		}
 	}
 }
