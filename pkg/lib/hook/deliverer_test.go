@@ -26,10 +26,10 @@ func TestDeliverer(t *testing.T) {
 		}
 		key, err := jwk.New([]byte("aG9vay1zZWNyZXQ"))
 		So(err, ShouldBeNil)
+		set := jwk.NewSet()
+		_ = set.Add(key)
 		secret := &config.WebhookKeyMaterials{
-			Set: jwk.Set{
-				Keys: []jwk.Key{key},
-			},
+			Set: set,
 		}
 
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")

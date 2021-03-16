@@ -6,11 +6,11 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -49,7 +49,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 			if m.AuthKey == nil {
 				panic("authz: no key configured for admin API auth")
 			}
-			keySet, err := jwkutil.PublicKeySet(&m.AuthKey.Set)
+			keySet, err := jwk.PublicSetOf(m.AuthKey.Set)
 			if err != nil {
 				panic(fmt.Errorf("authz: cannot extract public keys: %w", err))
 			}
@@ -69,7 +69,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 				break
 			}
 
-			err = jwt.Verify(token,
+			err = jwt.Validate(token,
 				jwt.WithClock(&jwtClock{m.Clock}),
 				jwt.WithAudience(string(m.AppID)),
 			)

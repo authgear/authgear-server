@@ -32,7 +32,7 @@ func (a *Adder) AddAuthz(auth config.AdminAPIAuth, appID config.AppID, authKey *
 		_ = payload.Set(jwt.IssuedAtKey, now.Unix())
 		_ = payload.Set(jwt.ExpirationKey, now.Add(duration.Short).Unix())
 
-		key := authKey.Set.Keys[0]
+		key, _ := authKey.Set.Get(0)
 
 		var token []byte
 		token, err = jwtutil.Sign(payload, jwa.RS256, key)
