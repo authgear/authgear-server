@@ -38,9 +38,23 @@ func (n *NodeCreateIdentityBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 
 func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 	var edges []interaction.Edge
+
+	// The checking of enable is done is the edge itself.
+	// So we always add edges here.
+	//
+	// If we conditionally add edges,
+	// no edges could be mistaken to be graph completion.
+	edges = append(edges, &EdgeUseIdentityAnonymous{})
+	edges = append(edges, &EdgeUseIdentityBiometric{
+		IsCreating: true,
+	})
+
 	for _, t := range n.IdentityTypes {
 		switch t {
 		case authn.IdentityTypeAnonymous:
+			break
+
+		case authn.IdentityTypeBiometric:
 			break
 
 		case authn.IdentityTypeLoginID:
