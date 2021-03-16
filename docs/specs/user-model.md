@@ -148,6 +148,12 @@ Login ID type determines the validation, normalization and unique key generation
 
 - [RFC5322](https://tools.ietf.org/html/rfc5322#section-3.4.1)
 - Disallow `+` sign in the local part (Configurable, default OFF)
+- Domain blacklist / whitelist
+  - Block blacklisted domains (Configurable, default OFF, can be ON only if *Allow whitelisted domains* is OFF)
+  - Block email addresses from free email provider domains (Configurable, default OFF, can be ON only if *Block blacklisted domains* is ON)
+  - Allow whitelisted domains only (Configurable, default OFF, can be ON only if *Block blacklisted domains* is OFF)
+  - Domain blacklist / whitelist only affect user signup, users created from portal or via admin API are not affected
+  - Developer will need to provide their blacklist / whitelist in txt file, separated by newline.
 
 ###### Normalization of Email Login ID
 
@@ -167,7 +173,8 @@ Login ID type determines the validation, normalization and unique key generation
 - Disallow confusing homoglyphs
 - Validate against PRECIS IdentifierClass profile
 - Disallow builtin reserved usernames (Configurable, default ON)
-- Disallow developer-provided reserved usernames (Configurable, default empty list)
+- Disallow username contains developer-provided keywords (Configurable, default OFF)
+  - Developer will need to provide their exclude keywords in txt file, separated by newline.
 - Check ASCII Only (`a-zA-Z0-9_-.`) (Configurable, default ON)
 
 ###### Normalization of Username Login ID
