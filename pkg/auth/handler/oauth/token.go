@@ -18,7 +18,7 @@ func ConfigureTokenRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolTokenHandler interface {
-	Handle(r protocol.TokenRequest) httputil.Result
+	Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result
 }
 
 type TokenHandlerLogger struct{ *log.Logger }
@@ -47,7 +47,7 @@ func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	var result httputil.Result
 	err = h.Database.WithTx(func() error {
-		result = h.TokenHandler.Handle(req)
+		result = h.TokenHandler.Handle(rw, r, req)
 		if result.IsInternalError() {
 			return errAuthzInternalError
 		}

@@ -37,7 +37,7 @@ var _ = Schema.Add("AuthenticationConfig", `
 var _ = Schema.Add("IdentityType", `
 {
 	"type": "string",
-	"enum": ["login_id", "oauth", "anonymous"]
+	"enum": ["login_id", "oauth", "anonymous", "biometric"]
 }
 `)
 

@@ -15,6 +15,7 @@ type (
 		InternalError bool
 		Response      protocol.ErrorResponse
 	}
+	tokenResultEmpty struct{}
 )
 
 func (t tokenResultOK) WriteResponse(rw http.ResponseWriter, r *http.Request) {
@@ -53,4 +54,14 @@ func (t tokenResultError) WriteResponse(rw http.ResponseWriter, r *http.Request)
 
 func (t tokenResultError) IsInternalError() bool {
 	return t.InternalError
+}
+
+func (t tokenResultEmpty) WriteResponse(rw http.ResponseWriter, r *http.Request) {
+	rw.Header().Set("Cache-Control", "no-store")
+	rw.Header().Set("Pragma", "no-cache")
+	rw.WriteHeader(http.StatusOK)
+}
+
+func (t tokenResultEmpty) IsInternalError() bool {
+	return false
 }

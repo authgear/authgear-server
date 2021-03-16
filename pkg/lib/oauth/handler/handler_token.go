@@ -5,9 +5,11 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -19,16 +21,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
+const BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
 
 // whitelistedGrantTypes is a list of grant types that would be always allowed
 // to all clients.
 var whitelistedGrantTypes = []string{
 	AnonymousRequestGrantType,
+	BiometricRequestGrantType,
 }
 
 type IDTokenIssuer interface {
@@ -75,7 +80,7 @@ type TokenHandler struct {
 	Users             TokenHandlerUserFacade
 }
 
-func (h *TokenHandler) Handle(r protocol.TokenRequest) httputil.Result {
+func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
 	client := resolveClient(h.Config, r)
 	if client == nil {
 		return tokenResultError{
@@ -83,7 +88,7 @@ func (h *TokenHandler) Handle(r protocol.TokenRequest) httputil.Result {
 		}
 	}
 
-	result, err := h.doHandle(client, r)
+	result, err := h.doHandle(rw, req, client, r)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
 		resultErr := tokenResultError{}
@@ -101,6 +106,8 @@ func (h *TokenHandler) Handle(r protocol.TokenRequest) httputil.Result {
 }
 
 func (h *TokenHandler) doHandle(
+	rw http.ResponseWriter,
+	req *http.Request,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
@@ -136,6 +143,8 @@ func (h *TokenHandler) doHandle(
 		return tokenResultOK{Response: resp}, nil
 	case AnonymousRequestGrantType:
 		return h.handleAnonymousRequest(client, r)
+	case BiometricRequestGrantType:
+		return h.handleBiometricRequest(rw, req, client, r)
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -155,6 +164,10 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
 			return protocol.NewError("invalid_request", "refresh token is required")
 		}
 	case AnonymousRequestGrantType:
+		if r.JWT() == "" {
+			return protocol.NewError("invalid_request", "jwt is required")
+		}
+	case BiometricRequestGrantType:
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}
@@ -384,6 +397,85 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	return tokenResultOK{Response: resp}, nil
+}
+
+func (h *TokenHandler) handleBiometricRequest(
+	rw http.ResponseWriter,
+	req *http.Request,
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	_, payload, err := jwtutil.SplitWithoutVerify([]byte(r.JWT()))
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	}
+	actionIface, _ := payload.Get("action")
+	action, _ := actionIface.(string)
+	switch action {
+	case string(identitybiometric.RequestActionSetup):
+		return h.handleBiometricSetup(req, client, r)
+	// FIXME(biometric): authenticate
+	default:
+		return nil, protocol.NewError("invalid_request", fmt.Sprintf("invalid action: %v", actionIface))
+	}
+}
+
+type biometricSetupInput struct {
+	JWT string
+}
+
+func (i *biometricSetupInput) GetBiometricRequestToken() string {
+	return i.JWT
+}
+
+func (h *TokenHandler) handleBiometricSetup(
+	req *http.Request,
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	s := session.GetSession(req.Context())
+	if s == nil {
+		return nil, protocol.NewError("invalid_request", "biometric setup requires authenticated user")
+	}
+
+	var graph *interaction.Graph
+	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+		var err error
+		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentAddIdentity(s.SessionAttrs().UserID))
+		if err != nil {
+			return nil, err
+		}
+
+		var edges []interaction.Edge
+		graph, edges, err = h.Graphs.Accept(ctx, graph, &biometricSetupInput{
+			JWT: r.JWT(),
+		})
+		if len(edges) != 0 {
+			return nil, errors.New("interaction no completed for biometric setup")
+		} else if err != nil {
+			return nil, err
+		}
+
+		return graph, nil
+	})
+
+	if apierrors.IsKind(err, interaction.InvariantViolated) &&
+		apierrors.AsAPIError(err).HasCause("BiometricDisallowed") {
+		return nil, protocol.NewError("unauthorized_client", err.Error())
+	} else if errors.Is(err, interaction.ErrInvalidCredentials) {
+		return nil, protocol.NewError("invalid_grant", err.Error())
+	} else if err != nil {
+		return nil, err
+	}
+
+	err = h.Graphs.Run("", graph)
+	if apierrors.IsAPIError(err) {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	} else if err != nil {
+		return nil, err
+	}
+
+	return tokenResultEmpty{}, nil
 }
 
 func (h *TokenHandler) issueTokensForAuthorizationCode(
