@@ -79,3 +79,15 @@ If the developer really wants the user to sign in different accounts,
 they should prompt the user to disable biometric authentication first.
 
 Disabling biometric authentication deletes the keypair, which requires biometric authentication.
+
+## Configuration
+
+Biometric identity is not shown along with Login ID identity and OAuth identity.
+Biometric identity is shown separately in the settings page.
+By default, biometric identity is hidden.
+
+```yaml
+identity:
+  biometric:
+    is_hidden: true
+```
