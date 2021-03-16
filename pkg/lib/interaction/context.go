@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -68,6 +69,10 @@ type AnonymousIdentityProvider interface {
 	ParseRequestUnverified(requestJWT string) (*anonymous.Request, error)
 	GetByKeyID(keyID string) (*anonymous.Identity, error)
 	ParseRequest(requestJWT string, identity *anonymous.Identity) (*anonymous.Request, error)
+}
+
+type BiometricIdentityProvider interface {
+	ParseRequestUnverified(requestJWT string) (*biometric.Request, error)
 }
 
 type ChallengeProvider interface {
@@ -165,6 +170,7 @@ type Context struct {
 	Identities               IdentityService
 	Authenticators           AuthenticatorService
 	AnonymousIdentities      AnonymousIdentityProvider
+	BiometricIdentities      BiometricIdentityProvider
 	OOBAuthenticators        OOBAuthenticatorProvider
 	OOBCodeSender            OOBCodeSender
 	OAuthProviderFactory     OAuthProviderFactory

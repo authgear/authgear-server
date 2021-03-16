@@ -541,6 +541,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
