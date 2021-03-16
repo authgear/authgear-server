@@ -91,21 +91,18 @@ function isBiometricEnabled(): Promise<boolean>;
 function enableBiometric(): Promise<void>;
 
 /**
- * This function can be called when the user has logged in, or at anytime if an option is specified.
+ * This function can be called at anytime.
  * This function WILL trigger biometric authentication if necessary.
  *
  * The following steps are performed:
  *
- * 1. Call /api/identity/biometric/remove
- * 2. If the error is identity not found, the error is always ignored.
- * 3. If `force` is specified, the error is ignored, otherwise the error is thrown.
- * 4. The key pair is deleted from the keychain.
+ * 1. The key pair is deleted from the keychain.
  *
  * The key pair is stored with kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly and kSecAccessControlBiometryAny,
  * therefore the data is not included in backup, nor transfered to new device,
  * biometric authentication or password code is prompted if necessary.
  */
-function disableBiometric(options?: { force?: boolean }): Promise<void>;
+function disableBiometric(): Promise<void>;
 
 /**
  * This function can be called at anytime.
