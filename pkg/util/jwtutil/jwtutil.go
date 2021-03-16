@@ -1,7 +1,6 @@
 package jwtutil
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 
@@ -60,7 +59,7 @@ func SignWithHeader(t jwt.Token, hdr jws.Headers, alg jwa.SignatureAlgorithm, ke
 
 // SplitWithoutVerify deserializes compact into hdr and payload.
 func SplitWithoutVerify(compact []byte) (hdr jws.Headers, payload jwt.Token, err error) {
-	msg, err := jws.Parse(bytes.NewReader(compact))
+	msg, err := jws.Parse(compact)
 	if err != nil {
 		return
 	}

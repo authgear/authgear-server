@@ -99,7 +99,7 @@ func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err er
 		return
 	}
 
-	err = jwt.Verify(jwtToken,
+	err = jwt.Validate(jwtToken,
 		jwt.WithClock(jwtClock{p.Clock}),
 		jwt.WithAcceptableSkew(duration.ClockSkew),
 	)
@@ -118,14 +118,18 @@ func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err er
 			return
 		}
 
-		var set *jwk.Set
-		set, err = jwk.ParseBytes(jwkBytes)
+		var set jwk.Set
+		set, err = jwk.Parse(jwkBytes)
 		if err != nil {
 			err = fmt.Errorf("invalid JWK: %w", err)
 			return
 		}
 
-		key = set.Keys[0]
+		key, ok = set.Get(0)
+		if !ok {
+			err = fmt.Errorf("empty JWK set")
+			return
+		}
 		keyID = key.KeyID()
 
 		// The client does include alg in the JWK.
@@ -177,7 +181,10 @@ func (p *Provider) ParseRequest(requestJWT string, identity *Identity) (*Request
 		return nil, err
 	}
 
-	payload, err := jws.VerifyWithJWK([]byte(requestJWT), key)
+	set := jwk.NewSet()
+	_ = set.Add(key)
+
+	payload, err := jws.VerifySet([]byte(requestJWT), set)
 	if err != nil {
 		return nil, fmt.Errorf("invalid JWT: %w", err)
 	}

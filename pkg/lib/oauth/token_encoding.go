@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
@@ -52,7 +52,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 	// verified JWT.
 	_ = claims.Set(jwt.JwtIDKey, grant.TokenHash)
 
-	jwk := e.Secrets.Set.Keys[0]
+	jwk, _ := e.Secrets.Set.Get(0)
 
 	hdr := jws.NewHeaders()
 	_ = hdr.Set("typ", "at+jwt")
@@ -71,7 +71,7 @@ func (e *AccessTokenEncoding) DecodeAccessToken(encodedToken string) (tok string
 		return encodedToken, false, nil
 	}
 
-	keys, err := jwkutil.PublicKeySet(&e.Secrets.Set)
+	keys, err := jwk.PublicSetOf(e.Secrets.Set)
 	if err != nil {
 		return "", false, err
 	}
@@ -82,7 +82,7 @@ func (e *AccessTokenEncoding) DecodeAccessToken(encodedToken string) (tok string
 		return encodedToken, false, nil
 	}
 
-	err = jwt.Verify(token,
+	err = jwt.Validate(token,
 		jwt.WithClock(&jwtClock{e.Clock}),
 		jwt.WithAudience(e.BaseURL.BaseURL().String()),
 	)

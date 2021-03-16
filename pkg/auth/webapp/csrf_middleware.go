@@ -42,7 +42,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			options = append(options, csrf.SameSite(0))
 		}
 
-		key, err := jwkutil.ExtractOctetKey(&m.Secret.Set, "")
+		key, err := jwkutil.ExtractOctetKey(m.Secret.Set, "")
 		if err != nil {
 			panic("webapp: CSRF key not found")
 		}
