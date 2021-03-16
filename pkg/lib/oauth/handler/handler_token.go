@@ -414,17 +414,18 @@ func (h *TokenHandler) handleBiometricRequest(
 	switch action {
 	case string(identitybiometric.RequestActionSetup):
 		return h.handleBiometricSetup(req, client, r)
-	// FIXME(biometric): authenticate
+	case string(identitybiometric.RequestActionAuthenticate):
+		return h.handleBiometricAuthenticate(client, r)
 	default:
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("invalid action: %v", actionIface))
 	}
 }
 
-type biometricSetupInput struct {
+type biometricInput struct {
 	JWT string
 }
 
-func (i *biometricSetupInput) GetBiometricRequestToken() string {
+func (i *biometricInput) GetBiometricRequestToken() string {
 	return i.JWT
 }
 
@@ -447,7 +448,7 @@ func (h *TokenHandler) handleBiometricSetup(
 		}
 
 		var edges []interaction.Edge
-		graph, edges, err = h.Graphs.Accept(ctx, graph, &biometricSetupInput{
+		graph, edges, err = h.Graphs.Accept(ctx, graph, &biometricInput{
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {
@@ -476,6 +477,89 @@ func (h *TokenHandler) handleBiometricSetup(
 	}
 
 	return tokenResultEmpty{}, nil
+}
+
+func (h *TokenHandler) handleBiometricAuthenticate(
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	var graph *interaction.Graph
+	var attrs *session.Attrs
+	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+		var err error
+		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin())
+		if err != nil {
+			return nil, err
+		}
+
+		var edges []interaction.Edge
+		graph, edges, err = h.Graphs.Accept(ctx, graph, &biometricInput{
+			JWT: r.JWT(),
+		})
+		if len(edges) != 0 {
+			return nil, errors.New("interaction no completed for biometric authenticate")
+		} else if err != nil {
+			return nil, err
+		}
+
+		for _, node := range graph.Nodes {
+			if a, ok := node.(interface{ SessionAttrs() *session.Attrs }); ok {
+				attrs = a.SessionAttrs()
+				break
+			}
+		}
+		if attrs == nil {
+			return nil, errors.New("interaction does not produce authn attrs")
+		}
+
+		return graph, nil
+	})
+
+	if apierrors.IsKind(err, interaction.InvariantViolated) &&
+		apierrors.AsAPIError(err).HasCause("BiometricDisallowed") {
+		return nil, protocol.NewError("unauthorized_client", err.Error())
+	} else if errors.Is(err, interaction.ErrInvalidCredentials) {
+		return nil, protocol.NewError("invalid_grant", err.Error())
+	} else if err != nil {
+		return nil, err
+	}
+
+	err = h.Graphs.Run("", graph)
+	if apierrors.IsAPIError(err) {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	} else if err != nil {
+		return nil, err
+	}
+
+	// TODO(oauth): allow specifying scopes
+	scopes := []string{"openid", oauth.FullAccessScope}
+
+	authz, err := checkAuthorization(
+		h.Authorizations,
+		h.Clock.NowUTC(),
+		h.AppID,
+		client.ClientID,
+		attrs.UserID,
+		scopes,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := protocol.TokenResponse{}
+
+	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	err = h.issueAccessGrant(client, scopes, authz.ID, authz.UserID,
+		offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return tokenResultOK{Response: resp}, nil
 }
 
 func (h *TokenHandler) issueTokensForAuthorizationCode(
