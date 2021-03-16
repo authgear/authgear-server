@@ -24,9 +24,12 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfig {
 	}
 	return &config.LoginIDTypesConfig{
 		Email: &config.LoginIDEmailConfig{
-			CaseSensitive: newFalse(),
-			BlockPlusSign: newFalse(),
-			IgnoreDotSign: newFalse(),
+			CaseSensitive:                 newFalse(),
+			BlockPlusSign:                 newFalse(),
+			IgnoreDotSign:                 newFalse(),
+			DomainBlacklistEnabled:        newFalse(),
+			DomainWhitelistEnabled:        newFalse(),
+			BlockFreeEmailProviderDomains: newFalse(),
 		},
 		Username: &config.LoginIDUsernameConfig{
 			BlockReservedUsernames: newFalse(),
