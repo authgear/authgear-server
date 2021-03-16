@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -19,9 +18,7 @@ type InputUseIdentityAnonymous interface {
 	GetAnonymousRequestToken() string
 }
 
-type EdgeUseIdentityAnonymous struct {
-	IsCreating bool
-}
+type EdgeUseIdentityAnonymous struct{}
 
 func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityAnonymous
@@ -91,14 +88,11 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 
 	return &NodeUseIdentityAnonymous{
 		IdentitySpec: spec,
-		Action:       request.Action,
 	}, nil
 }
 
 type NodeUseIdentityAnonymous struct {
-	IsCreating   bool                    `json:"is_creating"`
-	IdentitySpec *identity.Spec          `json:"identity_spec"`
-	Action       anonymous.RequestAction `json:"action"`
+	IdentitySpec *identity.Spec `json:"identity_spec"`
 }
 
 func (n *NodeUseIdentityAnonymous) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -110,8 +104,5 @@ func (n *NodeUseIdentityAnonymous) GetEffects() ([]interaction.Effect, error) {
 }
 
 func (n *NodeUseIdentityAnonymous) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	if n.IsCreating {
-		return []interaction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
-	}
 	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 }
