@@ -1,7 +1,6 @@
 package jwtutil
 
 import (
-	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -22,10 +21,10 @@ import (
 func TestSign(t *testing.T) {
 	// testToken ignores signature because the private key is generated freshly every time.
 	testToken := func(actual []byte, expected string) {
-		actualHdr, actualPayload, _, err := jws.SplitCompact(bytes.NewReader(actual))
+		actualHdr, actualPayload, _, err := jws.SplitCompact(actual)
 		So(err, ShouldBeNil)
 
-		expectedHdr, expectedPayload, _, err := jws.SplitCompact(bytes.NewReader([]byte(expected)))
+		expectedHdr, expectedPayload, _, err := jws.SplitCompact([]byte(expected))
 		So(err, ShouldBeNil)
 
 		So(string(actualHdr), ShouldEqual, string(expectedHdr))

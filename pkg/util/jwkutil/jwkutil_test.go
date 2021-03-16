@@ -11,8 +11,8 @@ import (
 	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
-func TestPublicKeySet(t *testing.T) {
-	Convey("PublicKeySet", t, func() {
+func TestPublicSetOf(t *testing.T) {
+	Convey("PublicSetOf", t, func() {
 		j := `
 		{
 			"keys": [
@@ -35,7 +35,7 @@ func TestPublicKeySet(t *testing.T) {
 		set, err := jwk.ParseString(j)
 		So(err, ShouldBeNil)
 
-		pkSet, err := PublicKeySet(set)
+		pkSet, err := jwk.PublicSetOf(set)
 		So(err, ShouldBeNil)
 
 		jj, err := json.Marshal(pkSet)
@@ -46,7 +46,8 @@ func TestPublicKeySet(t *testing.T) {
 			{
 				"e": "AQAB",
 				"kty": "RSA",
-				"n": "oDoW_ZqdK1BsZjLZ7hbtDKK6cp0cao9stOSIIdxxkWQsAwIG1VCpqSojC81EnbOAe6agqthozFCosJFjqO3ViQ"
+				"n": "oDoW_ZqdK1BsZjLZ7hbtDKK6cp0cao9stOSIIdxxkWQsAwIG1VCpqSojC81EnbOAe6agqthozFCosJFjqO3ViQ",
+				"alg": "RS256"
 			}
 			]
 		}
@@ -68,9 +69,9 @@ func TestExtractOctetKey(t *testing.T) {
 		}
 		_ = key2.Set("kid", "key-2")
 
-		set := &jwk.Set{
-			Keys: []jwk.Key{key1, key2},
-		}
+		set := jwk.NewSet()
+		_ = set.Add(key1)
+		_ = set.Add(key2)
 
 		Convey("should match on key ID", func() {
 			octetKey, err := ExtractOctetKey(set, "key-1")

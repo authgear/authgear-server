@@ -98,7 +98,7 @@ func (deliverer *Deliverer) prepareRequest(hook config.HookHandlerConfig, event 
 		return nil, newErrorDeliveryFailed(err)
 	}
 
-	key, err := jwkutil.ExtractOctetKey(&deliverer.Secret.Set, "")
+	key, err := jwkutil.ExtractOctetKey(deliverer.Secret.Set, "")
 	if err != nil {
 		panic("hook: web-hook key not found")
 	}

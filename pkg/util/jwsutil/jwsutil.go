@@ -19,7 +19,7 @@ var ErrKeyNotFound = errors.New("signing key not found in the key set")
 // The reason to have this function is because
 // The keys in https://login.microsoftonline.com/common/discovery/v2.0/keys does not specify the alg.
 // Therefore we need to look take both alg in the header and in the key into account.
-func VerifyWithSet(keySet *jwk.Set, compact []byte) (hdr jws.Headers, payload jwt.Token, err error) {
+func VerifyWithSet(keySet jwk.Set, compact []byte) (hdr jws.Headers, payload jwt.Token, err error) {
 	hdr, payload, err = jwtutil.SplitWithoutVerify(compact)
 	if err != nil {
 		return
@@ -31,13 +31,11 @@ func VerifyWithSet(keySet *jwk.Set, compact []byte) (hdr jws.Headers, payload jw
 		return
 	}
 
-	keys := keySet.LookupKeyID(keyID)
-	if len(keys) != 1 {
+	key, ok := keySet.LookupKeyID(keyID)
+	if !ok {
 		err = ErrKeyNotFound
 		return
 	}
-
-	key := keys[0]
 
 	keyAlg := key.Algorithm()
 	hdrAlg := hdr.Algorithm()
