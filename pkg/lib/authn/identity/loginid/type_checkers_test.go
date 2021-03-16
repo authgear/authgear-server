@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
+	"github.com/authgear/authgear-server/pkg/util/exactmatchlist"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -77,6 +78,80 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				f(c, checker)
 			}
 		})
+
+		Convey("email domain blocklist", func() {
+			cases := []Case{
+				{"Faseng@Example.com", "invalid login ID:\n<root>: email domain is not allowed"},
+				{"faseng@example.com", "invalid login ID:\n<root>: email domain is not allowed"},
+				{"faseng@testing.com", "invalid login ID:\n<root>: email domain is not allowed"},
+				{"faseng@TESTING.COM", "invalid login ID:\n<root>: email domain is not allowed"},
+				{`faseng@authgear.io`, ""},
+			}
+
+			domainsList, _ := exactmatchlist.New(`
+				example.com
+				TESTING.COM
+			`, true)
+			checker := &EmailChecker{
+				Config: &config.LoginIDEmailConfig{
+					BlockPlusSign: newFalse(),
+				},
+				DomainBlockList: domainsList,
+			}
+
+			for _, c := range cases {
+				f(c, checker)
+			}
+		})
+
+		Convey("block free email provider domains", func() {
+			cases := []Case{
+				{"faseng@free-mail.com", "invalid login ID:\n<root>: email domain is not allowed"},
+				{"faseng@FREE-MAIL.COM", "invalid login ID:\n<root>: email domain is not allowed"},
+				{`faseng@authgear.io`, ""},
+			}
+
+			domainsList, _ := exactmatchlist.New(`
+				FREE-MAIL.COM
+			`, true)
+			checker := &EmailChecker{
+				Config: &config.LoginIDEmailConfig{
+					BlockPlusSign: newFalse(),
+				},
+				BlockFreeEmailProviderDomains: domainsList,
+			}
+
+			for _, c := range cases {
+				f(c, checker)
+			}
+		})
+
+		Convey("email domain allowlist", func() {
+			cases := []Case{
+				{"Faseng@Example.com", ""},
+				{"faseng@example.com", ""},
+				{"faseng@free-mail.com", ""},
+				{`"faseng@cat+123"@authgear.io`, "invalid login ID:\n<root>: email domain is not allowed"},
+			}
+
+			domainsList, _ := exactmatchlist.New(`
+				example.com
+				testing.com
+
+				FREE-MAIL.COM
+			`, true)
+			checker := &EmailChecker{
+				Config: &config.LoginIDEmailConfig{
+					BlockPlusSign: newFalse(),
+				},
+				DomainAllowList: domainsList,
+			}
+
+			for _, c := range cases {
+				f(c, checker)
+			}
+		})
+
 	})
 
 	Convey("UsernameChecker", t, func() {
