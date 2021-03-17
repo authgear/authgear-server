@@ -14,6 +14,7 @@ type SettingsViewModel struct {
 	SecondaryPasswordAllowed    bool
 	HasDeviceTokens             bool
 	ListRecoveryCodesAllowed    bool
+	ShowBiometric               bool
 }
 
 type SettingsAuthenticatorService interface {
@@ -28,6 +29,7 @@ type SettingsViewModeler struct {
 	Authenticators SettingsAuthenticatorService
 	MFA            SettingsMFAService
 	Authentication *config.AuthenticationConfig
+	Biometric      *config.BiometricConfig
 }
 
 func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, error) {
@@ -57,6 +59,14 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 			oobotpsms = true
 		}
 	}
+
+	showBiometric := false
+	for _, typ := range m.Authentication.Identities {
+		if typ == authn.IdentityTypeBiometric && *m.Biometric.ListEnabled {
+			showBiometric = true
+		}
+	}
+
 	viewModel := &SettingsViewModel{
 		Authenticators:              authenticators,
 		SecondaryTOTPAllowed:        totp,
@@ -65,6 +75,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		SecondaryPasswordAllowed:    password,
 		HasDeviceTokens:             hasDeviceTokens,
 		ListRecoveryCodesAllowed:    m.Authentication.RecoveryCode.ListEnabled,
+		ShowBiometric:               showBiometric,
 	}
 	return viewModel, nil
 }

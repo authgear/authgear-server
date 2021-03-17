@@ -138,6 +138,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
 	router.Add(webapphandler.ConfigureSettingsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsIdentityHandler))
+	router.Add(webapphandler.ConfigureSettingsBiometricRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsBiometricHandler))
 	router.Add(webapphandler.ConfigureSettingsMFARoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsMFAHandler))
 	router.Add(webapphandler.ConfigureSettingsTOTPRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsTOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsOOBOTPRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsOOBOTPHandler))

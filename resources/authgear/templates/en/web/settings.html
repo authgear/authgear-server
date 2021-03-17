@@ -258,6 +258,23 @@
 </div>
 {{ end }}
 
+{{ if $.ShowBiometric }}
+<!-- Biometric -->
+<div class="pane margin-6 padding-6">
+  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
+    <h2 class="grid-area-title font-inherit margin-0 primary-txt">
+      {{ template "settings-page-biometric-section-title" }}
+    </h2>
+    <p class="grid-area-desc font-smaller margin-0 secondary-txt">
+      {{ template "settings-page-biometric-section-description" }}
+    </p>
+    <a class="link grid-area-action1 justify-self-end" href="/settings/biometric">
+      {{ template "details-button-label" }}
+    </a>
+  </section>
+</div>
+{{ end }}
+
 <!-- Sessions -->
 <div class="pane margin-6 padding-6">
   <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
