@@ -32,9 +32,51 @@ type TypeCheckerFactory struct {
 func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) TypeChecker {
 	switch loginIDKeyType {
 	case config.LoginIDKeyTypeEmail:
-		return &EmailChecker{
-			Config: f.Config.Types.Email,
+
+		loginIDEmailConfig := f.Config.Types.Email
+
+		checker := &EmailChecker{
+			Config: loginIDEmailConfig,
 		}
+
+		loadDomainsList := func(desc resource.Descriptor) (*exactmatchlist.ExactMatchList, error) {
+			var list *exactmatchlist.ExactMatchList
+			result, err := f.Resources.Read(desc, resource.EffectiveResource{})
+			if errors.Is(err, resource.ErrResourceNotFound) {
+				// No domain list resources
+				list = &exactmatchlist.ExactMatchList{}
+			} else if err != nil {
+				return nil, err
+			} else {
+				list = result.(*exactmatchlist.ExactMatchList)
+			}
+			return list, nil
+		}
+		if *loginIDEmailConfig.DomainBlacklistEnabled {
+			domainsList, err := loadDomainsList(EmailBlacklistedDomainsTXT)
+			if err != nil {
+				checker.Error = err
+				return checker
+			}
+			checker.BlacklistedDomains = domainsList
+			if *loginIDEmailConfig.BlockFreeEmailProviderDomains {
+				domainsList, err := loadDomainsList(FreeEmailProviderDomainsTXT)
+				if err != nil {
+					checker.Error = err
+					return checker
+				}
+				checker.BlockFreeEmailProviderDomains = domainsList
+			}
+		} else if *loginIDEmailConfig.DomainWhitelistEnabled {
+			domainsList, err := loadDomainsList(EmailWhiteListedDomainsTXT)
+			if err != nil {
+				checker.Error = err
+				return checker
+			}
+			checker.WhiteListedDomains = domainsList
+		}
+		return checker
+
 	case config.LoginIDKeyTypeUsername:
 		checker := &UsernameChecker{
 			Config: f.Config.Types.Username,

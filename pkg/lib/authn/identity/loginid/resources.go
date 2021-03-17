@@ -2,6 +2,7 @@ package loginid
 
 import (
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
+	"github.com/authgear/authgear-server/pkg/util/exactmatchlist"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -13,5 +14,28 @@ var ReservedNameTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor
 	Path: "reserved_name.txt",
 	Parse: func(data []byte) (interface{}, error) {
 		return blocklist.New(string(data))
+	},
+})
+
+var EmailBlacklistedDomainsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
+	Path: "email_blacklisted_domains.txt",
+	Parse: func(data []byte) (interface{}, error) {
+		return exactmatchlist.New(string(data), true)
+	},
+})
+
+// FreeEmailProviderDomainsTXT is provided by
+// https://gist.github.com/tbrianjones/5992856/93213efb652749e226e69884d6c048e595c1280a
+var FreeEmailProviderDomainsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
+	Path: "free_email_provider_domains.txt",
+	Parse: func(data []byte) (interface{}, error) {
+		return exactmatchlist.New(string(data), true)
+	},
+})
+
+var EmailWhiteListedDomainsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
+	Path: "email_whitlisted_domains.txt",
+	Parse: func(data []byte) (interface{}, error) {
+		return exactmatchlist.New(string(data), true)
 	},
 })
