@@ -43,6 +43,13 @@ func (adminAPIOp) BypassPublicSignupDisabled() bool {
 	return true
 }
 
+// BypassLoginIDEmailBlocklistAllowlist indicates Admin API operations
+// bypass email domains blocklist allowlist checking; Admin API can create
+// email login id that doesn't have blocklist allowlist restriction
+func (adminAPIOp) BypassLoginIDEmailBlocklistAllowlist() bool {
+	return true
+}
+
 type removeIdentityInput struct {
 	adminAPIOp
 	identityInfo *identity.Info

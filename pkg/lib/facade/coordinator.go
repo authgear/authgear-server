@@ -14,8 +14,8 @@ type IdentityService interface {
 	GetBySpec(spec *identity.Spec) (*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
-	New(userID string, spec *identity.Spec) (*identity.Info, error)
-	UpdateWithSpec(is *identity.Info, spec *identity.Spec) (*identity.Info, error)
+	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	Create(is *identity.Info) error
 	Update(info *identity.Info) error
 	Delete(is *identity.Info) error
@@ -103,12 +103,12 @@ func (c *Coordinator) IdentityListByClaim(name string, value string) ([]*identit
 	return c.Identities.ListByClaim(name, value)
 }
 
-func (c *Coordinator) IdentityNew(userID string, spec *identity.Spec) (*identity.Info, error) {
-	return c.Identities.New(userID, spec)
+func (c *Coordinator) IdentityNew(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
+	return c.Identities.New(userID, spec, options)
 }
 
-func (c *Coordinator) IdentityUpdateWithSpec(is *identity.Info, spec *identity.Spec) (*identity.Info, error) {
-	return c.Identities.UpdateWithSpec(is, spec)
+func (c *Coordinator) IdentityUpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
+	return c.Identities.UpdateWithSpec(is, spec, options)
 }
 
 func (c *Coordinator) IdentityCreate(is *identity.Info) error {
