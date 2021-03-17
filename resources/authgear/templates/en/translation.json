@@ -191,7 +191,9 @@
   "settings-page-recovery-code-title": "Recovery Code",
   "settings-page-recovery-code-description": "These codes allow you to sign in even you lost access to your apps, devices, phones or email accounts.",
   "settings-page-session-section-title": "Signed in Sessions",
-  "settings-page-session-section-description": "Manage your signed in sessions on your autenticated devices.",
+  "settings-page-session-section-description": "Manage your signed in sessions on your authenticated devices.",
+  "settings-page-biometric-section-title": "Biometric Logins",
+  "settings-page-biometric-section-description": "Manage your biometric logins on your authenticated devices.",
   "show-recovery-code-button-label": "Show Codes",
   "settings-page-trusted-devices-title": "Trusted Devices",
   "revoke-all-device-tokens-button-label": "Forget all trusted devices that could skip MFA",
@@ -209,6 +211,11 @@
   "settings-identity-login-id-phone": "Phone Number",
   "settings-identity-login-id-username": "Username",
   "settings-identity-login-id-raw": "Username",
+
+  "settings-biometric-title": "Biometric Logins",
+  "settings-biometric-description": "You''ve enabled biometric logins on these devices.",
+  "settings-biometric-identity-unknown-name": "Unknown Device",
+  "settings-biometric-identity-description": "Created at {time, datetime, long}",
 
   "settings-totp-title": "Authenticator Apps / Devices",
   "settings-totp-item-description": "Added at {time, datetime, long}",

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+{{ template "__html_head.html" . }}
+<body class="page">
+{{ template "__message_bar.html" . }}
+<main class="content">
+{{ template "__nav_bar.html" }}
+
+<div class="pane margin-6 flex flex-direction-column">
+{{ template "__header.html" . }}
+<div class="padding-6 flex flex-direction-column">
+  <section class="margin-h-14 padding-v-10 gap-8 row-sep grid grid-title-desc">
+    <h1 class="grid-area-title margin-0 font-inherit primary-txt">
+      {{ template "settings-biometric-title" }}
+    </h1>
+    <p class="grid-area-desc margin-0 font-smaller secondary-txt">
+      {{ template "settings-biometric-description" }}
+    </p>
+  </section>
+
+  {{ range $.BiometricIdentities }}
+  <section class="margin-h-14 padding-v-10 row-sep grid grid-title-desc-action1-action2">
+    <h2 class="grid-area-title align-self-center font-inherit margin-0 primary-txt">
+      {{ if .DisplayName }}
+      {{ .DisplayName }}
+      {{ else }}
+      {{ template "settings-biometric-identity-unknown-name" }}
+      {{ end }}
+    </h2>
+    <h3 class="grid-area-desc align-self-center font-smaller margin-0 secondary-txt text-ellipsis">
+      {{ template "settings-biometric-identity-description" (dict "time" .CreatedAt) }}
+    </h3>
+  </section>
+  {{ end }}
+
+</div>
+</div>
+</main>
+</body>
+</html>

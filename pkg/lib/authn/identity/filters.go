@@ -32,6 +32,17 @@ func ApplyFilters(iis []*Info, filters ...Filter) (out []*Info) {
 	return
 }
 
+func KeepType(types ...authn.IdentityType) Filter {
+	return FilterFunc(func(ii *Info) bool {
+		for _, t := range types {
+			if ii.Type == t {
+				return true
+			}
+		}
+		return false
+	})
+}
+
 // KeepIdentifiable keeps Login ID identity and OAuth identity.
 var KeepIdentifiable FilterFunc = func(ii *Info) bool {
 	switch ii.Type {
