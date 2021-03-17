@@ -160,7 +160,7 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 			return
 		}
 		if matched {
-			ctx.EmitErrorMessage("email domain is not allowed")
+			ctx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
 			return
 		}
 	}
@@ -173,7 +173,7 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 			return
 		}
 		if matched {
-			ctx.EmitErrorMessage("email domain is not allowed")
+			ctx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainBlocklist"})
 			return
 		}
 	}
@@ -186,7 +186,7 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 			return
 		}
 		if !matched {
-			ctx.EmitErrorMessage("email domain is not allowed")
+			ctx.EmitError("blocked", map[string]interface{}{"reason": "EmailDomainAllowlist"})
 			return
 		}
 	}
@@ -216,7 +216,7 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 
 	if *c.Config.BlockReservedUsernames {
 		if c.ReservedNames.IsBlocked(cfLoginID) {
-			ctx.EmitErrorMessage("username is not allowed")
+			ctx.EmitError("blocked", map[string]interface{}{"reason": "UsernameReserved"})
 			return
 		}
 	}
@@ -228,7 +228,7 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 		}
 
 		if strings.Contains(cfLoginID, cfItem) {
-			ctx.EmitErrorMessage("username is not allowed")
+			ctx.EmitError("blocked", map[string]interface{}{"reason": "UsernameExcludedKeywords"})
 			return
 		}
 	}
