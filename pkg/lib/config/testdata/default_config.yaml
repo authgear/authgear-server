@@ -270,8 +270,8 @@ identity:
         case_sensitive: false
         block_plus_sign: false
         ignore_dot_sign: false
-        domain_blacklist_enabled: false
-        domain_whitelist_enabled: false
+        domain_blocklist_enabled: false
+        domain_allowlist_enabled: false
         block_free_email_provider_domains: false
       username:
         block_reserved_usernames: true
