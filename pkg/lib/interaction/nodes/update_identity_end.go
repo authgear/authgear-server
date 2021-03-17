@@ -28,7 +28,13 @@ func (e *EdgeUpdateIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 		return nil, err
 	}
 
-	newInfo, err = ctx.Identities.UpdateWithSpec(newInfo, e.IdentitySpec)
+	// TODO(interaction): currently only update identity from setting page is supported
+	// So LoginIDEmailByPassBlocklistAllowlist is hardcoded to be false
+	// we should update to get this config from input
+	// when update identity in admin portal is supported
+	newInfo, err = ctx.Identities.UpdateWithSpec(newInfo, e.IdentitySpec, identity.NewIdentityOptions{
+		LoginIDEmailByPassBlocklistAllowlist: false,
+	})
 	if err != nil {
 		return nil, err
 	}

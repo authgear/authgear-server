@@ -6,18 +6,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+type CheckerOptions struct {
+	EmailByPassBlocklistAllowlist bool
+}
+
 type Checker struct {
 	Config             *config.LoginIDConfig
 	TypeCheckerFactory *TypeCheckerFactory
 }
 
-func (c *Checker) ValidateOne(loginID Spec) error {
+func (c *Checker) ValidateOne(loginID Spec, options CheckerOptions) error {
 	ctx := &validation.Context{}
-	c.validateOne(ctx, loginID)
+	c.validateOne(ctx, loginID, options)
 	return ctx.Error("invalid login ID")
 }
 
-func (c *Checker) validateOne(ctx *validation.Context, loginID Spec) {
+func (c *Checker) validateOne(ctx *validation.Context, loginID Spec, options CheckerOptions) {
 	allowed := false
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginID.Key {
@@ -42,7 +46,7 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID Spec) {
 		return
 	}
 
-	c.TypeCheckerFactory.NewChecker(loginID.Type).Validate(ctx, loginID.Value)
+	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(ctx, loginID.Value)
 }
 
 func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (string, bool) {

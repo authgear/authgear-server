@@ -25,12 +25,12 @@ func (i IdentityFacade) ListByClaim(name string, value string) ([]*identity.Info
 	return i.Coordinator.IdentityListByClaim(name, value)
 }
 
-func (i IdentityFacade) New(userID string, spec *identity.Spec) (*identity.Info, error) {
-	return i.Coordinator.IdentityNew(userID, spec)
+func (i IdentityFacade) New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
+	return i.Coordinator.IdentityNew(userID, spec, options)
 }
 
-func (i IdentityFacade) UpdateWithSpec(is *identity.Info, spec *identity.Spec) (*identity.Info, error) {
-	return i.Coordinator.IdentityUpdateWithSpec(is, spec)
+func (i IdentityFacade) UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
+	return i.Coordinator.IdentityUpdateWithSpec(is, spec, options)
 }
 
 func (i IdentityFacade) Create(is *identity.Info) error {
