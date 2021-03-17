@@ -26,6 +26,8 @@
   "error-phone-number-format": "Invalid phone number",
   "error-invalid-email": "Invalid email address",
   "error-invalid-username": "Invalid username",
+  "error-email-not-allowed": "Email is not allowed",
+  "error-username-not-allowed": "Username is not allowed",
   "error-invalid-credentials": "Invalid credentials",
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
