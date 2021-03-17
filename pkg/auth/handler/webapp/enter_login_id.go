@@ -53,7 +53,7 @@ var RemoveLoginIDSchema = validation.NewSimpleSchema(`
 		"properties": {
 			"x_identity_id": { "type": "string" }
 		},
-		"required": ["x_login_id_key"]
+		"required": ["x_identity_id"]
 	}
 `)
 
