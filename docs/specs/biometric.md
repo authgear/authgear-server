@@ -89,5 +89,5 @@ By default, biometric identity is hidden.
 ```yaml
 identity:
   biometric:
-    is_hidden: true
+    list_enabled: false
 ```
