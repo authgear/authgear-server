@@ -283,6 +283,8 @@ identity:
         type: email
         max_length: 320
   oauth: {}
+  biometric:
+    list_enabled: false
   on_conflict:
     promotion: error
 authenticator:

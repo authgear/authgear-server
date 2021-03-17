@@ -12,6 +12,7 @@ var _ = Schema.Add("IdentityConfig", `
 	"properties": {
 		"login_id": { "$ref": "#/$defs/LoginIDConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthSSOConfig" },
+		"biometric": { "$ref": "#/$defs/BiometricConfig" },
 		"on_conflict": { "$ref": "#/$defs/IdentityConflictConfig" }
 	}
 }
@@ -20,6 +21,7 @@ var _ = Schema.Add("IdentityConfig", `
 type IdentityConfig struct {
 	LoginID    *LoginIDConfig          `json:"login_id,omitempty"`
 	OAuth      *OAuthSSOConfig         `json:"oauth,omitempty"`
+	Biometric  *BiometricConfig        `json:"biometric,omitempty"`
 	OnConflict *IdentityConflictConfig `json:"on_conflict,omitempty"`
 }
 
@@ -524,5 +526,25 @@ type IdentityConflictConfig struct {
 func (c *IdentityConflictConfig) SetDefaults() {
 	if c.Promotion == "" {
 		c.Promotion = PromotionConflictBehaviorError
+	}
+}
+
+var _ = Schema.Add("BiometricConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"list_enabled": { "type": "boolean" }
+	}
+}
+`)
+
+type BiometricConfig struct {
+	ListEnabled *bool `json:"list_enabled,omitempty"`
+}
+
+func (c *BiometricConfig) SetDefaults() {
+	if c.ListEnabled == nil {
+		c.ListEnabled = newBool(false)
 	}
 }
