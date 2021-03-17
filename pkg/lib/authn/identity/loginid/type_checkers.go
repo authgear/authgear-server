@@ -29,7 +29,7 @@ type TypeCheckerFactory struct {
 	Resources ResourceManager
 }
 
-func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) TypeChecker {
+func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, options CheckerOptions) TypeChecker {
 	switch loginIDKeyType {
 	case config.LoginIDKeyTypeEmail:
 
@@ -39,6 +39,11 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType) Ty
 			Config: loginIDEmailConfig,
 		}
 
+		if options.EmailByPassBlocklistAllowlist {
+			return checker
+		}
+
+		// Load domain blocklist / allowlist for validation
 		loadDomainsList := func(desc resource.Descriptor) (*exactmatchlist.ExactMatchList, error) {
 			var list *exactmatchlist.ExactMatchList
 			result, err := f.Resources.Read(desc, resource.EffectiveResource{})
