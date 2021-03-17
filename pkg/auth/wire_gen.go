@@ -14005,6 +14005,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	settingsViewModeler := &viewmodels.SettingsViewModeler{
+		Authenticators: service3,
+		MFA:            mfaService,
+		Authentication: authenticationConfig,
+	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	manager2 := &session.Manager{
 		Users:               queries,
@@ -14015,14 +14020,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	settingsHandler := &webapp2.SettingsHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
+		SettingsViewModel: settingsViewModeler,
 		Renderer:          responseRenderer,
-		Authentication:    authenticationConfig,
-		OAuth:             oAuthConfig,
-		UIConfig:          uiConfig,
 		Identities:        serviceService,
 		Verification:      verificationService,
-		Authenticators:    service3,
-		MFA:               mfaService,
 		CSRFCookie:        csrfCookieDef,
 		TrustProxy:        trustProxy,
 		SessionManager:    manager2,
@@ -15080,13 +15081,17 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	settingsViewModeler := &viewmodels.SettingsViewModeler{
+		Authenticators: service3,
+		MFA:            mfaService,
+		Authentication: authenticationConfig,
+	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsMFAHandler := &webapp2.SettingsMFAHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
+		SettingsViewModel: settingsViewModeler,
 		Renderer:          responseRenderer,
-		Authentication:    authenticationConfig,
-		Authenticators:    service3,
 		MFA:               mfaService,
 		CSRFCookie:        csrfCookieDef,
 	}
