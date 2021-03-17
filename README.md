@@ -139,3 +139,7 @@ Please refer to [Portal setup guide](./portal/README.md)
 - `TODO`: Should be done when someone really needs it.
 - `OPTIMIZE`: Should be done when it really becomes a performance issue.
 - `SECURITY`: Known potential security issue.
+
+## Credits
+
+- Free email provider domains list provided by: https://gist.github.com/tbrianjones/5992856/
