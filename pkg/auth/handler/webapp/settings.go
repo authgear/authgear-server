@@ -50,14 +50,10 @@ type SettingsSessionManager interface {
 type SettingsHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
+	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          Renderer
-	Authentication    *config.AuthenticationConfig
-	OAuth             *config.OAuthConfig
-	UIConfig          *config.UIConfig
 	Identities        SettingsIdentityService
 	Verification      SettingsVerificationService
-	Authenticators    SettingsAuthenticatorService
-	MFA               SettingsMFAService
 	CSRFCookie        webapp.CSRFCookieDef
 	TrustProxy        config.TrustProxy
 	SessionManager    SettingsSessionManager
@@ -72,35 +68,12 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	// MFA
-	authenticators, err := h.Authenticators.List(*userID)
+	// SettingsViewModel
+	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
 	if err != nil {
 		return nil, err
 	}
-	totp := false
-	oobotpemail := false
-	oobotpsms := false
-	password := false
-	for _, typ := range h.Authentication.SecondaryAuthenticators {
-		switch typ {
-		case authn.AuthenticatorTypePassword:
-			password = true
-		case authn.AuthenticatorTypeTOTP:
-			totp = true
-		case authn.AuthenticatorTypeOOBEmail:
-			oobotpemail = true
-		case authn.AuthenticatorTypeOOBSMS:
-			oobotpsms = true
-		}
-	}
-	mfaViewModel := SettingsMFAViewModel{
-		Authenticators:              authenticators,
-		SecondaryTOTPAllowed:        totp,
-		SecondaryOOBOTPEmailAllowed: oobotpemail,
-		SecondaryOOBOTPSMSAllowed:   oobotpsms,
-		SecondaryPasswordAllowed:    password,
-	}
-	viewmodels.Embed(data, mfaViewModel)
+	viewmodels.Embed(data, *viewModelPtr)
 
 	// Identity - Part 1
 	candidates, err := h.Identities.ListCandidates(*userID)
