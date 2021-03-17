@@ -8,8 +8,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -82,6 +84,8 @@ func (h *SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	}
 	defer ctrl.Serve()
 
+	userID := ctrl.RequireUserID()
+
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
@@ -89,6 +93,34 @@ func (h *SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsBiometricHTML, data)
+		return nil
+	})
+
+	redirectURI := httputil.HostRelative(r.URL).String()
+
+	ctrl.PostAction("remove", func() error {
+		opts := webapp.SessionOptions{
+			RedirectURI: redirectURI,
+		}
+		identityID := r.Form.Get("x_identity_id")
+		intent := intents.NewIntentRemoveIdentity(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = RemoveLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
+			if err != nil {
+				return nil, err
+			}
+
+			input = &InputRemoveIdentity{
+				Type: authn.IdentityTypeBiometric,
+				ID:   identityID,
+			}
+			return
+		})
+		if err != nil {
+			return err
+		}
+		result.WriteResponse(w, r)
 		return nil
 	})
 }

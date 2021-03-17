@@ -30,6 +30,13 @@
     <h3 class="grid-area-desc align-self-center font-smaller margin-0 secondary-txt text-ellipsis">
       {{ template "settings-biometric-identity-description" (dict "time" .CreatedAt) }}
     </h3>
+    <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_identity_id" value="{{ .ID }}">
+      <button class="btn destructive-btn" type="submit" name="x_action" value="remove">
+	{{ template "remove-button-label" }}
+      </button>
+    </form>
   </section>
   {{ end }}
 
