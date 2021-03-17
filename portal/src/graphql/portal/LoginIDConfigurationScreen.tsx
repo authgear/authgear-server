@@ -358,10 +358,10 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       }),
     [change]
   );
-  const onEmailAllowPlusChange = useCallback(
+  const onEmailBlockPlusChange = useCallback(
     (_, value?: boolean) =>
       change((state) => {
-        state.email.block_plus_sign = !(value ?? false);
+        state.email.block_plus_sign = value ?? false;
       }),
     [change]
   );
@@ -382,12 +382,12 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         onChange={onEmailIgnoreDotLocalChange}
       />
       <CheckboxWithTooltip
-        label={renderToString("LoginIDConfigurationScreen.email.allowPlus")}
+        label={renderToString("LoginIDConfigurationScreen.email.blockPlus")}
         className={styles.control}
         checked={state.email.block_plus_sign}
-        onChange={onEmailAllowPlusChange}
+        onChange={onEmailBlockPlusChange}
         helpText={renderToString(
-          "LoginIDConfigurationScreen.email.allowPlusTooltipMessage"
+          "LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
         )}
       />
     </div>
