@@ -597,9 +597,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         className={styles.control}
         checked={state.email.block_plus_sign}
         onChange={onEmailBlockPlusChange}
-        helpText={renderToString(
-          "LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
-        )}
+        tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
       />
       <CheckboxWithContentLayout className={styles.control}>
         <Checkbox

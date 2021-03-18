@@ -8,23 +8,26 @@ import {
 } from "@fluentui/react";
 
 import styles from "./Tooltip.module.scss";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 interface TooltipProps {
   className?: string;
-  helpText: string;
+  tooltipMessageId: string;
 }
 
 const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {
-  const { className, helpText } = props;
+  const { className, tooltipMessageId } = props;
   const tooltipProps: ITooltipProps = React.useMemo(() => {
     return {
       onRenderContent: () => (
         <div className={styles.tooltip}>
-          <span>{helpText}</span>
+          <span>
+            <FormattedMessage id={tooltipMessageId} />
+          </span>
         </div>
       ),
     };
-  }, [helpText]);
+  }, [tooltipMessageId]);
 
   return (
     <div className={cn(className, styles.root)}>
