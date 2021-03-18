@@ -10,10 +10,7 @@ import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { clearEmptyObject } from "../../util/misc";
 import { countryCallingCodes as supportedCountryCallingCodes } from "../../data/countryCallingCode.json";
 import { useParams } from "react-router-dom";
-import {
-  AppConfigFormModel,
-  useAppConfigForm,
-} from "../../hook/useAppConfigForm";
+import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -32,16 +29,40 @@ import {
   PortalAPIAppConfig,
   UICountryCallingCodeConfig,
 } from "../../types";
+import {
+  DEFAULT_TEMPLATE_LOCALE,
+  RESOURCE_EMAIL_DOMAIN_BLOCKLIST,
+  RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
+} from "../../resources";
 
 import styles from "./LoginIDConfigurationScreen.module.scss";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
+import { Resource, ResourceSpecifier, specifierId } from "../../util/resource";
+import { useResourceForm } from "../../hook/useResourceForm";
+
+// email domain lists are not language specific
+// so the locale in ResourceSpecifier is not important
+const emailDomainBlocklistSpecifier: ResourceSpecifier = {
+  def: RESOURCE_EMAIL_DOMAIN_BLOCKLIST,
+  locale: DEFAULT_TEMPLATE_LOCALE,
+};
+
+const emailDomainAllowlistSpecifier: ResourceSpecifier = {
+  def: RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
+  locale: DEFAULT_TEMPLATE_LOCALE,
+};
+
+const specifiers: ResourceSpecifier[] = [
+  emailDomainBlocklistSpecifier,
+  emailDomainAllowlistSpecifier,
+];
 
 interface LoginIDKeyTypeFormState {
   isEnabled: boolean;
   type: LoginIDKeyType;
 }
 
-interface FormState {
+interface ConfigFormState {
   types: LoginIDKeyTypeFormState[];
   email: Required<LoginIDEmailConfig>;
   username: Required<LoginIDUsernameConfig>;
@@ -50,14 +71,14 @@ interface FormState {
   isUsernameExcludedKeywordEnabled: boolean;
 }
 
-function effectiveExcludedKeywords(state: FormState) {
+function effectiveExcludedKeywords(state: ConfigFormState) {
   if (!state.isUsernameExcludedKeywordEnabled) {
     return [];
   }
   return state.username.excluded_keywords;
 }
 
-function constructFormState(config: PortalAPIAppConfig): FormState {
+function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
   const isLoginIDEnabled =
     config.authentication?.identities?.includes("login_id") ?? true;
   const types: LoginIDKeyTypeFormState[] = (
@@ -100,8 +121,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  initialState: FormState,
-  currentState: FormState,
+  initialState: ConfigFormState,
+  currentState: ConfigFormState,
   effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
   // eslint-disable-next-line complexity
@@ -194,7 +215,7 @@ function constructConfig(
       }
     }
 
-    function hasLoginIDTypes(s: FormState) {
+    function hasLoginIDTypes(s: ConfigFormState) {
       return s.types.some((t) => t.isEnabled);
     }
     if (hasLoginIDTypes(initialState) !== hasLoginIDTypes(currentState)) {
@@ -217,8 +238,47 @@ function constructConfig(
   });
 }
 
+interface ResourcesFormState {
+  resources: Partial<Record<string, Resource>>;
+}
+
+function constructResourcesFormState(
+  resources: Resource[]
+): ResourcesFormState {
+  const resourceMap: Partial<Record<string, Resource>> = {};
+  for (const r of resources) {
+    const id = specifierId(r.specifier);
+    // Multiple resources may use same specifier ID (images),
+    // use the first resource with non-empty values.
+    if ((resourceMap[id]?.value ?? "") === "") {
+      resourceMap[specifierId(r.specifier)] = r;
+    }
+  }
+
+  return { resources: resourceMap };
+}
+
+function constructResources(state: ResourcesFormState): Resource[] {
+  return Object.values(state.resources).filter(Boolean) as Resource[];
+}
+
+interface FormState extends ConfigFormState, ResourcesFormState {}
+
+interface FormModel {
+  isLoading: boolean;
+  isUpdating: boolean;
+  isDirty: boolean;
+  loadError: unknown;
+  updateError: unknown;
+  state: FormState;
+  setState: (fn: (state: FormState) => FormState) => void;
+  reload: () => void;
+  reset: () => void;
+  save: () => void;
+}
+
 function validateForm(
-  state: FormState,
+  state: ConfigFormState,
   renderToString: (id: string) => string
 ) {
   const errors: LocalValidationError[] = [];
@@ -236,7 +296,7 @@ function validateForm(
 const switchStyle = { root: { margin: "0" } };
 
 interface LoginIDTypeEditProps {
-  state: FormState;
+  state: ConfigFormState;
   index: number;
   loginIDType: LoginIDKeyType;
   toggleLoginIDType: (type: LoginIDKeyType, isEnabled: boolean) => void;
@@ -297,7 +357,7 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> = function LoginIDTypeEdit
 };
 
 interface AuthenticationLoginIDSettingsContentProps {
-  form: AppConfigFormModel<FormState>;
+  form: FormModel;
 }
 
 const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettingsContentProps> = function AuthenticationLoginIDSettingsContent(
@@ -335,7 +395,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
   );
 
   const change = useCallback(
-    (fn: (state: FormState) => void) =>
+    (fn: (state: ConfigFormState) => void) =>
       setState((state) =>
         produce(state, (state) => {
           fn(state);
@@ -541,8 +601,72 @@ const LoginIDConfigurationScreen: React.FC = function LoginIDConfigurationScreen
   const { appID } = useParams();
   const { renderToString } = useContext(Context);
 
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
-  const localValidationError = validateForm(form.state, renderToString);
+  const config = useAppConfigForm(
+    appID,
+    constructConfigFormState,
+    constructConfig
+  );
+  const localValidationError = validateForm(config.state, renderToString);
+
+  const resources = useResourceForm(
+    appID,
+    specifiers,
+    constructResourcesFormState,
+    constructResources
+  );
+
+  const state = useMemo<FormState>(
+    () => ({
+      resources: resources.state.resources,
+      types: config.state.types,
+      email: config.state.email,
+      username: config.state.username,
+      phone: config.state.phone,
+      isUsernameExcludedKeywordEnabled:
+        config.state.isUsernameExcludedKeywordEnabled,
+    }),
+    [
+      resources.state.resources,
+      config.state.types,
+      config.state.email,
+      config.state.username,
+      config.state.phone,
+      config.state.isUsernameExcludedKeywordEnabled,
+    ]
+  );
+
+  const form: FormModel = {
+    isLoading: config.isLoading || resources.isLoading,
+    isUpdating: config.isUpdating || resources.isUpdating,
+    isDirty: config.isDirty || resources.isDirty,
+    loadError: config.loadError ?? resources.loadError,
+    updateError: config.updateError ?? resources.updateError,
+    state,
+    setState: (fn) => {
+      const newState = fn(state);
+      config.setState(() => ({
+        types: newState.types,
+        email: newState.email,
+        username: newState.username,
+        phone: newState.phone,
+        isUsernameExcludedKeywordEnabled:
+          newState.isUsernameExcludedKeywordEnabled,
+      }));
+      resources.setState(() => ({ resources: newState.resources }));
+    },
+    reload: () => {
+      config.reload();
+      resources.reload();
+    },
+    reset: () => {
+      config.reset();
+      resources.reset();
+    },
+    save: () => {
+      config.save();
+      resources.save();
+    },
+  };
 
   if (form.isLoading) {
     return <ShowLoading />;
