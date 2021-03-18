@@ -600,20 +600,20 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
       />
       <CheckboxWithContentLayout className={styles.control}>
-        <Checkbox
+        <CheckboxWithTooltip
           label={renderToString(
             "LoginIDConfigurationScreen.email.domainBlocklist"
           )}
           checked={state.email.domain_blocklist_enabled}
           onChange={onEmailDomainBlocklistEnabledChange}
           disabled={state.email.domain_allowlist_enabled}
+          tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
         />
         <TagPicker
           inputProps={{
             "aria-label": renderToString(
               "LoginIDConfigurationScreen.email.domainBlocklist"
             ),
-            placeholder: "example.com",
           }}
           className={styles.widgetInputField}
           disabled={!state.email.domain_blocklist_enabled}
@@ -622,7 +622,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           onResolveSuggestions={onDomainBlocklistSuggestions}
         />
       </CheckboxWithContentLayout>
-      <Checkbox
+      <CheckboxWithTooltip
         label={renderToString(
           "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
         )}
@@ -630,22 +630,23 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         checked={state.email.block_free_email_provider_domains}
         onChange={onEmailBlockFreeEmailProviderDomainsChange}
         disabled={state.email.domain_allowlist_enabled}
+        tooltipMessageId="LoginIDConfigurationScreen.email.blockFreeEmailProviderDomainsTooltipMessage"
       />
       <CheckboxWithContentLayout className={styles.control}>
-        <Checkbox
+        <CheckboxWithTooltip
           label={renderToString(
             "LoginIDConfigurationScreen.email.domainAllowlist"
           )}
           checked={state.email.domain_allowlist_enabled}
           onChange={onEmailDomainAllowlistEnabledChange}
           disabled={state.email.domain_blocklist_enabled}
+          tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
         />
         <TagPicker
           inputProps={{
             "aria-label": renderToString(
               "LoginIDConfigurationScreen.email.domainAllowlist"
             ),
-            placeholder: "example.com",
           }}
           className={styles.widgetInputField}
           disabled={!state.email.domain_allowlist_enabled}
