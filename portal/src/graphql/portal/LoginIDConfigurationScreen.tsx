@@ -99,6 +99,9 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       block_plus_sign: false,
       case_sensitive: false,
       ignore_dot_sign: false,
+      domain_blocklist_enabled: false,
+      domain_allowlist_enabled: false,
+      block_free_email_provider_domains: false,
       ...config.identity?.login_id?.types?.email,
     },
     username: {
@@ -159,6 +162,30 @@ function constructConfig(
         currentState.email.ignore_dot_sign
       ) {
         emailConfig.ignore_dot_sign = currentState.email.ignore_dot_sign;
+      }
+
+      if (
+        initialState.email.domain_blocklist_enabled !==
+        currentState.email.domain_blocklist_enabled
+      ) {
+        emailConfig.domain_blocklist_enabled =
+          currentState.email.domain_blocklist_enabled;
+      }
+
+      if (
+        initialState.email.block_free_email_provider_domains !==
+        currentState.email.block_free_email_provider_domains
+      ) {
+        emailConfig.block_free_email_provider_domains =
+          currentState.email.block_free_email_provider_domains;
+      }
+
+      if (
+        initialState.email.domain_allowlist_enabled !==
+        currentState.email.domain_allowlist_enabled
+      ) {
+        emailConfig.domain_allowlist_enabled =
+          currentState.email.domain_allowlist_enabled;
       }
     }
 
@@ -425,6 +452,42 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       }),
     [change]
   );
+
+  const onEmailDomainBlocklistEnabledChange = useCallback(
+    (_, value?: boolean) =>
+      change((state) => {
+        state.email.domain_blocklist_enabled = value ?? false;
+        if (state.email.domain_blocklist_enabled) {
+          state.email.domain_allowlist_enabled = false;
+        } else {
+          state.email.block_free_email_provider_domains = false;
+        }
+      }),
+    [change]
+  );
+  const onEmailBlockFreeEmailProviderDomainsChange = useCallback(
+    (_, value?: boolean) =>
+      change((state) => {
+        state.email.block_free_email_provider_domains = value ?? false;
+        if (state.email.block_free_email_provider_domains) {
+          state.email.domain_blocklist_enabled = true;
+          state.email.domain_allowlist_enabled = false;
+        }
+      }),
+    [change]
+  );
+  const onEmailDomainAllowlistEnabledChange = useCallback(
+    (_, value?: boolean) =>
+      change((state) => {
+        state.email.domain_allowlist_enabled = value ?? false;
+        if (state.email.domain_allowlist_enabled) {
+          state.email.domain_blocklist_enabled = false;
+          state.email.block_free_email_provider_domains = false;
+        }
+      }),
+    [change]
+  );
+
   const emailSection = (
     <div className={styles.widgetContent}>
       <Checkbox
@@ -450,6 +513,41 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           "LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
         )}
       />
+      <CheckboxWithContent
+        ariaLabel={renderToString(
+          "LoginIDConfigurationScreen.email.domainBlocklist"
+        )}
+        className={styles.control}
+        checked={state.email.domain_blocklist_enabled}
+        onChange={onEmailDomainBlocklistEnabledChange}
+        disabled={state.email.domain_allowlist_enabled}
+      >
+        <Label className={styles.checkboxLabel}>
+          <FormattedMessage id="LoginIDConfigurationScreen.email.domainBlocklist" />
+        </Label>
+      </CheckboxWithContent>
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
+        )}
+        className={styles.control}
+        checked={state.email.block_free_email_provider_domains}
+        onChange={onEmailBlockFreeEmailProviderDomainsChange}
+        disabled={state.email.domain_allowlist_enabled}
+      />
+      <CheckboxWithContent
+        ariaLabel={renderToString(
+          "LoginIDConfigurationScreen.email.domainAllowlist"
+        )}
+        className={styles.control}
+        checked={state.email.domain_allowlist_enabled}
+        onChange={onEmailDomainAllowlistEnabledChange}
+        disabled={state.email.domain_blocklist_enabled}
+      >
+        <Label className={styles.checkboxLabel}>
+          <FormattedMessage id="LoginIDConfigurationScreen.email.domainAllowlist" />
+        </Label>
+      </CheckboxWithContent>
     </div>
   );
 
