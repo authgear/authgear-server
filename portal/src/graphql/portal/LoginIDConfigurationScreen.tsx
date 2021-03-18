@@ -30,6 +30,7 @@ import {
   UICountryCallingCodeConfig,
 } from "../../types";
 import {
+  renderPath,
   DEFAULT_TEMPLATE_LOCALE,
   RESOURCE_EMAIL_DOMAIN_BLOCKLIST,
   RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
@@ -76,6 +77,17 @@ function effectiveExcludedKeywords(state: ConfigFormState) {
     return [];
   }
   return state.username.excluded_keywords;
+}
+
+function splitByNewline(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+function joinByNewline(list: string[]): string {
+  return list.join("\n");
 }
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
@@ -488,6 +500,82 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     [change]
   );
 
+  const valueForDomainBlocklist = useMemo(() => {
+    const resource =
+      state.resources[specifierId(emailDomainBlocklistSpecifier)];
+    if (resource == null) {
+      return [];
+    }
+    return splitByNewline(resource.value);
+  }, [state.resources]);
+
+  const valueForDomainAllowlist = useMemo(() => {
+    const resource =
+      state.resources[specifierId(emailDomainAllowlistSpecifier)];
+    if (resource == null) {
+      return [];
+    }
+    return splitByNewline(resource.value);
+  }, [state.resources]);
+
+  const onEmailDomainBlocklistChange = useCallback(
+    (value: string[]) => {
+      setState((prev) => {
+        const updatedResources = { ...prev.resources };
+        const specifier = emailDomainBlocklistSpecifier;
+        const newResource: Resource = {
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {}),
+          value: joinByNewline(value),
+        };
+        updatedResources[specifierId(newResource.specifier)] = newResource;
+        return {
+          ...prev,
+          resources: updatedResources,
+        };
+      });
+    },
+    [setState]
+  );
+
+  const onEmailDomainAllowlistChange = useCallback(
+    (value: string[]) => {
+      setState((prev) => {
+        const updatedResources = { ...prev.resources };
+        const specifier = emailDomainAllowlistSpecifier;
+        const newResource: Resource = {
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {}),
+          value: joinByNewline(value),
+        };
+        updatedResources[specifierId(newResource.specifier)] = newResource;
+        return {
+          ...prev,
+          resources: updatedResources,
+        };
+      });
+    },
+    [setState]
+  );
+
+  const {
+    selectedItems: domainBlocklist,
+    onChange: onDomainBlocklistChange,
+    onResolveSuggestions: onDomainBlocklistSuggestions,
+  } = useTagPickerWithNewTags(
+    valueForDomainBlocklist,
+    onEmailDomainBlocklistChange
+  );
+
+  const {
+    selectedItems: domainAllowlist,
+    onChange: onDomainAllowlistChange,
+    onResolveSuggestions: onDomainAllowlistSuggestions,
+  } = useTagPickerWithNewTags(
+    valueForDomainAllowlist,
+    onEmailDomainAllowlistChange
+  );
+
   const emailSection = (
     <div className={styles.widgetContent}>
       <Checkbox
@@ -525,6 +613,19 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         <Label className={styles.checkboxLabel}>
           <FormattedMessage id="LoginIDConfigurationScreen.email.domainBlocklist" />
         </Label>
+        <TagPicker
+          inputProps={{
+            "aria-label": renderToString(
+              "LoginIDConfigurationScreen.email.domainBlocklist"
+            ),
+            placeholder: "example.com",
+          }}
+          className={styles.widgetInputField}
+          disabled={!state.email.domain_blocklist_enabled}
+          selectedItems={domainBlocklist}
+          onChange={onDomainBlocklistChange}
+          onResolveSuggestions={onDomainBlocklistSuggestions}
+        />
       </CheckboxWithContent>
       <Checkbox
         label={renderToString(
@@ -547,6 +648,19 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         <Label className={styles.checkboxLabel}>
           <FormattedMessage id="LoginIDConfigurationScreen.email.domainAllowlist" />
         </Label>
+        <TagPicker
+          inputProps={{
+            "aria-label": renderToString(
+              "LoginIDConfigurationScreen.email.domainAllowlist"
+            ),
+            placeholder: "example.com",
+          }}
+          className={styles.widgetInputField}
+          disabled={!state.email.domain_allowlist_enabled}
+          selectedItems={domainAllowlist}
+          onChange={onDomainAllowlistChange}
+          onResolveSuggestions={onDomainAllowlistSuggestions}
+        />
       </CheckboxWithContent>
     </div>
   );
