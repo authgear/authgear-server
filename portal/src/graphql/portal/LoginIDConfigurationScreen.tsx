@@ -1,10 +1,10 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Checkbox, Label, TagPicker, Toggle } from "@fluentui/react";
+import { Checkbox, TagPicker, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
-import CheckboxWithContent from "../../CheckboxWithContent";
+import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
 import CountryCallingCodeList from "./AuthenticationCountryCallingCodeList";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { clearEmptyObject } from "../../util/misc";
@@ -601,18 +601,15 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           "LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
         )}
       />
-      <CheckboxWithContent
-        ariaLabel={renderToString(
-          "LoginIDConfigurationScreen.email.domainBlocklist"
-        )}
-        className={styles.control}
-        checked={state.email.domain_blocklist_enabled}
-        onChange={onEmailDomainBlocklistEnabledChange}
-        disabled={state.email.domain_allowlist_enabled}
-      >
-        <Label className={styles.checkboxLabel}>
-          <FormattedMessage id="LoginIDConfigurationScreen.email.domainBlocklist" />
-        </Label>
+      <CheckboxWithContentLayout className={styles.control}>
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.domainBlocklist"
+          )}
+          checked={state.email.domain_blocklist_enabled}
+          onChange={onEmailDomainBlocklistEnabledChange}
+          disabled={state.email.domain_allowlist_enabled}
+        />
         <TagPicker
           inputProps={{
             "aria-label": renderToString(
@@ -626,7 +623,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           onChange={onDomainBlocklistChange}
           onResolveSuggestions={onDomainBlocklistSuggestions}
         />
-      </CheckboxWithContent>
+      </CheckboxWithContentLayout>
       <Checkbox
         label={renderToString(
           "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
@@ -636,18 +633,15 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         onChange={onEmailBlockFreeEmailProviderDomainsChange}
         disabled={state.email.domain_allowlist_enabled}
       />
-      <CheckboxWithContent
-        ariaLabel={renderToString(
-          "LoginIDConfigurationScreen.email.domainAllowlist"
-        )}
-        className={styles.control}
-        checked={state.email.domain_allowlist_enabled}
-        onChange={onEmailDomainAllowlistEnabledChange}
-        disabled={state.email.domain_blocklist_enabled}
-      >
-        <Label className={styles.checkboxLabel}>
-          <FormattedMessage id="LoginIDConfigurationScreen.email.domainAllowlist" />
-        </Label>
+      <CheckboxWithContentLayout className={styles.control}>
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.domainAllowlist"
+          )}
+          checked={state.email.domain_allowlist_enabled}
+          onChange={onEmailDomainAllowlistEnabledChange}
+          disabled={state.email.domain_blocklist_enabled}
+        />
         <TagPicker
           inputProps={{
             "aria-label": renderToString(
@@ -661,7 +655,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           onChange={onDomainAllowlistChange}
           onResolveSuggestions={onDomainAllowlistSuggestions}
         />
-      </CheckboxWithContent>
+      </CheckboxWithContentLayout>
     </div>
   );
 
@@ -718,17 +712,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         onChange={onUsernameBlockReservedUsernameChange}
         className={styles.control}
       />
-      <CheckboxWithContent
-        ariaLabel={renderToString(
-          "LoginIDConfigurationScreen.username.excludeKeywords"
-        )}
-        checked={state.isUsernameExcludedKeywordEnabled}
-        onChange={onUsernameIsExcludedKeywordsEnabledChange}
-        className={styles.control}
-      >
-        <Label className={styles.checkboxLabel}>
-          <FormattedMessage id="LoginIDConfigurationScreen.username.excludeKeywords" />
-        </Label>
+      <CheckboxWithContentLayout className={styles.control}>
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.username.excludeKeywords"
+          )}
+          checked={state.isUsernameExcludedKeywordEnabled}
+          onChange={onUsernameIsExcludedKeywordsEnabledChange}
+        />
         <TagPicker
           inputProps={{
             "aria-label": renderToString(
@@ -741,7 +732,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           onChange={onExcludedKeywordsChange}
           onResolveSuggestions={onResolveExcludedKeywordSuggestions}
         />
-      </CheckboxWithContent>
+      </CheckboxWithContentLayout>
       <Checkbox
         label={renderToString(
           "LoginIDConfigurationScreen.username.caseSensitive"
