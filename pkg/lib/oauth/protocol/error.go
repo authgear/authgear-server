@@ -38,11 +38,21 @@ func (r ErrorResponse) ToWWWAuthenticateHeader() string {
 }
 
 type OAuthProtocolError struct {
-	Response ErrorResponse
+	StatusCode int
+	Response   ErrorResponse
 }
 
 func NewError(err, description string) error {
-	return &OAuthProtocolError{NewErrorResponse(err, description)}
+	return &OAuthProtocolError{
+		Response: NewErrorResponse(err, description),
+	}
+}
+
+func NewErrorStatusCode(err, description string, statusCode int) error {
+	return &OAuthProtocolError{
+		StatusCode: statusCode,
+		Response:   NewErrorResponse(err, description),
+	}
 }
 
 func (e *OAuthProtocolError) Error() string { return e.Response["error_description"] }
