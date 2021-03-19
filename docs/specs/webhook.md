@@ -166,9 +166,23 @@ If any delivery failed, all deliveries will be retried after some time, regardle
 
 If the delivery keeps on failing after 3 days from the time of first attempted delivery, the event will be marked as permanently failed and will not be retried automatically.
 
-## Webhook Event List
 
-### before_user_create, after_user_create
+
+## Blocking Webhook Event List
+### pre_registration, admin_create_user
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identities": [ { /* ... */ } ]
+  }
+}
+```
+
+## Non-blocking Webhook Event List
+
+### user.created.user_signup, user.created.admin_api_create
 
 When a new user is being created.
 
@@ -181,9 +195,9 @@ When a new user is being created.
 }
 ```
 
-### before_identity_create, after_identity_create
+### identity.created.user_create, identity.created.admin_api_create
 
-When a new identity is being created for an existing user. So it does not trigger together with `before_user_create` and `after_user_create`.
+When a new identity is being created for an existing user. So it does not trigger together with `user.created.user_signup` and `user.created.admin_api_create`.
 
 ```json5
 {
@@ -194,7 +208,7 @@ When a new identity is being created for an existing user. So it does not trigge
 }
 ```
 
-### before_identity_update, after_identity_update
+### identity.updated.user_update
 
 When an identity is being updated.
 
@@ -208,7 +222,7 @@ When an identity is being updated.
 }
 ```
 
-### before_identity_delete, after_identity_delete
+### identity.deleted.user_delete, identity.deleted.admin_api_delete
 
 When an identity is being deleted from an existing user.
 
@@ -221,14 +235,13 @@ When an identity is being deleted from an existing user.
 }
 ```
 
-### before_session_create, after_session_create
+### session.created.user_signup, session.created.user_login
 
 When a session is being created for a new user or an existing user.
 
 ```json5
 {
   "payload": {
-    "reason": "signup",
     "user": { /* ... */ },
     "identity": { /* ... */ },
     "session": { /* ... */ }
@@ -236,24 +249,29 @@ When a session is being created for a new user or an existing user.
 }
 ```
 
-- `reason`: The reason for the creation of the session, can be `signup` or `login`.
-
-### before_session_delete, after_session_delete
+### session.deleted.user_revoke, session.deleted.user_logout, session.deleted.admin_api_revoke
 
 When a session is being deleted from an existing user, e.g. logging out.
 
 ```json5
 {
   "payload": {
-    "reason": "logout",
     "user": { /* ... */ },
     "session": { /* ... */ }
   }
 }
 ```
+### user.promoted.user_promote
 
-- `reason`: The reason for the deletion of the session, can be `logout`.
-
+```json5
+{
+  "payload": {
+    "anonymous_user": { /* ... */ },
+    "user": { /* ... */ },
+    "identities": [{ /* ... */ }]
+  }
+}
+```
 ## Webhook Event Management
 
 ### Webhook Event Alerts
