@@ -12,6 +12,7 @@ type (
 		Response protocol.TokenResponse
 	}
 	tokenResultError struct {
+		StatusCode    int
 		InternalError bool
 		Response      protocol.ErrorResponse
 	}
@@ -42,7 +43,11 @@ func (t tokenResultError) WriteResponse(rw http.ResponseWriter, r *http.Request)
 	if t.InternalError {
 		rw.WriteHeader(http.StatusInternalServerError)
 	} else {
-		rw.WriteHeader(http.StatusBadRequest)
+		if t.StatusCode == 0 {
+			rw.WriteHeader(http.StatusBadRequest)
+		} else {
+			rw.WriteHeader(t.StatusCode)
+		}
 	}
 
 	encoder := json.NewEncoder(rw)
