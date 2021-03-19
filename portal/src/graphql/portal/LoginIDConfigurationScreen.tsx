@@ -40,6 +40,7 @@ import styles from "./LoginIDConfigurationScreen.module.scss";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import { Resource, ResourceSpecifier, specifierId } from "../../util/resource";
 import { useResourceForm } from "../../hook/useResourceForm";
+import CustomTagPicker from "../../CustomTagPicker";
 
 // email domain lists are not language specific
 // so the locale in ResourceSpecifier is not important
@@ -518,7 +519,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     return splitByNewline(resource.value);
   }, [state.resources]);
 
-  const onEmailDomainBlocklistChange = useCallback(
+  const updateEmailDomainBlocklist = useCallback(
     (value: string[]) => {
       setState((prev) => {
         const updatedResources = { ...prev.resources };
@@ -538,7 +539,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     [setState]
   );
 
-  const onEmailDomainAllowlistChange = useCallback(
+  const addDomainToEmailDomainBlocklist = useCallback(
+    (value: string) => {
+      updateEmailDomainBlocklist([...valueForDomainBlocklist, value]);
+    },
+    [valueForDomainBlocklist, updateEmailDomainBlocklist]
+  );
+
+  const updateEmailDomainAllowlist = useCallback(
     (value: string[]) => {
       setState((prev) => {
         const updatedResources = { ...prev.resources };
@@ -558,13 +566,20 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     [setState]
   );
 
+  const addDomainToEmailDomainAllowlist = useCallback(
+    (value: string) => {
+      updateEmailDomainAllowlist([...valueForDomainAllowlist, value]);
+    },
+    [valueForDomainAllowlist, updateEmailDomainAllowlist]
+  );
+
   const {
     selectedItems: domainBlocklist,
     onChange: onDomainBlocklistChange,
     onResolveSuggestions: onDomainBlocklistSuggestions,
   } = useTagPickerWithNewTags(
     valueForDomainBlocklist,
-    onEmailDomainBlocklistChange
+    updateEmailDomainBlocklist
   );
 
   const {
@@ -573,7 +588,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     onResolveSuggestions: onDomainAllowlistSuggestions,
   } = useTagPickerWithNewTags(
     valueForDomainAllowlist,
-    onEmailDomainAllowlistChange
+    updateEmailDomainAllowlist
   );
 
   const emailSection = (
@@ -609,7 +624,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           disabled={state.email.domain_allowlist_enabled}
           tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
         />
-        <TagPicker
+        <CustomTagPicker
           inputProps={{
             "aria-label": renderToString(
               "LoginIDConfigurationScreen.email.domainBlocklist"
@@ -620,6 +635,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           selectedItems={domainBlocklist}
           onChange={onDomainBlocklistChange}
           onResolveSuggestions={onDomainBlocklistSuggestions}
+          onAdd={addDomainToEmailDomainBlocklist}
         />
       </CheckboxWithContentLayout>
       <CheckboxWithTooltip
@@ -642,7 +658,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           disabled={state.email.domain_blocklist_enabled}
           tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
         />
-        <TagPicker
+        <CustomTagPicker
           inputProps={{
             "aria-label": renderToString(
               "LoginIDConfigurationScreen.email.domainAllowlist"
@@ -653,6 +669,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           selectedItems={domainAllowlist}
           onChange={onDomainAllowlistChange}
           onResolveSuggestions={onDomainAllowlistSuggestions}
+          onAdd={addDomainToEmailDomainAllowlist}
         />
       </CheckboxWithContentLayout>
     </div>
