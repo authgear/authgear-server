@@ -10,7 +10,6 @@ Webhook is the mechanism to notify external services about events.
   * [Webhook Event Lifecycle](#webhook-event-lifecycle)
   * [Webhook BEFORE Events](#webhook-before-events)
   * [Webhook AFTER Events](#webhook-after-events)
-  * [Webhook Mutations](#webhook-mutations)
   * [Webhook Event List](#webhook-event-list)
     * [before_user_create, after_user_create](#before_user_create-after_user_create)
     * [before_identity_create, after_identity_create](#before_identity_create-after_identity_create)
@@ -18,9 +17,6 @@ Webhook is the mechanism to notify external services about events.
     * [before_identity_delete, after_identity_delete](#before_identity_delete-after_identity_delete)
     * [before_session_create, after_session_create](#before_session_create-after_session_create)
     * [before_session_delete, after_session_delete](#before_session_delete-after_session_delete)
-    * [before_user_update, after_user_update](#before_user_update-after_user_update)
-    * [before_password_update, after_password_update](#before_password_update-after_password_update)
-    * [user_sync](#user_sync)
   * [Webhook Event Management](#webhook-event-management)
     * [Webhook Event Alerts](#webhook-event-alerts)
     * [Webhook Past Events](#webhook-past-events)
@@ -34,9 +30,6 @@ Webhook is the mechanism to notify external services about events.
     * [Webhook Eventual Consistency](#webhook-eventual-consistency)
     * [Webhook Event Timing](#webhook-event-timing)
     * [CAP Theorem](#cap-theorem)
-  * [Webhook Use Cases](#webhook-use-cases)
-    * [Synchronize metadata to self-managed profile](#synchronize-metadata-to-self-managed-profile)
-
 ## Webhook Events
 
 Webhook events are triggered when some mutating operation is performed.
@@ -153,8 +146,6 @@ If any handler fails the operation, the operation is failed. The operation fails
 }
 ```
 
-BEFORE events webhook handlers can request mutations, see [Webhook Mutations](#webhook-mutations) for details.
-
 The time spent in a BEFORE event delivery must not exceed 5 seconds, otherwise it would be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as a failed delivery. Both timeouts are configurable.
 
 BEFORE events are not persisted, and their failed deliveries are not retried.
@@ -174,41 +165,6 @@ The response body of AFTER event webhook handler is ignored.
 If any delivery failed, all deliveries will be retried after some time, regardless of whether some deliveries may have succeeded. The retry is performed with a variant of exponential back-off algorithm. If `Retry-After:` HTTP header is present in the response, the delivery will not be retried before the specific time.
 
 If the delivery keeps on failing after 3 days from the time of first attempted delivery, the event will be marked as permanently failed and will not be retried automatically.
-
-## Webhook Mutations
-
-BEFORE event webhook handler can request mutation on some fields before committing to the database.
-
-Webhook handler cannot request mutation if the operation is failed by the handler.
-
-Webhook handler request mutation in its response. For example,
-
-```json
-{
-  "is_allowed": true,
-  "mutations": {
-    "metadata": {
-      "foobar": 42
-    }
-  }
-}
-```
-
-- If a field is absent, no mutation would be performed for that field.
-- If a field is present, the field would be set to the provided value.
-
-The following fields can be mutated:
-
-- `metadata`
-
-If mutations failed, the operation will be failed.
-If the operation failed, the mutations are rolled back and have no effects.
-
-Mutations do not generate additional events.
-
-The mutated values are propagated along the handler chain.
-
-The developer is responsible for correctly ordering the webhook handlers. For example, in most cases, the developer should order mutating handlers (e.g. populating default values) before non-mutating handlers (e.g. validating field values).
 
 ## Webhook Event List
 
@@ -298,66 +254,6 @@ When a session is being deleted from an existing user, e.g. logging out.
 
 - `reason`: The reason for the deletion of the session, can be `logout`.
 
-### before_user_update, after_user_update
-
-When any user attributes are being updated for an existing user.
-
-```json5
-{
-  "payload": {
-    "reason": "administrative",
-    "metadata": { /* ... */ },
-    "user": { /* ... */ }
-  }
-}
-```
-
-- `reason`: The reason for the update, can be `update_metadata` and `administrative`.
-- `metadata`: The new metadata. Absent if not changed.
-- `user`: The snapshot of the user before the operation.
-
-### before_password_update, after_password_update
-
-When the password is being updated for an existing user.
-
-```json5
-{
-  "payload": {
-    "reason": "reset_password",
-    "user": { /* ... */ }
-  }
-}
-```
-
-- `reason`: The reason for the update, can be `change_password`, `reset_password` and `administrative`.
-- `user`: The snapshot of the user before the operation.
-
-### user_sync
-
-`user_sync` is a special event. It is delivered like an AFTER event.
-
-When an operation could potentially mutate some data (including user, identities and authenticators), this event is generated, regardless of whether mutation actual takes place.
-
-This event can be used to synchronize data to user-managed database.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ }
-  }
-}
-```
-
-- `user`: The user after operation.
-
-**NOTE**
-- The event would be generated unconditionally whenever a mutating operation is
-  used; for example, disabling an already disabled user would still generate
-  this event.
-- If this event is generated by a session creation API, the `last_login_at`
-  field of user object would be the time this session is created, unlike
-  `session_create` events.
-
 ## Webhook Event Management
 
 ### Webhook Event Alerts
@@ -397,7 +293,7 @@ The signature is included in the header `x-authgear-body-signature:`.
 
 ### Recursive Webhooks
 
-A ill-designed web-hook handler may be called recursively. For example, updating user metadata when handling `after_user_update` event.
+A ill-designed web-hook handler may be called recursively. For example, calling api that will trigger another events.
 
 The developer is responsible for ensuring that:
 - webhook handlers would not be called recursively; or
@@ -445,26 +341,3 @@ Since network partition cannot be avoided practically, distributed system would
 need to choose between consistency and availability. Most microservice
 architecture prefer availability over strong consistency, and instead application
 state is eventually consistent.
-
-## Webhook Use Cases
-
-### Synchronize metadata to self-managed profile
-
-The developer may want to synchronize metadata when it is updated:
-
-- When metadata is updated, an external service should be notified to synchronize their managed profile with the user metadata.
-- External service may want to validate and reject invalid user metadata.
-
-The suggested solution:
-
-- In `before_user_update`:
-  - Validate input user metadata is invalid, otherwise fail the operation.
-- In `user_sync`:
-  - Save new user profile and `seq` in the database, if and only if the incoming event is later than the saved `seq`.
-
-Naive approach:
-
-- Do not check `seq` before saving.
-  - Event delivery order is unspecified, a older event may arrive later than earlier events.
-- Check timestamp instead of `seq`.
-  - Timestamp may have time skew issue.
