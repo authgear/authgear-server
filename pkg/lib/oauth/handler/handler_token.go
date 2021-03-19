@@ -355,9 +355,9 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	if apierrors.IsKind(err, interaction.InvariantViolated) &&
 		apierrors.AsAPIError(err).HasCause("AnonymousUserDisallowed") {
-		return nil, protocol.NewError("unauthorized_client", err.Error())
+		return nil, protocol.NewError("unauthorized_client", "AnonymousUserDisallowed")
 	} else if errors.Is(err, interaction.ErrInvalidCredentials) {
-		return nil, protocol.NewError("invalid_grant", err.Error())
+		return nil, protocol.NewError("invalid_grant", interaction.InvalidCredentials.Reason)
 	} else if err != nil {
 		return nil, err
 	}
@@ -463,9 +463,12 @@ func (h *TokenHandler) handleBiometricSetup(
 
 	if apierrors.IsKind(err, interaction.InvariantViolated) &&
 		apierrors.AsAPIError(err).HasCause("BiometricDisallowed") {
-		return nil, protocol.NewError("unauthorized_client", err.Error())
+		return nil, protocol.NewError("unauthorized_client", "BiometricDisallowed")
+	} else if apierrors.IsKind(err, interaction.InvariantViolated) &&
+		apierrors.AsAPIError(err).HasCause("AnonymousUserAddIdentity") {
+		return nil, protocol.NewError("unauthorized_client", "AnonymousUserAddIdentity")
 	} else if errors.Is(err, interaction.ErrInvalidCredentials) {
-		return nil, protocol.NewError("invalid_grant", err.Error())
+		return nil, protocol.NewError("invalid_grant", interaction.InvalidCredentials.Reason)
 	} else if err != nil {
 		return nil, err
 	}
@@ -518,9 +521,9 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 
 	if apierrors.IsKind(err, interaction.InvariantViolated) &&
 		apierrors.AsAPIError(err).HasCause("BiometricDisallowed") {
-		return nil, protocol.NewError("unauthorized_client", err.Error())
+		return nil, protocol.NewError("unauthorized_client", "BiometricDisallowed")
 	} else if errors.Is(err, interaction.ErrInvalidCredentials) {
-		return nil, protocol.NewError("invalid_grant", err.Error())
+		return nil, protocol.NewError("invalid_grant", interaction.InvalidCredentials.Reason)
 	} else if err != nil {
 		return nil, err
 	}
