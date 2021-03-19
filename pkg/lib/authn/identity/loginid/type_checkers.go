@@ -11,7 +11,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
-	"github.com/authgear/authgear-server/pkg/util/exactmatchlist"
+	"github.com/authgear/authgear-server/pkg/util/matchlist"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -44,16 +44,16 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, op
 		}
 
 		// Load domain blocklist / allowlist for validation
-		loadDomainsList := func(desc resource.Descriptor) (*exactmatchlist.ExactMatchList, error) {
-			var list *exactmatchlist.ExactMatchList
+		loadDomainsList := func(desc resource.Descriptor) (*matchlist.MatchList, error) {
+			var list *matchlist.MatchList
 			result, err := f.Resources.Read(desc, resource.EffectiveResource{})
 			if errors.Is(err, resource.ErrResourceNotFound) {
 				// No domain list resources
-				list = &exactmatchlist.ExactMatchList{}
+				list = &matchlist.MatchList{}
 			} else if err != nil {
 				return nil, err
 			} else {
-				list = result.(*exactmatchlist.ExactMatchList)
+				list = result.(*matchlist.MatchList)
 			}
 			return list, nil
 		}
@@ -118,9 +118,9 @@ type EmailChecker struct {
 	// resources will only be loaded when it is enabled
 	// EmailChecker will not further check the config before performing
 	// validation
-	DomainBlockList               *exactmatchlist.ExactMatchList
-	DomainAllowList               *exactmatchlist.ExactMatchList
-	BlockFreeEmailProviderDomains *exactmatchlist.ExactMatchList
+	DomainBlockList               *matchlist.MatchList
+	DomainAllowList               *matchlist.MatchList
+	BlockFreeEmailProviderDomains *matchlist.MatchList
 	Error                         error
 }
 

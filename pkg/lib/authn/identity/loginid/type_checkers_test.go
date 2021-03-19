@@ -7,7 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
-	"github.com/authgear/authgear-server/pkg/util/exactmatchlist"
+	"github.com/authgear/authgear-server/pkg/util/matchlist"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -88,10 +88,10 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				{`faseng@authgear.io`, ""},
 			}
 
-			domainsList, _ := exactmatchlist.New(`
+			domainsList, _ := matchlist.New(`
 				example.com
 				TESTING.COM
-			`, true)
+			`, true, false)
 			checker := &EmailChecker{
 				Config: &config.LoginIDEmailConfig{
 					BlockPlusSign: newFalse(),
@@ -111,9 +111,9 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				{`faseng@authgear.io`, ""},
 			}
 
-			domainsList, _ := exactmatchlist.New(`
+			domainsList, _ := matchlist.New(`
 				FREE-MAIL.COM
-			`, true)
+			`, true, false)
 			checker := &EmailChecker{
 				Config: &config.LoginIDEmailConfig{
 					BlockPlusSign: newFalse(),
@@ -134,12 +134,12 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				{`"faseng@cat+123"@authgear.io`, "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainAllowlist]"},
 			}
 
-			domainsList, _ := exactmatchlist.New(`
+			domainsList, _ := matchlist.New(`
 				example.com
 				testing.com
 
 				FREE-MAIL.COM
-			`, true)
+			`, true, false)
 			checker := &EmailChecker{
 				Config: &config.LoginIDEmailConfig{
 					BlockPlusSign: newFalse(),
