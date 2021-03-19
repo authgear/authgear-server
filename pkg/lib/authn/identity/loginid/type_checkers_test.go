@@ -176,9 +176,7 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 			n := &UsernameChecker{
 				Config: &config.LoginIDUsernameConfig{
-					BlockReservedUsernames: newFalse(),
-					ExcludedKeywords:       []string{},
-					ASCIIOnly:              newFalse(),
+					ASCIIOnly: newFalse(),
 				},
 			}
 
@@ -202,13 +200,15 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				admin
 				settings
 			`)
+			excludedKeywords, _ := matchlist.New(`
+				authgear
+			`, true, true)
 			n := &UsernameChecker{
 				Config: &config.LoginIDUsernameConfig{
-					BlockReservedUsernames: newTrue(),
-					ExcludedKeywords:       []string{"authgear"},
-					ASCIIOnly:              newTrue(),
+					ASCIIOnly: newTrue(),
 				},
-				ReservedNames: reversedNames,
+				ReservedNames:    reversedNames,
+				ExcludedKeywords: excludedKeywords,
 			}
 
 			for _, c := range cases {

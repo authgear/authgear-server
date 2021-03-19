@@ -17,6 +17,13 @@ var ReservedNameTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor
 	},
 })
 
+var UsernameExcludedKeywordsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
+	Path: "username_excluded_keywords.txt",
+	Parse: func(data []byte) (interface{}, error) {
+		return matchlist.New(string(data), true, true)
+	},
+})
+
 var EmailDomainBlockListTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "email_domain_blocklist.txt",
 	Parse: func(data []byte) (interface{}, error) {

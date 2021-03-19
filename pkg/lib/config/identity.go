@@ -156,7 +156,7 @@ var _ = Schema.Add("LoginIDUsernameConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"block_reserved_usernames": { "type": "boolean" },
-		"excluded_keywords": { "type": "array", "items": { "type": "string" } },
+		"exclude_keywords_enabled": { "type": "boolean" },
 		"ascii_only": { "type": "boolean" },
 		"case_sensitive": { "type": "boolean" }
 	}
@@ -164,15 +164,18 @@ var _ = Schema.Add("LoginIDUsernameConfig", `
 `)
 
 type LoginIDUsernameConfig struct {
-	BlockReservedUsernames *bool    `json:"block_reserved_usernames,omitempty"`
-	ExcludedKeywords       []string `json:"excluded_keywords,omitempty"`
-	ASCIIOnly              *bool    `json:"ascii_only,omitempty"`
-	CaseSensitive          *bool    `json:"case_sensitive,omitempty"`
+	BlockReservedUsernames *bool `json:"block_reserved_usernames,omitempty"`
+	ExcludeKeywordsEnabled *bool `json:"exclude_keywords_enabled,omitempty"`
+	ASCIIOnly              *bool `json:"ascii_only,omitempty"`
+	CaseSensitive          *bool `json:"case_sensitive,omitempty"`
 }
 
 func (c *LoginIDUsernameConfig) SetDefaults() {
 	if c.BlockReservedUsernames == nil {
 		c.BlockReservedUsernames = newBool(true)
+	}
+	if c.ExcludeKeywordsEnabled == nil {
+		c.ExcludeKeywordsEnabled = newBool(false)
 	}
 	if c.ASCIIOnly == nil {
 		c.ASCIIOnly = newBool(true)
