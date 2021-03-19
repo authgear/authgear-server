@@ -283,6 +283,7 @@
   "LoginIDConfigurationScreen.username.title": "Username",
   "LoginIDConfigurationScreen.username.blockReservedUsername": "Block Reserved Username",
   "LoginIDConfigurationScreen.username.excludeKeywords": "Exclude Keyword",
+  "LoginIDConfigurationScreen.username.excludeKeywordsTooltipMessage": "To enable exclude keywords, you will need to input the keywords that you want to block in the below text field.",
   "LoginIDConfigurationScreen.username.caseSensitive": "Case Sensitive",
   "LoginIDConfigurationScreen.username.asciiOnly": "ASCII Only",
   "LoginIDConfigurationScreen.phone.title": "Phone Number",

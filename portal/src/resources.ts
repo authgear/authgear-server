@@ -153,6 +153,14 @@ export const RESOURCE_EMAIL_DOMAIN_ALLOWLIST: ResourceDefinition = {
   optional: true,
 };
 
+export const RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT: ResourceDefinition = {
+  resourcePath: resourcePath`username_excluded_keywords.txt`,
+  type: "text",
+  extensions: [],
+  usesEffectiveDataAsFallbackValue: false,
+  optional: true,
+};
+
 export interface RenderPathArguments {
   locale?: LanguageTag;
   extension?: string;

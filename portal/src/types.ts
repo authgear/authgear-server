@@ -29,7 +29,7 @@ export interface LoginIDEmailConfig {
 
 export interface LoginIDUsernameConfig {
   block_reserved_usernames?: boolean;
-  excluded_keywords?: string[];
+  exclude_keywords_enabled?: boolean;
   ascii_only?: boolean;
   case_sensitive?: boolean;
 }

@@ -34,6 +34,7 @@ import {
   DEFAULT_TEMPLATE_LOCALE,
   RESOURCE_EMAIL_DOMAIN_BLOCKLIST,
   RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
+  RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT,
 } from "../../resources";
 
 import styles from "./LoginIDConfigurationScreen.module.scss";
@@ -54,9 +55,15 @@ const emailDomainAllowlistSpecifier: ResourceSpecifier = {
   locale: DEFAULT_TEMPLATE_LOCALE,
 };
 
+const usernameExcludeKeywordsTXTSpecifier: ResourceSpecifier = {
+  def: RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT,
+  locale: DEFAULT_TEMPLATE_LOCALE,
+};
+
 const specifiers: ResourceSpecifier[] = [
   emailDomainBlocklistSpecifier,
   emailDomainAllowlistSpecifier,
+  usernameExcludeKeywordsTXTSpecifier,
 ];
 
 interface LoginIDKeyTypeFormState {
@@ -69,15 +76,6 @@ interface ConfigFormState {
   email: Required<LoginIDEmailConfig>;
   username: Required<LoginIDUsernameConfig>;
   phone: Required<UICountryCallingCodeConfig>;
-
-  isUsernameExcludedKeywordEnabled: boolean;
-}
-
-function effectiveExcludedKeywords(state: ConfigFormState) {
-  if (!state.isUsernameExcludedKeywordEnabled) {
-    return [];
-  }
-  return state.username.excluded_keywords;
 }
 
 function splitByNewline(text: string): string[] {
@@ -119,7 +117,7 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
     },
     username: {
       block_reserved_usernames: true,
-      excluded_keywords: [],
+      exclude_keywords_enabled: false,
       ascii_only: true,
       case_sensitive: false,
       ...config.identity?.login_id?.types?.username,
@@ -129,9 +127,6 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       pinned_list: [],
       ...config.ui?.country_calling_code,
     },
-    isUsernameExcludedKeywordEnabled:
-      (config.identity?.login_id?.types?.username?.excluded_keywords ?? [])
-        .length > 0,
   };
 }
 
@@ -212,16 +207,13 @@ function constructConfig(
           currentState.username.block_reserved_usernames;
       }
       if (
-        !deepEqual(
-          effectiveExcludedKeywords(initialState),
-          effectiveExcludedKeywords(currentState),
-          { strict: true }
-        )
+        initialState.username.exclude_keywords_enabled !==
+        currentState.username.exclude_keywords_enabled
       ) {
-        usernameConfig.excluded_keywords = effectiveExcludedKeywords(
-          currentState
-        );
+        usernameConfig.exclude_keywords_enabled =
+          currentState.username.exclude_keywords_enabled;
       }
+
       if (
         initialState.username.ascii_only !== currentState.username.ascii_only
       ) {
@@ -682,13 +674,6 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       }),
     [change]
   );
-  const onUsernameExcludedKeywordsChange = useCallback(
-    (value: string[]) =>
-      change((state) => {
-        state.username.excluded_keywords = value;
-      }),
-    [change]
-  );
   const onUsernameCaseSensitiveChange = useCallback(
     (_, value?: boolean) =>
       change((state) => {
@@ -706,16 +691,46 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
   const onUsernameIsExcludedKeywordsEnabledChange = useCallback(
     (_, value?: boolean) =>
       change((state) => {
-        state.isUsernameExcludedKeywordEnabled = value ?? false;
+        state.username.exclude_keywords_enabled = value ?? false;
       }),
     [change]
   );
+
+  const valueForUsernameExcludedKeywords = useMemo(() => {
+    const resource =
+      state.resources[specifierId(usernameExcludeKeywordsTXTSpecifier)];
+    if (resource == null) {
+      return [];
+    }
+    return splitByNewline(resource.value);
+  }, [state.resources]);
+
+  const onUsernameExcludedKeywordsChange = useCallback(
+    (value: string[]) => {
+      setState((prev) => {
+        const updatedResources = { ...prev.resources };
+        const specifier = usernameExcludeKeywordsTXTSpecifier;
+        const newResource: Resource = {
+          specifier,
+          path: renderPath(specifier.def.resourcePath, {}),
+          value: joinByNewline(value),
+        };
+        updatedResources[specifierId(newResource.specifier)] = newResource;
+        return {
+          ...prev,
+          resources: updatedResources,
+        };
+      });
+    },
+    [setState]
+  );
+
   const {
     selectedItems: excludedKeywordItems,
     onChange: onExcludedKeywordsChange,
     onResolveSuggestions: onResolveExcludedKeywordSuggestions,
   } = useTagPickerWithNewTags(
-    state.username.excluded_keywords,
+    valueForUsernameExcludedKeywords,
     onUsernameExcludedKeywordsChange
   );
   const usernameSection = (
@@ -729,12 +744,13 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         className={styles.control}
       />
       <CheckboxWithContentLayout className={styles.control}>
-        <Checkbox
+        <CheckboxWithTooltip
           label={renderToString(
             "LoginIDConfigurationScreen.username.excludeKeywords"
           )}
-          checked={state.isUsernameExcludedKeywordEnabled}
+          checked={state.username.exclude_keywords_enabled}
           onChange={onUsernameIsExcludedKeywordsEnabledChange}
+          tooltipMessageId="LoginIDConfigurationScreen.username.excludeKeywordsTooltipMessage"
         />
         <TagPicker
           inputProps={{
@@ -743,7 +759,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             ),
           }}
           className={styles.widgetInputField}
-          disabled={!state.isUsernameExcludedKeywordEnabled}
+          disabled={!state.username.exclude_keywords_enabled}
           selectedItems={excludedKeywordItems}
           onChange={onExcludedKeywordsChange}
           onResolveSuggestions={onResolveExcludedKeywordSuggestions}
@@ -841,8 +857,6 @@ const LoginIDConfigurationScreen: React.FC = function LoginIDConfigurationScreen
       email: config.state.email,
       username: config.state.username,
       phone: config.state.phone,
-      isUsernameExcludedKeywordEnabled:
-        config.state.isUsernameExcludedKeywordEnabled,
     }),
     [
       resources.state.resources,
@@ -850,7 +864,6 @@ const LoginIDConfigurationScreen: React.FC = function LoginIDConfigurationScreen
       config.state.email,
       config.state.username,
       config.state.phone,
-      config.state.isUsernameExcludedKeywordEnabled,
     ]
   );
 
@@ -868,8 +881,6 @@ const LoginIDConfigurationScreen: React.FC = function LoginIDConfigurationScreen
         email: newState.email,
         username: newState.username,
         phone: newState.phone,
-        isUsernameExcludedKeywordEnabled:
-          newState.isUsernameExcludedKeywordEnabled,
       }));
       resources.setState(() => ({ resources: newState.resources }));
     },
