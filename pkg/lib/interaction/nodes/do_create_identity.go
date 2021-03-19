@@ -33,6 +33,19 @@ func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interact
 func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			user, err := ctx.Users.Get(n.Identity.UserID)
+			if err != nil {
+				return err
+			}
+
+			if user.IsAnonymous {
+				return interaction.NewInvariantViolated(
+					"AnonymousUserAddIdentity",
+					"anonymous user cannot add identity",
+					nil,
+				)
+			}
+
 			if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
 					return interaction.ErrDuplicatedIdentity
