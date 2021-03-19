@@ -93,6 +93,7 @@ func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r proto
 		var oauthError *protocol.OAuthProtocolError
 		resultErr := tokenResultError{}
 		if errors.As(err, &oauthError) {
+			resultErr.StatusCode = oauthError.StatusCode
 			resultErr.Response = oauthError.Response
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
@@ -436,7 +437,7 @@ func (h *TokenHandler) handleBiometricSetup(
 ) (httputil.Result, error) {
 	s := session.GetSession(req.Context())
 	if s == nil {
-		return nil, protocol.NewError("invalid_request", "biometric setup requires authenticated user")
+		return nil, protocol.NewErrorStatusCode("invalid_request", "biometric setup requires authenticated user", http.StatusUnauthorized)
 	}
 
 	var graph *interaction.Graph
