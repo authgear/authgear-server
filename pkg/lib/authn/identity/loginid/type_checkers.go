@@ -86,23 +86,28 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, op
 		return checker
 
 	case config.LoginIDKeyTypeUsername:
+		loginIDUsernameConfig := f.Config.Types.Username
+
 		checker := &UsernameChecker{
-			Config: f.Config.Types.Username,
+			Config: loginIDUsernameConfig,
 		}
 
-		var list *blocklist.Blocklist
-		result, err := f.Resources.Read(ReservedNameTXT, resource.EffectiveResource{})
-		if errors.Is(err, resource.ErrResourceNotFound) {
-			// No reserved usernames
-			list = &blocklist.Blocklist{}
-		} else if err != nil {
-			checker.Error = err
-			return checker
-		} else {
-			list = result.(*blocklist.Blocklist)
+		if *loginIDUsernameConfig.BlockReservedUsernames {
+			var list *blocklist.Blocklist
+			result, err := f.Resources.Read(ReservedNameTXT, resource.EffectiveResource{})
+			if errors.Is(err, resource.ErrResourceNotFound) {
+				// No reserved usernames
+				list = &blocklist.Blocklist{}
+			} else if err != nil {
+				checker.Error = err
+				return checker
+			} else {
+				list = result.(*blocklist.Blocklist)
+			}
+
+			checker.ReservedNames = list
 		}
 
-		checker.ReservedNames = list
 		return checker
 	case config.LoginIDKeyTypePhone:
 		return &PhoneChecker{}
@@ -193,7 +198,11 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 }
 
 type UsernameChecker struct {
-	Config        *config.LoginIDUsernameConfig
+	Config *config.LoginIDUsernameConfig
+	// ReservedNames is provided by TypeCheckerFactory based on config, so the related
+	// resources will only be loaded when it is enabled
+	// UsernameChecker will not further check the config before performing
+	// validation
 	ReservedNames *blocklist.Blocklist
 	Error         error
 }
@@ -214,7 +223,7 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 		return
 	}
 
-	if *c.Config.BlockReservedUsernames {
+	if c.ReservedNames != nil {
 		if c.ReservedNames.IsBlocked(cfLoginID) {
 			ctx.EmitError("blocked", map[string]interface{}{"reason": "UsernameReserved"})
 			return
