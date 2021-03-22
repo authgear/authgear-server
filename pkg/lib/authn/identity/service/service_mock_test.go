@@ -112,33 +112,33 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) ListByClaim(name, value inter
 }
 
 // New mocks base method
-func (m *MockLoginIDIdentityProvider) New(userID string, loginID loginid.Spec) (*loginid.Identity, error) {
+func (m *MockLoginIDIdentityProvider) New(userID string, loginID loginid.Spec, options loginid.CheckerOptions) (*loginid.Identity, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, loginID)
+	ret := m.ctrl.Call(m, "New", userID, loginID, options)
 	ret0, _ := ret[0].(*loginid.Identity)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New
-func (mr *MockLoginIDIdentityProviderMockRecorder) New(userID, loginID interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) New(userID, loginID, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).New), userID, loginID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).New), userID, loginID, options)
 }
 
 // WithValue mocks base method
-func (m *MockLoginIDIdentityProvider) WithValue(iden *loginid.Identity, value string) (*loginid.Identity, error) {
+func (m *MockLoginIDIdentityProvider) WithValue(iden *loginid.Identity, value string, options loginid.CheckerOptions) (*loginid.Identity, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithValue", iden, value)
+	ret := m.ctrl.Call(m, "WithValue", iden, value, options)
 	ret0, _ := ret[0].(*loginid.Identity)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // WithValue indicates an expected call of WithValue
-func (mr *MockLoginIDIdentityProviderMockRecorder) WithValue(iden, value interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) WithValue(iden, value, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).WithValue), iden, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).WithValue), iden, value, options)
 }
 
 // Create mocks base method

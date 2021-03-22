@@ -50,6 +50,11 @@ func (p *Provider) GetByValue(value string) ([]*Identity, error) {
 			Key:   config.Key,
 			Type:  config.Type,
 			Value: value,
+		}, CheckerOptions{
+			// Admin can create email login id which bypass domains blocklist allowlist
+			// it should not affect getting identity
+			// skip the checking when getting identity
+			EmailByPassBlocklistAllowlist: true,
 		})
 		if invalid != nil {
 			continue
@@ -101,12 +106,12 @@ func (p *Provider) Normalize(typ config.LoginIDKeyType, value string) (normalize
 	return
 }
 
-func (p *Provider) ValidateOne(loginID Spec) error {
-	return p.Checker.ValidateOne(loginID)
+func (p *Provider) ValidateOne(loginID Spec, options CheckerOptions) error {
+	return p.Checker.ValidateOne(loginID, options)
 }
 
-func (p *Provider) New(userID string, spec Spec) (*Identity, error) {
-	err := p.ValidateOne(spec)
+func (p *Provider) New(userID string, spec Spec, options CheckerOptions) (*Identity, error) {
+	err := p.ValidateOne(spec, options)
 	if err != nil {
 		return nil, err
 	}
@@ -136,14 +141,14 @@ func (p *Provider) New(userID string, spec Spec) (*Identity, error) {
 	return iden, nil
 }
 
-func (p *Provider) WithValue(iden *Identity, value string) (*Identity, error) {
+func (p *Provider) WithValue(iden *Identity, value string, options CheckerOptions) (*Identity, error) {
 	spec := Spec{
 		Key:   iden.LoginIDKey,
 		Type:  iden.LoginIDType,
 		Value: value,
 	}
 
-	err := p.ValidateOne(spec)
+	err := p.ValidateOne(spec, options)
 	if err != nil {
 		return nil, err
 	}

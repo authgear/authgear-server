@@ -20,6 +20,7 @@ export type ValidationFailedErrorInfoCause =
   | MaximumErrorCause
   | MinLengthErrorCause
   | MaxLengthErrorCause
+  | BlockedErrorCause
   | NoPrimaryAuthenticatorErrorCause;
 
 export interface LocalErrorCause {
@@ -98,6 +99,15 @@ export interface MaxLengthErrorCause {
   details: {
     actual: number;
     expected: number;
+  };
+}
+
+export interface BlockedErrorCause {
+  location: string;
+  kind: "blocked";
+  details: {
+    reason: string;
+    msg: string;
   };
 }
 export interface NoPrimaryAuthenticatorErrorCause {

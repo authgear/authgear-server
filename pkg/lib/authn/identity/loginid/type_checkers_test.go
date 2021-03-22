@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
+	"github.com/authgear/authgear-server/pkg/util/exactmatchlist"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -77,6 +78,80 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				f(c, checker)
 			}
 		})
+
+		Convey("email domain blocklist", func() {
+			cases := []Case{
+				{"Faseng@Example.com", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@example.com", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@testing.com", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@TESTING.COM", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{`faseng@authgear.io`, ""},
+			}
+
+			domainsList, _ := exactmatchlist.New(`
+				example.com
+				TESTING.COM
+			`, true)
+			checker := &EmailChecker{
+				Config: &config.LoginIDEmailConfig{
+					BlockPlusSign: newFalse(),
+				},
+				DomainBlockList: domainsList,
+			}
+
+			for _, c := range cases {
+				f(c, checker)
+			}
+		})
+
+		Convey("block free email provider domains", func() {
+			cases := []Case{
+				{"faseng@free-mail.com", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@FREE-MAIL.COM", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{`faseng@authgear.io`, ""},
+			}
+
+			domainsList, _ := exactmatchlist.New(`
+				FREE-MAIL.COM
+			`, true)
+			checker := &EmailChecker{
+				Config: &config.LoginIDEmailConfig{
+					BlockPlusSign: newFalse(),
+				},
+				BlockFreeEmailProviderDomains: domainsList,
+			}
+
+			for _, c := range cases {
+				f(c, checker)
+			}
+		})
+
+		Convey("email domain allowlist", func() {
+			cases := []Case{
+				{"Faseng@Example.com", ""},
+				{"faseng@example.com", ""},
+				{"faseng@free-mail.com", ""},
+				{`"faseng@cat+123"@authgear.io`, "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainAllowlist]"},
+			}
+
+			domainsList, _ := exactmatchlist.New(`
+				example.com
+				testing.com
+
+				FREE-MAIL.COM
+			`, true)
+			checker := &EmailChecker{
+				Config: &config.LoginIDEmailConfig{
+					BlockPlusSign: newFalse(),
+				},
+				DomainAllowList: domainsList,
+			}
+
+			for _, c := range cases {
+				f(c, checker)
+			}
+		})
+
 	})
 
 	Convey("UsernameChecker", t, func() {
@@ -114,10 +189,10 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("block keywords and non ascii", func() {
 			cases := []Case{
-				{"admin", "invalid login ID:\n<root>: username is not allowed"},
-				{"settings", "invalid login ID:\n<root>: username is not allowed"},
-				{"authgear", "invalid login ID:\n<root>: username is not allowed"},
-				{"myauthgearapp", "invalid login ID:\n<root>: username is not allowed"},
+				{"admin", "invalid login ID:\n<root>: blocked\n  map[reason:UsernameReserved]"},
+				{"settings", "invalid login ID:\n<root>: blocked\n  map[reason:UsernameReserved]"},
+				{"authgear", "invalid login ID:\n<root>: blocked\n  map[reason:UsernameExcludedKeywords]"},
+				{"myauthgearapp", "invalid login ID:\n<root>: blocked\n  map[reason:UsernameExcludedKeywords]"},
 				{"花生thecat", "invalid login ID:\n<root>: format\n  map[format:username]"},
 				{"faseng", ""},
 				{"faseng_chima-the.cat", ""},

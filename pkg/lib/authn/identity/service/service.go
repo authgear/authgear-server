@@ -20,8 +20,8 @@ type LoginIDIdentityProvider interface {
 	List(userID string) ([]*loginid.Identity, error)
 	GetByValue(loginIDValue string) ([]*loginid.Identity, error)
 	ListByClaim(name string, value string) ([]*loginid.Identity, error)
-	New(userID string, loginID loginid.Spec) (*loginid.Identity, error)
-	WithValue(iden *loginid.Identity, value string) (*loginid.Identity, error)
+	New(userID string, loginID loginid.Spec, options loginid.CheckerOptions) (*loginid.Identity, error)
+	WithValue(iden *loginid.Identity, value string, options loginid.CheckerOptions) (*loginid.Identity, error)
 	Create(i *loginid.Identity) error
 	Update(i *loginid.Identity) error
 	Delete(i *loginid.Identity) error
@@ -246,11 +246,13 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 	return infos, nil
 }
 
-func (s *Service) New(userID string, spec *identity.Spec) (*identity.Info, error) {
+func (s *Service) New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch spec.Type {
 	case authn.IdentityTypeLoginID:
 		loginID := extractLoginIDSpec(spec.Claims)
-		l, err := s.LoginID.New(userID, loginID)
+		l, err := s.LoginID.New(userID, loginID, loginid.CheckerOptions{
+			EmailByPassBlocklistAllowlist: options.LoginIDEmailByPassBlocklistAllowlist,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -304,10 +306,12 @@ func (s *Service) Create(info *identity.Info) error {
 	return nil
 }
 
-func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec) (*identity.Info, error) {
+func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch info.Type {
 	case authn.IdentityTypeLoginID:
-		i, err := s.LoginID.WithValue(loginIDFromIdentityInfo(info), extractLoginIDValue(spec.Claims))
+		i, err := s.LoginID.WithValue(loginIDFromIdentityInfo(info), extractLoginIDValue(spec.Claims), loginid.CheckerOptions{
+			EmailByPassBlocklistAllowlist: options.LoginIDEmailByPassBlocklistAllowlist,
+		})
 		if err != nil {
 			return nil, err
 		}

@@ -137,6 +137,22 @@ export const RESOURCE_AUTHGEAR_DARK_THEME_CSS: ResourceDefinition = {
   optional: true,
 };
 
+export const RESOURCE_EMAIL_DOMAIN_BLOCKLIST: ResourceDefinition = {
+  resourcePath: resourcePath`email_domain_blocklist.txt`,
+  type: "text",
+  extensions: [],
+  usesEffectiveDataAsFallbackValue: false,
+  optional: true,
+};
+
+export const RESOURCE_EMAIL_DOMAIN_ALLOWLIST: ResourceDefinition = {
+  resourcePath: resourcePath`email_domain_allowlist.txt`,
+  type: "text",
+  extensions: [],
+  usesEffectiveDataAsFallbackValue: false,
+  optional: true,
+};
+
 export interface RenderPathArguments {
   locale?: LanguageTag;
   extension?: string;

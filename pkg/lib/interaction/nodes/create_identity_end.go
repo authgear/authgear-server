@@ -14,7 +14,15 @@ type EdgeCreateIdentityEnd struct {
 }
 
 func (e *EdgeCreateIdentityEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	info, err := ctx.Identities.New(graph.MustGetUserID(), e.IdentitySpec)
+	byPassBlocklistAllowlist := false
+	var bypassInput interface{ BypassLoginIDEmailBlocklistAllowlist() bool }
+	if interaction.Input(rawInput, &bypassInput) {
+		byPassBlocklistAllowlist = bypassInput.BypassLoginIDEmailBlocklistAllowlist()
+	}
+
+	info, err := ctx.Identities.New(graph.MustGetUserID(), e.IdentitySpec, identity.NewIdentityOptions{
+		LoginIDEmailByPassBlocklistAllowlist: byPassBlocklistAllowlist,
+	})
 	if err != nil {
 		return nil, err
 	}

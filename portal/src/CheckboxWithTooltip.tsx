@@ -6,18 +6,18 @@ import styles from "./CheckboxWithTooltip.module.scss";
 import Tooltip from "./Tooltip";
 
 interface CheckboxWithTooltipProps extends ICheckboxProps {
-  helpText: string;
+  tooltipMessageId: string;
 }
 
 const CheckboxWithTooltip: React.FC<CheckboxWithTooltipProps> = function CheckboxWithTooltip(
   props: CheckboxWithTooltipProps
 ) {
-  const { helpText, className, ...rest } = props;
+  const { tooltipMessageId, className, ...rest } = props;
 
   return (
     <div className={cn(styles.root, className)}>
       <Checkbox {...rest} />
-      <Tooltip helpText={helpText} className={styles.tooltip} />
+      <Tooltip tooltipMessageId={tooltipMessageId} className={styles.tooltip} />
     </div>
   );
 };

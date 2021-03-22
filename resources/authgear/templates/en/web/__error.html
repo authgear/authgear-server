@@ -55,6 +55,14 @@
                         {{ end }}
                     {{ else if (eq .kind "maxLength") }}
                         <li>{{ template "error-max-length" (dict "expected" .details.expected) }}</li>
+                    {{ else if (eq .kind "blocked") }}
+                        {{ if (or (eq .details.reason "EmailDomainBlocklist") (eq .details.reason "EmailDomainAllowlist")) }}
+                            <li>{{ template "error-email-not-allowed" }}</li>
+                        {{ else if (or (eq .details.reason "UsernameReserved") (eq .details.reason "UsernameExcludedKeywords")) }}
+                            <li>{{ template "error-username-not-allowed" }}</li>
+                        {{ else }}
+                            <li>{{ .details.reason }}</li>
+                        {{ end }}
                     {{ else if (eq .kind "general") }}
                         <li>{{ .details.msg }}</li>
                     {{ else }}
