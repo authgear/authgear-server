@@ -24,6 +24,10 @@ type deliverer interface {
 	WillDeliver(eventType event.Type) bool
 	DeliverBeforeEvent(event *event.Event) error
 	DeliverNonBeforeEvent(event *event.Event) error
+	WillDeliverBlockingEvent(eventType event.Type) bool
+	WillDeliverNonBlockingEvent(eventType event.Type) bool
+	DeliverBlockingEvent(event *event.Event) error
+	DeliverNonBlockingEvent(event *event.Event) error
 }
 
 type store interface {
@@ -94,6 +98,27 @@ func (provider *Provider) DispatchEvent(payload event.Payload) (err error) {
 		provider.persistentEventPayloads = append(provider.persistentEventPayloads, payload)
 		err = nil
 
+	case event.BlockingPayload:
+		if provider.Deliverer.WillDeliverBlockingEvent(typedPayload.BlockingEventType()) {
+			seq, err = provider.Store.NextSequenceNumber()
+			if err != nil {
+				err = fmt.Errorf("failed to dispatch event: %w", err)
+				return
+			}
+			event := event.NewBlockingEvent(seq, typedPayload, provider.makeContext())
+			err = provider.Deliverer.DeliverBlockingEvent(event)
+			if err != nil {
+				if !apierrors.IsKind(err, WebHookDisallowed) {
+					err = fmt.Errorf("failed to dispatch event: %w", err)
+				}
+				return
+			}
+		}
+
+	case event.NonBlockingPayload:
+		provider.persistentEventPayloads = append(provider.persistentEventPayloads, payload)
+		err = nil
+
 	default:
 		panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
 	}
@@ -137,6 +162,15 @@ func (provider *Provider) WillCommitTx() error {
 				ev = event.NewEvent(seq, typedPayload, provider.makeContext())
 			}
 
+		case event.NonBlockingPayload:
+			if provider.Deliverer.WillDeliverNonBlockingEvent(typedPayload.NonBlockingEventType()) {
+				seq, err := provider.Store.NextSequenceNumber()
+				if err != nil {
+					err = fmt.Errorf("failed to persist event: %w", err)
+					return err
+				}
+				ev = event.NewNonBlockingEvent(seq, typedPayload, provider.makeContext())
+			}
 		default:
 			panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
 		}
@@ -149,7 +183,7 @@ func (provider *Provider) WillCommitTx() error {
 
 	err = provider.Store.AddEvents(events)
 	if err != nil {
-		err = errorutil.HandledWithMessage(err, "failed to persist event")
+		err = fmt.Errorf("failed to persist event: %w", err)
 		return err
 	}
 	provider.persistentEventPayloads = nil
@@ -169,6 +203,10 @@ func (provider *Provider) DidCommitTx() {
 		err := provider.Deliverer.DeliverNonBeforeEvent(event)
 		if err != nil {
 			provider.Logger.WithError(err).Debug("Failed to dispatch event")
+		}
+
+		if err := provider.Deliverer.DeliverNonBlockingEvent(event); err != nil {
+			provider.Logger.WithError(err).Debug("Failed to dispatch non blocking event")
 		}
 	}
 }
