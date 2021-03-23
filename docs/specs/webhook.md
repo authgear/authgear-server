@@ -66,7 +66,8 @@ All fields are guaranteed that only backward-compatible changes would be made.
 
 - `timestamp`: signed 64-bit UNIX timestamp of when this event is generated. Retried deliveries do not affect this field.
 - `user_id`: The ID of the user associated with the event. It may be absent. For example, the user has not authenticated yet.
-- `locale`: User locale, derive based on user's preferred languages and app's supported languages.
+- `preferred_languages`: User preferred languages which are inferred from the request. Return values of `ui_locales` query if it is provided in auth ui, otherwise return languages in `Accept-Language` request header.
+- `resolved_language`: User locale which is derived based on user's preferred languages and app's languages config.
 
 ## Webhook Delivery
 
