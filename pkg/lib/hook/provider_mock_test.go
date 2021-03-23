@@ -143,6 +143,34 @@ func (mr *MockDelivererMockRecorder) WillDeliverNonBlockingEvent(eventType inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WillDeliverNonBlockingEvent", reflect.TypeOf((*MockDeliverer)(nil).WillDeliverNonBlockingEvent), eventType)
 }
 
+// DeliverBlockingEvent mocks base method
+func (m *MockDeliverer) DeliverBlockingEvent(event *event.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeliverBlockingEvent", event)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeliverBlockingEvent indicates an expected call of DeliverBlockingEvent
+func (mr *MockDelivererMockRecorder) DeliverBlockingEvent(event interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBlockingEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverBlockingEvent), event)
+}
+
+// DeliverNonBlockingEvent mocks base method
+func (m *MockDeliverer) DeliverNonBlockingEvent(event *event.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeliverNonBlockingEvent", event)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeliverNonBlockingEvent indicates an expected call of DeliverNonBlockingEvent
+func (mr *MockDelivererMockRecorder) DeliverNonBlockingEvent(event interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBlockingEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverNonBlockingEvent), event)
+}
+
 // MockStore is a mock of store interface
 type MockStore struct {
 	ctrl     *gomock.Controller

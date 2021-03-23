@@ -50,6 +50,11 @@ func (adminAPIOp) BypassLoginIDEmailBlocklistAllowlist() bool {
 	return true
 }
 
+// IsAdminAPI indicates this is admin operation
+func (adminAPIOp) IsAdminAPI() bool {
+	return true
+}
+
 type removeIdentityInput struct {
 	adminAPIOp
 	identityInfo *identity.Info

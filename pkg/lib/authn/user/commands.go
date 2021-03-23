@@ -4,6 +4,8 @@ import (
 	gotime "time"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -25,6 +27,7 @@ func (c *Commands) Create(userID string) (*User, error) {
 func (c *Commands) AfterCreate(
 	user *User,
 	identities []*identity.Info,
+	isAdminAPI bool,
 ) error {
 	isVerified, err := c.Verification.IsUserVerified(identities)
 	if err != nil {
@@ -42,6 +45,37 @@ func (c *Commands) AfterCreate(
 	})
 	if err != nil {
 		return err
+	}
+
+	var events []event.Payload
+	if isAdminAPI {
+		events = []event.Payload{
+			&blocking.AdminAPICreateUserBlockingEvent{
+				User:       *userModel,
+				Identities: identityModels,
+			},
+			&nonblocking.UserCreatedAdminAPICreateUserEvent{
+				User:       *userModel,
+				Identities: identityModels,
+			},
+		}
+	} else {
+		events = []event.Payload{
+			&blocking.PreSignupBlockingEvent{
+				User:       *userModel,
+				Identities: identityModels,
+			},
+			&nonblocking.UserCreatedUserSignupEvent{
+				User:       *userModel,
+				Identities: identityModels,
+			},
+		}
+	}
+
+	for _, e := range events {
+		if err := c.Hooks.DispatchEvent(e); err != nil {
+			return err
+		}
 	}
 
 	err = c.Raw.AfterCreate(userModel, identities)
