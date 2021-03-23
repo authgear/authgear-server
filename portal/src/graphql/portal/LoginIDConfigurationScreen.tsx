@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Checkbox, TagPicker, Toggle } from "@fluentui/react";
+import { Checkbox, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
@@ -705,7 +705,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     return splitByNewline(resource.value);
   }, [state.resources]);
 
-  const onUsernameExcludedKeywordsChange = useCallback(
+  const updateUsernameExcludeKeywords = useCallback(
     (value: string[]) => {
       setState((prev) => {
         const updatedResources = { ...prev.resources };
@@ -725,13 +725,23 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     [setState]
   );
 
+  const addKeywordToUsernameExcludeKeywords = useCallback(
+    (value: string) => {
+      updateUsernameExcludeKeywords([
+        ...valueForUsernameExcludedKeywords,
+        value,
+      ]);
+    },
+    [valueForUsernameExcludedKeywords, updateUsernameExcludeKeywords]
+  );
+
   const {
     selectedItems: excludedKeywordItems,
     onChange: onExcludedKeywordsChange,
     onResolveSuggestions: onResolveExcludedKeywordSuggestions,
   } = useTagPickerWithNewTags(
     valueForUsernameExcludedKeywords,
-    onUsernameExcludedKeywordsChange
+    updateUsernameExcludeKeywords
   );
   const usernameSection = (
     <div className={styles.widgetContent}>
@@ -752,7 +762,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           onChange={onUsernameIsExcludedKeywordsEnabledChange}
           tooltipMessageId="LoginIDConfigurationScreen.username.excludeKeywordsTooltipMessage"
         />
-        <TagPicker
+        <CustomTagPicker
           inputProps={{
             "aria-label": renderToString(
               "LoginIDConfigurationScreen.username.excludeKeywords"
@@ -763,6 +773,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           selectedItems={excludedKeywordItems}
           onChange={onExcludedKeywordsChange}
           onResolveSuggestions={onResolveExcludedKeywordSuggestions}
+          onAdd={addKeywordToUsernameExcludeKeywords}
         />
       </CheckboxWithContentLayout>
       <Checkbox
