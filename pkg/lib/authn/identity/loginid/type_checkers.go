@@ -2,7 +2,6 @@ package loginid
 
 import (
 	"errors"
-	"fmt"
 	"regexp"
 	"strings"
 
@@ -11,7 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
-	"github.com/authgear/authgear-server/pkg/util/exactmatchlist"
+	"github.com/authgear/authgear-server/pkg/util/matchlist"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -30,6 +29,21 @@ type TypeCheckerFactory struct {
 }
 
 func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, options CheckerOptions) TypeChecker {
+	// Load matchlist for validation, (e.g. doamin blocklist, allowlist, username exclude keywords...etc.)
+	loadMatchlist := func(desc resource.Descriptor) (*matchlist.MatchList, error) {
+		var list *matchlist.MatchList
+		result, err := f.Resources.Read(desc, resource.EffectiveResource{})
+		if errors.Is(err, resource.ErrResourceNotFound) {
+			// No domain list resources
+			list = &matchlist.MatchList{}
+		} else if err != nil {
+			return nil, err
+		} else {
+			list = result.(*matchlist.MatchList)
+		}
+		return list, nil
+	}
+
 	switch loginIDKeyType {
 	case config.LoginIDKeyTypeEmail:
 
@@ -43,32 +57,17 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, op
 			return checker
 		}
 
-		// Load domain blocklist / allowlist for validation
-		loadDomainsList := func(desc resource.Descriptor) (*exactmatchlist.ExactMatchList, error) {
-			var list *exactmatchlist.ExactMatchList
-			result, err := f.Resources.Read(desc, resource.EffectiveResource{})
-			if errors.Is(err, resource.ErrResourceNotFound) {
-				// No domain list resources
-				list = &exactmatchlist.ExactMatchList{}
-			} else if err != nil {
-				return nil, err
-			} else {
-				list = result.(*exactmatchlist.ExactMatchList)
-			}
-			return list, nil
-		}
-
 		// blocklist and allowlist are mutually exclusive
 		// block free email providers domain require blocklist enabled
 		if *loginIDEmailConfig.DomainBlocklistEnabled {
-			domainsList, err := loadDomainsList(EmailDomainBlockListTXT)
+			domainsList, err := loadMatchlist(EmailDomainBlockListTXT)
 			if err != nil {
 				checker.Error = err
 				return checker
 			}
 			checker.DomainBlockList = domainsList
 			if *loginIDEmailConfig.BlockFreeEmailProviderDomains {
-				domainsList, err := loadDomainsList(FreeEmailProviderDomainsTXT)
+				domainsList, err := loadMatchlist(FreeEmailProviderDomainsTXT)
 				if err != nil {
 					checker.Error = err
 					return checker
@@ -76,7 +75,7 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, op
 				checker.BlockFreeEmailProviderDomains = domainsList
 			}
 		} else if *loginIDEmailConfig.DomainAllowlistEnabled {
-			domainsList, err := loadDomainsList(EmailDomainAllowListTXT)
+			domainsList, err := loadMatchlist(EmailDomainAllowListTXT)
 			if err != nil {
 				checker.Error = err
 				return checker
@@ -86,23 +85,38 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType config.LoginIDKeyType, op
 		return checker
 
 	case config.LoginIDKeyTypeUsername:
+		loginIDUsernameConfig := f.Config.Types.Username
+
 		checker := &UsernameChecker{
-			Config: f.Config.Types.Username,
+			Config: loginIDUsernameConfig,
 		}
 
-		var list *blocklist.Blocklist
-		result, err := f.Resources.Read(ReservedNameTXT, resource.EffectiveResource{})
-		if errors.Is(err, resource.ErrResourceNotFound) {
-			// No reserved usernames
-			list = &blocklist.Blocklist{}
-		} else if err != nil {
-			checker.Error = err
-			return checker
-		} else {
-			list = result.(*blocklist.Blocklist)
+		if *loginIDUsernameConfig.BlockReservedUsernames {
+			var list *blocklist.Blocklist
+			result, err := f.Resources.Read(ReservedNameTXT, resource.EffectiveResource{})
+			if errors.Is(err, resource.ErrResourceNotFound) {
+				// No reserved usernames
+				list = &blocklist.Blocklist{}
+			} else if err != nil {
+				checker.Error = err
+				return checker
+			} else {
+				list = result.(*blocklist.Blocklist)
+			}
+
+			checker.ReservedNames = list
 		}
 
-		checker.ReservedNames = list
+		if *loginIDUsernameConfig.ExcludeKeywordsEnabled {
+			excludedKeywords, err := loadMatchlist(UsernameExcludedKeywordsTXT)
+			if err != nil {
+				checker.Error = err
+				return checker
+			}
+
+			checker.ExcludedKeywords = excludedKeywords
+		}
+
 		return checker
 	case config.LoginIDKeyTypePhone:
 		return &PhoneChecker{}
@@ -118,9 +132,9 @@ type EmailChecker struct {
 	// resources will only be loaded when it is enabled
 	// EmailChecker will not further check the config before performing
 	// validation
-	DomainBlockList               *exactmatchlist.ExactMatchList
-	DomainAllowList               *exactmatchlist.ExactMatchList
-	BlockFreeEmailProviderDomains *exactmatchlist.ExactMatchList
+	DomainBlockList               *matchlist.MatchList
+	DomainAllowList               *matchlist.MatchList
+	BlockFreeEmailProviderDomains *matchlist.MatchList
 	Error                         error
 }
 
@@ -193,9 +207,15 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 }
 
 type UsernameChecker struct {
-	Config        *config.LoginIDUsernameConfig
-	ReservedNames *blocklist.Blocklist
-	Error         error
+	Config *config.LoginIDUsernameConfig
+	// ReservedNames and ExcludedKeywords
+	// are provided by TypeCheckerFactory based on config, so the related
+	// resources will only be loaded when it is enabled
+	// UsernameChecker will not further check the config before performing
+	// validation
+	ReservedNames    *blocklist.Blocklist
+	ExcludedKeywords *matchlist.MatchList
+	Error            error
 }
 
 func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
@@ -214,20 +234,21 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 		return
 	}
 
-	if *c.Config.BlockReservedUsernames {
+	if c.ReservedNames != nil {
 		if c.ReservedNames.IsBlocked(cfLoginID) {
 			ctx.EmitError("blocked", map[string]interface{}{"reason": "UsernameReserved"})
 			return
 		}
 	}
 
-	for _, item := range c.Config.ExcludedKeywords {
-		cfItem, err := p.String(item)
+	if c.ExcludedKeywords != nil {
+		matched, err := c.ExcludedKeywords.Matched(cfLoginID)
 		if err != nil {
-			panic(fmt.Sprintf("password: invalid exclude keywords: %s", item))
+			// username cannot be fold case
+			ctx.EmitError("format", map[string]interface{}{"format": "username"})
+			return
 		}
-
-		if strings.Contains(cfLoginID, cfItem) {
+		if matched {
 			ctx.EmitError("blocked", map[string]interface{}{"reason": "UsernameExcludedKeywords"})
 			return
 		}

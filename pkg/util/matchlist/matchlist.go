@@ -1,4 +1,4 @@
-package exactmatchlist
+package matchlist
 
 import (
 	"fmt"
@@ -7,12 +7,13 @@ import (
 	"golang.org/x/text/secure/precis"
 )
 
-type ExactMatchList struct {
-	entries  []string
-	foldCase bool
+type MatchList struct {
+	entries        []string
+	foldCase       bool
+	stringsContain bool
 }
 
-func New(data string, foldCase bool) (*ExactMatchList, error) {
+func New(data string, foldCase bool, stringsContain bool) (*MatchList, error) {
 	lines := strings.Split(data, "\n")
 	entries := []string{}
 
@@ -32,17 +33,18 @@ func New(data string, foldCase bool) (*ExactMatchList, error) {
 		}
 		entries = append(entries, line)
 	}
-	return &ExactMatchList{
-		entries:  entries,
-		foldCase: foldCase,
+	return &MatchList{
+		entries:        entries,
+		foldCase:       foldCase,
+		stringsContain: stringsContain,
 	}, nil
 }
 
-func (l *ExactMatchList) NumEntries() int {
+func (l *MatchList) NumEntries() int {
 	return len(l.entries)
 }
 
-func (l *ExactMatchList) Matched(value string) (bool, error) {
+func (l *MatchList) Matched(value string) (bool, error) {
 	v := value
 	var err error
 	if l.foldCase {
@@ -53,8 +55,20 @@ func (l *ExactMatchList) Matched(value string) (bool, error) {
 		}
 	}
 
+	var compare func(input string, item string) bool
+
+	if l.stringsContain {
+		compare = func(input string, item string) bool {
+			return strings.Contains(input, item)
+		}
+	} else {
+		compare = func(input string, item string) bool {
+			return input == item
+		}
+	}
+
 	for _, e := range l.entries {
-		if e == v {
+		if compare(v, e) {
 			return true, nil
 		}
 	}

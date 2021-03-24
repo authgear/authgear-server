@@ -2,7 +2,7 @@ package loginid
 
 import (
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
-	"github.com/authgear/authgear-server/pkg/util/exactmatchlist"
+	"github.com/authgear/authgear-server/pkg/util/matchlist"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -17,10 +17,17 @@ var ReservedNameTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor
 	},
 })
 
+var UsernameExcludedKeywordsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
+	Path: "username_excluded_keywords.txt",
+	Parse: func(data []byte) (interface{}, error) {
+		return matchlist.New(string(data), true, true)
+	},
+})
+
 var EmailDomainBlockListTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "email_domain_blocklist.txt",
 	Parse: func(data []byte) (interface{}, error) {
-		return exactmatchlist.New(string(data), true)
+		return matchlist.New(string(data), true, false)
 	},
 })
 
@@ -29,13 +36,13 @@ var EmailDomainBlockListTXT = resource.RegisterResource(resource.NewlineJoinedDe
 var FreeEmailProviderDomainsTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "free_email_provider_domain_list.txt",
 	Parse: func(data []byte) (interface{}, error) {
-		return exactmatchlist.New(string(data), true)
+		return matchlist.New(string(data), true, false)
 	},
 })
 
 var EmailDomainAllowListTXT = resource.RegisterResource(resource.NewlineJoinedDescriptor{
 	Path: "email_domain_allowlist.txt",
 	Parse: func(data []byte) (interface{}, error) {
-		return exactmatchlist.New(string(data), true)
+		return matchlist.New(string(data), true, false)
 	},
 })

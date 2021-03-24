@@ -33,7 +33,7 @@ func newLoginIDTypesConfig() *config.LoginIDTypesConfig {
 		},
 		Username: &config.LoginIDUsernameConfig{
 			BlockReservedUsernames: newFalse(),
-			ExcludedKeywords:       []string{},
+			ExcludeKeywordsEnabled: newFalse(),
 			ASCIIOnly:              newFalse(),
 			CaseSensitive:          newFalse(),
 		},
