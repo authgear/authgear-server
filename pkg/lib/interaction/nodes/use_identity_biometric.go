@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 )
 
 func init() {
@@ -59,7 +60,10 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 	var iden *identitybiometric.Identity
 	switch request.Action {
 	case identitybiometric.RequestActionSetup:
-		// FIXME(biometric): validate device info
+		displayName := deviceinfo.Format(request.DeviceInfo)
+		if displayName == "" {
+			return nil, interaction.ErrInvalidCredentials
+		}
 		if request.Key == nil {
 			return nil, interaction.ErrInvalidCredentials
 		}
