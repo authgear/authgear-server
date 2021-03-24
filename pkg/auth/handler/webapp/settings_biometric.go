@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -62,10 +63,14 @@ func (h *SettingsBiometricHandler) GetData(r *http.Request, rw http.ResponseWrit
 
 	viewModel := SettingsBiometricViewModel{}
 	for _, info := range identityInfos {
+		var displayName string
+		deviceInfo, ok := info.Claims[identity.IdentityClaimBiometricDeviceInfo].(map[string]interface{})
+		if ok {
+			displayName = deviceinfo.Format(deviceInfo)
+		}
 		viewModel.BiometricIdentities = append(viewModel.BiometricIdentities, &BiometricIdentity{
-			ID: info.ID,
-			// FIXME(biometric): device info
-			DisplayName: "",
+			ID:          info.ID,
+			DisplayName: displayName,
 			CreatedAt:   info.CreatedAt,
 		})
 	}

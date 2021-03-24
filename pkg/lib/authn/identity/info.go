@@ -95,7 +95,6 @@ func (i *Info) DisplayID() string {
 		displayID, _ := i.Claims[IdentityClaimAnonymousKeyID].(string)
 		return displayID
 	case authn.IdentityTypeBiometric:
-		// FIXME(biometric): Format device info to show display ID.
 		displayID, _ := i.Claims[IdentityClaimBiometricKeyID].(string)
 		return displayID
 	default:
@@ -128,7 +127,6 @@ func (i *Info) DisplayIDClaimName() (authn.ClaimName, bool) {
 		}
 		return "", false
 	case authn.IdentityTypeBiometric:
-		// FIXME(biometric): Format device info to show display ID.
 		if _, ok := i.Claims[IdentityClaimBiometricKeyID].(string); ok {
 			return authn.ClaimKeyID, true
 		}
