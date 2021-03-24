@@ -269,5 +269,141 @@ func TestDispatchEvent(t *testing.T) {
 				So(provider.persistentEventPayloads, ShouldBeNil)
 			})
 		})
+
+		Convey("should skip db hook if there is error during dispatch error", func() {
+			user := model.User{
+				Meta: model.Meta{ID: "user-id"},
+			}
+			payload := &event.SessionCreateEvent{
+				Reason: "login",
+				User:   user,
+			}
+			payload2 := &event.UserCreateEvent{
+				User: user,
+			}
+			webhookErr := WebHookDisallowed.New("")
+
+			Convey("should call db hook function when dispatch event success", func() {
+				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
+				deliverer.EXPECT().DeliverBeforeEvent(
+					&event.Event{
+						ID:      "0000000000000001",
+						Type:    event.BeforeSessionCreate,
+						Seq:     1,
+						Payload: payload,
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    nil,
+						},
+					},
+				).Return(nil)
+
+				// Calling provider.WillCommitTx will trigger persistent events
+				users.EXPECT().Get("user-id").Return(&model.User{
+					Meta: model.Meta{ID: "user-id"},
+				}, nil)
+				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
+				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(true)
+				store.EXPECT().AddEvents([]*event.Event{
+					{
+						ID:      "0000000000000002",
+						Type:    event.AfterSessionCreate,
+						Seq:     2,
+						Payload: payload,
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    nil,
+						},
+					},
+					{
+						ID:   "0000000000000003",
+						Type: event.UserSync,
+						Seq:  3,
+						Payload: &event.UserSyncEvent{
+							User: user,
+						},
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    nil,
+						},
+					},
+				})
+
+				err := provider.DispatchEvent(payload)
+				So(err, ShouldBeNil)
+				So(provider.dbHooked, ShouldBeTrue)
+
+				err = provider.WillCommitTx()
+				So(err, ShouldBeNil)
+			})
+
+			Convey("should not add db hook", func() {
+				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
+				deliverer.EXPECT().DeliverBeforeEvent(
+					&event.Event{
+						ID:      "0000000000000001",
+						Type:    event.BeforeSessionCreate,
+						Seq:     1,
+						Payload: payload,
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    nil,
+						},
+					},
+				).Return(webhookErr)
+
+				err := provider.DispatchEvent(payload)
+				So(err, ShouldBeError, webhookErr)
+				So(provider.dbHooked, ShouldBeTrue)
+
+				// Calling provider.WillCommitTx will not trigger persistent events
+				err = provider.WillCommitTx()
+				So(err, ShouldBeNil)
+			})
+
+			Convey("should not generate events that would not be delivered", func() {
+				// first event
+				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
+				deliverer.EXPECT().DeliverBeforeEvent(
+					&event.Event{
+						ID:      "0000000000000001",
+						Type:    event.BeforeSessionCreate,
+						Seq:     1,
+						Payload: payload,
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    nil,
+						},
+					},
+				).Return(nil)
+
+				// second event
+				deliverer.EXPECT().WillDeliver(event.BeforeUserCreate).Return(true)
+				deliverer.EXPECT().DeliverBeforeEvent(
+					&event.Event{
+						ID:      "0000000000000002",
+						Type:    event.BeforeUserCreate,
+						Seq:     2,
+						Payload: payload2,
+						Context: event.Context{
+							Timestamp: 1136214245,
+							UserID:    nil,
+						},
+					},
+				).Return(webhookErr)
+
+				err := provider.DispatchEvent(payload)
+				So(err, ShouldBeNil)
+				So(provider.dbHooked, ShouldBeTrue)
+
+				err = provider.DispatchEvent(payload2)
+				So(err, ShouldBeError, webhookErr)
+				So(provider.dbHooked, ShouldBeTrue)
+
+				// Calling provider.WillCommitTx will not trigger persistent events
+				err = provider.WillCommitTx()
+				So(err, ShouldBeNil)
+			})
+		})
 	})
 }
