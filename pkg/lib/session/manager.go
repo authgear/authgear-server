@@ -2,10 +2,12 @@ package session
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -51,7 +53,7 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 	}
 }
 
-func (m *Manager) invalidate(session Session, reason DeleteReason) (ManagementService, error) {
+func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
 	user, err := m.Users.Get(session.SessionAttrs().UserID)
 	if err != nil {
 		return nil, err
@@ -67,6 +69,34 @@ func (m *Manager) invalidate(session Session, reason DeleteReason) (ManagementSe
 		return nil, err
 	}
 
+	var e event.Payload
+	switch reason {
+	case DeleteReasonRevoke:
+		if isAdminAPI {
+			e = &nonblocking.SessionDeletedAdminAPIRevokeSessionEvent{
+				User:    *user,
+				Session: *s,
+			}
+		} else {
+			e = &nonblocking.SessionDeletedUserRevokeSessionEvent{
+				User:    *user,
+				Session: *s,
+			}
+		}
+	case DeleteReasonLogout:
+		e = &nonblocking.SessionDeletedUserLogoutEvent{
+			User:    *user,
+			Session: *s,
+		}
+	default:
+		panic(fmt.Sprintf("auth: unexpected delete session reason: %s", reason))
+	}
+
+	err = m.Hooks.DispatchEvent(e)
+	if err != nil {
+		return nil, err
+	}
+
 	provider := m.resolveManagementProvider(session)
 	err = provider.Delete(session)
 	if err != nil {
@@ -77,7 +107,7 @@ func (m *Manager) invalidate(session Session, reason DeleteReason) (ManagementSe
 }
 
 func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
-	provider, err := m.invalidate(session, DeleteReasonLogout)
+	provider, err := m.invalidate(session, DeleteReasonLogout, false)
 	if err != nil {
 		return err
 	}
@@ -89,8 +119,8 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 	return nil
 }
 
-func (m *Manager) Revoke(session Session) error {
-	_, err := m.invalidate(session, DeleteReasonRevoke)
+func (m *Manager) Revoke(session Session, isAdminAPI bool) error {
+	_, err := m.invalidate(session, DeleteReasonRevoke, isAdminAPI)
 	if err != nil {
 		return err
 	}

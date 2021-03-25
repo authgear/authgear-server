@@ -9,7 +9,7 @@ import (
 type SessionManager interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
-	Revoke(session session.Session) error
+	Revoke(session session.Session, isAdminAPI bool) error
 }
 
 type SessionFacade struct {
@@ -32,7 +32,7 @@ func (f *SessionFacade) Revoke(id string) error {
 		return err
 	}
 
-	return f.Sessions.Revoke(s)
+	return f.Sessions.Revoke(s, true)
 }
 
 func (f *SessionFacade) RevokeAll(userID string) error {
@@ -42,7 +42,7 @@ func (f *SessionFacade) RevokeAll(userID string) error {
 	}
 
 	for _, s := range ss {
-		if err := f.Sessions.Revoke(s); err != nil {
+		if err := f.Sessions.Revoke(s, true); err != nil {
 			return err
 		}
 	}
