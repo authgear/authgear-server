@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -18,13 +19,21 @@ type EdgeDoCreateIdentity struct {
 }
 
 func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	isAdminAPI := false
+	var adminInput interface{ IsAdminAPI() bool }
+	if interaction.Input(rawInput, &adminInput) {
+		isAdminAPI = adminInput.IsAdminAPI()
+	}
+
 	return &NodeDoCreateIdentity{
-		Identity: e.Identity,
+		Identity:   e.Identity,
+		IsAdminAPI: isAdminAPI,
 	}, nil
 }
 
 type NodeDoCreateIdentity struct {
-	Identity *identity.Info `json:"identity"`
+	Identity   *identity.Info `json:"identity"`
+	IsAdminAPI bool           `json:"is_admin_api"`
 }
 
 func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -73,6 +82,23 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				User:     *user,
 				Identity: n.Identity.ToModel(),
 			})
+			if err != nil {
+				return err
+			}
+
+			var e event.Payload
+			if n.IsAdminAPI {
+				e = &nonblocking.IdentityCreatedAdminAPIAddIdentityEvent{
+					User:     *user,
+					Identity: n.Identity.ToModel(),
+				}
+			} else {
+				e = &nonblocking.IdentityCreatedUserAddIdentityEvent{
+					User:     *user,
+					Identity: n.Identity.ToModel(),
+				}
+			}
+			err = ctx.Hooks.DispatchEvent(e)
 			if err != nil {
 				return err
 			}
