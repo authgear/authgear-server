@@ -100,6 +100,15 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
+			err = ctx.Hooks.DispatchEvent(&nonblocking.UserPromotedEvent{
+				AnonymousUser: *anonUser,
+				User:          *newUser,
+				Identities:    identities,
+			})
+			if err != nil {
+				return err
+			}
+
 			return nil
 		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
