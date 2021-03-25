@@ -175,7 +175,7 @@ If the delivery keeps on failing after 3 days from the time of first attempted d
 - [session.deleted.user_revoke_session](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
 - [session.deleted.user_logout](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
 - [session.deleted.admin_api_revoke_session](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
-- [user.promoted.user_promote](#userpromoteduser_promote)
+- [user.promoted.user_promote_themselves](#userpromoteduser_promote_themselves)
 
 ### pre_signup, admin_api_create_user
 
@@ -268,7 +268,7 @@ When a session is being deleted from an existing user, e.g. logging out.
   }
 }
 ```
-### user.promoted.user_promote
+### user.promoted.user_promote_themselves
 
 ```json5
 {
