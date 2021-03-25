@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -15,13 +16,21 @@ type EdgeDoRemoveIdentity struct {
 }
 
 func (e *EdgeDoRemoveIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	isAdminAPI := false
+	var adminInput interface{ IsAdminAPI() bool }
+	if interaction.Input(rawInput, &adminInput) {
+		isAdminAPI = adminInput.IsAdminAPI()
+	}
+
 	return &NodeDoRemoveIdentity{
-		Identity: e.Identity,
+		Identity:   e.Identity,
+		IsAdminAPI: isAdminAPI,
 	}, nil
 }
 
 type NodeDoRemoveIdentity struct {
-	Identity *identity.Info `json:"identity"`
+	Identity   *identity.Info `json:"identity"`
+	IsAdminAPI bool           `json:"is_admin_api"`
 }
 
 func (n *NodeDoRemoveIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -67,6 +76,23 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 				User:     *user,
 				Identity: n.Identity.ToModel(),
 			})
+			if err != nil {
+				return err
+			}
+
+			var e event.Payload
+			if n.IsAdminAPI {
+				e = &nonblocking.IdentityDeletedAdminAPIRemoveIdentityEvent{
+					User:     *user,
+					Identity: n.Identity.ToModel(),
+				}
+			} else {
+				e = &nonblocking.IdentityDeletedUserRemoveIdentityEvent{
+					User:     *user,
+					Identity: n.Identity.ToModel(),
+				}
+			}
+			err = ctx.Hooks.DispatchEvent(e)
 			if err != nil {
 				return err
 			}
