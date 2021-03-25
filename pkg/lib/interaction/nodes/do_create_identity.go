@@ -19,15 +19,9 @@ type EdgeDoCreateIdentity struct {
 }
 
 func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	isAdminAPI := false
-	var adminInput interface{ IsAdminAPI() bool }
-	if interaction.Input(rawInput, &adminInput) {
-		isAdminAPI = adminInput.IsAdminAPI()
-	}
-
 	return &NodeDoCreateIdentity{
 		Identity:   e.Identity,
-		IsAdminAPI: isAdminAPI,
+		IsAdminAPI: interaction.IsAdminAPI(rawInput),
 	}, nil
 }
 

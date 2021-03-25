@@ -50,16 +50,10 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 		}
 	}
 
-	isAdminAPI := false
-	var adminInput interface{ IsAdminAPI() bool }
-	if interaction.Input(rawInput, &adminInput) {
-		isAdminAPI = adminInput.IsAdminAPI()
-	}
-
 	return &NodeDoCreateUser{
 		CreateUserID:    uuid.New(),
 		BypassRateLimit: bypassRateLimit,
-		IsAdminAPI:      isAdminAPI,
+		IsAdminAPI:      interaction.IsAdminAPI(rawInput),
 	}, nil
 }
 

@@ -16,15 +16,9 @@ type EdgeDoRemoveIdentity struct {
 }
 
 func (e *EdgeDoRemoveIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	isAdminAPI := false
-	var adminInput interface{ IsAdminAPI() bool }
-	if interaction.Input(rawInput, &adminInput) {
-		isAdminAPI = adminInput.IsAdminAPI()
-	}
-
 	return &NodeDoRemoveIdentity{
 		Identity:   e.Identity,
-		IsAdminAPI: isAdminAPI,
+		IsAdminAPI: interaction.IsAdminAPI(rawInput),
 	}, nil
 }
 
