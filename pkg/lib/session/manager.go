@@ -60,15 +60,6 @@ func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bo
 	}
 	s := session.ToAPIModel()
 
-	err = m.Hooks.DispatchEvent(&event.SessionDeleteEvent{
-		Reason:  string(reason),
-		User:    *user,
-		Session: *s,
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	var e event.Payload
 	switch reason {
 	case DeleteReasonRevoke:

@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -21,9 +20,6 @@ type UserProvider interface {
 }
 
 type deliverer interface {
-	WillDeliver(eventType event.Type) bool
-	DeliverBeforeEvent(event *event.Event) error
-	DeliverNonBeforeEvent(event *event.Event) error
 	WillDeliverBlockingEvent(eventType event.Type) bool
 	WillDeliverNonBlockingEvent(eventType event.Type) bool
 	DeliverBlockingEvent(event *event.Event) error
@@ -72,31 +68,6 @@ func (provider *Provider) DispatchEvent(payload event.Payload) (err error) {
 	}
 
 	switch typedPayload := payload.(type) {
-	case event.OperationPayload:
-		if provider.Deliverer.WillDeliver(typedPayload.BeforeEventType()) {
-			seq, err = provider.Store.NextSequenceNumber()
-			if err != nil {
-				err = errorutil.HandledWithMessage(err, "failed to dispatch event")
-				return
-			}
-			event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
-			err = provider.Deliverer.DeliverBeforeEvent(event)
-			if err != nil {
-				if !apierrors.IsKind(err, WebHookDisallowed) {
-					err = errorutil.HandledWithMessage(err, "failed to dispatch event")
-				}
-				return
-			}
-
-			// update payload since it may have been updated by mutations
-			payload = event.Payload
-		}
-
-		provider.persistentEventPayloads = append(provider.persistentEventPayloads, payload)
-
-	case event.NotificationPayload:
-		provider.persistentEventPayloads = append(provider.persistentEventPayloads, payload)
-		err = nil
 
 	case event.BlockingPayload:
 		if provider.Deliverer.WillDeliverBlockingEvent(typedPayload.BlockingEventType()) {
@@ -132,35 +103,11 @@ func (provider *Provider) WillCommitTx() error {
 		return nil
 	}
 
-	err := provider.dispatchSyncUserEventIfNeeded()
-	if err != nil {
-		return err
-	}
-
 	events := []*event.Event{}
 	for _, payload := range provider.persistentEventPayloads {
 		var ev *event.Event
 
 		switch typedPayload := payload.(type) {
-		case event.OperationPayload:
-			if provider.Deliverer.WillDeliver(typedPayload.AfterEventType()) {
-				seq, err := provider.Store.NextSequenceNumber()
-				if err != nil {
-					err = errorutil.HandledWithMessage(err, "failed to persist event")
-					return err
-				}
-				ev = event.NewAfterEvent(seq, typedPayload, provider.makeContext())
-			}
-
-		case event.NotificationPayload:
-			if provider.Deliverer.WillDeliver(typedPayload.EventType()) {
-				seq, err := provider.Store.NextSequenceNumber()
-				if err != nil {
-					err = errorutil.HandledWithMessage(err, "failed to persist event")
-					return err
-				}
-				ev = event.NewEvent(seq, typedPayload, provider.makeContext())
-			}
 
 		case event.NonBlockingPayload:
 			if provider.Deliverer.WillDeliverNonBlockingEvent(typedPayload.NonBlockingEventType()) {
@@ -181,7 +128,7 @@ func (provider *Provider) WillCommitTx() error {
 		events = append(events, ev)
 	}
 
-	err = provider.Store.AddEvents(events)
+	err := provider.Store.AddEvents(events)
 	if err != nil {
 		err = fmt.Errorf("failed to persist event: %w", err)
 		return err
@@ -200,41 +147,10 @@ func (provider *Provider) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
-		err := provider.Deliverer.DeliverNonBeforeEvent(event)
-		if err != nil {
-			provider.Logger.WithError(err).Debug("Failed to dispatch event")
-		}
-
 		if err := provider.Deliverer.DeliverNonBlockingEvent(event); err != nil {
 			provider.Logger.WithError(err).Debug("Failed to dispatch non blocking event")
 		}
 	}
-}
-
-func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
-	userIDToSync := []string{}
-
-	for _, payload := range provider.persistentEventPayloads {
-		if _, isOperation := payload.(event.OperationPayload); !isOperation {
-			continue
-		}
-		userIDToSync = append(userIDToSync, payload.UserID())
-	}
-
-	for _, userID := range userIDToSync {
-		user, err := provider.Users.Get(userID)
-		if err != nil {
-			return err
-		}
-
-		payload := &event.UserSyncEvent{User: *user}
-		err = provider.DispatchEvent(payload)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (provider *Provider) makeContext() event.Context {

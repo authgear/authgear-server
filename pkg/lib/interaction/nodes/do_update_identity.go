@@ -3,7 +3,6 @@ package nodes
 import (
 	"errors"
 
-	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -52,15 +51,6 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			user, err := ctx.Users.Get(n.IdentityAfterUpdate.UserID)
-			if err != nil {
-				return err
-			}
-
-			err = ctx.Hooks.DispatchEvent(&event.IdentityUpdateEvent{
-				User:        *user,
-				OldIdentity: n.IdentityBeforeUpdate.ToModel(),
-				NewIdentity: n.IdentityAfterUpdate.ToModel(),
-			})
 			if err != nil {
 				return err
 			}

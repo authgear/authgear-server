@@ -73,48 +73,6 @@ func (m *MockDeliverer) EXPECT() *MockDelivererMockRecorder {
 	return m.recorder
 }
 
-// WillDeliver mocks base method
-func (m *MockDeliverer) WillDeliver(eventType event.Type) bool {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WillDeliver", eventType)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// WillDeliver indicates an expected call of WillDeliver
-func (mr *MockDelivererMockRecorder) WillDeliver(eventType interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WillDeliver", reflect.TypeOf((*MockDeliverer)(nil).WillDeliver), eventType)
-}
-
-// DeliverBeforeEvent mocks base method
-func (m *MockDeliverer) DeliverBeforeEvent(event *event.Event) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeliverBeforeEvent", event)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeliverBeforeEvent indicates an expected call of DeliverBeforeEvent
-func (mr *MockDelivererMockRecorder) DeliverBeforeEvent(event interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBeforeEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverBeforeEvent), event)
-}
-
-// DeliverNonBeforeEvent mocks base method
-func (m *MockDeliverer) DeliverNonBeforeEvent(event *event.Event) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeliverNonBeforeEvent", event)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeliverNonBeforeEvent indicates an expected call of DeliverNonBeforeEvent
-func (mr *MockDelivererMockRecorder) DeliverNonBeforeEvent(event interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBeforeEvent", reflect.TypeOf((*MockDeliverer)(nil).DeliverNonBeforeEvent), event)
-}
-
 // WillDeliverBlockingEvent mocks base method
 func (m *MockDeliverer) WillDeliverBlockingEvent(eventType event.Type) bool {
 	m.ctrl.T.Helper()

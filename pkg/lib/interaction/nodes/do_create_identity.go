@@ -72,14 +72,6 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			err = ctx.Hooks.DispatchEvent(&event.IdentityCreateEvent{
-				User:     *user,
-				Identity: n.Identity.ToModel(),
-			})
-			if err != nil {
-				return err
-			}
-
 			var e event.Payload
 			if n.IsAdminAPI {
 				e = &nonblocking.IdentityCreatedAdminAPIAddIdentityEvent{

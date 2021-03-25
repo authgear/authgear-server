@@ -91,15 +91,6 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				identities = append(identities, info.ToModel())
 			}
 
-			err = ctx.Hooks.DispatchEvent(&event.UserPromoteEvent{
-				AnonymousUser: *anonUser,
-				User:          *newUser,
-				Identities:    identities,
-			})
-			if err != nil {
-				return err
-			}
-
 			err = ctx.Hooks.DispatchEvent(&nonblocking.UserPromotedEvent{
 				AnonymousUser: *anonUser,
 				User:          *newUser,
@@ -118,15 +109,6 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			user, err := ctx.Users.Get(n.Session.Attrs.UserID)
-			if err != nil {
-				return err
-			}
-
-			err = ctx.Hooks.DispatchEvent(&event.SessionCreateEvent{
-				Reason:  string(n.Reason),
-				User:    *user,
-				Session: *n.Session.ToAPIModel(),
-			})
 			if err != nil {
 				return err
 			}

@@ -39,13 +39,6 @@ func (c *Commands) AfterCreate(
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
 	}
-	err = c.Hooks.DispatchEvent(&event.UserCreateEvent{
-		User:       *userModel,
-		Identities: identityModels,
-	})
-	if err != nil {
-		return err
-	}
 
 	var events []event.Payload
 	if isAdminAPI {
