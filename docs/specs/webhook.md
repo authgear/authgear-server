@@ -170,8 +170,9 @@ If the delivery keeps on failing after 3 days from the time of first attempted d
 - [identity.deleted.user_remove_identity](#identitydeleteduser_remove_identity-identitydeletedadmin_api_remove_identity)
 - [identity.deleted.admin_api_remove_identity](#identitydeleteduser_remove_identity-identitydeletedadmin_api_remove_identity)
 - [identity.updated.user_update_identity](#identityupdateduser_update_identity)
-- [session.created.user_signup](#sessioncreateduser_signup-sessioncreateduser_login)
-- [session.created.user_login](#sessioncreateduser_signup-sessioncreateduser_login)
+- [session.created.user_signup](#sessioncreateduser_signup-sessioncreateduser_login-sessioncreateduser_promote_themselves)
+- [session.created.user_login](#sessioncreateduser_signup-sessioncreateduser_login-sessioncreateduser_promote_themselves)
+- [session.created.user_promote_themselves](#sessioncreateduser_signup-sessioncreateduser_login-sessioncreateduser_promote_themselves)
 - [session.deleted.user_revoke_session](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
 - [session.deleted.user_logout](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
 - [session.deleted.admin_api_revoke_session](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
@@ -242,7 +243,7 @@ When an identity is being deleted from an existing user.
 }
 ```
 
-### session.created.user_signup, session.created.user_login
+### session.created.user_signup, session.created.user_login, session.created.user_promote_themselves
 
 When a session is being created for a new user or an existing user.
 
@@ -250,7 +251,6 @@ When a session is being created for a new user or an existing user.
 {
   "payload": {
     "user": { /* ... */ },
-    "identity": { /* ... */ },
     "session": { /* ... */ }
   }
 }
