@@ -157,7 +157,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 
 	require(OAuthKeyMaterialsKey, "OAuth key materials")
 	require(CSRFKeyMaterialsKey, "CSRF key materials")
-	if len(appConfig.Hook.Handlers) > 0 {
+	if len(appConfig.Hook.BlockingHandlers) > 0 || len(appConfig.Hook.NonBlockingHandlers) > 0 {
 		require(WebhookKeyMaterialsKey, "web-hook signing key materials")
 	}
 

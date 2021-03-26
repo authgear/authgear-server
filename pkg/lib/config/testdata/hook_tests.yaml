@@ -1,27 +1,67 @@
-part: HookHandlerConfig
+part: BlockingHookHandlersConfig
 name: valid
 error: null
 value:
-  event: before_user_create
-  url: "https://example.com/callback/before_user_create"
+  event: pre_signup
+  url: "https://example.com/callback/pre_signup"
 
 ---
-part: HookHandlerConfig
+part: BlockingHookHandlersConfig
 name: missing-url
 error: |-
   invalid value:
   <root>: required
     map[actual:[event] expected:[event url] missing:[url]]
 value:
- event: before_user_create
+ event: pre_signup
 
 ---
-part: HookHandlerConfig
+part: BlockingHookHandlersConfig
 name: invalid-rel-path
 error: |-
   invalid value:
   /url: format
     map[error:input URL must be absolute format:uri]
 value:
+  event: pre_signup
+  url: "/pre_signup"
+
+---
+part: BlockingHookHandlersConfig
+name: invalid-blocking-event
+error: |-
+  invalid value:
+  /event: enum
+    map[actual:before_user_create expected:[pre_signup admin_api_create_user]]
+value:
   event: before_user_create
-  url: "/before_user_create"
+  url: "https://example.com/callback/before_user_create"
+
+---
+part: NonBlockingHookHandlersConfig
+name: valid
+error: null
+value:
+  events: ["*"]
+  url: "https://example.com/callback"
+
+---
+part: NonBlockingHookHandlersConfig
+name: missing-url
+error: |-
+  invalid value:
+  <root>: required
+    map[actual:[events] expected:[events url] missing:[url]]
+value:
+  events: ["*"]
+
+---
+part: NonBlockingHookHandlersConfig
+name: invalid-non-blocking-event
+error: |-
+  invalid value:
+  /events/0: enum
+    map[actual:after_user_create expected:[* user.created.user_signup user.created.admin_api_create_user identity.created.user_add_identity identity.created.admin_api_add_identity identity.deleted.user_remove_identity identity.deleted.admin_api_remove_identity identity.updated.user_update_identity session.created.user_signup session.created.user_login session.created.user_promote_themselves session.deleted.user_revoke_session session.deleted.user_logout session.deleted.admin_api_revoke_session user.promoted.user_promote_themselves]]
+value:
+  events: ["after_user_create"]
+  url: "https://example.com/callback"

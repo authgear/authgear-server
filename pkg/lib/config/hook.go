@@ -7,7 +7,6 @@ var _ = Schema.Add("HookConfig", `
 	"properties": {
 		"sync_hook_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"sync_hook_total_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
-		"handlers": { "type": "array", "items": { "$ref": "#/$defs/HookHandlerConfig" } },
 		"blocking_handlers": { "type": "array", "items": { "$ref": "#/$defs/BlockingHookHandlersConfig" } },
 		"non_blocking_handlers": { "type": "array", "items": { "$ref": "#/$defs/NonBlockingHookHandlersConfig" } }
 	}
@@ -17,7 +16,6 @@ var _ = Schema.Add("HookConfig", `
 type HookConfig struct {
 	SyncTimeout         DurationSeconds             `json:"sync_hook_timeout_seconds,omitempty"`
 	SyncTotalTimeout    DurationSeconds             `json:"sync_hook_total_timeout_seconds,omitempty"`
-	Handlers            []HookHandlerConfig         `json:"handlers,omitempty"`
 	BlockingHandlers    []BlockingHandlersConfig    `json:"blocking_handlers,omitempty"`
 	NonBlockingHandlers []NonBlockingHandlersConfig `json:"non_blocking_handlers,omitempty"`
 }
@@ -29,23 +27,6 @@ func (c *HookConfig) SetDefaults() {
 	if c.SyncTotalTimeout == 0 {
 		c.SyncTotalTimeout = DurationSeconds(10)
 	}
-}
-
-var _ = Schema.Add("HookHandlerConfig", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"event": { "type": "string" },
-		"url": { "type": "string", "format": "uri" }
-	},
-	"required": ["event", "url"]
-}
-`)
-
-type HookHandlerConfig struct {
-	Event string `json:"event"`
-	URL   string `json:"url"`
 }
 
 var _ = Schema.Add("BlockingHookHandlersConfig", `
