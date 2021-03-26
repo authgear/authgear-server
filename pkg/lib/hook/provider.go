@@ -7,9 +7,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -41,13 +43,14 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("hook")} }
 
 type Provider struct {
-	Context   context.Context
-	Logger    Logger
-	Database  DatabaseHandle
-	Clock     clock.Clock
-	Users     UserProvider
-	Store     store
-	Deliverer deliverer
+	Context      context.Context
+	Logger       Logger
+	Database     DatabaseHandle
+	Clock        clock.Clock
+	Users        UserProvider
+	Store        store
+	Deliverer    deliverer
+	Localization *config.LocalizationConfig
 
 	persistentEventPayloads []event.Payload `wire:"-"`
 	dbHooked                bool            `wire:"-"`
@@ -155,9 +158,22 @@ func (provider *Provider) DidCommitTx() {
 
 func (provider *Provider) makeContext() event.Context {
 	userID := session.GetUserID(provider.Context)
+	preferredLanguageTags := intl.GetPreferredLanguageTags(provider.Context)
+	resolvedLanguageIdx, _ := intl.Resolve(
+		preferredLanguageTags,
+		*provider.Localization.FallbackLanguage,
+		provider.Localization.SupportedLanguages,
+	)
+
+	resolvedLanguage := *provider.Localization.FallbackLanguage
+	if resolvedLanguageIdx != -1 {
+		resolvedLanguage = provider.Localization.SupportedLanguages[resolvedLanguageIdx]
+	}
 
 	return event.Context{
-		Timestamp: provider.Clock.NowUTC().Unix(),
-		UserID:    userID,
+		Timestamp:          provider.Clock.NowUTC().Unix(),
+		UserID:             userID,
+		PreferredLanguages: preferredLanguageTags,
+		ResolvedLanguage:   resolvedLanguage,
 	}
 }

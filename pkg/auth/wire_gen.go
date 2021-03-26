@@ -461,13 +461,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -996,13 +997,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -2266,13 +2268,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -2776,13 +2779,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -3310,13 +3314,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -3844,13 +3849,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -4378,13 +4384,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -4905,13 +4912,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -5435,13 +5443,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -5966,13 +5975,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -6494,13 +6504,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -7021,13 +7032,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -7549,13 +7561,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -8078,13 +8091,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -8605,13 +8619,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -9132,13 +9147,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -9661,13 +9677,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -10188,13 +10205,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -10715,13 +10733,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -11245,13 +11264,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -11772,13 +11792,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -12304,13 +12325,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -12831,13 +12853,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -13359,13 +13382,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -13886,13 +13910,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -14433,13 +14458,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -14964,13 +14990,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -15494,13 +15521,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -16032,13 +16060,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -16562,13 +16591,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -17092,13 +17122,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -17623,13 +17654,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -18157,13 +18189,14 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -18685,13 +18718,14 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -19213,13 +19247,14 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,
@@ -19659,13 +19694,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	manager2 := &session.Manager{
 		Users:               queries,
@@ -20119,13 +20155,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,

@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -31,6 +32,8 @@ func TestDispatchEvent(t *testing.T) {
 		db := NewMockDatabaseHandle(ctrl)
 		ctx := context.Background()
 
+		fallbackLanguage := "en"
+		supportedLanguages := []string{"en"}
 		provider := &Provider{
 			Context:   ctx,
 			Logger:    Logger{log.Null},
@@ -39,6 +42,10 @@ func TestDispatchEvent(t *testing.T) {
 			Users:     users,
 			Store:     store,
 			Deliverer: deliverer,
+			Localization: &config.LocalizationConfig{
+				FallbackLanguage:   &fallbackLanguage,
+				SupportedLanguages: supportedLanguages,
+			},
 		}
 
 		var seq int64 = 0
@@ -67,8 +74,9 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:        1136214245,
+							UserID:           nil,
+							ResolvedLanguage: fallbackLanguage,
 						},
 					},
 				).Return(nil)
@@ -108,8 +116,9 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    &userID,
+							Timestamp:        1136214245,
+							UserID:           &userID,
+							ResolvedLanguage: fallbackLanguage,
 						},
 					},
 				).Return(nil)
@@ -166,8 +175,9 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:        1136214245,
+							UserID:           nil,
+							ResolvedLanguage: fallbackLanguage,
 						},
 						IsNonBlocking: true,
 					},
@@ -221,8 +231,9 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:        1136214245,
+							UserID:           nil,
+							ResolvedLanguage: fallbackLanguage,
 						},
 					},
 				).Return(nil)
@@ -236,8 +247,9 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     2,
 						Payload: nonBlockingPayload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:        1136214245,
+							UserID:           nil,
+							ResolvedLanguage: fallbackLanguage,
 						},
 						IsNonBlocking: true,
 					},
@@ -264,8 +276,9 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:        1136214245,
+							UserID:           nil,
+							ResolvedLanguage: fallbackLanguage,
 						},
 					},
 				).Return(webhookErr)
@@ -289,8 +302,9 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:        1136214245,
+							UserID:           nil,
+							ResolvedLanguage: fallbackLanguage,
 						},
 					},
 				).Return(nil)
@@ -304,8 +318,9 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     2,
 						Payload: payload2,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:        1136214245,
+							UserID:           nil,
+							ResolvedLanguage: fallbackLanguage,
 						},
 					},
 				).Return(webhookErr)
