@@ -47,9 +47,10 @@ func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 
 		if !resp.IsAllowed {
 			return newErrorOperationDisallowed(
+				string(e.Type),
 				[]OperationDisallowedItem{{
+					Title:  resp.Title,
 					Reason: resp.Reason,
-					Data:   resp.Data,
 				}},
 			)
 		}
