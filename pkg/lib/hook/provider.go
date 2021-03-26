@@ -51,10 +51,22 @@ type Provider struct {
 
 	persistentEventPayloads []event.Payload `wire:"-"`
 	dbHooked                bool            `wire:"-"`
+	IsDispatchEventErr      bool            `wire:"-"`
 }
 
 func (provider *Provider) DispatchEvent(payload event.Payload) (err error) {
 	var seq int64
+	defer func() {
+		if err != nil {
+			provider.IsDispatchEventErr = true
+		}
+	}()
+
+	if !provider.dbHooked {
+		provider.Database.UseHook(provider)
+		provider.dbHooked = true
+	}
+
 	switch typedPayload := payload.(type) {
 	case event.OperationPayload:
 		if provider.Deliverer.WillDeliver(typedPayload.BeforeEventType()) {
@@ -86,14 +98,15 @@ func (provider *Provider) DispatchEvent(payload event.Payload) (err error) {
 		panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
 	}
 
-	if !provider.dbHooked {
-		provider.Database.UseHook(provider)
-		provider.dbHooked = true
-	}
 	return
 }
 
 func (provider *Provider) WillCommitTx() error {
+	// should skip persistent events if there is error during dispatch events
+	if provider.IsDispatchEventErr {
+		return nil
+	}
+
 	err := provider.dispatchSyncUserEventIfNeeded()
 	if err != nil {
 		return err
@@ -145,6 +158,11 @@ func (provider *Provider) WillCommitTx() error {
 }
 
 func (provider *Provider) DidCommitTx() {
+	// should skip further dispatch events if there is error during dispatch events
+	if provider.IsDispatchEventErr {
+		return
+	}
+
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
