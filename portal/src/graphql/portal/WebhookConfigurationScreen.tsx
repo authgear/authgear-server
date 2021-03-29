@@ -34,10 +34,16 @@ interface BlockingEventHandler {
   event: string;
   url: string;
 }
+
+interface NonBlockingEventHandler {
+  events: string[];
+  url: string;
+}
 interface FormState {
   timeout: number;
   totalTimeout: number;
   blocking_handlers: BlockingEventHandler[];
+  non_blocking_handlers: NonBlockingEventHandler[];
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -45,6 +51,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     timeout: config.hook?.sync_hook_timeout_seconds ?? 0,
     totalTimeout: config.hook?.sync_hook_total_timeout_seconds ?? 0,
     blocking_handlers: config.hook?.blocking_handlers ?? [],
+    non_blocking_handlers: config.hook?.non_blocking_handlers ?? [],
   };
 }
 
@@ -62,6 +69,7 @@ function constructConfig(
       config.hook.sync_hook_total_timeout_seconds = currentState.totalTimeout;
     }
     config.hook.blocking_handlers = currentState.blocking_handlers;
+    config.hook.non_blocking_handlers = currentState.non_blocking_handlers;
     clearEmptyObject(config);
   });
 }
@@ -167,6 +175,48 @@ const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> = function
   );
 };
 
+interface NonBlockingHandlerItemEditProps {
+  index: number;
+  value: NonBlockingEventHandler;
+  onChange: (newValue: NonBlockingEventHandler) => void;
+}
+const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> = function NonBlockingHandlerItemEdit(
+  props
+) {
+  const { index, value, onChange } = props;
+  const { renderToString } = useContext(Context);
+
+  const urlField = useMemo(
+    () => ({
+      parentJSONPointer: `/hook/non_blocking_handlers/${index}`,
+      fieldName: "url",
+    }),
+    [index]
+  );
+  const { errors: urlErrors } = useFormField(urlField);
+  const urlErrorMessage = useMemo(
+    () => renderErrors(urlField, urlErrors, renderToString),
+    [urlField, urlErrors, renderToString]
+  );
+
+  const onURLChange = useCallback(
+    (_, url?: string) => {
+      onChange({ ...value, url: url ?? "" });
+    },
+    [onChange, value]
+  );
+
+  return (
+    <div className={styles.handlerEdit}>
+      <TextField
+        className={styles.handlerURLField}
+        value={value.url}
+        onChange={onURLChange}
+        errorMessage={urlErrorMessage}
+      />
+    </div>
+  );
+};
 interface WebhookConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
@@ -226,6 +276,37 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
     [setState]
   );
 
+  // non-blocking handlers
+  const makeDefaultNonBlockingHandler = useCallback(
+    (): NonBlockingEventHandler => ({
+      events: ["*"],
+      url: "",
+    }),
+    []
+  );
+
+  const renderNonBlockingHandlerItem = useCallback(
+    (
+      index: number,
+      value: NonBlockingEventHandler,
+      onChange: (newValue: NonBlockingEventHandler) => void
+    ) => (
+      <NonBlockingHandlerItemEdit
+        index={index}
+        value={value}
+        onChange={onChange}
+      />
+    ),
+    []
+  );
+
+  const onNonBlockingHandlersChange = useCallback(
+    (value: NonBlockingEventHandler[]) => {
+      setState((state) => ({ ...state, non_blocking_handlers: value }));
+    },
+    [setState]
+  );
+
   return (
     <ScreenContent className={styles.root}>
       <ScreenTitle>
@@ -279,6 +360,30 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           onListChange={onBlockingHandlersChange}
           makeDefaultItem={makeDefaultHandler}
           renderListItem={renderBlockingHandlerItem}
+          addButtonLabelMessageID="add"
+        />
+      </Widget>
+
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events" />
+        </WidgetTitle>
+        <WidgetDescription>
+          <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events.description" />
+        </WidgetDescription>
+        <FieldList
+          className={styles.control}
+          label={
+            <Label>
+              <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events-endpoints.label" />
+            </Label>
+          }
+          parentJSONPointer="/hook"
+          fieldName="non_blocking_handlers"
+          list={state.non_blocking_handlers}
+          onListChange={onNonBlockingHandlersChange}
+          makeDefaultItem={makeDefaultNonBlockingHandler}
+          renderListItem={renderNonBlockingHandlerItem}
           addButtonLabelMessageID="add"
         />
       </Widget>
