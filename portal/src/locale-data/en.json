@@ -583,10 +583,13 @@
   "WebhookConfigurationScreen.webhook-settings": "Webhook Settings",
   "WebhookConfigurationScreen.total-timeout.label": "Timeout (seconds)",
   "WebhookConfigurationScreen.timeout.label": "Per-handler timeout (seconds)",
-  "WebhookConfigurationScreen.handlers.label": "Handlers",
-  "WebhookConfigurationScreen.events.label": "Handler event type",
-  "WebhookConfigurationScreen.event-type.before_user_create": "Before user creation",
-  "WebhookConfigurationScreen.event-type.after_user_create": "After user creation",
+
+  "WebhookConfigurationScreen.blocking-events": "Blocking Events",
+  "WebhookConfigurationScreen.blocking-events.description": "Blocking Events allow your server to check and abort operations in different scenarios.",
+  "WebhookConfigurationScreen.blocking-handlers.label": "Blocking Handlers",
+  "WebhookConfigurationScreen.blocking-events.label": "Handler event type",
+  "WebhookConfigurationScreen.blocking-event-type.pre_signup": "Pre user signup",
+  "WebhookConfigurationScreen.blocking-event-type.admin_api_create_user": "Admin create user",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 

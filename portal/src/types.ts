@@ -306,11 +306,17 @@ export interface SessionConfig {
 export interface HookConfig {
   sync_hook_timeout_seconds?: number;
   sync_hook_total_timeout_seconds?: number;
-  handlers?: HookHandlerConfig[];
+  blocking_handlers?: BlockingHookHandlerConfig[];
+  non_blocking_handlers?: NonBlockingHookHandlerConfig[];
 }
 
-export interface HookHandlerConfig {
+export interface BlockingHookHandlerConfig {
   event: string;
+  url: string;
+}
+
+export interface NonBlockingHookHandlerConfig {
+  events: string[];
   url: string;
 }
 

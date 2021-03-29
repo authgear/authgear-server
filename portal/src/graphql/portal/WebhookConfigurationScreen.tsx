@@ -28,23 +28,23 @@ import FormContainer from "../../FormContainer";
 import { clearEmptyObject } from "../../util/misc";
 import styles from "./WebhookConfigurationScreen.module.scss";
 import { renderErrors } from "../../error/parse";
+import WidgetDescription from "../../WidgetDescription";
 
-interface HookEventHandler {
+interface BlockingEventHandler {
   event: string;
   url: string;
 }
-
 interface FormState {
   timeout: number;
   totalTimeout: number;
-  handlers: HookEventHandler[];
+  blocking_handlers: BlockingEventHandler[];
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     timeout: config.hook?.sync_hook_timeout_seconds ?? 0,
     totalTimeout: config.hook?.sync_hook_total_timeout_seconds ?? 0,
-    handlers: config.hook?.handlers ?? [],
+    blocking_handlers: config.hook?.blocking_handlers ?? [],
   };
 }
 
@@ -61,22 +61,22 @@ function constructConfig(
     if (initialState.totalTimeout !== currentState.totalTimeout) {
       config.hook.sync_hook_total_timeout_seconds = currentState.totalTimeout;
     }
-    config.hook.handlers = currentState.handlers;
+    config.hook.blocking_handlers = currentState.blocking_handlers;
     clearEmptyObject(config);
   });
 }
 
-const hookEventTypes: IDropdownOption[] = [
-  "before_user_create",
-  "after_user_create",
+const blockingEventTypes: IDropdownOption[] = [
+  "pre_signup",
+  "admin_api_create_user",
 ].map((type): IDropdownOption => ({ key: type, text: type }));
 
-interface HookHandlerItemEditProps {
+interface BlockingHandlerItemEditProps {
   index: number;
-  value: HookEventHandler;
-  onChange: (newValue: HookEventHandler) => void;
+  value: BlockingEventHandler;
+  onChange: (newValue: BlockingEventHandler) => void;
 }
-const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHandlerItemEdit(
+const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> = function BlockingHandlerItemEdit(
   props
 ) {
   const { index, value, onChange } = props;
@@ -84,14 +84,14 @@ const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHan
 
   const eventField = useMemo(
     () => ({
-      parentJSONPointer: `/hook/handlers/${index}`,
+      parentJSONPointer: `/hook/blocking_handlers/${index}`,
       fieldName: "event",
     }),
     [index]
   );
   const urlField = useMemo(
     () => ({
-      parentJSONPointer: `/hook/handlers/${index}`,
+      parentJSONPointer: `/hook/blocking_handlers/${index}`,
       fieldName: "url",
     }),
     [index]
@@ -107,7 +107,7 @@ const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHan
     [urlField, urlErrors, renderToString]
   );
 
-  const onEventChange = useCallback(
+  const onBlockingEventChange = useCallback(
     (_, event?: IDropdownOption) => {
       onChange({ ...value, event: String(event?.key ?? "") });
     },
@@ -120,35 +120,41 @@ const HookHandlerItemEdit: React.FC<HookHandlerItemEditProps> = function HookHan
     [onChange, value]
   );
 
-  const renderEventDropdownItem = useCallback((item?: ISelectableOption) => {
-    return (
-      <span>
-        <FormattedMessage
-          id={`WebhookConfigurationScreen.event-type.${item?.key}`}
-        />
-      </span>
-    );
-  }, []);
-  const renderEventDropdownTitle = useCallback((items?: IDropdownOption[]) => {
-    return (
-      <span>
-        <FormattedMessage
-          id={`WebhookConfigurationScreen.event-type.${items?.[0].key}`}
-        />
-      </span>
-    );
-  }, []);
+  const renderBlockingEventDropdownItem = useCallback(
+    (item?: ISelectableOption) => {
+      return (
+        <span>
+          <FormattedMessage
+            id={`WebhookConfigurationScreen.blocking-event-type.${item?.key}`}
+          />
+        </span>
+      );
+    },
+    []
+  );
+  const renderBlockingEventDropdownTitle = useCallback(
+    (items?: IDropdownOption[]) => {
+      return (
+        <span>
+          <FormattedMessage
+            id={`WebhookConfigurationScreen.blocking-event-type.${items?.[0].key}`}
+          />
+        </span>
+      );
+    },
+    []
+  );
 
   return (
     <div className={styles.handlerEdit}>
       <Dropdown
         className={styles.handlerEventField}
-        options={hookEventTypes}
+        options={blockingEventTypes}
         selectedKey={value.event}
-        onChange={onEventChange}
-        onRenderOption={renderEventDropdownItem}
-        onRenderTitle={renderEventDropdownTitle}
-        ariaLabel={"WebhookConfigurationScreen.events.label"}
+        onChange={onBlockingEventChange}
+        onRenderOption={renderBlockingEventDropdownItem}
+        onRenderTitle={renderBlockingEventDropdownTitle}
+        ariaLabel={"WebhookConfigurationScreen.blocking-events.label"}
         errorMessage={eventErrorMessage}
       />
       <TextField
@@ -193,22 +199,29 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
   );
 
   const makeDefaultHandler = useCallback(
-    (): HookEventHandler => ({ event: String(hookEventTypes[0].key), url: "" }),
+    (): BlockingEventHandler => ({
+      event: String(blockingEventTypes[0].key),
+      url: "",
+    }),
     []
   );
-  const renderHandlerItem = useCallback(
+  const renderBlockingHandlerItem = useCallback(
     (
       index: number,
-      value: HookEventHandler,
-      onChange: (newValue: HookEventHandler) => void
+      value: BlockingEventHandler,
+      onChange: (newValue: BlockingEventHandler) => void
     ) => (
-      <HookHandlerItemEdit index={index} value={value} onChange={onChange} />
+      <BlockingHandlerItemEdit
+        index={index}
+        value={value}
+        onChange={onChange}
+      />
     ),
     []
   );
-  const onHandlersChange = useCallback(
-    (value: HookEventHandler[]) => {
-      setState((state) => ({ ...state, handlers: value }));
+  const onBlockingHandlersChange = useCallback(
+    (value: BlockingEventHandler[]) => {
+      setState((state) => ({ ...state, blocking_handlers: value }));
     },
     [setState]
   );
@@ -245,19 +258,27 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           value={String(state.timeout)}
           onChange={onTimeoutChange}
         />
+      </Widget>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="WebhookConfigurationScreen.blocking-events" />
+        </WidgetTitle>
+        <WidgetDescription>
+          <FormattedMessage id="WebhookConfigurationScreen.blocking-events.description" />
+        </WidgetDescription>
         <FieldList
           className={styles.control}
           label={
             <Label>
-              <FormattedMessage id="WebhookConfigurationScreen.handlers.label" />
+              <FormattedMessage id="WebhookConfigurationScreen.blocking-handlers.label" />
             </Label>
           }
           parentJSONPointer="/hook"
-          fieldName="handlers"
-          list={state.handlers}
-          onListChange={onHandlersChange}
+          fieldName="blocking_handlers"
+          list={state.blocking_handlers}
+          onListChange={onBlockingHandlersChange}
           makeDefaultItem={makeDefaultHandler}
-          renderListItem={renderHandlerItem}
+          renderListItem={renderBlockingHandlerItem}
           addButtonLabelMessageID="add"
         />
       </Widget>
