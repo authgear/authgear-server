@@ -41,10 +41,6 @@ func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 
 	// The checking of enable is done is the edge itself.
 	// So we always add edges here.
-	//
-	// If we conditionally add edges,
-	// no edges could be mistaken to be graph completion.
-	edges = append(edges, &EdgeUseIdentityAnonymous{})
 	edges = append(edges, &EdgeUseIdentityBiometric{
 		IsCreating: true,
 	})
@@ -73,6 +69,10 @@ func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 			panic("interaction: unknown identity type: " + t)
 		}
 	}
+
+	// Adding EdgeIncompatibleInput to ensure graph won't end at this node
+	// even no identity is configured in config file.
+	edges = append(edges, &EdgeIncompatibleInput{})
 
 	return edges
 }
