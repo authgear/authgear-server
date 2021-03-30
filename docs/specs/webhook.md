@@ -158,27 +158,26 @@ If the delivery keeps on failing after 3 days from the time of first attempted d
 
 ### Blocking Events
 
-- [pre_signup](#pre_signup-admin_api_create_user)
-- [admin_api_create_user](#pre_signup-admin_api_create_user)
+- [user.pre_create](#userpre_create)
 
 ### Non-blocking Events
 
-- [user.created.user_signup](#usercreateduser_signup-usercreatedadmin_api_create_user)
-- [user.created.admin_api_create_user](#usercreateduser_signup-usercreatedadmin_api_create_user)
-- [identity.created.user_add_identity](#identitycreateduser_add_identity-identitycreatedadmin_api_add_identity)
-- [identity.created.admin_api_add_identity](#identitycreateduser_add_identity-identitycreatedadmin_api_add_identity)
-- [identity.deleted.user_remove_identity](#identitydeleteduser_remove_identity-identitydeletedadmin_api_remove_identity)
-- [identity.deleted.admin_api_remove_identity](#identitydeleteduser_remove_identity-identitydeletedadmin_api_remove_identity)
-- [identity.updated.user_update_identity](#identityupdateduser_update_identity)
-- [session.created.user_signup](#sessioncreateduser_signup-sessioncreateduser_login-sessioncreateduser_promote_themselves)
-- [session.created.user_login](#sessioncreateduser_signup-sessioncreateduser_login-sessioncreateduser_promote_themselves)
-- [session.created.user_promote_themselves](#sessioncreateduser_signup-sessioncreateduser_login-sessioncreateduser_promote_themselves)
-- [session.deleted.user_revoke_session](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
-- [session.deleted.user_logout](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
-- [session.deleted.admin_api_revoke_session](#sessiondeleteduser_revoke_session-sessiondeleteduser_logout-sessiondeletedadmin_api_revoke_session)
-- [user.promoted.user_promote_themselves](#userpromoteduser_promote_themselves)
+- [user.created](#usercreated)
+- [user.authenticated](#userauthenticated)
+- [user.anonymous.promoted](#useranonymouspromoted)
+- [identity.email.created](#identityemailcreated)
+- [identity.email.deleted](#identityemaildeleted)
+- [identity.email.updated](#identityemailupdated)
+- [identity.phone.created](#identityphonecreated)
+- [identity.phone.deleted](#identityphonedeleted)
+- [identity.phone.updated](#identityphoneupdated)
+- [identity.username.created](#identityusernamecreated)
+- [identity.username.deleted](#identityusernamedeleted)
+- [identity.username.updated](#identityusernameupdated)
+- [identity.oauth.connected](#identityoauthconnected)
+- [identity.oauth.disconnected](#identityoauthdisconnected)
 
-### pre_signup, admin_api_create_user
+### user.pre_create
 
 ```json5
 {
@@ -189,7 +188,7 @@ If the delivery keeps on failing after 3 days from the time of first attempted d
 }
 ```
 
-### user.created.user_signup, user.created.admin_api_create_user
+### user.created
 
 When a new user is being created.
 
@@ -202,9 +201,34 @@ When a new user is being created.
 }
 ```
 
-### identity.created.user_add_identity, identity.created.admin_api_add_identity
+### user.authenticated
 
-When a new identity is being created for an existing user. So it does not trigger together with `user.created.user_signup` and `user.created.admin_api_create_user`.
+When user logged in.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "session": { /* ... */ }
+  }
+}
+```
+
+### user.anonymous.promoted
+
+```json5
+{
+  "payload": {
+    "anonymous_user": { /* ... */ },
+    "user": { /* ... */ },
+    "identities": [{ /* ... */ }]
+  }
+}
+```
+
+### identity.email.created
+
+When a new email login id is being created for an existing user. So it does not trigger together with `user.created`.
 
 
 ```json5
@@ -216,9 +240,24 @@ When a new identity is being created for an existing user. So it does not trigge
 }
 ```
 
-### identity.updated.user_update_identity
 
-When an identity is being updated.
+### identity.email.deleted
+
+When an email login id is being deleted from an existing user.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+
+### identity.email.updated
+
+When an email login id identity is being updated.
 
 ```json5
 {
@@ -230,9 +269,10 @@ When an identity is being updated.
 }
 ```
 
-### identity.deleted.user_remove_identity, identity.deleted.admin_api_remove_identity
+### identity.phone.created
 
-When an identity is being deleted from an existing user.
+When a new phone login id is being created for an existing user. So it does not trigger together with `user.created`.
+
 
 ```json5
 {
@@ -243,42 +283,109 @@ When an identity is being deleted from an existing user.
 }
 ```
 
-### session.created.user_signup, session.created.user_login, session.created.user_promote_themselves
 
-When a session is being created for a new user or an existing user.
+### identity.phone.deleted
 
-```json5
-{
-  "payload": {
-    "user": { /* ... */ },
-    "session": { /* ... */ }
-  }
-}
-```
-
-### session.deleted.user_revoke_session, session.deleted.user_logout, session.deleted.admin_api_revoke_session
-
-When a session is being deleted from an existing user, e.g. logging out.
+When a phone login id is being deleted from an existing user.
 
 ```json5
 {
   "payload": {
     "user": { /* ... */ },
-    "session": { /* ... */ }
+    "identity": { /* ... */ }
   }
 }
 ```
-### user.promoted.user_promote_themselves
+
+
+### identity.phone.updated
+
+When a phone login id identity is being updated.
 
 ```json5
 {
   "payload": {
-    "anonymous_user": { /* ... */ },
     "user": { /* ... */ },
-    "identities": [{ /* ... */ }]
+    "old_identity": { /* ... */ },
+    "new_identity": { /* ... */ }
   }
 }
 ```
+
+### identity.username.created
+
+When a new username login id is being created for an existing user. So it does not trigger together with `user.created`.
+
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+
+### identity.username.deleted
+
+When a username login id is being deleted from an existing user.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+
+### identity.username.updated
+
+When a username login id identity is being updated.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "old_identity": { /* ... */ },
+    "new_identity": { /* ... */ }
+  }
+}
+```
+
+### identity.oauth.connected
+
+When an existing user connect to a new OAuth provider. So it does not trigger together with `user.created`.
+
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+
+### identity.oauth.disconnected
+
+When an existing user disconnect to an OAuth provider.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+
+
+
 ## Webhook Event Management
 
 ### Webhook Event Alerts
