@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -38,7 +39,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			if user.IsAnonymous {
+			if n.Identity.Type == authn.IdentityTypeBiometric && user.IsAnonymous {
 				return interaction.NewInvariantViolated(
 					"AnonymousUserAddIdentity",
 					"anonymous user cannot add identity",
