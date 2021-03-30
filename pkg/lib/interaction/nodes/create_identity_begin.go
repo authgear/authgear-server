@@ -70,6 +70,10 @@ func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 		}
 	}
 
+	// Adding EdgeIncompatibleInput to ensure graph won't end at this node
+	// even no identity is configured in config file.
+	edges = append(edges, &EdgeIncompatibleInput{})
+
 	return edges
 }
 
