@@ -42,7 +42,7 @@ interface IdentityClaim extends Record<string, unknown> {
 
 interface Identity {
   id: string;
-  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH";
+  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH" | "BIOMETRIC";
   claims: IdentityClaim;
   createdAt: string;
   updatedAt: string;
@@ -57,8 +57,12 @@ interface UserDetailsConnectedIdentitiesProps {
 
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
 type LoginIDIdentityType = typeof loginIdIdentityTypes[number];
-type IdentityType = "login_id" | "oauth";
+type IdentityType = "login_id" | "oauth" | "biometric";
 
+type IdentityListItem =
+  | OAuthIdentityListItem
+  | LoginIDIdentityListItem
+  | BiometricIdentityListItem;
 interface OAuthIdentityListItem {
   id: string;
   type: "oauth";
@@ -79,18 +83,27 @@ interface LoginIDIdentityListItem {
   connectedOn: string;
 }
 
+interface BiometricIdentityListItem {
+  id: string;
+  type: "biometric";
+  connectedOn: string;
+  verified: undefined;
+}
+
 export interface IdentityLists {
   oauth: OAuthIdentityListItem[];
   email: LoginIDIdentityListItem[];
   phone: LoginIDIdentityListItem[];
   username: LoginIDIdentityListItem[];
+  biometric: BiometricIdentityListItem[];
 }
 
 interface IdentityListCellProps {
   identityID: string;
   identityType: IdentityType;
   icon: React.ReactNode;
-  claimName: string;
+  claimName?: string;
+  claimValue?: string;
   identityName: string;
   connectedOn: string;
   verified?: boolean;
@@ -131,16 +144,47 @@ const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
   username: <Icon iconName="Accounts" />,
 };
 
+const biometricIcon: React.ReactNode = <Icon iconName="Fingerprint" />;
+
 const removeButtonTextId: Record<IdentityType, "remove" | "disconnect"> = {
   oauth: "disconnect",
   login_id: "remove",
+  biometric: "remove",
 };
 
-function getIcon(item: LoginIDIdentityListItem | OAuthIdentityListItem) {
+function getIcon(item: IdentityListItem) {
   if (item.type === "oauth") {
     return oauthIconMap[item.providerType];
   }
+  if (item.type === "biometric") {
+    return biometricIcon;
+  }
   return loginIdIconMap[item.loginIDKey];
+}
+
+function getClaimName(item: IdentityListItem): string | undefined {
+  if (item.type === "biometric") {
+    return undefined;
+  }
+
+  return item.claimName;
+}
+
+function getClaimValue(item: IdentityListItem): string | undefined {
+  if (item.type === "biometric") {
+    return undefined;
+  }
+  return item.claimValue;
+}
+
+function getIdentityName(
+  item: IdentityListItem,
+  renderToString: (id: string) => string
+): string {
+  if (item.type === "biometric") {
+    return renderToString("UserDetails.connected-identities.biometric");
+  }
+  return item.claimValue;
 }
 
 function checkIsClaimVerified(
@@ -210,6 +254,7 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
     identityType,
     icon,
     claimName,
+    claimValue,
     identityName,
     connectedOn,
     verified,
@@ -228,12 +273,15 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
 
   const onVerifyClicked = useCallback(
     (verified: boolean) => {
+      if (claimName === undefined || claimValue === undefined) {
+        return;
+      }
       setVerifying(true);
-      setVerifiedStatus?.(claimName, identityName, verified).finally(() => {
+      setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
         setVerifying(false);
       });
     },
-    [setVerifiedStatus, claimName, identityName]
+    [setVerifiedStatus, claimName, claimValue]
   );
 
   return (
@@ -262,6 +310,12 @@ const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListC
           />
         )}
         {identityType === "login_id" && (
+          <FormattedMessage
+            id="UserDetails.connected-identities.added-on"
+            values={{ datetime: connectedOn }}
+          />
+        )}
+        {identityType === "biometric" && (
           <FormattedMessage
             id="UserDetails.connected-identities.added-on"
             values={{ datetime: connectedOn }}
@@ -332,6 +386,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     const emailIdentityList: LoginIDIdentityListItem[] = [];
     const phoneIdentityList: LoginIDIdentityListItem[] = [];
     const usernameIdentityList: LoginIDIdentityListItem[] = [];
+    const biometricIdentityList: BiometricIdentityListItem[] = [];
 
     for (const identity of identities) {
       const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
@@ -413,12 +468,22 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           });
         }
       }
+
+      if (identity.type === "BIOMETRIC") {
+        biometricIdentityList.push({
+          id: identity.id,
+          type: "biometric",
+          connectedOn: createdAtStr,
+          verified: undefined,
+        });
+      }
     }
     return {
       oauth: oauthIdentityList,
       email: emailIdentityList,
       phone: phoneIdentityList,
       username: usernameIdentityList,
+      biometric: biometricIdentityList,
     };
   }, [locale, identities, verifiedClaims]);
 
@@ -447,10 +512,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
   }, [confirmationDialogData, deleteIdentity, onDismissConfirmationDialog]);
 
   const onRenderIdentityCell = useCallback(
-    (
-      item?: OAuthIdentityListItem | LoginIDIdentityListItem,
-      _index?: number
-    ): React.ReactNode => {
+    (item?: IdentityListItem, _index?: number): React.ReactNode => {
       if (item == null) {
         return null;
       }
@@ -461,8 +523,9 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           identityID={item.id}
           identityType={item.type}
           icon={icon}
-          claimName={item.claimName}
-          identityName={item.claimValue}
+          claimName={getClaimName(item)}
+          claimValue={getClaimValue(item)}
+          identityName={getIdentityName(item, renderToString)}
           verified={item.verified}
           connectedOn={item.connectedOn}
           onRemoveClicked={onRemoveClicked}
@@ -470,7 +533,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         />
       );
     },
-    [onRemoveClicked, setVerifiedStatus]
+    [onRemoveClicked, setVerifiedStatus, renderToString]
   );
 
   const addIdentitiesMenuProps: IContextualMenuProps = useMemo(() => {
@@ -619,6 +682,18 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
               <List
                 className={styles.list}
                 items={identityLists.username}
+                onRenderCell={onRenderIdentityCell}
+              />
+            </>
+          )}
+          {identityLists.biometric.length > 0 && (
+            <>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.biometric" />
+              </Text>
+              <List
+                className={styles.list}
+                items={identityLists.biometric}
                 onRenderCell={onRenderIdentityCell}
               />
             </>
