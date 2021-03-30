@@ -31,6 +31,7 @@ import { UserQuery_node_User_verifiedClaims } from "./query/__generated__/UserQu
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { formatDeviceInfo } from "../../util/deviceinfo";
 
 interface IdentityClaim extends Record<string, unknown> {
   email?: string;
@@ -88,6 +89,7 @@ interface BiometricIdentityListItem {
   type: "biometric";
   connectedOn: string;
   verified: undefined;
+  deviceInfo: any;
 }
 
 export interface IdentityLists {
@@ -182,7 +184,12 @@ function getIdentityName(
   renderToString: (id: string) => string
 ): string {
   if (item.type === "biometric") {
-    return renderToString("UserDetails.connected-identities.biometric");
+    return (
+      formatDeviceInfo(item.deviceInfo) ??
+      renderToString(
+        "UserDetails.connected-identities.biometric.unknown-device"
+      )
+    );
   }
   return item.claimValue;
 }
@@ -475,6 +482,10 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           type: "biometric",
           connectedOn: createdAtStr,
           verified: undefined,
+          deviceInfo:
+            identity.claims[
+              "https://authgear.com/claims/biometric/device_info"
+            ],
         });
       }
     }

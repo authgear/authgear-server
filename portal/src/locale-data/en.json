@@ -220,6 +220,7 @@
   "UserDetails.connected-identities.phone": "Phone",
   "UserDetails.connected-identities.username": "Username",
   "UserDetails.connected-identities.biometric": "Biometric",
+  "UserDetails.connected-identities.biometric.unknown-device": "Unknown Device",
 
   "UserDetails.connected-identities.connected-on": "Connected on {datetime}",
   "UserDetails.connected-identities.added-on": "Added on {datetime}",
