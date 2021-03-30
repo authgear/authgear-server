@@ -127,9 +127,14 @@ export interface IdentityConflictConfig {
   promotion?: PromotionConflictBehaviour;
 }
 
+export interface BiometricConfig {
+  list_enabled?: boolean;
+}
+
 export interface IdentityConfig {
   login_id?: LoginIDConfig;
   oauth?: OAuthSSOConfig;
+  biometric?: BiometricConfig;
   on_conflict?: IdentityConflictConfig;
 }
 
@@ -193,7 +198,12 @@ export function isSecondaryAuthenticatorType(
   return secondaryAuthenticatorTypes.includes(type);
 }
 
-export const identityTypes = ["login_id", "oauth", "anonymous"] as const;
+export const identityTypes = [
+  "login_id",
+  "oauth",
+  "anonymous",
+  "biometric",
+] as const;
 export type IdentityType = typeof identityTypes[number];
 
 export const secondaryAuthenticationModes = [
