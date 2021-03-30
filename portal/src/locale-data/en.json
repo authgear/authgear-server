@@ -78,6 +78,7 @@
   "ScreenNav.login-id": "Login ID",
   "ScreenNav.authenticators": "Authenticators",
   "ScreenNav.anonymous-users": "Anonymous Users",
+  "ScreenNav.biometric": "Biometric Authentication",
   "ScreenNav.single-sign-on": "Single-Sign On",
   "ScreenNav.passwords": "Passwords",
   "ScreenNav.client-applications": "Applications",
@@ -331,6 +332,11 @@
 
   "AnonymousIdentityConflictBehaviour.login": "Proceed to Login",
   "AnonymousIdentityConflictBehaviour.error": "Show Error",
+
+  "BiometricConfigurationScreen.title": "Biometric Authentication",
+  "BiometricConfigurationScreen.description": "Enable or disable biometric authentication. Enable biometric authentication allows existing user using Biometric login to login their account.",
+  "BiometricConfigurationScreen.enable.label": "Enable biometric authentication",
+  "BiometricConfigurationScreen.list-enabled.label": "Show biometric logins list in setting page",
 
   "SingleSignOnConfigurationScreen.title": "Single-Sign On",
   "SingleSignOnConfigurationScreen.description": "Configure and enable your users to login via SSO. Read the {Link, react, href{{HREF}} target{_blank} children{SSO integration guide}} if you need help",

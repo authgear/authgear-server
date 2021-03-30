@@ -34,6 +34,7 @@ import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
 import LoginIDConfigurationScreen from "./graphql/portal/LoginIDConfigurationScreen";
 import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConfigurationScreen";
 import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
+import BiometricConfigurationScreen from "./graphql/portal/BiometricConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -102,6 +103,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/anonymous-users"
             element={<AnonymousUsersConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/biometric"
+            element={<BiometricConfigurationScreen />}
           />
           <Route
             path="/configuration/single-sign-on"
