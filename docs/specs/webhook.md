@@ -43,7 +43,7 @@ All webhook events have the following shape:
 {
   "id": "0E1E9537-DF4F-4AF6-8B48-3DB4574D4F24",
   "seq": 435,
-  "type": "user.created.user_signup",
+  "type": "user.created",
   "payload": { /* ... */ },
   "context": { /* ... */ }
 }
@@ -166,19 +166,22 @@ If the delivery keeps on failing after 3 days from the time of first attempted d
 - [user.created](#usercreated)
 - [user.authenticated](#userauthenticated)
 - [user.anonymous.promoted](#useranonymouspromoted)
-- [identity.email.created](#identityemailcreated)
-- [identity.email.deleted](#identityemaildeleted)
+- [identity.email.added](#identityemailadded)
+- [identity.email.removed](#identityemailremoved)
 - [identity.email.updated](#identityemailupdated)
-- [identity.phone.created](#identityphonecreated)
-- [identity.phone.deleted](#identityphonedeleted)
+- [identity.phone.added](#identityphoneadded)
+- [identity.phone.removed](#identityphoneremoved)
 - [identity.phone.updated](#identityphoneupdated)
-- [identity.username.created](#identityusernamecreated)
-- [identity.username.deleted](#identityusernamedeleted)
+- [identity.username.added](#identityusernameadded)
+- [identity.username.removed](#identityusernameremoved)
 - [identity.username.updated](#identityusernameupdated)
 - [identity.oauth.connected](#identityoauthconnected)
 - [identity.oauth.disconnected](#identityoauthdisconnected)
 
 ### user.pre_create
+
+Occurs right before the user creation. User can be created by user signup, user signup as anonymous user, admin api or admin portal create an user.
+Operation can be aborted by providing specific response in your webhook, details see [Webhook Blocking Events](#webhook-blocking-events).
 
 ```json5
 {
@@ -191,7 +194,7 @@ If the delivery keeps on failing after 3 days from the time of first attempted d
 
 ### user.created
 
-When a new user is being created.
+Occurs after a new user is created. User can be created by user signup, user signup as anonymous user, admin api or admin portal create an user.
 
 ```json5
 {
@@ -204,7 +207,7 @@ When a new user is being created.
 
 ### user.authenticated
 
-When user logged in.
+Occurs after user logged in.
 
 ```json5
 {
@@ -217,6 +220,8 @@ When user logged in.
 
 ### user.anonymous.promoted
 
+Occurs whenever an anonymous user is promoted to normal user.
+
 ```json5
 {
   "payload": {
@@ -227,10 +232,9 @@ When user logged in.
 }
 ```
 
-### identity.email.created
+### identity.email.added
 
-When a new email login id is being created for an existing user. So it does not trigger together with `user.created`.
-
+Occurs when a new email is added to existing user. Email can be added by user in setting page, added by admin through admin api or portal.
 
 ```json5
 {
@@ -242,9 +246,9 @@ When a new email login id is being created for an existing user. So it does not 
 ```
 
 
-### identity.email.deleted
+### identity.email.removed
 
-When an email login id is being deleted from an existing user.
+Occurs when email is removed from existing user. Email can be removed by user in setting page, removed by admin through admin api or portal.
 
 ```json5
 {
@@ -258,7 +262,7 @@ When an email login id is being deleted from an existing user.
 
 ### identity.email.updated
 
-When an email login id identity is being updated.
+Occurs when email is updated. Email can be updated by user in setting page.
 
 ```json5
 {
@@ -270,10 +274,9 @@ When an email login id identity is being updated.
 }
 ```
 
-### identity.phone.created
+### identity.phone.added
 
-When a new phone login id is being created for an existing user. So it does not trigger together with `user.created`.
-
+Occurs when a new phone number is added to existing user. Phone number can be added by user in setting page, added by admin through admin api or portal.
 
 ```json5
 {
@@ -285,9 +288,9 @@ When a new phone login id is being created for an existing user. So it does not 
 ```
 
 
-### identity.phone.deleted
+### identity.phone.removed
 
-When a phone login id is being deleted from an existing user.
+Occurs when phone number is removed from existing user. Phone number can be removed by user in setting page, removed by admin through admin api or portal.
 
 ```json5
 {
@@ -301,7 +304,8 @@ When a phone login id is being deleted from an existing user.
 
 ### identity.phone.updated
 
-When a phone login id identity is being updated.
+Occurs when phone number is updated. Phone number can be updated by user in setting page.
+
 
 ```json5
 {
@@ -313,10 +317,9 @@ When a phone login id identity is being updated.
 }
 ```
 
-### identity.username.created
+### identity.username.added
 
-When a new username login id is being created for an existing user. So it does not trigger together with `user.created`.
-
+Occurs when a new username is added to existing user. Username can be added by user in setting page, added by admin through admin api or portal.
 
 ```json5
 {
@@ -328,9 +331,9 @@ When a new username login id is being created for an existing user. So it does n
 ```
 
 
-### identity.username.deleted
+### identity.username.removed
 
-When a username login id is being deleted from an existing user.
+Occurs when username is removed from existing user. Username can be removed by user in setting page, removed by admin through admin api or portal.
 
 ```json5
 {
@@ -344,7 +347,7 @@ When a username login id is being deleted from an existing user.
 
 ### identity.username.updated
 
-When a username login id identity is being updated.
+Occurs when username is updated. Username can be updated by user in setting page.
 
 ```json5
 {
@@ -358,8 +361,7 @@ When a username login id identity is being updated.
 
 ### identity.oauth.connected
 
-When an existing user connect to a new OAuth provider. So it does not trigger together with `user.created`.
-
+Occurs when user connected to a new OAuth provider.
 
 ```json5
 {
@@ -373,7 +375,7 @@ When an existing user connect to a new OAuth provider. So it does not trigger to
 
 ### identity.oauth.disconnected
 
-When an existing user disconnect to an OAuth provider.
+Occurs when user disconnected from an OAuth provider. It can be done by user disconnected OAuth provider in the setting page, or admin removed OAuth identity through admin api or portal.
 
 ```json5
 {
@@ -466,13 +468,11 @@ state is eventually consistent.
 ```
 hook:
   blocking_handlers:
-    - event: pre_signup
-      url: 'https://myapp.com/check_user_create'
-    - event: admin_api_create_user
+    - event: "user.pre_create"
       url: 'https://myapp.com/check_user_create'
   non_blocking_handlers:
     - events: ["*"]
       url: 'https://myapp.com/all_events'
-    - events: ["user.created.user_signup"]
-      url: 'https://myapp.com/sync_user_signup'
+    - events: ["user.created"]
+      url: 'https://myapp.com/sync_user_creation'
 ```
