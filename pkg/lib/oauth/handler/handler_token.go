@@ -406,6 +406,12 @@ func (h *TokenHandler) handleBiometricRequest(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	if !*client.IsFirstParty {
+		return nil, protocol.NewError(
+			"unauthorized_client",
+			"third-party clients may not use biometric authentication",
+		)
+	}
 	_, payload, err := jwtutil.SplitWithoutVerify([]byte(r.JWT()))
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", err.Error())
