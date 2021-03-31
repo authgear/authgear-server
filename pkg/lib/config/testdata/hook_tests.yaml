@@ -2,7 +2,7 @@ part: BlockingHookHandlersConfig
 name: valid
 error: null
 value:
-  event: pre_signup
+  event: user.pre_create
   url: "https://example.com/callback/pre_signup"
 
 ---
@@ -13,7 +13,7 @@ error: |-
   <root>: required
     map[actual:[event] expected:[event url] missing:[url]]
 value:
- event: pre_signup
+ event: user.pre_create
 
 ---
 part: BlockingHookHandlersConfig
@@ -23,7 +23,7 @@ error: |-
   /url: format
     map[error:input URL must be absolute format:uri]
 value:
-  event: pre_signup
+  event: user.pre_create
   url: "/pre_signup"
 
 ---
@@ -32,7 +32,7 @@ name: invalid-blocking-event
 error: |-
   invalid value:
   /event: enum
-    map[actual:before_user_create expected:[pre_signup admin_api_create_user]]
+    map[actual:before_user_create expected:[user.pre_create]]
 value:
   event: before_user_create
   url: "https://example.com/callback/before_user_create"
@@ -61,7 +61,7 @@ name: invalid-non-blocking-event
 error: |-
   invalid value:
   /events/0: enum
-    map[actual:after_user_create expected:[* user.created.user_signup user.created.admin_api_create_user identity.created.user_add_identity identity.created.admin_api_add_identity identity.deleted.user_remove_identity identity.deleted.admin_api_remove_identity identity.updated.user_update_identity session.created.user_signup session.created.user_login session.created.user_promote_themselves session.deleted.user_revoke_session session.deleted.user_logout session.deleted.admin_api_revoke_session user.promoted.user_promote_themselves]]
+    map[actual:after_user_create expected:[* user.created user.authenticated user.anonymous.promoted identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected]]
 value:
   events: ["after_user_create"]
   url: "https://example.com/callback"

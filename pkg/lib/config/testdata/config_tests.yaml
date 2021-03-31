@@ -509,19 +509,19 @@ config:
     public_origin: http://test
   hook:
     blocking_handlers:
-    - event: "pre_signup"
+    - event: "user.pre_create"
       url: http://webhook
     non_blocking_handlers:
     - events:
       - "*"
-      - "user.created.user_signup"
+      - "user.created"
       url: http://webhook
 ---
 name: invalid-non-blocking-hook
 error: |-
   invalid configuration:
   /hook/non_blocking_handlers/0/events/0: enum
-    map[actual:invalid_name expected:[* user.created.user_signup user.created.admin_api_create_user identity.created.user_add_identity identity.created.admin_api_add_identity identity.deleted.user_remove_identity identity.deleted.admin_api_remove_identity identity.updated.user_update_identity session.created.user_signup session.created.user_login session.created.user_promote_themselves session.deleted.user_revoke_session session.deleted.user_logout session.deleted.admin_api_revoke_session user.promoted.user_promote_themselves]]
+    map[actual:invalid_name expected:[* user.created user.authenticated user.anonymous.promoted identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected]]
 config:
   id: test
   http:
@@ -530,5 +530,5 @@ config:
     non_blocking_handlers:
     - events:
       - "invalid_name"
-      - "user.created.user_signup"
+      - "user.created"
       url: http://webhook

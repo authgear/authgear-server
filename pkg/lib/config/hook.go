@@ -34,7 +34,7 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"event": { "type": "string", "enum" : ["pre_signup", "admin_api_create_user"] },
+		"event": { "type": "string", "enum" : ["user.pre_create"] },
 		"url": { "type": "string", "format": "uri" }
 	},
 	"required": ["event", "url"]
@@ -57,20 +57,20 @@ var _ = Schema.Add("NonBlockingHookHandlersConfig", `
 				"type": "string",
 				"enum" : [
 					"*",
-					"user.created.user_signup",
-					"user.created.admin_api_create_user",
-					"identity.created.user_add_identity",
-					"identity.created.admin_api_add_identity",
-					"identity.deleted.user_remove_identity",
-					"identity.deleted.admin_api_remove_identity",
-					"identity.updated.user_update_identity",
-					"session.created.user_signup",
-					"session.created.user_login",
-					"session.created.user_promote_themselves",
-					"session.deleted.user_revoke_session",
-					"session.deleted.user_logout",
-					"session.deleted.admin_api_revoke_session",
-					"user.promoted.user_promote_themselves"
+					"user.created",
+					"user.authenticated",
+					"user.anonymous.promoted",
+					"identity.email.added",
+					"identity.email.removed",
+					"identity.email.updated",
+					"identity.phone.added",
+					"identity.phone.removed",
+					"identity.phone.updated",
+					"identity.username.added",
+					"identity.username.removed",
+					"identity.username.updated",
+					"identity.oauth.connected",
+					"identity.oauth.disconnected"
 				]
 			}
 		},
