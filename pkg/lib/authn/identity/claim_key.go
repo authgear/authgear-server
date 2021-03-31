@@ -40,6 +40,8 @@ const (
 	IdentityClaimBiometricKey string = "https://authgear.com/claims/biometric/key"
 	// IdentityClaimBiometricDeviceInfo is a claim with a map value containing device info.
 	IdentityClaimBiometricDeviceInfo string = "https://authgear.com/claims/biometric/device_info"
+	// IdentityClaimBiometricFormattedDeviceInfo is a claim with a string value indicating formatted device info for display.
+	IdentityClaimBiometricFormattedDeviceInfo string = "https://authgear.com/claims/biometric/formatted_device_info"
 )
 
 const (
