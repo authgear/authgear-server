@@ -288,7 +288,6 @@ export interface OAuthClientConfig {
   refresh_token_idle_timeout_seconds?: number;
   refresh_token_idle_timeout_enabled?: boolean;
   issue_jwt_access_token?: boolean;
-  is_first_party?: boolean;
 }
 
 export interface OAuthConfig {

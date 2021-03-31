@@ -44,17 +44,12 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
       name: undefined,
       client_id: genRandomHexadecimalString(),
       redirect_uris: [],
-      grant_types: [
-        "authorization_code",
-        "refresh_token",
-        "urn:authgear:params:oauth:grant-type:anonymous-request",
-      ],
+      grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code", "none"],
       access_token_lifetime_seconds: undefined,
       refresh_token_lifetime_seconds: undefined,
       post_logout_redirect_uris: undefined,
       issue_jwt_access_token: undefined,
-      is_first_party: undefined,
     },
   };
 }
