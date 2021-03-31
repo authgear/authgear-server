@@ -237,6 +237,9 @@ enum IdentityType {
   ANONYMOUS
 
   """"""
+  BIOMETRIC
+
+  """"""
   LOGIN_ID
 
   """"""

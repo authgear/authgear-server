@@ -25,6 +25,9 @@ var identityType = graphql.NewEnum(graphql.EnumConfig{
 		"ANONYMOUS": &graphql.EnumValueConfig{
 			Value: "anonymous",
 		},
+		"BIOMETRIC": &graphql.EnumValueConfig{
+			Value: "biometric",
+		},
 	},
 })
 

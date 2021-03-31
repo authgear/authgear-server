@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 )
 
 func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
@@ -123,9 +124,10 @@ func anonymousFromIdentityInfo(i *identity.Info) *anonymous.Identity {
 
 func biometricToIdentityInfo(b *biometric.Identity) *identity.Info {
 	claims := map[string]interface{}{
-		identity.IdentityClaimBiometricKeyID:      b.KeyID,
-		identity.IdentityClaimBiometricKey:        string(b.Key),
-		identity.IdentityClaimBiometricDeviceInfo: b.DeviceInfo,
+		identity.IdentityClaimBiometricKeyID:               b.KeyID,
+		identity.IdentityClaimBiometricKey:                 string(b.Key),
+		identity.IdentityClaimBiometricDeviceInfo:          b.DeviceInfo,
+		identity.IdentityClaimBiometricFormattedDeviceInfo: deviceinfo.Format(b.DeviceInfo),
 	}
 
 	return &identity.Info{
