@@ -28,6 +28,7 @@ var configDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.IdentityConfig),
 		"LoginID",
 		"OAuth",
+		"Biometric",
 		"OnConflict",
 	),
 	wire.FieldsOf(new(*config.AuthenticatorConfig),

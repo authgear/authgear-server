@@ -9,6 +9,7 @@ import (
 	authenticatortotp "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
+	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
@@ -106,10 +107,14 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(oauthhandler.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
+		identitybiometric.DependencySet,
+		wire.Bind(new(interaction.BiometricIdentityProvider), new(*identitybiometric.Provider)),
+
 		identityservice.DependencySet,
 		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		wire.Bind(new(identityservice.OAuthIdentityProvider), new(*identityoauth.Provider)),
 		wire.Bind(new(identityservice.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+		wire.Bind(new(identityservice.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 	),

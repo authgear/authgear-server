@@ -4,9 +4,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 )
 
 func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
@@ -118,4 +120,44 @@ func anonymousFromIdentityInfo(i *identity.Info) *anonymous.Identity {
 		}
 	}
 	return a
+}
+
+func biometricToIdentityInfo(b *biometric.Identity) *identity.Info {
+	claims := map[string]interface{}{
+		identity.IdentityClaimBiometricKeyID:               b.KeyID,
+		identity.IdentityClaimBiometricKey:                 string(b.Key),
+		identity.IdentityClaimBiometricDeviceInfo:          b.DeviceInfo,
+		identity.IdentityClaimBiometricFormattedDeviceInfo: deviceinfo.Format(b.DeviceInfo),
+	}
+
+	return &identity.Info{
+		ID:        b.ID,
+		Labels:    b.Labels,
+		UserID:    b.UserID,
+		CreatedAt: b.CreatedAt,
+		UpdatedAt: b.UpdatedAt,
+		Type:      authn.IdentityTypeBiometric,
+		Claims:    claims,
+	}
+}
+
+func biometricFromIdentityInfo(i *identity.Info) *biometric.Identity {
+	b := &biometric.Identity{
+		ID:        i.ID,
+		Labels:    i.Labels,
+		CreatedAt: i.CreatedAt,
+		UpdatedAt: i.UpdatedAt,
+		UserID:    i.UserID,
+	}
+	for k, v := range i.Claims {
+		switch k {
+		case identity.IdentityClaimBiometricKeyID:
+			b.KeyID = v.(string)
+		case identity.IdentityClaimBiometricKey:
+			b.Key = []byte(v.(string))
+		case identity.IdentityClaimBiometricDeviceInfo:
+			b.DeviceInfo = v.(map[string]interface{})
+		}
+	}
+	return b
 }

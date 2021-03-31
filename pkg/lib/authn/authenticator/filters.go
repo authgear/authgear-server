@@ -1,6 +1,8 @@
 package authenticator
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -13,6 +15,22 @@ type FilterFunc func(ai *Info) bool
 
 func (f FilterFunc) Keep(ai *Info) bool {
 	return f(ai)
+}
+
+func ApplyFilters(ais []*Info, filters ...Filter) (out []*Info) {
+	for _, a := range ais {
+		keep := true
+		for _, f := range filters {
+			if !f.Keep(a) {
+				keep = false
+				break
+			}
+		}
+		if keep {
+			out = append(out, a)
+		}
+	}
+	return
 }
 
 var KeepDefault FilterFunc = func(ai *Info) bool {
@@ -60,5 +78,26 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 		}
 
 		return false
+	})
+}
+
+// KeepSecondaryAuthenticatorOfIdentity means only Login ID identity needs MFA.
+func KeepSecondaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
+	return FilterFunc(func(ai *Info) bool {
+		if ai.Kind != KindSecondary {
+			return false
+		}
+		switch ii.Type {
+		case authn.IdentityTypeLoginID:
+			return true
+		case authn.IdentityTypeOAuth:
+			return false
+		case authn.IdentityTypeAnonymous:
+			return false
+		case authn.IdentityTypeBiometric:
+			return false
+		default:
+			panic(fmt.Sprintf("authenticator: unexpected identity type: %s", ii.Type))
+		}
 	})
 }

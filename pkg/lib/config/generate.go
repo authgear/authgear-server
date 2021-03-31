@@ -122,9 +122,8 @@ func generateOctetKey(rand io.Reader) jwk.Set {
 
 	_ = jwkKey.Set(jwk.KeyIDKey, generateKeyID(rand))
 
-	keySet := jwk.Set{
-		Keys: []jwk.Key{jwkKey},
-	}
+	keySet := jwk.NewSet()
+	_ = keySet.Add(jwkKey)
 	return keySet
 }
 
@@ -142,8 +141,7 @@ func generateRSAKey(rand io.Reader) jwk.Set {
 	_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
 	_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
 
-	keySet := jwk.Set{
-		Keys: []jwk.Key{jwkKey},
-	}
+	keySet := jwk.NewSet()
+	_ = keySet.Add(jwkKey)
 	return keySet
 }

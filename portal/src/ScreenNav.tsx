@@ -66,6 +66,10 @@ const links: NavLinkProps[] = [
     url: "configuration/anonymous-users",
   },
   {
+    textKey: "ScreenNav.biometric",
+    url: "configuration/biometric",
+  },
+  {
     textKey: "ScreenNav.single-sign-on",
     url: "configuration/single-sign-on",
   },

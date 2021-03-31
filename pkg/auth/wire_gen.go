@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauth3 "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
@@ -164,6 +165,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -171,6 +180,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -494,6 +504,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -688,6 +699,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -695,6 +714,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1003,6 +1023,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -1217,6 +1238,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -1224,6 +1253,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1527,6 +1557,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -1534,6 +1572,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1930,6 +1969,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -1937,6 +1984,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2245,6 +2293,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -2410,6 +2459,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -2417,6 +2474,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2761,6 +2819,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -2934,6 +2993,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -2941,6 +3008,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3285,6 +3353,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -3458,6 +3527,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -3465,6 +3542,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3809,6 +3887,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -3982,6 +4061,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -3989,6 +4076,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4333,6 +4421,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -4499,6 +4588,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -4506,6 +4603,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4850,6 +4948,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -5019,6 +5118,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -5026,6 +5133,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5370,6 +5478,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -5540,6 +5649,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -5547,6 +5664,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5891,6 +6009,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -6058,6 +6177,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -6065,6 +6192,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6409,6 +6537,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -6575,6 +6704,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -6582,6 +6719,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6926,6 +7064,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -7093,6 +7232,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -7100,6 +7247,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7444,6 +7592,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -7612,6 +7761,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -7619,6 +7776,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7963,6 +8121,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -8129,6 +8288,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -8136,6 +8303,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8480,6 +8648,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -8646,6 +8815,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -8653,6 +8830,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8997,6 +9175,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -9165,6 +9344,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -9172,6 +9359,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9516,6 +9704,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -9682,6 +9871,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -9689,6 +9886,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -10033,6 +10231,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -10199,6 +10398,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -10206,6 +10413,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -10550,6 +10758,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -10719,6 +10928,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -10726,6 +10943,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -11070,6 +11288,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -11236,6 +11455,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -11243,6 +11470,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -11587,6 +11815,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -11758,6 +11987,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -11765,6 +12002,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -12109,6 +12347,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -12275,6 +12514,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -12282,6 +12529,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -12626,6 +12874,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -12793,6 +13042,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -12800,6 +13057,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -13144,6 +13402,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -13310,6 +13569,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -13317,6 +13584,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -13661,6 +13929,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -13736,6 +14005,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	biometricConfig := identityConfig.Biometric
+	settingsViewModeler := &viewmodels.SettingsViewModeler{
+		Authenticators: service3,
+		MFA:            mfaService,
+		Authentication: authenticationConfig,
+		Biometric:      biometricConfig,
+	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	manager2 := &session.Manager{
 		Users:               queries,
@@ -13746,14 +14022,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	settingsHandler := &webapp2.SettingsHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
+		SettingsViewModel: settingsViewModeler,
 		Renderer:          responseRenderer,
-		Authentication:    authenticationConfig,
-		OAuth:             oAuthConfig,
-		UIConfig:          uiConfig,
 		Identities:        serviceService,
 		Verification:      verificationService,
-		Authenticators:    service3,
-		MFA:               mfaService,
 		CSRFCookie:        csrfCookieDef,
 		TrustProxy:        trustProxy,
 		SessionManager:    manager2,
@@ -13844,6 +14116,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -13851,6 +14131,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -14195,6 +14476,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -14282,7 +14564,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	return settingsIdentityHandler
 }
 
-func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.Database
@@ -14365,6 +14647,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -14372,6 +14662,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -14716,6 +15007,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -14792,12 +15084,548 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
-	settingsMFAHandler := &webapp2.SettingsMFAHandler{
+	settingsBiometricHandler := &webapp2.SettingsBiometricHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
-		Authentication:    authenticationConfig,
-		Authenticators:    service3,
+		Identities:        serviceService,
+		CSRFCookie:        csrfCookieDef,
+	}
+	return settingsBiometricHandler
+}
+
+func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	handle := appProvider.Database
+	redisHandle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	serviceLogger := webapp.NewServiceLogger(factory)
+	request := p.Request
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	httpConfig := appConfig.HTTP
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	authenticationConfig := appConfig.Authentication
+	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	errorCookie := &webapp.ErrorCookie{
+		Cookie:        errorCookieDef,
+		CookieFactory: cookieFactory,
+	}
+	logger := interaction.NewLogger(factory)
+	context := deps.ProvideRequestContext(request)
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	clockClock := _wireSystemClockValue
+	identityConfig := appConfig.Identity
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	store := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	serviceService := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          store,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
+	}
+	serviceStore := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedis := &oob.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       serviceStore,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Request:     request,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
+		Clock:       clockClock,
+		CodeStore:   verificationStoreRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	queue := appProvider.TaskQueue
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:         idpsessionStoreRedis,
+		Clock:         clockClock,
+		Config:        sessionConfig,
+		CookieFactory: cookieFactory,
+		CookieDef:     cookieDef2,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Redis:       redisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	coordinator := &facade.Coordinator{
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		Users:           rawCommands,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
+	mainOriginProvider := &MainOriginProvider{
+		Request:    request,
+		TrustProxy: trustProxy,
+	}
+	endpointsProvider := &EndpointsProvider{
+		OriginProvider: mainOriginProvider,
+	}
+	messageSender := &otp.MessageSender{
+		Translation: translationService,
+		Endpoints:   endpointsProvider,
+		RateLimiter: limiter,
+		TaskQueue:   queue,
+	}
+	codeSender := &oob.CodeSender{
+		OTPMessageSender: messageSender,
+	}
+	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
+	urlProvider := &webapp.URLProvider{
+		Endpoints: endpointsProvider,
+	}
+	userInfoDecoder := sso.UserInfoDecoder{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	wechatURLProvider := &webapp.WechatURLProvider{
+		Endpoints: endpointsProvider,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                endpointsProvider,
+		IdentityConfig:           identityConfig,
+		Credentials:              oAuthClientCredentials,
+		RedirectURL:              urlProvider,
+		Clock:                    clockClock,
+		UserInfoDecoder:          userInfoDecoder,
+		LoginIDNormalizerFactory: normalizerFactory,
+		WechatURLProvider:        wechatURLProvider,
+	}
+	forgotPasswordConfig := appConfig.ForgotPassword
+	forgotpasswordStore := &forgotpassword.Store{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	providerLogger := forgotpassword.NewProviderLogger(factory)
+	forgotpasswordProvider := &forgotpassword.Provider{
+		Request:        request,
+		Translation:    translationService,
+		Config:         forgotPasswordConfig,
+		TrustProxy:     trustProxy,
+		Store:          forgotpasswordStore,
+		Clock:          clockClock,
+		URLs:           urlProvider,
+		TaskQueue:      queue,
+		Logger:         providerLogger,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		RateLimiter:    limiter,
+	}
+	verificationCodeSender := &verification.CodeSender{
+		OTPMessageSender: messageSender,
+		WebAppURLs:       urlProvider,
+	}
+	challengeProvider := &challenge.Provider{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	hookLogger := hook.NewLogger(factory)
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   identityFacade,
+		Verification: verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:   context,
+		Logger:    hookLogger,
+		Database:  handle,
+		Clock:     clockClock,
+		Users:     rawProvider,
+		Store:     hookStore,
+		Deliverer: deliverer,
+	}
+	commands := &user.Commands{
+		Raw:          rawCommands,
+		Hooks:        hookProvider,
+		Verification: verificationService,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Request:      request,
+		Store:        idpsessionStoreRedis,
+		AccessEvents: eventProvider,
+		TrustProxy:   trustProxy,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       idpsessionRand,
+	}
+	interactionContext := &interaction.Context{
+		Request:                  request,
+		Database:                 sqlExecutor,
+		Clock:                    clockClock,
+		Config:                   appConfig,
+		TrustProxy:               trustProxy,
+		Identities:               identityFacade,
+		Authenticators:           authenticatorFacade,
+		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
+		OOBAuthenticators:        oobProvider,
+		OOBCodeSender:            codeSender,
+		OAuthProviderFactory:     oAuthProviderFactory,
+		MFA:                      mfaService,
+		ForgotPassword:           forgotpasswordProvider,
+		ResetPassword:            forgotpasswordProvider,
+		LoginIDNormalizerFactory: normalizerFactory,
+		Verification:             verificationService,
+		VerificationCodeSender:   verificationCodeSender,
+		RateLimiter:              limiter,
+		Challenges:               challengeProvider,
+		Users:                    userProvider,
+		Hooks:                    hookProvider,
+		CookieFactory:            cookieFactory,
+		Sessions:                 idpsessionProvider,
+		SessionCookie:            cookieDef2,
+		MFADeviceTokenCookie:     cookieDef,
+	}
+	interactionStoreRedis := &interaction.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	interactionService := &interaction.Service{
+		Logger:  logger,
+		Context: interactionContext,
+		Store:   interactionStoreRedis,
+	}
+	webappService2 := &webapp.Service2{
+		Logger:               serviceLogger,
+		Request:              request,
+		Sessions:             sessionStoreRedis,
+		SessionCookie:        sessionCookieDef,
+		SignedUpCookie:       signedUpCookieDef,
+		MFADeviceTokenCookie: cookieDef,
+		ErrorCookie:          errorCookie,
+		CookieFactory:        cookieFactory,
+		Graph:                interactionService,
+	}
+	uiConfig := appConfig.UI
+	flashMessage := &httputil.FlashMessage{
+		CookieFactory: cookieFactory,
+	}
+	baseViewModeler := &viewmodels.BaseViewModeler{
+		OAuth:          oAuthConfig,
+		AuthUI:         uiConfig,
+		StaticAssets:   staticAssetResolver,
+		ForgotPassword: forgotPasswordConfig,
+		Authentication: authenticationConfig,
+		ErrorCookie:    errorCookie,
+		Translations:   translationService,
+		Clock:          clockClock,
+		FlashMessage:   flashMessage,
+	}
+	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
+	responseRenderer := &webapp2.ResponseRenderer{
+		TemplateEngine: engine,
+		Logger:         responseRendererLogger,
+	}
+	publisher := webapp2.NewPublisher(appID, redisHandle)
+	controllerDeps := webapp2.ControllerDeps{
+		Database:      handle,
+		RedisHandle:   redisHandle,
+		AppID:         appID,
+		Page:          webappService2,
+		BaseViewModel: baseViewModeler,
+		Renderer:      responseRenderer,
+		Publisher:     publisher,
+		Clock:         clockClock,
+		UIConfig:      uiConfig,
+		TrustProxy:    trustProxy,
+	}
+	controllerFactory := webapp2.ControllerFactory{
+		LoggerFactory:  factory,
+		ControllerDeps: controllerDeps,
+	}
+	biometricConfig := identityConfig.Biometric
+	settingsViewModeler := &viewmodels.SettingsViewModeler{
+		Authenticators: service3,
+		MFA:            mfaService,
+		Authentication: authenticationConfig,
+		Biometric:      biometricConfig,
+	}
+	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
+	settingsMFAHandler := &webapp2.SettingsMFAHandler{
+		ControllerFactory: controllerFactory,
+		BaseViewModel:     baseViewModeler,
+		SettingsViewModel: settingsViewModeler,
+		Renderer:          responseRenderer,
 		MFA:               mfaService,
 		CSRFCookie:        csrfCookieDef,
 	}
@@ -14887,6 +15715,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -14894,6 +15730,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -15238,6 +16075,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -15407,6 +16245,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -15414,6 +16260,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -15758,6 +16605,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -15927,6 +16775,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -15934,6 +16790,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -16278,6 +17135,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -16448,6 +17306,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -16455,6 +17321,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -16799,6 +17666,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -16972,6 +17840,14 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -16979,6 +17855,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -17323,6 +18200,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -17490,6 +18368,14 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -17497,6 +18383,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -17841,6 +18728,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -18008,6 +18896,14 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -18015,6 +18911,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -18359,6 +19256,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -18513,6 +19411,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -18520,6 +19426,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -18895,6 +19802,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -18902,6 +19817,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -19246,6 +20162,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -19412,6 +20329,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -19419,6 +20344,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:        provider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -19763,6 +20689,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
 		AnonymousIdentities:      anonymousProvider,
+		BiometricIdentities:      biometricProvider,
 		OOBAuthenticators:        oobProvider,
 		OOBCodeSender:            codeSender,
 		OAuthProviderFactory:     oAuthProviderFactory,
@@ -20172,6 +21099,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Store: anonymousStore,
 		Clock: clockClock,
 	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
@@ -20179,6 +21114,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,

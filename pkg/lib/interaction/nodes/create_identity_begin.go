@@ -11,18 +11,15 @@ func init() {
 	interaction.RegisterNode(&NodeCreateIdentityBegin{})
 }
 
-type EdgeCreateIdentityBegin struct {
-	AllowAnonymousUser bool
-}
+type EdgeCreateIdentityBegin struct{}
 
 func (e *EdgeCreateIdentityBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
-	return &NodeCreateIdentityBegin{AllowAnonymousUser: e.AllowAnonymousUser}, nil
+	return &NodeCreateIdentityBegin{}, nil
 }
 
 type NodeCreateIdentityBegin struct {
-	AllowAnonymousUser bool                   `json:"allow_anonymous_user"`
-	IdentityTypes      []authn.IdentityType   `json:"-"`
-	IdentityConfig     *config.IdentityConfig `json:"-"`
+	IdentityTypes  []authn.IdentityType   `json:"-"`
+	IdentityConfig *config.IdentityConfig `json:"-"`
 }
 
 func (n *NodeCreateIdentityBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -41,14 +38,20 @@ func (n *NodeCreateIdentityBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 
 func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 	var edges []interaction.Edge
+
+	// The checking of enable is done is the edge itself.
+	// So we always add edges here.
+	edges = append(edges, &EdgeUseIdentityBiometric{
+		IsCreating: true,
+	})
+
 	for _, t := range n.IdentityTypes {
 		switch t {
 		case authn.IdentityTypeAnonymous:
-			if n.AllowAnonymousUser {
-				edges = append(edges, &EdgeUseIdentityAnonymous{
-					IsCreating: true,
-				})
-			}
+			break
+
+		case authn.IdentityTypeBiometric:
+			break
 
 		case authn.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
@@ -66,6 +69,10 @@ func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 			panic("interaction: unknown identity type: " + t)
 		}
 	}
+
+	// Adding EdgeIncompatibleInput to ensure graph won't end at this node
+	// even no identity is configured in config file.
+	edges = append(edges, &EdgeIncompatibleInput{})
 
 	return edges
 }

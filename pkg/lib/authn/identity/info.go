@@ -82,6 +82,7 @@ func (i *Info) ToModel() model.Identity {
 // If it is a Login ID identity, the original login ID value is returned.
 // If it is a OAuth identity, the email claim is returned.
 // If it is a anonymous identity, the kid is returned.
+// If it is a biometric identity, the kid is returned.
 func (i *Info) DisplayID() string {
 	switch i.Type {
 	case authn.IdentityTypeLoginID:
@@ -92,6 +93,9 @@ func (i *Info) DisplayID() string {
 		return displayID
 	case authn.IdentityTypeAnonymous:
 		displayID, _ := i.Claims[IdentityClaimAnonymousKeyID].(string)
+		return displayID
+	case authn.IdentityTypeBiometric:
+		displayID, _ := i.Claims[IdentityClaimBiometricKeyID].(string)
 		return displayID
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
@@ -122,6 +126,11 @@ func (i *Info) DisplayIDClaimName() (authn.ClaimName, bool) {
 			return authn.ClaimKeyID, true
 		}
 		return "", false
+	case authn.IdentityTypeBiometric:
+		if _, ok := i.Claims[IdentityClaimBiometricKeyID].(string); ok {
+			return authn.ClaimKeyID, true
+		}
+		return "", false
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
@@ -146,6 +155,8 @@ func (i *Info) StandardClaims() map[authn.ClaimName]string {
 			claims[authn.ClaimEmail] = email
 		}
 	case authn.IdentityTypeAnonymous:
+		break
+	case authn.IdentityTypeBiometric:
 		break
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
@@ -177,6 +188,8 @@ func (i *Info) PrimaryAuthenticatorTypes() []authn.AuthenticatorType {
 	case authn.IdentityTypeOAuth:
 		return nil
 	case authn.IdentityTypeAnonymous:
+		return nil
+	case authn.IdentityTypeBiometric:
 		return nil
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))

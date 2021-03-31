@@ -20,22 +20,6 @@ func cloneAuthenticator(info *authenticator.Info) *authenticator.Info {
 	return &newInfo
 }
 
-func filterAuthenticators(ais []*authenticator.Info, filters ...authenticator.Filter) (out []*authenticator.Info) {
-	for _, a := range ais {
-		keep := true
-		for _, f := range filters {
-			if !f.Keep(a) {
-				keep = false
-				break
-			}
-		}
-		if keep {
-			out = append(out, a)
-		}
-	}
-	return
-}
-
 type SendOOBCode struct {
 	Context              *interaction.Context
 	Stage                interaction.AuthenticationStage

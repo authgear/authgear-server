@@ -33,6 +33,15 @@ const (
 	IdentityClaimAnonymousKeyID string = "https://authgear.com/claims/anonymous/key_id"
 	// IdentityClaimAnonymousKey is a claim with a string value containing anonymous public key JWK.
 	IdentityClaimAnonymousKey string = "https://authgear.com/claims/anonymous/key"
+
+	// IdentityClaimBiometricKeyID is a claim with a string value containing biometric key ID.
+	IdentityClaimBiometricKeyID string = "https://authgear.com/claims/biometric/key_id"
+	// IdentityClaimBiometricKey is a claim with a string value containing biometric public key JWK.
+	IdentityClaimBiometricKey string = "https://authgear.com/claims/biometric/key"
+	// IdentityClaimBiometricDeviceInfo is a claim with a map value containing device info.
+	IdentityClaimBiometricDeviceInfo string = "https://authgear.com/claims/biometric/device_info"
+	// IdentityClaimBiometricFormattedDeviceInfo is a claim with a string value indicating formatted device info for display.
+	IdentityClaimBiometricFormattedDeviceInfo string = "https://authgear.com/claims/biometric/formatted_device_info"
 )
 
 const (

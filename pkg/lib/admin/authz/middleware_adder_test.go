@@ -47,9 +47,8 @@ func TestMiddleware(t *testing.T) {
 			So(err, ShouldBeNil)
 			_ = jwkKey.Set("kid", "mykey")
 
-			set := jwk.Set{
-				Keys: []jwk.Key{jwkKey},
-			}
+			set := jwk.NewSet()
+			_ = set.Add(jwkKey)
 
 			m := adminauthz.Middleware{
 				Logger: adminauthz.Logger{
@@ -88,9 +87,8 @@ func TestMiddleware(t *testing.T) {
 			So(err, ShouldBeNil)
 			_ = jwkKey.Set("kid", "mykey")
 
-			set := jwk.Set{
-				Keys: []jwk.Key{jwkKey},
-			}
+			set := jwk.NewSet()
+			_ = set.Add(jwkKey)
 
 			m := adminauthz.Middleware{
 				Logger: adminauthz.Logger{

@@ -40,14 +40,16 @@ func (n *NodeSelectIdentityBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 
 func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 	var edges []interaction.Edge
-	// Always provide anonymous edge: checking for enabled is done in use identity node
-	edges = append(edges, &EdgeUseIdentityAnonymous{
-		IsCreating: false,
-	})
+	// The checking of enable is done is the edge itself.
+	// So we always add edges here.
+	edges = append(edges, &EdgeUseIdentityAnonymous{})
+	edges = append(edges, &EdgeUseIdentityBiometric{})
 
 	for _, t := range n.IdentityTypes {
 		switch t {
 		case authn.IdentityTypeAnonymous:
+			break
+		case authn.IdentityTypeBiometric:
 			break
 		case authn.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
@@ -63,6 +65,10 @@ func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 			panic("interaction: unknown identity type: " + t)
 		}
 	}
+
+	// Adding EdgeIncompatibleInput to ensure graph won't end at this node
+	// even no identity is configured in config file.
+	edges = append(edges, &EdgeIncompatibleInput{})
 
 	return edges
 }

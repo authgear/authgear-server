@@ -21,6 +21,7 @@ export enum AuthenticatorType {
 
 export enum IdentityType {
   ANONYMOUS = "ANONYMOUS",
+  BIOMETRIC = "BIOMETRIC",
   LOGIN_ID = "LOGIN_ID",
   OAUTH = "OAUTH",
 }

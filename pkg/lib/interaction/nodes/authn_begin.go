@@ -66,7 +66,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 	switch n.Stage {
 	case interaction.AuthenticationStagePrimary:
 		preferred = n.AuthenticationConfig.PrimaryAuthenticators
-		availableAuthenticators = filterAuthenticators(
+		availableAuthenticators = authenticator.ApplyFilters(
 			n.Authenticators,
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
 		)
@@ -74,9 +74,10 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 
 	case interaction.AuthenticationStageSecondary:
 		preferred = n.AuthenticationConfig.SecondaryAuthenticators
-		availableAuthenticators = filterAuthenticators(
+		availableAuthenticators = authenticator.ApplyFilters(
 			n.Authenticators,
 			authenticator.KeepKind(authenticator.KindSecondary),
+			authenticator.KeepSecondaryAuthenticatorOfIdentity(n.Identity),
 		)
 
 		switch n.AuthenticationConfig.SecondaryAuthenticationMode {
@@ -102,7 +103,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		panic("interaction: unknown authentication stage: " + n.Stage)
 	}
 
-	passwords := filterAuthenticators(
+	passwords := authenticator.ApplyFilters(
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypePassword),
 	)
@@ -115,7 +116,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		},
 	)
 
-	totps := filterAuthenticators(
+	totps := authenticator.ApplyFilters(
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypeTOTP),
 	)
@@ -128,7 +129,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		},
 	)
 
-	emailoobs := filterAuthenticators(
+	emailoobs := authenticator.ApplyFilters(
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypeOOBEmail),
 	)
@@ -141,7 +142,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		},
 	)
 
-	smsoobs := filterAuthenticators(
+	smsoobs := authenticator.ApplyFilters(
 		availableAuthenticators,
 		authenticator.KeepType(authn.AuthenticatorTypeOOBSMS),
 	)

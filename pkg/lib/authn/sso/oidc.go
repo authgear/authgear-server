@@ -73,7 +73,7 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
 	return d.AuthorizationEndpoint + "?" + v.Encode()
 }
 
-func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (*jwk.Set, error) {
+func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) {
 	resp, err := client.Get(d.JWKSUri)
 	if resp != nil {
 		defer resp.Body.Close()
@@ -84,14 +84,14 @@ func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (*jwk.Set, error)
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	return jwk.Parse(resp.Body)
+	return jwk.ParseReader(resp.Body)
 }
 
 func (d *OIDCDiscoveryDocument) ExchangeCode(
 	client *http.Client,
 	clock clock.Clock,
 	code string,
-	jwks *jwk.Set,
+	jwks jwk.Set,
 	clientID string,
 	clientSecret string,
 	redirectURI string,
@@ -133,7 +133,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
 	}
 
-	err = jwt.Verify(
+	err = jwt.Validate(
 		payload,
 		jwt.WithClock(jwtClock{clock}),
 		jwt.WithAudience(clientID),
