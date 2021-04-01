@@ -46,7 +46,6 @@ import styles from "./LocalizationConfigurationScreen.module.scss";
 interface ConfigFormState {
   supportedLanguages: string[];
   fallbackLanguage: string;
-  darkThemeDisabled: boolean;
 }
 
 function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
@@ -56,7 +55,6 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
     supportedLanguages: config.localization?.supported_languages ?? [
       fallbackLanguage,
     ],
-    darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
   };
 }
 
@@ -79,11 +77,6 @@ function constructConfig(
       )
     ) {
       config.localization.supported_languages = currentState.supportedLanguages;
-    }
-
-    config.ui = config.ui ?? {};
-    if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
-      config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
     }
     clearEmptyObject(config);
   });
@@ -482,12 +475,10 @@ const LocalizationConfigurationScreen: React.FC = function LocalizationConfigura
       fallbackLanguage: config.state.fallbackLanguage,
       resources: resources.state.resources,
       selectedLanguage: selectedLanguage ?? config.state.fallbackLanguage,
-      darkThemeDisabled: config.state.darkThemeDisabled,
     }),
     [
       config.state.supportedLanguages,
       config.state.fallbackLanguage,
-      config.state.darkThemeDisabled,
       resources.state.resources,
       selectedLanguage,
     ]
@@ -505,7 +496,6 @@ const LocalizationConfigurationScreen: React.FC = function LocalizationConfigura
       config.setState(() => ({
         supportedLanguages: newState.supportedLanguages,
         fallbackLanguage: newState.fallbackLanguage,
-        darkThemeDisabled: newState.darkThemeDisabled,
       }));
       resources.setState(() => ({ resources: newState.resources }));
       setSelectedLanguage(newState.selectedLanguage);
