@@ -8,8 +8,6 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/api/event/blocking"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -61,16 +59,16 @@ func TestDispatchEvent(t *testing.T) {
 			user := model.User{
 				Meta: model.Meta{ID: "user-id"},
 			}
-			payload := &blocking.PreSignupBlockingEvent{
-				User: user,
+			payload := &MockBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
 
 			Convey("should be successful", func() {
-				deliverer.EXPECT().WillDeliverBlockingEvent(blocking.PreSignup).Return(true)
+				deliverer.EXPECT().WillDeliverBlockingEvent(MockBlockingEventType1).Return(true)
 				deliverer.EXPECT().DeliverBlockingEvent(
 					&event.Event{
 						ID:      "0000000000000001",
-						Type:    blocking.PreSignup,
+						Type:    MockBlockingEventType1,
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
@@ -88,7 +86,7 @@ func TestDispatchEvent(t *testing.T) {
 			})
 
 			Convey("should not generate before events that would not be delivered", func() {
-				deliverer.EXPECT().WillDeliverBlockingEvent(blocking.PreSignup).Return(false)
+				deliverer.EXPECT().WillDeliverBlockingEvent(MockBlockingEventType1).Return(false)
 
 				err := provider.DispatchEvent(payload)
 
@@ -108,11 +106,11 @@ func TestDispatchEvent(t *testing.T) {
 					},
 				)
 
-				deliverer.EXPECT().WillDeliverBlockingEvent(blocking.PreSignup).Return(true)
+				deliverer.EXPECT().WillDeliverBlockingEvent(MockBlockingEventType1).Return(true)
 				deliverer.EXPECT().DeliverBlockingEvent(
 					&event.Event{
 						ID:      "0000000000000001",
-						Type:    blocking.PreSignup,
+						Type:    MockBlockingEventType1,
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
@@ -129,7 +127,7 @@ func TestDispatchEvent(t *testing.T) {
 			})
 
 			Convey("should return delivery error", func() {
-				deliverer.EXPECT().WillDeliverBlockingEvent(blocking.PreSignup).Return(true)
+				deliverer.EXPECT().WillDeliverBlockingEvent(MockBlockingEventType1).Return(true)
 				deliverer.EXPECT().DeliverBlockingEvent(gomock.Any()).
 					Return(fmt.Errorf("failed to deliver"))
 
@@ -143,8 +141,8 @@ func TestDispatchEvent(t *testing.T) {
 			user := model.User{
 				Meta: model.Meta{ID: "user-id"},
 			}
-			payload := &nonblocking.UserCreatedUserSignupEvent{
-				User: user,
+			payload := &MockNonBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
 
 			Convey("should be successful", func() {
@@ -159,10 +157,10 @@ func TestDispatchEvent(t *testing.T) {
 
 		Convey("when transaction is about to commit", func() {
 			Convey("should generate & persist events", func() {
-				payload := &nonblocking.UserCreatedUserSignupEvent{
-					User: model.User{
+				payload := &MockNonBlockingEvent1{
+					MockUserEventBase: MockUserEventBase{model.User{
 						Meta: model.Meta{ID: "user-id"},
-					},
+					}},
 				}
 				provider.persistentEventPayloads = []event.Payload{
 					payload,
@@ -191,13 +189,13 @@ func TestDispatchEvent(t *testing.T) {
 
 			Convey("should not generate events that would not be delivered", func() {
 				provider.persistentEventPayloads = []event.Payload{
-					&nonblocking.UserCreatedUserSignupEvent{
-						User: model.User{
+					&MockNonBlockingEvent1{
+						MockUserEventBase: MockUserEventBase{model.User{
 							Meta: model.Meta{ID: "user-id"},
-						},
+						}},
 					},
 				}
-				deliverer.EXPECT().WillDeliverNonBlockingEvent(nonblocking.UserCreatedUserSignup).Return(false)
+				deliverer.EXPECT().WillDeliverNonBlockingEvent(MockNonBlockingEventType1).Return(false)
 				store.EXPECT().AddEvents([]*event.Event{})
 
 				err := provider.WillCommitTx()
@@ -211,14 +209,14 @@ func TestDispatchEvent(t *testing.T) {
 			user := model.User{
 				Meta: model.Meta{ID: "user-id"},
 			}
-			payload := &blocking.PreSignupBlockingEvent{
-				User: user,
+			payload := &MockBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
-			payload2 := &blocking.PreSignupBlockingEvent{
-				User: user,
+			payload2 := &MockBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
-			nonBlockingPayload := &nonblocking.UserCreatedUserSignupEvent{
-				User: user,
+			nonBlockingPayload := &MockNonBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
 			webhookErr := WebHookDisallowed.New("")
 

@@ -9,8 +9,6 @@ import (
 	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/api/event/blocking"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 
@@ -52,29 +50,29 @@ func TestDeliverer(t *testing.T) {
 			Convey("should return correct value for blocking events", func() {
 				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 				}
 
-				So(deliverer.WillDeliverBlockingEvent(blocking.PreSignup), ShouldBeTrue)
-				So(deliverer.WillDeliverBlockingEvent(blocking.AdminAPICreateUser), ShouldBeFalse)
+				So(deliverer.WillDeliverBlockingEvent(MockBlockingEventType1), ShouldBeTrue)
+				So(deliverer.WillDeliverBlockingEvent(MockBlockingEventType2), ShouldBeFalse)
 			})
 
 			Convey("should return correct value for non-blocking events", func() {
 				cfg.NonBlockingHandlers = []config.NonBlockingHandlersConfig{
 					{
 						Events: []string{
-							string(nonblocking.UserCreatedAdminAPICreateUser),
-							string(nonblocking.IdentityCreatedAdminAPIAddIdentity),
+							string(MockNonBlockingEventType1),
+							string(MockNonBlockingEventType2),
 						},
 						URL: "https://example.com/a",
 					},
 				}
 
-				So(deliverer.WillDeliverNonBlockingEvent(nonblocking.UserCreatedAdminAPICreateUser), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(nonblocking.IdentityCreatedAdminAPIAddIdentity), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(nonblocking.UserCreatedUserSignup), ShouldBeFalse)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeFalse)
 			})
 
 			Convey("should return true for all non-blocking events", func() {
@@ -85,27 +83,27 @@ func TestDeliverer(t *testing.T) {
 					},
 				}
 
-				So(deliverer.WillDeliverNonBlockingEvent(nonblocking.UserCreatedAdminAPICreateUser), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(nonblocking.IdentityCreatedAdminAPIAddIdentity), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(nonblocking.UserCreatedUserSignup), ShouldBeTrue)
-				So(deliverer.WillDeliverNonBlockingEvent(nonblocking.UserPromoted), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType4), ShouldBeTrue)
 			})
 		})
 
 		Convey("delivering blocking events", func() {
 			e := event.Event{
 				ID:   "event-id",
-				Type: blocking.PreSignup,
+				Type: MockBlockingEventType1,
 			}
 
 			Convey("should be successful", func() {
 				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(blocking.AdminAPICreateUser),
+						Event: string(MockBlockingEventType2),
 						URL:   "https://example.com/b",
 					},
 				}
@@ -129,11 +127,11 @@ func TestDeliverer(t *testing.T) {
 			Convey("should disallow operation", func() {
 				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/b",
 					},
 				}
@@ -168,7 +166,7 @@ func TestDeliverer(t *testing.T) {
 			Convey("should reject invalid status code", func() {
 				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 				}
@@ -188,19 +186,19 @@ func TestDeliverer(t *testing.T) {
 			Convey("should time out long requests", func() {
 				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(blocking.PreSignup),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 				}
@@ -230,17 +228,17 @@ func TestDeliverer(t *testing.T) {
 			e := event.Event{
 				ID:            "event-id",
 				IsNonBlocking: true,
-				Type:          nonblocking.UserCreatedUserSignup,
+				Type:          MockNonBlockingEventType3,
 			}
 
 			Convey("should be successful", func() {
 				cfg.NonBlockingHandlers = []config.NonBlockingHandlersConfig{
 					{
-						Events: []string{string(nonblocking.UserCreatedUserSignup)},
+						Events: []string{string(MockNonBlockingEventType3)},
 						URL:    "https://example.com/a",
 					},
 					{
-						Events: []string{string(nonblocking.UserCreatedAdminAPICreateUser)},
+						Events: []string{string(MockNonBlockingEventType1)},
 						URL:    "https://example.com/b",
 					},
 				}
