@@ -80,11 +80,13 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 					*user,
 					n.Identity.ToModel(),
 					loginIDType,
+					n.IsAdminAPI,
 				)
 			case authn.IdentityTypeOAuth:
 				e = &nonblocking.IdentityOAuthConnectedEvent{
 					User:     *user,
 					Identity: n.Identity.ToModel(),
+					AdminAPI: n.IsAdminAPI,
 				}
 			}
 

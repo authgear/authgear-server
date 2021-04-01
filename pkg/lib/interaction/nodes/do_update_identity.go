@@ -23,12 +23,14 @@ func (e *EdgeDoUpdateIdentity) Instantiate(ctx *interaction.Context, graph *inte
 	return &NodeDoUpdateIdentity{
 		IdentityBeforeUpdate: e.IdentityBeforeUpdate,
 		IdentityAfterUpdate:  e.IdentityAfterUpdate,
+		IsAdminAPI:           interaction.IsAdminAPI(rawInput),
 	}, nil
 }
 
 type NodeDoUpdateIdentity struct {
 	IdentityBeforeUpdate *identity.Info `json:"identity_before_update"`
 	IdentityAfterUpdate  *identity.Info `json:"identity_after_update"`
+	IsAdminAPI           bool           `json:"is_admin_api"`
 }
 
 func (n *NodeDoUpdateIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -66,6 +68,7 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 					n.IdentityBeforeUpdate.ToModel(),
 					n.IdentityAfterUpdate.ToModel(),
 					loginIDType,
+					n.IsAdminAPI,
 				)
 			}
 

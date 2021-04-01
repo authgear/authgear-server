@@ -12,6 +12,7 @@ const (
 type UserPreCreateBlockingEvent struct {
 	User       model.User       `json:"user"`
 	Identities []model.Identity `json:"identities"`
+	AdminAPI   bool             `json:"-"`
 }
 
 func (e *UserPreCreateBlockingEvent) BlockingEventType() event.Type {
@@ -20,6 +21,10 @@ func (e *UserPreCreateBlockingEvent) BlockingEventType() event.Type {
 
 func (e *UserPreCreateBlockingEvent) UserID() string {
 	return e.User.ID
+}
+
+func (e *UserPreCreateBlockingEvent) IsAdminAPI() bool {
+	return e.AdminAPI
 }
 
 var _ event.BlockingPayload = &UserPreCreateBlockingEvent{}

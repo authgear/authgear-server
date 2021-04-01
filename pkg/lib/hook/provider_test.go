@@ -72,9 +72,10 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-							Language:  fallbackLanguage,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(nil)
@@ -114,9 +115,10 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    &userID,
-							Language:  fallbackLanguage,
+							Timestamp:   1136214245,
+							UserID:      &userID,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(nil)
@@ -173,9 +175,10 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-							Language:  fallbackLanguage,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 						IsNonBlocking: true,
 					},
@@ -229,9 +232,10 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-							Language:  fallbackLanguage,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(nil)
@@ -245,9 +249,10 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     2,
 						Payload: nonBlockingPayload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-							Language:  fallbackLanguage,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 						IsNonBlocking: true,
 					},
@@ -274,9 +279,10 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-							Language:  fallbackLanguage,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(webhookErr)
@@ -300,9 +306,10 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-							Language:  fallbackLanguage,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(nil)
@@ -316,9 +323,10 @@ func TestDispatchEvent(t *testing.T) {
 						Seq:     2,
 						Payload: payload2,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-							Language:  fallbackLanguage,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(webhookErr)

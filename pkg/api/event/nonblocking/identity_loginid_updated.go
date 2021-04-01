@@ -16,6 +16,7 @@ type IdentityLoginIDUpdatedEvent struct {
 	NewIdentity model.Identity `json:"new_identity"`
 	OldIdentity model.Identity `json:"old_identity"`
 	LoginIDType string         `json:"-"`
+	AdminAPI    bool           `json:"-"`
 }
 
 func NewIdentityLoginIDUpdatedEvent(
@@ -23,6 +24,7 @@ func NewIdentityLoginIDUpdatedEvent(
 	newIdentity model.Identity,
 	oldIdentity model.Identity,
 	loginIDType string,
+	adminAPI bool,
 ) *IdentityLoginIDUpdatedEvent {
 	if checkIdentityEventSupportLoginIDType(loginIDType) {
 		return &IdentityLoginIDUpdatedEvent{
@@ -30,6 +32,7 @@ func NewIdentityLoginIDUpdatedEvent(
 			NewIdentity: newIdentity,
 			OldIdentity: oldIdentity,
 			LoginIDType: loginIDType,
+			AdminAPI:    adminAPI,
 		}
 	}
 	return nil
@@ -41,6 +44,10 @@ func (e *IdentityLoginIDUpdatedEvent) NonBlockingEventType() event.Type {
 
 func (e *IdentityLoginIDUpdatedEvent) UserID() string {
 	return e.User.ID
+}
+
+func (e *IdentityLoginIDUpdatedEvent) IsAdminAPI() bool {
+	return e.AdminAPI
 }
 
 var _ event.NonBlockingPayload = &IdentityLoginIDUpdatedEvent{}

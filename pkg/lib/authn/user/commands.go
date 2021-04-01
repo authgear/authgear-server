@@ -44,10 +44,12 @@ func (c *Commands) AfterCreate(
 		&blocking.UserPreCreateBlockingEvent{
 			User:       *userModel,
 			Identities: identityModels,
+			AdminAPI:   isAdminAPI,
 		},
 		&nonblocking.UserCreatedEvent{
 			User:       *userModel,
 			Identities: identityModels,
+			AdminAPI:   isAdminAPI,
 		},
 	}
 

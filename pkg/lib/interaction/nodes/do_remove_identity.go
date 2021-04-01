@@ -75,11 +75,13 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 					*user,
 					n.Identity.ToModel(),
 					loginIDType,
+					n.IsAdminAPI,
 				)
 			case authn.IdentityTypeOAuth:
 				e = &nonblocking.IdentityOAuthDisconnectedEvent{
 					User:     *user,
 					Identity: n.Identity.ToModel(),
+					AdminAPI: n.IsAdminAPI,
 				}
 			}
 

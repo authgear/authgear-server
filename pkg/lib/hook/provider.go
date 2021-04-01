@@ -79,7 +79,7 @@ func (provider *Provider) DispatchEvent(payload event.Payload) (err error) {
 				err = fmt.Errorf("failed to dispatch event: %w", err)
 				return
 			}
-			event := event.NewBlockingEvent(seq, typedPayload, provider.makeContext())
+			event := event.NewBlockingEvent(seq, typedPayload, provider.makeContext(typedPayload.IsAdminAPI()))
 			err = provider.Deliverer.DeliverBlockingEvent(event)
 			if err != nil {
 				if !apierrors.IsKind(err, WebHookDisallowed) {
@@ -119,7 +119,7 @@ func (provider *Provider) WillCommitTx() error {
 					err = fmt.Errorf("failed to persist event: %w", err)
 					return err
 				}
-				ev = event.NewNonBlockingEvent(seq, typedPayload, provider.makeContext())
+				ev = event.NewNonBlockingEvent(seq, typedPayload, provider.makeContext(typedPayload.IsAdminAPI()))
 			}
 		default:
 			panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
@@ -156,7 +156,7 @@ func (provider *Provider) DidCommitTx() {
 	}
 }
 
-func (provider *Provider) makeContext() event.Context {
+func (provider *Provider) makeContext(isAdminAPI bool) event.Context {
 	userID := session.GetUserID(provider.Context)
 	preferredLanguageTags := intl.GetPreferredLanguageTags(provider.Context)
 	resolvedLanguageIdx, _ := intl.Resolve(
@@ -170,10 +170,16 @@ func (provider *Provider) makeContext() event.Context {
 		resolvedLanguage = provider.Localization.SupportedLanguages[resolvedLanguageIdx]
 	}
 
+	triggeredBy := event.TriggeredByTypeUser
+	if isAdminAPI {
+		triggeredBy = event.TriggeredByTypeAdminAPI
+	}
+
 	return event.Context{
 		Timestamp:          provider.Clock.NowUTC().Unix(),
 		UserID:             userID,
 		PreferredLanguages: preferredLanguageTags,
 		Language:           resolvedLanguage,
+		TriggeredBy:        triggeredBy,
 	}
 }

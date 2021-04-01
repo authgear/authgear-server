@@ -23,6 +23,10 @@ func (e *MockUserEventBase) UserID() string {
 	return e.User.ID
 }
 
+func (e *MockUserEventBase) IsAdminAPI() bool {
+	return false
+}
+
 type MockNonBlockingEvent1 struct {
 	MockUserEventBase
 }

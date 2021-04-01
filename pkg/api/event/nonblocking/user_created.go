@@ -12,6 +12,7 @@ const (
 type UserCreatedEvent struct {
 	User       model.User       `json:"user"`
 	Identities []model.Identity `json:"identities"`
+	AdminAPI   bool             `json:"-"`
 }
 
 func (e *UserCreatedEvent) NonBlockingEventType() event.Type {
@@ -20,6 +21,10 @@ func (e *UserCreatedEvent) NonBlockingEventType() event.Type {
 
 func (e *UserCreatedEvent) UserID() string {
 	return e.User.ID
+}
+
+func (e *UserCreatedEvent) IsAdminAPI() bool {
+	return e.AdminAPI
 }
 
 var _ event.NonBlockingPayload = &UserCreatedEvent{}

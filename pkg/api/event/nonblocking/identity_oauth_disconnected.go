@@ -12,6 +12,7 @@ const (
 type IdentityOAuthDisconnectedEvent struct {
 	User     model.User     `json:"user"`
 	Identity model.Identity `json:"identity"`
+	AdminAPI bool           `json:"-"`
 }
 
 func (e *IdentityOAuthDisconnectedEvent) NonBlockingEventType() event.Type {
@@ -20,6 +21,10 @@ func (e *IdentityOAuthDisconnectedEvent) NonBlockingEventType() event.Type {
 
 func (e *IdentityOAuthDisconnectedEvent) UserID() string {
 	return e.User.ID
+}
+
+func (e *IdentityOAuthDisconnectedEvent) IsAdminAPI() bool {
+	return e.AdminAPI
 }
 
 var _ event.NonBlockingPayload = &IdentityOAuthDisconnectedEvent{}

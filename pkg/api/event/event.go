@@ -6,6 +6,7 @@ type Type string
 
 type Payload interface {
 	UserID() string
+	IsAdminAPI() bool
 }
 
 type BlockingPayload interface {
