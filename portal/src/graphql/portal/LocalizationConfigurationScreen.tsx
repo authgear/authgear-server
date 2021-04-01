@@ -383,7 +383,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           <FormattedMessage id="LocalizationConfigurationScreen.title" />
         </ScreenTitle>
         <ManageLanguageWidget
-          selectOnly={false}
           supportedLanguages={supportedLanguages}
           selectedLanguage={state.selectedLanguage}
           onChangeSelectedLanguage={setSelectedLanguage}
