@@ -97,7 +97,7 @@ export const RESOURCE_FAVICON: ResourceDefinition = {
   optional: true,
 };
 
-export const ALL_TEMPLATES = [
+export const ALL_LANGUAGES_TEMPLATES = [
   RESOURCE_TRANSLATION_JSON,
 
   RESOURCE_SETUP_PRIMARY_OOB_EMAIL_HTML,

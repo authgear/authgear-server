@@ -17,7 +17,7 @@ import EditTemplatesWidget, {
 } from "./EditTemplatesWidget";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  ALL_TEMPLATES,
+  ALL_LANGUAGES_TEMPLATES,
   renderPath,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
@@ -169,7 +169,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           (l) => !prev.supportedLanguages.includes(l)
         );
         for (const language of addedLanguages) {
-          for (const def of ALL_TEMPLATES) {
+          for (const def of ALL_LANGUAGES_TEMPLATES) {
             const defaultResource =
               prev.resources[
                 specifierId({ def, locale: prev.fallbackLanguage })
@@ -451,7 +451,7 @@ const LocalizationConfigurationScreen: React.FC = function LocalizationConfigura
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of initialSupportedLanguages) {
-      for (const def of ALL_TEMPLATES) {
+      for (const def of ALL_LANGUAGES_TEMPLATES) {
         specifiers.push({
           def,
           locale,

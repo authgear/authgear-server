@@ -21,7 +21,7 @@ import {
 import ImageFilePicker from "../../ImageFilePicker";
 import { PortalAPIAppConfig } from "../../types";
 import {
-  ALL_TEMPLATES,
+  ALL_LANGUAGES_TEMPLATES,
   renderPath,
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_FAVICON,
@@ -69,8 +69,9 @@ interface ConfigFormState {
 
 const NOOP = () => {};
 
-const RESOURCES_ON_THIS_SCREEN = [
-  RESOURCE_TRANSLATION_JSON,
+const ALL_LANGUAGES_TEMPLATES_AND_RESOURCES_ON_THIS_SCREEN = [
+  ...ALL_LANGUAGES_TEMPLATES,
+
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
   RESOURCE_APP_LOGO_DARK,
@@ -220,7 +221,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           (l) => !prev.supportedLanguages.includes(l)
         );
         for (const language of addedLanguages) {
-          for (const def of ALL_TEMPLATES) {
+          for (const def of ALL_LANGUAGES_TEMPLATES) {
             const defaultResource =
               prev.resources[
                 specifierId({ def, locale: prev.fallbackLanguage })
@@ -757,7 +758,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of initialSupportedLanguages) {
-      for (const def of RESOURCES_ON_THIS_SCREEN) {
+      for (const def of ALL_LANGUAGES_TEMPLATES_AND_RESOURCES_ON_THIS_SCREEN) {
         specifiers.push({
           def,
           locale,
