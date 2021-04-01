@@ -63,7 +63,7 @@ type OAuthClientConfig struct {
 	RefreshTokenIdleTimeoutEnabled *bool           `json:"refresh_token_idle_timeout_enabled,omitempty"`
 	RefreshTokenIdleTimeout        DurationSeconds `json:"refresh_token_idle_timeout_seconds,omitempty"`
 	IssueJWTAccessToken            bool            `json:"issue_jwt_access_token,omitempty"`
-	IsFirstParty                   bool            `json:"is_first_party,omitempty"`
+	IsFirstParty                   *bool           `json:"is_first_party,omitempty"`
 }
 
 func (c *OAuthClientConfig) SetDefaults() {
@@ -85,5 +85,9 @@ func (c *OAuthClientConfig) SetDefaults() {
 	}
 	if c.RefreshTokenIdleTimeout == 0 {
 		c.RefreshTokenIdleTimeout = DefaultRefreshTokenIdleTimeout
+	}
+	if c.IsFirstParty == nil {
+		b := true
+		c.IsFirstParty = &b
 	}
 }
