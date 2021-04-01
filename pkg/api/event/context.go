@@ -16,5 +16,5 @@ type Context struct {
 	Timestamp          int64    `json:"timestamp"`
 	UserID             *string  `json:"user_id"`
 	PreferredLanguages []string `json:"preferred_languages"`
-	ResolvedLanguage   string   `json:"resolved_language"`
+	Language           string   `json:"language"`
 }

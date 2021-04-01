@@ -20683,13 +20683,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AsyncHTTP: asyncHTTPClient,
 	}
 	hookProvider := &hook.Provider{
-		Context:   context,
-		Logger:    hookLogger,
-		Database:  handle,
-		Clock:     clockClock,
-		Users:     rawProvider,
-		Store:     hookStore,
-		Deliverer: deliverer,
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
 	}
 	commands := &user.Commands{
 		Raw:          rawCommands,

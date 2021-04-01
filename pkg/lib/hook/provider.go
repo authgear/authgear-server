@@ -174,6 +174,6 @@ func (provider *Provider) makeContext() event.Context {
 		Timestamp:          provider.Clock.NowUTC().Unix(),
 		UserID:             userID,
 		PreferredLanguages: preferredLanguageTags,
-		ResolvedLanguage:   resolvedLanguage,
+		Language:           resolvedLanguage,
 	}
 }
