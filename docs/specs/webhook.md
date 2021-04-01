@@ -8,19 +8,11 @@ Webhook is the mechanism to notify external services about events.
     * [Webhook Event Context](#webhook-event-context)
   * [Webhook Delivery](#webhook-delivery)
   * [Webhook Event Lifecycle](#webhook-event-lifecycle)
-  * [Webhook BEFORE Events](#webhook-before-events)
-  * [Webhook AFTER Events](#webhook-after-events)
-  * [Webhook Mutations](#webhook-mutations)
+  * [Webhook Blocking Events](#webhook-blocking-events)
+  * [Webhook Non-blocking Events](#webhook-non-blocking-events)
   * [Webhook Event List](#webhook-event-list)
-    * [before_user_create, after_user_create](#before_user_create-after_user_create)
-    * [before_identity_create, after_identity_create](#before_identity_create-after_identity_create)
-    * [before_identity_update, after_identity_update](#before_identity_update-after_identity_update)
-    * [before_identity_delete, after_identity_delete](#before_identity_delete-after_identity_delete)
-    * [before_session_create, after_session_create](#before_session_create-after_session_create)
-    * [before_session_delete, after_session_delete](#before_session_delete-after_session_delete)
-    * [before_user_update, after_user_update](#before_user_update-after_user_update)
-    * [before_password_update, after_password_update](#before_password_update-after_password_update)
-    * [user_sync](#user_sync)
+    * [Blocking Events](#blocking-events)
+    * [Non-blocking Events](#non-blocking-events)
   * [Webhook Event Management](#webhook-event-management)
     * [Webhook Event Alerts](#webhook-event-alerts)
     * [Webhook Past Events](#webhook-past-events)
@@ -32,23 +24,16 @@ Webhook is the mechanism to notify external services about events.
     * [Recursive Webhooks](#recursive-webhooks)
     * [Webhook Delivery Reliability](#webhook-delivery-reliability)
     * [Webhook Eventual Consistency](#webhook-eventual-consistency)
-    * [Webhook Event Timing](#webhook-event-timing)
     * [CAP Theorem](#cap-theorem)
-  * [Webhook Use Cases](#webhook-use-cases)
-    * [Synchronize metadata to self-managed profile](#synchronize-metadata-to-self-managed-profile)
-
+  * [authgear.yaml](#authgear.yaml)
 ## Webhook Events
 
 Webhook events are triggered when some mutating operation is performed.
 
-Each operation will trigger two events: BEFORE and AFTER.
+Each operation will trigger two events: Blocking and Non-blocking.
 
-- BEFORE event is triggered before the operation is performed. The operation can be aborted by webhook handler.
-- AFTER event is triggered after the operation is performed.
-
-Additionally, a `user_sync` event is triggered along with the main event.
-
-BEFORE and AFTER events have the same payload.
+- Blocking event is triggered before the operation is performed. The operation can be aborted by webhook handler.
+- Non-blocking event is triggered after the operation is performed.
 
 ## Webhook Event Shape
 
@@ -58,7 +43,7 @@ All webhook events have the following shape:
 {
   "id": "0E1E9537-DF4F-4AF6-8B48-3DB4574D4F24",
   "seq": 435,
-  "type": "after_user_create",
+  "type": "user.created",
   "payload": { /* ... */ },
   "context": { /* ... */ }
 }
@@ -81,6 +66,9 @@ All fields are guaranteed that only backward-compatible changes would be made.
 
 - `timestamp`: signed 64-bit UNIX timestamp of when this event is generated. Retried deliveries do not affect this field.
 - `user_id`: The ID of the user associated with the event. It may be absent. For example, the user has not authenticated yet.
+- `preferred_languages`: User preferred languages which are inferred from the request. Return values of `ui_locales` query if it is provided in auth ui, otherwise return languages in `Accept-Language` request header.
+- `language`: User locale which is derived based on user's preferred languages and app's languages config.
+- `triggered_by`: Triggered by indicates who triggered the events, values can be `user` or `admin_api`. `user` means it is triggered by user in auth ui. `admin_api` means it is triggered by admin api or admin portal.
 
 ## Webhook Delivery
 
@@ -88,11 +76,9 @@ The webhook event is POSTed to the webhook handler endpoint.
 
 The webhook handler endpoint must be an absolute URL.
 
-Each event can have many handlers. The order of delivery is unspecified for AFTER event. BEFORE events are delivered in the source order as in the configuration.
+Each event can have many handlers. The order of delivery is unspecified for non-blocking event. Blocking events are delivered in the source order as in the configuration.
 
-BEFORE events are always delivered before AFTER events.
-
-Webhook handler should be idempotent, since AFTER events may be delivered multiple times due to retries.
+Webhook handler should be idempotent, since non-blocking events may be delivered multiple times due to retries.
 
 Webhook handler must return a status code within the 2xx range. Other status code is considered as a failed delivery.
 
@@ -100,15 +86,14 @@ Webhook handler must return a status code within the 2xx range. Other status cod
 
 1. Begin transaction
 1. Perform operation
-1. Deliver BEFORE events to webhook handlers
+1. Deliver blocking events to webhook handlers
 1. If failed, rollback the transaction.
-1. If mutation requested, perform mutation.
 1. Commit transaction
-1. Deliver AFTER events to webhook handlers
+1. Deliver non-blocking events to webhook handlers
 
-## Webhook BEFORE Events
+## Webhook Blocking Events
 
-BEFORE events are delivered to webhook handlers synchronously, right before committing changes to the database.
+Blocking events are delivered to webhook handlers synchronously, right before committing changes to the database.
 
 Webhook handler must respond with a JSON body to indicate whether the operation should continue.
 
@@ -120,15 +105,13 @@ To let the operation to proceed, respond with `is_allowed` being set to `true`.
 }
 ```
 
-To fail the operation, respond with `is_allowed` being set to `false` and a non-empty `reason`. Additional information can be included in `data`.
+To fail the operation, respond with `is_allowed` being set to `false` and a non-empty `title` and `reason`.
 
 ```json
 {
   "is_allowed": false,
-  "reason": "any string",
-  "data": {
-    "foobar": 42
-  }
+  "title": "any title",
+  "reason": "any string"
 }
 ```
 
@@ -142,10 +125,8 @@ If any handler fails the operation, the operation is failed. The operation fails
     "info": {
       "reasons": [
         {
-          "reason": "any string",
-          "data": {
-            "foobar": 42
-          }
+          "title": "any title",
+          "reason": "any string"
         }
       ]
     }
@@ -153,68 +134,54 @@ If any handler fails the operation, the operation is failed. The operation fails
 }
 ```
 
-BEFORE events webhook handlers can request mutations, see [Webhook Mutations](#webhook-mutations) for details.
+The time spent in a blocking event delivery must not exceed 5 seconds, otherwise it would be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as a failed delivery. Both timeouts are configurable.
 
-The time spent in a BEFORE event delivery must not exceed 5 seconds, otherwise it would be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as a failed delivery. Both timeouts are configurable.
+Blocking events are not persisted, and their failed deliveries are not retried.
 
-BEFORE events are not persisted, and their failed deliveries are not retried.
+## Webhook Non-blocking Events
 
-A failed operation does not trigger AFTER events.
+Non-blocking events are delivered to webhook handlers asynchronously after the operation is performed (i.e. committed into the database).
 
-## Webhook AFTER Events
+The time spent in an non-blocking event delivery must not exceed 60 seconds, otherwise it would be considered as a failed delivery.
 
-AFTER events are delivered to webhook handlers asynchronously after the operation is performed (i.e. committed into the database).
+The response body of non-blocking event webhook handler is ignored.
 
-The time spent in an AFTER event delivery must not exceed 60 seconds, otherwise it would be considered as a failed delivery.
+### Future works of non-blocking events
 
-All AFTER events with registered webhook handlers are persisted into the database, with minimum retention period of 30 days.
-
-The response body of AFTER event webhook handler is ignored.
+All non-blocking events with registered webhook handlers are persisted into the database, with minimum retention period of 30 days.
 
 If any delivery failed, all deliveries will be retried after some time, regardless of whether some deliveries may have succeeded. The retry is performed with a variant of exponential back-off algorithm. If `Retry-After:` HTTP header is present in the response, the delivery will not be retried before the specific time.
 
 If the delivery keeps on failing after 3 days from the time of first attempted delivery, the event will be marked as permanently failed and will not be retried automatically.
 
-## Webhook Mutations
-
-BEFORE event webhook handler can request mutation on some fields before committing to the database.
-
-Webhook handler cannot request mutation if the operation is failed by the handler.
-
-Webhook handler request mutation in its response. For example,
-
-```json
-{
-  "is_allowed": true,
-  "mutations": {
-    "metadata": {
-      "foobar": 42
-    }
-  }
-}
-```
-
-- If a field is absent, no mutation would be performed for that field.
-- If a field is present, the field would be set to the provided value.
-
-The following fields can be mutated:
-
-- `metadata`
-
-If mutations failed, the operation will be failed.
-If the operation failed, the mutations are rolled back and have no effects.
-
-Mutations do not generate additional events.
-
-The mutated values are propagated along the handler chain.
-
-The developer is responsible for correctly ordering the webhook handlers. For example, in most cases, the developer should order mutating handlers (e.g. populating default values) before non-mutating handlers (e.g. validating field values).
 
 ## Webhook Event List
 
-### before_user_create, after_user_create
+### Blocking Events
 
-When a new user is being created.
+- [user.pre_create](#userpre_create)
+
+### Non-blocking Events
+
+- [user.created](#usercreated)
+- [user.authenticated](#userauthenticated)
+- [user.anonymous.promoted](#useranonymouspromoted)
+- [identity.email.added](#identityemailadded)
+- [identity.email.removed](#identityemailremoved)
+- [identity.email.updated](#identityemailupdated)
+- [identity.phone.added](#identityphoneadded)
+- [identity.phone.removed](#identityphoneremoved)
+- [identity.phone.updated](#identityphoneupdated)
+- [identity.username.added](#identityusernameadded)
+- [identity.username.removed](#identityusernameremoved)
+- [identity.username.updated](#identityusernameupdated)
+- [identity.oauth.connected](#identityoauthconnected)
+- [identity.oauth.disconnected](#identityoauthdisconnected)
+
+### user.pre_create
+
+Occurs right before the user creation. User can be created by user signup, user signup as anonymous user, admin api or admin portal create an user.
+Operation can be aborted by providing specific response in your webhook, details see [Webhook Blocking Events](#webhook-blocking-events).
 
 ```json5
 {
@@ -225,9 +192,49 @@ When a new user is being created.
 }
 ```
 
-### before_identity_create, after_identity_create
+### user.created
 
-When a new identity is being created for an existing user. So it does not trigger together with `before_user_create` and `after_user_create`.
+Occurs after a new user is created. User can be created by user signup, user signup as anonymous user, admin api or admin portal create an user.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identities": [ { /* ... */ } ]
+  }
+}
+```
+
+### user.authenticated
+
+Occurs after user logged in.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "session": { /* ... */ }
+  }
+}
+```
+
+### user.anonymous.promoted
+
+Occurs whenever an anonymous user is promoted to normal user.
+
+```json5
+{
+  "payload": {
+    "anonymous_user": { /* ... */ },
+    "user": { /* ... */ },
+    "identities": [{ /* ... */ }]
+  }
+}
+```
+
+### identity.email.added
+
+Occurs when a new email is added to existing user. Email can be added by user in setting page, added by admin through admin api or portal.
 
 ```json5
 {
@@ -238,9 +245,24 @@ When a new identity is being created for an existing user. So it does not trigge
 }
 ```
 
-### before_identity_update, after_identity_update
 
-When an identity is being updated.
+### identity.email.removed
+
+Occurs when email is removed from existing user. Email can be removed by user in setting page, removed by admin through admin api or portal.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+
+### identity.email.updated
+
+Occurs when email is updated. Email can be updated by user in setting page.
 
 ```json5
 {
@@ -252,9 +274,9 @@ When an identity is being updated.
 }
 ```
 
-### before_identity_delete, after_identity_delete
+### identity.phone.added
 
-When an identity is being deleted from an existing user.
+Occurs when a new phone number is added to existing user. Phone number can be added by user in setting page, added by admin through admin api or portal.
 
 ```json5
 {
@@ -265,98 +287,107 @@ When an identity is being deleted from an existing user.
 }
 ```
 
-### before_session_create, after_session_create
 
-When a session is being created for a new user or an existing user.
+### identity.phone.removed
+
+Occurs when phone number is removed from existing user. Phone number can be removed by user in setting page, removed by admin through admin api or portal.
 
 ```json5
 {
   "payload": {
-    "reason": "signup",
     "user": { /* ... */ },
-    "identity": { /* ... */ },
-    "session": { /* ... */ }
+    "identity": { /* ... */ }
   }
 }
 ```
 
-- `reason`: The reason for the creation of the session, can be `signup` or `login`.
 
-### before_session_delete, after_session_delete
+### identity.phone.updated
 
-When a session is being deleted from an existing user, e.g. logging out.
+Occurs when phone number is updated. Phone number can be updated by user in setting page.
+
 
 ```json5
 {
   "payload": {
-    "reason": "logout",
     "user": { /* ... */ },
-    "session": { /* ... */ }
+    "old_identity": { /* ... */ },
+    "new_identity": { /* ... */ }
   }
 }
 ```
 
-- `reason`: The reason for the deletion of the session, can be `logout`.
+### identity.username.added
 
-### before_user_update, after_user_update
-
-When any user attributes are being updated for an existing user.
+Occurs when a new username is added to existing user. Username can be added by user in setting page, added by admin through admin api or portal.
 
 ```json5
 {
   "payload": {
-    "reason": "administrative",
-    "metadata": { /* ... */ },
-    "user": { /* ... */ }
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
   }
 }
 ```
 
-- `reason`: The reason for the update, can be `update_metadata` and `administrative`.
-- `metadata`: The new metadata. Absent if not changed.
-- `user`: The snapshot of the user before the operation.
 
-### before_password_update, after_password_update
+### identity.username.removed
 
-When the password is being updated for an existing user.
+Occurs when username is removed from existing user. Username can be removed by user in setting page, removed by admin through admin api or portal.
 
 ```json5
 {
   "payload": {
-    "reason": "reset_password",
-    "user": { /* ... */ }
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
   }
 }
 ```
 
-- `reason`: The reason for the update, can be `change_password`, `reset_password` and `administrative`.
-- `user`: The snapshot of the user before the operation.
 
-### user_sync
+### identity.username.updated
 
-`user_sync` is a special event. It is delivered like an AFTER event.
-
-When an operation could potentially mutate some data (including user, identities and authenticators), this event is generated, regardless of whether mutation actual takes place.
-
-This event can be used to synchronize data to user-managed database.
+Occurs when username is updated. Username can be updated by user in setting page.
 
 ```json5
 {
   "payload": {
-    "user": { /* ... */ }
+    "user": { /* ... */ },
+    "old_identity": { /* ... */ },
+    "new_identity": { /* ... */ }
   }
 }
 ```
 
-- `user`: The user after operation.
+### identity.oauth.connected
 
-**NOTE**
-- The event would be generated unconditionally whenever a mutating operation is
-  used; for example, disabling an already disabled user would still generate
-  this event.
-- If this event is generated by a session creation API, the `last_login_at`
-  field of user object would be the time this session is created, unlike
-  `session_create` events.
+Occurs when user connected to a new OAuth provider.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+
+### identity.oauth.disconnected
+
+Occurs when user disconnected from an OAuth provider. It can be done by user disconnected OAuth provider in the setting page, or admin removed OAuth identity through admin api or portal.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ },
+    "identity": { /* ... */ }
+  }
+}
+```
+
+
+
 
 ## Webhook Event Management
 
@@ -368,13 +399,13 @@ If an event delivery is permanently failed, an ERROR log is generated to notify 
 
 An API is provided to list past events. This can be used to reconcile self-managed database with the failed events.
 
-> NOTE: BEFORE events are not persisted, regardless of success or failure.
+> NOTE: Blocking events are not persisted, regardless of success or failure.
 
 ### Webhook Manual Re-delivery
 
 The developer can manually trigger a re-delivery of failed event, bypassing the retry interval limit.
 
-> NOTE: BEFORE events cannot be re-delivered.
+> NOTE: Blocking events cannot be re-delivered.
 
 ### Webhook Delivery Security
 
@@ -397,7 +428,7 @@ The signature is included in the header `x-authgear-body-signature:`.
 
 ### Recursive Webhooks
 
-A ill-designed web-hook handler may be called recursively. For example, updating user metadata when handling `after_user_update` event.
+A ill-designed web-hook handler may be called recursively. For example, calling api that will trigger another events.
 
 The developer is responsible for ensuring that:
 - webhook handlers would not be called recursively; or
@@ -409,7 +440,7 @@ The main purpose of webhook is to allow external services to observe state chang
 
 Therefore, AFTER events are persistent, immutable, and delivered reliably. Otherwise, external services may observe inconsistent changes.
 
-It is not recommended to perform side effects in BEFORE event handlers. Otherwise, the developer should consider how to compensate for the side effects of potential failed operation.
+It is not recommended to perform side effects in blocking event handlers. Otherwise, the developer should consider how to compensate for the side effects of potential failed operation.
 
 ### Webhook Eventual Consistency
 
@@ -418,20 +449,6 @@ Fundamentally, webhook is a distributed system. When webhook handlers have side 
 We decided to ensure the availability of the system. To maintain consistency, the developer should take eventual consistency into account when designing their system.
 
 The developer should regularly check the past events for unprocessed events to ensure consistency.
-
-### Webhook Event Timing
-
-There are four theoretically delivery timing of events: sync BEFORE, async BEFORE, sync AFTER and async AFTER.
-
-Async BEFORE is mostly useless. The operation may not be successful, and the handler cannot affect the operation. So async BEFORE events do not exist.
-
-Sync AFTER cannot be used safely due to the following reasoning:
-
-- If it is not within the operation transaction, async AFTER can be used instead.
-- If it is within the operation transaction and has no side effects, sync BEFORE can be used instead.
-- If it is within the operation transaction and has side effects, async AFTER should be used instead.
-
-So sync AFTER events do not exist.
 
 ### CAP Theorem
 
@@ -446,25 +463,16 @@ need to choose between consistency and availability. Most microservice
 architecture prefer availability over strong consistency, and instead application
 state is eventually consistent.
 
-## Webhook Use Cases
+## authgear.yaml
 
-### Synchronize metadata to self-managed profile
-
-The developer may want to synchronize metadata when it is updated:
-
-- When metadata is updated, an external service should be notified to synchronize their managed profile with the user metadata.
-- External service may want to validate and reject invalid user metadata.
-
-The suggested solution:
-
-- In `before_user_update`:
-  - Validate input user metadata is invalid, otherwise fail the operation.
-- In `user_sync`:
-  - Save new user profile and `seq` in the database, if and only if the incoming event is later than the saved `seq`.
-
-Naive approach:
-
-- Do not check `seq` before saving.
-  - Event delivery order is unspecified, a older event may arrive later than earlier events.
-- Check timestamp instead of `seq`.
-  - Timestamp may have time skew issue.
+```
+hook:
+  blocking_handlers:
+    - event: "user.pre_create"
+      url: 'https://myapp.com/check_user_create'
+  non_blocking_handlers:
+    - events: ["*"]
+      url: 'https://myapp.com/all_events'
+    - events: ["user.created"]
+      url: 'https://myapp.com/sync_user_creation'
+```
