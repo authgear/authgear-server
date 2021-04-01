@@ -197,12 +197,17 @@ Only `S256` is supported. `plain` is not supported.
 - `authentication_code`
 - `refresh_token`
 - `urn:authgear:params:oauth:grant-type:anonymous-request`
+- `urn:authgear:params:oauth:grant-type:biometric-request`
 
-The custom grant type is for authenticating and issuing tokens directly for anonymous user.
+`urn:authgear:params:oauth:grant-type:anonymous-request` is for authenticating and issuing tokens directly for anonymous user.
+
+`urn:authgear:params:oauth:grant-type:biometric-request` is for authenticating and issuing tokens directly for users with Biometric identity.
 
 ### jwt
 
-Required when the grant type is `urn:authgear:params:oauth:grant-type:anonymous-request`. The value is specified [here](./user-model.md#anonymous-identity-jwt)
+When the grant type is `urn:authgear:params:oauth:grant-type:anonymous-request`, the value is specified [here](./user-model.md#anonymous-identity-jwt).
+
+When the grant type is `urn:authgear:params:oauth:grant-type:biometric-request`, the value is specified [here](./user-model.md#biometric-identity-jwt).
 
 ## Token Response
 

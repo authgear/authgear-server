@@ -13,6 +13,7 @@ The UI creates new users and authenticates existing ones. The user can manage th
   * [The reset password page](#the-reset-password-page)
   * [The OOB OTP page](#the-oob-otp-page)
   * [The identity page](#the-identity-page)
+  * [The biometric page](#the-biometric-page)
 
 ## Theming
 
@@ -111,5 +112,21 @@ The identity page lists out the candidates of identity and the status.
 | user@example.com               Change |
 |---------------------------------------|
 | Phone                             Add |
+|---------------------------------------|
+```
+
+## The biometric page
+
+The biometric page lists out the biometric identities.
+This page is accessible from the settings page.
+By default, this page is hidden, and it can toggled to become visible via a configuration.
+
+```
+|---------------------------------------|
+| iPhone 12 Mini                 Remove |
+| Created at 2021-03-01                 |
+|---------------------------------------|
+| iPhone 12 Pro                  Remove |
+| Created at 2021-04-01                 |
 |---------------------------------------|
 ```

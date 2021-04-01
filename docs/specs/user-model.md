@@ -11,6 +11,10 @@
       * [Anonymous Identity JWT headers](#anonymous-identity-jwt-headers)
       * [Anonymous Identity JWT payload](#anonymous-identity-jwt-payload)
       * [Anonymous Identity Promotion](#anonymous-identity-promotion)
+    * [Biometric Identity](#biometric-identity)
+      * [Biometric Identity JWT](#biometric-identity-jwt)
+      * [Biometric Identity JWT headers](#biometric-identity-jwt-headers)
+      * [Biometric Identity JWT payload](#biometric-identity-jwt-payload)
     * [Login ID Identity](#login-id-identity)
       * [Login ID Key](#login-id-key)
       * [Login ID Type](#login-id-type)
@@ -53,6 +57,12 @@ An identity is used to look up a user.
 - Login ID
 - OAuth
 - Anonymous
+- Biometric
+
+A user either has no anonymous identity, or have exactly one anonymous identity.
+A user with anonymous identity is considered as anonymous user.
+
+A user must have at least one Login ID identity or OAuth identity.
 
 ### Identity Claims
 
@@ -65,6 +75,10 @@ The claims are used to detect duplicate identity. For example, an Email Login ID
 ### OAuth Identity
 
 OAuth identity is external identity from supported OAuth 2 IdPs. Only authorization code flow is supported. If the provider supports OIDC, OIDC is preferred over provider-specific OAuth 2 protocol.
+
+OAuth identity does not require primary authentication.
+
+OAuth identity skips secondary authentication.
 
 #### OIDC IdPs
 
@@ -83,8 +97,6 @@ The following IdPs does not support OIDC. The integration is provider-specific.
 
 ### Anonymous Identity
 
-A user either has no anonymous identity, or have exactly one anonymous identity. A user with anonymous identity is considered as anonymous user.
-
 Anonymous identity has the following fields:
 
 - Public Key: It is represented as a JWK and stored in the database.
@@ -101,7 +113,9 @@ the client access of user credentials.
 
 #### Anonymous Identity JWT
 
-The server verifies the validity of the key-pair by verify a JWT. A challenge is requested by the client on demand, it is one-time use and short-lived. The JWT is provided in the [login_hint](./oidc.md#login_hint).
+The server verifies the validity of the key-pair by verifying a JWT.
+A challenge is requested by the SDK on demand, it is one-time use and short-lived.
+The JWT is provided in the [login_hint](./oidc.md#login_hint).
 
 #### Anonymous Identity JWT headers
 
@@ -121,6 +135,40 @@ Anonymous user can be promoted to normal user by adding a new identity. When an 
 - A new session is created.
 
 The promotion flow is the same as the normal OIDC authorization code flow.
+
+### Biometric Identity
+
+Biometric identity is a asymmetric key-pair.
+Biometric identity can only be added on iOS and Android,
+where those platforms provide necessary API to protect key material with biometric authentication.
+
+Biometric identity does not require primary authentication.
+
+Biometric identity skips secondary authentication.
+
+Biometric identity collects necessary device info so that
+nice name such as "iPhone 12 Mini" can be displayed to the user.
+
+Biometric authentication can be used only by first-party OAuth clients, since it allows
+the client access of user credentials.
+
+Biometric authentication must NOT involve the usage of webview, in order to provide a smooth user experience.
+The setup and the authentication is implemented by `/oauth2/challenge` and `/oauth2/token`.
+
+#### Biometric Identity JWT
+
+The server verifies the validity of the key-pair by verifying a JWT.
+A challenge is requested by the SDK on demand, it is one-time use and short-lived.
+
+#### Biometric Identity JWT headers
+
+- `typ`: Must be the string `vnd.authgear.biometric-request`.
+
+#### Biometric Identity JWT payload
+
+- `challenge`: The challenge returned by the server.
+- `action`: either `authenticate` or `setup`.
+- `jwk`: When action is `setup`, it is the JWK of the public key.
 
 ### Login ID Identity
 
