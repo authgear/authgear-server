@@ -21,6 +21,7 @@ import {
 import ImageFilePicker from "../../ImageFilePicker";
 import { PortalAPIAppConfig } from "../../types";
 import {
+  ALL_LANGUAGES_TEMPLATES,
   renderPath,
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_FAVICON,
@@ -68,8 +69,9 @@ interface ConfigFormState {
 
 const NOOP = () => {};
 
-const RESOURCES_ON_THIS_SCREEN = [
-  RESOURCE_TRANSLATION_JSON,
+const ALL_LANGUAGES_TEMPLATES_AND_RESOURCES_ON_THIS_SCREEN = [
+  ...ALL_LANGUAGES_TEMPLATES,
+
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
   RESOURCE_APP_LOGO_DARK,
@@ -200,6 +202,65 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
   const setSelectedLanguage = useCallback(
     (selectedLanguage: LanguageTag) => {
       setState((s) => ({ ...s, selectedLanguage }));
+    },
+    [setState]
+  );
+
+  const onChangeLanguages = useCallback(
+    (supportedLanguages: LanguageTag[], fallbackLanguage: LanguageTag) => {
+      setState((prev) => {
+        // Reset selected language to fallback language if it was removed.
+        let { selectedLanguage, resources } = prev;
+        resources = { ...resources };
+        if (!supportedLanguages.includes(selectedLanguage)) {
+          selectedLanguage = fallbackLanguage;
+        }
+
+        // Populate initial values for added languages from fallback language.
+        const addedLanguages = supportedLanguages.filter(
+          (l) => !prev.supportedLanguages.includes(l)
+        );
+        for (const language of addedLanguages) {
+          for (const def of ALL_LANGUAGES_TEMPLATES) {
+            const defaultResource =
+              prev.resources[
+                specifierId({ def, locale: prev.fallbackLanguage })
+              ];
+            const newResource: Resource = {
+              specifier: {
+                def,
+                locale: language,
+              },
+              path: renderPath(def.resourcePath, { locale: language }),
+              value: defaultResource?.value ?? "",
+            };
+            resources[specifierId(newResource.specifier)] = newResource;
+          }
+        }
+
+        // Remove resources of removed languges
+        const removedLanguages = prev.supportedLanguages.filter(
+          (l) => !supportedLanguages.includes(l)
+        );
+        for (const [id, resource] of Object.entries(resources)) {
+          const language = resource?.specifier.locale;
+          if (
+            resource != null &&
+            language != null &&
+            removedLanguages.includes(language)
+          ) {
+            resources[id] = { ...resource, value: "" };
+          }
+        }
+
+        return {
+          ...prev,
+          selectedLanguage,
+          supportedLanguages,
+          fallbackLanguage,
+          resources,
+        };
+      });
     },
     [setState]
   );
@@ -553,11 +614,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           <FormattedMessage id="UISettingsScreen.title" />
         </ScreenTitle>
         <ManageLanguageWidget
-          selectOnly={true}
           supportedLanguages={supportedLanguages}
           selectedLanguage={state.selectedLanguage}
           fallbackLanguage={state.fallbackLanguage}
           onChangeSelectedLanguage={setSelectedLanguage}
+          onChangeLanguages={onChangeLanguages}
         />
       </div>
       <ScreenDescription className={styles.widget}>
@@ -697,7 +758,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
   const specifiers = useMemo<ResourceSpecifier[]>(() => {
     const specifiers = [];
     for (const locale of initialSupportedLanguages) {
-      for (const def of RESOURCES_ON_THIS_SCREEN) {
+      for (const def of ALL_LANGUAGES_TEMPLATES_AND_RESOURCES_ON_THIS_SCREEN) {
         specifiers.push({
           def,
           locale,

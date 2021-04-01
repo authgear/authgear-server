@@ -34,7 +34,6 @@ import styles from "./ManageLanguageWidget.module.scss";
 
 interface ManageLanguageWidgetProps {
   className?: string;
-  selectOnly: boolean;
 
   // The supported languages.
   supportedLanguages: LanguageTag[];
@@ -46,7 +45,7 @@ interface ManageLanguageWidgetProps {
   // The fallback language.
   fallbackLanguage: LanguageTag;
 
-  onChangeLanguages?: (
+  onChangeLanguages: (
     supportedLanguages: LanguageTag[],
     fallbackLanguage: LanguageTag
   ) => void;
@@ -290,7 +289,6 @@ const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> = function Manag
 ) {
   const {
     className,
-    selectOnly,
     supportedLanguages,
     selectedLanguage,
     onChangeSelectedLanguage,
@@ -398,14 +396,12 @@ const ManageLanguageWidget: React.FC<ManageLanguageWidgetProps> = function Manag
           onRenderTitle={onRenderTitle}
           onRenderOption={onRenderOption}
         />
-        {!selectOnly && (
-          <IconButton
-            iconProps={{
-              iconName: "Settings",
-            }}
-            onClick={presentDialog}
-          />
-        )}
+        <IconButton
+          iconProps={{
+            iconName: "Settings",
+          }}
+          onClick={presentDialog}
+        />
       </div>
     </>
   );
