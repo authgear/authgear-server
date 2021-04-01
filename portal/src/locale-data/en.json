@@ -585,13 +585,12 @@
   "WebhookConfigurationScreen.timeout.label": "Per-handler timeout (seconds)",
 
   "WebhookConfigurationScreen.blocking-events": "Blocking Events",
-  "WebhookConfigurationScreen.blocking-events.description": "Blocking Events allow your server to check and abort operations in different scenarios.",
+  "WebhookConfigurationScreen.blocking-events.description": "Blocking Events allow your server to check and abort operations in different scenarios. {br, react} {a, react, href{https://docs.authgear.com/webhooks#blocking-events} children{Learn more about blocking events} target{_blank}}.",
   "WebhookConfigurationScreen.blocking-handlers.label": "Blocking Handlers",
   "WebhookConfigurationScreen.blocking-events.label": "Handler event type",
-  "WebhookConfigurationScreen.blocking-event-type.pre_signup": "Pre user signup",
-  "WebhookConfigurationScreen.blocking-event-type.admin_api_create_user": "Admin create user",
+  "WebhookConfigurationScreen.blocking-event-type.user.pre_create": "User pre create",
   "WebhookConfigurationScreen.non-blocking-events": "Non Blocking Events",
-  "WebhookConfigurationScreen.non-blocking-events.description": "Non Blocking Events allow your server to receive notification asynchronously when an event happens in Authgear. {br, react} {br, react} All events will be sent to the configured endpoint, you can filter event by the type in payload.",
+  "WebhookConfigurationScreen.non-blocking-events.description": "Non Blocking Events allow your server to receive notification asynchronously when an event happens in Authgear. {br, react} {br, react} All events will be sent to the configured endpoint, you can filter event by the type in payload. {br, react} {a, react, href{https://docs.authgear.com/webhooks#non-blocking-events} children{Learn more about non-blocking events} target{_blank}}.",
   "WebhookConfigurationScreen.non-blocking-events-endpoints.label": "Endpoints",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",

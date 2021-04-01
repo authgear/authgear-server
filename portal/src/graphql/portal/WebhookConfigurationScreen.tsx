@@ -74,10 +74,9 @@ function constructConfig(
   });
 }
 
-const blockingEventTypes: IDropdownOption[] = [
-  "pre_signup",
-  "admin_api_create_user",
-].map((type): IDropdownOption => ({ key: type, text: type }));
+const blockingEventTypes: IDropdownOption[] = ["user.pre_create"].map(
+  (type): IDropdownOption => ({ key: type, text: type })
+);
 
 interface BlockingHandlerItemEditProps {
   index: number;
@@ -170,6 +169,7 @@ const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> = function
         value={value.url}
         onChange={onURLChange}
         errorMessage={urlErrorMessage}
+        placeholder="https://example.com/callback"
       />
     </div>
   );
@@ -213,6 +213,7 @@ const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> = fu
         value={value.url}
         onChange={onURLChange}
         errorMessage={urlErrorMessage}
+        placeholder="https://example.com/callback"
       />
     </div>
   );
@@ -315,31 +316,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
       <ScreenDescription className={styles.widget}>
         <FormattedMessage id="WebhookConfigurationScreen.description" />
       </ScreenDescription>
-      <Widget className={cn(styles.widget, styles.controlGroup)}>
-        <WidgetTitle>
-          <FormattedMessage id="WebhookConfigurationScreen.webhook-settings" />
-        </WidgetTitle>
-        <TextField
-          className={styles.control}
-          type="number"
-          min="1"
-          step="1"
-          label={renderToString(
-            "WebhookConfigurationScreen.total-timeout.label"
-          )}
-          value={String(state.totalTimeout)}
-          onChange={onTotalTimeoutChange}
-        />
-        <TextField
-          className={styles.control}
-          type="number"
-          min="1"
-          step="1"
-          label={renderToString("WebhookConfigurationScreen.timeout.label")}
-          value={String(state.timeout)}
-          onChange={onTimeoutChange}
-        />
-      </Widget>
+
       <Widget className={cn(styles.widget, styles.controlGroup)}>
         <WidgetTitle>
           <FormattedMessage id="WebhookConfigurationScreen.blocking-events" />
@@ -385,6 +362,32 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           makeDefaultItem={makeDefaultNonBlockingHandler}
           renderListItem={renderNonBlockingHandlerItem}
           addButtonLabelMessageID="add"
+        />
+      </Widget>
+
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="WebhookConfigurationScreen.webhook-settings" />
+        </WidgetTitle>
+        <TextField
+          className={styles.control}
+          type="number"
+          min="1"
+          step="1"
+          label={renderToString(
+            "WebhookConfigurationScreen.total-timeout.label"
+          )}
+          value={String(state.totalTimeout)}
+          onChange={onTotalTimeoutChange}
+        />
+        <TextField
+          className={styles.control}
+          type="number"
+          min="1"
+          step="1"
+          label={renderToString("WebhookConfigurationScreen.timeout.label")}
+          value={String(state.timeout)}
+          onChange={onTimeoutChange}
         />
       </Widget>
     </ScreenContent>
