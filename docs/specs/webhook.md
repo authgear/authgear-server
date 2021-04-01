@@ -68,7 +68,7 @@ All fields are guaranteed that only backward-compatible changes would be made.
 - `user_id`: The ID of the user associated with the event. It may be absent. For example, the user has not authenticated yet.
 - `preferred_languages`: User preferred languages which are inferred from the request. Return values of `ui_locales` query if it is provided in auth ui, otherwise return languages in `Accept-Language` request header.
 - `language`: User locale which is derived based on user's preferred languages and app's languages config.
-- `source`: Source explains how is the event being triggered, values can be `ui` or `admin_api`. `ui` means it is triggered by user in auth ui. `admin_api` means it is triggered by admin in admin portal or admin api.
+- `triggered_by`: Triggered by indicates who triggered the events, values can be `user` or `admin_api`. `user` means it is triggered by user in auth ui. `admin_api` means it is triggered by admin api or admin portal.
 
 ## Webhook Delivery
 
