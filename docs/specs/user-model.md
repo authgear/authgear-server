@@ -154,7 +154,6 @@ the client access of user credentials.
 
 Biometric authentication must NOT involve the usage of webview, in order to provide a smooth user experience.
 The setup and the authentication is implemented by `/oauth2/challenge` and `/oauth2/token`.
-The removal of Biometric identity is implemented by `/api/identity/biometric/remove`.
 
 #### Biometric Identity JWT
 

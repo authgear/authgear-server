@@ -31,18 +31,8 @@ Logout is provided by the following API
 /**
  * This function can be called when the user has logged in.
  *
- * Depending on whether biometric authentication is enabled or not,
- * this function behaves differently.
- *
- * When biometric authentication is disabled,
- * calling this function will allow logging in as a different user.
- *
- * When biometric authentication is enabled,
- * calling this function will ONLY terminate the current session.
- * The last logged in user will NOT be forgotten.
- * Logging in a different user will be disallowed in the web UI.
- * If switching different user is desired,
- * disableBiometric() must be called.
+ * If refresh token is used, then the refresh token is deleted.
+ * If cookie is used, then the SDK redirects to the end session endpoint.
  *
  */
 function logout(): Promise<void>;
@@ -55,64 +45,51 @@ Biometric authentication is provided by the following API
 ```typescript
 /**
  * This function can be called at anytime.
- * This function reports whether biometric authentication is supported on the current device.
+ *
+ * If this function does not throw, then biometric authentication is supported on the current device.
+ *
+ * Otherwise the developer should inspect the thrown error to inform the user what is missing to enable biometric authentication.
  */
-function isBiometricSupported(): Promise<boolean>;
+function isBiometricSupported(): Promise<void>;
 
 /**
  * This function can be called at anytime.
- * This function returns the user ID of last logged in user.
- * The data is stored with kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
- * therefore the data is not included in backup, nor transfered to new device.
- */
-function getLastUserID(): Promise<string | null>;
-
-/**
- * This function can be called at anytime.
- * This function tells if the last logged in user has enabled biometric authentication.
- * The data is stored with kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
- * therefore the data is not included in backup, nor transfered to new device.
+ * It tells whether the container has a keypair stored in the keychain, thus biometric authentication is possible.
  */
 function isBiometricEnabled(): Promise<boolean>;
 
 /**
  * This function can be called when the user has logged in.
- * This function WILL trigger biometric authentication if necessary.
+ * This function WILL trigger biometric authentication.
  *
  * 1. An UUID is generated as kid.
  * 2. A key pair is generated and stored in the keychain.
  * 3. A challenge is requested from the server.
  * 4. A Biometric identity is added to the user.
- *
- * The key pair is stored with kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly and kSecAccessControlBiometryAny,
- * therefore the data is not included in backup, nor transfered to new device,
- * biometric authentication or password code is prompted if necessary.
  */
 function enableBiometric(): Promise<void>;
 
 /**
  * This function can be called at anytime.
- * This function WILL trigger biometric authentication if necessary.
  *
  * The following steps are performed:
  *
  * 1. The key pair is deleted from the keychain.
- *
- * The key pair is stored with kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly and kSecAccessControlBiometryAny,
- * therefore the data is not included in backup, nor transfered to new device,
- * biometric authentication or password code is prompted if necessary.
  */
 function disableBiometric(): Promise<void>;
 
 /**
  * This function can be called at anytime.
- * This function WILL trigger biometric authentication if necessary.
+ * This function WILL trigger biometric authentication.
  *
  * 1. The key pair is retrieved from the keychain.
  * 2. A challenge is requested from the server.
  * 3. Call /oauth2/token to request refresh token and access token.
- * 4. If the identity is not found, do the following steps.
- *   4.1. Remove the biometric user ID so that isBiometricEnabled() returns false.
+ *
+ * If the biometric identity is detected to be removed from the server, the keypair is removed.
+
+ * If the biometric info is detected to be changed, then the keypair is forgotten.
+ * This is the case when the user has removed, added, or changed Face ID / Touch ID on iOS.
  */
 function authenticateBiometric(): Promise<AuthorizeResult>;
 ```
@@ -124,17 +101,26 @@ function authenticateBiometric(): Promise<AuthorizeResult>;
 await authgear.authorize({ ... });
 
 
+
 // Check if the device supports biometric authentication.
-const isSupported = await authgear.isBiometricSupported();
-if (isSupported) {
-  // Show a screen to ask the user if they want to enable biometric authentication.
-  await authgear.enableBiometric();
+try {
+  await authgear.isBiometricSupported();
+} catch (e) {
+ // Handle the error to properly.
+ return;
 }
+try {
+  await promptIfTheUserWantsToEnableBiometric();
+} catch (e) {
+  // The user declined.
+  return;
+}
+await authgear.enableBiometric();
+
 
 
 // When the session has expired.
 const enabled = await authgear.isBiometricEnabled();
-
 if (enabled) {
   // The user MAY have biometric set up previously.
   // Show a screen to ask if they want to authenticate with biometric.
@@ -150,28 +136,10 @@ if (enabled) {
 }
 
 
-// When the user want to "logout".
-//
-// Logout can mean two things in application with biometric authentication.
-//
-// 1. Terminate the current session. Retain the biometric authentication. Signing in the same user is allowed.
-// 2. Perform a whole cleanup so that switching user is possible.
-//
-// For case 1, just call logout().
-// For case 2, call disableBiometric() before calling logout().
 
-const onClickTerminateSession = () => {
-  await authgear.logout();
-};
-
-const onClickSwitchAccount = () => {
-  const enabled = await authgear.isBiometricEnabled();
-  if (enabled) {
-    prompt("Switching account requires disabling biometric authentication first. You have to setup again later. Continue?")
-      .then(() => {
-        await authgear.disableBiometric();
-        await authgear.logout();
-      });
-  }
-};
+// Authenticate the user via non-biometric means.
+await authgear.authorize({ ... });
+// biometric will be disabled after successful non-biometric authentication.
+const enabled = await authgear.isBiometricEnabled();
+assert(enabled === false);
 ```

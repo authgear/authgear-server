@@ -57,28 +57,10 @@ This means enabling biometric authentication binds biometric authentication to t
 If the application is not a single-user application like the HSBC app,
 then we must ensure when User B logs in, User B can never access the keypair of User A.
 
-The SDK stores the following things:
-
-1. The keypair is stored in the device keychain per container, requiring biometric authentication to access.
-2. The last logged in user ID (LastUserID) is stored in the device keychain per container, NOT requiring biometric authentication to access.
-3. The user ID of last biometric setup (BiometricUserID) is stored in the device keychain per container, NOT requiring biometric authentication to access.
-
-Under normal condition, when biometric authentication is enabled, the user should log in with it.
-For some reasons like the user is wearing a mask or gloves, biometric authentication is impossible,
-the application should perform the typical web-based authentication flow to authenticate the user.
-It is possible that the user could log into a different account, which can lead to the situation that
-User B is logged in and the keypair of User A is still in the keychain.
-
-The HSBC app avoid this situation by making itself a single-user application.
-However, it is impossible for the SDK to enforce this.
-
-Instead, the SDK has the following behavior.
-If the BiometricUserID is not null, the SDK includes the BiometricUserID as `login_hint` in the authorization URL.
-The server will complain if the user tries to sign in a different user.
-If the developer really wants the user to sign in different accounts,
-they should prompt the user to disable biometric authentication first.
-
-Disabling biometric authentication deletes the keypair, which requires biometric authentication.
+The SDK stores the keypair in the keychain of the device per container, requiring biometric authentication to access.
+Under normal condition, when biometric authentication is enabled, the developer should let the user to use biometric authentication.
+Every time non-biometric authentication is used, the previous keypair will be deleted from the keychain.
+The user has to set up biometric authentication again.
 
 ## Configuration
 
