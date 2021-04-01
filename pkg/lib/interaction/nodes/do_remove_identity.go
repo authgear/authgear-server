@@ -3,6 +3,7 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -67,20 +68,26 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			var e event.Payload
-			if n.IsAdminAPI {
-				e = &nonblocking.IdentityDeletedAdminAPIRemoveIdentityEvent{
-					User:     *user,
-					Identity: n.Identity.ToModel(),
-				}
-			} else {
-				e = &nonblocking.IdentityDeletedUserRemoveIdentityEvent{
+			switch n.Identity.Type {
+			case authn.IdentityTypeLoginID:
+				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+				e = nonblocking.NewIdentityLoginIDRemovedEvent(
+					*user,
+					n.Identity.ToModel(),
+					loginIDType,
+				)
+			case authn.IdentityTypeOAuth:
+				e = &nonblocking.IdentityOAuthDisconnectedEvent{
 					User:     *user,
 					Identity: n.Identity.ToModel(),
 				}
 			}
-			err = ctx.Hooks.DispatchEvent(e)
-			if err != nil {
-				return err
+
+			if e != nil {
+				err = ctx.Hooks.DispatchEvent(e)
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil

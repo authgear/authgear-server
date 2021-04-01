@@ -1,10 +1,8 @@
 package nodes
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -91,7 +89,7 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				identities = append(identities, info.ToModel())
 			}
 
-			err = ctx.Hooks.DispatchEvent(&nonblocking.UserPromotedEvent{
+			err = ctx.Hooks.DispatchEvent(&nonblocking.UserAnonymousPromotedEvent{
 				AnonymousUser: *anonUser,
 				User:          *newUser,
 				Identities:    identities,
@@ -113,30 +111,14 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			var e event.Payload
-			switch n.Reason {
-			case session.CreateReasonSignup:
-				e = &nonblocking.SessionCreatedUserSignupEvent{
+			if n.Reason == session.CreateReasonLogin {
+				err = ctx.Hooks.DispatchEvent(&nonblocking.UserAuthenticatedEvent{
 					User:    *user,
 					Session: *n.Session.ToAPIModel(),
+				})
+				if err != nil {
+					return err
 				}
-			case session.CreateReasonLogin:
-				e = &nonblocking.SessionCreatedUserLoginEvent{
-					User:    *user,
-					Session: *n.Session.ToAPIModel(),
-				}
-			case session.CreateReasonPromote:
-				e = &nonblocking.SessionCreatedUserPromoteThemselvesEvent{
-					User:    *user,
-					Session: *n.Session.ToAPIModel(),
-				}
-			default:
-				panic(fmt.Errorf("interaction: unexpected session create reason: %s", n.Reason))
-			}
-
-			err = ctx.Hooks.DispatchEvent(e)
-			if err != nil {
-				return err
 			}
 
 			err = ctx.Sessions.Create(n.Session)

@@ -6,21 +6,21 @@ import (
 )
 
 const (
-	UserPromoted event.Type = "user.promoted.user_promote_themselves"
+	UserAnonymousPromoted event.Type = "user.anonymous.promoted"
 )
 
-type UserPromotedEvent struct {
+type UserAnonymousPromotedEvent struct {
 	AnonymousUser model.User       `json:"anonymous_user"`
 	User          model.User       `json:"user"`
 	Identities    []model.Identity `json:"identities"`
 }
 
-func (e *UserPromotedEvent) NonBlockingEventType() event.Type {
-	return UserPromoted
+func (e *UserAnonymousPromotedEvent) NonBlockingEventType() event.Type {
+	return UserAnonymousPromoted
 }
 
-func (e *UserPromotedEvent) UserID() string {
+func (e *UserAnonymousPromotedEvent) UserID() string {
 	return e.User.ID
 }
 
-var _ event.NonBlockingPayload = &UserPromotedEvent{}
+var _ event.NonBlockingPayload = &UserAnonymousPromotedEvent{}

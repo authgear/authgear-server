@@ -6,35 +6,20 @@ import (
 )
 
 const (
-	UserCreatedUserSignup         event.Type = "user.created.user_signup"
-	UserCreatedAdminAPICreateUser event.Type = "user.created.admin_api_create_user"
+	UserCreated event.Type = "user.created"
 )
 
-type UserCreatedUserSignupEvent struct {
+type UserCreatedEvent struct {
 	User       model.User       `json:"user"`
 	Identities []model.Identity `json:"identities"`
 }
 
-func (e *UserCreatedUserSignupEvent) NonBlockingEventType() event.Type {
-	return UserCreatedUserSignup
+func (e *UserCreatedEvent) NonBlockingEventType() event.Type {
+	return UserCreated
 }
 
-func (e *UserCreatedUserSignupEvent) UserID() string {
+func (e *UserCreatedEvent) UserID() string {
 	return e.User.ID
 }
 
-type UserCreatedAdminAPICreateUserEvent struct {
-	User       model.User       `json:"user"`
-	Identities []model.Identity `json:"identities"`
-}
-
-func (e *UserCreatedAdminAPICreateUserEvent) NonBlockingEventType() event.Type {
-	return UserCreatedAdminAPICreateUser
-}
-
-func (e *UserCreatedAdminAPICreateUserEvent) UserID() string {
-	return e.User.ID
-}
-
-var _ event.NonBlockingPayload = &UserCreatedUserSignupEvent{}
-var _ event.NonBlockingPayload = &UserCreatedAdminAPICreateUserEvent{}
+var _ event.NonBlockingPayload = &UserCreatedEvent{}

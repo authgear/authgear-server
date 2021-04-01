@@ -40,29 +40,15 @@ func (c *Commands) AfterCreate(
 		identityModels = append(identityModels, i.ToModel())
 	}
 
-	var events []event.Payload
-	if isAdminAPI {
-		events = []event.Payload{
-			&blocking.AdminAPICreateUserBlockingEvent{
-				User:       *userModel,
-				Identities: identityModels,
-			},
-			&nonblocking.UserCreatedAdminAPICreateUserEvent{
-				User:       *userModel,
-				Identities: identityModels,
-			},
-		}
-	} else {
-		events = []event.Payload{
-			&blocking.PreSignupBlockingEvent{
-				User:       *userModel,
-				Identities: identityModels,
-			},
-			&nonblocking.UserCreatedUserSignupEvent{
-				User:       *userModel,
-				Identities: identityModels,
-			},
-		}
+	events := []event.Payload{
+		&blocking.UserPreCreateBlockingEvent{
+			User:       *userModel,
+			Identities: identityModels,
+		},
+		&nonblocking.UserCreatedEvent{
+			User:       *userModel,
+			Identities: identityModels,
+		},
 	}
 
 	for _, e := range events {

@@ -73,20 +73,26 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			var e event.Payload
-			if n.IsAdminAPI {
-				e = &nonblocking.IdentityCreatedAdminAPIAddIdentityEvent{
-					User:     *user,
-					Identity: n.Identity.ToModel(),
-				}
-			} else {
-				e = &nonblocking.IdentityCreatedUserAddIdentityEvent{
+			switch n.Identity.Type {
+			case authn.IdentityTypeLoginID:
+				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+				e = nonblocking.NewIdentityLoginIDAddedEvent(
+					*user,
+					n.Identity.ToModel(),
+					loginIDType,
+				)
+			case authn.IdentityTypeOAuth:
+				e = &nonblocking.IdentityOAuthConnectedEvent{
 					User:     *user,
 					Identity: n.Identity.ToModel(),
 				}
 			}
-			err = ctx.Hooks.DispatchEvent(e)
-			if err != nil {
-				return err
+
+			if e != nil {
+				err = ctx.Hooks.DispatchEvent(e)
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil
