@@ -9,7 +9,6 @@ import (
 	"github.com/graphql-go/handler"
 
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -24,7 +23,6 @@ var errRollback = errors.New("rollback transaction")
 
 type GraphQLHandler struct {
 	GraphQLContext *graphql.Context
-	DevMode        config.DevMode
 	Database       *db.Handle
 }
 
@@ -33,8 +31,8 @@ func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		doRollback := false
 		graphqlHandler := handler.New(&handler.Config{
 			Schema:   graphql.Schema,
-			Pretty:   bool(h.DevMode),
-			GraphiQL: bool(h.DevMode),
+			Pretty:   false,
+			GraphiQL: true,
 			ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
 				if result.HasErrors() {
 					doRollback = true

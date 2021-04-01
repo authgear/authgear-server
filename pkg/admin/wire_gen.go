@@ -607,10 +607,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		VerificationFacade:  verificationFacade,
 		SessionFacade:       sessionFacade,
 	}
-	devMode := environmentConfig.DevMode
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
-		DevMode:        devMode,
 		Database:       handle,
 	}
 	return graphQLHandler

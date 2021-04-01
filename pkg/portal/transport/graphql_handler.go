@@ -31,7 +31,7 @@ func (h *GraphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		doRollback := false
 		graphqlHandler := graphqlgohandler.New(&graphqlgohandler.Config{
 			Schema:   graphql.Schema,
-			Pretty:   bool(h.DevMode),
+			Pretty:   false,
 			GraphiQL: bool(h.DevMode),
 			ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
 				if result.HasErrors() {
