@@ -7,7 +7,7 @@ import {
   IIconProps,
   PrimaryButton,
   Text,
-} from "office-ui-fabric-react";
+} from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import ScreenHeader from "../../ScreenHeader";
 import styles from "./OnboardingCompletionScreen.module.scss";

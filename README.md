@@ -161,13 +161,6 @@ To setup multi-tenant mode:
 
 ## Portal
 
-### Known issues
-
-We cannot update `@apollo/client` to >= `3.3.4` because it uses `ts-invariant@0.6.0`.
-Parcel will result in error.
-
-https://github.com/apollographql/apollo-client/compare/v3.3.3..v3.3.4
-
 ### Setup environment variable
 
 We need to set up environment variables for Authgear servers and portal server.
