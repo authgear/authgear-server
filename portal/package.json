@@ -13,9 +13,11 @@
     "gentype": "apollo client:codegen --config ./apollo.portal.config.js --target typescript --customScalarsPrefix GQL_ --globalTypesFile ./src/graphql/portal/__generated__/globalTypes.ts && apollo client:codegen --config ./apollo.adminapi.config.js --target typescript --customScalarsPrefix GQL_ --globalTypesFile ./src/graphql/adminapi/__generated__/globalTypes.ts"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "7.12.7",
+    "@babel/core": "7.13.14",
+    "@babel/preset-typescript": "7.13.0",
     "@oursky/eslint-plugin": "4.1.0",
     "@oursky/stylelint-oursky": "1.0.1",
+    "@parcel/transformer-sass": "2.0.0-beta.2",
     "@types/classnames": "2.2.11",
     "@types/deep-equal": "1.0.1",
     "@types/jest": "26.0.20",
@@ -29,7 +31,7 @@
     "graphql": "15.5.0",
     "jest": "26.6.3",
     "normalize.css": "8.0.1",
-    "parcel": "2.0.0-beta.1",
+    "parcel": "2.0.0-beta.2",
     "postcss-modules": "3.2.2",
     "prettier": "2.2.1",
     "sass": "1.32.5",
