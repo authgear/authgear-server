@@ -44,7 +44,6 @@
     "@fluentui/react": "7.157.2",
     "@monaco-editor/react": "3.7.2",
     "@oursky/react-messageformat": "1.0.0",
-    "axe-core": "4.1.1",
     "base64-js": "1.5.1",
     "classnames": "2.3.1",
     "deep-equal": "2.0.5",
