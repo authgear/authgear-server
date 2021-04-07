@@ -198,7 +198,7 @@ We need the following `authgear.yaml` to setup authgear for the portal.
 id: accounts # Make sure the ID matches AUTHGEAR_APP_ID environment variable.
 http:
   # Make sure this matches the host used to access main Authgear server.
-  public_origin: 'http://localhost:3000'
+  public_origin: 'http://accounts.portal.localhost:3000'
   allowed_origins:
     # The SDK uses XHR to fetch the OAuth/OIDC configuration,
     # So we have to allow the origin of the portal.
@@ -213,9 +213,15 @@ oauth:
       # Note that the trailing slash is very important here
       # URIs are compared byte by byte.
       redirect_uris:
-        - "http://localhost:8000/oauth-redirect"
+        # This redirect URI is used by the portal.
+        - 'http://portal.localhost:8000/oauth-redirect'
+        # This redirect URI is used by the iOS and Android demo app.
+        - 'com.authgear.example://host/path'
+        # This redirect URI is used by the React Native demo app.
+        - 'com.authgear.example.rn://host/path'
       post_logout_redirect_uris:
-        - "http://localhost:8000/oauth-redirect"
+        # This redirect URI is used by the portal.
+        - "http://portal.localhost:8000/"
       grant_types: []
       response_types: ["none"]
 ```
