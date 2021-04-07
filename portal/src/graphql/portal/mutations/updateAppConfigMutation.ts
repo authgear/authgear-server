@@ -43,7 +43,7 @@ export function useUpdateAppConfigMutation(
   >(updateAppConfigMutation, { client });
   const updateAppConfig = React.useCallback(
     async (appConfig: PortalAPIAppConfig) => {
-      const appConfigYaml = yaml.safeDump(appConfig);
+      const appConfigYaml = yaml.dump(appConfig);
 
       const result = await mutationFunction({
         variables: {

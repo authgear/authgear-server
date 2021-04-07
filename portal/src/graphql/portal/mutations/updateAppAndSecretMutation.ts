@@ -53,8 +53,8 @@ export function useUpdateAppAndSecretConfigMutation(
       appConfig: PortalAPIAppConfig,
       secretConfig: PortalAPISecretConfig
     ) => {
-      const appConfigYaml = yaml.safeDump(appConfig);
-      const secretConfigYaml = yaml.safeDump(secretConfig);
+      const appConfigYaml = yaml.dump(appConfig);
+      const secretConfigYaml = yaml.dump(secretConfig);
 
       const result = await mutationFunction({
         variables: {
