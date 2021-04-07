@@ -18,7 +18,7 @@ export interface ResourceFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: () => void;
+  save: () => Promise<void>;
 }
 
 export type StateConstructor<State> = (resources: Resource[]) => State;
@@ -78,7 +78,7 @@ export function useResourceForm<State>(
     setCurrentState(null);
   }, [isUpdating, resetError]);
 
-  const save = useCallback(() => {
+  const save = useCallback(async () => {
     if (!diff) {
       return;
     } else if (!diff.needUpdate) {
@@ -87,7 +87,7 @@ export function useResourceForm<State>(
       return;
     }
 
-    updateResources([
+    await updateResources([
       ...diff.newResources,
       ...diff.editedResources,
       ...diff.deletedResources,

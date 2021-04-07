@@ -577,7 +577,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> = function
 
   const confirmUpdatePublicOrigin = useCallback(() => {
     // save app config form
-    save();
+    save().catch(() => {});
   }, [save]);
 
   const dismissUpdatePublicOriginDialog = useCallback(() => {

@@ -183,7 +183,7 @@ interface FormModel {
   setState: (fn: (state: FormState) => FormState) => void;
   reload: () => void;
   reset: () => void;
-  save: () => void;
+  save: () => Promise<void>;
 }
 
 interface ResourcesConfigurationContentProps {
@@ -829,9 +829,9 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
       resources.reset();
       setSelectedLanguage(config.state.fallbackLanguage);
     },
-    save: () => {
-      config.save();
-      resources.save();
+    save: async () => {
+      await config.save();
+      await resources.save();
     },
   };
 
