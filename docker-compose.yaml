@@ -17,15 +17,14 @@ services:
     ports:
       - "6379:6379"
 
-  authgear:
-    build: .
-    env_file:
-      - ".env"
+  proxy:
+    image: nginx:1.18
     volumes:
-      - ./authgear.yaml:/app/authgear.yaml
-      - ./authgear.secrets.yaml:/app/authgear.secrets.yaml
+    - ./nginx.conf:/etc/nginx/nginx.conf
+    - ./portal/dist:/usr/share/nginx/html
     ports:
-      - "3000:3000"
+    - "8000:8000"
+    - "8010:8010"
 
 volumes:
   redis_data:

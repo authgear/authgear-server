@@ -2,31 +2,6 @@
  
 Work in progress
 
-## Troubleshooting
-
-If you see an error `cannot change secret value` when you attempt to save secrets,
-please make sure the content of `authgear.secrets.yaml` matches `APP_SECRET_*` environment variables.
-
-## HTTPS setup
-
-If you are testing external OAuth provider, you must enable TLS.
-
-1. Cookie is only included in third party redirect if it has SameSite=None attribute.
-2. Cookie with SameSite=None attribute without Secure attribute is rejected.
-
-To setup HTTPS easily, you can use [mkcert](https://github.com/FiloSottile/mkcert)
-
-```sh
-# Install mkcert.
-brew install mkcert
-# Install the root CA into Keychain Access.
-mkcert -install
-# Create TLS certificate and private key with the given host.
-mkcert -cert-file tls-cert.pem -key-file tls-key.pem localhost 127.0.0.1 ::1
-```
-
-One caveat is HTTP redirect to HTTPS is not supported, you have to type in https in the browser address bar manually.
-
 ## Prerequisite
 
 Note that there is a local .tool-versions in project root. For the following setup to work, we need to
@@ -54,31 +29,16 @@ export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig"
 
 To avoid doing the above every time you open a new shell, you may want to add it to your shell initialization script such as `~/.profile`, `~/.bash_profile`, etc.
 
-## Database setup
+4. Run `make vendor`
 
-1. Setup dependencies:
-   ```sh
-   make vendor
-   ```
-2. Setup environment variables (in `.env`):
+## Environment setup
+
+1. Setup environment variables:
    ```sh
    cp .env.example .env
    ```
 
-3. start db container
-   ```sh
-   docker-compose up db
-   ```
-
-4. Create a schema:
-
-   Run the following SQL command with command line to such as `psql` or DB viewer such as `Postico`
-
-   ```sql
-   CREATE SCHEMA app;
-   ```
-
-5. Initialize app
+2. Initialize app
 
    To generate the necessary config and secret yaml file, run
 
@@ -93,26 +53,68 @@ To avoid doing the above every time you open a new shell, you may want to add it
    DATABASE_SCHEMA=app
    ```
 
-6. Apply database schema migrations:
+3. Setup `.localhost` domain
+
+For cookie to work properly, you need to use
+
+- `portal.localhost:8000` to access the portal.
+- `accounts.portal.localhost:3000` to access the main server.
+
+You can either do this by editing `/etc/hosts` or install `dnsmasq`.
+
+## Database setup
+
+1. Start the db container
+   ```sh
+   docker-compose up -d db
+   ```
+
+2. Create a schema:
+
+   Run the following SQL command with command line to such as `psql` or DB viewer such as `Postico`
+
+   ```sql
+   CREATE SCHEMA app;
+   ```
+
+3. Apply database schema migrations:
 
    make sure the db container is running
 
    ```sh
-   go run ./cmd/authgear migrate up -f ./var/authgear.secrets.yaml
+   go run ./cmd/authgear migrate up --database-url='postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable' --database-schema=app
    ```
-   
+
 To create new migration:
 ```sh
 # go run ./cmd/authgear migrate new <migration name>
 go run ./cmd/authgear migrate new add user table
 ```
 
-## Run server
+## HTTPS setup
 
-To run development server, we need to start `db` and `redis` container
+If you are testing external OAuth provider, you must enable TLS.
+
+1. Cookie is only included in third party redirect if it has SameSite=None attribute.
+2. Cookie with SameSite=None attribute without Secure attribute is rejected.
+
+To setup HTTPS easily, you can use [mkcert](https://github.com/FiloSottile/mkcert)
 
 ```sh
-docker-compose up -d db redis
+# Install mkcert.
+brew install mkcert
+# Install the root CA into Keychain Access.
+mkcert -install
+# Create TLS certificate and private key with the given host.
+mkcert -cert-file tls-cert.pem -key-file tls-key.pem localhost 127.0.0.1 ::1
+```
+
+One caveat is HTTP redirect to HTTPS is not supported, you have to type in https in the browser address bar manually.
+
+## Running everything
+
+```sh
+docker-compose up -d
 ```
 
 Then run the command
@@ -129,9 +131,100 @@ To run graphql server
 go run ./cmd/portal start
 ```
 
-## Setup portal
+## Multi-tenant mode
 
-Please refer to [Portal setup guide](./portal/README.md)
+Some features (e.g. custom domains) requires multi-tenant mode to work properly.
+To setup multi-tenant mode:
+1. Setup local mock Kubernetes servers:
+    ```
+    cd hack/kube-apiserver
+    docker-compose up -d
+    ```
+2. Install cert manager CRDs:
+    ```
+    kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v1.0.4/cert-manager.crds.yaml
+    ```
+
+3. Bootstrap Kubernetes resources:
+   ```
+   kubectl --kubeconfig=hack/kube-apiserver/.kubeconfig apply -f hack/k8s-manifest.yaml
+   ```
+
+   This step creates an app with id `accounts`.
+   If you want to have access to it, you have to add a row to `_portal_app_collaborator` manually.
+
+4. Setup default resources:
+   Update hack/k8s-resources/authgear.secrets.yaml to match your configuration.
+
+5. Enable multi-tenant mode in Authgear & portal server:
+   refer to `.env.example.k8s` for example environment variables to set
+
+## Portal
+
+### Known issues
+
+We cannot update `@apollo/client` to >= `3.3.4` because it uses `ts-invariant@0.6.0`.
+Parcel will result in error.
+
+https://github.com/apollographql/apollo-client/compare/v3.3.3..v3.3.4
+
+### Setup environment variable
+
+We need to set up environment variables for Authgear servers and portal server.
+
+Make a copy of `.env.example` as `.env`, and update it if necessary.
+
+### Setup portal development server
+
+1. Install dependencies
+
+```
+npm install
+```
+
+2. Run development server
+
+```
+npm start
+```
+
+This command should start a web development server on port 1234.
+
+3. Configure authgear.yaml
+
+We need the following `authgear.yaml` to setup authgear for the portal.
+
+```yaml
+id: accounts # Make sure the ID matches AUTHGEAR_APP_ID environment variable.
+http:
+  # Make sure this matches the host used to access main Authgear server.
+  public_origin: 'http://accounts.portal.localhost:3000'
+  allowed_origins:
+    # The SDK uses XHR to fetch the OAuth/OIDC configuration,
+    # So we have to allow the origin of the portal.
+    # For simplicity, allow all origin for development setup.
+    - "*"
+oauth:
+  clients:
+    # Create a client for the portal.
+    # Since we assume the cookie is shared, there is no grant nor response.
+    - name: Portal
+      client_id: portal
+      # Note that the trailing slash is very important here
+      # URIs are compared byte by byte.
+      redirect_uris:
+        # This redirect URI is used by the portal.
+        - 'http://portal.localhost:8000/oauth-redirect'
+        # This redirect URI is used by the iOS and Android demo app.
+        - 'com.authgear.example://host/path'
+        # This redirect URI is used by the React Native demo app.
+        - 'com.authgear.example.rn://host/path'
+      post_logout_redirect_uris:
+        # This redirect URI is used by the portal.
+        - "http://portal.localhost:8000/"
+      grant_types: []
+      response_types: ["none"]
+```
 
 ## Comment tags
 
