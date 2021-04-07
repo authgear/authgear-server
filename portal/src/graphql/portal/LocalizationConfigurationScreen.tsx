@@ -120,7 +120,7 @@ interface FormModel {
   setState: (fn: (state: FormState) => FormState) => void;
   reload: () => void;
   reset: () => void;
-  save: () => void;
+  save: () => Promise<void>;
 }
 
 interface ResourcesConfigurationContentProps {
@@ -508,9 +508,9 @@ const LocalizationConfigurationScreen: React.FC = function LocalizationConfigura
       resources.reset();
       setSelectedLanguage(config.state.fallbackLanguage);
     },
-    save: () => {
-      config.save();
-      resources.save();
+    save: async () => {
+      await config.save();
+      await resources.save();
     },
   };
 

@@ -17,7 +17,7 @@ export interface AppConfigFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: () => void;
+  save: () => Promise<void>;
   setCanSave: (canSave?: boolean) => void;
   effectiveConfig: PortalAPIAppConfig;
 }
@@ -81,7 +81,7 @@ export function useAppConfigForm<State>(
     setIsSubmitted(false);
   }, [isUpdating]);
 
-  const save = useCallback(() => {
+  const save = useCallback(async () => {
     const allowSave = canSave !== undefined ? canSave : isDirty;
     if (!rawConfig || !initialState) {
       return;
@@ -104,7 +104,7 @@ export function useAppConfigForm<State>(
 
     setIsUpdating(true);
     setUpdateError(null);
-    updateConfig(newConfig)
+    await updateConfig(newConfig)
       .then(() => {
         setCurrentState(null);
         setIsSubmitted(true);

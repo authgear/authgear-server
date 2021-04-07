@@ -306,7 +306,7 @@ interface FormModel {
   setState: (fn: (state: FormState) => FormState) => void;
   reload: () => void;
   reset: () => void;
-  save: () => void;
+  save: () => Promise<void>;
 }
 
 function validateForm(
@@ -903,9 +903,9 @@ const LoginIDConfigurationScreen: React.FC = function LoginIDConfigurationScreen
       config.reset();
       resources.reset();
     },
-    save: () => {
-      config.save();
-      resources.save();
+    save: async () => {
+      await config.save();
+      await resources.save();
     },
   };
 
