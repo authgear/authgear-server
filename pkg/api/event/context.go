@@ -12,7 +12,17 @@ const ContextSchema = `
 }
 `
 
+type TriggeredByType string
+
+const (
+	TriggeredByTypeUser     TriggeredByType = "user"
+	TriggeredByTypeAdminAPI TriggeredByType = "admin_api"
+)
+
 type Context struct {
-	Timestamp int64   `json:"timestamp"`
-	UserID    *string `json:"user_id"`
+	Timestamp          int64           `json:"timestamp"`
+	UserID             *string         `json:"user_id"`
+	PreferredLanguages []string        `json:"preferred_languages"`
+	Language           string          `json:"language"`
+	TriggeredBy        TriggeredByType `json:"triggered_by"`
 }

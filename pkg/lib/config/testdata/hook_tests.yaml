@@ -1,27 +1,67 @@
-part: HookHandlerConfig
+part: BlockingHookHandlersConfig
 name: valid
 error: null
 value:
-  event: before_user_create
-  url: "https://example.com/callback/before_user_create"
+  event: user.pre_create
+  url: "https://example.com/callback/pre_signup"
 
 ---
-part: HookHandlerConfig
+part: BlockingHookHandlersConfig
 name: missing-url
 error: |-
   invalid value:
   <root>: required
     map[actual:[event] expected:[event url] missing:[url]]
 value:
- event: before_user_create
+ event: user.pre_create
 
 ---
-part: HookHandlerConfig
+part: BlockingHookHandlersConfig
 name: invalid-rel-path
 error: |-
   invalid value:
   /url: format
     map[error:input URL must be absolute format:uri]
 value:
+  event: user.pre_create
+  url: "/pre_signup"
+
+---
+part: BlockingHookHandlersConfig
+name: invalid-blocking-event
+error: |-
+  invalid value:
+  /event: enum
+    map[actual:before_user_create expected:[user.pre_create]]
+value:
   event: before_user_create
-  url: "/before_user_create"
+  url: "https://example.com/callback/before_user_create"
+
+---
+part: NonBlockingHookHandlersConfig
+name: valid
+error: null
+value:
+  events: ["*"]
+  url: "https://example.com/callback"
+
+---
+part: NonBlockingHookHandlersConfig
+name: missing-url
+error: |-
+  invalid value:
+  <root>: required
+    map[actual:[events] expected:[events url] missing:[url]]
+value:
+  events: ["*"]
+
+---
+part: NonBlockingHookHandlersConfig
+name: invalid-non-blocking-event
+error: |-
+  invalid value:
+  /events/0: enum
+    map[actual:after_user_create expected:[* user.created user.authenticated user.anonymous.promoted identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected]]
+value:
+  events: ["after_user_create"]
+  url: "https://example.com/callback"

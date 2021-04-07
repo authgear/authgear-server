@@ -47,38 +47,63 @@ func TestDeliverer(t *testing.T) {
 		defer gock.Off()
 
 		Convey("determining whether the event will be delivered", func() {
-			Convey("should return correct value", func() {
-				cfg.Handlers = []config.HookHandlerConfig{
+			Convey("should return correct value for blocking events", func() {
+				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
-					},
-					{
-						Event: string(event.UserSync),
-						URL:   "https://example.com/b",
 					},
 				}
 
-				So(deliverer.WillDeliver(event.BeforeSessionCreate), ShouldBeTrue)
-				So(deliverer.WillDeliver(event.UserSync), ShouldBeTrue)
-				So(deliverer.WillDeliver(event.AfterSessionCreate), ShouldBeFalse)
+				So(deliverer.WillDeliverBlockingEvent(MockBlockingEventType1), ShouldBeTrue)
+				So(deliverer.WillDeliverBlockingEvent(MockBlockingEventType2), ShouldBeFalse)
+			})
+
+			Convey("should return correct value for non-blocking events", func() {
+				cfg.NonBlockingHandlers = []config.NonBlockingHandlersConfig{
+					{
+						Events: []string{
+							string(MockNonBlockingEventType1),
+							string(MockNonBlockingEventType2),
+						},
+						URL: "https://example.com/a",
+					},
+				}
+
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeFalse)
+			})
+
+			Convey("should return true for all non-blocking events", func() {
+				cfg.NonBlockingHandlers = []config.NonBlockingHandlersConfig{
+					{
+						Events: []string{"*"},
+						URL:    "https://example.com/a",
+					},
+				}
+
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType1), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType2), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType3), ShouldBeTrue)
+				So(deliverer.WillDeliverNonBlockingEvent(MockNonBlockingEventType4), ShouldBeTrue)
 			})
 		})
 
-		Convey("delivering before events", func() {
+		Convey("delivering blocking events", func() {
 			e := event.Event{
 				ID:   "event-id",
-				Type: event.BeforeSessionCreate,
+				Type: MockBlockingEventType1,
 			}
 
 			Convey("should be successful", func() {
-				cfg.Handlers = []config.HookHandlerConfig{
+				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(event.BeforeSessionDelete),
+						Event: string(MockBlockingEventType2),
 						URL:   "https://example.com/b",
 					},
 				}
@@ -93,20 +118,20 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(&e)
+				err := deliverer.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeNil)
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 
 			Convey("should disallow operation", func() {
-				cfg.Handlers = []config.HookHandlerConfig{
+				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/b",
 					},
 				}
@@ -132,16 +157,16 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(&e)
+				err := deliverer.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeError, "disallowed by web-hook event handler")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 
 			Convey("should reject invalid status code", func() {
-				cfg.Handlers = []config.HookHandlerConfig{
+				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 				}
@@ -152,28 +177,28 @@ func TestDeliverer(t *testing.T) {
 					Reply(500)
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(&e)
+				err := deliverer.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 
 			Convey("should time out long requests", func() {
-				cfg.Handlers = []config.HookHandlerConfig{
+				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 					{
-						Event: string(event.BeforeSessionCreate),
+						Event: string(MockBlockingEventType1),
 						URL:   "https://example.com/a",
 					},
 				}
@@ -192,28 +217,29 @@ func TestDeliverer(t *testing.T) {
 					})
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverBeforeEvent(&e)
+				err := deliverer.DeliverBlockingEvent(&e)
 
 				So(err, ShouldBeError, "web-hook event delivery timed out")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 		})
 
-		Convey("delivering non-before events", func() {
+		Convey("delivering non-blocking events", func() {
 			e := event.Event{
-				ID:   "event-id",
-				Type: event.UserSync,
+				ID:            "event-id",
+				IsNonBlocking: true,
+				Type:          MockNonBlockingEventType3,
 			}
 
 			Convey("should be successful", func() {
-				cfg.Handlers = []config.HookHandlerConfig{
+				cfg.NonBlockingHandlers = []config.NonBlockingHandlersConfig{
 					{
-						Event: string(event.UserSync),
-						URL:   "https://example.com/a",
+						Events: []string{string(MockNonBlockingEventType3)},
+						URL:    "https://example.com/a",
 					},
 					{
-						Event: string(event.AfterIdentityCreate),
-						URL:   "https://example.com/b",
+						Events: []string{string(MockNonBlockingEventType1)},
+						URL:    "https://example.com/b",
 					},
 				}
 
@@ -224,29 +250,9 @@ func TestDeliverer(t *testing.T) {
 					BodyString("test")
 				defer func() { gock.Flush() }()
 
-				err := deliverer.DeliverNonBeforeEvent(&e)
+				err := deliverer.DeliverNonBlockingEvent(&e)
 
 				So(err, ShouldBeNil)
-				So(gock.IsDone(), ShouldBeTrue)
-			})
-
-			Convey("should reject invalid status code", func() {
-				cfg.Handlers = []config.HookHandlerConfig{
-					{
-						Event: string(event.UserSync),
-						URL:   "https://example.com/a",
-					},
-				}
-
-				gock.New("https://example.com").
-					Post("/a").
-					JSON(e).
-					Reply(500)
-				defer func() { gock.Flush() }()
-
-				err := deliverer.DeliverNonBeforeEvent(&e)
-
-				So(err, ShouldBeError, "invalid status code")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 		})

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -19,12 +20,14 @@ type EdgeDoCreateIdentity struct {
 
 func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeDoCreateIdentity{
-		Identity: e.Identity,
+		Identity:   e.Identity,
+		IsAdminAPI: interaction.IsAdminAPI(rawInput),
 	}, nil
 }
 
 type NodeDoCreateIdentity struct {
-	Identity *identity.Info `json:"identity"`
+	Identity   *identity.Info `json:"identity"`
+	IsAdminAPI bool           `json:"is_admin_api"`
 }
 
 func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -69,12 +72,29 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			err = ctx.Hooks.DispatchEvent(&event.IdentityCreateEvent{
-				User:     *user,
-				Identity: n.Identity.ToModel(),
-			})
-			if err != nil {
-				return err
+			var e event.Payload
+			switch n.Identity.Type {
+			case authn.IdentityTypeLoginID:
+				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+				e = nonblocking.NewIdentityLoginIDAddedEvent(
+					*user,
+					n.Identity.ToModel(),
+					loginIDType,
+					n.IsAdminAPI,
+				)
+			case authn.IdentityTypeOAuth:
+				e = &nonblocking.IdentityOAuthConnectedEvent{
+					User:     *user,
+					Identity: n.Identity.ToModel(),
+					AdminAPI: n.IsAdminAPI,
+				}
+			}
+
+			if e != nil {
+				err = ctx.Hooks.DispatchEvent(e)
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil

@@ -87,7 +87,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			return err
 		}
 
-		err = h.Sessions.Revoke(s)
+		err = h.Sessions.Revoke(s, false)
 		if err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			if s.SessionID() == currentSession.SessionID() {
 				continue
 			}
-			if err = h.Sessions.Revoke(s); err != nil {
+			if err = h.Sessions.Revoke(s, false); err != nil {
 				return err
 			}
 		}

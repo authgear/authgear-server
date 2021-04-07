@@ -22,20 +22,11 @@ type Deliverer struct {
 	AsyncHTTP AsyncHTTPClient
 }
 
-func (deliverer *Deliverer) WillDeliver(eventType event.Type) bool {
-	for _, hook := range deliverer.Config.Handlers {
-		if hook.Event == string(eventType) {
-			return true
-		}
-	}
-	return false
-}
-
-func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event) error {
+func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 	startTime := deliverer.Clock.NowMonotonic()
 	totalTimeout := deliverer.Config.SyncTotalTimeout.Duration()
 
-	for _, hook := range deliverer.Config.Handlers {
+	for _, hook := range deliverer.Config.BlockingHandlers {
 		if hook.Event != string(e.Type) {
 			continue
 		}
@@ -44,7 +35,7 @@ func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event) error {
 			return errDeliveryTimeout
 		}
 
-		request, err := deliverer.prepareRequest(hook, e)
+		request, err := deliverer.prepareRequest(hook.URL, e)
 		if err != nil {
 			return err
 		}
@@ -56,9 +47,10 @@ func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event) error {
 
 		if !resp.IsAllowed {
 			return newErrorOperationDisallowed(
+				string(e.Type),
 				[]OperationDisallowedItem{{
+					Title:  resp.Title,
 					Reason: resp.Reason,
-					Data:   resp.Data,
 				}},
 			)
 		}
@@ -67,13 +59,30 @@ func (deliverer *Deliverer) DeliverBeforeEvent(e *event.Event) error {
 	return nil
 }
 
-func (deliverer *Deliverer) DeliverNonBeforeEvent(e *event.Event) error {
-	for _, hook := range deliverer.Config.Handlers {
-		if hook.Event != string(e.Type) {
+func (deliverer *Deliverer) DeliverNonBlockingEvent(e *event.Event) error {
+	if !e.IsNonBlocking {
+		return nil
+	}
+
+	checkDeliver := func(events []string, target string) bool {
+		for _, event := range events {
+			if event == "*" {
+				return true
+			}
+			if event == target {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, hook := range deliverer.Config.NonBlockingHandlers {
+		shouldDeliver := checkDeliver(hook.Events, string(e.Type))
+		if !shouldDeliver {
 			continue
 		}
 
-		request, err := deliverer.prepareRequest(hook, e)
+		request, err := deliverer.prepareRequest(hook.URL, e)
 		if err != nil {
 			return err
 		}
@@ -87,8 +96,31 @@ func (deliverer *Deliverer) DeliverNonBeforeEvent(e *event.Event) error {
 	return nil
 }
 
-func (deliverer *Deliverer) prepareRequest(hook config.HookHandlerConfig, event *event.Event) (*http.Request, error) {
-	hookURL, err := url.Parse(hook.URL)
+func (deliverer *Deliverer) WillDeliverBlockingEvent(eventType event.Type) bool {
+	for _, hook := range deliverer.Config.BlockingHandlers {
+		if hook.Event == string(eventType) {
+			return true
+		}
+	}
+	return false
+}
+
+func (deliverer *Deliverer) WillDeliverNonBlockingEvent(eventType event.Type) bool {
+	for _, hook := range deliverer.Config.NonBlockingHandlers {
+		for _, e := range hook.Events {
+			if e == "*" {
+				return true
+			}
+			if e == string(eventType) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (deliverer *Deliverer) prepareRequest(urlStr string, event *event.Event) (*http.Request, error) {
+	hookURL, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, newErrorDeliveryFailed(err)
 	}

@@ -7,15 +7,17 @@ var _ = Schema.Add("HookConfig", `
 	"properties": {
 		"sync_hook_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
 		"sync_hook_total_timeout_seconds": { "$ref": "#/$defs/DurationSeconds" },
-		"handlers": { "type": "array", "items": { "$ref": "#/$defs/HookHandlerConfig" } }
+		"blocking_handlers": { "type": "array", "items": { "$ref": "#/$defs/BlockingHookHandlersConfig" } },
+		"non_blocking_handlers": { "type": "array", "items": { "$ref": "#/$defs/NonBlockingHookHandlersConfig" } }
 	}
 }
 `)
 
 type HookConfig struct {
-	SyncTimeout      DurationSeconds     `json:"sync_hook_timeout_seconds,omitempty"`
-	SyncTotalTimeout DurationSeconds     `json:"sync_hook_total_timeout_seconds,omitempty"`
-	Handlers         []HookHandlerConfig `json:"handlers,omitempty"`
+	SyncTimeout         DurationSeconds             `json:"sync_hook_timeout_seconds,omitempty"`
+	SyncTotalTimeout    DurationSeconds             `json:"sync_hook_total_timeout_seconds,omitempty"`
+	BlockingHandlers    []BlockingHandlersConfig    `json:"blocking_handlers,omitempty"`
+	NonBlockingHandlers []NonBlockingHandlersConfig `json:"non_blocking_handlers,omitempty"`
 }
 
 func (c *HookConfig) SetDefaults() {
@@ -27,19 +29,58 @@ func (c *HookConfig) SetDefaults() {
 	}
 }
 
-var _ = Schema.Add("HookHandlerConfig", `
+var _ = Schema.Add("BlockingHookHandlersConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"event": { "type": "string" },
+		"event": { "type": "string", "enum" : ["user.pre_create"] },
 		"url": { "type": "string", "format": "uri" }
 	},
 	"required": ["event", "url"]
 }
 `)
 
-type HookHandlerConfig struct {
+type BlockingHandlersConfig struct {
 	Event string `json:"event"`
 	URL   string `json:"url"`
+}
+
+var _ = Schema.Add("NonBlockingHookHandlersConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"events": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"enum" : [
+					"*",
+					"user.created",
+					"user.authenticated",
+					"user.anonymous.promoted",
+					"identity.email.added",
+					"identity.email.removed",
+					"identity.email.updated",
+					"identity.phone.added",
+					"identity.phone.removed",
+					"identity.phone.updated",
+					"identity.username.added",
+					"identity.username.removed",
+					"identity.username.updated",
+					"identity.oauth.connected",
+					"identity.oauth.disconnected"
+				]
+			}
+		},
+		"url": { "type": "string", "format": "uri" }
+	},
+	"required": ["events", "url"]
+}
+`)
+
+type NonBlockingHandlersConfig struct {
+	Events []string `json:"events"`
+	URL    string   `json:"url"`
 }

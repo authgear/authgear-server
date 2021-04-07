@@ -4,6 +4,8 @@ import (
 	gotime "time"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -25,6 +27,7 @@ func (c *Commands) Create(userID string) (*User, error) {
 func (c *Commands) AfterCreate(
 	user *User,
 	identities []*identity.Info,
+	isAdminAPI bool,
 ) error {
 	isVerified, err := c.Verification.IsUserVerified(identities)
 	if err != nil {
@@ -36,12 +39,24 @@ func (c *Commands) AfterCreate(
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
 	}
-	err = c.Hooks.DispatchEvent(&event.UserCreateEvent{
-		User:       *userModel,
-		Identities: identityModels,
-	})
-	if err != nil {
-		return err
+
+	events := []event.Payload{
+		&blocking.UserPreCreateBlockingEvent{
+			User:       *userModel,
+			Identities: identityModels,
+			AdminAPI:   isAdminAPI,
+		},
+		&nonblocking.UserCreatedEvent{
+			User:       *userModel,
+			Identities: identityModels,
+			AdminAPI:   isAdminAPI,
+		},
+	}
+
+	for _, e := range events {
+		if err := c.Hooks.DispatchEvent(e); err != nil {
+			return err
+		}
 	}
 
 	err = c.Raw.AfterCreate(userModel, identities)

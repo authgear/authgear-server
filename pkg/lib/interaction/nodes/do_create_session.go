@@ -3,7 +3,7 @@ package nodes
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -41,6 +41,7 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *interaction.Context, graph *inter
 		Reason:        e.Reason,
 		Session:       sess,
 		SessionCookie: cookie,
+		IsAdminAPI:    interaction.IsAdminAPI(input),
 	}, nil
 }
 
@@ -48,6 +49,7 @@ type NodeDoCreateSession struct {
 	Reason        session.CreateReason   `json:"reason"`
 	Session       *idpsession.IDPSession `json:"session"`
 	SessionCookie *http.Cookie           `json:"session_cookie"`
+	IsAdminAPI    bool                   `json:"is_admin_api"`
 }
 
 // GetCookies implements CookiesGetter
@@ -89,10 +91,11 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				identities = append(identities, info.ToModel())
 			}
 
-			err = ctx.Hooks.DispatchEvent(&event.UserPromoteEvent{
+			err = ctx.Hooks.DispatchEvent(&nonblocking.UserAnonymousPromotedEvent{
 				AnonymousUser: *anonUser,
 				User:          *newUser,
 				Identities:    identities,
+				AdminAPI:      n.IsAdminAPI,
 			})
 			if err != nil {
 				return err
@@ -111,13 +114,15 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			err = ctx.Hooks.DispatchEvent(&event.SessionCreateEvent{
-				Reason:  string(n.Reason),
-				User:    *user,
-				Session: *n.Session.ToAPIModel(),
-			})
-			if err != nil {
-				return err
+			if n.Reason == session.CreateReasonLogin {
+				err = ctx.Hooks.DispatchEvent(&nonblocking.UserAuthenticatedEvent{
+					User:     *user,
+					Session:  *n.Session.ToAPIModel(),
+					AdminAPI: n.IsAdminAPI,
+				})
+				if err != nil {
+					return err
+				}
 			}
 
 			err = ctx.Sessions.Create(n.Session)

@@ -17,14 +17,17 @@ func newErrorDeliveryFailed(inner error) error {
 }
 
 type OperationDisallowedItem struct {
-	Reason string      `json:"reason"`
-	Data   interface{} `json:"data,omitempty"`
+	Title  string `json:"title"`
+	Reason string `json:"reason"`
 }
 
-func newErrorOperationDisallowed(items []OperationDisallowedItem) error {
+func newErrorOperationDisallowed(eventType string, items []OperationDisallowedItem) error {
 	// These are not causes. Causes are pre-defined, and reasons are provided by hook handlers.
 	return WebHookDisallowed.NewWithInfo(
 		"disallowed by web-hook event handler",
-		map[string]interface{}{"reasons": items},
+		map[string]interface{}{
+			"event_type": eventType,
+			"reasons":    items,
+		},
 	)
 }

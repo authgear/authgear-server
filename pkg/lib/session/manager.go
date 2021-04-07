@@ -51,24 +51,9 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 	}
 }
 
-func (m *Manager) invalidate(session Session, reason DeleteReason) (ManagementService, error) {
-	user, err := m.Users.Get(session.SessionAttrs().UserID)
-	if err != nil {
-		return nil, err
-	}
-	s := session.ToAPIModel()
-
-	err = m.Hooks.DispatchEvent(&event.SessionDeleteEvent{
-		Reason:  string(reason),
-		User:    *user,
-		Session: *s,
-	})
-	if err != nil {
-		return nil, err
-	}
-
+func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
 	provider := m.resolveManagementProvider(session)
-	err = provider.Delete(session)
+	err := provider.Delete(session)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +62,7 @@ func (m *Manager) invalidate(session Session, reason DeleteReason) (ManagementSe
 }
 
 func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
-	provider, err := m.invalidate(session, DeleteReasonLogout)
+	provider, err := m.invalidate(session, DeleteReasonLogout, false)
 	if err != nil {
 		return err
 	}
@@ -89,8 +74,8 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 	return nil
 }
 
-func (m *Manager) Revoke(session Session) error {
-	_, err := m.invalidate(session, DeleteReasonRevoke)
+func (m *Manager) Revoke(session Session, isAdminAPI bool) error {
+	_, err := m.invalidate(session, DeleteReasonRevoke, isAdminAPI)
 	if err != nil {
 		return err
 	}

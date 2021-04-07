@@ -19,50 +19,27 @@ import (
 		@JSONExample Disallowed - Disallow operation with reason
 			{
 				"is_allowed": false,
-				"reason": "Validation failure",
-				"data": { "fields": ["user_name"] }
+				"title": "Validation failure",
+				"reason": "Username is not allowed"
 			}
 */
 
 var HookResponseSchema = validation.NewSimpleSchema(`
 {
-	"allOf": [
-		{
-			"if": {
-				"properties": {
-					"is_allowed": { "type": "boolean", "enum": [true] }
-				}
-			},
-			"then": {
-				"properties": {
-					"is_allowed": { "type": "boolean" }
-				},
-				"required": ["is_allowed"]
-			}
-		},
-		{
-			"if": {
-				"properties": {
-					"is_allowed": { "type": "boolean", "enum": [false] }
-				}
-			},
-			"then": {
-				"properties": {
-					"is_allowed": { "type": "boolean" },
-					"reason": { "type": "string" },
-					"data": { "type": "object" }
-				},
-				"required": ["is_allowed", "reason"]
-			}
-		}
-	]
+	"type": "object",
+	"properties": {
+		"is_allowed": { "type": "boolean" },
+		"title": { "type": "string" },
+		"reason": { "type": "string" }
+	},
+	"required": ["is_allowed"]
 }
 `)
 
 type HookResponse struct {
-	IsAllowed bool        `json:"is_allowed"`
-	Reason    string      `json:"reason"`
-	Data      interface{} `json:"data"`
+	IsAllowed bool   `json:"is_allowed"`
+	Title     string `json:"title"`
+	Reason    string `json:"reason"`
 }
 
 func ParseHookResponse(r io.Reader) (*HookResponse, error) {

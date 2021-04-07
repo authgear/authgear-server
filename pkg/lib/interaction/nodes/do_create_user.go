@@ -53,12 +53,14 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 	return &NodeDoCreateUser{
 		CreateUserID:    uuid.New(),
 		BypassRateLimit: bypassRateLimit,
+		IsAdminAPI:      interaction.IsAdminAPI(rawInput),
 	}, nil
 }
 
 type NodeDoCreateUser struct {
 	CreateUserID    string `json:"create_user_id"`
 	BypassRateLimit bool   `json:"bypass_rate_limit"`
+	IsAdminAPI      bool   `json:"is_admin_api"`
 }
 
 func (n *NodeDoCreateUser) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -78,7 +80,7 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			// run the effects
-			err = ctx.Users.AfterCreate(u, graph.GetUserNewIdentities())
+			err = ctx.Users.AfterCreate(u, graph.GetUserNewIdentities(), n.IsAdminAPI)
 			if err != nil {
 				return err
 			}

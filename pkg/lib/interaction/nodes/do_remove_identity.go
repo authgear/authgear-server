@@ -2,6 +2,8 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -16,12 +18,14 @@ type EdgeDoRemoveIdentity struct {
 
 func (e *EdgeDoRemoveIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeDoRemoveIdentity{
-		Identity: e.Identity,
+		Identity:   e.Identity,
+		IsAdminAPI: interaction.IsAdminAPI(rawInput),
 	}, nil
 }
 
 type NodeDoRemoveIdentity struct {
-	Identity *identity.Info `json:"identity"`
+	Identity   *identity.Info `json:"identity"`
+	IsAdminAPI bool           `json:"is_admin_api"`
 }
 
 func (n *NodeDoRemoveIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -63,12 +67,29 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			err = ctx.Hooks.DispatchEvent(&event.IdentityDeleteEvent{
-				User:     *user,
-				Identity: n.Identity.ToModel(),
-			})
-			if err != nil {
-				return err
+			var e event.Payload
+			switch n.Identity.Type {
+			case authn.IdentityTypeLoginID:
+				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
+				e = nonblocking.NewIdentityLoginIDRemovedEvent(
+					*user,
+					n.Identity.ToModel(),
+					loginIDType,
+					n.IsAdminAPI,
+				)
+			case authn.IdentityTypeOAuth:
+				e = &nonblocking.IdentityOAuthDisconnectedEvent{
+					User:     *user,
+					Identity: n.Identity.ToModel(),
+					AdminAPI: n.IsAdminAPI,
+				}
+			}
+
+			if e != nil {
+				err = ctx.Hooks.DispatchEvent(e)
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil

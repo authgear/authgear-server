@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -29,6 +30,8 @@ func TestDispatchEvent(t *testing.T) {
 		db := NewMockDatabaseHandle(ctrl)
 		ctx := context.Background()
 
+		fallbackLanguage := "en"
+		supportedLanguages := []string{"en"}
 		provider := &Provider{
 			Context:   ctx,
 			Logger:    Logger{log.Null},
@@ -37,6 +40,10 @@ func TestDispatchEvent(t *testing.T) {
 			Users:     users,
 			Store:     store,
 			Deliverer: deliverer,
+			Localization: &config.LocalizationConfig{
+				FallbackLanguage:   &fallbackLanguage,
+				SupportedLanguages: supportedLanguages,
+			},
 		}
 
 		var seq int64 = 0
@@ -48,26 +55,27 @@ func TestDispatchEvent(t *testing.T) {
 
 		db.EXPECT().UseHook(provider).AnyTimes()
 
-		Convey("dispatching operation events", func() {
+		Convey("dispatching blocking events", func() {
 			user := model.User{
 				Meta: model.Meta{ID: "user-id"},
 			}
-			payload := &event.SessionCreateEvent{
-				Reason: "login",
-				User:   user,
+			payload := &MockBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
 
 			Convey("should be successful", func() {
-				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
-				deliverer.EXPECT().DeliverBeforeEvent(
+				deliverer.EXPECT().WillDeliverBlockingEvent(MockBlockingEventType1).Return(true)
+				deliverer.EXPECT().DeliverBlockingEvent(
 					&event.Event{
 						ID:      "0000000000000001",
-						Type:    event.BeforeSessionCreate,
+						Type:    MockBlockingEventType1,
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(nil)
@@ -75,51 +83,16 @@ func TestDispatchEvent(t *testing.T) {
 				err := provider.DispatchEvent(payload)
 
 				So(err, ShouldBeNil)
-				So(provider.persistentEventPayloads, ShouldResemble, []event.Payload{
-					payload,
-				})
+				So(provider.persistentEventPayloads, ShouldBeEmpty)
 			})
 
 			Convey("should not generate before events that would not be delivered", func() {
-				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(false)
+				deliverer.EXPECT().WillDeliverBlockingEvent(MockBlockingEventType1).Return(false)
 
 				err := provider.DispatchEvent(payload)
 
 				So(err, ShouldBeNil)
-				So(provider.persistentEventPayloads, ShouldResemble, []event.Payload{
-					payload,
-				})
-			})
-
-			Convey("should use mutated payload", func() {
-				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
-				deliverer.EXPECT().DeliverBeforeEvent(
-					&event.Event{
-						ID:      "0000000000000001",
-						Type:    event.BeforeSessionCreate,
-						Seq:     1,
-						Payload: payload,
-						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-						},
-					},
-				).DoAndReturn(func(ev *event.Event) error {
-					payload := ev.Payload.(*event.SessionCreateEvent)
-					payload.Reason = "signup"
-					ev.Payload = payload
-					return nil
-				})
-
-				err := provider.DispatchEvent(payload)
-
-				So(err, ShouldBeNil)
-				So(provider.persistentEventPayloads, ShouldResemble, []event.Payload{
-					&event.SessionCreateEvent{
-						Reason: "signup",
-						User:   user,
-					},
-				})
+				So(provider.persistentEventPayloads, ShouldBeEmpty)
 			})
 
 			Convey("should include auth info", func() {
@@ -134,16 +107,18 @@ func TestDispatchEvent(t *testing.T) {
 					},
 				)
 
-				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
-				deliverer.EXPECT().DeliverBeforeEvent(
+				deliverer.EXPECT().WillDeliverBlockingEvent(MockBlockingEventType1).Return(true)
+				deliverer.EXPECT().DeliverBlockingEvent(
 					&event.Event{
 						ID:      "0000000000000001",
-						Type:    event.BeforeSessionCreate,
+						Type:    MockBlockingEventType1,
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    &userID,
+							Timestamp:   1136214245,
+							UserID:      &userID,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(nil)
@@ -154,22 +129,22 @@ func TestDispatchEvent(t *testing.T) {
 			})
 
 			Convey("should return delivery error", func() {
-				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
-				deliverer.EXPECT().DeliverBeforeEvent(gomock.Any()).
+				deliverer.EXPECT().WillDeliverBlockingEvent(MockBlockingEventType1).Return(true)
+				deliverer.EXPECT().DeliverBlockingEvent(gomock.Any()).
 					Return(fmt.Errorf("failed to deliver"))
 
 				err := provider.DispatchEvent(payload)
 
-				So(err, ShouldBeError, "failed to dispatch event")
+				So(err, ShouldBeError, "failed to dispatch event: failed to deliver")
 			})
 		})
 
-		Convey("dispatching notification events", func() {
+		Convey("dispatching non-blocking events", func() {
 			user := model.User{
 				Meta: model.Meta{ID: "user-id"},
 			}
-			payload := &event.UserSyncEvent{
-				User: user,
+			payload := &MockNonBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
 
 			Convey("should be successful", func() {
@@ -184,46 +159,28 @@ func TestDispatchEvent(t *testing.T) {
 
 		Convey("when transaction is about to commit", func() {
 			Convey("should generate & persist events", func() {
-				provider.persistentEventPayloads = []event.Payload{
-					&event.SessionCreateEvent{
-						User: model.User{
-							Meta: model.Meta{ID: "user-id"},
-						},
-					},
+				payload := &MockNonBlockingEvent1{
+					MockUserEventBase: MockUserEventBase{model.User{
+						Meta: model.Meta{ID: "user-id"},
+					}},
 				}
-				users.EXPECT().Get("user-id").Return(&model.User{
-					Meta: model.Meta{ID: "user-id"},
-				}, nil)
-				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
-				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(true)
+				provider.persistentEventPayloads = []event.Payload{
+					payload,
+				}
+				deliverer.EXPECT().WillDeliverNonBlockingEvent(payload.NonBlockingEventType()).Return(true)
 				store.EXPECT().AddEvents([]*event.Event{
 					{
-						ID:   "0000000000000001",
-						Type: event.AfterSessionCreate,
-						Seq:  1,
-						Payload: &event.SessionCreateEvent{
-							User: model.User{
-								Meta: model.Meta{ID: "user-id"},
-							},
-						},
+						ID:      "0000000000000001",
+						Type:    payload.NonBlockingEventType(),
+						Seq:     1,
+						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
-					},
-					{
-						ID:   "0000000000000002",
-						Type: event.UserSync,
-						Seq:  2,
-						Payload: &event.UserSyncEvent{
-							User: model.User{
-								Meta: model.Meta{ID: "user-id"},
-							},
-						},
-						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-						},
+						IsNonBlocking: true,
 					},
 				})
 
@@ -235,33 +192,14 @@ func TestDispatchEvent(t *testing.T) {
 
 			Convey("should not generate events that would not be delivered", func() {
 				provider.persistentEventPayloads = []event.Payload{
-					&event.SessionCreateEvent{
-						User: model.User{
+					&MockNonBlockingEvent1{
+						MockUserEventBase: MockUserEventBase{model.User{
 							Meta: model.Meta{ID: "user-id"},
-						},
+						}},
 					},
 				}
-				users.EXPECT().Get("user-id").Return(&model.User{
-					Meta: model.Meta{ID: "user-id"},
-				}, nil)
-				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
-				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(false)
-				store.EXPECT().AddEvents([]*event.Event{
-					{
-						ID:   "0000000000000001",
-						Type: event.UserSync,
-						Seq:  1,
-						Payload: &event.UserSyncEvent{
-							User: model.User{
-								Meta: model.Meta{ID: "user-id"},
-							},
-						},
-						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-						},
-					},
-				})
+				deliverer.EXPECT().WillDeliverNonBlockingEvent(MockNonBlockingEventType1).Return(false)
+				store.EXPECT().AddEvents([]*event.Event{})
 
 				err := provider.WillCommitTx()
 
@@ -274,62 +212,57 @@ func TestDispatchEvent(t *testing.T) {
 			user := model.User{
 				Meta: model.Meta{ID: "user-id"},
 			}
-			payload := &event.SessionCreateEvent{
-				Reason: "login",
-				User:   user,
+			payload := &MockBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
-			payload2 := &event.UserCreateEvent{
-				User: user,
+			payload2 := &MockBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
+			}
+			nonBlockingPayload := &MockNonBlockingEvent1{
+				MockUserEventBase: MockUserEventBase{user},
 			}
 			webhookErr := WebHookDisallowed.New("")
 
 			Convey("should call db hook function when dispatch event success", func() {
-				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
-				deliverer.EXPECT().DeliverBeforeEvent(
+				deliverer.EXPECT().WillDeliverBlockingEvent(payload.BlockingEventType()).Return(true)
+				deliverer.EXPECT().DeliverBlockingEvent(
 					&event.Event{
 						ID:      "0000000000000001",
-						Type:    event.BeforeSessionCreate,
+						Type:    payload.BlockingEventType(),
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(nil)
 
 				// Calling provider.WillCommitTx will trigger persistent events
-				users.EXPECT().Get("user-id").Return(&model.User{
-					Meta: model.Meta{ID: "user-id"},
-				}, nil)
-				deliverer.EXPECT().WillDeliver(event.UserSync).Return(true)
-				deliverer.EXPECT().WillDeliver(event.AfterSessionCreate).Return(true)
+				deliverer.EXPECT().WillDeliverNonBlockingEvent(nonBlockingPayload.NonBlockingEventType()).Return(true)
 				store.EXPECT().AddEvents([]*event.Event{
 					{
 						ID:      "0000000000000002",
-						Type:    event.AfterSessionCreate,
+						Type:    nonBlockingPayload.NonBlockingEventType(),
 						Seq:     2,
-						Payload: payload,
+						Payload: nonBlockingPayload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
-					},
-					{
-						ID:   "0000000000000003",
-						Type: event.UserSync,
-						Seq:  3,
-						Payload: &event.UserSyncEvent{
-							User: user,
-						},
-						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
-						},
+						IsNonBlocking: true,
 					},
 				})
 
 				err := provider.DispatchEvent(payload)
+				So(err, ShouldBeNil)
+				So(provider.dbHooked, ShouldBeTrue)
+
+				err = provider.DispatchEvent(nonBlockingPayload)
 				So(err, ShouldBeNil)
 				So(provider.dbHooked, ShouldBeTrue)
 
@@ -338,16 +271,18 @@ func TestDispatchEvent(t *testing.T) {
 			})
 
 			Convey("should not add db hook", func() {
-				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
-				deliverer.EXPECT().DeliverBeforeEvent(
+				deliverer.EXPECT().WillDeliverBlockingEvent(payload.BlockingEventType()).Return(true)
+				deliverer.EXPECT().DeliverBlockingEvent(
 					&event.Event{
 						ID:      "0000000000000001",
-						Type:    event.BeforeSessionCreate,
+						Type:    payload.BlockingEventType(),
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(webhookErr)
@@ -363,31 +298,35 @@ func TestDispatchEvent(t *testing.T) {
 
 			Convey("should not generate events that would not be delivered", func() {
 				// first event
-				deliverer.EXPECT().WillDeliver(event.BeforeSessionCreate).Return(true)
-				deliverer.EXPECT().DeliverBeforeEvent(
+				deliverer.EXPECT().WillDeliverBlockingEvent(payload.BlockingEventType()).Return(true)
+				deliverer.EXPECT().DeliverBlockingEvent(
 					&event.Event{
 						ID:      "0000000000000001",
-						Type:    event.BeforeSessionCreate,
+						Type:    payload.BlockingEventType(),
 						Seq:     1,
 						Payload: payload,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(nil)
 
 				// second event
-				deliverer.EXPECT().WillDeliver(event.BeforeUserCreate).Return(true)
-				deliverer.EXPECT().DeliverBeforeEvent(
+				deliverer.EXPECT().WillDeliverBlockingEvent(payload2.BlockingEventType()).Return(true)
+				deliverer.EXPECT().DeliverBlockingEvent(
 					&event.Event{
 						ID:      "0000000000000002",
-						Type:    event.BeforeUserCreate,
+						Type:    payload2.BlockingEventType(),
 						Seq:     2,
 						Payload: payload2,
 						Context: event.Context{
-							Timestamp: 1136214245,
-							UserID:    nil,
+							Timestamp:   1136214245,
+							UserID:      nil,
+							Language:    fallbackLanguage,
+							TriggeredBy: event.TriggeredByTypeUser,
 						},
 					},
 				).Return(webhookErr)
@@ -398,6 +337,10 @@ func TestDispatchEvent(t *testing.T) {
 
 				err = provider.DispatchEvent(payload2)
 				So(err, ShouldBeError, webhookErr)
+				So(provider.dbHooked, ShouldBeTrue)
+
+				err = provider.DispatchEvent(nonBlockingPayload)
+				So(err, ShouldBeNil)
 				So(provider.dbHooked, ShouldBeTrue)
 
 				// Calling provider.WillCommitTx will not trigger persistent events

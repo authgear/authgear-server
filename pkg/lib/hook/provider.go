@@ -7,10 +7,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -21,9 +22,10 @@ type UserProvider interface {
 }
 
 type deliverer interface {
-	WillDeliver(eventType event.Type) bool
-	DeliverBeforeEvent(event *event.Event) error
-	DeliverNonBeforeEvent(event *event.Event) error
+	WillDeliverBlockingEvent(eventType event.Type) bool
+	WillDeliverNonBlockingEvent(eventType event.Type) bool
+	DeliverBlockingEvent(event *event.Event) error
+	DeliverNonBlockingEvent(event *event.Event) error
 }
 
 type store interface {
@@ -41,13 +43,14 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("hook")} }
 
 type Provider struct {
-	Context   context.Context
-	Logger    Logger
-	Database  DatabaseHandle
-	Clock     clock.Clock
-	Users     UserProvider
-	Store     store
-	Deliverer deliverer
+	Context      context.Context
+	Logger       Logger
+	Database     DatabaseHandle
+	Clock        clock.Clock
+	Users        UserProvider
+	Store        store
+	Deliverer    deliverer
+	Localization *config.LocalizationConfig
 
 	persistentEventPayloads []event.Payload `wire:"-"`
 	dbHooked                bool            `wire:"-"`
@@ -68,29 +71,25 @@ func (provider *Provider) DispatchEvent(payload event.Payload) (err error) {
 	}
 
 	switch typedPayload := payload.(type) {
-	case event.OperationPayload:
-		if provider.Deliverer.WillDeliver(typedPayload.BeforeEventType()) {
+
+	case event.BlockingPayload:
+		if provider.Deliverer.WillDeliverBlockingEvent(typedPayload.BlockingEventType()) {
 			seq, err = provider.Store.NextSequenceNumber()
 			if err != nil {
-				err = errorutil.HandledWithMessage(err, "failed to dispatch event")
+				err = fmt.Errorf("failed to dispatch event: %w", err)
 				return
 			}
-			event := event.NewBeforeEvent(seq, typedPayload, provider.makeContext())
-			err = provider.Deliverer.DeliverBeforeEvent(event)
+			event := event.NewBlockingEvent(seq, typedPayload, provider.makeContext(typedPayload.IsAdminAPI()))
+			err = provider.Deliverer.DeliverBlockingEvent(event)
 			if err != nil {
 				if !apierrors.IsKind(err, WebHookDisallowed) {
-					err = errorutil.HandledWithMessage(err, "failed to dispatch event")
+					err = fmt.Errorf("failed to dispatch event: %w", err)
 				}
 				return
 			}
-
-			// update payload since it may have been updated by mutations
-			payload = event.Payload
 		}
 
-		provider.persistentEventPayloads = append(provider.persistentEventPayloads, payload)
-
-	case event.NotificationPayload:
+	case event.NonBlockingPayload:
 		provider.persistentEventPayloads = append(provider.persistentEventPayloads, payload)
 		err = nil
 
@@ -107,36 +106,21 @@ func (provider *Provider) WillCommitTx() error {
 		return nil
 	}
 
-	err := provider.dispatchSyncUserEventIfNeeded()
-	if err != nil {
-		return err
-	}
-
 	events := []*event.Event{}
 	for _, payload := range provider.persistentEventPayloads {
 		var ev *event.Event
 
 		switch typedPayload := payload.(type) {
-		case event.OperationPayload:
-			if provider.Deliverer.WillDeliver(typedPayload.AfterEventType()) {
+
+		case event.NonBlockingPayload:
+			if provider.Deliverer.WillDeliverNonBlockingEvent(typedPayload.NonBlockingEventType()) {
 				seq, err := provider.Store.NextSequenceNumber()
 				if err != nil {
-					err = errorutil.HandledWithMessage(err, "failed to persist event")
+					err = fmt.Errorf("failed to persist event: %w", err)
 					return err
 				}
-				ev = event.NewAfterEvent(seq, typedPayload, provider.makeContext())
+				ev = event.NewNonBlockingEvent(seq, typedPayload, provider.makeContext(typedPayload.IsAdminAPI()))
 			}
-
-		case event.NotificationPayload:
-			if provider.Deliverer.WillDeliver(typedPayload.EventType()) {
-				seq, err := provider.Store.NextSequenceNumber()
-				if err != nil {
-					err = errorutil.HandledWithMessage(err, "failed to persist event")
-					return err
-				}
-				ev = event.NewEvent(seq, typedPayload, provider.makeContext())
-			}
-
 		default:
 			panic(fmt.Sprintf("hook: invalid event payload: %T", payload))
 		}
@@ -147,9 +131,9 @@ func (provider *Provider) WillCommitTx() error {
 		events = append(events, ev)
 	}
 
-	err = provider.Store.AddEvents(events)
+	err := provider.Store.AddEvents(events)
 	if err != nil {
-		err = errorutil.HandledWithMessage(err, "failed to persist event")
+		err = fmt.Errorf("failed to persist event: %w", err)
 		return err
 	}
 	provider.persistentEventPayloads = nil
@@ -166,44 +150,36 @@ func (provider *Provider) DidCommitTx() {
 	// TODO(webhook): deliver persisted events
 	events, _ := provider.Store.GetEventsForDelivery()
 	for _, event := range events {
-		err := provider.Deliverer.DeliverNonBeforeEvent(event)
-		if err != nil {
-			provider.Logger.WithError(err).Debug("Failed to dispatch event")
+		if err := provider.Deliverer.DeliverNonBlockingEvent(event); err != nil {
+			provider.Logger.WithError(err).Debug("Failed to dispatch non blocking event")
 		}
 	}
 }
 
-func (provider *Provider) dispatchSyncUserEventIfNeeded() error {
-	userIDToSync := []string{}
-
-	for _, payload := range provider.persistentEventPayloads {
-		if _, isOperation := payload.(event.OperationPayload); !isOperation {
-			continue
-		}
-		userIDToSync = append(userIDToSync, payload.UserID())
-	}
-
-	for _, userID := range userIDToSync {
-		user, err := provider.Users.Get(userID)
-		if err != nil {
-			return err
-		}
-
-		payload := &event.UserSyncEvent{User: *user}
-		err = provider.DispatchEvent(payload)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (provider *Provider) makeContext() event.Context {
+func (provider *Provider) makeContext(isAdminAPI bool) event.Context {
 	userID := session.GetUserID(provider.Context)
+	preferredLanguageTags := intl.GetPreferredLanguageTags(provider.Context)
+	resolvedLanguageIdx, _ := intl.Resolve(
+		preferredLanguageTags,
+		*provider.Localization.FallbackLanguage,
+		provider.Localization.SupportedLanguages,
+	)
+
+	resolvedLanguage := *provider.Localization.FallbackLanguage
+	if resolvedLanguageIdx != -1 {
+		resolvedLanguage = provider.Localization.SupportedLanguages[resolvedLanguageIdx]
+	}
+
+	triggeredBy := event.TriggeredByTypeUser
+	if isAdminAPI {
+		triggeredBy = event.TriggeredByTypeAdminAPI
+	}
 
 	return event.Context{
-		Timestamp: provider.Clock.NowUTC().Unix(),
-		UserID:    userID,
+		Timestamp:          provider.Clock.NowUTC().Unix(),
+		UserID:             userID,
+		PreferredLanguages: preferredLanguageTags,
+		Language:           resolvedLanguage,
+		TriggeredBy:        triggeredBy,
 	}
 }

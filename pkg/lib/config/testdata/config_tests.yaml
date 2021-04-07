@@ -500,3 +500,35 @@ config:
     public_origin: http://test
   verification:
     code_expiry_seconds: 10
+---
+name: blocking-and-non-blocking-hooks
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  hook:
+    blocking_handlers:
+    - event: "user.pre_create"
+      url: http://webhook
+    non_blocking_handlers:
+    - events:
+      - "*"
+      - "user.created"
+      url: http://webhook
+---
+name: invalid-non-blocking-hook
+error: |-
+  invalid configuration:
+  /hook/non_blocking_handlers/0/events/0: enum
+    map[actual:invalid_name expected:[* user.created user.authenticated user.anonymous.promoted identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  hook:
+    non_blocking_handlers:
+    - events:
+      - "invalid_name"
+      - "user.created"
+      url: http://webhook

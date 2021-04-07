@@ -6,27 +6,26 @@ type Type string
 
 type Payload interface {
 	UserID() string
+	IsAdminAPI() bool
 }
 
-// NotificationPayload represents event payload for notifications, with single event type variant
-type NotificationPayload interface {
+type BlockingPayload interface {
 	Payload
-	EventType() Type
+	BlockingEventType() Type
 }
 
-// OperationPayload represents event payload for operations, with BEFORE and AFTER event type variant
-type OperationPayload interface {
+type NonBlockingPayload interface {
 	Payload
-	BeforeEventType() Type
-	AfterEventType() Type
+	NonBlockingEventType() Type
 }
 
 type Event struct {
-	ID      string  `json:"id"`
-	Seq     int64   `json:"seq"`
-	Type    Type    `json:"type"`
-	Payload Payload `json:"payload"`
-	Context Context `json:"context"`
+	ID            string  `json:"id"`
+	Seq           int64   `json:"seq"`
+	Type          Type    `json:"type"`
+	Payload       Payload `json:"payload"`
+	Context       Context `json:"context"`
+	IsNonBlocking bool    `json:"-"`
 }
 
 func newEvent(seqNo int64, payload Payload, context Context) *Event {
@@ -38,20 +37,15 @@ func newEvent(seqNo int64, payload Payload, context Context) *Event {
 	}
 }
 
-func NewEvent(seqNo int64, payload NotificationPayload, context Context) *Event {
+func NewBlockingEvent(seqNo int64, payload BlockingPayload, context Context) *Event {
 	event := newEvent(seqNo, payload, context)
-	event.Type = payload.EventType()
+	event.Type = payload.BlockingEventType()
 	return event
 }
 
-func NewBeforeEvent(seqNo int64, payload OperationPayload, context Context) *Event {
+func NewNonBlockingEvent(seqNo int64, payload NonBlockingPayload, context Context) *Event {
 	event := newEvent(seqNo, payload, context)
-	event.Type = payload.BeforeEventType()
-	return event
-}
-
-func NewAfterEvent(seqNo int64, payload OperationPayload, context Context) *Event {
-	event := newEvent(seqNo, payload, context)
-	event.Type = payload.AfterEventType()
+	event.Type = payload.NonBlockingEventType()
+	event.IsNonBlocking = true
 	return event
 }
