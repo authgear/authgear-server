@@ -13,6 +13,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwsutil"
 )
 
@@ -137,6 +138,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 		payload,
 		jwt.WithClock(jwtClock{clock}),
 		jwt.WithAudience(clientID),
+		jwt.WithAcceptableSkew(duration.ClockSkew),
 	)
 	if err != nil {
 		return nil, NewSSOFailed(SSOUnauthorized, "invalid aud")

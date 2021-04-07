@@ -20,6 +20,8 @@ func (d *UserInfoDecoder) DecodeUserInfo(providerType config.OAuthSSOProviderTyp
 		providerUserInfo = DecodeLinkedIn(userInfo)
 	case config.OAuthSSOProviderTypeAzureADv2:
 		providerUserInfo = DecodeAzureADv2(userInfo)
+	case config.OAuthSSOProviderTypeADFS:
+		providerUserInfo = DecodeADFS(userInfo)
 	case config.OAuthSSOProviderTypeApple:
 		providerUserInfo = DecodeApple(userInfo)
 	case config.OAuthSSOProviderTypeWechat:
@@ -53,6 +55,16 @@ func DecodeDefault(userInfo map[string]interface{}) *ProviderUserInfo {
 
 func DecodeAzureADv2(userInfo map[string]interface{}) *ProviderUserInfo {
 	id, _ := userInfo["oid"].(string)
+	email, _ := userInfo["email"].(string)
+
+	return &ProviderUserInfo{
+		ID:    id,
+		Email: email,
+	}
+}
+
+func DecodeADFS(userInfo map[string]interface{}) *ProviderUserInfo {
+	id, _ := userInfo["sub"].(string)
 	email, _ := userInfo["email"].(string)
 
 	return &ProviderUserInfo{
