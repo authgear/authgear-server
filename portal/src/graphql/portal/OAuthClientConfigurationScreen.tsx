@@ -29,11 +29,15 @@ import FormContainer from "../../FormContainer";
 import styles from "./OAuthClientConfigurationScreen.module.scss";
 
 interface FormState {
+  publicOrigin: string;
   clients: OAuthClientConfig[];
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
-  return { clients: config.oauth?.clients ?? [] };
+  return {
+    publicOrigin: config.http?.public_origin ?? "",
+    clients: config.oauth?.clients ?? [],
+  };
 }
 
 function constructConfig(
@@ -143,7 +147,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
     form: { state, setState },
   } = props;
   const { renderToString } = useContext(Context);
-  const { authgearEndpoint } = useSystemConfig();
 
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
@@ -167,6 +170,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
   const onRemoveClientClick = useCallback(
     (clientId: string) => {
       setState((state) => ({
+        ...state,
         clients: state.clients.filter((c) => c.client_id !== clientId),
       }));
     },
@@ -206,8 +210,8 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
           <FormattedMessage
             id="OAuthClientConfigurationScreen.client-endpoint.desc"
             values={{
-              clientEndpoint: authgearEndpoint,
-              dnsUrl: "../dns/custom-domains",
+              clientEndpoint: state.publicOrigin,
+              dnsUrl: "../../dns/custom-domains",
             }}
             components={{
               Link,
