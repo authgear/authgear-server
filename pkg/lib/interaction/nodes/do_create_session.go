@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -16,7 +15,8 @@ func init() {
 }
 
 type EdgeDoCreateSession struct {
-	Reason session.CreateReason
+	Reason            session.CreateReason
+	SkipCreateSession bool
 }
 
 func (e *EdgeDoCreateSession) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
@@ -24,10 +24,7 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *interaction.Context, graph *inter
 	acr := graph.GetACR(amr)
 	userIdentity := graph.MustGetUserLastIdentity()
 
-	attrs := &session.Attrs{
-		UserID: graph.MustGetUserID(),
-		Claims: map[authn.ClaimName]interface{}{},
-	}
+	attrs := session.NewAttrs(graph.MustGetUserID())
 	attrs.SetAMR(amr)
 	attrs.SetACR(acr)
 	if claimName, ok := userIdentity.DisplayIDClaimName(); ok {
@@ -38,18 +35,20 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *interaction.Context, graph *inter
 	cookie := ctx.CookieFactory.ValueCookie(ctx.SessionCookie.Def, token)
 
 	return &NodeDoCreateSession{
-		Reason:        e.Reason,
-		Session:       sess,
-		SessionCookie: cookie,
-		IsAdminAPI:    interaction.IsAdminAPI(input),
+		Reason:            e.Reason,
+		SkipCreateSession: e.SkipCreateSession,
+		Session:           sess,
+		SessionCookie:     cookie,
+		IsAdminAPI:        interaction.IsAdminAPI(input),
 	}, nil
 }
 
 type NodeDoCreateSession struct {
-	Reason        session.CreateReason   `json:"reason"`
-	Session       *idpsession.IDPSession `json:"session"`
-	SessionCookie *http.Cookie           `json:"session_cookie"`
-	IsAdminAPI    bool                   `json:"is_admin_api"`
+	Reason            session.CreateReason   `json:"reason"`
+	SkipCreateSession bool                   `json:"skip_create_session"`
+	Session           *idpsession.IDPSession `json:"session"`
+	SessionCookie     *http.Cookie           `json:"session_cookie"`
+	IsAdminAPI        bool                   `json:"is_admin_api"`
 }
 
 // GetCookies implements CookiesGetter
@@ -125,9 +124,11 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				}
 			}
 
-			err = ctx.Sessions.Create(n.Session)
-			if err != nil {
-				return err
+			if !n.SkipCreateSession {
+				err = ctx.Sessions.Create(n.Session)
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil

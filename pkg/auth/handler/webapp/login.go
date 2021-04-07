@@ -92,7 +92,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	opts := webapp.SessionOptions{
 		RedirectURI: ctrl.RedirectURI(),
 	}
-	intent := intents.NewIntentLogin()
+	intent := intents.NewIntentLogin(false)
 
 	ctrl.Get(func() error {
 		graph, err := ctrl.EntryPointGet(opts, intent)
