@@ -322,10 +322,9 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	var graph *interaction.Graph
-	var attrs *session.Attrs
 	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
-		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin())
+		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin(true))
 		if err != nil {
 			return nil, err
 		}
@@ -340,16 +339,6 @@ func (h *TokenHandler) handleAnonymousRequest(
 			return nil, err
 		}
 
-		for _, node := range graph.Nodes {
-			if a, ok := node.(interface{ SessionAttrs() *session.Attrs }); ok {
-				attrs = a.SessionAttrs()
-				break
-			}
-		}
-		if attrs == nil {
-			return nil, errors.New("interaction does not produce authn attrs")
-		}
-
 		return graph, nil
 	})
 
@@ -361,6 +350,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 	} else if err != nil {
 		return nil, err
 	}
+
+	attrs := session.NewAnonymousAttrs(graph.MustGetUserID())
 
 	err = h.Graphs.Run("", graph)
 	if apierrors.IsAPIError(err) {
@@ -494,10 +485,9 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
 	var graph *interaction.Graph
-	var attrs *session.Attrs
 	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
-		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin())
+		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin(true))
 		if err != nil {
 			return nil, err
 		}
@@ -512,16 +502,6 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 			return nil, err
 		}
 
-		for _, node := range graph.Nodes {
-			if a, ok := node.(interface{ SessionAttrs() *session.Attrs }); ok {
-				attrs = a.SessionAttrs()
-				break
-			}
-		}
-		if attrs == nil {
-			return nil, errors.New("interaction does not produce authn attrs")
-		}
-
 		return graph, nil
 	})
 
@@ -533,6 +513,8 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	} else if err != nil {
 		return nil, err
 	}
+
+	attrs := session.NewBiometricAttrs(graph.MustGetUserID())
 
 	err = h.Graphs.Run("", graph)
 	if apierrors.IsAPIError(err) {

@@ -24,19 +24,29 @@ const (
 )
 
 type IntentAuthenticate struct {
-	Kind IntentAuthenticateKind `json:"kind"`
+	Kind              IntentAuthenticateKind `json:"kind"`
+	SkipCreateSession bool                   `json:"skip_create_session"`
 }
 
-func NewIntentLogin() *IntentAuthenticate {
-	return &IntentAuthenticate{Kind: IntentAuthenticateKindLogin}
+func NewIntentLogin(skipCreateSession bool) *IntentAuthenticate {
+	return &IntentAuthenticate{
+		Kind:              IntentAuthenticateKindLogin,
+		SkipCreateSession: skipCreateSession,
+	}
 }
 
 func NewIntentSignup() *IntentAuthenticate {
-	return &IntentAuthenticate{Kind: IntentAuthenticateKindSignup}
+	return &IntentAuthenticate{
+		Kind:              IntentAuthenticateKindSignup,
+		SkipCreateSession: false,
+	}
 }
 
 func NewIntentPromote() *IntentAuthenticate {
-	return &IntentAuthenticate{Kind: IntentAuthenticateKindPromote}
+	return &IntentAuthenticate{
+		Kind:              IntentAuthenticateKindPromote,
+		SkipCreateSession: false,
+	}
 }
 
 func (i *IntentAuthenticate) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
@@ -304,7 +314,10 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		}
 
 		return []interaction.Edge{
-			&nodes.EdgeDoCreateSession{Reason: reason},
+			&nodes.EdgeDoCreateSession{
+				Reason:            reason,
+				SkipCreateSession: i.SkipCreateSession,
+			},
 		}, nil
 
 	case *nodes.NodeDoCreateSession:
