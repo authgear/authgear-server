@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type ADFSImpl struct {
@@ -81,27 +82,41 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		err = OAuthProtocolError.New("sub not found in ID Token")
+		err = OAuthProtocolError.New("sub not found in ID token")
 		return
 	}
 
 	// The upn claim is documented here.
 	// https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/operations/configuring-alternate-login-id
-	email, _ := claims["upn"].(string)
-	if email != "" {
+	upn, ok := claims["upn"].(string)
+	if !ok {
+		err = OAuthProtocolError.New("upn not found in ID token")
+		return
+	}
+
+	var email string
+	var preferredUsername string
+
+	err = validation.FormatEmail{}.CheckFormat(upn)
+	if err == nil {
+		// upn looks like an email address.
 		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(email)
+		email, err = normalizer.Normalize(upn)
 		if err != nil {
 			return
 		}
+	} else {
+		// upn does NOT look like an email address.
+		preferredUsername = upn
 	}
 
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderAccessTokenResp = tokenResp
 	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:    sub,
-		Email: email,
+		ID:                sub,
+		Email:             email,
+		PreferredUsername: preferredUsername,
 	}
 
 	return
