@@ -161,6 +161,15 @@ To setup multi-tenant mode:
 
 ## Portal
 
+### Known issues
+
+`parcel@2.0.0-beta.1` cannot bundle `@apollo/client>=3.3.4` because it uses `ts-invariant@0.6.0`.
+See https://github.com/apollographql/apollo-client/compare/v3.3.3..v3.3.4
+
+`parcel@2.0.0-beta.2` cannot bundle `@fluentui/react` unless `no-scope-hoisting` is specified in the build command `parcel build`.
+However, with `no-scope-hoisting` specified, the CSS of `@fluentui/react` is not bundled at all, causing the UI to break.
+See https://github.com/parcel-bundler/parcel/issues/6071
+
 ### Setup environment variable
 
 We need to set up environment variables for Authgear servers and portal server.
@@ -206,15 +215,19 @@ oauth:
       # Note that the trailing slash is very important here
       # URIs are compared byte by byte.
       redirect_uris:
-        # This redirect URI is used by the portal.
+        # This redirect URI is used by the portal development server.
         - 'http://portal.localhost:8000/oauth-redirect'
+        # This redirect URI is used by the portal production build.
+        - 'http://portal.localhost:8010/oauth-redirect'
         # This redirect URI is used by the iOS and Android demo app.
         - 'com.authgear.example://host/path'
         # This redirect URI is used by the React Native demo app.
         - 'com.authgear.example.rn://host/path'
       post_logout_redirect_uris:
-        # This redirect URI is used by the portal.
+        # This redirect URI is used by the portal development server.
         - "http://portal.localhost:8000/"
+        # This redirect URI is used by the portal production build.
+        - "http://portal.localhost:8010/"
       grant_types: []
       response_types: ["none"]
 ```
