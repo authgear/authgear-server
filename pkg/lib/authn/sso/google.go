@@ -51,13 +51,11 @@ func (f *GoogleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfo
 func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	d, err := FetchOIDCDiscoveryDocument(http.DefaultClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
 	keySet, err := d.FetchJWKs(http.DefaultClient)
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
 	}
 
@@ -86,18 +84,18 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 	// https://developers.google.com/identity/protocols/OpenIDConnect#validatinganidtoken
 	iss, ok := claims["iss"].(string)
 	if !ok {
-		err = NewSSOFailed(SSOUnauthorized, "invalid iss")
+		err = OAuthProtocolError.New("iss not found in ID token")
 		return
 	}
 	if iss != "https://accounts.google.com" && iss != "accounts.google.com" {
-		err = NewSSOFailed(SSOUnauthorized, "invalid iss")
+		err = OAuthProtocolError.New("iss is not from Google")
 		return
 	}
 
 	// Ensure sub exists
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		err = NewSSOFailed(SSOUnauthorized, "no sub")
+		err = OAuthProtocolError.New("sub not found in ID token")
 		return
 	}
 

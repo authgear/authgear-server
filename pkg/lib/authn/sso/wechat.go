@@ -67,7 +67,7 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 	var userID string
 	if config.IsSandboxAccount {
 		if accessTokenResp.UnionID() != "" {
-			err = NewSSOFailed(InvalidConfiguration, "invalid is_sandbox_account config, WeChat sandbox account should not have union id")
+			err = InvalidConfiguration.New("invalid is_sandbox_account config, WeChat sandbox account should not have union id")
 			return
 		}
 		userID = accessTokenResp.OpenID()
@@ -77,7 +77,7 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 
 	if userID == "" {
 		// this may happen if developer misconfigure is_sandbox_account, e.g. sandbox account doesn't have union id
-		err = NewSSOFailed(InvalidConfiguration, "invalid is_sandbox_account config, missing user id in wechat token response")
+		err = InvalidConfiguration.New("invalid is_sandbox_account config, missing user id in wechat token response")
 		return
 	}
 

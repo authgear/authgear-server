@@ -2,7 +2,6 @@ package sso
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -86,13 +85,11 @@ func (f *AppleImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoP
 func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	keySet, err := appleOIDCConfig.FetchJWKs(http.DefaultClient)
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
 	}
 
 	clientSecret, err := f.createClientSecret()
 	if err != nil {
-		err = fmt.Errorf("failed to create client secret: %w", err)
 		return
 	}
 
@@ -124,18 +121,18 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 	// Therefore, we use strings.Contains here.
 	iss, ok := claims["iss"].(string)
 	if !ok {
-		err = NewSSOFailed(SSOUnauthorized, "invalid iss")
+		err = OAuthProtocolError.New("iss not found in ID token")
 		return
 	}
 	if !strings.Contains(iss, "https://appleid.apple.com") {
-		err = NewSSOFailed(SSOUnauthorized, "invalid iss")
+		err = OAuthProtocolError.New("iss does not equal to `https://appleid.apple.com`")
 		return
 	}
 
 	// Ensure sub exists
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		err = NewSSOFailed(SSOUnauthorized, "no sub")
+		err = OAuthProtocolError.New("sub not found in ID Token")
 		return
 	}
 

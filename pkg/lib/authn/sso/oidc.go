@@ -47,9 +47,15 @@ func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDisc
 	if err != nil {
 		return nil, err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, InvalidConfiguration.New(fmt.Sprintf("failed to fetch OIDC discovery document with HTTP status code 404: %s", endpoint))
 	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to fetch OIDC discovery document: unexpected status code: %d", resp.StatusCode)
+	}
+
 	var document OIDCDiscoveryDocument
 	err = json.NewDecoder(resp.Body).Decode(&document)
 	if err != nil {
@@ -83,7 +89,7 @@ func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) 
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return nil, fmt.Errorf("failed to fetch OIDC JWKs: unexpected status code: %d", resp.StatusCode)
 	}
 	return jwk.ParseReader(resp.Body)
 }
@@ -108,7 +114,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 
 	resp, err := client.PostForm(d.TokenEndpoint, body)
 	if err != nil {
-		return nil, NewSSOFailed(NetworkFailed, "failed to connect authorization server")
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -131,7 +137,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 
 	_, payload, err := jwsutil.VerifyWithSet(jwks, idToken)
 	if err != nil {
-		return nil, NewSSOFailed(SSOUnauthorized, "invalid JWT signature")
+		return nil, fmt.Errorf("failed to verify ID token signature: %w", err)
 	}
 
 	err = jwt.Validate(
@@ -141,21 +147,21 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 		jwt.WithAcceptableSkew(duration.ClockSkew),
 	)
 	if err != nil {
-		return nil, NewSSOFailed(SSOUnauthorized, "invalid aud")
+		return nil, fmt.Errorf("failed to validate JWT claims: %w", err)
 	}
 
 	hashedNonceIface, ok := payload.Get("nonce")
 	if !ok {
-		return nil, NewSSOFailed(InvalidParams, "no nonce")
+		return nil, OAuthProtocolError.New("nonce not found in ID token")
 	}
 
 	hashedNonce, ok := hashedNonceIface.(string)
 	if !ok {
-		return nil, NewSSOFailed(SSOUnauthorized, "invalid nonce")
+		return nil, OAuthProtocolError.New(fmt.Sprintf("nonce in ID token is of invalid type: %T", hashedNonceIface))
 	}
 
 	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
-		return nil, NewSSOFailed(SSOUnauthorized, "invalid nonce")
+		return nil, fmt.Errorf("invalid nonce")
 	}
 
 	return payload, nil

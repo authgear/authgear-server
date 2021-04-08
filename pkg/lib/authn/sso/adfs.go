@@ -49,14 +49,12 @@ func (f *ADFSImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoPa
 func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
 		return
 	}
 
 	// OPTIMIZE(sso): Cache JWKs
 	keySet, err := c.FetchJWKs(http.DefaultClient)
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
 	}
 
@@ -83,7 +81,7 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		err = NewSSOFailed(SSOUnauthorized, "no sub")
+		err = OAuthProtocolError.New("sub not found in ID Token")
 		return
 	}
 

@@ -92,13 +92,11 @@ func (f *Azureadv2Impl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthI
 func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error) {
 	c, err := f.getOpenIDConfiguration()
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC discovery document")
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
 	keySet, err := c.FetchJWKs(http.DefaultClient)
 	if err != nil {
-		err = NewSSOFailed(NetworkFailed, "failed to get OIDC JWKs")
 		return
 	}
 
@@ -125,7 +123,7 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 
 	oid, ok := claims["oid"].(string)
 	if !ok {
-		err = NewSSOFailed(SSOUnauthorized, "no oid")
+		err = OAuthProtocolError.New("oid not found in ID Token")
 		return
 	}
 	// For "Microsoft Account", email usually exists.
