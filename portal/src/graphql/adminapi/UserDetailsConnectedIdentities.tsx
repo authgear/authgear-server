@@ -136,6 +136,7 @@ const oauthIconMap: Record<OAuthSSOProviderType, React.ReactNode> = {
   azureadv2: (
     <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
   ),
+  adfs: <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />,
   wechat: <i className={cn("fab", "fa-weixin", styles.widgetLabelIcon)} />,
 };
 

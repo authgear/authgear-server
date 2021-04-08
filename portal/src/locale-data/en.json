@@ -41,6 +41,7 @@
   "google": "Google",
   "facebook": "Facebook",
   "linkedin": "LinkedIn",
+  "adfs": "AD FS",
   "azureadv2": "AzureADv2",
 
   "login-id-key.username": "Username",
@@ -349,6 +350,7 @@
   "SingleSignOnConfigurationScreen.widget.team-id": "Team ID",
   "SingleSignOnConfigurationScreen.widget.account-id": "Account ID (原始 ID)",
   "SingleSignOnConfigurationScreen.widget.is-sandbox-account": "Is Sandbox account",
+  "SingleSignOnConfigurationScreen.widget.discovery-document-endpoint": "Discovery Document Endpoint",
   "SingleSignOnConfigurationScreen.widget.client-secret.error": "Invalid client secret",
   "SingleSignOnConfigurationScreen.widget.add-uri": "Add URI",
   "SingleSignOnConfigurationScreen.widget.wechat-redirect-uris-label": "WeChat redirect URIs",
@@ -360,6 +362,7 @@
   "OAuthBranding.facebook": "Login with Facebook",
   "OAuthBranding.linkedin": "Sign in with LinkedIn",
   "OAuthBranding.azureadv2": "Sign in with Microsoft",
+  "OAuthBranding.adfs": "Sign in with Microsoft",
   "OAuthBranding.wechat.web": "Sign in with WeChat (Web/网站应用)",
   "OAuthBranding.wechat.mobile": "Sign in with WeChat (Mobile/移动应用)",
 
@@ -655,6 +658,7 @@
   "ThemePreviewWidget.facebook-button-label": "Login with Facebook",
   "ThemePreviewWidget.linkedin-button-label": "Sign in with LinkedIn",
   "ThemePreviewWidget.azureadv2-button-label": "Sign in with Microsoft",
+  "ThemePreviewWidget.adfs-button-label": "Sign in with Microsoft",
   "ThemePreviewWidget.wechat-button-label": "Login with WeChat",
   "ThemePreviewWidget.disclaimer": "By registering, you agree to our {a, react, className{{className}} children{Terms of Service}} and {a, react, className{{className}} children{Privacy Policy}}",
 
