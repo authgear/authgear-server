@@ -12,8 +12,6 @@ const (
 	SSOUnauthorized      ssoFailCause = "Unauthorized"
 	NetworkFailed        ssoFailCause = "NetworkFailed"
 	InvalidParams        ssoFailCause = "InvalidParams"
-	AlreadyLinked        ssoFailCause = "AlreadyLinked"
-	InvalidCodeVerifier  ssoFailCause = "InvalidCodeVerifier"
 	InvalidConfiguration ssoFailCause = "InvalidConfiguration"
 )
 
