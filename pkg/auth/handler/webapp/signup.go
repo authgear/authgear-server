@@ -66,7 +66,6 @@ type SignupHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	FormPrefiller     *FormPrefiller
 	Renderer          Renderer
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SignupHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -111,11 +110,9 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("oauth", func() error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
-				NonceSource:      nonceSource,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 			}
 			return

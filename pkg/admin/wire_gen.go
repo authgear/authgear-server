@@ -36,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
@@ -510,6 +511,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       webEndpoints,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -553,6 +560,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,

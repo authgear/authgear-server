@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -38,6 +39,9 @@ func ProvideOAuthMetadataProviders(oauth *oauth.MetadataProvider, oidc *oidc.Met
 var DependencySet = wire.NewSet(
 	deps.RequestDependencySet,
 	deps.CommonDependencySet,
+
+	nonce.DependencySet,
+	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
 	wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),

@@ -34,6 +34,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -430,6 +431,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       webappURLProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -516,6 +523,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -966,6 +974,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -1036,6 +1050,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2237,6 +2252,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -2307,6 +2328,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2748,6 +2770,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -2834,6 +2862,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2903,13 +2932,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	loginHandler := &webapp2.LoginHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return loginHandler
 }
@@ -3283,6 +3310,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -3369,6 +3402,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3438,13 +3472,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	signupHandler := &webapp2.SignupHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return signupHandler
 }
@@ -3818,6 +3850,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -3904,6 +3942,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3973,13 +4012,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	promoteHandler := &webapp2.PromoteHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return promoteHandler
 }
@@ -4353,6 +4390,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -4439,6 +4482,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4504,10 +4548,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	ssoCallbackHandler := &webapp2.SSOCallbackHandler{
 		ControllerFactory: controllerFactory,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return ssoCallbackHandler
 }
@@ -4881,6 +4923,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -4967,6 +5015,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5032,12 +5081,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	wechatAuthHandler := &webapp2.WechatAuthHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
-		CSRFCookie:        csrfCookieDef,
 		IdentityConfig:    identityConfig,
 	}
 	return wechatAuthHandler
@@ -5412,6 +5459,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -5498,6 +5551,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5944,6 +5998,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -6030,6 +6090,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6473,6 +6534,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -6559,6 +6626,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7001,6 +7069,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -7087,6 +7161,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7530,6 +7605,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -7616,6 +7697,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8060,6 +8142,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -8146,6 +8234,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8588,6 +8677,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -8674,6 +8769,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9116,6 +9212,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -9202,6 +9304,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9646,6 +9749,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -9732,6 +9841,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -10174,6 +10284,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -10260,6 +10376,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -10702,6 +10819,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -10788,6 +10911,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11233,6 +11357,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -11319,6 +11449,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11761,6 +11892,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -11847,6 +11984,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -12294,6 +12432,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -12380,6 +12524,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -12822,6 +12967,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -12908,6 +13059,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -13351,6 +13503,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -13437,6 +13595,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -13879,6 +14038,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -13965,6 +14130,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -14425,6 +14591,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -14511,6 +14683,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -14576,14 +14749,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsIdentityHandler := &webapp2.SettingsIdentityHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Identities:        serviceService,
 		Verification:      verificationService,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsIdentityHandler
 }
@@ -14957,6 +15128,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -15043,6 +15220,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -15486,6 +15664,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -15572,6 +15756,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -16023,6 +16208,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -16109,6 +16300,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -16552,6 +16744,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -16638,6 +16836,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -17081,6 +17280,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -17167,6 +17372,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -17611,6 +17817,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -17697,6 +17909,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -18146,6 +18359,12 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -18232,6 +18451,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -18675,6 +18895,12 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -18761,6 +18987,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -19204,6 +19431,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -19290,6 +19523,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -20112,6 +20346,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -20198,6 +20438,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -20640,6 +20881,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
 	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -20726,6 +20973,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,

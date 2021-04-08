@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
@@ -28,6 +29,9 @@ var DependencySet = wire.NewSet(
 	deps.CommonDependencySet,
 
 	middleware.DependencySet,
+
+	nonce.DependencySet,
+	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 
 	loader.DependencySet,
 	wire.Bind(new(loader.UserLoaderUserService), new(*user.Queries)),

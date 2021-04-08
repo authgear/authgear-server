@@ -42,7 +42,6 @@ type WechatAuthHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
-	CSRFCookie        webapp.CSRFCookieDef
 	IdentityConfig    *config.IdentityConfig
 }
 
@@ -119,11 +118,8 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			step := session.CurrentStep()
 			action, ok := step.FormData["x_action"].(string)
 			if ok && action == WechatActionCallback {
-				nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
-
 				data := InputOAuthCallback{
 					ProviderAlias:    httproute.GetParam(r, "alias"),
-					NonceSource:      nonceSource,
 					Code:             step.FormData["x_code"].(string),
 					Scope:            step.FormData["x_scope"].(string),
 					Error:            step.FormData["x_error"].(string),
