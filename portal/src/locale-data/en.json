@@ -41,8 +41,8 @@
   "google": "Google",
   "facebook": "Facebook",
   "linkedin": "LinkedIn",
-  "adfs": "AD FS",
-  "azureadv2": "AzureADv2",
+  "adfs": "Microsoft AD FS",
+  "azureadv2": "Microsoft Azure AD",
 
   "login-id-key.username": "Username",
   "login-id-key.email": "Email",
@@ -361,8 +361,8 @@
   "OAuthBranding.google": "Sign in with Google",
   "OAuthBranding.facebook": "Login with Facebook",
   "OAuthBranding.linkedin": "Sign in with LinkedIn",
-  "OAuthBranding.azureadv2": "Sign in with Microsoft",
-  "OAuthBranding.adfs": "Sign in with Microsoft",
+  "OAuthBranding.azureadv2": "Sign in with Microsoft Azure AD",
+  "OAuthBranding.adfs": "Sign in with Microsoft AD FS",
   "OAuthBranding.wechat.web": "Sign in with WeChat (Web/网站应用)",
   "OAuthBranding.wechat.mobile": "Sign in with WeChat (Mobile/移动应用)",
 
@@ -657,8 +657,8 @@
   "ThemePreviewWidget.google-button-label": "Sign in with Google",
   "ThemePreviewWidget.facebook-button-label": "Login with Facebook",
   "ThemePreviewWidget.linkedin-button-label": "Sign in with LinkedIn",
-  "ThemePreviewWidget.azureadv2-button-label": "Sign in with Microsoft",
-  "ThemePreviewWidget.adfs-button-label": "Sign in with Microsoft",
+  "ThemePreviewWidget.azureadv2-button-label": "Sign in with Microsoft Azure AD",
+  "ThemePreviewWidget.adfs-button-label": "Sign in with Microsoft AD FS",
   "ThemePreviewWidget.wechat-button-label": "Login with WeChat",
   "ThemePreviewWidget.disclaimer": "By registering, you agree to our {a, react, className{{className}} children{Terms of Service}} and {a, react, className{{className}} children{Privacy Policy}}",
 
