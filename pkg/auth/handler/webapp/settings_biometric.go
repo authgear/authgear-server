@@ -41,7 +41,6 @@ type SettingsBiometricHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Identities        SettingsIdentityService
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SettingsBiometricHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

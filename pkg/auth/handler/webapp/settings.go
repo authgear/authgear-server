@@ -54,7 +54,6 @@ type SettingsHandler struct {
 	Renderer          Renderer
 	Identities        SettingsIdentityService
 	Verification      SettingsVerificationService
-	CSRFCookie        webapp.CSRFCookieDef
 	TrustProxy        config.TrustProxy
 	SessionManager    SettingsSessionManager
 }

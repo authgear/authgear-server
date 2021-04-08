@@ -14037,7 +14037,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	manager2 := &session.Manager{
 		Users:               queries,
 		Hooks:               hookProvider,
@@ -14051,7 +14050,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:          responseRenderer,
 		Identities:        serviceService,
 		Verification:      verificationService,
-		CSRFCookie:        csrfCookieDef,
 		TrustProxy:        trustProxy,
 		SessionManager:    manager2,
 	}
@@ -15110,13 +15108,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsBiometricHandler := &webapp2.SettingsBiometricHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Identities:        serviceService,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsBiometricHandler
 }
@@ -15648,14 +15644,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsMFAHandler := &webapp2.SettingsMFAHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		SettingsViewModel: settingsViewModeler,
 		Renderer:          responseRenderer,
 		MFA:               mfaService,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsMFAHandler
 }
@@ -16180,13 +16174,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsTOTPHandler := &webapp2.SettingsTOTPHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Authenticators:    service3,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsTOTPHandler
 }
@@ -16711,13 +16703,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsOOBOTPHandler := &webapp2.SettingsOOBOTPHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Authenticators:    service3,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsOOBOTPHandler
 }
@@ -17242,14 +17232,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsRecoveryCodeHandler := &webapp2.SettingsRecoveryCodeHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Authentication:    authenticationConfig,
 		MFA:               mfaService,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsRecoveryCodeHandler
 }
