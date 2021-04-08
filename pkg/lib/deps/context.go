@@ -19,9 +19,9 @@ func withProvider(ctx context.Context, p *AppProvider) context.Context {
 	})
 }
 
-func getRequestProvider(r *http.Request) *RequestProvider {
+func getRequestProvider(w http.ResponseWriter, r *http.Request) *RequestProvider {
 	pCtx := r.Context().Value(providerContextKey).(*providerContext)
-	p := pCtx.p.NewRequestProvider(r)
+	p := pCtx.p.NewRequestProvider(w, r)
 	return p
 }
 
