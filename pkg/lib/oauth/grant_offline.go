@@ -21,6 +21,8 @@ type OfflineGrant struct {
 
 	Attrs      session.Attrs `json:"attrs"`
 	AccessInfo access.Info   `json:"access_info"`
+
+	DeviceInfo map[string]interface{} `json:"device_info,omitempty"`
 }
 
 var _ Grant = &OfflineGrant{}
@@ -38,7 +40,6 @@ func (g *OfflineGrant) GetClientID() string         { return g.ClientID }
 func (g *OfflineGrant) GetAccessInfo() *access.Info { return &g.AccessInfo }
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {
-	ua := model.ParseUserAgent(g.AccessInfo.LastAccess.UserAgent)
 	amr, _ := g.Attrs.GetAMR()
 	acr, _ := g.Attrs.GetACR()
 	return &model.Session{
@@ -56,6 +57,5 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,
 		LastAccessedByIP: g.AccessInfo.LastAccess.RemoteIP,
-		UserAgent:        ua,
 	}
 }

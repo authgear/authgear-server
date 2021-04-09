@@ -20,7 +20,7 @@ import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";
 import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutation";
 import { useParams } from "react-router-dom";
 import ErrorDialog from "../../error/ErrorDialog";
-import { Session, SessionType, SessionUserAgent } from "../../util/user";
+import { Session, SessionType } from "../../util/user";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
@@ -84,14 +84,6 @@ const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> = functi
     </Dialog>
   );
 };
-
-function userAgentDisplayName(ua: SessionUserAgent): string {
-  let name = ua.name;
-  if (name !== "" && ua.version !== "") {
-    name += " " + ua.version;
-  }
-  return name;
-}
 
 function sessionTypeDisplayKey(type: SessionType): string {
   switch (type) {
@@ -206,7 +198,7 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
     () =>
       sessions.map(
         (session): SessionItemViewModel => ({
-          deviceName: userAgentDisplayName(session.userAgent),
+          deviceName: "FIXME(session-info)",
           kind: renderToString(sessionTypeDisplayKey(session.type)),
           ipAddress: session.lastAccessedByIP,
           lastActivity: formatDatetime(locale, session.lastAccessedAt) ?? "",

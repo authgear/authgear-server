@@ -30,7 +30,6 @@ func (s *IDPSession) GetClientID() string         { return "" }
 func (s *IDPSession) GetAccessInfo() *access.Info { return &s.AccessInfo }
 
 func (s *IDPSession) ToAPIModel() *model.Session {
-	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
 	acr, _ := s.Attrs.GetACR()
 	amr, _ := s.Attrs.GetAMR()
 	return &model.Session{
@@ -48,6 +47,5 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		LastAccessedAt:   s.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      s.AccessInfo.InitialAccess.RemoteIP,
 		LastAccessedByIP: s.AccessInfo.LastAccess.RemoteIP,
-		UserAgent:        ua,
 	}
 }

@@ -22,5 +22,4 @@ type Session struct {
 	LastAccessedAt   time.Time `json:"lastAccessedAt"`
 	CreatedByIP      string    `json:"createdByIP"`
 	LastAccessedByIP string    `json:"lastAccessedByIP"`
-	UserAgent        UserAgent `json:"userAgent"`
 }

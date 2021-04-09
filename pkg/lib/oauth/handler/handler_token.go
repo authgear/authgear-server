@@ -188,6 +188,10 @@ func (h *TokenHandler) handleAuthorizationCode(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	deviceInfo, err := r.DeviceInfo()
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	}
 
 	codeHash := oauth.HashToken(r.Code())
 	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
@@ -223,7 +227,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, sess)
+	resp, err := h.issueTokensForAuthorizationCode(client, codeGrant, authz, sess, deviceInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -324,8 +328,13 @@ func (h *TokenHandler) handleAnonymousRequest(
 		)
 	}
 
+	deviceInfo, err := r.DeviceInfo()
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	}
+
 	var graph *interaction.Graph
-	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin(true))
 		if err != nil {
@@ -380,7 +389,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, resp)
+	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, deviceInfo, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -487,8 +496,13 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
+	deviceInfo, err := r.DeviceInfo()
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	}
+
 	var graph *interaction.Graph
-	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin(true))
 		if err != nil {
@@ -543,7 +557,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, resp)
+	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, deviceInfo, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -562,6 +576,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
 	s *idpsession.IDPSession,
+	deviceInfo map[string]interface{},
 ) (protocol.TokenResponse, error) {
 	issueRefreshToken := false
 	issueIDToken := false
@@ -594,7 +609,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var sessionKind oauth.GrantSessionKind
 	var atSession session.Session
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, s.SessionAttrs(), resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, s.SessionAttrs(), deviceInfo, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -667,6 +682,7 @@ func (h *TokenHandler) issueOfflineGrant(
 	scopes []string,
 	authzID string,
 	attrs *session.Attrs,
+	deviceInfo map[string]interface{},
 	resp protocol.TokenResponse,
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
@@ -688,6 +704,8 @@ func (h *TokenHandler) issueOfflineGrant(
 			InitialAccess: accessEvent,
 			LastAccess:    accessEvent,
 		},
+
+		DeviceInfo: deviceInfo,
 	}
 
 	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)

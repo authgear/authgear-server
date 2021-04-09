@@ -89,12 +89,6 @@ export interface UserQuery_node_User_verifiedClaims {
   value: string;
 }
 
-export interface UserQuery_node_User_sessions_edges_node_userAgent {
-  __typename: "UserAgent";
-  name: string;
-  version: string;
-}
-
 export interface UserQuery_node_User_sessions_edges_node {
   __typename: "Session";
   /**
@@ -104,7 +98,6 @@ export interface UserQuery_node_User_sessions_edges_node {
   type: SessionType;
   lastAccessedAt: GQL_DateTime;
   lastAccessedByIP: string;
-  userAgent: UserQuery_node_User_sessions_edges_node_userAgent;
 }
 
 export interface UserQuery_node_User_sessions_edges {

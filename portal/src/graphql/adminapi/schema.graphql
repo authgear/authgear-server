@@ -385,9 +385,6 @@ type Session implements Entity & Node {
 
   """The update time of entity"""
   updatedAt: DateTime!
-
-  """"""
-  userAgent: UserAgent!
 }
 
 """A connection to a list of items."""
@@ -492,27 +489,6 @@ type User implements Entity & Node {
 
   """"""
   verifiedClaims: [Claim!]!
-}
-
-""""""
-type UserAgent {
-  """"""
-  deviceModel: String!
-
-  """"""
-  name: String!
-
-  """"""
-  os: String!
-
-  """"""
-  osVersion: String!
-
-  """"""
-  raw: String!
-
-  """"""
-  version: String!
 }
 
 """A connection to a list of items."""
