@@ -47,6 +47,7 @@ const userQuery = gql`
               type
               lastAccessedAt
               lastAccessedByIP
+              displayName
             }
           }
         }

@@ -371,6 +371,9 @@ type Session implements Entity & Node {
   """"""
   createdByIP: String!
 
+  """"""
+  displayName: String!
+
   """The ID of an object"""
   id: ID!
 

@@ -96,7 +96,7 @@ function sessionTypeDisplayKey(type: SessionType): string {
 }
 
 interface SessionItemViewModel {
-  deviceName: string;
+  displayName: string;
   kind: string;
   ipAddress: string;
   lastActivity: string;
@@ -144,8 +144,8 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
   const sessionColumns: IColumn[] = useMemo(
     () => [
       {
-        key: "deviceName",
-        fieldName: "deviceName",
+        key: "displayName",
+        fieldName: "displayName",
         name: renderToString("UserDetails.session.devices"),
         className: styles.cell,
         minWidth: 200,
@@ -198,7 +198,7 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
     () =>
       sessions.map(
         (session): SessionItemViewModel => ({
-          deviceName: "FIXME(session-info)",
+          displayName: session.displayName,
           kind: renderToString(sessionTypeDisplayKey(session.type)),
           ipAddress: session.lastAccessedByIP,
           lastActivity: formatDatetime(locale, session.lastAccessedAt) ?? "",

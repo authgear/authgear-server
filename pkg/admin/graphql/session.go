@@ -50,6 +50,9 @@ var nodeSession = entity(
 			"createdByIP": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
 			},
+			"displayName": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.String),
+			},
 		},
 	}),
 	&model.Session{},

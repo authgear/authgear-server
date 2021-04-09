@@ -38,4 +38,5 @@ export interface Session {
   type: SessionType;
   lastAccessedAt: string;
   lastAccessedByIP: string;
+  displayName: string;
 }

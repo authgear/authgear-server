@@ -98,6 +98,7 @@ export interface UserQuery_node_User_sessions_edges_node {
   type: SessionType;
   lastAccessedAt: GQL_DateTime;
   lastAccessedByIP: string;
+  displayName: string;
 }
 
 export interface UserQuery_node_User_sessions_edges {
