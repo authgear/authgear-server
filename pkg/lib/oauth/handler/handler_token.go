@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -28,6 +29,8 @@ import (
 
 const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 const BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
+
+const AppSessionTokenDuration = duration.Short
 
 // whitelistedGrantTypes is a list of grant types that would be always allowed
 // to all clients.
@@ -738,6 +741,35 @@ func (h *TokenHandler) issueAccessGrant(
 	resp.AccessToken(at)
 	resp.ExpiresIn(int(client.AccessTokenLifetime))
 	return nil
+}
+
+func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {
+	authz, grant, err := h.parseRefreshToken(refreshToken)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// Ensure client is authorized with full user access (i.e. first-party client)
+	if !authz.IsAuthorized([]string{oauth.FullAccessScope}) {
+		return "", nil, protocol.NewError("access_denied", "the client is not authorized to have full user access")
+	}
+
+	now := h.Clock.NowUTC()
+	token := oauth.GenerateToken()
+	sToken := &oauth.AppSessionToken{
+		AppID:          grant.AppID,
+		OfflineGrantID: grant.ID,
+		CreatedAt:      now,
+		ExpireAt:       now.Add(AppSessionTokenDuration),
+		TokenHash:      oauth.HashToken(token),
+	}
+
+	err = h.AppSessionTokens.CreateAppSessionToken(sToken)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return token, sToken, err
 }
 
 func verifyPKCE(challenge, verifier string) bool {
