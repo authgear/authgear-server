@@ -5,6 +5,5 @@ import (
 )
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(UserInfoDecoder), "*"),
 	wire.Struct(new(OAuthProviderFactory), "*"),
 )

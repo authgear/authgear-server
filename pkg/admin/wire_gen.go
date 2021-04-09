@@ -474,16 +474,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                webEndpoints,
 		IdentityConfig:           identityConfig,
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              webEndpoints,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        webEndpoints,
 	}

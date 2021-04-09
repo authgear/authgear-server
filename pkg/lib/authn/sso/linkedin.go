@@ -13,10 +13,10 @@ const (
 )
 
 type LinkedInImpl struct {
-	RedirectURL     RedirectURLProvider
-	ProviderConfig  config.OAuthSSOProviderConfig
-	Credentials     config.OAuthClientCredentialsItem
-	UserInfoDecoder UserInfoDecoder
+	RedirectURL              RedirectURLProvider
+	ProviderConfig           config.OAuthSSOProviderConfig
+	Credentials              config.OAuthClientCredentialsItem
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
 func (*LinkedInImpl) Type() config.OAuthSSOProviderType {
@@ -69,16 +69,50 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		"primary_contact": contactResponse,
 	}
 
-	providerUserInfo, err := f.UserInfoDecoder.DecodeUserInfo(f.ProviderConfig.Type, combinedResponse)
-	if err != nil {
-		return
+	providerUserInfo := decodeLinkedIn(combinedResponse)
+	if providerUserInfo.Email != "" {
+		var email string
+		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
+		email, err = normalizer.Normalize(providerUserInfo.Email)
+		if err != nil {
+			return
+		}
+		providerUserInfo.Email = email
 	}
 
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderAccessTokenResp = accessTokenResp
 	authInfo.ProviderRawProfile = combinedResponse
-	authInfo.ProviderUserInfo = *providerUserInfo
+	authInfo.ProviderUserInfo = providerUserInfo
 	return
+}
+
+func decodeLinkedIn(userInfo map[string]interface{}) ProviderUserInfo {
+	profile := userInfo["profile"].(map[string]interface{})
+	id := profile["id"].(string)
+
+	email := ""
+	primaryContact := userInfo["primary_contact"].(map[string]interface{})
+	elements := primaryContact["elements"].([]interface{})
+	for _, e := range elements {
+		element := e.(map[string]interface{})
+		if primary, ok := element["primary"].(bool); !ok || !primary {
+			continue
+		}
+		if typ, ok := element["type"].(string); !ok || typ != "EMAIL" {
+			continue
+		}
+		handleTilde, ok := element["handle~"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		email, _ = handleTilde["emailAddress"].(string)
+	}
+
+	return ProviderUserInfo{
+		ID:    id,
+		Email: email,
+	}
 }
 
 var (

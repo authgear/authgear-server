@@ -16,10 +16,9 @@ type WechatURLProvider interface {
 }
 
 type WechatImpl struct {
-	ProviderConfig  config.OAuthSSOProviderConfig
-	Credentials     config.OAuthClientCredentialsItem
-	URLProvider     WechatURLProvider
-	UserInfoDecoder UserInfoDecoder
+	ProviderConfig config.OAuthSSOProviderConfig
+	Credentials    config.OAuthClientCredentialsItem
+	URLProvider    WechatURLProvider
 }
 
 func (*WechatImpl) Type() config.OAuthSSOProviderType {
@@ -81,20 +80,12 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		return
 	}
 
-	combinedResponse := map[string]interface{}{
-		"userinfo": rawProfile,
-		"userid":   userID,
-	}
-
-	providerUserInfo, err := w.UserInfoDecoder.DecodeUserInfo(w.ProviderConfig.Type, combinedResponse)
-	if err != nil {
-		return
-	}
-
 	authInfo.ProviderConfig = w.ProviderConfig
 	authInfo.ProviderAccessTokenResp = accessTokenResp
 	authInfo.ProviderRawProfile = rawProfile
-	authInfo.ProviderUserInfo = *providerUserInfo
+	authInfo.ProviderUserInfo = ProviderUserInfo{
+		ID: userID,
+	}
 	return
 }
 

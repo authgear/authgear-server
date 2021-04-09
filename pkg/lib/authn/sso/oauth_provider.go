@@ -53,7 +53,6 @@ type OAuthProviderFactory struct {
 	Credentials              *config.OAuthClientCredentials
 	RedirectURL              RedirectURLProvider
 	Clock                    clock.Clock
-	UserInfoDecoder          UserInfoDecoder
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	WechatURLProvider        WechatURLProvider
 }
@@ -79,17 +78,17 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 		}
 	case config.OAuthSSOProviderTypeFacebook:
 		return &FacebookImpl{
-			RedirectURL:     p.RedirectURL,
-			ProviderConfig:  *providerConfig,
-			Credentials:     *credentials,
-			UserInfoDecoder: p.UserInfoDecoder,
+			RedirectURL:              p.RedirectURL,
+			ProviderConfig:           *providerConfig,
+			Credentials:              *credentials,
+			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
 	case config.OAuthSSOProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			RedirectURL:     p.RedirectURL,
-			ProviderConfig:  *providerConfig,
-			Credentials:     *credentials,
-			UserInfoDecoder: p.UserInfoDecoder,
+			RedirectURL:              p.RedirectURL,
+			ProviderConfig:           *providerConfig,
+			Credentials:              *credentials,
+			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{

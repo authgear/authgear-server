@@ -391,9 +391,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	webappURLProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -403,7 +400,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              webappURLProvider,
 		Clock:                    clock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -934,9 +930,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -946,7 +939,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -2212,9 +2204,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -2224,7 +2213,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -2730,9 +2718,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -2742,7 +2727,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -3270,9 +3254,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -3282,7 +3263,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -3810,9 +3790,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -3822,7 +3799,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -4350,9 +4326,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -4362,7 +4335,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -4883,9 +4855,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -4895,7 +4864,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -5419,9 +5387,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -5431,7 +5396,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -5958,9 +5922,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -5970,7 +5931,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -6494,9 +6454,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -6506,7 +6463,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -7029,9 +6985,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -7041,7 +6994,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -7565,9 +7517,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -7577,7 +7526,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -8102,9 +8050,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -8114,7 +8059,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -8637,9 +8581,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -8649,7 +8590,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -9172,9 +9112,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -9184,7 +9121,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -9709,9 +9645,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -9721,7 +9654,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -10244,9 +10176,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -10256,7 +10185,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -10779,9 +10707,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -10791,7 +10716,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -11317,9 +11241,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -11329,7 +11250,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -11852,9 +11772,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -11864,7 +11781,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -12392,9 +12308,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -12404,7 +12317,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -12927,9 +12839,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -12939,7 +12848,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -13463,9 +13371,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -13475,7 +13380,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -13998,9 +13902,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -14010,7 +13911,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -14551,9 +14451,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -14563,7 +14460,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -15088,9 +14984,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -15100,7 +14993,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -15624,9 +15516,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -15636,7 +15525,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -16168,9 +16056,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -16180,7 +16065,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -16704,9 +16588,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -16716,7 +16597,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -17240,9 +17120,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -17252,7 +17129,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -17777,9 +17653,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -17789,7 +17662,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -18319,9 +18191,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -18331,7 +18200,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -18855,9 +18723,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -18867,7 +18732,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -19391,9 +19255,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -19403,7 +19264,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -20306,9 +20166,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -20318,7 +20175,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -20841,9 +20697,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -20853,7 +20706,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
