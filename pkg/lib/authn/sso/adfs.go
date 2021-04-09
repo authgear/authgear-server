@@ -94,20 +94,16 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		return
 	}
 
-	var email string
-	var preferredUsername string
+	preferredUsername := upn
 
-	err = validation.FormatEmail{}.CheckFormat(upn)
-	if err == nil {
+	var email string
+	if emailErr := (validation.FormatEmail{}).CheckFormat(upn); emailErr == nil {
 		// upn looks like an email address.
 		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
 		email, err = normalizer.Normalize(upn)
 		if err != nil {
 			return
 		}
-	} else {
-		// upn does NOT look like an email address.
-		preferredUsername = upn
 	}
 
 	authInfo.ProviderConfig = f.ProviderConfig
