@@ -278,6 +278,7 @@ var _ = Schema.Add("OAuthSSOProviderType", `
 		"facebook",
 		"linkedin",
 		"azureadv2",
+		"adfs",
 		"apple",
 		"wechat"
 	]
@@ -302,6 +303,9 @@ func (t OAuthSSOProviderType) Scope() string {
 	case OAuthSSOProviderTypeAzureADv2:
 		// https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
 		return "openid profile email"
+	case OAuthSSOProviderTypeADFS:
+		// The supported scopes are observed from a AD FS server.
+		return "openid profile email"
 	case OAuthSSOProviderTypeApple:
 		return "email"
 	case OAuthSSOProviderTypeWechat:
@@ -317,6 +321,7 @@ const (
 	OAuthSSOProviderTypeFacebook  OAuthSSOProviderType = "facebook"
 	OAuthSSOProviderTypeLinkedIn  OAuthSSOProviderType = "linkedin"
 	OAuthSSOProviderTypeAzureADv2 OAuthSSOProviderType = "azureadv2"
+	OAuthSSOProviderTypeADFS      OAuthSSOProviderType = "adfs"
 	OAuthSSOProviderTypeApple     OAuthSSOProviderType = "apple"
 	OAuthSSOProviderTypeWechat    OAuthSSOProviderType = "wechat"
 )
@@ -353,7 +358,8 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 		"app_type": { "$ref": "#/$defs/OAuthSSOWeChatAppType" },
 		"account_id": { "type": "string", "format": "wechat_account_id"},
 		"is_sandbox_account": { "type": "boolean" },
-		"wechat_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } }
+		"wechat_redirect_uris": { "type": "array", "items": { "type": "string", "format": "uri" } },
+		"discovery_document_endpoint": { "type": "string", "format": "uri" }
 	},
 	"required": ["alias", "type", "client_id"],
 	"allOf": [
@@ -374,6 +380,12 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 			"then": {
 				"required": ["app_type", "account_id"]
 			}
+		},
+		{
+			"if": { "properties": { "type": { "const": "adfs" } } },
+			"then": {
+				"required": ["discovery_document_endpoint"]
+			}
 		}
 	]
 }
@@ -385,18 +397,21 @@ type OAuthSSOProviderConfig struct {
 	ClientID string                         `json:"client_id,omitempty"`
 	Claims   *VerificationOAuthClaimsConfig `json:"claims,omitempty"`
 
-	// Tenant is specific to azureadv2
+	// Tenant is specific to `azureadv2`
 	Tenant string `json:"tenant,omitempty"`
 
-	// KeyID and TeamID are specific to apple
+	// KeyID and TeamID are specific to `apple`
 	KeyID  string `json:"key_id,omitempty"`
 	TeamID string `json:"team_id,omitempty"`
 
-	// AppType is specific to wechat, support web or mobile
+	// AppType is specific to `wechat`, support web or mobile
 	AppType            OAuthSSOWeChatAppType `json:"app_type,omitempty"`
 	AccountID          string                `json:"account_id,omitempty"`
 	IsSandboxAccount   bool                  `json:"is_sandbox_account,omitempty"`
 	WeChatRedirectURIs []string              `json:"wechat_redirect_uris,omitempty"`
+
+	// DiscoveryDocumentEndpoint is specific to `adfs`.
+	DiscoveryDocumentEndpoint string `json:"discovery_document_endpoint,omitempty"`
 }
 
 func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {

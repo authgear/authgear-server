@@ -16,10 +16,9 @@ type WechatURLProvider interface {
 }
 
 type WechatImpl struct {
-	ProviderConfig  config.OAuthSSOProviderConfig
-	Credentials     config.OAuthClientCredentialsItem
-	URLProvider     WechatURLProvider
-	UserInfoDecoder UserInfoDecoder
+	ProviderConfig config.OAuthSSOProviderConfig
+	Credentials    config.OAuthClientCredentialsItem
+	URLProvider    WechatURLProvider
 }
 
 func (*WechatImpl) Type() config.OAuthSSOProviderType {
@@ -67,7 +66,7 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 	var userID string
 	if config.IsSandboxAccount {
 		if accessTokenResp.UnionID() != "" {
-			err = NewSSOFailed(InvalidConfiguration, "invalid is_sandbox_account config, WeChat sandbox account should not have union id")
+			err = InvalidConfiguration.New("invalid is_sandbox_account config, WeChat sandbox account should not have union id")
 			return
 		}
 		userID = accessTokenResp.OpenID()
@@ -77,24 +76,16 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 
 	if userID == "" {
 		// this may happen if developer misconfigure is_sandbox_account, e.g. sandbox account doesn't have union id
-		err = NewSSOFailed(InvalidConfiguration, "invalid is_sandbox_account config, missing user id in wechat token response")
-		return
-	}
-
-	combinedResponse := map[string]interface{}{
-		"userinfo": rawProfile,
-		"userid":   userID,
-	}
-
-	providerUserInfo, err := w.UserInfoDecoder.DecodeUserInfo(w.ProviderConfig.Type, combinedResponse)
-	if err != nil {
+		err = InvalidConfiguration.New("invalid is_sandbox_account config, missing user id in wechat token response")
 		return
 	}
 
 	authInfo.ProviderConfig = w.ProviderConfig
 	authInfo.ProviderAccessTokenResp = accessTokenResp
 	authInfo.ProviderRawProfile = rawProfile
-	authInfo.ProviderUserInfo = *providerUserInfo
+	authInfo.ProviderUserInfo = ProviderUserInfo{
+		ID: userID,
+	}
 	return
 }
 

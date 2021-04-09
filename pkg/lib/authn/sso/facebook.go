@@ -15,10 +15,10 @@ const (
 )
 
 type FacebookImpl struct {
-	RedirectURL     RedirectURLProvider
-	ProviderConfig  config.OAuthSSOProviderConfig
-	Credentials     config.OAuthClientCredentialsItem
-	UserInfoDecoder UserInfoDecoder
+	RedirectURL              RedirectURLProvider
+	ProviderConfig           config.OAuthSSOProviderConfig
+	Credentials              config.OAuthClientCredentialsItem
+	LoginIDNormalizerFactory LoginIDNormalizerFactory
 }
 
 func (*FacebookImpl) Type() config.OAuthSSOProviderType {
@@ -76,11 +76,19 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	}
 	authInfo.ProviderRawProfile = userProfile
 
-	providerUserInfo, err := f.UserInfoDecoder.DecodeUserInfo(f.ProviderConfig.Type, userProfile)
-	if err != nil {
-		return
+	id, _ := userProfile["id"].(string)
+	email, _ := userProfile["email"].(string)
+	if email != "" {
+		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
+		email, err = normalizer.Normalize(email)
+		if err != nil {
+			return
+		}
 	}
-	authInfo.ProviderUserInfo = *providerUserInfo
+	authInfo.ProviderUserInfo = ProviderUserInfo{
+		ID:    id,
+		Email: email,
+	}
 
 	return
 }

@@ -149,6 +149,10 @@
 					<div class="sso-btn-icon"><i class="fab fa-microsoft" aria-hidden="true"></i></div>
 					<span class="title">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
+					{{- if eq .provider_type "adfs" -}}
+					<div class="sso-btn-icon"><i class="fab fa-microsoft" aria-hidden="true"></i></div>
+					<span class="title">{{ template "oauth-branding-adfs" }}</span>
+					{{- end -}}
 					{{- if eq .provider_type "wechat" -}}
 					<div class="sso-btn-icon"><i class="fab fa-weixin" aria-hidden="true"></i></div>
 					<span class="title">{{ template "oauth-branding-wechat" }}</span>

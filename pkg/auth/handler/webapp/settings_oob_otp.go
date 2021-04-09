@@ -36,7 +36,6 @@ type SettingsOOBOTPHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Authenticators    SettingsAuthenticatorService
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SettingsOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

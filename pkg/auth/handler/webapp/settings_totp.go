@@ -35,7 +35,6 @@ type SettingsTOTPHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	Authenticators    SettingsAuthenticatorService
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SettingsTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

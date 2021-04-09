@@ -123,6 +123,19 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
     ]),
     isSecretFieldTextArea: false,
   },
+  adfs: {
+    providerType: "adfs",
+    iconNode: (
+      <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
+    ),
+    fields: new Set<WidgetTextFieldKey>([
+      "alias",
+      "client_id",
+      "client_secret",
+      "discovery_document_endpoint",
+    ]),
+    isSecretFieldTextArea: false,
+  },
   "wechat.web": {
     providerType: "wechat",
     appType: "web",
@@ -250,6 +263,11 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
     (_, value?: string) => onChange({ ...config, tenant: value ?? "" }, secret),
     [onChange, config, secret]
   );
+  const onDiscoveryDocumentEndpointChange = useCallback(
+    (_, value?: string) =>
+      onChange({ ...config, discovery_document_endpoint: value ?? "" }, secret),
+    [onChange, config, secret]
+  );
   const onKeyIDChange = useCallback(
     (_, value?: string) => onChange({ ...config, key_id: value ?? "" }, secret),
     [onChange, config, secret]
@@ -348,6 +366,18 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           styles={TEXT_FIELD_STYLE}
           value={config.tenant ?? ""}
           onChange={onTenantChange}
+        />
+      )}
+      {visibleFields.has("discovery_document_endpoint") && (
+        <FormTextField
+          parentJSONPointer={jsonPointer}
+          fieldName="discovery_document_endpoint"
+          fieldNameMessageID="SingleSignOnConfigurationScreen.widget.discovery-document-endpoint"
+          className={styles.textField}
+          styles={TEXT_FIELD_STYLE}
+          value={config.discovery_document_endpoint ?? ""}
+          onChange={onDiscoveryDocumentEndpointChange}
+          placeholder="http://example.com/.well-known/openid-configuration"
         />
       )}
       {visibleFields.has("key_id") && (

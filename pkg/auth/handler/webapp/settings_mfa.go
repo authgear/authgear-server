@@ -36,7 +36,6 @@ type SettingsMFAHandler struct {
 	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          Renderer
 	MFA               SettingsMFAService
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

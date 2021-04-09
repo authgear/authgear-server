@@ -3,7 +3,6 @@ package nodes
 import (
 	"crypto/subtle"
 	"fmt"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -19,7 +18,6 @@ func init() {
 
 type InputUseIdentityOAuthUserInfo interface {
 	GetProviderAlias() string
-	GetNonceSource() *http.Cookie
 	GetCode() string
 	GetScope() string
 	GetError() string
@@ -40,7 +38,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	}
 
 	alias := input.GetProviderAlias()
-	nonceSource := input.GetNonceSource()
+	nonceSource := ctx.Nonces.GetAndClear()
 	code := input.GetCode()
 	state := ctx.WebSessionID
 	scope := input.GetScope()
@@ -59,19 +57,15 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 
 	// Handle provider error
 	if oauthError != "" {
-		msg := "login failed"
-		if errorDescription != "" {
-			msg += ": " + errorDescription
-		}
-		return nil, sso.NewSSOFailed(sso.SSOUnauthorized, msg)
+		return nil, fmt.Errorf("%s: %s", oauthError, errorDescription)
 	}
 
-	if nonceSource == nil || nonceSource.Value == "" {
-		return nil, sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+	if nonceSource == "" {
+		return nil, fmt.Errorf("nonce does not present in the request")
 	}
-	nonce := crypto.SHA256String(nonceSource.Value)
+	nonce := crypto.SHA256String(nonceSource)
 	if subtle.ConstantTimeCompare([]byte(hashedNonce), []byte(nonce)) != 1 {
-		return nil, sso.NewSSOFailed(sso.SSOUnauthorized, "invalid nonce")
+		return nil, fmt.Errorf("invalid nonce")
 	}
 
 	userInfo, err := oauthProvider.GetAuthInfo(

@@ -159,6 +159,11 @@ type RateLimiter interface {
 	CheckToken(bucket ratelimit.Bucket) (pass bool, resetDuration time.Duration, err error)
 }
 
+type NonceService interface {
+	GenerateAndSet() string
+	GetAndClear() string
+}
+
 type Context struct {
 	IsCommitting bool   `wire:"-"`
 	WebSessionID string `wire:"-"`
@@ -183,6 +188,8 @@ type Context struct {
 	Verification             VerificationService
 	VerificationCodeSender   VerificationCodeSender
 	RateLimiter              RateLimiter
+
+	Nonces NonceService
 
 	Challenges           ChallengeProvider
 	Users                UserService

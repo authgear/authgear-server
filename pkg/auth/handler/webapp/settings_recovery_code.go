@@ -34,7 +34,6 @@ type SettingsRecoveryCodeHandler struct {
 	Renderer          Renderer
 	Authentication    *config.AuthenticationConfig
 	MFA               SettingsMFAService
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SettingsRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

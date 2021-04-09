@@ -3,6 +3,7 @@ package sso
 import (
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -38,6 +39,7 @@ type NonOpenIDConnectProvider interface {
 // "google"
 // "apple"
 // "azureadv2"
+// "adfs"
 type OpenIDConnectProvider interface {
 	OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error)
 }
@@ -46,13 +48,20 @@ type EndpointsProvider interface {
 	BaseURL() *url.URL
 }
 
+type RedirectURLProvider interface {
+	SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL
+}
+
+type LoginIDNormalizerFactory interface {
+	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
+}
+
 type OAuthProviderFactory struct {
 	Endpoints                EndpointsProvider
 	IdentityConfig           *config.IdentityConfig
 	Credentials              *config.OAuthClientCredentials
 	RedirectURL              RedirectURLProvider
 	Clock                    clock.Clock
-	UserInfoDecoder          UserInfoDecoder
 	LoginIDNormalizerFactory LoginIDNormalizerFactory
 	WechatURLProvider        WechatURLProvider
 }
@@ -78,20 +87,28 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 		}
 	case config.OAuthSSOProviderTypeFacebook:
 		return &FacebookImpl{
-			RedirectURL:     p.RedirectURL,
-			ProviderConfig:  *providerConfig,
-			Credentials:     *credentials,
-			UserInfoDecoder: p.UserInfoDecoder,
+			RedirectURL:              p.RedirectURL,
+			ProviderConfig:           *providerConfig,
+			Credentials:              *credentials,
+			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
 	case config.OAuthSSOProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			RedirectURL:     p.RedirectURL,
-			ProviderConfig:  *providerConfig,
-			Credentials:     *credentials,
-			UserInfoDecoder: p.UserInfoDecoder,
+			RedirectURL:              p.RedirectURL,
+			ProviderConfig:           *providerConfig,
+			Credentials:              *credentials,
+			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
 		}
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{
+			Clock:                    p.Clock,
+			RedirectURL:              p.RedirectURL,
+			ProviderConfig:           *providerConfig,
+			Credentials:              *credentials,
+			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
+		}
+	case config.OAuthSSOProviderTypeADFS:
+		return &ADFSImpl{
 			Clock:                    p.Clock,
 			RedirectURL:              p.RedirectURL,
 			ProviderConfig:           *providerConfig,

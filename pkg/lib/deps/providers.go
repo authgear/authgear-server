@@ -114,7 +114,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 
 func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		p := getRequestProvider(r)
+		p := getRequestProvider(w, r)
 		h := factory(p)
 		h.ServeHTTP(w, r)
 	})
@@ -127,7 +127,7 @@ func (p *RootProvider) RootMiddleware(factory func(*RootProvider) httproute.Midd
 func (p *RootProvider) Middleware(factory func(*RequestProvider) httproute.Middleware) httproute.Middleware {
 	return httproute.MiddlewareFunc(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			p := getRequestProvider(r)
+			p := getRequestProvider(w, r)
 			m := factory(p)
 			h := m.Handle(next)
 			h.ServeHTTP(w, r)
@@ -155,10 +155,11 @@ type AppProvider struct {
 	Resources     *resource.Manager
 }
 
-func (p *AppProvider) NewRequestProvider(r *http.Request) *RequestProvider {
+func (p *AppProvider) NewRequestProvider(w http.ResponseWriter, r *http.Request) *RequestProvider {
 	return &RequestProvider{
-		AppProvider: p,
-		Request:     r,
+		AppProvider:    p,
+		Request:        r,
+		ResponseWriter: w,
 	}
 }
 
@@ -172,7 +173,8 @@ func (p *AppProvider) NewTaskProvider(ctx context.Context) *TaskProvider {
 type RequestProvider struct {
 	*AppProvider
 
-	Request *http.Request
+	Request        *http.Request
+	ResponseWriter http.ResponseWriter
 }
 
 type TaskProvider struct {

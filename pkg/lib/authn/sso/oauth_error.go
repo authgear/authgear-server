@@ -1,5 +1,9 @@
 package sso
 
+import (
+	"fmt"
+)
+
 type oauthErrorResp struct {
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description,omitempty"`
@@ -7,5 +11,5 @@ type oauthErrorResp struct {
 }
 
 func (r oauthErrorResp) AsError() error {
-	return NewSSOFailed(SSOUnauthorized, "oauth failed")
+	return fmt.Errorf("%s: %s", r.Error, r.ErrorDescription)
 }

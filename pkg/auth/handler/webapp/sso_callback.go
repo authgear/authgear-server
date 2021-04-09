@@ -3,7 +3,6 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -15,7 +14,6 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 
 type SSOCallbackHandler struct {
 	ControllerFactory ControllerFactory
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -26,11 +24,8 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.Serve()
 
-	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
-
 	data := InputOAuthCallback{
 		ProviderAlias: httproute.GetParam(r, "alias"),
-		NonceSource:   nonceSource,
 
 		Code:             r.Form.Get("code"),
 		Scope:            r.Form.Get("scope"),

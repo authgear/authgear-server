@@ -35,7 +35,6 @@ type SettingsIdentityHandler struct {
 	Renderer          Renderer
 	Identities        SettingsIdentityService
 	Verification      SettingsVerificationService
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -79,7 +78,6 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	providerAlias := r.Form.Get("x_provider_alias")
 	identityID := r.Form.Get("x_identity_id")
 	userID := ctrl.RequireUserID()
-	nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
@@ -100,7 +98,6 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
-				NonceSource:      nonceSource,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 			}
 			return

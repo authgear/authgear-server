@@ -70,6 +70,7 @@ var RequestDependencySet = wire.NewSet(
 	wire.FieldsOf(new(*RequestProvider),
 		"AppProvider",
 		"Request",
+		"ResponseWriter",
 	),
 	ProvideRequestContext,
 )

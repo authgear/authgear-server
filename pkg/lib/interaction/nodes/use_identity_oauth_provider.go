@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"net/http"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -16,7 +14,6 @@ func init() {
 
 type InputUseIdentityOAuthProvider interface {
 	GetProviderAlias() string
-	GetNonceSource() *http.Cookie
 	GetErrorRedirectURI() string
 }
 
@@ -53,7 +50,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		panic("interaction: no OAuth provider with specified alias")
 	}
 
-	nonceSource := input.GetNonceSource()
+	nonceSource := ctx.Nonces.GenerateAndSet()
 	errorRedirectURI := input.GetErrorRedirectURI()
 	state := ctx.WebSessionID
 
@@ -62,7 +59,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		return nil, interaction.ErrOAuthProviderNotFound
 	}
 
-	nonce := crypto.SHA256String(nonceSource.Value)
+	nonce := crypto.SHA256String(nonceSource)
 
 	param := sso.GetAuthURLParam{
 		State: state,

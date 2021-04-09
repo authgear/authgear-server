@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -65,7 +64,6 @@ type PromoteHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	FormPrefiller     *FormPrefiller
 	Renderer          Renderer
-	CSRFCookie        webapp.CSRFCookieDef
 }
 
 func (h *PromoteHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
@@ -105,11 +103,9 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("oauth", func() error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		nonceSource, _ := r.Cookie(h.CSRFCookie.Name)
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
-				NonceSource:      nonceSource,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
 			}
 			return

@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func fetchUserProfile(
@@ -27,20 +25,11 @@ func fetchUserProfile(
 		defer resp.Body.Close()
 	}
 	if err != nil {
-		err = errorutil.WithSecondaryError(
-			NewSSOFailed(NetworkFailed, "failed to connect authorization server"),
-			err,
-		)
-		return
-	}
-
-	if resp.StatusCode == 401 {
-		err = NewSSOFailed(SSOUnauthorized, "oauth failed")
 		return
 	}
 
 	if resp.StatusCode != 200 {
-		err = fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		err = fmt.Errorf("failed to fetch user profile: unexpected status code: %d", resp.StatusCode)
 		return
 	}
 

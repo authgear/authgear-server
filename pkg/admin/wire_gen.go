@@ -36,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
@@ -473,16 +474,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		Endpoints:                webEndpoints,
 		IdentityConfig:           identityConfig,
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              webEndpoints,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        webEndpoints,
 	}
@@ -509,6 +506,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       webEndpoints,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -553,6 +556,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,

@@ -34,6 +34,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -390,9 +391,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	webappURLProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -402,7 +400,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              webappURLProvider,
 		Clock:                    clock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -429,6 +426,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       webappURLProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -516,6 +519,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -926,9 +930,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -938,7 +939,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -965,6 +965,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -1036,6 +1042,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2197,9 +2204,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -2209,7 +2213,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -2236,6 +2239,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2307,6 +2316,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2708,9 +2718,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -2720,7 +2727,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -2747,6 +2753,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -2834,6 +2846,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2903,13 +2916,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	loginHandler := &webapp2.LoginHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return loginHandler
 }
@@ -3243,9 +3254,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -3255,7 +3263,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -3282,6 +3289,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3369,6 +3382,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3438,13 +3452,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	signupHandler := &webapp2.SignupHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return signupHandler
 }
@@ -3778,9 +3790,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -3790,7 +3799,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -3817,6 +3825,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -3904,6 +3918,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3973,13 +3988,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	promoteHandler := &webapp2.PromoteHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return promoteHandler
 }
@@ -4313,9 +4326,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -4325,7 +4335,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -4352,6 +4361,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4439,6 +4454,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4504,10 +4520,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	ssoCallbackHandler := &webapp2.SSOCallbackHandler{
 		ControllerFactory: controllerFactory,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return ssoCallbackHandler
 }
@@ -4841,9 +4855,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -4853,7 +4864,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -4880,6 +4890,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -4967,6 +4983,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5032,12 +5049,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	wechatAuthHandler := &webapp2.WechatAuthHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
-		CSRFCookie:        csrfCookieDef,
 		IdentityConfig:    identityConfig,
 	}
 	return wechatAuthHandler
@@ -5372,9 +5387,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -5384,7 +5396,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -5411,6 +5422,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -5498,6 +5515,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5904,9 +5922,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -5916,7 +5931,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -5943,6 +5957,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -6030,6 +6050,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6433,9 +6454,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -6445,7 +6463,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -6472,6 +6489,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -6559,6 +6582,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6961,9 +6985,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -6973,7 +6994,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -7000,6 +7020,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -7087,6 +7113,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7490,9 +7517,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -7502,7 +7526,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -7529,6 +7552,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -7616,6 +7645,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8020,9 +8050,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -8032,7 +8059,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -8059,6 +8085,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -8146,6 +8178,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8548,9 +8581,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -8560,7 +8590,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -8587,6 +8616,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -8674,6 +8709,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9076,9 +9112,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -9088,7 +9121,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -9115,6 +9147,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -9202,6 +9240,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9606,9 +9645,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -9618,7 +9654,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -9645,6 +9680,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -9732,6 +9773,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -10134,9 +10176,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -10146,7 +10185,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -10173,6 +10211,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -10260,6 +10304,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -10662,9 +10707,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -10674,7 +10716,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -10701,6 +10742,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -10788,6 +10835,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11193,9 +11241,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -11205,7 +11250,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -11232,6 +11276,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -11319,6 +11369,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11721,9 +11772,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -11733,7 +11781,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -11760,6 +11807,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -11847,6 +11900,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -12254,9 +12308,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -12266,7 +12317,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -12293,6 +12343,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -12380,6 +12436,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -12782,9 +12839,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -12794,7 +12848,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -12821,6 +12874,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -12908,6 +12967,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -13311,9 +13371,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -13323,7 +13380,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -13350,6 +13406,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -13437,6 +13499,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -13839,9 +13902,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -13851,7 +13911,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -13878,6 +13937,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -13965,6 +14030,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -14037,7 +14103,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	manager2 := &session.Manager{
 		Users:               queries,
 		Hooks:               hookProvider,
@@ -14051,7 +14116,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:          responseRenderer,
 		Identities:        serviceService,
 		Verification:      verificationService,
-		CSRFCookie:        csrfCookieDef,
 		TrustProxy:        trustProxy,
 		SessionManager:    manager2,
 	}
@@ -14387,9 +14451,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -14399,7 +14460,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -14426,6 +14486,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -14513,6 +14579,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -14578,14 +14645,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsIdentityHandler := &webapp2.SettingsIdentityHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Identities:        serviceService,
 		Verification:      verificationService,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsIdentityHandler
 }
@@ -14919,9 +14984,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -14931,7 +14993,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -14958,6 +15019,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -15045,6 +15112,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -15110,13 +15178,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsBiometricHandler := &webapp2.SettingsBiometricHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Identities:        serviceService,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsBiometricHandler
 }
@@ -15450,9 +15516,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -15462,7 +15525,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -15489,6 +15551,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -15576,6 +15644,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -15648,14 +15717,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsMFAHandler := &webapp2.SettingsMFAHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		SettingsViewModel: settingsViewModeler,
 		Renderer:          responseRenderer,
 		MFA:               mfaService,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsMFAHandler
 }
@@ -15989,9 +16056,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -16001,7 +16065,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -16028,6 +16091,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -16115,6 +16184,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -16180,13 +16250,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsTOTPHandler := &webapp2.SettingsTOTPHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Authenticators:    service3,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsTOTPHandler
 }
@@ -16520,9 +16588,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -16532,7 +16597,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -16559,6 +16623,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -16646,6 +16716,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -16711,13 +16782,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsOOBOTPHandler := &webapp2.SettingsOOBOTPHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Authenticators:    service3,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsOOBOTPHandler
 }
@@ -17051,9 +17120,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -17063,7 +17129,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -17090,6 +17155,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -17177,6 +17248,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -17242,14 +17314,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	csrfCookieDef := webapp.NewCSRFCookieDef(httpConfig)
 	settingsRecoveryCodeHandler := &webapp2.SettingsRecoveryCodeHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		Authentication:    authenticationConfig,
 		MFA:               mfaService,
-		CSRFCookie:        csrfCookieDef,
 	}
 	return settingsRecoveryCodeHandler
 }
@@ -17583,9 +17653,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -17595,7 +17662,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -17622,6 +17688,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -17709,6 +17781,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -18118,9 +18191,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -18130,7 +18200,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -18157,6 +18226,12 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -18244,6 +18319,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -18647,9 +18723,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -18659,7 +18732,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -18686,6 +18758,12 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -18773,6 +18851,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -19176,9 +19255,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -19188,7 +19264,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -19215,6 +19290,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -19302,6 +19383,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -20084,9 +20166,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -20096,7 +20175,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -20123,6 +20201,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -20210,6 +20294,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -20612,9 +20697,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
-	userInfoDecoder := sso.UserInfoDecoder{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
@@ -20624,7 +20706,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Credentials:              oAuthClientCredentials,
 		RedirectURL:              urlProvider,
 		Clock:                    clockClock,
-		UserInfoDecoder:          userInfoDecoder,
 		LoginIDNormalizerFactory: normalizerFactory,
 		WechatURLProvider:        wechatURLProvider,
 	}
@@ -20651,6 +20732,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
 		WebAppURLs:       urlProvider,
+	}
+	responseWriter := p.ResponseWriter
+	nonceService := &nonce.Service{
+		CookieFactory:  cookieFactory,
+		Request:        request,
+		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
@@ -20738,6 +20825,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Verification:             verificationService,
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
+		Nonces:                   nonceService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,

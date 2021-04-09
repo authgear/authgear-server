@@ -52,6 +52,7 @@ export const oauthSSOProviderTypes = [
   "facebook",
   "linkedin",
   "azureadv2",
+  "adfs",
   "wechat",
 ] as const;
 export type OAuthSSOProviderType = typeof oauthSSOProviderTypes[number];
@@ -68,6 +69,7 @@ export interface OAuthSSOProviderConfig {
   account_id?: string;
   is_sandbox_account?: boolean;
   wechat_redirect_uris?: string[];
+  discovery_document_endpoint?: string;
 }
 export const oauthSSOProviderItemKeys = [
   "apple",
@@ -75,6 +77,7 @@ export const oauthSSOProviderItemKeys = [
   "facebook",
   "linkedin",
   "azureadv2",
+  "adfs",
   "wechat.mobile",
   "wechat.web",
 ] as const;

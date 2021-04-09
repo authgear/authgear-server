@@ -80,7 +80,7 @@ func (i *Info) ToModel() model.Identity {
 
 // DisplayID returns a string that is suitable for the owner to identify the identity.
 // If it is a Login ID identity, the original login ID value is returned.
-// If it is a OAuth identity, the email claim is returned.
+// If it is a OAuth identity, email, phone_number or preferred_username is returned.
 // If it is a anonymous identity, the kid is returned.
 // If it is a biometric identity, the kid is returned.
 func (i *Info) DisplayID() string {
@@ -89,8 +89,16 @@ func (i *Info) DisplayID() string {
 		displayID, _ := i.Claims[IdentityClaimLoginIDOriginalValue].(string)
 		return displayID
 	case authn.IdentityTypeOAuth:
-		displayID, _ := i.Claims[StandardClaimEmail].(string)
-		return displayID
+		if email, ok := i.Claims[StandardClaimEmail].(string); ok {
+			return email
+		}
+		if phoneNumber, ok := i.Claims[StandardClaimPhoneNumber].(string); ok {
+			return phoneNumber
+		}
+		if preferredUsername, ok := i.Claims[StandardClaimPreferredUsername].(string); ok {
+			return preferredUsername
+		}
+		return ""
 	case authn.IdentityTypeAnonymous:
 		displayID, _ := i.Claims[IdentityClaimAnonymousKeyID].(string)
 		return displayID
@@ -119,6 +127,12 @@ func (i *Info) DisplayIDClaimName() (authn.ClaimName, bool) {
 	case authn.IdentityTypeOAuth:
 		if _, ok := i.Claims[StandardClaimEmail].(string); ok {
 			return authn.ClaimEmail, true
+		}
+		if _, ok := i.Claims[StandardClaimPhoneNumber].(string); ok {
+			return authn.ClaimPhoneNumber, true
+		}
+		if _, ok := i.Claims[StandardClaimPreferredUsername].(string); ok {
+			return authn.ClaimPreferredUsername, true
 		}
 		return "", false
 	case authn.IdentityTypeAnonymous:

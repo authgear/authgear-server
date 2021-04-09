@@ -1,8 +1,6 @@
 package webapp
 
 import (
-	"net/http"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -11,15 +9,13 @@ import (
 
 type InputUseOAuth struct {
 	ProviderAlias    string
-	NonceSource      *http.Cookie
 	ErrorRedirectURI string
 }
 
 var _ nodes.InputUseIdentityOAuthProvider = &InputUseOAuth{}
 
-func (i *InputUseOAuth) GetProviderAlias() string     { return i.ProviderAlias }
-func (i *InputUseOAuth) GetNonceSource() *http.Cookie { return i.NonceSource }
-func (i *InputUseOAuth) GetErrorRedirectURI() string  { return i.ErrorRedirectURI }
+func (i *InputUseOAuth) GetProviderAlias() string    { return i.ProviderAlias }
+func (i *InputUseOAuth) GetErrorRedirectURI() string { return i.ErrorRedirectURI }
 
 type InputUseLoginID struct {
 	LoginIDKey string
@@ -194,7 +190,6 @@ func (i *InputSetupTOTP) GetTOTPDisplayName() string { return i.DisplayName }
 
 type InputOAuthCallback struct {
 	ProviderAlias string
-	NonceSource   *http.Cookie
 
 	Code             string
 	Scope            string
@@ -204,12 +199,11 @@ type InputOAuthCallback struct {
 
 var _ nodes.InputUseIdentityOAuthUserInfo = &InputOAuthCallback{}
 
-func (i *InputOAuthCallback) GetProviderAlias() string     { return i.ProviderAlias }
-func (i *InputOAuthCallback) GetNonceSource() *http.Cookie { return i.NonceSource }
-func (i *InputOAuthCallback) GetCode() string              { return i.Code }
-func (i *InputOAuthCallback) GetScope() string             { return i.Scope }
-func (i *InputOAuthCallback) GetError() string             { return i.Error }
-func (i *InputOAuthCallback) GetErrorDescription() string  { return i.ErrorDescription }
+func (i *InputOAuthCallback) GetProviderAlias() string    { return i.ProviderAlias }
+func (i *InputOAuthCallback) GetCode() string             { return i.Code }
+func (i *InputOAuthCallback) GetScope() string            { return i.Scope }
+func (i *InputOAuthCallback) GetError() string            { return i.Error }
+func (i *InputOAuthCallback) GetErrorDescription() string { return i.ErrorDescription }
 
 type InputVerificationCode struct {
 	Code string

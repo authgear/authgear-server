@@ -7,8 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 const (
@@ -23,10 +21,7 @@ type wechatOAuthErrorResp struct {
 }
 
 func (r *wechatOAuthErrorResp) AsError() error {
-	return errorutil.WithSecondaryError(
-		NewSSOFailed(SSOUnauthorized, "oauth failed"),
-		fmt.Errorf("wechat: %d: %s", r.ErrorCode, r.ErrorMsg),
-	)
+	return fmt.Errorf("wechat: %d: %s", r.ErrorCode, r.ErrorMsg)
 }
 
 type wechatAccessTokenResp map[string]interface{}
@@ -82,20 +77,13 @@ func wechatFetchAccessTokenResp(
 	}
 
 	if err != nil {
-		err = errorutil.WithSecondaryError(
-			NewSSOFailed(NetworkFailed, "failed to connect authorization server"),
-			err,
-		)
 		return
 	}
 
 	// wechat always return 200
 	// to know if there is error, we need to parse the response body
 	if resp.StatusCode != 200 {
-		err = errorutil.WithSecondaryError(
-			NewSSOFailed(NetworkFailed, "authorization server unexpected response"),
-			fmt.Errorf("unexpected status code: %d", resp.StatusCode),
-		)
+		err = fmt.Errorf("wechat: unexpected status code: %d", resp.StatusCode)
 		return
 	}
 
@@ -135,20 +123,13 @@ func wechatFetchUserProfile(
 	}
 
 	if err != nil {
-		err = errorutil.WithSecondaryError(
-			NewSSOFailed(NetworkFailed, "failed to connect authorization server"),
-			err,
-		)
 		return
 	}
 
 	// wechat always return 200
 	// to know if there is error, we need to parse the response body
 	if resp.StatusCode != 200 {
-		err = errorutil.WithSecondaryError(
-			NewSSOFailed(NetworkFailed, "authorization server unexpected response"),
-			fmt.Errorf("unexpected status code: %d", resp.StatusCode),
-		)
+		err = fmt.Errorf("wechat: unexpected status code: %d", resp.StatusCode)
 		return
 	}
 

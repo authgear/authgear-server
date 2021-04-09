@@ -131,6 +131,16 @@ function getLightModeStyle(options: GetStyleOptions) {
     "--color-azureadv2-shaded-7": "#007bb4",
     "--color-azureadv2-shaded-8": "#005b85",
 
+    "--color-adfs-unshaded": "#00a2ed",
+    "--color-adfs-shaded-1": "#f4fbfe",
+    "--color-adfs-shaded-2": "#d4effc",
+    "--color-adfs-shaded-3": "#afe2fa",
+    "--color-adfs-shaded-4": "#62c6f4",
+    "--color-adfs-shaded-5": "#1dadef",
+    "--color-adfs-shaded-6": "#0092d5",
+    "--color-adfs-shaded-7": "#007bb4",
+    "--color-adfs-shaded-8": "#005b85",
+
     "--color-wechat-unshaded": "#07c160",
     "--color-wechat-shaded-1": "#f3fdf8",
     "--color-wechat-shaded-2": "#d0f5e2",
@@ -403,6 +413,11 @@ function OAuthForm() {
         title={
           <FormattedMessage id="ThemePreviewWidget.azureadv2-button-label" />
         }
+      />
+      <SimpleOAuthButton
+        providerType="adfs"
+        iconClassName="fa-microsoft"
+        title={<FormattedMessage id="ThemePreviewWidget.adfs-button-label" />}
       />
       <SimpleOAuthButton
         providerType="wechat"
