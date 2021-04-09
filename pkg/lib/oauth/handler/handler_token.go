@@ -296,12 +296,25 @@ func (h *TokenHandler) handleRefreshToken(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
+	deviceInfo, err := r.DeviceInfo()
+	if err != nil {
+		return nil, protocol.NewError("invalid_request", err.Error())
+	}
+
 	authz, offlineGrant, err := h.parseRefreshToken(r.RefreshToken())
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := h.issueTokensForRefreshToken(client, offlineGrant, authz)
+	if err != nil {
+		return nil, err
+	}
+
+	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
+	offlineGrant.DeviceInfo = deviceInfo
+
+	err = h.OfflineGrants.UpdateOfflineGrant(offlineGrant, expiry)
 	if err != nil {
 		return nil, err
 	}
