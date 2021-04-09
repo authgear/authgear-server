@@ -2,13 +2,7 @@ package sso
 
 import (
 	"net/url"
-
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
-
-type RedirectURLProvider interface {
-	SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL
-}
 
 type authURLParams struct {
 	redirectURI string
