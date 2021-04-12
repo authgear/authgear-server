@@ -29,7 +29,7 @@ func RequestRateLimitBucket(ip string) ratelimit.Bucket {
 func SignupRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("signup:%s", ip),
-		Size:        1,
+		Size:        10,
 		ResetPeriod: duration.PerMinute,
 	}
 }
