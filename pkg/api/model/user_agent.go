@@ -20,6 +20,17 @@ type UserAgent struct {
 	DeviceModel string `json:"device_model"`
 }
 
+func (u *UserAgent) Format() string {
+	var out string
+	if u.Name != "" {
+		out += u.Name
+	}
+	if u.Version != "" {
+		out += " " + u.Version
+	}
+	return out
+}
+
 func ParseUserAgent(ua string) (mUA UserAgent) {
 	mUA.Raw = ua
 

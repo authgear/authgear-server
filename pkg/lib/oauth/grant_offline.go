@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 )
 
 type OfflineGrant struct {
@@ -21,6 +22,8 @@ type OfflineGrant struct {
 
 	Attrs      session.Attrs `json:"attrs"`
 	AccessInfo access.Info   `json:"access_info"`
+
+	DeviceInfo map[string]interface{} `json:"device_info,omitempty"`
 }
 
 var _ Grant = &OfflineGrant{}
@@ -38,7 +41,15 @@ func (g *OfflineGrant) GetClientID() string         { return g.ClientID }
 func (g *OfflineGrant) GetAccessInfo() *access.Info { return &g.AccessInfo }
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {
+	var displayName string
+	formattedDeviceInfo := deviceinfo.Format(g.DeviceInfo)
 	ua := model.ParseUserAgent(g.AccessInfo.LastAccess.UserAgent)
+	if formattedDeviceInfo != "" {
+		displayName = formattedDeviceInfo
+	} else {
+		displayName = ua.Format()
+	}
+
 	amr, _ := g.Attrs.GetAMR()
 	acr, _ := g.Attrs.GetACR()
 	return &model.Session{
@@ -56,6 +67,7 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,
 		LastAccessedByIP: g.AccessInfo.LastAccess.RemoteIP,
-		UserAgent:        ua,
+
+		DisplayName: displayName,
 	}
 }

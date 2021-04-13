@@ -20,7 +20,7 @@ import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";
 import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutation";
 import { useParams } from "react-router-dom";
 import ErrorDialog from "../../error/ErrorDialog";
-import { Session, SessionType, SessionUserAgent } from "../../util/user";
+import { Session, SessionType } from "../../util/user";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
@@ -85,14 +85,6 @@ const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> = functi
   );
 };
 
-function userAgentDisplayName(ua: SessionUserAgent): string {
-  let name = ua.name;
-  if (name !== "" && ua.version !== "") {
-    name += " " + ua.version;
-  }
-  return name;
-}
-
 function sessionTypeDisplayKey(type: SessionType): string {
   switch (type) {
     case "IDP":
@@ -104,7 +96,7 @@ function sessionTypeDisplayKey(type: SessionType): string {
 }
 
 interface SessionItemViewModel {
-  deviceName: string;
+  displayName: string;
   kind: string;
   ipAddress: string;
   lastActivity: string;
@@ -152,8 +144,8 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
   const sessionColumns: IColumn[] = useMemo(
     () => [
       {
-        key: "deviceName",
-        fieldName: "deviceName",
+        key: "displayName",
+        fieldName: "displayName",
         name: renderToString("UserDetails.session.devices"),
         className: styles.cell,
         minWidth: 200,
@@ -206,7 +198,7 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
     () =>
       sessions.map(
         (session): SessionItemViewModel => ({
-          deviceName: userAgentDisplayName(session.userAgent),
+          displayName: session.displayName,
           kind: renderToString(sessionTypeDisplayKey(session.type)),
           ipAddress: session.lastAccessedByIP,
           lastActivity: formatDatetime(locale, session.lastAccessedAt) ?? "",

@@ -21,7 +21,7 @@
   {{ range $.Sessions }}
     <form class="margin-h-14 padding-v-10 row-sep grid grid-name-desc-action" method="post" novalidate>
       <p class="grid-area-name font-inherit align-self-center margin-0 primary-txt">
-        {{ .UserAgent.Name }} {{ .UserAgent.Version }}
+        {{ .DisplayName }}
       </p>
       <p class="grid-area-desc font-smaller align-self-center margin-0 secondary-txt">
         <!-- FIXME(ui): Use user preferred timezone -->

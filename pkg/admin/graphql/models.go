@@ -13,15 +13,3 @@ var claim = graphql.NewObject(graphql.ObjectConfig{
 		},
 	},
 })
-
-var userAgent = graphql.NewObject(graphql.ObjectConfig{
-	Name: "UserAgent",
-	Fields: graphql.Fields{
-		"raw":         &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
-		"name":        &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
-		"version":     &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
-		"os":          &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
-		"osVersion":   &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
-		"deviceModel": &graphql.Field{Type: graphql.NewNonNull(graphql.String)},
-	},
-})

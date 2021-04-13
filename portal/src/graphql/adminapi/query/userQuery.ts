@@ -47,10 +47,7 @@ const userQuery = gql`
               type
               lastAccessedAt
               lastAccessedByIP
-              userAgent {
-                name
-                version
-              }
+              displayName
             }
           }
         }

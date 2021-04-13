@@ -1,5 +1,13 @@
 package protocol
 
+import (
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
+)
+
 type TokenRequest map[string]string
 type TokenResponse map[string]interface{}
 
@@ -25,3 +33,29 @@ func (r TokenResponse) IDToken(v string) { r["id_token"] = v }
 // PKCE extension
 
 func (r TokenRequest) CodeVerifier() string { return r["code_verifier"] }
+
+// Proprietary
+func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
+	encoded := r["x_device_info"]
+	if encoded == "" {
+		return nil, nil
+	}
+
+	bytes, err := base64.RawURLEncoding.DecodeString(encoded)
+	if err != nil {
+		return nil, err
+	}
+
+	var deviceInfo map[string]interface{}
+	err = json.Unmarshal(bytes, &deviceInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	formatted := deviceinfo.Format(deviceInfo)
+	if formatted == "" {
+		return nil, fmt.Errorf("invalid device info: %s", string(bytes))
+	}
+
+	return deviceInfo, nil
+}

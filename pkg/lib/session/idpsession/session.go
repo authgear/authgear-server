@@ -48,6 +48,7 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		LastAccessedAt:   s.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      s.AccessInfo.InitialAccess.RemoteIP,
 		LastAccessedByIP: s.AccessInfo.LastAccess.RemoteIP,
-		UserAgent:        ua,
+
+		DisplayName: ua.Format(),
 	}
 }

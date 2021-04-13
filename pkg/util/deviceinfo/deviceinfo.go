@@ -150,5 +150,16 @@ func FormatIOS(ios map[string]interface{}) string {
 	if !ok {
 		return ""
 	}
+
+	// Simulator on non Apple Silicon macOS.
+	if machine == "x86_64" {
+		return "iOS Simulator"
+	}
+
+	// Simulator on Apple Silicon macOS.
+	if machine == "arm64" {
+		return "iOS Simulator"
+	}
+
 	return iosMachineMapping[machine]
 }
