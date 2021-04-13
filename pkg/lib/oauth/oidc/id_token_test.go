@@ -45,7 +45,7 @@ func TestSID(t *testing.T) {
 			ID:   "c",
 			Type: "nonsense",
 		}
-		typ, sessionID, ok = DecodeSID(EncodeSID(s))
+		_, _, ok = DecodeSID(EncodeSID(s))
 		So(ok, ShouldBeFalse)
 	})
 }

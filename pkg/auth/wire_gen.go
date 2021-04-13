@@ -1062,10 +1062,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
-		Users:   queries,
-		Clock:   clockClock,
+		IDPSessions:   provider,
+		OfflineGrants: store,
+		Secrets:       oAuthKeyMaterials,
+		BaseURL:       endpointsProvider,
+		Users:         queries,
+		Clock:         clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
@@ -1172,13 +1174,59 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	jwksHandlerLogger := oauth.NewJWKSHandlerLogger(factory)
-	config := appProvider.Config
-	secretConfig := config.SecretConfig
-	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	request := p.Request
+	handle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	clockClock := _wireSystemClockValue
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	storeRedis := &idpsession.StoreRedis{
+		Redis:  handle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: handle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
+	sessionConfig := appConfig.Session
+	idpsessionRand := _wireRandValue
+	provider := &idpsession.Provider{
+		Request:      request,
+		Store:        storeRedis,
+		AccessEvents: eventProvider,
+		TrustProxy:   trustProxy,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       idpsessionRand,
+	}
+	logger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	context := deps.ProvideRequestContext(request)
+	dbHandle := appProvider.Database
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: dbHandle,
+	}
+	store := &redis.Store{
+		Redis:       handle,
+		AppID:       appID,
+		Logger:      logger,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -1186,17 +1234,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := config.AppConfig
-	appID := appConfig.ID
-	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
-	handle := appProvider.Database
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
-	}
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1223,8 +1261,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
-	provider := &loginid.Provider{
+	loginidProvider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -1259,7 +1296,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
 		Store:          serviceStore,
-		LoginID:        provider,
+		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 		Biometric:      biometricProvider,
@@ -1274,7 +1311,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	logger := password.NewLogger(factory)
+	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
@@ -1291,7 +1328,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          logger,
+		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
@@ -1311,9 +1348,8 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
-	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+	oobStoreRedis := &oob.StoreRedis{
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1321,14 +1357,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	oobProvider := &oob.Provider{
 		Config:    authenticatorOOBConfig,
 		Store:     oobStore,
-		CodeStore: storeRedis,
+		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: handle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -1345,7 +1381,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1364,7 +1400,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: handle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1414,7 +1450,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:            queue,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -1422,35 +1458,18 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
+		Store:         storeRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
 		CookieDef:     cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Redis:       redisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
 	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
+		Store:  store,
 		Clock:  clockClock,
 		Config: oAuthConfig,
 	}
@@ -1470,15 +1489,17 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		Store:        store,
+		Store:        userStore,
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
-		Users:   queries,
-		Clock:   clockClock,
+		IDPSessions:   provider,
+		OfflineGrants: store,
+		Secrets:       oAuthKeyMaterials,
+		BaseURL:       endpointsProvider,
+		Users:         queries,
+		Clock:         clockClock,
 	}
 	jwksHandler := &oauth.JWKSHandler{
 		Logger: jwksHandlerLogger,
@@ -1492,13 +1513,58 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	factory := appProvider.LoggerFactory
 	userInfoHandlerLogger := oauth.NewUserInfoHandlerLogger(factory)
 	handle := appProvider.Database
-	config := appProvider.Config
-	secretConfig := config.SecretConfig
-	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	request := p.Request
+	redisHandle := appProvider.Redis
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	clockClock := _wireSystemClockValue
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	storeRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
+	sessionConfig := appConfig.Session
+	idpsessionRand := _wireRandValue
+	provider := &idpsession.Provider{
+		Request:      request,
+		Store:        storeRedis,
+		AccessEvents: eventProvider,
+		TrustProxy:   trustProxy,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       idpsessionRand,
+	}
+	logger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	context := deps.ProvideRequestContext(request)
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	store := &redis.Store{
+		Redis:       redisHandle,
+		AppID:       appID,
+		Logger:      logger,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -1506,16 +1572,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
-	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := config.AppConfig
-	appID := appConfig.ID
-	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
-	}
-	store := &user.Store{
+	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
@@ -1542,8 +1599,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
-	provider := &loginid.Provider{
+	loginidProvider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -1578,7 +1634,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		Identity:       identityConfig,
 		Store:          serviceStore,
-		LoginID:        provider,
+		LoginID:        loginidProvider,
 		OAuth:          oauthProvider,
 		Anonymous:      anonymousProvider,
 		Biometric:      biometricProvider,
@@ -1593,7 +1649,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
-	logger := password.NewLogger(factory)
+	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
@@ -1610,7 +1666,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Store:           passwordStore,
 		Config:          authenticatorPasswordConfig,
 		Clock:           clockClock,
-		Logger:          logger,
+		Logger:          passwordLogger,
 		PasswordHistory: historyStore,
 		PasswordChecker: passwordChecker,
 		Housekeeper:     housekeeper,
@@ -1630,8 +1686,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
-	storeRedis := &oob.StoreRedis{
+	oobStoreRedis := &oob.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -1640,7 +1695,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	oobProvider := &oob.Provider{
 		Config:    authenticatorOOBConfig,
 		Store:     oobStore,
-		CodeStore: storeRedis,
+		CodeStore: oobStoreRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
 	}
@@ -1733,7 +1788,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue:            queue,
 	}
 	rawCommands := &user.RawCommands{
-		Store:                  store,
+		Store:                  userStore,
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
@@ -1741,35 +1796,18 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
+		Store:         storeRedis,
 		Clock:         clockClock,
 		Config:        sessionConfig,
 		CookieFactory: cookieFactory,
 		CookieDef:     cookieDef,
 	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Redis:       redisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
 	oAuthConfig := appConfig.OAuth
 	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
+		Store:  store,
 		Clock:  clockClock,
 		Config: oAuthConfig,
 	}
@@ -1789,15 +1827,17 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		Store:        store,
+		Store:        userStore,
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
-		Users:   queries,
-		Clock:   clockClock,
+		IDPSessions:   provider,
+		OfflineGrants: store,
+		Secrets:       oAuthKeyMaterials,
+		BaseURL:       endpointsProvider,
+		Users:         queries,
+		Clock:         clockClock,
 	}
 	userInfoHandler := &oauth.UserInfoHandler{
 		Logger:           userInfoHandlerLogger,
@@ -1829,10 +1869,360 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	urlProvider := &webapp.URLProvider{
 		Endpoints: endpointsProvider,
 	}
+	redisHandle := appProvider.Redis
+	appID := appConfig.ID
+	clockClock := _wireSystemClockValue
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	storeRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	sessionConfig := appConfig.Session
+	idpsessionRand := _wireRandValue
+	provider := &idpsession.Provider{
+		Request:      request,
+		Store:        storeRedis,
+		AccessEvents: eventProvider,
+		TrustProxy:   trustProxy,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       idpsessionRand,
+	}
+	logger := redis.NewLogger(factory)
+	secretConfig := config.SecretConfig
+	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	context := deps.ProvideRequestContext(request)
+	sqlExecutor := db.SQLExecutor{
+		Context:  context,
+		Database: handle,
+	}
+	store := &redis.Store{
+		Redis:       redisHandle,
+		AppID:       appID,
+		Logger:      logger,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
+	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	userStore := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
+	loginidProvider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	serviceService := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        loginidProvider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
+	}
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	passwordLogger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          passwordLogger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oobStoreRedis := &oob.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: oobStoreRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Request:     request,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
+		Clock:       clockClock,
+		CodeStore:   verificationStoreRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	queue := appProvider.TaskQueue
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  userStore,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:         storeRedis,
+		Clock:         clockClock,
+		Config:        sessionConfig,
+		CookieFactory: cookieFactory,
+		CookieDef:     cookieDef,
+	}
+	sessionManager := &oauth2.SessionManager{
+		Store:  store,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	coordinator := &facade.Coordinator{
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		Users:           rawCommands,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	queries := &user.Queries{
+		Store:        userStore,
+		Identities:   identityFacade,
+		Verification: verificationService,
+	}
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		IDPSessions:   provider,
+		OfflineGrants: store,
+		Secrets:       oAuthKeyMaterials,
+		BaseURL:       endpointsProvider,
+		Users:         queries,
+		Clock:         clockClock,
+	}
+	hookLogger := hook.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	hookStore := &hook.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	hookProvider := &hook.Provider{
+		Context:      context,
+		Logger:       hookLogger,
+		Database:     handle,
+		Clock:        clockClock,
+		Users:        rawProvider,
+		Store:        hookStore,
+		Deliverer:    deliverer,
+		Localization: localizationConfig,
+	}
+	manager2 := &session.Manager{
+		Users:               queries,
+		Hooks:               hookProvider,
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+	}
 	endSessionHandler := &handler2.EndSessionHandler{
-		Config:    oAuthConfig,
-		Endpoints: endpointsProvider,
-		URLs:      urlProvider,
+		Config:         oAuthConfig,
+		Endpoints:      endpointsProvider,
+		URLs:           urlProvider,
+		IDTokens:       idTokenIssuer,
+		SessionManager: manager2,
 	}
 	oauthEndSessionHandler := &oauth.EndSessionHandler{
 		Logger:            endSessionHandlerLogger,
@@ -2336,10 +2726,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
-		Users:   queries,
-		Clock:   clockClock,
+		IDPSessions:   provider,
+		OfflineGrants: store,
+		Secrets:       oAuthKeyMaterials,
+		BaseURL:       endpointsProvider,
+		Users:         queries,
+		Clock:         clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
@@ -21427,10 +21819,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Verification: verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		Secrets: oAuthKeyMaterials,
-		BaseURL: endpointsProvider,
-		Users:   queries,
-		Clock:   clockClock,
+		IDPSessions:   provider,
+		OfflineGrants: store,
+		Secrets:       oAuthKeyMaterials,
+		BaseURL:       endpointsProvider,
+		Users:         queries,
+		Clock:         clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
