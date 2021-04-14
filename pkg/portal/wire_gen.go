@@ -101,8 +101,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userLoader := loader.NewUserLoader(adminAPIService)
 	appServiceLogger := service.NewAppServiceLogger(factory)
-	databaseConfig := rootProvider.DatabaseConfig
-	sqlBuilder := db.NewSQLBuilder(databaseConfig)
+	databaseEnvironmentConfig := rootProvider.DatabaseConfig
+	sqlBuilder := db.NewSQLBuilder(databaseEnvironmentConfig)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
@@ -273,8 +273,8 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		ConfigSource: configSource,
 	}
 	clockClock := _wireSystemClockValue
-	databaseConfig := rootProvider.DatabaseConfig
-	sqlBuilder := db.NewSQLBuilder(databaseConfig)
+	databaseEnvironmentConfig := rootProvider.DatabaseConfig
+	sqlBuilder := db.NewSQLBuilder(databaseEnvironmentConfig)
 	sqlExecutor := &db.SQLExecutor{
 		Context:  context,
 		Database: handle,

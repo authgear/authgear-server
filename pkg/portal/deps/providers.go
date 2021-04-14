@@ -22,7 +22,7 @@ type RootProvider struct {
 	AuthgearConfig     *portalconfig.AuthgearConfig
 	AdminAPIConfig     *portalconfig.AdminAPIConfig
 	AppConfig          *portalconfig.AppConfig
-	DatabaseConfig     *portalconfig.DatabaseConfig
+	DatabaseConfig     *config.DatabaseEnvironmentConfig
 	SMTPConfig         *portalconfig.SMTPConfig
 	MailConfig         *portalconfig.MailConfig
 	LoggerFactory      *log.Factory
@@ -46,7 +46,7 @@ func NewRootProvider(
 	authgearConfig *portalconfig.AuthgearConfig,
 	adminAPIConfig *portalconfig.AdminAPIConfig,
 	appConfig *portalconfig.AppConfig,
-	dbConfig *portalconfig.DatabaseConfig,
+	dbConfig *config.DatabaseEnvironmentConfig,
 	smtpConfig *portalconfig.SMTPConfig,
 	mailConfig *portalconfig.MailConfig,
 	secretKeyAllowlist portalconfig.SecretKeyAllowlist,

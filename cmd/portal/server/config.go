@@ -25,8 +25,6 @@ type Config struct {
 	App portalconfig.AppConfig `envconfig:"APP"`
 	// StaticAsset configures serving static asset
 	StaticAsset StaticAssetConfig `envconfig:"STATIC_ASSET"`
-	// Database configures the backend database
-	Database portalconfig.DatabaseConfig `envconfig:"DATABASE"`
 	// SMTP configures SMTP.
 	SMTP portalconfig.SMTPConfig `envconfig:"SMTP"`
 	// Mail configures email settings.
