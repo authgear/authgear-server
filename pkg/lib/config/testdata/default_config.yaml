@@ -282,6 +282,7 @@ identity:
       - key: email
         type: email
         max_length: 320
+        modify_disabled: false
   oauth: {}
   biometric:
     list_enabled: false
