@@ -21,6 +21,8 @@ const (
 	CandidateKeyLoginIDValue = "login_id_value"
 
 	CandidateKeyDisplayID = "display_id"
+
+	CandidateKeyModifyDisabled = "modify_disabled"
 )
 
 func NewOAuthCandidate(c *config.OAuthSSOProviderConfig) Candidate {
@@ -32,16 +34,18 @@ func NewOAuthCandidate(c *config.OAuthSSOProviderConfig) Candidate {
 		CandidateKeyProviderSubjectID: "",
 		CandidateKeyProviderAppType:   string(c.AppType),
 		CandidateKeyDisplayID:         "",
+		CandidateKeyModifyDisabled:    *c.ModifyDisabled,
 	}
 }
 
 func NewLoginIDCandidate(c *config.LoginIDKeyConfig) Candidate {
 	return Candidate{
-		CandidateKeyIdentityID:   "",
-		CandidateKeyType:         string(authn.IdentityTypeLoginID),
-		CandidateKeyLoginIDType:  string(c.Type),
-		CandidateKeyLoginIDKey:   c.Key,
-		CandidateKeyLoginIDValue: "",
-		CandidateKeyDisplayID:    "",
+		CandidateKeyIdentityID:     "",
+		CandidateKeyType:           string(authn.IdentityTypeLoginID),
+		CandidateKeyLoginIDType:    string(c.Type),
+		CandidateKeyLoginIDKey:     c.Key,
+		CandidateKeyLoginIDValue:   "",
+		CandidateKeyDisplayID:      "",
+		CandidateKeyModifyDisabled: *c.ModifyDisabled,
 	}
 }

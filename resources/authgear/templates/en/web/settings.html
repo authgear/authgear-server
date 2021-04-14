@@ -96,16 +96,16 @@
     {{ $.CSRFField }}
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-    {{ if .identity_id }}
+    {{ if not .modify_disabled }}{{ if .identity_id }}
     <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
     {{ else }}
     <button class="btn secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
-    {{ end }}
+    {{ end }}{{ end }}
     </form>
     {{ end }}
 
     {{ if eq .type "login_id" }}
-    {{ if .identity_id }}
+    {{ if not .modify_disabled }}{{ if .identity_id }}
     <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
     {{ else }}
     <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
@@ -115,7 +115,7 @@
       {{ template "connect-button-label" }}
       {{ end }}
     </a>
-    {{ end }}
+    {{ end }}{{ end }}
     {{ end }}
 
     {{ if eq .type "login_id" }}
