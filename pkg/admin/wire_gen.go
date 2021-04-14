@@ -128,23 +128,20 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	handle := appProvider.Database
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
-	}
+	tenantSQLExecutor := db.NewTenantSQLExecutor(context, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
 	manager := appProvider.Resources
@@ -169,7 +166,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
@@ -177,7 +174,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
@@ -185,7 +182,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	biometricStore := &biometric.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	biometricProvider := &biometric.Provider{
 		Store: biometricStore,
@@ -202,11 +199,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
@@ -214,7 +211,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
 	housekeeperLogger := password.NewHousekeeperLogger(factory)
@@ -234,7 +231,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
 	totpProvider := &totp.Provider{
@@ -245,7 +242,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	redisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
@@ -290,7 +287,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	verificationService := &verification.Service{
 		Request:     request,
@@ -309,7 +306,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	mfaService := &mfa.Service{
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -359,7 +356,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
@@ -384,7 +381,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 		Clock:       clockClock,
 	}
 	oAuthConfig := appConfig.OAuth
@@ -423,7 +420,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
@@ -538,7 +535,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                  request,
-		Database:                 sqlExecutor,
+		Database:                 tenantSQLExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
 		TrustProxy:               trustProxy,

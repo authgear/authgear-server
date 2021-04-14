@@ -130,14 +130,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	dbHandle := appProvider.Database
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: dbHandle,
-	}
+	tenantHandle := appProvider.Database
+	tenantSQLExecutor := db.NewTenantSQLExecutor(context, tenantHandle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	logger := redis.NewLogger(factory)
 	store := &redis.Store{
@@ -145,7 +142,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID:       appID,
 		Logger:      logger,
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 		Clock:       clock,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
@@ -154,17 +151,17 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
 	manager := appProvider.Resources
@@ -188,7 +185,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
@@ -196,7 +193,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
@@ -204,7 +201,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	biometricStore := &biometric.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	biometricProvider := &biometric.Provider{
 		Store: biometricStore,
@@ -221,11 +218,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	passwordStore := &password.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
 	authenticatorPasswordConfig := authenticatorConfig.Password
@@ -233,7 +230,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	historyStore := &password.HistoryStore{
 		Clock:       clock,
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
 	housekeeperLogger := password.NewHousekeeperLogger(factory)
@@ -253,7 +250,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	totpStore := &totp.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
 	totpProvider := &totp.Provider{
@@ -264,7 +261,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	oobStoreRedis := &oob.StoreRedis{
 		Redis: handle,
@@ -305,7 +302,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	verificationService := &verification.Service{
 		Request:     request,
@@ -324,7 +321,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	mfaService := &mfa.Service{
 		DeviceTokens:  storeDeviceTokenRedis,
@@ -436,7 +433,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,
 		Users:                      queries,
-		Database:                   dbHandle,
+		Database:                   tenantHandle,
 	}
 	return sessionMiddleware
 }
@@ -459,17 +456,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	handle := appProvider.Database
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
-	}
+	tenantSQLExecutor := db.NewTenantSQLExecutor(context, handle)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	loginidStore := &loginid.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
 	manager := appProvider.Resources
@@ -494,7 +488,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	oauthProvider := &oauth.Provider{
 		Store: oauthStore,
@@ -502,7 +496,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	anonymousStore := &anonymous.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
 		Store: anonymousStore,
@@ -510,7 +504,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	biometricStore := &biometric.Store{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	biometricProvider := &biometric.Provider{
 		Store: biometricStore,
@@ -539,7 +533,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
+		SQLExecutor: tenantSQLExecutor,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{

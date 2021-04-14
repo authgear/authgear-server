@@ -13,7 +13,7 @@ import (
 
 type AuthorizationStore struct {
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLExecutor *db.TenantSQLExecutor
 }
 
 func (s *AuthorizationStore) selectQuery() db.SelectBuilder {

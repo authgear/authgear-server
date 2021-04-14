@@ -9,7 +9,7 @@ import (
 	"github.com/graphql-go/handler"
 
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	db "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 

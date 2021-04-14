@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	db "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 )
 

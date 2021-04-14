@@ -169,7 +169,7 @@ type Context struct {
 	WebSessionID string `wire:"-"`
 
 	Request    *http.Request
-	Database   db.SQLExecutor
+	Database   *db.TenantSQLExecutor
 	Clock      clock.Clock
 	Config     *config.AppConfig
 	TrustProxy config.TrustProxy

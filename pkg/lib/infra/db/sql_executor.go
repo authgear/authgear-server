@@ -23,12 +23,26 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
+type TenantSQLExecutor struct {
+	SQLExecutor
+}
+
+func NewTenantSQLExecutor(c context.Context, handle *tenant.Handle) *TenantSQLExecutor {
+	return &TenantSQLExecutor{
+		SQLExecutor{
+			Context:  c,
+			Database: handle,
+		},
+	}
+}
+
 type SQLExecutor struct {
 	Context  context.Context
-	Database *Handle
+	Database Handle
 }
 
 func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {

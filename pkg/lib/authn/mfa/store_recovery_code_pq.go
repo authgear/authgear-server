@@ -11,7 +11,7 @@ import (
 
 type StoreRecoveryCodePQ struct {
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLExecutor *db.TenantSQLExecutor
 }
 
 func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {

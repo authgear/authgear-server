@@ -29,7 +29,7 @@ type Store struct {
 	AppID       config.AppID
 	Logger      Logger
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLExecutor *db.TenantSQLExecutor
 	Clock       clock.Clock
 }
 

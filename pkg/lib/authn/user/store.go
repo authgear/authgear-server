@@ -31,7 +31,7 @@ var queryPage = db.QueryPage(db.QueryPageConfig{
 
 type Store struct {
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLExecutor *db.TenantSQLExecutor
 }
 
 func (s *Store) Create(u *User) error {

@@ -3,7 +3,7 @@ package oauth
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	db "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"

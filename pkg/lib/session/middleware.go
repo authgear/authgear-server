@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	db "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )

@@ -9,7 +9,7 @@ import (
 
 type StorePQ struct {
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLExecutor *db.TenantSQLExecutor
 }
 
 func (s *StorePQ) selectQuery() db.SelectBuilder {

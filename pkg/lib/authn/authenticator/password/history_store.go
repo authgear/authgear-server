@@ -15,7 +15,7 @@ import (
 type HistoryStore struct {
 	Clock       clock.Clock
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLExecutor *db.TenantSQLExecutor
 }
 
 func (p *HistoryStore) CreatePasswordHistory(userID string, hashedPassword []byte, createdAt time.Time) error {

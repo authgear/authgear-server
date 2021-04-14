@@ -9,7 +9,7 @@ import (
 
 type Store struct {
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLExecutor *db.TenantSQLExecutor
 
 	events []*event.Event `wire:"-"`
 }

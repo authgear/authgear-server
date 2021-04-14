@@ -11,6 +11,6 @@ func ProvideSQLBuilder(c *config.DatabaseCredentials, id config.AppID) SQLBuilde
 }
 
 var DependencySet = wire.NewSet(
-	wire.Struct(new(SQLExecutor), "*"),
+	NewTenantSQLExecutor,
 	ProvideSQLBuilder,
 )
