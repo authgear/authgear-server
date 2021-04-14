@@ -17,7 +17,7 @@ type WebAppURLsProvider interface {
 }
 
 type IDTokenIssuer interface {
-	ValidateIDToken(idToken string) error
+	ValidateIDTokenHint(idTokenHint string) (session.Session, error)
 }
 
 type LogoutSessionManager interface {
@@ -35,19 +35,19 @@ type EndSessionHandler struct {
 func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
 	idTokenHint := req.IDTokenHint()
 	if s != nil && idTokenHint != "" {
-		err := h.IDTokens.ValidateIDToken(idTokenHint)
-		if err != nil {
-			// id_token_hint is invalid. Delete it and proceed.
-			// That is, ask confirmation before logout.
-			delete(req, "id_token_hint")
-		} else {
-			// Otherwise, logout directly.
+		sessionInIDToken, err := h.IDTokens.ValidateIDTokenHint(idTokenHint)
+		if err == nil && s.SessionType() == sessionInIDToken.SessionType() && s.SessionID() == sessionInIDToken.SessionID() {
+			// Logout directly.
 			err := h.SessionManager.Logout(s, rw)
 			if err != nil {
 				return err
 			}
 			// Set s to nil and fall through.
 			s = nil
+		} else {
+			// id_token_hint is invalid. Delete it and proceed.
+			// That is, ask confirmation before logout.
+			delete(req, "id_token_hint")
 		}
 	}
 
