@@ -14099,6 +14099,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	biometricConfig := identityConfig.Biometric
 	settingsViewModeler := &viewmodels.SettingsViewModeler{
 		Authenticators: service3,
+		Identities:     serviceService,
 		MFA:            mfaService,
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
@@ -15713,6 +15714,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	biometricConfig := identityConfig.Biometric
 	settingsViewModeler := &viewmodels.SettingsViewModeler{
 		Authenticators: service3,
+		Identities:     serviceService,
 		MFA:            mfaService,
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,

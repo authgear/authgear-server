@@ -3,6 +3,7 @@ package viewmodels
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -17,6 +18,10 @@ type SettingsViewModel struct {
 	ShowBiometric               bool
 }
 
+type SettingsIdentityService interface {
+	ListByUser(userID string) ([]*identity.Info, error)
+}
+
 type SettingsAuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 }
@@ -27,6 +32,7 @@ type SettingsMFAService interface {
 
 type SettingsViewModeler struct {
 	Authenticators SettingsAuthenticatorService
+	Identities     SettingsIdentityService
 	MFA            SettingsMFAService
 	Authentication *config.AuthenticationConfig
 	Biometric      *config.BiometricConfig
@@ -38,6 +44,18 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		return nil, err
 	}
 
+	iis, err := m.Identities.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	someIdentityCanHaveMFA := false
+	for _, ii := range iis {
+		if ii.CanHaveMFA() {
+			someIdentityCanHaveMFA = true
+		}
+	}
+
 	hasDeviceTokens, err := m.MFA.HasDeviceTokens(userID)
 	if err != nil {
 		return nil, err
@@ -47,16 +65,19 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	oobotpemail := false
 	oobotpsms := false
 	password := false
-	for _, typ := range m.Authentication.SecondaryAuthenticators {
-		switch typ {
-		case authn.AuthenticatorTypePassword:
-			password = true
-		case authn.AuthenticatorTypeTOTP:
-			totp = true
-		case authn.AuthenticatorTypeOOBEmail:
-			oobotpemail = true
-		case authn.AuthenticatorTypeOOBSMS:
-			oobotpsms = true
+
+	if someIdentityCanHaveMFA {
+		for _, typ := range m.Authentication.SecondaryAuthenticators {
+			switch typ {
+			case authn.AuthenticatorTypePassword:
+				password = true
+			case authn.AuthenticatorTypeTOTP:
+				totp = true
+			case authn.AuthenticatorTypeOOBEmail:
+				oobotpemail = true
+			case authn.AuthenticatorTypeOOBSMS:
+				oobotpsms = true
+			}
 		}
 	}
 

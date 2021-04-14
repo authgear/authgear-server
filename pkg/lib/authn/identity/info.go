@@ -209,3 +209,18 @@ func (i *Info) PrimaryAuthenticatorTypes() []authn.AuthenticatorType {
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
 }
+
+func (i *Info) CanHaveMFA() bool {
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		return true
+	case authn.IdentityTypeOAuth:
+		return false
+	case authn.IdentityTypeAnonymous:
+		return false
+	case authn.IdentityTypeBiometric:
+		return false
+	default:
+		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
+	}
+}
