@@ -41,7 +41,7 @@ func (s *Store) Create(u *User) error {
 	}
 
 	builder := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("user")).
+		Insert(s.SQLBuilder.TableName("_auth_user")).
 		Columns(
 			"id",
 			"labels",
@@ -80,7 +80,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"is_disabled",
 			"disable_reason",
 		).
-		From(s.SQLBuilder.FullTableName("user"))
+		From(s.SQLBuilder.TableName("_auth_user"))
 }
 
 func (s *Store) scan(scn db.Scanner) (*User, error) {
@@ -148,7 +148,7 @@ func (s *Store) GetByIDs(userIDs []string) ([]*User, error) {
 func (s *Store) Count() (uint64, error) {
 	builder := s.SQLBuilder.Tenant().
 		Select("count(*)").
-		From(s.SQLBuilder.FullTableName("user"))
+		From(s.SQLBuilder.TableName("_auth_user"))
 	scanner, err := s.SQLExecutor.QueryRowWith(builder)
 	if err != nil {
 		return 0, err
@@ -199,7 +199,7 @@ func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) (
 
 func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 	builder := s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("user")).
+		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("last_login_at", squirrel.Expr("login_at")).
 		Set("login_at", loginAt).
 		Where("id = ?", userID)
@@ -214,7 +214,7 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 
 func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
 	builder := s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("user")).
+		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("is_disabled", isDisabled).
 		Set("disable_reason", reason).
 		Where("id = ?", userID)
@@ -229,7 +229,7 @@ func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *str
 
 func (s *Store) Delete(userID string) error {
 	builder := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("user")).
+		Delete(s.SQLBuilder.TableName("_auth_user")).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)

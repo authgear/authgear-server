@@ -10,7 +10,7 @@ import (
 
 func TestQueryPage(t *testing.T) {
 	Convey("QueryPage", t, func() {
-		builder := db.NewSQLBuilder("", "", "my-app").Tenant().
+		builder := db.NewSQLBuilder("", "my-app").Tenant().
 			Select("id", "value").
 			From("values")
 

@@ -16,7 +16,7 @@ func (s *Store) Count(userID string) (uint64, error) {
 	builder := s.SQLBuilder.Tenant().
 		Select("count(*)").
 		Where("user_id = ?", userID).
-		From(s.SQLBuilder.FullTableName("authenticator"))
+		From(s.SQLBuilder.TableName("_auth_authenticator"))
 	scanner, err := s.SQLExecutor.QueryRowWith(builder)
 	if err != nil {
 		return 0, err
@@ -34,7 +34,7 @@ func (s *Store) ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error) 
 	builder := s.SQLBuilder.Tenant().
 		Select("id", "type", "user_id", "created_at", "updated_at").
 		Where("user_id = ANY (?)", pq.Array(userIDs)).
-		From(s.SQLBuilder.FullTableName("authenticator"))
+		From(s.SQLBuilder.TableName("_auth_authenticator"))
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {

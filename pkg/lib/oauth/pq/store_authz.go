@@ -27,7 +27,7 @@ func (s *AuthorizationStore) selectQuery() db.SelectBuilder {
 		"updated_at",
 		"scopes",
 	).
-		From(s.SQLBuilder.FullTableName("oauth_authorization"))
+		From(s.SQLBuilder.TableName("_auth_oauth_authorization"))
 }
 
 func (s *AuthorizationStore) Get(userID, clientID string) (*oauth.Authorization, error) {
@@ -101,7 +101,7 @@ func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
 	}
 
 	builder := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("oauth_authorization")).
+		Insert(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Columns(
 			"id",
 			"labels",
@@ -131,7 +131,7 @@ func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
 
 func (s *AuthorizationStore) Delete(authz *oauth.Authorization) error {
 	builder := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("oauth_authorization")).
+		Delete(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Where("id = ?", authz.ID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
@@ -144,7 +144,7 @@ func (s *AuthorizationStore) Delete(authz *oauth.Authorization) error {
 
 func (s *AuthorizationStore) ResetAll(userID string) error {
 	builder := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("oauth_authorization")).
+		Delete(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Where("user_id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
@@ -162,7 +162,7 @@ func (s *AuthorizationStore) UpdateScopes(authz *oauth.Authorization) error {
 	}
 
 	builder := s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("oauth_authorization")).
+		Update(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Set("updated_at", authz.UpdatedAt).
 		Set("scopes", scopeBytes).
 		Where("id = ?", authz.ID)

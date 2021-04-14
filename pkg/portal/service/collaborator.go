@@ -10,10 +10,11 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	libdb "github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
@@ -55,7 +56,7 @@ type CollaboratorServiceAdminAPIService interface {
 type CollaboratorService struct {
 	Context     context.Context
 	Clock       clock.Clock
-	SQLBuilder  *db.SQLBuilder
+	SQLBuilder  *libdb.SQLBuilder
 	SQLExecutor *db.SQLExecutor
 
 	MailConfig     *portalconfig.MailConfig
@@ -72,7 +73,7 @@ func (s *CollaboratorService) selectCollaborator() sq.SelectBuilder {
 		"user_id",
 		"created_at",
 		"role",
-	).From(s.SQLBuilder.FullTableName("app_collaborator"))
+	).From(s.SQLBuilder.TableName("_portal_app_collaborator"))
 }
 
 func (s *CollaboratorService) selectCollaboratorInvitation() sq.SelectBuilder {
@@ -84,7 +85,7 @@ func (s *CollaboratorService) selectCollaboratorInvitation() sq.SelectBuilder {
 		"code",
 		"created_at",
 		"expire_at",
-	).From(s.SQLBuilder.FullTableName("app_collaborator_invitation"))
+	).From(s.SQLBuilder.TableName("_portal_app_collaborator_invitation"))
 }
 
 func (s *CollaboratorService) ListCollaborators(appID string) ([]*model.Collaborator, error) {
@@ -146,7 +147,7 @@ func (s *CollaboratorService) CreateCollaborator(c *model.Collaborator) error {
 	}
 
 	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
-		Insert(s.SQLBuilder.FullTableName("app_collaborator")).
+		Insert(s.SQLBuilder.TableName("_portal_app_collaborator")).
 		Columns(
 			"id",
 			"app_id",
@@ -219,7 +220,7 @@ func (s *CollaboratorService) DeleteCollaborator(c *model.Collaborator) error {
 	}
 
 	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
-		Delete(s.SQLBuilder.FullTableName("app_collaborator")).
+		Delete(s.SQLBuilder.TableName("_portal_app_collaborator")).
 		Where("id = ?", c.ID),
 	)
 	if err != nil {
@@ -380,7 +381,7 @@ func (s *CollaboratorService) DeleteInvitation(i *model.CollaboratorInvitation) 
 	}
 
 	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
-		Delete(s.SQLBuilder.FullTableName("app_collaborator_invitation")).
+		Delete(s.SQLBuilder.TableName("_portal_app_collaborator_invitation")).
 		Where("id = ?", i.ID),
 	)
 	if err != nil {
@@ -447,7 +448,7 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 func (s *CollaboratorService) deleteExpiredInvitations() error {
 	now := s.Clock.NowUTC()
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
-		Delete(s.SQLBuilder.FullTableName("app_collaborator_invitation")).
+		Delete(s.SQLBuilder.TableName("_portal_app_collaborator_invitation")).
 		Where("expire_at <= ?", now),
 	)
 	if err != nil {
@@ -458,7 +459,7 @@ func (s *CollaboratorService) deleteExpiredInvitations() error {
 
 func (s *CollaboratorService) createCollaboratorInvitation(i *model.CollaboratorInvitation) error {
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
-		Insert(s.SQLBuilder.FullTableName("app_collaborator_invitation")).
+		Insert(s.SQLBuilder.TableName("_portal_app_collaborator_invitation")).
 		Columns(
 			"id",
 			"app_id",

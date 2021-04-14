@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	libdb "github.com/authgear/authgear-server/pkg/lib/infra/db"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
@@ -59,7 +60,7 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 
 type AppService struct {
 	Logger      AppServiceLogger
-	SQLBuilder  *db.SQLBuilder
+	SQLBuilder  *libdb.SQLBuilder
 	SQLExecutor *db.SQLExecutor
 
 	AppConfig          *portalconfig.AppConfig
@@ -108,7 +109,7 @@ func (s *AppService) GetMaxOwnedApps(userID string) (int, error) {
 	// On errors: ignore and return default quota.
 
 	q := s.SQLBuilder.Select("max_own_apps").
-		From(s.SQLBuilder.FullTableName("user_app_quota")).
+		From(s.SQLBuilder.TableName("_portal_user_app_quota")).
 		Where("user_id = ?", userID)
 	row, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {

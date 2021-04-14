@@ -16,7 +16,7 @@ type Store struct {
 
 func (store *Store) NextSequenceNumber() (seq int64, err error) {
 	builder := store.SQLBuilder.Global().
-		Select(fmt.Sprintf("nextval('%s')", store.SQLBuilder.FullTableName("event_sequence")))
+		Select(fmt.Sprintf("nextval('%s')", store.SQLBuilder.TableName("_auth_event_sequence")))
 	row, err := store.SQLExecutor.QueryRowWith(builder)
 	if err != nil {
 		return

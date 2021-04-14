@@ -78,7 +78,7 @@ func (p *HistoryStore) RemovePasswordHistory(userID string, historySize int, his
 	}
 
 	builder := p.SQLBuilder.Tenant().
-		Delete(p.SQLBuilder.FullTableName("password_history")).
+		Delete(p.SQLBuilder.TableName("_auth_password_history")).
 		Where("user_id = ?", userID).
 		Where("id != ALL (?)", pq.Array(ids)).
 		Where("created_at < ?", oldestTime)
@@ -89,7 +89,7 @@ func (p *HistoryStore) RemovePasswordHistory(userID string, historySize int, his
 
 func (p *HistoryStore) ResetPasswordHistory(userID string) error {
 	builder := p.SQLBuilder.Tenant().
-		Delete(p.SQLBuilder.FullTableName("password_history")).
+		Delete(p.SQLBuilder.TableName("_auth_password_history")).
 		Where("user_id = ?", userID)
 
 	_, err := p.SQLExecutor.ExecWith(builder)
@@ -99,14 +99,14 @@ func (p *HistoryStore) ResetPasswordHistory(userID string) error {
 func (p *HistoryStore) basePasswordHistoryBuilder(userID string) db.SelectBuilder {
 	return p.SQLBuilder.Tenant().
 		Select("id", "user_id", "password", "created_at").
-		From(p.SQLBuilder.FullTableName("password_history")).
+		From(p.SQLBuilder.TableName("_auth_password_history")).
 		Where("user_id = ?", userID).
 		OrderBy("created_at DESC")
 }
 
 func (p *HistoryStore) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, createdAt time.Time) db.InsertBuilder {
 	return p.SQLBuilder.Tenant().
-		Insert(p.SQLBuilder.FullTableName("password_history")).
+		Insert(p.SQLBuilder.TableName("_auth_password_history")).
 		Columns(
 			"id",
 			"user_id",

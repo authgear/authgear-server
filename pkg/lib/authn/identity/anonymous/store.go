@@ -28,8 +28,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"a.key_id",
 			"a.key",
 		).
-		From(s.SQLBuilder.FullTableName("identity"), "p").
-		Join(s.SQLBuilder.FullTableName("identity_anonymous"), "a", "p.id = a.id")
+		From(s.SQLBuilder.TableName("_auth_identity"), "p").
+		Join(s.SQLBuilder.TableName("_auth_identity_anonymous"), "a", "p.id = a.id")
 }
 
 func (s *Store) scan(scn db.Scanner) (*Identity, error) {
@@ -152,7 +152,7 @@ func (s *Store) Create(i *Identity) error {
 	}
 
 	builder := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("identity")).
+		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
 			"id",
 			"labels",
@@ -176,7 +176,7 @@ func (s *Store) Create(i *Identity) error {
 	}
 
 	q := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("identity_anonymous")).
+		Insert(s.SQLBuilder.TableName("_auth_identity_anonymous")).
 		Columns(
 			"id",
 			"key_id",
@@ -198,7 +198,7 @@ func (s *Store) Create(i *Identity) error {
 
 func (s *Store) Delete(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("identity_anonymous")).
+		Delete(s.SQLBuilder.TableName("_auth_identity_anonymous")).
 		Where("id = ?", i.ID)
 
 	_, err := s.SQLExecutor.ExecWith(q)
@@ -207,7 +207,7 @@ func (s *Store) Delete(i *Identity) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("identity")).
+		Delete(s.SQLBuilder.TableName("_auth_identity")).
 		Where("id = ?", i.ID)
 
 	_, err = s.SQLExecutor.ExecWith(q)

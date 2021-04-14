@@ -7,7 +7,7 @@ import (
 )
 
 func ProvideSQLBuilder(c *config.DatabaseCredentials, id config.AppID) SQLBuilder {
-	return NewSQLBuilder("auth", c.DatabaseSchema, string(id))
+	return NewSQLBuilder(c.DatabaseSchema, string(id))
 }
 
 var DependencySet = wire.NewSet(
