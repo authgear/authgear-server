@@ -11,6 +11,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type store interface {
@@ -31,7 +32,7 @@ var queryPage = db.QueryPage(db.QueryPageConfig{
 
 type Store struct {
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor *db.TenantSQLExecutor
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (s *Store) Create(u *User) error {

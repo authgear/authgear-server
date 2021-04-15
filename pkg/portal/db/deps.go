@@ -10,7 +10,7 @@ import (
 var DependencySet = wire.NewSet(
 	globaldb.NewHandle,
 	NewSQLBuilder,
-	db.NewGlobalSQLExecutor,
+	globaldb.NewSQLExecutor,
 )
 
 func NewSQLBuilder(config *config.DatabaseEnvironmentConfig) *db.SQLBuilder {

@@ -9,13 +9,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type HistoryStore struct {
 	Clock       clock.Clock
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor *db.TenantSQLExecutor
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (p *HistoryStore) CreatePasswordHistory(userID string, hashedPassword []byte, createdAt time.Time) error {

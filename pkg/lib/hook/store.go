@@ -5,11 +5,12 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type Store struct {
 	SQLBuilder  db.SQLBuilder
-	SQLExecutor *db.TenantSQLExecutor
+	SQLExecutor *tenantdb.SQLExecutor
 
 	events []*event.Event `wire:"-"`
 }

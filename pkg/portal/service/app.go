@@ -15,6 +15,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	libdb "github.com/authgear/authgear-server/pkg/lib/infra/db"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -60,7 +62,7 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 type AppService struct {
 	Logger      AppServiceLogger
 	SQLBuilder  *libdb.SQLBuilder
-	SQLExecutor *libdb.GlobalSQLExecutor
+	SQLExecutor *globaldb.SQLExecutor
 
 	AppConfig          *portalconfig.AppConfig
 	SecretKeyAllowlist portalconfig.SecretKeyAllowlist

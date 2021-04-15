@@ -17,6 +17,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -50,7 +51,7 @@ type DomainService struct {
 	Clock        clock.Clock
 	DomainConfig DomainConfigService
 	SQLBuilder   *db.SQLBuilder
-	SQLExecutor  *db.GlobalSQLExecutor
+	SQLExecutor  *globaldb.SQLExecutor
 }
 
 func (s *DomainService) GetMany(ids []string) ([]*model.Domain, error) {

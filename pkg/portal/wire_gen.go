@@ -7,7 +7,6 @@ package portal
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
-	db2 "github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -109,7 +108,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
 	handle := global.NewHandle(context, pool, factory)
-	globalSQLExecutor := db2.NewGlobalSQLExecutor(context, handle)
+	sqlExecutor := global.NewSQLExecutor(context, handle)
 	appConfig := rootProvider.AppConfig
 	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
 	configServiceLogger := service.NewConfigServiceLogger(factory)
@@ -163,7 +162,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context:        context,
 		Clock:          clock,
 		SQLBuilder:     sqlBuilder,
-		SQLExecutor:    globalSQLExecutor,
+		SQLExecutor:    sqlExecutor,
 		MailConfig:     mailConfig,
 		TaskQueue:      inProcessQueue,
 		Endpoints:      endpointsProvider,
@@ -180,13 +179,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clock,
 		DomainConfig: configService,
 		SQLBuilder:   sqlBuilder,
-		SQLExecutor:  globalSQLExecutor,
+		SQLExecutor:  sqlExecutor,
 	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
 	appService := &service.AppService{
 		Logger:             appServiceLogger,
 		SQLBuilder:         sqlBuilder,
-		SQLExecutor:        globalSQLExecutor,
+		SQLExecutor:        sqlExecutor,
 		AppConfig:          appConfig,
 		SecretKeyAllowlist: secretKeyAllowlist,
 		AppConfigs:         configService,
@@ -264,7 +263,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	databaseEnvironmentConfig := rootProvider.DatabaseConfig
 	sqlBuilder := db.NewSQLBuilder(databaseEnvironmentConfig)
-	globalSQLExecutor := db2.NewGlobalSQLExecutor(context, handle)
+	sqlExecutor := global.NewSQLExecutor(context, handle)
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)
 	logger := mail.NewLogger(factory)
@@ -321,7 +320,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Context:        context,
 		Clock:          clockClock,
 		SQLBuilder:     sqlBuilder,
-		SQLExecutor:    globalSQLExecutor,
+		SQLExecutor:    sqlExecutor,
 		MailConfig:     mailConfig,
 		TaskQueue:      inProcessQueue,
 		Endpoints:      endpointsProvider,
