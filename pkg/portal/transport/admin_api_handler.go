@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 
-	"github.com/authgear/authgear-server/pkg/portal/db"
+	db "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"

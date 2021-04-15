@@ -14,11 +14,10 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	libdb "github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -56,8 +55,8 @@ type CollaboratorServiceAdminAPIService interface {
 type CollaboratorService struct {
 	Context     context.Context
 	Clock       clock.Clock
-	SQLBuilder  *libdb.SQLBuilder
-	SQLExecutor *db.SQLExecutor
+	SQLBuilder  *db.SQLBuilder
+	SQLExecutor *db.GlobalSQLExecutor
 
 	MailConfig     *portalconfig.MailConfig
 	TaskQueue      CollaboratorServiceTaskQueue

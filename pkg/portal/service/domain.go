@@ -16,8 +16,7 @@ import (
 	"golang.org/x/net/publicsuffix"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	libdb "github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/portal/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -50,8 +49,8 @@ type DomainService struct {
 	Context      context.Context
 	Clock        clock.Clock
 	DomainConfig DomainConfigService
-	SQLBuilder   *libdb.SQLBuilder
-	SQLExecutor  *db.SQLExecutor
+	SQLBuilder   *db.SQLBuilder
+	SQLExecutor  *db.GlobalSQLExecutor
 }
 
 func (s *DomainService) GetMany(ids []string) ([]*model.Domain, error) {

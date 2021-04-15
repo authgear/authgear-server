@@ -23,6 +23,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -33,6 +34,19 @@ type TenantSQLExecutor struct {
 
 func NewTenantSQLExecutor(c context.Context, handle *tenant.Handle) *TenantSQLExecutor {
 	return &TenantSQLExecutor{
+		SQLExecutor{
+			Context:  c,
+			Database: handle,
+		},
+	}
+}
+
+type GlobalSQLExecutor struct {
+	SQLExecutor
+}
+
+func NewGlobalSQLExecutor(c context.Context, handle *global.Handle) *GlobalSQLExecutor {
+	return &GlobalSQLExecutor{
 		SQLExecutor{
 			Context:  c,
 			Database: handle,

@@ -7,8 +7,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	db "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/portal/db"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"

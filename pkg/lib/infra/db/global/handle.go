@@ -1,4 +1,4 @@
-package db
+package global
 
 import (
 	"context"
@@ -7,12 +7,21 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
+
+func NewHandle(ctx context.Context, pool *Pool, lf *log.Factory) *Handle {
+	return &Handle{
+		Context: ctx,
+		Pool:    pool,
+		Logger:  lf.New("db-handle"),
+	}
+}
 
 type Handle struct {
 	Context context.Context
 	Pool    *Pool
-	Logger  Logger
+	Logger  *log.Logger
 
 	tx *sqlx.Tx `wire:"-"`
 }

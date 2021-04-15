@@ -3,14 +3,14 @@ package db
 import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/google/wire"
 )
 
 var DependencySet = wire.NewSet(
-	NewLogger,
-	wire.Struct(new(Handle), "*"),
+	globaldb.NewHandle,
 	NewSQLBuilder,
-	wire.Struct(new(SQLExecutor), "*"),
+	db.NewGlobalSQLExecutor,
 )
 
 func NewSQLBuilder(config *config.DatabaseEnvironmentConfig) *db.SQLBuilder {
