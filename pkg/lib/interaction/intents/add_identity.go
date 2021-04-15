@@ -36,7 +36,8 @@ func (i *IntentAddIdentity) DeriveEdgesForNode(graph *interaction.Graph, node in
 	case *nodes.NodeCreateIdentityEnd:
 		return []interaction.Edge{
 			&nodes.EdgeDoCreateIdentity{
-				Identity: node.IdentityInfo,
+				Identity:   node.IdentityInfo,
+				IsAddition: true,
 			},
 		}, nil
 	case *nodes.NodeDoCreateIdentity:

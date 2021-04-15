@@ -20,6 +20,10 @@ type EdgeDoUpdateIdentity struct {
 }
 
 func (e *EdgeDoUpdateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	modifyDisabled := e.IdentityBeforeUpdate.ModifyDisabled(ctx.Config.Identity)
+	if modifyDisabled {
+		return nil, interaction.ErrIdentityModifyDisabled
+	}
 	return &NodeDoUpdateIdentity{
 		IdentityBeforeUpdate: e.IdentityBeforeUpdate,
 		IdentityAfterUpdate:  e.IdentityAfterUpdate,
