@@ -13,8 +13,9 @@ export type LoginIDKeyType = typeof loginIDKeyTypes[number];
 
 export interface LoginIDKeyConfig {
   key: string;
-  maximum?: number;
   type: LoginIDKeyType;
+  maximum?: number;
+  modify_disabled?: boolean;
 }
 
 // LoginIDTypesConfig
@@ -61,6 +62,7 @@ export type OAuthSSOWeChatAppType = typeof oauthSSOWeChatAppType[number];
 export interface OAuthSSOProviderConfig {
   alias: string;
   type: OAuthSSOProviderType;
+  modify_disabled?: boolean;
   client_id?: string;
   tenant?: string;
   key_id?: string;
