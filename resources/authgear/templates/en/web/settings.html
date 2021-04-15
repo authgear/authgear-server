@@ -145,7 +145,25 @@
 </div>
 </div>
 
-<!-- Security -->
+{{ $has_primary_password := false }}
+{{ $has_primary_oob_otp_email := false }}
+{{ $has_primary_oob_otp_sms := false }}
+{{ range $.Authenticators }}
+{{ if eq .Kind "primary" }}
+  {{ if eq .Type "password" }}
+  {{ $has_primary_password = true }}
+  {{ end }}
+  {{ if eq .Type "oob_otp_email" }}
+  {{ $has_primary_oob_otp_email = true }}
+  {{ end }}
+  {{ if eq .Type "oob_otp_sms" }}
+  {{ $has_primary_oob_otp_sms = true }}
+  {{ end }}
+{{ end }}
+{{ end }}
+{{ $show_security := (or $has_primary_password $has_primary_oob_otp_email $has_primary_oob_otp_sms ) }}
+
+{{ if $show_security }}
 <div class="pane margin-6 padding-6">
   <!-- The title and the description -->
   <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
@@ -192,7 +210,7 @@
       {{ template "details-button-label" }}
     </a>
   </section>
-  {{ end}}{{ end }}
+  {{ end }}{{ end }}
 
   <!-- Primary OOB OTP SMS -->
   {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
@@ -212,11 +230,11 @@
       {{ template "details-button-label" }}
     </a>
   </section>
-  {{ end}}{{ end }}
-
+  {{ end }}{{ end }}
   {{ end }}
 
 </div>
+{{ end }}
 
 <!-- MFA -->
 <!-- Individual secondary authenticator section is shown if it is allowed in the configuration -->

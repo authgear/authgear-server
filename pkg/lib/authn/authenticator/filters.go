@@ -1,8 +1,6 @@
 package authenticator
 
 import (
-	"fmt"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
@@ -87,17 +85,6 @@ func KeepSecondaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 		if ai.Kind != KindSecondary {
 			return false
 		}
-		switch ii.Type {
-		case authn.IdentityTypeLoginID:
-			return true
-		case authn.IdentityTypeOAuth:
-			return false
-		case authn.IdentityTypeAnonymous:
-			return false
-		case authn.IdentityTypeBiometric:
-			return false
-		default:
-			panic(fmt.Sprintf("authenticator: unexpected identity type: %s", ii.Type))
-		}
+		return ii.CanHaveMFA()
 	})
 }
