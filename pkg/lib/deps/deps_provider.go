@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -27,12 +28,14 @@ var rootDeps = wire.NewSet(
 		"DevMode",
 		"SentryDSN",
 		"StaticAssetURLPrefix",
+		"Database",
 	),
 
 	ProvideCaptureTaskContext,
 	ProvideRestoreTaskContext,
 
 	clock.DependencySet,
+	globaldb.DependencySet,
 	configsource.DependencySet,
 )
 

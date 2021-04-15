@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	golog "log"
 
 	"github.com/authgear/authgear-server/pkg/admin"
@@ -54,7 +55,7 @@ func (c *Controller) Start() {
 		c.logger.Warn("development mode is ON - do not use in production")
 	}
 
-	configSrcController := newConfigSourceController(p)
+	configSrcController := newConfigSourceController(p, context.Background())
 	err = configSrcController.Open()
 	if err != nil {
 		c.logger.WithError(err).Fatal("cannot open configuration")

@@ -7,6 +7,9 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(LocalFS), "*"),
 	NewKubernetesLogger,
 	wire.Struct(new(Kubernetes), "*"),
+	NewDatabaseLogger,
+	wire.Struct(new(Database), "*"),
+	wire.Struct(new(Store), "*"),
 
 	NewController,
 )

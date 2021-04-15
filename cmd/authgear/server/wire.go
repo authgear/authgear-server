@@ -3,6 +3,7 @@
 package server
 
 import (
+	"context"
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -11,8 +12,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 )
 
-func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
-	panic(wire.Build(deps.RootDependencySet))
+func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
+	panic(wire.Build(
+		deps.RootDependencySet,
+		wire.FieldsOf(new(*deps.RootProvider),
+			"GlobalDatabasePool",
+		),
+	))
 }
 
 func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {
