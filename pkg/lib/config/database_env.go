@@ -1,6 +1,6 @@
 package config
 
-type DatabaseConfig struct {
+type DatabaseEnvironmentConfig struct {
 	DatabaseURL            string `envconfig:"URL"`
 	DatabaseSchema         string `envconfig:"SCHEMA" default:"public"`
 	MaxOpenConn            int    `envconfig:"MAX_OPEN_CONN" default:"2"`

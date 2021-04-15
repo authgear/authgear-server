@@ -8,33 +8,34 @@ import (
 )
 
 type SQLBuilder struct {
-	builder sq.StatementBuilderType
+	sq.StatementBuilderType
 
-	namespace string
-	schema    string
-	appID     string
+	schema string
+	appID  string
 }
 
 func newSQLBuilder() sq.StatementBuilderType {
 	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 }
 
-func NewSQLBuilder(namespace string, schema string, appID string) SQLBuilder {
+func NewSQLBuilder(schema string, appID string) SQLBuilder {
 	return SQLBuilder{
-		builder:   newSQLBuilder(),
-		namespace: namespace,
-		schema:    schema,
-		appID:     appID,
+		StatementBuilderType: newSQLBuilder(),
+		schema:               schema,
+		appID:                appID,
 	}
 }
 
-func (b SQLBuilder) FullTableName(table string) string {
-	return pq.QuoteIdentifier(b.schema) + "." + pq.QuoteIdentifier("_"+b.namespace+"_"+table)
+func (b SQLBuilder) TableName(table string) string {
+	return pq.QuoteIdentifier(b.schema) + "." + pq.QuoteIdentifier(table)
 }
 
 func (b SQLBuilder) Tenant() SQLStatementBuilder {
+	if b.appID == "" {
+		panic("no appID to build tenant sql, should not call Tenant() on global sql builder")
+	}
 	return SQLStatementBuilder{
-		builder:   b.builder,
+		builder:   b.StatementBuilderType,
 		forTenant: true,
 		appID:     b.appID,
 	}
@@ -42,7 +43,7 @@ func (b SQLBuilder) Tenant() SQLStatementBuilder {
 
 func (b SQLBuilder) Global() SQLStatementBuilder {
 	return SQLStatementBuilder{
-		builder:   b.builder,
+		builder:   b.StatementBuilderType,
 		forTenant: false,
 	}
 }

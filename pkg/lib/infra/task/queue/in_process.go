@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 )
 
@@ -10,7 +10,7 @@ type Executor interface {
 }
 
 type InProcessQueue struct {
-	Database       *db.Handle
+	Database       *tenantdb.Handle
 	CaptureContext task.CaptureTaskContext
 	Executor       Executor
 

@@ -5,11 +5,12 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type StorePQ struct {
-	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLBuilder  *tenantdb.SQLBuilder
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (s *StorePQ) selectQuery() db.SelectBuilder {
@@ -21,7 +22,7 @@ func (s *StorePQ) selectQuery() db.SelectBuilder {
 			"value",
 			"created_at",
 		).
-		From(s.SQLBuilder.FullTableName("verified_claim"))
+		From(s.SQLBuilder.TableName("_auth_verified_claim"))
 }
 
 func (s *StorePQ) scan(scn db.Scanner) (*Claim, error) {
@@ -97,7 +98,7 @@ func (s *StorePQ) Get(userID string, claimName string, claimValue string) (*Clai
 
 func (s *StorePQ) Create(claim *Claim) error {
 	q := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("verified_claim")).
+		Insert(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Columns(
 			"id",
 			"user_id",
@@ -122,7 +123,7 @@ func (s *StorePQ) Create(claim *Claim) error {
 
 func (s *StorePQ) Delete(id string) error {
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("verified_claim")).
+		Delete(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Where("id = ?", id)
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -134,7 +135,7 @@ func (s *StorePQ) Delete(id string) error {
 
 func (s *StorePQ) DeleteAll(userID string) error {
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("verified_claim")).
+		Delete(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Where("user_id = ?", userID)
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {

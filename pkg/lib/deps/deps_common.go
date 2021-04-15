@@ -22,7 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -43,7 +43,7 @@ var CommonDependencySet = wire.NewSet(
 	configDeps,
 	utilsDeps,
 
-	db.DependencySet,
+	tenantdb.DependencySet,
 	template.DependencySet,
 
 	wire.NewSet(

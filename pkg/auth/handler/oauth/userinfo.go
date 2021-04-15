@@ -6,7 +6,7 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwt"
 
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -30,7 +30,7 @@ func NewUserInfoHandlerLogger(lf *log.Factory) UserInfoHandlerLogger {
 
 type UserInfoHandler struct {
 	Logger           UserInfoHandlerLogger
-	Database         *db.Handle
+	Database         *tenantdb.Handle
 	UserInfoProvider ProtocolUserInfoProvider
 }
 

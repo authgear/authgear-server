@@ -10,11 +10,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type Store struct {
-	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLBuilder  *tenantdb.SQLBuilder
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
@@ -29,8 +30,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"b.key",
 			"b.device_info",
 		).
-		From(s.SQLBuilder.FullTableName("identity"), "p").
-		Join(s.SQLBuilder.FullTableName("identity_biometric"), "b", "p.id = b.id")
+		From(s.SQLBuilder.TableName("_auth_identity"), "p").
+		Join(s.SQLBuilder.TableName("_auth_identity_biometric"), "b", "p.id = b.id")
 }
 
 func (s *Store) scan(scn db.Scanner) (*Identity, error) {
@@ -164,7 +165,7 @@ func (s *Store) Create(i *Identity) error {
 	}
 
 	builder := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("identity")).
+		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
 			"id",
 			"labels",
@@ -188,7 +189,7 @@ func (s *Store) Create(i *Identity) error {
 	}
 
 	q := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("identity_biometric")).
+		Insert(s.SQLBuilder.TableName("_auth_identity_biometric")).
 		Columns(
 			"id",
 			"key_id",
@@ -212,7 +213,7 @@ func (s *Store) Create(i *Identity) error {
 
 func (s *Store) Delete(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("identity_biometric")).
+		Delete(s.SQLBuilder.TableName("_auth_identity_biometric")).
 		Where("id = ?", i.ID)
 
 	_, err := s.SQLExecutor.ExecWith(q)
@@ -221,7 +222,7 @@ func (s *Store) Delete(i *Identity) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("identity")).
+		Delete(s.SQLBuilder.TableName("_auth_identity")).
 		Where("id = ?", i.ID)
 
 	_, err = s.SQLExecutor.ExecWith(q)

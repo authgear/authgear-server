@@ -7,8 +7,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/portal/db"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -22,13 +22,13 @@ type RootProvider struct {
 	AuthgearConfig     *portalconfig.AuthgearConfig
 	AdminAPIConfig     *portalconfig.AdminAPIConfig
 	AppConfig          *portalconfig.AppConfig
-	DatabaseConfig     *portalconfig.DatabaseConfig
+	DatabaseConfig     *config.DatabaseEnvironmentConfig
 	SMTPConfig         *portalconfig.SMTPConfig
 	MailConfig         *portalconfig.MailConfig
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 
-	Database               *db.Pool
+	Database               *globaldb.Pool
 	ConfigSourceController *configsource.Controller
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
@@ -46,7 +46,7 @@ func NewRootProvider(
 	authgearConfig *portalconfig.AuthgearConfig,
 	adminAPIConfig *portalconfig.AdminAPIConfig,
 	appConfig *portalconfig.AppConfig,
-	dbConfig *portalconfig.DatabaseConfig,
+	dbConfig *config.DatabaseEnvironmentConfig,
 	smtpConfig *portalconfig.SMTPConfig,
 	mailConfig *portalconfig.MailConfig,
 	secretKeyAllowlist portalconfig.SecretKeyAllowlist,
@@ -78,7 +78,7 @@ func NewRootProvider(
 		MailConfig:         mailConfig,
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
-		Database:           db.NewPool(dbConfig),
+		Database:           globaldb.NewPool(dbConfig),
 		Resources: resource.NewManagerWithDir(
 			portalresource.PortalRegistry,
 			builtinResourceDirectory,

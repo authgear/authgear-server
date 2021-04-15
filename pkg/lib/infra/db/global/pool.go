@@ -1,4 +1,4 @@
-package db
+package global
 
 import (
 	"sync"
@@ -6,17 +6,17 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Pool struct {
-	Config *config.DatabaseConfig
+	Config *config.DatabaseEnvironmentConfig
 	db     *sqlx.DB
 	mutex  sync.RWMutex
 }
 
-func NewPool(cfg *config.DatabaseConfig) *Pool {
+func NewPool(cfg *config.DatabaseEnvironmentConfig) *Pool {
 	return &Pool{Config: cfg}
 }
 

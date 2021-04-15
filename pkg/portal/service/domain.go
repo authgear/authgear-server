@@ -16,7 +16,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/portal/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -49,8 +50,8 @@ type DomainService struct {
 	Context      context.Context
 	Clock        clock.Clock
 	DomainConfig DomainConfigService
-	SQLBuilder   *db.SQLBuilder
-	SQLExecutor  *db.SQLExecutor
+	SQLBuilder   *globaldb.SQLBuilder
+	SQLExecutor  *globaldb.SQLExecutor
 }
 
 func (s *DomainService) GetMany(ids []string) ([]*model.Domain, error) {
@@ -157,7 +158,7 @@ func (s *DomainService) listDomains(ids []string, isVerified bool) ([]*model.Dom
 		s.SQLBuilder.
 			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom").
 			Where("id = ANY (?)", pq.Array(ids)).
-			From(s.SQLBuilder.FullTableName(domainTableName(isVerified))),
+			From(s.SQLBuilder.TableName(domainTableName(isVerified))),
 	)
 	if err != nil {
 		return nil, err
@@ -181,7 +182,7 @@ func (s *DomainService) listDomainsByAppID(appID string, isVerified bool) ([]*mo
 		s.SQLBuilder.
 			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom").
 			Where("app_id = ?", appID).
-			From(s.SQLBuilder.FullTableName(domainTableName(isVerified))),
+			From(s.SQLBuilder.TableName(domainTableName(isVerified))),
 	)
 	if err != nil {
 		return nil, err
@@ -270,7 +271,7 @@ func (s *DomainService) getDomain(appID string, id string, isVerified bool) (*do
 		s.SQLBuilder.
 			Select("id", "app_id", "created_at", "domain", "apex_domain", "verification_nonce", "is_custom").
 			Where("app_id = ? AND id = ?", appID, id).
-			From(s.SQLBuilder.FullTableName(domainTableName(isVerified))),
+			From(s.SQLBuilder.TableName(domainTableName(isVerified))),
 	)
 	if err != nil {
 		return nil, err
@@ -283,7 +284,7 @@ func (s *DomainService) createDomain(d *domain, isVerified bool) error {
 	tableName := domainTableName(isVerified)
 	dupeQuery := s.SQLBuilder.
 		Select("COUNT(*)").
-		From(s.SQLBuilder.FullTableName(tableName))
+		From(s.SQLBuilder.TableName(tableName))
 
 	dupeQuery = dupeQuery.Where("apex_domain = ?", d.ApexDomain)
 	if !isVerified {
@@ -306,7 +307,7 @@ func (s *DomainService) createDomain(d *domain, isVerified bool) error {
 	}
 
 	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
-		Insert(s.SQLBuilder.FullTableName(tableName)).
+		Insert(s.SQLBuilder.TableName(tableName)).
 		Columns(
 			"id",
 			"app_id",
@@ -339,7 +340,7 @@ func (s *DomainService) deleteDomain(d *domain, isVerified bool) error {
 	}
 
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
-		Delete(s.SQLBuilder.FullTableName(domainTableName(isVerified))).
+		Delete(s.SQLBuilder.TableName(domainTableName(isVerified))).
 		Where("id = ?", d.ID),
 	)
 	if err != nil {
@@ -446,9 +447,9 @@ func parseDomainID(modelID string) (isVerified bool, id string, ok bool) {
 
 func domainTableName(isVerified bool) string {
 	if isVerified {
-		return "domain"
+		return "_portal_domain"
 	}
-	return "pending_domain"
+	return "_portal_pending_domain"
 }
 
 func domainVerificationDNSRecord(nonce string) string {

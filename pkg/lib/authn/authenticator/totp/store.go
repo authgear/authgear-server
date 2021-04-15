@@ -10,11 +10,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type Store struct {
-	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLBuilder  *tenantdb.SQLBuilder
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
@@ -30,9 +31,9 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"at.secret",
 			"at.display_name",
 		).
-		From(s.SQLBuilder.FullTableName("authenticator"), "a").
+		From(s.SQLBuilder.TableName("_auth_authenticator"), "a").
 		Join(
-			s.SQLBuilder.FullTableName("authenticator_totp"),
+			s.SQLBuilder.TableName("_auth_authenticator_totp"),
 			"at",
 			"a.id = at.id",
 		)
@@ -121,7 +122,7 @@ func (s *Store) List(userID string) ([]*Authenticator, error) {
 
 func (s *Store) Delete(id string) error {
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("authenticator_totp")).
+		Delete(s.SQLBuilder.TableName("_auth_authenticator_totp")).
 		Where("id = ?", id)
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -129,7 +130,7 @@ func (s *Store) Delete(id string) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("authenticator")).
+		Delete(s.SQLBuilder.TableName("_auth_authenticator")).
 		Where("id = ?", id)
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -146,7 +147,7 @@ func (s *Store) Create(a *Authenticator) error {
 	}
 
 	q := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("authenticator")).
+		Insert(s.SQLBuilder.TableName("_auth_authenticator")).
 		Columns(
 			"id",
 			"labels",
@@ -173,7 +174,7 @@ func (s *Store) Create(a *Authenticator) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("authenticator_totp")).
+		Insert(s.SQLBuilder.TableName("_auth_authenticator_totp")).
 		Columns(
 			"id",
 			"secret",

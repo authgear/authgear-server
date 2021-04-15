@@ -3,7 +3,7 @@ package oauth
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -27,7 +27,7 @@ type ProtocolRevokeHandler interface {
 
 type RevokeHandler struct {
 	Logger        RevokeHandlerLogger
-	Database      *db.Handle
+	Database      *tenantdb.Handle
 	RevokeHandler ProtocolRevokeHandler
 }
 

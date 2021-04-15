@@ -1,4 +1,4 @@
-package db
+package tenant
 
 type TransactionHook interface {
 	WillCommitTx() error

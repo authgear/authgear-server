@@ -10,11 +10,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type Store struct {
-	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLBuilder  *tenantdb.SQLBuilder
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
@@ -29,8 +30,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"a.kind",
 			"ap.password_hash",
 		).
-		From(s.SQLBuilder.FullTableName("authenticator"), "a").
-		Join(s.SQLBuilder.FullTableName("authenticator_password"), "ap", "a.id = ap.id")
+		From(s.SQLBuilder.TableName("_auth_authenticator"), "a").
+		Join(s.SQLBuilder.TableName("_auth_authenticator_password"), "ap", "a.id = ap.id")
 }
 
 func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
@@ -115,7 +116,7 @@ func (s *Store) List(userID string) ([]*Authenticator, error) {
 
 func (s *Store) Delete(id string) error {
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("authenticator_password")).
+		Delete(s.SQLBuilder.TableName("_auth_authenticator_password")).
 		Where("id = ?", id)
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -123,7 +124,7 @@ func (s *Store) Delete(id string) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("authenticator")).
+		Delete(s.SQLBuilder.TableName("_auth_authenticator")).
 		Where("id = ?", id)
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -140,7 +141,7 @@ func (s *Store) Create(a *Authenticator) error {
 	}
 
 	q := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("authenticator")).
+		Insert(s.SQLBuilder.TableName("_auth_authenticator")).
 		Columns(
 			"id",
 			"labels",
@@ -167,7 +168,7 @@ func (s *Store) Create(a *Authenticator) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("authenticator_password")).
+		Insert(s.SQLBuilder.TableName("_auth_authenticator_password")).
 		Columns(
 			"id",
 			"password_hash",
@@ -186,7 +187,7 @@ func (s *Store) Create(a *Authenticator) error {
 
 func (s *Store) UpdatePasswordHash(a *Authenticator) error {
 	q := s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("authenticator_password")).
+		Update(s.SQLBuilder.TableName("_auth_authenticator_password")).
 		Set("password_hash", a.PasswordHash).
 		Where("id = ?", a.ID)
 	_, err := s.SQLExecutor.ExecWith(q)
@@ -195,7 +196,7 @@ func (s *Store) UpdatePasswordHash(a *Authenticator) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("authenticator")).
+		Update(s.SQLBuilder.TableName("_auth_authenticator")).
 		Set("updated_at", a.UpdatedAt).
 		Where("id = ?", a.ID)
 

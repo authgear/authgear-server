@@ -10,11 +10,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type Store struct {
-	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLBuilder  *tenantdb.SQLBuilder
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
@@ -31,8 +32,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"ao.phone",
 			"ao.email",
 		).
-		From(s.SQLBuilder.FullTableName("authenticator"), "a").
-		Join(s.SQLBuilder.FullTableName("authenticator_oob"), "ao", "a.id = ao.id")
+		From(s.SQLBuilder.TableName("_auth_authenticator"), "a").
+		Join(s.SQLBuilder.TableName("_auth_authenticator_oob"), "ao", "a.id = ao.id")
 }
 
 func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
@@ -119,7 +120,7 @@ func (s *Store) List(userID string) ([]*Authenticator, error) {
 
 func (s *Store) Delete(id string) error {
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("authenticator_oob")).
+		Delete(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Where("id = ?", id)
 	_, err := s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -127,7 +128,7 @@ func (s *Store) Delete(id string) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("authenticator")).
+		Delete(s.SQLBuilder.TableName("_auth_authenticator")).
 		Where("id = ?", id)
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -149,7 +150,7 @@ func (s *Store) Create(a *Authenticator) error {
 	}
 
 	q := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("authenticator")).
+		Insert(s.SQLBuilder.TableName("_auth_authenticator")).
 		Columns(
 			"id",
 			"labels",
@@ -176,7 +177,7 @@ func (s *Store) Create(a *Authenticator) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("authenticator_oob")).
+		Insert(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Columns(
 			"id",
 			"phone",

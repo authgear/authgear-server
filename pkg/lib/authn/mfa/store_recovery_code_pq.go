@@ -6,12 +6,12 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type StoreRecoveryCodePQ struct {
-	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLBuilder  *tenantdb.SQLBuilder
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
@@ -24,7 +24,7 @@ func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
 			"rc.updated_at",
 			"rc.consumed",
 		).
-		From(s.SQLBuilder.FullTableName("recovery_code"), "rc").
+		From(s.SQLBuilder.TableName("_auth_recovery_code"), "rc").
 		Where("rc.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
@@ -63,7 +63,7 @@ func (s *StoreRecoveryCodePQ) Get(userID string, code string) (*RecoveryCode, er
 			"rc.updated_at",
 			"rc.consumed",
 		).
-		From(s.SQLBuilder.FullTableName("recovery_code"), "rc").
+		From(s.SQLBuilder.TableName("_auth_recovery_code"), "rc").
 		Where("rc.user_id = ? AND rc.code = ?", userID, code)
 
 	row, err := s.SQLExecutor.QueryRowWith(builder)
@@ -94,7 +94,7 @@ func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
 	ids, err := func() ([]string, error) {
 		builder := s.SQLBuilder.Tenant().
 			Select("rc.id").
-			From(s.SQLBuilder.FullTableName("recovery_code"), "rc").
+			From(s.SQLBuilder.TableName("_auth_recovery_code"), "rc").
 			Where("rc.user_id = ?", userID)
 
 		rows, err := s.SQLExecutor.QueryWith(builder)
@@ -123,7 +123,7 @@ func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
 	}
 
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("recovery_code")).
+		Delete(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Where("id = ANY (?)", pq.Array(ids))
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
@@ -135,7 +135,7 @@ func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
 
 func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
 	q := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("recovery_code")).
+		Insert(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Columns(
 			"id",
 			"user_id",
@@ -166,7 +166,7 @@ func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
 
 func (s *StoreRecoveryCodePQ) UpdateConsumed(code *RecoveryCode) error {
 	q := s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("recovery_code")).
+		Update(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Where("id = ?", code.ID).
 		Set("consumed", code.Consumed).
 		Set("updated_at", code.UpdatedAt)

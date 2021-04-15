@@ -9,7 +9,7 @@ import (
 	"github.com/graphql-go/handler"
 
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -23,7 +23,7 @@ var errRollback = errors.New("rollback transaction")
 
 type GraphQLHandler struct {
 	GraphQLContext *graphql.Context
-	Database       *db.Handle
+	Database       *tenantdb.Handle
 }
 
 func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

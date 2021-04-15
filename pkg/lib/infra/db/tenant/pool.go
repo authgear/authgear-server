@@ -1,4 +1,4 @@
-package db
+package tenant
 
 import (
 	"errors"

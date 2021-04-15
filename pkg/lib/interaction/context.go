@@ -20,7 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -169,7 +169,7 @@ type Context struct {
 	WebSessionID string `wire:"-"`
 
 	Request    *http.Request
-	Database   db.SQLExecutor
+	Database   *tenantdb.SQLExecutor
 	Clock      clock.Clock
 	Config     *config.AppConfig
 	TrustProxy config.TrustProxy

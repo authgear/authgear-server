@@ -12,11 +12,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type Store struct {
-	SQLBuilder  db.SQLBuilder
-	SQLExecutor db.SQLExecutor
+	SQLBuilder  *tenantdb.SQLBuilder
+	SQLExecutor *tenantdb.SQLExecutor
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
@@ -33,8 +34,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"o.profile",
 			"o.claims",
 		).
-		From(s.SQLBuilder.FullTableName("identity"), "p").
-		Join(s.SQLBuilder.FullTableName("identity_oauth"), "o", "p.id = o.id")
+		From(s.SQLBuilder.TableName("_auth_identity"), "p").
+		Join(s.SQLBuilder.TableName("_auth_identity_oauth"), "o", "p.id = o.id")
 }
 
 func (s *Store) scan(scn db.Scanner) (*Identity, error) {
@@ -194,7 +195,7 @@ func (s *Store) Create(i *Identity) error {
 	}
 
 	builder := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("identity")).
+		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
 			"id",
 			"labels",
@@ -231,7 +232,7 @@ func (s *Store) Create(i *Identity) error {
 	}
 
 	q := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.FullTableName("identity_oauth")).
+		Insert(s.SQLBuilder.TableName("_auth_identity_oauth")).
 		Columns(
 			"id",
 			"provider_type",
@@ -263,7 +264,7 @@ func (s *Store) Update(i *Identity) error {
 		return err
 	}
 	q := s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("identity_oauth")).
+		Update(s.SQLBuilder.TableName("_auth_identity_oauth")).
 		Set("profile", profile).
 		Where("id = ?", i.ID)
 
@@ -284,7 +285,7 @@ func (s *Store) Update(i *Identity) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Update(s.SQLBuilder.FullTableName("identity")).
+		Update(s.SQLBuilder.TableName("_auth_identity")).
 		Set("updated_at", i.UpdatedAt).
 		Where("id = ?", i.ID)
 
@@ -298,7 +299,7 @@ func (s *Store) Update(i *Identity) error {
 
 func (s *Store) Delete(i *Identity) error {
 	q := s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("identity_oauth")).
+		Delete(s.SQLBuilder.TableName("_auth_identity_oauth")).
 		Where("id = ?", i.ID)
 
 	_, err := s.SQLExecutor.ExecWith(q)
@@ -307,7 +308,7 @@ func (s *Store) Delete(i *Identity) error {
 	}
 
 	q = s.SQLBuilder.Tenant().
-		Delete(s.SQLBuilder.FullTableName("identity")).
+		Delete(s.SQLBuilder.TableName("_auth_identity")).
 		Where("id = ?", i.ID)
 
 	_, err = s.SQLExecutor.ExecWith(q)

@@ -6,7 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -28,7 +28,7 @@ type LogoutSessionManager interface {
 }
 
 type LogoutHandler struct {
-	Database       *db.Handle
+	Database       *tenantdb.Handle
 	TrustProxy     config.TrustProxy
 	OAuth          *config.OAuthConfig
 	UIConfig       *config.UIConfig

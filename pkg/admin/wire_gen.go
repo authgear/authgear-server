@@ -33,7 +33,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -124,14 +124,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
-	sqlBuilder := db.ProvideSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	handle := appProvider.Database
-	sqlExecutor := db.SQLExecutor{
-		Context:  context,
-		Database: handle,
-	}
+	sqlExecutor := tenant.NewSQLExecutor(context, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
