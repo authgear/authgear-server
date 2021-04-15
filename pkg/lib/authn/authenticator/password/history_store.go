@@ -15,7 +15,7 @@ import (
 
 type HistoryStore struct {
 	Clock       clock.Clock
-	SQLBuilder  db.SQLBuilder
+	SQLBuilder  *tenantdb.SQLBuilder
 	SQLExecutor *tenantdb.SQLExecutor
 }
 

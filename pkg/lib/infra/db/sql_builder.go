@@ -31,6 +31,9 @@ func (b SQLBuilder) TableName(table string) string {
 }
 
 func (b SQLBuilder) Tenant() SQLStatementBuilder {
+	if b.appID == "" {
+		panic("no appID to build tenant sql, should not call Tenant() on global sql builder")
+	}
 	return SQLStatementBuilder{
 		builder:   b.StatementBuilderType,
 		forTenant: true,

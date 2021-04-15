@@ -31,7 +31,7 @@ var queryPage = db.QueryPage(db.QueryPageConfig{
 })
 
 type Store struct {
-	SQLBuilder  db.SQLBuilder
+	SQLBuilder  *tenantdb.SQLBuilder
 	SQLExecutor *tenantdb.SQLExecutor
 }
 

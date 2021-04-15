@@ -56,7 +56,7 @@ type CollaboratorServiceAdminAPIService interface {
 type CollaboratorService struct {
 	Context     context.Context
 	Clock       clock.Clock
-	SQLBuilder  *db.SQLBuilder
+	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
 	MailConfig     *portalconfig.MailConfig

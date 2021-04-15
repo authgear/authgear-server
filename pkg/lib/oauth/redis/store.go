@@ -11,7 +11,6 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -29,7 +28,7 @@ type Store struct {
 	Redis       *redis.Handle
 	AppID       config.AppID
 	Logger      Logger
-	SQLBuilder  db.SQLBuilder
+	SQLBuilder  *tenantdb.SQLBuilder
 	SQLExecutor *tenantdb.SQLExecutor
 	Clock       clock.Clock
 }

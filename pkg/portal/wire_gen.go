@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
-	"github.com/authgear/authgear-server/pkg/portal/db"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
@@ -103,7 +102,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := loader.NewUserLoader(adminAPIService)
 	appServiceLogger := service.NewAppServiceLogger(factory)
 	databaseEnvironmentConfig := rootProvider.DatabaseConfig
-	sqlBuilder := db.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
@@ -262,7 +261,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	}
 	clockClock := _wireSystemClockValue
 	databaseEnvironmentConfig := rootProvider.DatabaseConfig
-	sqlBuilder := db.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
 	sqlExecutor := global.NewSQLExecutor(context, handle)
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)

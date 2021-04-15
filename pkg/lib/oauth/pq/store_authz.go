@@ -13,7 +13,7 @@ import (
 )
 
 type AuthorizationStore struct {
-	SQLBuilder  db.SQLBuilder
+	SQLBuilder  *tenantdb.SQLBuilder
 	SQLExecutor *tenantdb.SQLExecutor
 }
 

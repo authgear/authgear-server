@@ -50,7 +50,7 @@ type DomainService struct {
 	Context      context.Context
 	Clock        clock.Clock
 	DomainConfig DomainConfigService
-	SQLBuilder   *db.SQLBuilder
+	SQLBuilder   *globaldb.SQLBuilder
 	SQLExecutor  *globaldb.SQLExecutor
 }
 

@@ -16,7 +16,7 @@ import (
 )
 
 type Store struct {
-	SQLBuilder  db.SQLBuilder
+	SQLBuilder  *tenantdb.SQLBuilder
 	SQLExecutor *tenantdb.SQLExecutor
 }
 

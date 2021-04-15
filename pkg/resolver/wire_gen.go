@@ -128,7 +128,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oAuthConfig := appConfig.OAuth
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.ProvideSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
 	tenantHandle := appProvider.Database
 	sqlExecutor := tenant.NewSQLExecutor(context, tenantHandle)
@@ -452,7 +452,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
-	sqlBuilder := tenant.ProvideSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	handle := appProvider.Database

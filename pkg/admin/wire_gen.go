@@ -124,7 +124,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
-	sqlBuilder := tenant.ProvideSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	handle := appProvider.Database

@@ -6,12 +6,11 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 type StoreRecoveryCodePQ struct {
-	SQLBuilder  db.SQLBuilder
+	SQLBuilder  *tenantdb.SQLBuilder
 	SQLExecutor *tenantdb.SQLExecutor
 }
 
