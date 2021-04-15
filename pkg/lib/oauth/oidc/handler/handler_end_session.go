@@ -16,13 +16,41 @@ type WebAppURLsProvider interface {
 	SettingsURL() *url.URL
 }
 
+type IDTokenIssuer interface {
+	ValidateIDTokenHint(idTokenHint string) (session.Session, error)
+}
+
+type LogoutSessionManager interface {
+	Logout(session.Session, http.ResponseWriter) error
+}
+
 type EndSessionHandler struct {
-	Config    *config.OAuthConfig
-	Endpoints oidc.EndpointsProvider
-	URLs      WebAppURLsProvider
+	Config         *config.OAuthConfig
+	Endpoints      oidc.EndpointsProvider
+	URLs           WebAppURLsProvider
+	IDTokens       IDTokenIssuer
+	SessionManager LogoutSessionManager
 }
 
 func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
+	idTokenHint := req.IDTokenHint()
+	if s != nil && idTokenHint != "" {
+		sessionInIDToken, err := h.IDTokens.ValidateIDTokenHint(idTokenHint)
+		if err == nil && s.SessionType() == sessionInIDToken.SessionType() && s.SessionID() == sessionInIDToken.SessionID() {
+			// Logout directly.
+			err := h.SessionManager.Logout(s, rw)
+			if err != nil {
+				return err
+			}
+			// Set s to nil and fall through.
+			s = nil
+		} else {
+			// id_token_hint is invalid. Delete it and proceed.
+			// That is, ask confirmation before logout.
+			delete(req, "id_token_hint")
+		}
+	}
+
 	if s != nil {
 		endSessionURL := urlutil.WithQueryParamsAdded(
 			h.Endpoints.EndSessionEndpointURL(),
