@@ -7,7 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	db "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -28,7 +28,7 @@ type RootProvider struct {
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 
-	Database               *db.Pool
+	Database               *globaldb.Pool
 	ConfigSourceController *configsource.Controller
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
@@ -78,7 +78,7 @@ func NewRootProvider(
 		MailConfig:         mailConfig,
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
-		Database:           db.NewPool(dbConfig),
+		Database:           globaldb.NewPool(dbConfig),
 		Resources: resource.NewManagerWithDir(
 			portalresource.PortalRegistry,
 			builtinResourceDirectory,

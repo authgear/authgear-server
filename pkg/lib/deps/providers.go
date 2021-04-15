@@ -8,7 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	db "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -22,7 +22,7 @@ type RootProvider struct {
 	ConfigSourceConfig *configsource.Config
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
-	DatabasePool       *db.Pool
+	DatabasePool       *tenantdb.Pool
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
 	TaskQueueFactory   TaskQueueFactory
@@ -54,7 +54,7 @@ func NewRootProvider(
 		sentry.NewLogHookFromHub(sentryHub),
 	)
 
-	dbPool := db.NewPool()
+	dbPool := tenantdb.NewPool()
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)
 
@@ -84,7 +84,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-	database := db.NewHandle(
+	database := tenantdb.NewHandle(
 		ctx,
 		p.DatabasePool,
 		cfg.AppConfig.Database,
@@ -149,7 +149,7 @@ type AppProvider struct {
 	Context       context.Context
 	Config        *config.Config
 	LoggerFactory *log.Factory
-	Database      *db.Handle
+	Database      *tenantdb.Handle
 	Redis         *redis.Handle
 	TaskQueue     task.Queue
 	Resources     *resource.Manager

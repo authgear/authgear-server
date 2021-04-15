@@ -6,7 +6,7 @@ import (
 
 	relay "github.com/authgear/graphql-go-relay"
 
-	db "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -31,7 +31,7 @@ func NewAdminAPILogger(lf *log.Factory) AdminAPILogger {
 }
 
 type AdminAPIHandler struct {
-	Database *db.Handle
+	Database *globaldb.Handle
 	Authz    AdminAPIAuthzService
 	AdminAPI AdminAPIService
 	Logger   AdminAPILogger

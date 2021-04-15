@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	db "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -35,7 +35,7 @@ type store interface {
 }
 
 type DatabaseHandle interface {
-	UseHook(hook db.TransactionHook)
+	UseHook(hook tenantdb.TransactionHook)
 }
 
 type Logger struct{ *log.Logger }

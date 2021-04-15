@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	db "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -31,7 +31,7 @@ var errAuthzInternalError = errors.New("internal error")
 
 type AuthorizeHandler struct {
 	Logger       AuthorizeHandlerLogger
-	Database     *db.Handle
+	Database     *tenantdb.Handle
 	AuthzHandler ProtocolAuthorizeHandler
 }
 

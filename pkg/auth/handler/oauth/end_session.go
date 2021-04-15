@@ -3,7 +3,7 @@ package oauth
 import (
 	"net/http"
 
-	db "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -28,7 +28,7 @@ type ProtocolEndSessionHandler interface {
 
 type EndSessionHandler struct {
 	Logger            EndSessionHandlerLogger
-	Database          *db.Handle
+	Database          *tenantdb.Handle
 	EndSessionHandler ProtocolEndSessionHandler
 }
 
