@@ -52,7 +52,20 @@ func (d *Database) ResolveAppID(r *http.Request) (string, error) {
 		host = h
 	}
 
-	return "", nil
+	var appID string
+	err := d.Database.WithTx(func() error {
+		aid, err := d.Store.GetAppIDByDomain(host)
+		if err != nil {
+			return err
+		}
+		appID = aid
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+	return appID, nil
 }
 
 func (d *Database) ResolveContext(appID string) (*config.AppContext, error) {
