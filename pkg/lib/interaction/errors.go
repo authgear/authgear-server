@@ -28,6 +28,7 @@ var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrDuplicatedIdentity = NewInvariantViolated("DuplicatedIdentity", "identity already exists", nil)
 var ErrDuplicatedAuthenticator = NewInvariantViolated("DuplicatedAuthenticator", "authenticator already exists", nil)
 var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
+var ErrIdentityModifyDisabled = NewInvariantViolated("IdentityModifyDisabled", "identity modification disabled", nil)
 
 var ErrIncompatibleInput = errors.New("incompatible input type for this node")
 var ErrSameNode = errors.New("the edge points to the same current node")

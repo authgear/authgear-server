@@ -497,27 +497,43 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 				pc := providerConfig
 				configProviderID := pc.ProviderID()
 				candidate := identity.NewOAuthCandidate(&pc)
+				matched := false
 				for _, iden := range oauths {
 					if iden.ProviderID.Equal(&configProviderID) {
+						matched = true
 						candidate[identity.CandidateKeyIdentityID] = iden.ID
 						candidate[identity.CandidateKeyProviderSubjectID] = string(iden.ProviderSubjectID)
 						candidate[identity.CandidateKeyDisplayID] = s.toIdentityInfo(iden).DisplayID()
 					}
 				}
-				out = append(out, candidate)
+				canAppend := true
+				if *providerConfig.ModifyDisabled && !matched {
+					canAppend = false
+				}
+				if canAppend {
+					out = append(out, candidate)
+				}
 			}
 		case authn.IdentityTypeLoginID:
 			for _, loginIDKeyConfig := range s.Identity.LoginID.Keys {
 				lkc := loginIDKeyConfig
 				candidate := identity.NewLoginIDCandidate(&lkc)
+				matched := false
 				for _, iden := range loginIDs {
 					if loginIDKeyConfig.Key == iden.LoginIDKey {
+						matched = true
 						candidate[identity.CandidateKeyIdentityID] = iden.ID
 						candidate[identity.CandidateKeyLoginIDValue] = iden.LoginID
 						candidate[identity.CandidateKeyDisplayID] = loginIDToIdentityInfo(iden).DisplayID()
 					}
 				}
-				out = append(out, candidate)
+				canAppend := true
+				if *loginIDKeyConfig.ModifyDisabled && !matched {
+					canAppend = false
+				}
+				if canAppend {
+					out = append(out, candidate)
+				}
 			}
 		}
 	}

@@ -13,6 +13,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
+func newBool(b bool) *bool {
+	return &b
+}
+
 func TestProviderListCandidates(t *testing.T) {
 	Convey("Provider ListCandidates", t, func() {
 		ctrl := gomock.NewController(t)
@@ -41,8 +45,9 @@ func TestProviderListCandidates(t *testing.T) {
 			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeOAuth}
 			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
-					Alias: "google",
-					Type:  "google",
+					Alias:          "google",
+					Type:           "google",
+					ModifyDisabled: newBool(false),
 				},
 			}
 
@@ -57,6 +62,7 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_alias":      "google",
 					"provider_subject_id": "",
 					"provider_app_type":   "",
+					"modify_disabled":     false,
 				},
 			})
 		})
@@ -65,8 +71,9 @@ func TestProviderListCandidates(t *testing.T) {
 			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeLoginID}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
-					Type: "email",
-					Key:  "email",
+					Type:           "email",
+					Key:            "email",
+					ModifyDisabled: newBool(false),
 				},
 			}
 
@@ -74,12 +81,13 @@ func TestProviderListCandidates(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
-					"identity_id":    "",
-					"type":           "login_id",
-					"display_id":     "",
-					"login_id_type":  "email",
-					"login_id_key":   "email",
-					"login_id_value": "",
+					"identity_id":     "",
+					"type":            "login_id",
+					"display_id":      "",
+					"login_id_type":   "email",
+					"login_id_key":    "email",
+					"login_id_value":  "",
+					"modify_disabled": false,
 				},
 			})
 		})
@@ -87,14 +95,16 @@ func TestProviderListCandidates(t *testing.T) {
 		Convey("respect authentication", func() {
 			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
-					Alias: "google",
-					Type:  "google",
+					Alias:          "google",
+					Type:           "google",
+					ModifyDisabled: newBool(false),
 				},
 			}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
-					Type: "email",
-					Key:  "email",
+					Type:           "email",
+					Key:            "email",
+					ModifyDisabled: newBool(false),
 				},
 			}
 
@@ -109,8 +119,9 @@ func TestProviderListCandidates(t *testing.T) {
 			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeLoginID}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
-					Type: "email",
-					Key:  "email",
+					Type:           "email",
+					Key:            "email",
+					ModifyDisabled: newBool(false),
 				},
 			}
 
@@ -130,12 +141,13 @@ func TestProviderListCandidates(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
-					"identity_id":    "",
-					"type":           "login_id",
-					"display_id":     "john.doe@example.com",
-					"login_id_type":  "email",
-					"login_id_key":   "email",
-					"login_id_value": "john.doe@example.com",
+					"identity_id":     "",
+					"type":            "login_id",
+					"display_id":      "john.doe@example.com",
+					"login_id_type":   "email",
+					"login_id_key":    "email",
+					"login_id_value":  "john.doe@example.com",
+					"modify_disabled": false,
 				},
 			})
 		})
@@ -146,8 +158,9 @@ func TestProviderListCandidates(t *testing.T) {
 			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeOAuth}
 			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
-					Alias: "google",
-					Type:  "google",
+					Alias:          "google",
+					Type:           "google",
+					ModifyDisabled: newBool(false),
 				},
 			}
 
@@ -176,6 +189,7 @@ func TestProviderListCandidates(t *testing.T) {
 					"provider_alias":      "google",
 					"provider_subject_id": "john.doe@gmail.com",
 					"provider_app_type":   "",
+					"modify_disabled":     false,
 				},
 			})
 		})

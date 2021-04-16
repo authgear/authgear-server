@@ -71,11 +71,23 @@ interface LoginIDKeyTypeFormState {
   type: LoginIDKeyType;
 }
 
+interface EmailConfig extends LoginIDEmailConfig {
+  modify_disabled?: boolean;
+}
+
+interface UsernameConfig extends LoginIDUsernameConfig {
+  modify_disabled?: boolean;
+}
+
+interface PhoneConfig extends UICountryCallingCodeConfig {
+  modify_disabled?: boolean;
+}
+
 interface ConfigFormState {
   types: LoginIDKeyTypeFormState[];
-  email: Required<LoginIDEmailConfig>;
-  username: Required<LoginIDUsernameConfig>;
-  phone: Required<UICountryCallingCodeConfig>;
+  email: Required<EmailConfig>;
+  username: Required<UsernameConfig>;
+  phone: Required<PhoneConfig>;
 }
 
 function splitByNewline(text: string): string[] {
@@ -113,6 +125,9 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       domain_blocklist_enabled: false,
       domain_allowlist_enabled: false,
       block_free_email_provider_domains: false,
+      modify_disabled:
+        config.identity?.login_id?.keys?.find((a) => a.type === "email")
+          ?.modify_disabled ?? false,
       ...config.identity?.login_id?.types?.email,
     },
     username: {
@@ -120,11 +135,17 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       exclude_keywords_enabled: false,
       ascii_only: true,
       case_sensitive: false,
+      modify_disabled:
+        config.identity?.login_id?.keys?.find((a) => a.type === "username")
+          ?.modify_disabled ?? false,
       ...config.identity?.login_id?.types?.username,
     },
     phone: {
       allowlist: [],
       pinned_list: [],
+      modify_disabled:
+        config.identity?.login_id?.keys?.find((a) => a.type === "phone")
+          ?.modify_disabled ?? false,
       ...config.ui?.country_calling_code,
     },
   };
@@ -154,6 +175,17 @@ function constructConfig(
 
     if (currentState.types.find((t) => t.type === "email")?.isEnabled) {
       const emailConfig = config.identity.login_id.types.email;
+      if (
+        initialState.email.modify_disabled !==
+        currentState.email.modify_disabled
+      ) {
+        const keyConfig = config.identity.login_id.keys.find(
+          (a) => a.type === "email"
+        );
+        if (keyConfig != null) {
+          keyConfig.modify_disabled = currentState.email.modify_disabled;
+        }
+      }
       if (
         initialState.email.block_plus_sign !==
         currentState.email.block_plus_sign
@@ -200,6 +232,17 @@ function constructConfig(
     if (currentState.types.find((t) => t.type === "username")?.isEnabled) {
       const usernameConfig = config.identity.login_id.types.username;
       if (
+        initialState.username.modify_disabled !==
+        currentState.username.modify_disabled
+      ) {
+        const keyConfig = config.identity.login_id.keys.find(
+          (a) => a.type === "username"
+        );
+        if (keyConfig != null) {
+          keyConfig.modify_disabled = currentState.username.modify_disabled;
+        }
+      }
+      if (
         initialState.username.block_reserved_usernames !==
         currentState.username.block_reserved_usernames
       ) {
@@ -228,6 +271,17 @@ function constructConfig(
     }
 
     if (currentState.types.find((t) => t.type === "phone")?.isEnabled) {
+      if (
+        initialState.phone.modify_disabled !==
+        currentState.phone.modify_disabled
+      ) {
+        const keyConfig = config.identity.login_id.keys.find(
+          (a) => a.type === "phone"
+        );
+        if (keyConfig != null) {
+          keyConfig.modify_disabled = currentState.phone.modify_disabled;
+        }
+      }
       const phoneConfig = config.ui.country_calling_code;
       if (
         !deepEqual(initialState.phone.allowlist, currentState.phone.allowlist, {
@@ -436,6 +490,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     [setState]
   );
 
+  const onEmailModifyDisabledChange = useCallback(
+    (_, value?: boolean) => {
+      change((state) => {
+        state.email.modify_disabled = value ?? false;
+      });
+    },
+    [change]
+  );
   const onEmailCaseSensitiveChange = useCallback(
     (_, value?: boolean) =>
       change((state) => {
@@ -586,6 +648,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
   const emailSection = (
     <div className={styles.widgetContent}>
       <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.modify-disabled"
+        )}
+        className={styles.control}
+        checked={state.email.modify_disabled}
+        onChange={onEmailModifyDisabledChange}
+      />
+      <Checkbox
         label={renderToString("LoginIDConfigurationScreen.email.caseSensitive")}
         className={styles.control}
         checked={state.email.case_sensitive}
@@ -667,6 +737,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     </div>
   );
 
+  const onUsernameModifyDisabledChange = useCallback(
+    (_, value?: boolean) => {
+      change((state) => {
+        state.username.modify_disabled = value ?? false;
+      });
+    },
+    [change]
+  );
   const onUsernameBlockReservedUsernameChange = useCallback(
     (_, value?: boolean) =>
       change((state) => {
@@ -747,6 +825,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     <div className={styles.widgetContent}>
       <Checkbox
         label={renderToString(
+          "LoginIDConfigurationScreen.username.modify-disabled"
+        )}
+        className={styles.control}
+        checked={state.username.modify_disabled}
+        onChange={onUsernameModifyDisabledChange}
+      />
+      <Checkbox
+        label={renderToString(
           "LoginIDConfigurationScreen.username.blockReservedUsername"
         )}
         checked={state.username.block_reserved_usernames}
@@ -793,6 +879,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     </div>
   );
 
+  const onPhoneModifyDisabledChange = useCallback(
+    (_, value?: boolean) => {
+      change((state) => {
+        state.phone.modify_disabled = value ?? false;
+      });
+    },
+    [change]
+  );
   const onPhoneListChange = useCallback(
     (allowlist: string[], pinnedList: string[]) =>
       change((state) => {
@@ -803,6 +897,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
   );
   const phoneSection = (
     <div className={styles.widgetContent}>
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.phone.modify-disabled"
+        )}
+        className={styles.control}
+        checked={state.phone.modify_disabled}
+        onChange={onPhoneModifyDisabledChange}
+      />
       <CountryCallingCodeList
         className={styles.control}
         allCountryCallingCodes={supportedCountryCallingCodes}

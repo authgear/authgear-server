@@ -194,16 +194,18 @@ var _ = Schema.Add("LoginIDKeyConfig", `
 	"properties": {
 		"key": { "type": "string" },
 		"type": { "$ref": "#/$defs/LoginIDKeyType" },
-		"max_length": { "type": "integer" }
+		"max_length": { "type": "integer" },
+		"modify_disabled": { "type": "boolean" }
 	},
 	"required": ["type"]
 }
 `)
 
 type LoginIDKeyConfig struct {
-	Key       string         `json:"key,omitempty"`
-	Type      LoginIDKeyType `json:"type,omitempty"`
-	MaxLength *int           `json:"max_length,omitempty"`
+	Key            string         `json:"key,omitempty"`
+	Type           LoginIDKeyType `json:"type,omitempty"`
+	MaxLength      *int           `json:"max_length,omitempty"`
+	ModifyDisabled *bool          `json:"modify_disabled,omitempty"`
 }
 
 func (c *LoginIDKeyConfig) SetDefaults() {
@@ -228,6 +230,9 @@ func (c *LoginIDKeyConfig) SetDefaults() {
 	}
 	if c.Key == "" {
 		c.Key = string(c.Type)
+	}
+	if c.ModifyDisabled == nil {
+		c.ModifyDisabled = newBool(false)
 	}
 }
 
@@ -350,6 +355,7 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 	"properties": {
 		"alias": { "type": "string" },
 		"type": { "$ref": "#/$defs/OAuthSSOProviderType" },
+		"modify_disabled": { "type": "boolean" },
 		"client_id": { "type": "string" },
 		"claims": { "$ref": "#/$defs/VerificationOAuthClaimsConfig" },
 		"tenant": { "type": "string" },
@@ -392,10 +398,11 @@ var _ = Schema.Add("OAuthSSOProviderConfig", `
 `)
 
 type OAuthSSOProviderConfig struct {
-	Alias    string                         `json:"alias,omitempty"`
-	Type     OAuthSSOProviderType           `json:"type,omitempty"`
-	ClientID string                         `json:"client_id,omitempty"`
-	Claims   *VerificationOAuthClaimsConfig `json:"claims,omitempty"`
+	Alias          string                         `json:"alias,omitempty"`
+	Type           OAuthSSOProviderType           `json:"type,omitempty"`
+	ModifyDisabled *bool                          `json:"modify_disabled,omitempty"`
+	ClientID       string                         `json:"client_id,omitempty"`
+	Claims         *VerificationOAuthClaimsConfig `json:"claims,omitempty"`
 
 	// Tenant is specific to `azureadv2`
 	Tenant string `json:"tenant,omitempty"`
@@ -412,6 +419,12 @@ type OAuthSSOProviderConfig struct {
 
 	// DiscoveryDocumentEndpoint is specific to `adfs`.
 	DiscoveryDocumentEndpoint string `json:"discovery_document_endpoint,omitempty"`
+}
+
+func (c *OAuthSSOProviderConfig) SetDefaults() {
+	if c.ModifyDisabled == nil {
+		c.ModifyDisabled = newBool(false)
+	}
 }
 
 func (c *OAuthSSOProviderConfig) ProviderID() ProviderID {

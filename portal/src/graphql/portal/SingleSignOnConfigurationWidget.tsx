@@ -73,6 +73,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "key_id",
       "team_id",
+      "modify_disabled",
     ]),
     isSecretFieldTextArea: true,
   },
@@ -83,6 +84,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "alias",
       "client_id",
       "client_secret",
+      "modify_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -95,6 +97,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "alias",
       "client_id",
       "client_secret",
+      "modify_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -107,6 +110,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "alias",
       "client_id",
       "client_secret",
+      "modify_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -120,6 +124,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_id",
       "client_secret",
       "tenant",
+      "modify_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -133,6 +138,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_id",
       "client_secret",
       "discovery_document_endpoint",
+      "modify_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -146,6 +152,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "account_id",
       "is_sandbox_account",
+      "modify_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -159,6 +166,7 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "client_secret",
       "account_id",
       "wechat_redirect_uris",
+      "modify_disabled",
     ]),
     isSecretFieldTextArea: false,
   },
@@ -301,6 +309,11 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       ),
     [onChange, config, secret]
   );
+  const onModifyDisabledChange = useCallback(
+    (_, value?: boolean) =>
+      onChange({ ...config, modify_disabled: value ?? false }, secret),
+    [onChange, config, secret]
+  );
 
   return (
     <ExtendableWidget
@@ -439,6 +452,16 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
               directionalHint={DirectionalHint.bottomLeftEdge}
             />
           }
+        />
+      )}
+      {visibleFields.has("modify_disabled") && (
+        <Checkbox
+          label={renderToString(
+            "SingleSignOnConfigurationScreen.widget.modify-disabled"
+          )}
+          className={styles.checkbox}
+          checked={config.modify_disabled ?? false}
+          onChange={onModifyDisabledChange}
         />
       )}
     </ExtendableWidget>

@@ -224,3 +224,40 @@ func (i *Info) CanHaveMFA() bool {
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
 }
+
+func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		loginIDKey := i.Claims[IdentityClaimLoginIDKey].(string)
+		var keyConfig *config.LoginIDKeyConfig
+		for _, kc := range c.LoginID.Keys {
+			if kc.Key == loginIDKey {
+				kcc := kc
+				keyConfig = &kcc
+			}
+		}
+		if keyConfig == nil {
+			return true
+		}
+		return *keyConfig.ModifyDisabled
+	case authn.IdentityTypeOAuth:
+		alias := i.Claims[IdentityClaimOAuthProviderAlias].(string)
+		var providerConfig *config.OAuthSSOProviderConfig
+		for _, pc := range c.OAuth.Providers {
+			if pc.Alias == alias {
+				pcc := pc
+				providerConfig = &pcc
+			}
+		}
+		if providerConfig == nil {
+			return true
+		}
+		return *providerConfig.ModifyDisabled
+	case authn.IdentityTypeAnonymous:
+		return true
+	case authn.IdentityTypeBiometric:
+		return true
+	default:
+		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
+	}
+}
