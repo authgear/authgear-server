@@ -51,6 +51,7 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		BaseResources: manager,
 		TrustProxy:    trustProxy,
 		Config:        config,
+		Clock:         clock,
 		Store:         store,
 		Database:      handle,
 	}
