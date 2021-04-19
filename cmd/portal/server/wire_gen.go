@@ -47,13 +47,14 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		SQLExecutor: sqlExecutor,
 	}
 	database := &configsource.Database{
-		Logger:        databaseLogger,
-		BaseResources: manager,
-		TrustProxy:    trustProxy,
-		Config:        config,
-		Clock:         clock,
-		Store:         store,
-		Database:      handle,
+		Logger:         databaseLogger,
+		BaseResources:  manager,
+		TrustProxy:     trustProxy,
+		Config:         config,
+		Clock:          clock,
+		Store:          store,
+		Database:       handle,
+		DatabaseConfig: databaseEnvironmentConfig,
 	}
 	controller := configsource.NewController(config, localFS, kubernetes, database)
 	return controller

@@ -3,14 +3,17 @@ package configsource
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"time"
 
 	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -18,6 +21,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+const PGChannelConfigSourceChange = "config_source_change"
+const PGChannelDomainChange = "domain_change"
 
 type DatabaseSource struct {
 	ID        string
@@ -34,22 +40,54 @@ func NewDatabaseLogger(lf *log.Factory) DatabaseLogger {
 }
 
 type Database struct {
-	Logger        DatabaseLogger
-	BaseResources *resource.Manager
-	TrustProxy    config.TrustProxy
-	Config        *Config
-	Clock         clock.Clock
+	Logger         DatabaseLogger
+	BaseResources  *resource.Manager
+	TrustProxy     config.TrustProxy
+	Config         *Config
+	Clock          clock.Clock
+	Store          *Store
+	Database       *globaldb.Handle
+	DatabaseConfig *config.DatabaseEnvironmentConfig
 
 	done     chan<- struct{} `wire:"-"`
-	Store    *Store
-	Database *globaldb.Handle
+	listener *db.PQListener  `wire:"-"`
+
+	hostMap *sync.Map `wire:"-"`
+	appMap  *sync.Map `wire:"-"`
 }
 
 func (d *Database) Open() error {
+	d.hostMap = &sync.Map{}
+	d.appMap = &sync.Map{}
+
+	done := make(chan struct{})
+	d.done = done
+
+	d.listener = &db.PQListener{
+		DatabaseURL: d.DatabaseConfig.DatabaseURL,
+	}
+	go d.listener.Listen([]string{
+		PGChannelConfigSourceChange,
+		PGChannelDomainChange,
+	}, done, func(channel string, extra string) {
+		switch channel {
+		case PGChannelConfigSourceChange:
+			d.invalidateApp(extra)
+		case PGChannelDomainChange:
+			d.invalidateHost(extra)
+		default:
+			panic(fmt.Sprintf("db_config: unknown notification channel: %s", channel))
+		}
+	}, func(e error) {
+		panic(fmt.Sprintf("db_config: error on listening pgsql: %s", e))
+	})
+	go d.cleanupCache(done)
+
 	return nil
 }
 
 func (d *Database) Close() error {
+	close(d.done)
 	return nil
 }
 
@@ -59,12 +97,19 @@ func (d *Database) ResolveAppID(r *http.Request) (string, error) {
 		host = h
 	}
 
+	appIDData, ok := d.hostMap.Load(host)
+	if ok {
+		return appIDData.(string), nil
+	}
+
 	var appID string
 	err := d.Database.WithTx(func() error {
+		d.Logger.WithField("host", host).Debug("resolve appid from db")
 		aid, err := d.Store.GetAppIDByDomain(host)
 		if err != nil {
 			return err
 		}
+		d.hostMap.Store(host, aid)
 		appID = aid
 		return nil
 	})
@@ -76,24 +121,16 @@ func (d *Database) ResolveAppID(r *http.Request) (string, error) {
 }
 
 func (d *Database) ResolveContext(appID string) (*config.AppContext, error) {
-	// fixme(1127) cache
-	app := &dbApp{
+	value, _ := d.appMap.LoadOrStore(appID, &dbApp{
 		appID: appID,
-	}
-
-	var appCtx *config.AppContext
-	err := d.Database.WithTx(func() error {
-		a, err := app.Load(d)
-		if err != nil {
-			return err
-		}
-		appCtx = a
-		return nil
+		load:  &sync.Once{},
 	})
-	return appCtx, err
+	app := value.(*dbApp)
+	return app.Load(d)
 }
 
 func (d *Database) ReloadApp(appID string) {
+	d.invalidateApp(appID)
 }
 
 func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byte) error {
@@ -156,6 +193,40 @@ func (d *Database) UpdateDatabaseSource(appID string, updates []*resource.Resour
 	})
 }
 
+func (d *Database) invalidateHost(domain string) {
+	d.hostMap.Delete(domain)
+	d.Logger.WithField("domain", domain).Info("invalidated cached host")
+}
+
+func (d *Database) invalidateApp(appID string) {
+	d.appMap.Delete(appID)
+	d.Logger.WithField("app_id", appID).Info("invalidated cached config")
+}
+
+func (d *Database) cleanupCache(done <-chan struct{}) {
+	for {
+		select {
+		case <-done:
+			return
+
+		case <-time.After(time.Minute):
+			now := d.Clock.NowMonotonic().Unix()
+			numDel := 0
+			d.appMap.Range(func(key, value interface{}) bool {
+				app := value.(*dbApp)
+				if atomic.LoadInt64(&app.lastUsedAt) < now-60 {
+					d.appMap.Delete(key)
+					numDel++
+				}
+				return true
+			})
+			if numDel > 0 {
+				d.Logger.WithField("deleted", numDel).Info("cleaned cached app configs")
+			}
+		}
+	}
+}
+
 func MakeAppFSFromDatabaseSource(s *DatabaseSource) (resource.Fs, error) {
 	// Construct a FS that treats `a` and `/a` the same.
 	// The template is loaded by a file URI which is always an absoluted path.
@@ -184,34 +255,51 @@ type dbApp struct {
 	appCtx     *config.AppContext
 	err        error
 	lastUsedAt int64
+	load       *sync.Once
+	Loaded     bool
 }
 
 func (a *dbApp) Load(d *Database) (*config.AppContext, error) {
-	a.appCtx, a.err = a.doLoad(d)
+	if a.load != nil {
+		a.load.Do(func() {
+			a.appCtx, a.err = a.doLoad(d)
+		})
+	}
 	atomic.StoreInt64(&a.lastUsedAt, d.Clock.NowMonotonic().Unix())
 	return a.appCtx, a.err
 }
 
 func (a *dbApp) doLoad(d *Database) (*config.AppContext, error) {
-	data, err := d.Store.GetDatabaseSourceByAppID(a.appID)
+	var appCtx *config.AppContext
+	err := d.Database.WithTx(func() error {
+		d.Logger.WithField("app_id", a.appID).Info("load app config from db")
+		data, err := d.Store.GetDatabaseSourceByAppID(a.appID)
+		if err != nil {
+			return err
+		}
+
+		appFs, err := MakeAppFSFromDatabaseSource(data)
+		if err != nil {
+			return err
+		}
+		resources := d.BaseResources.Overlay(appFs)
+
+		appConfig, err := LoadConfig(resources)
+		if err != nil {
+			return err
+		}
+
+		appCtx = &config.AppContext{
+			AppFs:     appFs,
+			Resources: resources,
+			Config:    appConfig,
+		}
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	appFs, err := MakeAppFSFromDatabaseSource(data)
-	if err != nil {
-		return nil, err
-	}
-	resources := d.BaseResources.Overlay(appFs)
-
-	appConfig, err := LoadConfig(resources)
-	if err != nil {
-		return nil, err
-	}
-
-	return &config.AppContext{
-		AppFs:     appFs,
-		Resources: resources,
-		Config:    appConfig,
-	}, nil
+	return appCtx, nil
 }
