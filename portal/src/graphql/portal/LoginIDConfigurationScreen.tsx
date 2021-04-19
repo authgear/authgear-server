@@ -3,6 +3,7 @@ import produce from "immer";
 import { Checkbox, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import Widget from "../../Widget";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
 import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
 import CountryCallingCodeList from "./AuthenticationCountryCallingCodeList";
@@ -648,14 +649,6 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
   const emailSection = (
     <div className={styles.widgetContent}>
       <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.modify-disabled"
-        )}
-        className={styles.control}
-        checked={state.email.modify_disabled}
-        onChange={onEmailModifyDisabledChange}
-      />
-      <Checkbox
         label={renderToString("LoginIDConfigurationScreen.email.caseSensitive")}
         className={styles.control}
         checked={state.email.case_sensitive}
@@ -734,6 +727,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           onAdd={addDomainToEmailDomainAllowlist}
         />
       </CheckboxWithContentLayout>
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.email.modify-disabled"
+        )}
+        className={styles.control}
+        checked={state.email.modify_disabled}
+        onChange={onEmailModifyDisabledChange}
+      />
     </div>
   );
 
@@ -825,14 +826,6 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     <div className={styles.widgetContent}>
       <Checkbox
         label={renderToString(
-          "LoginIDConfigurationScreen.username.modify-disabled"
-        )}
-        className={styles.control}
-        checked={state.username.modify_disabled}
-        onChange={onUsernameModifyDisabledChange}
-      />
-      <Checkbox
-        label={renderToString(
           "LoginIDConfigurationScreen.username.blockReservedUsername"
         )}
         checked={state.username.block_reserved_usernames}
@@ -876,6 +869,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         checked={state.username.ascii_only}
         onChange={onUsernameASCIIOnlyChange}
       />
+      <Checkbox
+        label={renderToString(
+          "LoginIDConfigurationScreen.username.modify-disabled"
+        )}
+        className={styles.control}
+        checked={state.username.modify_disabled}
+        onChange={onUsernameModifyDisabledChange}
+      />
     </div>
   );
 
@@ -897,6 +898,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
   );
   const phoneSection = (
     <div className={styles.widgetContent}>
+      <Widget className={styles.control}>
+        <CountryCallingCodeList
+          allCountryCallingCodes={supportedCountryCallingCodes}
+          selectedCountryCallingCodes={state.phone.allowlist}
+          pinnedCountryCallingCodes={state.phone.pinned_list}
+          onChange={onPhoneListChange}
+        />
+      </Widget>
       <Checkbox
         label={renderToString(
           "LoginIDConfigurationScreen.phone.modify-disabled"
@@ -904,13 +913,6 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         className={styles.control}
         checked={state.phone.modify_disabled}
         onChange={onPhoneModifyDisabledChange}
-      />
-      <CountryCallingCodeList
-        className={styles.control}
-        allCountryCallingCodes={supportedCountryCallingCodes}
-        selectedCountryCallingCodes={state.phone.allowlist}
-        pinnedCountryCallingCodes={state.phone.pinned_list}
-        onChange={onPhoneListChange}
       />
     </div>
   );
