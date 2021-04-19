@@ -33,7 +33,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	route := httproute.Route{Middleware: chain}
 
-	router.Add(handler.ConfigureResolveRoute(route), p.Handler(newSessionResolveHandler))
+	router.AddRoutes(p.Handler(newSessionResolveHandler), handler.ConfigureResolveRoute(route)...)
 
 	return router
 }

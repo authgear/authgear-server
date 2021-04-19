@@ -13,10 +13,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
-func ConfigureGraphQLRoute(route httproute.Route) httproute.Route {
-	return route.
-		WithMethods("GET", "POST").
-		WithPathPattern("/graphql")
+func ConfigureGraphQLRoute(route httproute.Route) []httproute.Route {
+	route = route.WithMethods("GET", "POST")
+	return []httproute.Route{
+		route.WithPathPattern("/graphql"),
+		route.WithPathPattern("/_api/admin/graphql"),
+	}
 }
 
 var errRollback = errors.New("rollback transaction")
