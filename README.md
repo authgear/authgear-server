@@ -55,12 +55,22 @@ To avoid doing the above every time you open a new shell, you may want to add it
 
 3. Setup `.localhost` domain
 
-For cookie to work properly, you need to use
+   For cookie to work properly, you need to use
 
-- `portal.localhost:8000` to access the portal.
-- `accounts.portal.localhost:3000` to access the main server.
+   - `portal.localhost:8000` to access the portal.
+   - `accounts.portal.localhost:3000` to access the main server.
 
-You can either do this by editing `/etc/hosts` or install `dnsmasq`.
+   You can either do this by editing `/etc/hosts` or install `dnsmasq`.
+
+4. (Optional) To use db as config source.
+
+   - Update `.env` to change `CONFIG_SOURCE_TYPE=database`
+   - Setup config source in db
+      ```
+      go run ./cmd/portal internal setup-portal ./var/
+         --default-domain=accounts.localhost
+         --custom-domain=accounts.portal.localhost
+      ```
 
 ## Database setup
 
