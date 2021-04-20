@@ -92,13 +92,13 @@ To avoid doing the above every time you open a new shell, you may want to add it
    make sure the db container is running
 
    ```sh
-   go run ./cmd/authgear migrate up --database-url='postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable' --database-schema=app
+   go run ./cmd/authgear database migrate up --database-url='postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable' --database-schema=app
    ```
 
 To create new migration:
 ```sh
-# go run ./cmd/authgear migrate new <migration name>
-go run ./cmd/authgear migrate new add user table
+# go run ./cmd/authgear database migrate new <migration name>
+go run ./cmd/authgear database migrate new add user table
 ```
 
 ## HTTPS setup

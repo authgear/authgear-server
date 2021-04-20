@@ -16,6 +16,8 @@ var DatabaseURL string
 var DatabaseSchema string
 
 func init() {
+	cmdDatabase.AddCommand(cmdMigrate)
+
 	cmdMigrate.AddCommand(cmdMigrateNew)
 	cmdMigrate.AddCommand(cmdMigrateUp)
 	cmdMigrate.AddCommand(cmdMigrateDown)
@@ -35,6 +37,11 @@ func init() {
 			"Database schema name",
 		)
 	}
+}
+
+var cmdDatabase = &cobra.Command{
+	Use:   "database migrate",
+	Short: "Database commands",
 }
 
 var cmdMigrate = &cobra.Command{

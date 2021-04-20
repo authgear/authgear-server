@@ -28,5 +28,5 @@ var cmdRoot = &cobra.Command{
 func init() {
 	cmdRoot.AddCommand(cmdStart)
 	cmdRoot.AddCommand(cmdInit)
-	cmdRoot.AddCommand(cmdMigrate)
+	cmdRoot.AddCommand(cmdDatabase)
 }
