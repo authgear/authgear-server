@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"os"
 	"strconv"
@@ -11,9 +10,6 @@ import (
 
 	"github.com/authgear/authgear-server/cmd/portal/migrate"
 )
-
-var DatabaseURL string
-var DatabaseSchema string
 
 func init() {
 	cmdMigrate.AddCommand(cmdMigrateNew)
@@ -116,21 +112,4 @@ var cmdMigrateStatus = &cobra.Command{
 			os.Exit(1)
 		}
 	},
-}
-
-func loadDBCredentials() (dbURL string, dbSchema string, err error) {
-	if DatabaseURL == "" {
-		DatabaseURL = os.Getenv("DATABASE_URL")
-	}
-	if DatabaseSchema == "" {
-		DatabaseSchema = os.Getenv("DATABASE_SCHEMA")
-	}
-
-	if DatabaseURL == "" {
-		return "", "", errors.New("missing database URL")
-	}
-	if DatabaseSchema == "" {
-		return "", "", errors.New("missing database schema")
-	}
-	return DatabaseURL, DatabaseSchema, nil
 }
