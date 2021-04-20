@@ -14,12 +14,12 @@ var InitConfigOutputPath string
 var InitSecretsOutputPath string
 
 var cmdInit = &cobra.Command{
-	Use:   "init [config|secret]",
+	Use:   "init [authgear.yaml|authgear.secrets.yaml]",
 	Short: "Initialize configuration",
 }
 
 var cmdInitConfig = &cobra.Command{
-	Use:   "config",
+	Use:   "authgear.yaml",
 	Short: "Initialize app configuration",
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := config.ReadAppConfigOptionsFromConsole()
@@ -32,7 +32,7 @@ var cmdInitConfig = &cobra.Command{
 }
 
 var cmdInitSecrets = &cobra.Command{
-	Use:   "secrets",
+	Use:   "authgear.secrets.yaml",
 	Short: "Initialize app secrets",
 	Run: func(cmd *cobra.Command, args []string) {
 		opts := config.ReadSecretConfigOptionsFromConsole()
