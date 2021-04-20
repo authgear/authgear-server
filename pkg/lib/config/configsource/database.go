@@ -3,7 +3,6 @@ package configsource
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
 	"sync"
@@ -76,10 +75,11 @@ func (d *Database) Open() error {
 		case PGChannelDomainChange:
 			d.invalidateHost(extra)
 		default:
-			panic(fmt.Sprintf("db_config: unknown notification channel: %s", channel))
+			// unknown notification channel, just skip it
+			d.Logger.WithField("channel", channel).Info("unknown notification channel")
 		}
 	}, func(e error) {
-		panic(fmt.Sprintf("db_config: error on listening pgsql: %s", e))
+		d.Logger.WithError(e).Error("error on listening pgsql")
 	})
 	go d.cleanupCache(done)
 
