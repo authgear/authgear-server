@@ -25,11 +25,17 @@ var cmdInternalSetupPortal = &cobra.Command{
 			log.Fatalf("failed to create app: %s", err)
 		}
 
+		resourceDir := "./"
+		if len(args) >= 1 {
+			resourceDir = args[0]
+		}
+
 		internal.SetupPortal(&internal.SetupPortalOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 			DefaultDoamin:  defaultDomain,
 			CustomDomain:   customDomain,
+			ResourceDir:    resourceDir,
 		})
 
 	},
