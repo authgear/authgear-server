@@ -11,10 +11,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-func ConfigureResolveRoute(route httproute.Route) httproute.Route {
-	return route.
-		WithMethods("HEAD", "GET").
-		WithPathPattern("/resolve")
+func ConfigureResolveRoute(route httproute.Route) []httproute.Route {
+	route = route.WithMethods("HEAD", "GET")
+	return []httproute.Route{
+		route.WithPathPattern("/resolve"),
+		route.WithPathPattern("/_resolver/resolve"),
+	}
 }
 
 //go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package handler

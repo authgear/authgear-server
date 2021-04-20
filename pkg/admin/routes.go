@@ -55,7 +55,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 
 	route := httproute.Route{Middleware: chain}
 
-	router.Add(transport.ConfigureGraphQLRoute(route), p.Handler(newGraphQLHandler))
+	router.AddRoutes(p.Handler(newGraphQLHandler), transport.ConfigureGraphQLRoute(route)...)
 
 	return router
 }

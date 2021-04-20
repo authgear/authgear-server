@@ -68,6 +68,12 @@ func (r *Router) Add(route Route, h http.Handler) {
 	}
 }
 
+func (r *Router) AddRoutes(h http.Handler, routes ...Route) {
+	for _, route := range routes {
+		r.Add(route, h)
+	}
+}
+
 func (r *Router) NotFound(h http.Handler) {
 	r.router.NotFound = h
 }
