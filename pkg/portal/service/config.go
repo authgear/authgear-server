@@ -72,6 +72,8 @@ func (s *ConfigService) GetStaticAppIDs() ([]string, error) {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Kubernetes:
 		return nil, ErrGetStaticAppIDsNotSupported
+	case *configsource.Database:
+		return nil, ErrGetStaticAppIDsNotSupported
 	case *configsource.LocalFS:
 		return src.AllAppIDs()
 	default:
@@ -86,7 +88,11 @@ func (s *ConfigService) Create(opts *CreateAppOptions) error {
 		if err != nil {
 			return err
 		}
-
+	case *configsource.Database:
+		err := s.createDatabase(src, opts)
+		if err != nil {
+			return err
+		}
 	case *configsource.LocalFS:
 		return apierrors.NewForbidden("cannot create app for local FS")
 
@@ -104,7 +110,12 @@ func (s *ConfigService) UpdateResources(appID string, files []*resource.Resource
 			return err
 		}
 		s.Controller.ReloadApp(appID)
-
+	case *configsource.Database:
+		err := s.updateDatabase(src, appID, files)
+		if err != nil {
+			return err
+		}
+		s.Controller.ReloadApp(appID)
 	case *configsource.LocalFS:
 		err := s.updateLocalFS(src, appID, files)
 		if err != nil {
@@ -125,7 +136,9 @@ func (s *ConfigService) CreateDomain(appID string, domainID string, domain strin
 		if err != nil {
 			return err
 		}
-
+	case *configsource.Database:
+		// fixme(1127) handle create domain
+		return nil
 	case *configsource.LocalFS:
 		return apierrors.NewForbidden("cannot create domain for local FS")
 
@@ -142,6 +155,9 @@ func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
 		if err != nil {
 			return err
 		}
+	case *configsource.Database:
+		// fixme(1127) handle delete domain
+		return nil
 
 	case *configsource.LocalFS:
 		return apierrors.NewForbidden("cannot delete domain for local FS")
@@ -432,4 +448,19 @@ func GenerateIngresses(def *IngressTemplateData, templateBytes []byte) ([]*netwo
 		output = append(output, ingress)
 	}
 	return output, nil
+}
+
+func (s *ConfigService) updateDatabase(d *configsource.Database, appID string, updates []*resource.ResourceFile) error {
+	return d.UpdateDatabaseSource(appID, updates)
+}
+
+func (s *ConfigService) createDatabase(d *configsource.Database, opts *CreateAppOptions) error {
+	err := d.CreateDatabaseSource(opts.AppID, opts.Resources)
+	if err != nil {
+		if errors.Is(err, configsource.ErrDuplicatedAppID) {
+			return ErrDuplicatedAppID
+		}
+		return err
+	}
+	return nil
 }

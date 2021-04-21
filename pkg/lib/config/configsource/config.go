@@ -5,11 +5,13 @@ type Type string
 const (
 	TypeLocalFS    Type = "local_fs"
 	TypeKubernetes Type = "kubernetes"
+	TypeDatabase   Type = "database"
 )
 
 var Types = []Type{
 	TypeLocalFS,
 	TypeKubernetes,
+	TypeDatabase,
 }
 
 type Config struct {

@@ -6,14 +6,16 @@
 package server
 
 import (
+	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 // Injectors from wire.go:
 
-func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
+func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
 	config := p.ConfigSourceConfig
 	factory := p.LoggerFactory
 	localFSLogger := configsource.NewLocalFSLogger(factory)
@@ -34,7 +36,27 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 		TrustProxy:    trustProxy,
 		Config:        config,
 	}
-	controller := configsource.NewController(config, localFS, kubernetes)
+	databaseLogger := configsource.NewDatabaseLogger(factory)
+	databaseEnvironmentConfig := &environmentConfig.Database
+	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
+	pool := p.Database
+	handle := global.NewHandle(c, pool, factory)
+	sqlExecutor := global.NewSQLExecutor(c, handle)
+	store := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	database := &configsource.Database{
+		Logger:         databaseLogger,
+		BaseResources:  manager,
+		TrustProxy:     trustProxy,
+		Config:         config,
+		Clock:          clock,
+		Store:          store,
+		Database:       handle,
+		DatabaseConfig: databaseEnvironmentConfig,
+	}
+	controller := configsource.NewController(config, localFS, kubernetes, database)
 	return controller
 }
 
