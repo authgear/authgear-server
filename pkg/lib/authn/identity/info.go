@@ -254,9 +254,13 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 		}
 		return *providerConfig.ModifyDisabled
 	case authn.IdentityTypeAnonymous:
-		return true
+		// modify_disabled is only applicable to login_id and oauth.
+		// So we return false here.
+		return false
 	case authn.IdentityTypeBiometric:
-		return true
+		// modify_disabled is only applicable to login_id and oauth.
+		// So we return false here.
+		return false
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
