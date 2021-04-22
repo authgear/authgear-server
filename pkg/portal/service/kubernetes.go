@@ -131,6 +131,14 @@ func (k *Kubernetes) CreateResourcesForDomain(
 			return fmt.Errorf("create cluster-wide resources not supported")
 		}
 
+		labels := r.Object.GetLabels()
+		if labels == nil {
+			labels = make(map[string]string)
+		}
+		labels[LabelAppID] = appID
+		labels[LabelDomainID] = domainID
+		r.Object.SetLabels(labels)
+
 		_, err = dr.Create(context.Background(), r.Object, metav1.CreateOptions{})
 		if err != nil {
 			return fmt.Errorf("failed to create resources: %v %w", r.Object, err)

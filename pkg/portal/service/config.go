@@ -30,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+var LabelAppID = "authgear.com/app-id"
 var LabelDomainID = "authgear.com/domain-id"
 
 var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
