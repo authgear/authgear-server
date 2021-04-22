@@ -14,15 +14,16 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: authgear
-          servicePort: http
+          service:
+            name: authgear
+            port:
+              number: 80
         path: /
-{{ if .TLSSecretName }}
+        pathType: ImplementationSpecific
   tls:
   - hosts:
     - '{{ .Host }}'
-    secretName: '{{ .TLSSecretName }}'
-{{ end }}
+    secretName: 'tls-{{ .Host }}'
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -40,6 +41,26 @@ spec:
     http:
       paths:
       - backend:
-          serviceName: authgear
-          servicePort: http
+          service:
+            name: authgear
+            port:
+              number: 80
         path: /
+        pathType: ImplementationSpecific
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  labels:
+    authgear.com/app-id: {{ .AppID }}
+{{ if .IsCustom }}
+    authgear.com/domain-id: {{ .DomainID }}
+{{ end }}
+  name: cert-{{ .Host }}
+spec:
+  dnsNames:
+  - {{ .Host }}
+  issuerRef:
+    kind: Issuer
+    name: letsencrypt-staging
+  secretName: tls-{{ .Host }}
