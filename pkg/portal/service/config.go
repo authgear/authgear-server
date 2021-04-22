@@ -62,6 +62,7 @@ type ConfigService struct {
 	AppConfig    *portalconfig.AppConfig
 	Controller   *configsource.Controller
 	ConfigSource *configsource.ConfigSource
+	Kubernetes   *Kubernetes
 }
 
 func (s *ConfigService) ResolveContext(appID string) (*config.AppContext, error) {
@@ -137,8 +138,10 @@ func (s *ConfigService) CreateDomain(appID string, domainID string, domain strin
 			return err
 		}
 	case *configsource.Database:
-		// fixme(1127) handle create domain
-		return nil
+		err := s.Kubernetes.CreateResourcesForDomain(appID, domainID, domain, isCustom)
+		if err != nil {
+			return fmt.Errorf("failed to create domain k8s resources: %w", err)
+		}
 	case *configsource.LocalFS:
 		return apierrors.NewForbidden("cannot create domain for local FS")
 

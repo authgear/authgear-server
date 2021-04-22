@@ -25,6 +25,7 @@ type RootProvider struct {
 	DatabaseConfig     *config.DatabaseEnvironmentConfig
 	SMTPConfig         *portalconfig.SMTPConfig
 	MailConfig         *portalconfig.MailConfig
+	KubernetesConfig   *portalconfig.KubernetesConfig
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 
@@ -49,6 +50,7 @@ func NewRootProvider(
 	dbConfig *config.DatabaseEnvironmentConfig,
 	smtpConfig *portalconfig.SMTPConfig,
 	mailConfig *portalconfig.MailConfig,
+	kubernetesConfig *portalconfig.KubernetesConfig,
 	secretKeyAllowlist portalconfig.SecretKeyAllowlist,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
@@ -76,6 +78,7 @@ func NewRootProvider(
 		DatabaseConfig:     dbConfig,
 		SMTPConfig:         smtpConfig,
 		MailConfig:         mailConfig,
+		KubernetesConfig:   kubernetesConfig,
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		Database:           globaldb.NewPool(dbConfig),

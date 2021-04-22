@@ -9,6 +9,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AdminAPIService), "*"),
 	wire.Struct(new(AuthzService), "*"),
 	wire.Struct(new(ConfigService), "*"),
+	wire.Struct(new(Kubernetes), "*"),
 	wire.Struct(new(DomainService), "*"),
 	wire.Struct(new(CollaboratorService), "*"),
 	wire.Struct(new(SystemConfigProvider), "*"),

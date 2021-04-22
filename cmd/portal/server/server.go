@@ -34,6 +34,7 @@ func (c *Controller) Start() {
 		&cfg.Database,
 		&cfg.SMTP,
 		&cfg.Mail,
+		&cfg.Kubernetes,
 		cfg.App.SecretKeyAllowlist,
 	)
 	if err != nil {
