@@ -160,9 +160,10 @@ func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
 			return err
 		}
 	case *configsource.Database:
-		// fixme(1127) handle delete domain
-		return nil
-
+		err := s.Kubernetes.DeleteResourcesForDomain(domain.ID)
+		if err != nil {
+			return fmt.Errorf("failed to delete domain k8s resources: %w", err)
+		}
 	case *configsource.LocalFS:
 		return apierrors.NewForbidden("cannot delete domain for local FS")
 

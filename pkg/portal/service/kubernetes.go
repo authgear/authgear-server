@@ -27,6 +27,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	certmanagerclientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 )
 
 type ResourceTemplateData struct {
@@ -45,11 +46,10 @@ type Kubernetes struct {
 	KubernetesConfig *portalconfig.KubernetesConfig
 	AppConfig        *portalconfig.AppConfig
 
-	Context    context.Context       `wire:"-"`
-	Namespace  string                `wire:"-"`
-	KubeConfig *rest.Config          `wire:"-"`
-	Client     *kubernetes.Clientset `wire:"-"`
-
+	Context             context.Context                         `wire:"-"`
+	Namespace           string                                  `wire:"-"`
+	KubeConfig          *rest.Config                            `wire:"-"`
+	Client              *kubernetes.Clientset                   `wire:"-"`
 	DynamicClient       dynamic.Interface                       `wire:"-"`
 	DiscoveryRESTMapper *restmapper.DeferredDiscoveryRESTMapper `wire:"-"`
 }
@@ -74,6 +74,13 @@ func (k *Kubernetes) open() error {
 	}
 
 	k.KubeConfig = kubeConfig
+	// setup k8s client for delete ingress / cert when deleting domains
+	k.Client, err = kubernetes.NewForConfig(kubeConfig)
+	if err != nil {
+		return err
+	}
+
+	// setup dynamic clients to create domain k8s resources based on template
 	dc, err := discovery.NewDiscoveryClientForConfig(kubeConfig)
 	if err != nil {
 		return err
@@ -143,6 +150,63 @@ func (k *Kubernetes) CreateResourcesForDomain(
 		if err != nil {
 			return fmt.Errorf("failed to create resources: %v %w", r.Object, err)
 		}
+	}
+
+	return nil
+}
+
+func (k *Kubernetes) DeleteResourcesForDomain(domainID string) error {
+	if k.Client == nil {
+		if err := k.open(); err != nil {
+			return fmt.Errorf("failed to init k8s client: %w", err)
+		}
+	}
+
+	labelSelector, err := metav1.LabelSelectorAsSelector(&metav1.LabelSelector{
+		MatchLabels: map[string]string{LabelDomainID: domainID},
+	})
+	if err != nil {
+		return err
+	}
+	listOptions := metav1.ListOptions{
+		LabelSelector: labelSelector.String(),
+	}
+
+	err = k.Client.
+		ExtensionsV1beta1().
+		Ingresses(k.Namespace).
+		DeleteCollection(context.Background(), metav1.DeleteOptions{}, listOptions)
+	if err != nil {
+		return fmt.Errorf("failed to delete extension v1beta1 ingress: %w", err)
+	}
+
+	err = k.Client.
+		NetworkingV1beta1().
+		Ingresses(k.Namespace).
+		DeleteCollection(context.Background(), metav1.DeleteOptions{}, listOptions)
+	if err != nil {
+		return fmt.Errorf("failed to delete v1beta1 ingress: %w", err)
+	}
+
+	err = k.Client.
+		NetworkingV1().
+		Ingresses(k.Namespace).
+		DeleteCollection(context.Background(), metav1.DeleteOptions{}, listOptions)
+	if err != nil {
+		return fmt.Errorf("failed to delete v1 ingress: %w", err)
+	}
+
+	client, err := certmanagerclientset.NewForConfig(k.KubeConfig)
+	if err != nil {
+		return fmt.Errorf("failed to new certmanager client: %w", err)
+	}
+
+	err = client.
+		CertmanagerV1().
+		Certificates(k.Namespace).
+		DeleteCollection(context.Background(), metav1.DeleteOptions{}, listOptions)
+	if err != nil {
+		return fmt.Errorf("failed to delete cert manager cert: %w", err)
 	}
 
 	return nil
