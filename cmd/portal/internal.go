@@ -8,8 +8,8 @@ import (
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 )
 
-var defaultDomain string
-var customDomain string
+var defaultAuthgearDomain string
+var customAuthgearDomain string
 
 var cmdInternal = &cobra.Command{
 	Use:   "internal [setup-portal]",
@@ -31,11 +31,11 @@ var cmdInternalSetupPortal = &cobra.Command{
 		}
 
 		internal.SetupPortal(&internal.SetupPortalOptions{
-			DatabaseURL:    dbURL,
-			DatabaseSchema: dbSchema,
-			DefaultDoamin:  defaultDomain,
-			CustomDomain:   customDomain,
-			ResourceDir:    resourceDir,
+			DatabaseURL:           dbURL,
+			DatabaseSchema:        dbSchema,
+			DefaultAuthgearDoamin: defaultAuthgearDomain,
+			CustomAuthgearDomain:  customAuthgearDomain,
+			ResourceDir:           resourceDir,
 		})
 
 	},
@@ -46,9 +46,9 @@ func init() {
 
 	cmdInternalSetupPortal.Flags().StringVar(&DatabaseURL, "database-url", "", "Database URL")
 	cmdInternalSetupPortal.Flags().StringVar(&DatabaseSchema, "database-schema", "", "Database schema name")
-	cmdInternalSetupPortal.Flags().StringVar(&defaultDomain, "default-domain", "", "App default domain")
-	cmdInternalSetupPortal.Flags().StringVar(&customDomain, "custom-domain", "", "App custom domain")
+	cmdInternalSetupPortal.Flags().StringVar(&defaultAuthgearDomain, "default-authgear-domain", "", "App default domain")
+	cmdInternalSetupPortal.Flags().StringVar(&customAuthgearDomain, "custom-authgear-domain", "", "App custom domain")
 
-	_ = cmdInternalSetupPortal.MarkFlagRequired("default-domain")
-	_ = cmdInternalSetupPortal.MarkFlagRequired("custom-domain")
+	_ = cmdInternalSetupPortal.MarkFlagRequired("default-authgear-domain")
+	_ = cmdInternalSetupPortal.MarkFlagRequired("custom-authgear-domain")
 }

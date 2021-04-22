@@ -67,9 +67,9 @@ To avoid doing the above every time you open a new shell, you may want to add it
    - Update `.env` to change `CONFIG_SOURCE_TYPE=database`
    - Setup config source in db
       ```
-      go run ./cmd/portal internal setup-portal ./var/
-         --default-domain=accounts.localhost
-         --custom-domain=accounts.portal.localhost
+      go run ./cmd/portal internal setup-portal ./var/ \
+         --default-authgear-domain=accounts.localhost \
+         --custom-authgear-domain=accounts.portal.localhost \
       ```
 
 ## Database setup

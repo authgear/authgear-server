@@ -24,11 +24,11 @@ import (
 )
 
 type SetupPortalOptions struct {
-	DatabaseURL    string
-	DatabaseSchema string
-	DefaultDoamin  string
-	CustomDomain   string
-	ResourceDir    string
+	DatabaseURL           string
+	DatabaseSchema        string
+	DefaultAuthgearDoamin string
+	CustomAuthgearDomain  string
+	ResourceDir           string
 }
 
 func SetupPortal(opt *SetupPortalOptions) {
@@ -61,12 +61,12 @@ func SetupPortal(opt *SetupPortalOptions) {
 		log.Fatalf("failed to create config source record: %s", err)
 	}
 
-	if err := createDomain(ctx, tx, appID, opt.DefaultDoamin, false); err != nil {
+	if err := createDomain(ctx, tx, appID, opt.DefaultAuthgearDoamin, false); err != nil {
 		_ = tx.Rollback()
 		log.Fatalf("failed to create default domain: %s", err)
 	}
 
-	if err := createDomain(ctx, tx, appID, opt.CustomDomain, true); err != nil {
+	if err := createDomain(ctx, tx, appID, opt.CustomAuthgearDomain, true); err != nil {
 		_ = tx.Rollback()
 		log.Fatalf("failed to create custom domain: %s", err)
 	}
