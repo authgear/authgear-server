@@ -17,16 +17,18 @@ import (
 )
 
 type RootProvider struct {
-	EnvironmentConfig  *config.EnvironmentConfig
-	ConfigSourceConfig *configsource.Config
-	AuthgearConfig     *portalconfig.AuthgearConfig
-	AdminAPIConfig     *portalconfig.AdminAPIConfig
-	AppConfig          *portalconfig.AppConfig
-	DatabaseConfig     *config.DatabaseEnvironmentConfig
-	SMTPConfig         *portalconfig.SMTPConfig
-	MailConfig         *portalconfig.MailConfig
-	LoggerFactory      *log.Factory
-	SentryHub          *getsentry.Hub
+	EnvironmentConfig    *config.EnvironmentConfig
+	ConfigSourceConfig   *configsource.Config
+	AuthgearConfig       *portalconfig.AuthgearConfig
+	AdminAPIConfig       *portalconfig.AdminAPIConfig
+	AppConfig            *portalconfig.AppConfig
+	DatabaseConfig       *config.DatabaseEnvironmentConfig
+	SMTPConfig           *portalconfig.SMTPConfig
+	MailConfig           *portalconfig.MailConfig
+	KubernetesConfig     *portalconfig.KubernetesConfig
+	DomainImplementation portalconfig.DomainImplementationType
+	LoggerFactory        *log.Factory
+	SentryHub            *getsentry.Hub
 
 	Database               *globaldb.Pool
 	ConfigSourceController *configsource.Controller
@@ -49,6 +51,8 @@ func NewRootProvider(
 	dbConfig *config.DatabaseEnvironmentConfig,
 	smtpConfig *portalconfig.SMTPConfig,
 	mailConfig *portalconfig.MailConfig,
+	kubernetesConfig *portalconfig.KubernetesConfig,
+	domainImplementation portalconfig.DomainImplementationType,
 	secretKeyAllowlist portalconfig.SecretKeyAllowlist,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
@@ -68,17 +72,19 @@ func NewRootProvider(
 	)
 
 	return &RootProvider{
-		EnvironmentConfig:  cfg,
-		ConfigSourceConfig: configSourceConfig,
-		AuthgearConfig:     authgearConfig,
-		AdminAPIConfig:     adminAPIConfig,
-		AppConfig:          appConfig,
-		DatabaseConfig:     dbConfig,
-		SMTPConfig:         smtpConfig,
-		MailConfig:         mailConfig,
-		LoggerFactory:      loggerFactory,
-		SentryHub:          sentryHub,
-		Database:           globaldb.NewPool(dbConfig),
+		EnvironmentConfig:    cfg,
+		ConfigSourceConfig:   configSourceConfig,
+		AuthgearConfig:       authgearConfig,
+		AdminAPIConfig:       adminAPIConfig,
+		AppConfig:            appConfig,
+		DatabaseConfig:       dbConfig,
+		SMTPConfig:           smtpConfig,
+		MailConfig:           mailConfig,
+		KubernetesConfig:     kubernetesConfig,
+		DomainImplementation: domainImplementation,
+		LoggerFactory:        loggerFactory,
+		SentryHub:            sentryHub,
+		Database:             globaldb.NewPool(dbConfig),
 		Resources: resource.NewManagerWithDir(
 			portalresource.PortalRegistry,
 			builtinResourceDirectory,

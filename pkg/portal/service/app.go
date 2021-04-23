@@ -191,18 +191,25 @@ func (s *AppService) Create(userID string, id string) error {
 		return err
 	}
 
-	// Deduplicate hosts
-	hosts := map[string]struct{}{
-		appHost:      {},
-		adminAPIHost: {},
+	appDomain := appHost
+	if h, _, err := net.SplitHostPort(appHost); err == nil {
+		appDomain = h
 	}
-	for host := range hosts {
-		isMain := host == appHost
 
-		domain := host
-		if h, _, err := net.SplitHostPort(host); err == nil {
-			domain = h
-		}
+	appAPIDomain := adminAPIHost
+	if h, _, err := net.SplitHostPort(adminAPIHost); err == nil {
+		appAPIDomain = h
+	}
+
+	// Deduplicate domains
+	// when appDomain and appAPIDomain are the same, there will be only one
+	// entry in domains
+	domains := map[string]struct{}{
+		appDomain:    {},
+		appAPIDomain: {},
+	}
+	for domain := range domains {
+		isMain := domain == appDomain
 
 		if isMain {
 			_, err := s.AppDomains.CreateDomain(id, domain, true, false)

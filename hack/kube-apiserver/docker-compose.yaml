@@ -7,7 +7,7 @@ services:
     command: /usr/local/bin/etcd -advertise-client-urls=http://0.0.0.0:2379 -listen-client-urls=http://0.0.0.0:2379 --data-dir /data
 
   api-server:
-    image: gcr.io/google_containers/kube-apiserver-amd64:v1.16.0
+    image: gcr.io/google_containers/kube-apiserver-amd64:v1.19.0-rc.1
     command: kube-apiserver --etcd-servers=http://etcd:2379 --service-cluster-ip-range=10.2.0.0/16 --insecure-port=8081 --insecure-bind-address=0.0.0.0
     ports:
       - 8081:8081
@@ -15,7 +15,7 @@ services:
       - etcd
 
   controller-manager:
-    image: gcr.io/google_containers/kube-controller-manager-amd64:v1.16.0
+    image: gcr.io/google_containers/kube-controller-manager-amd64:v1.19.0-rc.1
     command: kube-controller-manager --master=http://api-server:8081
     depends_on:
       - etcd

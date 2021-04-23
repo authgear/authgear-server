@@ -29,6 +29,8 @@ var DependencySet = wire.NewSet(
 		"DatabaseConfig",
 		"SMTPConfig",
 		"MailConfig",
+		"KubernetesConfig",
+		"DomainImplementation",
 		"SentryHub",
 		"LoggerFactory",
 		"Database",

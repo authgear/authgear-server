@@ -111,12 +111,22 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := rootProvider.AppConfig
 	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
 	configServiceLogger := service.NewConfigServiceLogger(factory)
+	domainImplementationType := rootProvider.DomainImplementation
+	kubernetesConfig := rootProvider.KubernetesConfig
+	kubernetesLogger := service.NewKubernetesLogger(factory)
+	kubernetes := &service.Kubernetes{
+		KubernetesConfig: kubernetesConfig,
+		AppConfig:        appConfig,
+		Logger:           kubernetesLogger,
+	}
 	configService := &service.ConfigService{
-		Context:      context,
-		Logger:       configServiceLogger,
-		AppConfig:    appConfig,
-		Controller:   controller,
-		ConfigSource: configSource,
+		Context:              context,
+		Logger:               configServiceLogger,
+		AppConfig:            appConfig,
+		Controller:           controller,
+		ConfigSource:         configSource,
+		DomainImplementation: domainImplementationType,
+		Kubernetes:           kubernetes,
 	}
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)
@@ -252,12 +262,22 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
+	domainImplementationType := rootProvider.DomainImplementation
+	kubernetesConfig := rootProvider.KubernetesConfig
+	kubernetesLogger := service.NewKubernetesLogger(factory)
+	kubernetes := &service.Kubernetes{
+		KubernetesConfig: kubernetesConfig,
+		AppConfig:        appConfig,
+		Logger:           kubernetesLogger,
+	}
 	configService := &service.ConfigService{
-		Context:      context,
-		Logger:       configServiceLogger,
-		AppConfig:    appConfig,
-		Controller:   controller,
-		ConfigSource: configSource,
+		Context:              context,
+		Logger:               configServiceLogger,
+		AppConfig:            appConfig,
+		Controller:           controller,
+		ConfigSource:         configSource,
+		DomainImplementation: domainImplementationType,
+		Kubernetes:           kubernetes,
 	}
 	clockClock := _wireSystemClockValue
 	databaseEnvironmentConfig := rootProvider.DatabaseConfig

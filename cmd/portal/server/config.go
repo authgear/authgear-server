@@ -35,6 +35,15 @@ type Config struct {
 	// CustomResourceDirectory sets the directory for customized resource files
 	CustomResourceDirectory string `envconfig:"PORTAL_CUSTOM_RESOURCE_DIRECTORY"`
 
+	// DomainImplementation indicates the domain implementation, only none or kubernetes are supported
+	// if it sets to kubernetes, kubernetes resources will be created based on
+	// APP_KUBERNETES_INGRESS_TEMPLATE_FILE when creating domains
+	DomainImplementation portalconfig.DomainImplementationType `envconfig:"DOMAIN_IMPLEMENTATION"`
+
+	// Kubernetes set the kubernetes related config if the portal is deployed in k8s
+	// One of the purpose is for creating ingress when creating new domain
+	Kubernetes portalconfig.KubernetesConfig `envconfig:"KUBERNETES"`
+
 	*config.EnvironmentConfig
 }
 

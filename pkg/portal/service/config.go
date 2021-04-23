@@ -30,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+var LabelAppID = "authgear.com/app-id"
 var LabelDomainID = "authgear.com/domain-id"
 
 var ErrDuplicatedAppID = apierrors.AlreadyExists.WithReason("DuplicatedAppID").
@@ -57,11 +58,13 @@ type CreateAppOptions struct {
 }
 
 type ConfigService struct {
-	Context      context.Context
-	Logger       ConfigServiceLogger
-	AppConfig    *portalconfig.AppConfig
-	Controller   *configsource.Controller
-	ConfigSource *configsource.ConfigSource
+	Context              context.Context
+	Logger               ConfigServiceLogger
+	AppConfig            *portalconfig.AppConfig
+	Controller           *configsource.Controller
+	ConfigSource         *configsource.ConfigSource
+	DomainImplementation portalconfig.DomainImplementationType
+	Kubernetes           *Kubernetes
 }
 
 func (s *ConfigService) ResolveContext(appID string) (*config.AppContext, error) {
@@ -137,8 +140,12 @@ func (s *ConfigService) CreateDomain(appID string, domainID string, domain strin
 			return err
 		}
 	case *configsource.Database:
-		// fixme(1127) handle create domain
-		return nil
+		if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
+			err := s.Kubernetes.CreateResourcesForDomain(appID, domainID, domain, isCustom)
+			if err != nil {
+				return fmt.Errorf("failed to create domain k8s resources: %w", err)
+			}
+		}
 	case *configsource.LocalFS:
 		return apierrors.NewForbidden("cannot create domain for local FS")
 
@@ -156,9 +163,12 @@ func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
 			return err
 		}
 	case *configsource.Database:
-		// fixme(1127) handle delete domain
-		return nil
-
+		if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
+			err := s.Kubernetes.DeleteResourcesForDomain(domain.ID)
+			if err != nil {
+				return fmt.Errorf("failed to delete domain k8s resources: %w", err)
+			}
+		}
 	case *configsource.LocalFS:
 		return apierrors.NewForbidden("cannot delete domain for local FS")
 
