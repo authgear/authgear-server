@@ -118,6 +118,12 @@ func (k *Kubernetes) CreateResourcesForDomain(
 		return fmt.Errorf("cannot generate domain related resources: %w", err)
 	}
 
+	for _, r := range resources {
+		if !k.validateGVKForDomain(r.GVK) {
+			return fmt.Errorf("k8s gvk type is not supported: %v", r.GVK)
+		}
+	}
+
 	if k.DynamicClient == nil {
 		if err := k.open(); err != nil {
 			return fmt.Errorf("failed to init k8s dynamic client: %w", err)
@@ -218,6 +224,46 @@ func (k *Kubernetes) generateResources(def *ResourceTemplateData) ([]*Kubernetes
 		return nil, err
 	}
 	return GenerateResources(def, b)
+}
+
+// validateGVKForDomain checked the supported gvk
+func (k *Kubernetes) validateGVKForDomain(gvk *schema.GroupVersionKind) bool {
+
+	// updating supportedGVKs list also need to update DeleteResourcesForDomain
+	// to delete corresponding resources
+	var supportedGVKs = []schema.GroupVersionKind{
+		{
+			Group:   "extensions",
+			Version: "v1beta1",
+			Kind:    "Ingress",
+		},
+		{
+			Group:   "networking.k8s.io",
+			Version: "v1",
+			Kind:    "Ingress",
+		},
+		{
+			Group:   "networking.k8s.io",
+			Version: "v1beta1",
+			Kind:    "Ingress",
+		},
+		{
+			Group:   "cert-manager.io",
+			Version: "v1",
+			Kind:    "Certificate",
+		},
+	}
+
+	for _, supported := range supportedGVKs {
+		if supported.Group == gvk.Group &&
+			supported.Version == gvk.Version &&
+			supported.Kind == gvk.Kind {
+			return true
+		}
+	}
+
+	return false
+
 }
 
 func GenerateResources(def *ResourceTemplateData, templateBytes []byte) ([]*KubernetesResource, error) {
