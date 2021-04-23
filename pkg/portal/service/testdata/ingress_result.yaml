@@ -1,0 +1,62 @@
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    labels:
+      app.kubernetes.io/managed-by: authgear
+      authgear.com/app-id: app-id-1
+      authgear.com/domain-id: domain-id-1
+    name: http-test.example.com
+    namespace: test-namespace
+  spec:
+    rules:
+    - host: test.example.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: authgear
+              port:
+                number: 80
+          path: /
+          pathType: ImplementationSpecific
+- apiVersion: networking.k8s.io/v1
+  kind: Ingress
+  metadata:
+    labels:
+      app.kubernetes.io/managed-by: authgear
+      authgear.com/app-id: app-id-1
+      authgear.com/domain-id: domain-id-1
+    name: https-test.example.com
+    namespace: test-namespace
+  spec:
+    rules:
+    - host: test.example.com
+      http:
+        paths:
+        - backend:
+            service:
+              name: authgear
+              port:
+                number: 80
+          path: /
+          pathType: ImplementationSpecific
+    tls:
+    - hosts:
+      - test.example.com
+      secretName: tls-test.example.com
+- apiVersion: cert-manager.io/v1
+  kind: Certificate
+  metadata:
+    labels:
+      app.kubernetes.io/managed-by: authgear
+      authgear.com/app-id: app-id-1
+      authgear.com/domain-id: domain-id-1
+    name: cert-test.example.com
+    namespace: test-namespace
+  spec:
+    dnsNames:
+    - test.example.com
+    issuerRef:
+      kind: Issuer
+      name: letsencrypt-staging
+    secretName: tls-test.example.com

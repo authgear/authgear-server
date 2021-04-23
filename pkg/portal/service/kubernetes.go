@@ -46,12 +46,12 @@ type Kubernetes struct {
 	KubernetesConfig *portalconfig.KubernetesConfig
 	AppConfig        *portalconfig.AppConfig
 
-	Context             context.Context                         `wire:"-"`
-	Namespace           string                                  `wire:"-"`
-	KubeConfig          *rest.Config                            `wire:"-"`
-	Client              *kubernetes.Clientset                   `wire:"-"`
-	DynamicClient       dynamic.Interface                       `wire:"-"`
-	DiscoveryRESTMapper *restmapper.DeferredDiscoveryRESTMapper `wire:"-"`
+	Context             context.Context       `wire:"-"`
+	Namespace           string                `wire:"-"`
+	KubeConfig          *rest.Config          `wire:"-"`
+	Client              *kubernetes.Clientset `wire:"-"`
+	DynamicClient       dynamic.Interface     `wire:"-"`
+	DiscoveryRESTMapper meta.RESTMapper       `wire:"-"`
 }
 
 func (k *Kubernetes) open() error {

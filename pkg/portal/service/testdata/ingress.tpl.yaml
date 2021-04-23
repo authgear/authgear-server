@@ -1,0 +1,57 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: authgear
+  name: https-{{ .Host }}
+  labels:
+    app.kubernetes.io/managed-by: authgear
+spec:
+  rules:
+  - host: '{{ .Host }}'
+    http:
+      paths:
+      - backend:
+          service:
+            name: authgear
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+  tls:
+  - hosts:
+    - '{{ .Host }}'
+    secretName: 'tls-{{ .Host }}'
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: authgear
+  name: http-{{ .Host }}
+  labels:
+    app.kubernetes.io/managed-by: authgear
+spec:
+  rules:
+  - host: '{{ .Host }}'
+    http:
+      paths:
+      - backend:
+          service:
+            name: authgear
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cert-{{ .Host }}
+  labels:
+    app.kubernetes.io/managed-by: authgear
+spec:
+  dnsNames:
+  - {{ .Host }}
+  issuerRef:
+    kind: Issuer
+    name: letsencrypt-staging
+  secretName: tls-{{ .Host }}
