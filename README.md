@@ -43,8 +43,8 @@ To avoid doing the above every time you open a new shell, you may want to add it
    To generate the necessary config and secret yaml file, run
 
    ```sh
-   go run ./cmd/authgear init config --output ./var/authgear.yaml
-   go run ./cmd/authgear init secrets --output ./var/authgear.secrets.yaml
+   go run ./cmd/authgear init authgear.yaml --output ./var/authgear.yaml
+   go run ./cmd/authgear init authgear.secrets.yaml --output ./var/authgear.secrets.yaml
    ```
 
    then follow the instructions. For database URL and schema, use the following,
@@ -55,12 +55,22 @@ To avoid doing the above every time you open a new shell, you may want to add it
 
 3. Setup `.localhost` domain
 
-For cookie to work properly, you need to use
+   For cookie to work properly, you need to use
 
-- `portal.localhost:8000` to access the portal.
-- `accounts.portal.localhost:3000` to access the main server.
+   - `portal.localhost:8000` to access the portal.
+   - `accounts.portal.localhost:3000` to access the main server.
 
-You can either do this by editing `/etc/hosts` or install `dnsmasq`.
+   You can either do this by editing `/etc/hosts` or install `dnsmasq`.
+
+4. (Optional) To use db as config source.
+
+   - Update `.env` to change `CONFIG_SOURCE_TYPE=database`
+   - Setup config source in db
+      ```
+      go run ./cmd/portal internal setup-portal ./var/ \
+         --default-authgear-domain=accounts.localhost \
+         --custom-authgear-domain=accounts.portal.localhost \
+      ```
 
 ## Database setup
 
@@ -82,13 +92,13 @@ You can either do this by editing `/etc/hosts` or install `dnsmasq`.
    make sure the db container is running
 
    ```sh
-   go run ./cmd/authgear migrate up --database-url='postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable' --database-schema=app
+   go run ./cmd/authgear database migrate up --database-url='postgres://postgres@127.0.0.1:5432/postgres?sslmode=disable' --database-schema=app
    ```
 
 To create new migration:
 ```sh
-# go run ./cmd/authgear migrate new <migration name>
-go run ./cmd/authgear migrate new add user table
+# go run ./cmd/authgear database migrate new <migration name>
+go run ./cmd/authgear database migrate new add user table
 ```
 
 ## HTTPS setup
