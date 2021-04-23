@@ -15,6 +15,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SystemConfigProvider), "*"),
 	NewConfigServiceLogger,
 	NewAppServiceLogger,
+	NewKubernetesLogger,
 
 	wire.Bind(new(AppAuthzService), new(*AuthzService)),
 	wire.Bind(new(AppConfigService), new(*ConfigService)),

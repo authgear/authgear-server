@@ -27,8 +27,15 @@ import (
 	"k8s.io/client-go/util/homedir"
 
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/util/log"
 	certmanagerclientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 )
+
+type KubernetesLogger struct{ *log.Logger }
+
+func NewKubernetesLogger(lf *log.Factory) KubernetesLogger {
+	return KubernetesLogger{lf.New("kubernetes")}
+}
 
 type ResourceTemplateData struct {
 	AppID    string
@@ -45,6 +52,7 @@ type KubernetesResource struct {
 type Kubernetes struct {
 	KubernetesConfig *portalconfig.KubernetesConfig
 	AppConfig        *portalconfig.AppConfig
+	Logger           KubernetesLogger
 
 	Context             context.Context                `wire:"-"`
 	Namespace           string                         `wire:"-"`
@@ -186,25 +194,33 @@ func (k *Kubernetes) DeleteResourcesForDomain(domainID string) error {
 	}
 
 	ctx := context.Background()
-	_, err = deleteExtensionsV1beta1Ingresses(ctx, k.Client, k.Namespace, listOptions)
+	count, err := deleteExtensionsV1beta1Ingresses(ctx, k.Client, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete extension v1beta1 ingress: %w", err)
 	}
 
-	_, err = deleteNetworkingV1beta1Ingresses(ctx, k.Client, k.Namespace, listOptions)
+	k.Logger.WithField("count", count).Info("deleted k8s extension v1beta1 ingresses")
+
+	count, err = deleteNetworkingV1beta1Ingresses(ctx, k.Client, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete v1beta1 ingress: %w", err)
 	}
 
-	_, err = deleteNetworkingV1Ingresses(ctx, k.Client, k.Namespace, listOptions)
+	k.Logger.WithField("count", count).Info("deleted k8s networking v1beta1 ingresses")
+
+	count, err = deleteNetworkingV1Ingresses(ctx, k.Client, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete v1 ingress: %w", err)
 	}
 
-	_, err = deleteCertmanagerV1Certificate(ctx, k.CertManagerClient, k.Namespace, listOptions)
+	k.Logger.WithField("count", count).Info("deleted k8s networking v1 ingresses")
+
+	count, err = deleteCertmanagerV1Certificate(ctx, k.CertManagerClient, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete cert manager cert: %w", err)
 	}
+
+	k.Logger.WithField("count", count).Info("deleted k8s certs")
 
 	return nil
 }

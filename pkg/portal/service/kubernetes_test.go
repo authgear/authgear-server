@@ -25,6 +25,7 @@ import (
 
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/service"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 func newKubernetesWithDynamicClient(ingressTemplatePath string) (*service.Kubernetes, error) {
@@ -74,6 +75,7 @@ func newKubernetesWithResources(namespace string, objects []runtime.Object, cert
 		Client:            fake.NewSimpleClientset(objects...),
 		CertManagerClient: fakedcertmanager.NewSimpleClientset(certs...),
 		Namespace:         namespace,
+		Logger:            service.KubernetesLogger{log.Null},
 	}, nil
 }
 
@@ -391,12 +393,15 @@ spec:
 		So(err, ShouldBeNil)
 
 		podList, err := kube.Client.CoreV1().Pods("test-namespace").List(context.TODO(), metav1.ListOptions{})
+		So(err, ShouldBeNil)
 		So(len(podList.Items), ShouldEqual, 1)
 
 		ingressesList, err := kube.Client.NetworkingV1().Ingresses("test-namespace").List(context.Background(), metav1.ListOptions{})
+		So(err, ShouldBeNil)
 		So(len(ingressesList.Items), ShouldEqual, 2)
 
 		certList, err := kube.CertManagerClient.CertmanagerV1().Certificates("test-namespace").List(context.TODO(), metav1.ListOptions{})
+		So(err, ShouldBeNil)
 		So(len(certList.Items), ShouldEqual, 2)
 
 	})

@@ -113,9 +113,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	configServiceLogger := service.NewConfigServiceLogger(factory)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
+	kubernetesLogger := service.NewKubernetesLogger(factory)
 	kubernetes := &service.Kubernetes{
 		KubernetesConfig: kubernetesConfig,
 		AppConfig:        appConfig,
+		Logger:           kubernetesLogger,
 	}
 	configService := &service.ConfigService{
 		Context:              context,
@@ -262,9 +264,11 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	configSource := deps.ProvideConfigSource(controller)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
+	kubernetesLogger := service.NewKubernetesLogger(factory)
 	kubernetes := &service.Kubernetes{
 		KubernetesConfig: kubernetesConfig,
 		AppConfig:        appConfig,
+		Logger:           kubernetesLogger,
 	}
 	configService := &service.ConfigService{
 		Context:              context,
