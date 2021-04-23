@@ -46,12 +46,13 @@ type Kubernetes struct {
 	KubernetesConfig *portalconfig.KubernetesConfig
 	AppConfig        *portalconfig.AppConfig
 
-	Context             context.Context       `wire:"-"`
-	Namespace           string                `wire:"-"`
-	KubeConfig          *rest.Config          `wire:"-"`
-	Client              *kubernetes.Clientset `wire:"-"`
-	DynamicClient       dynamic.Interface     `wire:"-"`
-	DiscoveryRESTMapper meta.RESTMapper       `wire:"-"`
+	Context             context.Context                `wire:"-"`
+	Namespace           string                         `wire:"-"`
+	KubeConfig          *rest.Config                   `wire:"-"`
+	Client              kubernetes.Interface           `wire:"-"`
+	CertManagerClient   certmanagerclientset.Interface `wire:"-"`
+	DynamicClient       dynamic.Interface              `wire:"-"`
+	DiscoveryRESTMapper meta.RESTMapper                `wire:"-"`
 }
 
 func (k *Kubernetes) open() error {
@@ -74,10 +75,16 @@ func (k *Kubernetes) open() error {
 	}
 
 	k.KubeConfig = kubeConfig
-	// setup k8s client for delete ingress / cert when deleting domains
+	// setup k8s client for deleting ingress when deleting domains
 	k.Client, err = kubernetes.NewForConfig(kubeConfig)
 	if err != nil {
 		return err
+	}
+
+	// setup cert manager k8s client for deleting cert when deleting domains
+	k.CertManagerClient, err = certmanagerclientset.NewForConfig(k.KubeConfig)
+	if err != nil {
+		return fmt.Errorf("failed to new certmanager client: %w", err)
 	}
 
 	// setup dynamic clients to create domain k8s resources based on template
@@ -162,7 +169,7 @@ func (k *Kubernetes) CreateResourcesForDomain(
 }
 
 func (k *Kubernetes) DeleteResourcesForDomain(domainID string) error {
-	if k.Client == nil {
+	if k.Client == nil || k.CertManagerClient == nil {
 		if err := k.open(); err != nil {
 			return fmt.Errorf("failed to init k8s client: %w", err)
 		}
@@ -178,39 +185,23 @@ func (k *Kubernetes) DeleteResourcesForDomain(domainID string) error {
 		LabelSelector: labelSelector.String(),
 	}
 
-	err = k.Client.
-		ExtensionsV1beta1().
-		Ingresses(k.Namespace).
-		DeleteCollection(context.Background(), metav1.DeleteOptions{}, listOptions)
+	ctx := context.Background()
+	_, err = deleteExtensionsV1beta1Ingresses(ctx, k.Client, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete extension v1beta1 ingress: %w", err)
 	}
 
-	err = k.Client.
-		NetworkingV1beta1().
-		Ingresses(k.Namespace).
-		DeleteCollection(context.Background(), metav1.DeleteOptions{}, listOptions)
+	_, err = deleteNetworkingV1beta1Ingresses(ctx, k.Client, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete v1beta1 ingress: %w", err)
 	}
 
-	err = k.Client.
-		NetworkingV1().
-		Ingresses(k.Namespace).
-		DeleteCollection(context.Background(), metav1.DeleteOptions{}, listOptions)
+	_, err = deleteNetworkingV1Ingresses(ctx, k.Client, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete v1 ingress: %w", err)
 	}
 
-	client, err := certmanagerclientset.NewForConfig(k.KubeConfig)
-	if err != nil {
-		return fmt.Errorf("failed to new certmanager client: %w", err)
-	}
-
-	err = client.
-		CertmanagerV1().
-		Certificates(k.Namespace).
-		DeleteCollection(context.Background(), metav1.DeleteOptions{}, listOptions)
+	_, err = deleteCertmanagerV1Certificate(ctx, k.CertManagerClient, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete cert manager cert: %w", err)
 	}
@@ -264,6 +255,98 @@ func (k *Kubernetes) validateGVKForDomain(gvk *schema.GroupVersionKind) bool {
 
 	return false
 
+}
+
+func deleteExtensionsV1beta1Ingresses(
+	ctx context.Context,
+	k8sClient kubernetes.Interface,
+	namespace string,
+	listOptions metav1.ListOptions,
+) (int, error) {
+	client := k8sClient.ExtensionsV1beta1().Ingresses(namespace)
+	ingresses, err := client.List(ctx, listOptions)
+	if err != nil {
+		return 0, err
+	}
+
+	count := len(ingresses.Items)
+	for _, ingress := range ingresses.Items {
+		err = client.Delete(ctx, ingress.Name, metav1.DeleteOptions{})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return count, nil
+}
+
+func deleteNetworkingV1beta1Ingresses(
+	ctx context.Context,
+	k8sClient kubernetes.Interface,
+	namespace string,
+	listOptions metav1.ListOptions,
+) (int, error) {
+	client := k8sClient.NetworkingV1beta1().Ingresses(namespace)
+	ingresses, err := client.List(ctx, listOptions)
+	if err != nil {
+		return 0, err
+	}
+
+	count := len(ingresses.Items)
+	for _, ingress := range ingresses.Items {
+		err = client.Delete(ctx, ingress.Name, metav1.DeleteOptions{})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return count, nil
+}
+
+func deleteNetworkingV1Ingresses(
+	ctx context.Context,
+	k8sClient kubernetes.Interface,
+	namespace string,
+	listOptions metav1.ListOptions,
+) (int, error) {
+	client := k8sClient.NetworkingV1().Ingresses(namespace)
+	ingresses, err := client.List(ctx, listOptions)
+	if err != nil {
+		return 0, err
+	}
+
+	count := len(ingresses.Items)
+	for _, ingress := range ingresses.Items {
+		err = client.Delete(ctx, ingress.Name, metav1.DeleteOptions{})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return count, nil
+}
+
+func deleteCertmanagerV1Certificate(
+	ctx context.Context,
+	k8sClient certmanagerclientset.Interface,
+	namespace string,
+	listOptions metav1.ListOptions,
+) (int, error) {
+	client := k8sClient.CertmanagerV1().Certificates(namespace)
+	certs, err := client.List(ctx, listOptions)
+	if err != nil {
+		return 0, err
+	}
+
+	count := len(certs.Items)
+	for _, ingress := range certs.Items {
+		err = client.Delete(ctx, ingress.Name, metav1.DeleteOptions{})
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	return count, nil
 }
 
 func GenerateResources(def *ResourceTemplateData, templateBytes []byte) ([]*KubernetesResource, error) {

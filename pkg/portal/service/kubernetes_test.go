@@ -7,11 +7,16 @@ import (
 	"io/ioutil"
 	"testing"
 
+	certmanagerv1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1"
+	fakedcertmanager "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/fake"
+	v1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	fakeddynamic "k8s.io/client-go/dynamic/fake"
+	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/restmapper"
 	coretesting "k8s.io/client-go/testing"
 	"sigs.k8s.io/yaml"
@@ -61,6 +66,14 @@ func newKubernetesWithDynamicClient(ingressTemplatePath string) (*service.Kubern
 		DiscoveryRESTMapper: restMapper,
 		DynamicClient:       fakeDynamicClient,
 		Namespace:           "test-namespace",
+	}, nil
+}
+
+func newKubernetesWithResources(namespace string, objects []runtime.Object, certs []runtime.Object) (*service.Kubernetes, error) {
+	return &service.Kubernetes{
+		Client:            fake.NewSimpleClientset(objects...),
+		CertManagerClient: fakedcertmanager.NewSimpleClientset(certs...),
+		Namespace:         namespace,
 	}, nil
 }
 
@@ -310,6 +323,81 @@ spec:
 			err = kube.CreateResourcesForDomain("app-id-1", "domain-id-1", "test.example.com", true)
 			So(err, ShouldBeError, "k8s gvk type is not supported: /v1, Kind=Pod")
 		})
+
+	})
+
+	Convey("DeleteResourcesForDomain", t, func() {
+		kube, err := newKubernetesWithResources(
+			"test-namespace",
+			[]runtime.Object{
+				&v1.Pod{
+					ObjectMeta: metav1.ObjectMeta{Namespace: "test-namespace", Name: "pod1"},
+				},
+				&networkingv1.Ingress{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "test-namespace",
+						Name:      "app-domain-1",
+						Labels: map[string]string{
+							service.LabelDomainID: "domain-id-1",
+						},
+					},
+				},
+				&networkingv1.Ingress{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "test-namespace",
+						Name:      "app-domain-2",
+						Labels: map[string]string{
+							service.LabelDomainID: "domain-id-2",
+						},
+					},
+				},
+				&networkingv1.Ingress{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "test-namespace",
+						Name:      "infrastructure-ingress",
+					},
+				},
+			},
+			[]runtime.Object{
+				&certmanagerv1.Certificate{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "test-namespace",
+						Name:      "cert-domain-1",
+						Labels: map[string]string{
+							service.LabelDomainID: "domain-id-1",
+						},
+					},
+				},
+				&certmanagerv1.Certificate{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "test-namespace",
+						Name:      "cert-domain-2",
+						Labels: map[string]string{
+							service.LabelDomainID: "domain-id-2",
+						},
+					},
+				},
+				&certmanagerv1.Certificate{
+					ObjectMeta: metav1.ObjectMeta{
+						Namespace: "test-namespace",
+						Name:      "infrastructure-domain",
+					},
+				},
+			},
+		)
+		So(err, ShouldBeNil)
+
+		err = kube.DeleteResourcesForDomain("domain-id-1")
+		So(err, ShouldBeNil)
+
+		podList, err := kube.Client.CoreV1().Pods("test-namespace").List(context.TODO(), metav1.ListOptions{})
+		So(len(podList.Items), ShouldEqual, 1)
+
+		ingressesList, err := kube.Client.NetworkingV1().Ingresses("test-namespace").List(context.Background(), metav1.ListOptions{})
+		So(len(ingressesList.Items), ShouldEqual, 2)
+
+		certList, err := kube.CertManagerClient.CertmanagerV1().Certificates("test-namespace").List(context.TODO(), metav1.ListOptions{})
+		So(len(certList.Items), ShouldEqual, 2)
 
 	})
 
