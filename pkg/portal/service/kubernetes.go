@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"path/filepath"
 	texttemplate "text/template"
 
 	goyaml "gopkg.in/yaml.v2"
@@ -23,10 +22,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/util/kubeutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	certmanagerclientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 )
@@ -64,22 +62,9 @@ type Kubernetes struct {
 }
 
 func (k *Kubernetes) open() error {
-	var kubeConfig *rest.Config
-	var err error
-	if k.KubernetesConfig.KubeConfig == "" {
-		kubeConfig, err = rest.InClusterConfig()
-		if errors.Is(err, rest.ErrNotInCluster) {
-			kubeConfigPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
-			kubeConfig, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-		}
-		if err != nil {
-			return err
-		}
-	} else {
-		kubeConfig, err = clientcmd.BuildConfigFromFlags("", k.KubernetesConfig.KubeConfig)
-		if err != nil {
-			return err
-		}
+	kubeConfig, err := kubeutil.MakeKubeConfig(k.KubernetesConfig.KubeConfig)
+	if err != nil {
+		return err
 	}
 
 	k.KubeConfig = kubeConfig

@@ -2,11 +2,9 @@ package configsource
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net"
 	"net/http"
-	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -21,12 +19,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/kubeutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
@@ -65,22 +62,9 @@ type Kubernetes struct {
 }
 
 func (k *Kubernetes) Open() error {
-	var kubeConfig *rest.Config
-	var err error
-	if k.Config.KubeConfig == "" {
-		kubeConfig, err = rest.InClusterConfig()
-		if errors.Is(err, rest.ErrNotInCluster) {
-			kubeConfigPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
-			kubeConfig, err = clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-		}
-		if err != nil {
-			return err
-		}
-	} else {
-		kubeConfig, err = clientcmd.BuildConfigFromFlags("", k.Config.KubeConfig)
-		if err != nil {
-			return err
-		}
+	kubeConfig, err := kubeutil.MakeKubeConfig(k.Config.KubeConfig)
+	if err != nil {
+		return err
 	}
 
 	k.KubeConfig = kubeConfig
