@@ -44,7 +44,7 @@ var cmdInternalSetupPortal = &cobra.Command{
 }
 
 var cmdInternalBreakingChange = &cobra.Command{
-	Use:   "breaking-change [migrate-k8s-to-db]",
+	Use:   "breaking-change",
 	Short: "Commands for dealing with breaking changes",
 }
 
@@ -72,6 +72,7 @@ func init() {
 	cmdInternal.AddCommand(cmdInternalSetupPortal)
 	cmdInternal.AddCommand(cmdInternalBreakingChange)
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateK8SToDB)
+	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateResources)
 
 	cmdInternalSetupPortal.Flags().StringVar(&DatabaseURL, "database-url", "", "Database URL")
 	cmdInternalSetupPortal.Flags().StringVar(&DatabaseSchema, "database-schema", "", "Database schema name")
