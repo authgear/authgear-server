@@ -1,19 +1,16 @@
 package main
 
 import (
-	"errors"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/authgear/authgear-server/cmd/authgear/migrate"
 )
-
-var DatabaseURL string
-var DatabaseSchema string
 
 func init() {
 	cmdDatabase.AddCommand(cmdMigrate)
@@ -24,18 +21,8 @@ func init() {
 	cmdMigrate.AddCommand(cmdMigrateStatus)
 
 	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown, cmdMigrateStatus} {
-		cmd.Flags().StringVar(
-			&DatabaseURL,
-			"database-url",
-			"",
-			"Database URL",
-		)
-		cmd.Flags().StringVar(
-			&DatabaseSchema,
-			"database-schema",
-			"",
-			"Database schema name",
-		)
+		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
+		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
 	}
 }
 
@@ -62,9 +49,13 @@ var cmdMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf("cannot load secret config: %s", err)
+			log.Fatalf(err.Error())
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
 		}
 
 		migrate.Up(migrate.Options{
@@ -78,9 +69,13 @@ var cmdMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf("cannot load secret config: %s", err)
+			log.Fatalf(err.Error())
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
 		}
 
 		if len(args) == 0 {
@@ -110,9 +105,13 @@ var cmdMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf("cannot load secret config: %s", err)
+			log.Fatalf(err.Error())
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
 		}
 
 		latest := migrate.Status(migrate.Options{
@@ -123,21 +122,4 @@ var cmdMigrateStatus = &cobra.Command{
 			os.Exit(1)
 		}
 	},
-}
-
-func loadDBCredentials() (dbURL string, dbSchema string, err error) {
-	if DatabaseURL == "" {
-		DatabaseURL = os.Getenv("DATABASE_URL")
-	}
-	if DatabaseSchema == "" {
-		DatabaseSchema = os.Getenv("DATABASE_SCHEMA")
-	}
-
-	if DatabaseURL == "" {
-		return "", "", errors.New("missing database URL")
-	}
-	if DatabaseSchema == "" {
-		return "", "", errors.New("missing database schema")
-	}
-	return DatabaseURL, DatabaseSchema, nil
 }
