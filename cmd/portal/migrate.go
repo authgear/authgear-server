@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/authgear/authgear-server/cmd/portal/migrate"
 )
@@ -20,18 +21,8 @@ func init() {
 	cmdMigrate.AddCommand(cmdMigrateStatus)
 
 	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown, cmdMigrateStatus} {
-		cmd.Flags().StringVar(
-			&DatabaseURL,
-			"database-url",
-			"",
-			"Database URL",
-		)
-		cmd.Flags().StringVar(
-			&DatabaseSchema,
-			"database-schema",
-			"",
-			"Database schema name",
-		)
+		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
+		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
 	}
 }
 
@@ -58,7 +49,11 @@ var cmdMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -74,7 +69,11 @@ var cmdMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -106,7 +105,11 @@ var cmdMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
