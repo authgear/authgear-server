@@ -85,7 +85,7 @@
                 {{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
                     <li>{{ template "error-remove-last-secondary-authenticator" }}</li>
                 {{ else if (eq $cause.kind "DuplicatedIdentity") }}
-                    <li>{{ template "error-duplicated-identity" }}</li>
+                    <li>{{ template "error-duplicated-identity" (dict "IntentKind" $info.IntentKind "IdentityType" $info.IdentityType "LoginIDType" $info.LoginIDType) }}</li>
                 {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
                     <li>{{ template "error-duplicated-authenticator" }}</li>
                 {{ else }}

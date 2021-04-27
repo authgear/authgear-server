@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Info struct {
@@ -264,4 +266,15 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
+}
+
+func (i *Info) FillDetails(err error) error {
+	details := errorutil.Details{
+		"IdentityType": apierrors.APIErrorDetail.Value(i.Type),
+	}
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		details["LoginIDType"] = apierrors.APIErrorDetail.Value(i.Claims[IdentityClaimLoginIDType])
+	}
+	return errorutil.WithDetails(err, details)
 }

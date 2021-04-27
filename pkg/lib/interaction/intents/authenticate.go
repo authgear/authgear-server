@@ -87,7 +87,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 						&nodes.EdgeDoUseIdentity{Identity: node.IdentityInfo},
 					}, nil
 				default:
-					return nil, interaction.ErrDuplicatedIdentity
+					return nil, node.IdentityInfo.FillDetails(interaction.ErrDuplicatedIdentity)
 				}
 			}
 
@@ -138,7 +138,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		case IntentAuthenticateKindPromote:
 			switch node.IdentityConflictConfig.Promotion {
 			case config.PromotionConflictBehaviorError:
-				return nil, interaction.ErrDuplicatedIdentity
+				return nil, node.DuplicatedIdentity.FillDetails(interaction.ErrDuplicatedIdentity)
 			case config.PromotionConflictBehaviorLogin:
 				// Authenticate using duplicated identity
 				return []interaction.Edge{
@@ -151,7 +151,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			}
 		default:
 			// TODO(interaction): handle OAuth identity conflict
-			return nil, interaction.ErrDuplicatedIdentity
+			return nil, node.DuplicatedIdentity.FillDetails(interaction.ErrDuplicatedIdentity)
 		}
 
 	case *nodes.NodeDoCreateIdentity:
