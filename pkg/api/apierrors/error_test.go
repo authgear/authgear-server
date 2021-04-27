@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -116,6 +117,22 @@ func TestAPIError(t *testing.T) {
 						apierrors.StringCause("TooShort"),
 						apierrors.StringCause("TooSimple"),
 					},
+				},
+			})
+		})
+		Convey("collect all details", func() {
+			a := fmt.Errorf("a")
+			b := errorutil.WithDetails(a, errorutil.Details{
+				"b": apierrors.APIErrorDetail.Value("b"),
+			})
+			c := fmt.Errorf("c: %w", b)
+			apiErr := apierrors.AsAPIError(c)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.InternalError, Reason: "UnexpectedError"},
+				Message: "unexpected error occurred",
+				Code:    apierrors.InternalError.HTTPStatus(),
+				Info: map[string]interface{}{
+					"b": "b",
 				},
 			})
 		})

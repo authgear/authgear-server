@@ -127,24 +127,37 @@ func IsAPIError(err error) bool {
 	return errors.As(err, &v)
 }
 
+func mergeInfo(infos ...map[string]interface{}) map[string]interface{} {
+	out := make(map[string]interface{})
+	for _, info := range infos {
+		for k, v := range info {
+			out[k] = v
+		}
+	}
+	return out
+}
+
 func AsAPIError(err error) *APIError {
 	if err == nil {
 		return nil
 	}
 
+	details := errorutil.CollectDetails(err, nil)
+	info := errorutil.FilterDetails(details, APIErrorDetail)
+
 	var apiError *APIError
 	if errors.As(err, &apiError) {
+		apiError.Info = mergeInfo(apiError.Info, info)
 		return apiError
 	}
 
 	var e *skyerr
 	if errors.As(err, &e) {
-		details := errorutil.CollectDetails(err, nil)
 		return &APIError{
 			Kind:    e.kind,
 			Message: e.Error(),
 			Code:    e.kind.Name.HTTPStatus(),
-			Info:    errorutil.FilterDetails(details, APIErrorDetail),
+			Info:    info,
 		}
 	}
 
@@ -155,13 +168,12 @@ func AsAPIError(err error) *APIError {
 			c := c
 			causes[i] = &c
 		}
+		info["causes"] = causes
 		return &APIError{
 			Kind:    ValidationFailed,
 			Message: v.Message,
 			Code:    ValidationFailed.Name.HTTPStatus(),
-			Info: map[string]interface{}{
-				"causes": causes,
-			},
+			Info:    info,
 		}
 	}
 
@@ -169,6 +181,7 @@ func AsAPIError(err error) *APIError {
 		Kind:    Kind{InternalError, "UnexpectedError"},
 		Message: "unexpected error occurred",
 		Code:    InternalError.HTTPStatus(),
+		Info:    info,
 	}
 }
 
