@@ -17,6 +17,7 @@
     <div class="icon"><i class="far fa-times-circle"></i></div>
     <ul class="messages-txt error-txt">
         {{ if $display_error }}
+            {{ $info := .Error.info }}
             {{ if eq .Error.reason "ValidationFailed" }}
                 {{ range .Error.info.causes }}
                     {{ if (eq .kind "required") }}
@@ -45,11 +46,11 @@
                         {{ end }}
                     {{ else if (eq .kind "format") }}
                         {{ if (eq .details.format "phone") }}
-                            <li>{{ template "error-phone-number-format" }}</li>
+                            <li>{{ template "error-phone-number-format" (dict "IntentKind" $info.IntentKind) }}</li>
                         {{ else if (eq .details.format "email") }}
-                            <li>{{ template "error-invalid-email" }}</li>
+                            <li>{{ template "error-invalid-email" (dict "IntentKind" $info.IntentKind) }}</li>
                         {{ else if (eq .details.format "username") }}
-                            <li>{{ template "error-invalid-username" }}</li>
+                            <li>{{ template "error-invalid-username" (dict "IntentKind" $info.IntentKind) }}</li>
                         {{ else }}
                             <li>{{ . }}</li>
                         {{ end }}
