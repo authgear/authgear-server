@@ -6,10 +6,12 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -243,6 +245,12 @@ func (g *Graph) GetACR(amrValues []string) string {
 	return ""
 }
 
+func (g *Graph) FillDetails(err error) error {
+	return errorutil.WithDetails(err, errorutil.Details{
+		"IntentKind": apierrors.APIErrorDetail.Value(IntentKind(g.Intent)),
+	})
+}
+
 // Apply applies the effect the the graph nodes into the context.
 func (g *Graph) Apply(ctx *Context) error {
 	for i, node := range g.Nodes {
@@ -250,12 +258,12 @@ func (g *Graph) Apply(ctx *Context) error {
 		slicedGraph := *g
 		slicedGraph.Nodes = slicedGraph.Nodes[:i+1]
 		if err := node.Prepare(ctx, &slicedGraph); err != nil {
-			return err
+			return g.FillDetails(err)
 		}
 
 		effs, err := node.GetEffects()
 		if err != nil {
-			return err
+			return g.FillDetails(err)
 		}
 		for _, eff := range effs {
 			// Apply the effect with unsliced graph.
@@ -275,7 +283,7 @@ func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 		node := graph.CurrentNode()
 		edges, err := node.DeriveEdges(graph)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, graph.FillDetails(err)
 		}
 
 		if len(edges) == 0 {
@@ -296,7 +304,7 @@ func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 				// so stop and request new input.
 				return graph.clone(), edges, &ErrInputRequired{Inner: err}
 			} else if err != nil {
-				return nil, nil, err
+				return nil, nil, graph.FillDetails(err)
 			}
 			break
 		}
