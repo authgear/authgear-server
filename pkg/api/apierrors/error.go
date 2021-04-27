@@ -98,10 +98,6 @@ func (k Kind) Errorf(format string, args ...interface{}) error {
 	return k.Wrap(err, err.Error())
 }
 
-type APIErrorConvertible interface {
-	AsAPIError() *APIError
-}
-
 type skyerr struct {
 	inner   error
 	msg     string
@@ -124,11 +120,6 @@ func IsAPIError(err error) bool {
 
 	var e *skyerr
 	if errors.As(err, &e) {
-		return true
-	}
-
-	var c APIErrorConvertible
-	if errors.As(err, &c) {
 		return true
 	}
 
@@ -155,11 +146,6 @@ func AsAPIError(err error) *APIError {
 			Code:    e.kind.Name.HTTPStatus(),
 			Info:    errorutil.FilterDetails(details, APIErrorDetail),
 		}
-	}
-
-	var c APIErrorConvertible
-	if errors.As(err, &c) {
-		return c.AsAPIError()
 	}
 
 	var v *validation.AggregatedError
