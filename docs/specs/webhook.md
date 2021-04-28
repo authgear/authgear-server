@@ -187,10 +187,13 @@ Operation can be aborted by providing specific response in your webhook, details
 {
   "payload": {
     "user": { /* ... */ },
-    "identities": [ { /* ... */ } ]
+    "identities": [ { /* ... */ } ],
+    "state": ""
   }
 }
 ```
+
+- `state`: OIDC state if the signup is triggered through authorize endpoint.
 
 ### user.created
 
