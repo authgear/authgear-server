@@ -31,6 +31,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Scope:            r.Form.Get("scope"),
 		Error:            r.Form.Get("error"),
 		ErrorDescription: r.Form.Get("error_description"),
+		ErrorURI:         r.Form.Get("error_uri"),
 	}
 
 	handler := func() error {

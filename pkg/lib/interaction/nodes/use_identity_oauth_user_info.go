@@ -22,6 +22,7 @@ type InputUseIdentityOAuthUserInfo interface {
 	GetScope() string
 	GetError() string
 	GetErrorDescription() string
+	GetErrorURI() string
 }
 
 type EdgeUseIdentityOAuthUserInfo struct {
@@ -44,6 +45,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	scope := input.GetScope()
 	oauthError := input.GetError()
 	errorDescription := input.GetErrorDescription()
+	errorURI := input.GetErrorURI()
 	hashedNonce := e.HashedNonce
 
 	if e.Config.Alias != alias {
@@ -57,7 +59,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 
 	// Handle provider error
 	if oauthError != "" {
-		return nil, fmt.Errorf("%s: %s", oauthError, errorDescription)
+		return nil, sso.NewOAuthError(oauthError, errorDescription, errorURI)
 	}
 
 	if nonceSource == "" {
