@@ -91,7 +91,12 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	opts := webapp.SessionOptions{
 		RedirectURI: ctrl.RedirectURI(),
 	}
-	intent := intents.NewIntentSignup()
+
+	webhookState := ""
+	if s := webapp.GetSession(r.Context()); s != nil {
+		webhookState = s.WebhookState
+	}
+	intent := intents.NewIntentSignup(webhookState)
 
 	ctrl.Get(func() error {
 		graph, err := ctrl.EntryPointGet(opts, intent)

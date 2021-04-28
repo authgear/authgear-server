@@ -80,6 +80,7 @@ type AuthenticateURLOptions struct {
 	UILocales        string
 	Prompt           string
 	Page             string
+	WebhookState     string
 	AuthenticateHint interface{}
 }
 type PageService interface {
@@ -102,9 +103,10 @@ type AuthenticateURLProvider struct {
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
 	now := p.Clock.NowUTC()
 	session := NewSession(SessionOptions{
-		RedirectURI: options.RedirectURI,
-		Prompt:      options.Prompt,
-		UpdatedAt:   now,
+		RedirectURI:  options.RedirectURI,
+		Prompt:       options.Prompt,
+		WebhookState: options.WebhookState,
+		UpdatedAt:    now,
 	})
 
 	var result *Result

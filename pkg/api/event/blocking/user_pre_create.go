@@ -12,6 +12,7 @@ const (
 type UserPreCreateBlockingEvent struct {
 	User       model.User       `json:"user"`
 	Identities []model.Identity `json:"identities"`
+	State      string           `json:"state,omitempty"`
 	AdminAPI   bool             `json:"-"`
 }
 

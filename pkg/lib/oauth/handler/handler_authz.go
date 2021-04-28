@@ -139,6 +139,7 @@ func (h *AuthorizationHandler) doHandle(
 
 		authorizeURI := h.OAuthURLs.AuthorizeURL(r)
 		authnOptions.RedirectURI = authorizeURI.String()
+		authnOptions.WebhookState = r.State()
 
 		resp, err := h.WebAppURLs.AuthenticateURL(authnOptions)
 		if apierrors.IsKind(err, interaction.InvalidCredentials) {

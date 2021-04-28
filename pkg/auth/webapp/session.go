@@ -24,6 +24,7 @@ type SessionOptions struct {
 	KeepAfterFinish bool
 	Prompt          string
 	Extra           map[string]interface{}
+	WebhookState    string
 	UpdatedAt       time.Time
 }
 
@@ -33,6 +34,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		KeepAfterFinish: s.KeepAfterFinish,
 		Prompt:          s.Prompt,
 		Extra:           nil, // Omit extra by default
+		WebhookState:    s.WebhookState,
 	}
 }
 
@@ -57,6 +59,10 @@ type Session struct {
 
 	// UpdatedAt indicate the session last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+
+	// WebhookState is the state parameter that will pass to the webhook
+	// during the web session
+	WebhookState string `json:"webhook_state,omitempty"`
 }
 
 func newSessionID() string {
@@ -75,6 +81,7 @@ func NewSession(options SessionOptions) *Session {
 		Extra:           make(map[string]interface{}),
 		Prompt:          options.Prompt,
 		UpdatedAt:       options.UpdatedAt,
+		WebhookState:    options.WebhookState,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v
