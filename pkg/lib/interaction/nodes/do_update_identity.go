@@ -20,14 +20,15 @@ type EdgeDoUpdateIdentity struct {
 }
 
 func (e *EdgeDoUpdateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	modifyDisabled := e.IdentityBeforeUpdate.ModifyDisabled(ctx.Config.Identity)
-	if modifyDisabled {
+	if !isAdminAPI && modifyDisabled {
 		return nil, interaction.ErrIdentityModifyDisabled
 	}
 	return &NodeDoUpdateIdentity{
 		IdentityBeforeUpdate: e.IdentityBeforeUpdate,
 		IdentityAfterUpdate:  e.IdentityAfterUpdate,
-		IsAdminAPI:           interaction.IsAdminAPI(rawInput),
+		IsAdminAPI:           isAdminAPI,
 	}, nil
 }
 

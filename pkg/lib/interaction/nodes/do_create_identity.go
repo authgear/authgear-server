@@ -20,15 +20,14 @@ type EdgeDoCreateIdentity struct {
 }
 
 func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	if e.IsAddition {
-		modifyDisabled := e.Identity.ModifyDisabled(ctx.Config.Identity)
-		if modifyDisabled {
-			return nil, interaction.ErrIdentityModifyDisabled
-		}
+	isAdminAPI := interaction.IsAdminAPI(rawInput)
+	modifyDisabled := e.Identity.ModifyDisabled(ctx.Config.Identity)
+	if e.IsAddition && !isAdminAPI && modifyDisabled {
+		return nil, interaction.ErrIdentityModifyDisabled
 	}
 	return &NodeDoCreateIdentity{
 		Identity:   e.Identity,
-		IsAdminAPI: interaction.IsAdminAPI(rawInput),
+		IsAdminAPI: isAdminAPI,
 	}, nil
 }
 
