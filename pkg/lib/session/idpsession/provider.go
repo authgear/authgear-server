@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -61,12 +60,12 @@ func (p *Provider) Create(session *IDPSession) error {
 	expiry := computeSessionStorageExpiry(session, p.Config)
 	err := p.Store.Create(session, expiry)
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to create session")
+		return fmt.Errorf("failed to create session: %w", err)
 	}
 
 	err = p.AccessEvents.InitStream(session.ID, &session.AccessInfo.InitialAccess)
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to access session")
+		return fmt.Errorf("failed to access session: %w", err)
 	}
 
 	return nil
@@ -81,7 +80,7 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 	s, err := p.Store.Get(id)
 	if err != nil {
 		if !errors.Is(err, ErrSessionNotFound) {
-			err = errorutil.HandledWithMessage(err, "failed to get session")
+			err = fmt.Errorf("failed to get session: %w", err)
 		}
 		return nil, err
 	}
@@ -105,7 +104,7 @@ func (p *Provider) Get(id string) (*IDPSession, error) {
 	session, err := p.Store.Get(id)
 	if err != nil {
 		if !errors.Is(err, ErrSessionNotFound) {
-			err = errorutil.HandledWithMessage(err, "failed to get session")
+			err = fmt.Errorf("failed to get session: %w", err)
 		}
 		return nil, err
 	}
@@ -117,7 +116,7 @@ func (p *Provider) Update(sess *IDPSession) error {
 	expiry := computeSessionStorageExpiry(sess, p.Config)
 	err := p.Store.Update(sess, expiry)
 	if err != nil {
-		err = errorutil.HandledWithMessage(err, "failed to update session")
+		err = fmt.Errorf("failed to update session: %w", err)
 	}
 	return err
 }

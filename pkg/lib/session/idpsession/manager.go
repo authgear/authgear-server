@@ -2,12 +2,12 @@ package idpsession
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -32,7 +32,7 @@ func (m *Manager) Get(id string) (session.Session, error) {
 	if errors.Is(err, ErrSessionNotFound) {
 		return nil, session.ErrSessionNotFound
 	} else if err != nil {
-		return nil, errorutil.HandledWithMessage(err, "failed to get session")
+		return nil, fmt.Errorf("failed to get session: %w", err)
 	}
 	return s, nil
 }
@@ -42,7 +42,7 @@ func (m *Manager) Update(session session.Session) error {
 	expiry := computeSessionStorageExpiry(s, m.Config)
 	err := m.Store.Update(s, expiry)
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to update session")
+		return fmt.Errorf("failed to update session: %w", err)
 	}
 	return nil
 }
@@ -50,7 +50,7 @@ func (m *Manager) Update(session session.Session) error {
 func (m *Manager) Delete(session session.Session) error {
 	err := m.Store.Delete(session.(*IDPSession))
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to invalidate session")
+		return fmt.Errorf("failed to invalidate session: %w", err)
 	}
 	return nil
 }
@@ -58,7 +58,7 @@ func (m *Manager) Delete(session session.Session) error {
 func (m *Manager) List(userID string) ([]session.Session, error) {
 	storedSessions, err := m.Store.List(userID)
 	if err != nil {
-		return nil, errorutil.HandledWithMessage(err, "failed to list sessions")
+		return nil, fmt.Errorf("failed to list sessions: %w", err)
 	}
 
 	now := m.Clock.NowUTC()
