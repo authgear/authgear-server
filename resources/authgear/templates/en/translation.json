@@ -28,7 +28,7 @@
   "error-invalid-username": "{IntentKind, select, IntentAuthenticate {Please sign up with a valid username} other {Invalid username}}",
   "error-email-not-allowed": "Email is not allowed",
   "error-username-not-allowed": "Username is not allowed",
-  "error-invalid-credentials": "Invalid credentials",
+  "error-invalid-credentials": "{AuthenticationType, select, password {Incorrect password} otp {Incorrect code} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {Email} phone {Phone} username {Username} other {Identity}} already exists, maybe you want to login?} other {The email has been claimed by an existing account, maybe you want to login?}}} other {This identity has been claimed by another user.}}",

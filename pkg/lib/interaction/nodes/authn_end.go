@@ -1,9 +1,11 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 func init() {
@@ -57,15 +59,15 @@ func (n *NodeAuthenticationEnd) DeriveEdges(graph *interaction.Graph) ([]interac
 		break
 	case AuthenticationTypePassword:
 		if n.VerifiedAuthenticator == nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, n.FillDetails(interaction.ErrInvalidCredentials)
 		}
 	case AuthenticationTypeOTP:
 		if n.VerifiedAuthenticator == nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, n.FillDetails(interaction.ErrInvalidCredentials)
 		}
 	case AuthenticationTypeRecoveryCode:
 		if n.RecoveryCode == nil {
-			return nil, interaction.ErrInvalidCredentials
+			return nil, n.FillDetails(interaction.ErrInvalidCredentials)
 		}
 	case AuthenticationTypeDeviceToken:
 		break
@@ -74,4 +76,10 @@ func (n *NodeAuthenticationEnd) DeriveEdges(graph *interaction.Graph) ([]interac
 	}
 
 	return graph.Intent.DeriveEdgesForNode(graph, n)
+}
+
+func (n *NodeAuthenticationEnd) FillDetails(err error) error {
+	return errorutil.WithDetails(err, errorutil.Details{
+		"AuthenticationType": apierrors.APIErrorDetail.Value(n.AuthenticationType),
+	})
 }
