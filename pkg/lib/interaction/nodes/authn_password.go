@@ -83,6 +83,7 @@ func (n *NodeAuthenticationPassword) DeriveEdges(graph *interaction.Graph) ([]in
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,
+			AuthenticationType:    AuthenticationTypePassword,
 			VerifiedAuthenticator: n.Authenticator,
 		},
 	}, nil

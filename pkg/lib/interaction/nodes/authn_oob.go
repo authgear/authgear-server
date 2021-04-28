@@ -51,6 +51,7 @@ func (n *NodeAuthenticationOOB) DeriveEdges(graph *interaction.Graph) ([]interac
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,
+			AuthenticationType:    AuthenticationTypeOTP,
 			VerifiedAuthenticator: n.Authenticator,
 		},
 	}, nil

@@ -198,8 +198,8 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 
 		return []interaction.Edge{
 			&EdgeAuthenticationEnd{
-				Stage:  n.Stage,
-				Result: AuthenticationResultOptional,
+				Stage:              n.Stage,
+				AuthenticationType: AuthenticationTypeNone,
 			},
 		}, nil
 	}

@@ -10,23 +10,19 @@ func init() {
 	interaction.RegisterNode(&NodeAuthenticationEnd{})
 }
 
-type AuthenticationResult string
+type AuthenticationType string
 
 const (
-	// AuthenticationResultRequired is zero value so by default authentication is performed by an authenticator.
-	AuthenticationResultRequired AuthenticationResult = ""
-	// AuthenticationResultRecoveryCode means the authentication is performed by a recovery code.
-	AuthenticationResultRecoveryCode AuthenticationResult = "recovery_code"
-	// AuthenticationResultOptional means the authentication is optional.
-	// For example, OAuth identity does not require authenticator.
-	AuthenticationResultOptional AuthenticationResult = "optional"
-	// AuthenticationResultDeviceToken means the authentication is performed by a device token.
-	AuthenticationResultDeviceToken AuthenticationResult = "device_token"
+	AuthenticationTypeNone         AuthenticationType = "none"
+	AuthenticationTypePassword     AuthenticationType = "password"
+	AuthenticationTypeOTP          AuthenticationType = "otp"
+	AuthenticationTypeRecoveryCode AuthenticationType = "recovery_code"
+	AuthenticationTypeDeviceToken  AuthenticationType = "device_token"
 )
 
 type EdgeAuthenticationEnd struct {
 	Stage                 interaction.AuthenticationStage
-	Result                AuthenticationResult
+	AuthenticationType    AuthenticationType
 	VerifiedAuthenticator *authenticator.Info
 	RecoveryCode          *mfa.RecoveryCode
 }
@@ -34,7 +30,7 @@ type EdgeAuthenticationEnd struct {
 func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	return &NodeAuthenticationEnd{
 		Stage:                 e.Stage,
-		Result:                e.Result,
+		AuthenticationType:    e.AuthenticationType,
 		VerifiedAuthenticator: e.VerifiedAuthenticator,
 		RecoveryCode:          e.RecoveryCode,
 	}, nil
@@ -42,7 +38,7 @@ func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *int
 
 type NodeAuthenticationEnd struct {
 	Stage                 interaction.AuthenticationStage `json:"stage"`
-	Result                AuthenticationResult            `json:"result"`
+	AuthenticationType    AuthenticationType              `json:"authentication_type"`
 	VerifiedAuthenticator *authenticator.Info             `json:"verified_authenticator"`
 	RecoveryCode          *mfa.RecoveryCode               `json:"recovery_code"`
 }
@@ -56,21 +52,25 @@ func (n *NodeAuthenticationEnd) GetEffects() ([]interaction.Effect, error) {
 }
 
 func (n *NodeAuthenticationEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	switch n.Result {
-	case AuthenticationResultRequired:
+	switch n.AuthenticationType {
+	case AuthenticationTypeNone:
+		break
+	case AuthenticationTypePassword:
 		if n.VerifiedAuthenticator == nil {
 			return nil, interaction.ErrInvalidCredentials
 		}
-	case AuthenticationResultRecoveryCode:
+	case AuthenticationTypeOTP:
+		if n.VerifiedAuthenticator == nil {
+			return nil, interaction.ErrInvalidCredentials
+		}
+	case AuthenticationTypeRecoveryCode:
 		if n.RecoveryCode == nil {
 			return nil, interaction.ErrInvalidCredentials
 		}
-	case AuthenticationResultOptional:
-		break
-	case AuthenticationResultDeviceToken:
+	case AuthenticationTypeDeviceToken:
 		break
 	default:
-		panic("interaction: unknown authentication result: " + n.Result)
+		panic("interaction: unknown authentication type: " + n.AuthenticationType)
 	}
 
 	return graph.Intent.DeriveEdgesForNode(graph, n)
