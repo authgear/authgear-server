@@ -84,12 +84,6 @@ Use simple wrapped errors when adding context to errors from dependency:
 err := errors.Newf("failed to update user: %w", err)
 ```
 
-### Error barrier
-Use error barrier when caller should not inspect the the dependency error:
-```go
-err := errors.HandledWithMessage(err, "failed to update user")
-```
-
 ### Secondary error
 Use secondary error when error occured while handling error:
 ```go
@@ -113,18 +107,14 @@ For example, `sql` would be logged to console (i.e. visible to sysadmin):
 err := errors.WithDetails(err, errors.Details{"sql": errors.SafeDetail.Value(sql)})
 ```
 
-Attached details can be collected using `errors.CollectDetails`. Detail
-collection ignores error barriers to collect complete details.
-
+Attached details can be collected using `errors.CollectDetails`.
 ### Error inspection
 Wrapped error can be inspected using standard `errors.Is/As/Unwrap` API. For
 API errors, `skyerr.IsKind` can be used to check if the error is specific kind.
 Direct equality check against error sentinels is forbidden.
 
 For logging purpose, a error summary (i.e. aggregated error messages) can be
-produced using `errors.Summary`. The error summary ignores error barriers to
-produce a complete message.
-
+produced using `errors.Summary`.
 
 Architecture layers
 -------------------
@@ -142,10 +132,7 @@ This layer handles the main application logic. Most common components in this
 layer are providers.
 
 Components in this layer should return plain errors, error sentinels, or API
-errors. Errors from data layer should be wrapped in error barrier, as it is
-an implementation details of the component (e.g. a session provider may use
-a Redis session store, but Redis error should not be inspected by other
-providers). Errors from other logic layer components should be returned
+errors. Errors from other logic layer components should be returned
 directly or wrapped.
 
 For some simple modules, a logic layer encapsulating component may be missing

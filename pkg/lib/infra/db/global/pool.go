@@ -1,13 +1,13 @@
 package global
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
 type Pool struct {
@@ -45,7 +45,7 @@ func (p *Pool) doOpen() (*sqlx.DB, error) {
 
 	db, err := sqlx.Open("postgres", p.Config.DatabaseURL)
 	if err != nil {
-		return nil, errorutil.HandledWithMessage(err, "failed to connect to database")
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	db.SetMaxOpenConns(p.Config.MaxOpenConn)

@@ -3,6 +3,7 @@ package tenant
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 
@@ -108,7 +109,7 @@ func (h *Handle) beginTx() error {
 		Isolation: sql.LevelRepeatableRead,
 	})
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to begin transaction")
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 
 	h.tx = tx
@@ -133,7 +134,7 @@ func (h *Handle) commitTx() error {
 
 	err := h.tx.Commit()
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to commit transaction")
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	h.tx = nil
 
@@ -151,7 +152,7 @@ func (h *Handle) rollbackTx() error {
 
 	err := h.tx.Rollback()
 	if err != nil {
-		return errorutil.HandledWithMessage(err, "failed to rollback transaction")
+		return fmt.Errorf("failed to rollback transaction: %w", err)
 	}
 
 	h.tx = nil
@@ -176,7 +177,7 @@ func (h *Handle) openDB() (*sqlx.DB, error) {
 
 		db, err := h.pool.Open(opts)
 		if err != nil {
-			return nil, errorutil.HandledWithMessage(err, "failed to connect to database")
+			return nil, fmt.Errorf("failed to connect to database: %w", err)
 		}
 
 		h.db = db
