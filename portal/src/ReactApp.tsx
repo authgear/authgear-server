@@ -42,6 +42,7 @@ async function loadSystemConfig(): Promise<SystemConfig> {
 async function initApp(systemConfig: SystemConfig) {
   loadTheme(systemConfig.themes.main);
   await authgear.configure({
+    sessionType: "cookie",
     clientID: systemConfig.authgearClientID,
     endpoint: systemConfig.authgearEndpoint,
   });
