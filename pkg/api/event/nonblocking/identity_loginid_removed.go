@@ -47,4 +47,7 @@ func (e *IdentityLoginIDRemovedEvent) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
+func (e *IdentityLoginIDRemovedEvent) FillContext(ctx *event.Context) {
+}
+
 var _ event.NonBlockingPayload = &IdentityLoginIDRemovedEvent{}

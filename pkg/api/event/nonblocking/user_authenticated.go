@@ -27,4 +27,7 @@ func (e *UserAuthenticatedEvent) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
+func (e *UserAuthenticatedEvent) FillContext(ctx *event.Context) {
+}
+
 var _ event.NonBlockingPayload = &UserAuthenticatedEvent{}

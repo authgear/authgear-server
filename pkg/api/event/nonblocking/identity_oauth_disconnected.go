@@ -27,4 +27,7 @@ func (e *IdentityOAuthDisconnectedEvent) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
+func (e *IdentityOAuthDisconnectedEvent) FillContext(ctx *event.Context) {
+}
+
 var _ event.NonBlockingPayload = &IdentityOAuthDisconnectedEvent{}

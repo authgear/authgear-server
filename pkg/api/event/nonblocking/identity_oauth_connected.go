@@ -27,4 +27,7 @@ func (e *IdentityOAuthConnectedEvent) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
+func (e *IdentityOAuthConnectedEvent) FillContext(ctx *event.Context) {
+}
+
 var _ event.NonBlockingPayload = &IdentityOAuthConnectedEvent{}

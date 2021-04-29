@@ -46,7 +46,7 @@ func (c *Commands) AfterCreate(
 			User:       *userModel,
 			Identities: identityModels,
 			AdminAPI:   isAdminAPI,
-			State:      webhookState,
+			OAuthState: webhookState,
 		},
 		&nonblocking.UserCreatedEvent{
 			User:       *userModel,

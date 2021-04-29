@@ -185,15 +185,20 @@ Operation can be aborted by providing specific response in your webhook, details
 
 ```json5
 {
+  "context": {
+    ....
+    "oauth": {
+      "state": "the-value-of-state-if-provided"
+    }
+  },
   "payload": {
     "user": { /* ... */ },
-    "identities": [ { /* ... */ } ],
-    "state": ""
+    "identities": [ { /* ... */ } ]
   }
 }
 ```
 
-- `state`: OIDC state if the signup is triggered through authorize endpoint.
+- `oauth.state`: OAuth state if the signup is triggered through authorize endpoint with state parameter.
 
 ### user.created
 

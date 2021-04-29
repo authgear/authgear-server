@@ -28,4 +28,7 @@ func (e *UserAnonymousPromotedEvent) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
+func (e *UserAnonymousPromotedEvent) FillContext(ctx *event.Context) {
+}
+
 var _ event.NonBlockingPayload = &UserAnonymousPromotedEvent{}
