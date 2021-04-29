@@ -11,7 +11,7 @@ const (
 	IdentityLoginIDUpdatedFormat string = "identity.%s.updated"
 )
 
-type IdentityLoginIDUpdatedEvent struct {
+type IdentityLoginIDUpdatedEventPayload struct {
 	User        model.User     `json:"user"`
 	NewIdentity model.Identity `json:"new_identity"`
 	OldIdentity model.Identity `json:"old_identity"`
@@ -19,15 +19,15 @@ type IdentityLoginIDUpdatedEvent struct {
 	AdminAPI    bool           `json:"-"`
 }
 
-func NewIdentityLoginIDUpdatedEvent(
+func NewIdentityLoginIDUpdatedEventPayload(
 	user model.User,
 	newIdentity model.Identity,
 	oldIdentity model.Identity,
 	loginIDType string,
 	adminAPI bool,
-) *IdentityLoginIDUpdatedEvent {
+) *IdentityLoginIDUpdatedEventPayload {
 	if checkIdentityEventSupportLoginIDType(loginIDType) {
-		return &IdentityLoginIDUpdatedEvent{
+		return &IdentityLoginIDUpdatedEventPayload{
 			User:        user,
 			NewIdentity: newIdentity,
 			OldIdentity: oldIdentity,
@@ -38,19 +38,19 @@ func NewIdentityLoginIDUpdatedEvent(
 	return nil
 }
 
-func (e *IdentityLoginIDUpdatedEvent) NonBlockingEventType() event.Type {
+func (e *IdentityLoginIDUpdatedEventPayload) NonBlockingEventType() event.Type {
 	return event.Type(fmt.Sprintf(IdentityLoginIDUpdatedFormat, e.LoginIDType))
 }
 
-func (e *IdentityLoginIDUpdatedEvent) UserID() string {
+func (e *IdentityLoginIDUpdatedEventPayload) UserID() string {
 	return e.User.ID
 }
 
-func (e *IdentityLoginIDUpdatedEvent) IsAdminAPI() bool {
+func (e *IdentityLoginIDUpdatedEventPayload) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
-func (e *IdentityLoginIDUpdatedEvent) FillContext(ctx *event.Context) {
+func (e *IdentityLoginIDUpdatedEventPayload) FillContext(ctx *event.Context) {
 }
 
-var _ event.NonBlockingPayload = &IdentityLoginIDUpdatedEvent{}
+var _ event.NonBlockingPayload = &IdentityLoginIDUpdatedEventPayload{}

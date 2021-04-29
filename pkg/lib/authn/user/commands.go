@@ -42,13 +42,13 @@ func (c *Commands) AfterCreate(
 	}
 
 	events := []event.Payload{
-		&blocking.UserPreCreateBlockingEvent{
+		&blocking.UserPreCreateBlockingEventPayload{
 			User:       *userModel,
 			Identities: identityModels,
 			AdminAPI:   isAdminAPI,
 			OAuthState: webhookState,
 		},
-		&nonblocking.UserCreatedEvent{
+		&nonblocking.UserCreatedEventPayload{
 			User:       *userModel,
 			Identities: identityModels,
 			AdminAPI:   isAdminAPI,

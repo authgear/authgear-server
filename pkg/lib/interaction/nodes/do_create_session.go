@@ -90,7 +90,7 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				identities = append(identities, info.ToModel())
 			}
 
-			err = ctx.Hooks.DispatchEvent(&nonblocking.UserAnonymousPromotedEvent{
+			err = ctx.Hooks.DispatchEvent(&nonblocking.UserAnonymousPromotedEventPayload{
 				AnonymousUser: *anonUser,
 				User:          *newUser,
 				Identities:    identities,
@@ -114,7 +114,7 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if n.Reason == session.CreateReasonLogin {
-				err = ctx.Hooks.DispatchEvent(&nonblocking.UserAuthenticatedEvent{
+				err = ctx.Hooks.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
 					User:     *user,
 					Session:  *n.Session.ToAPIModel(),
 					AdminAPI: n.IsAdminAPI,

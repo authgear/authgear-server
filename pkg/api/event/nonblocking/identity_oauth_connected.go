@@ -9,25 +9,25 @@ const (
 	IdentityOAuthConnected event.Type = "identity.oauth.connected"
 )
 
-type IdentityOAuthConnectedEvent struct {
+type IdentityOAuthConnectedEventPayload struct {
 	User     model.User     `json:"user"`
 	Identity model.Identity `json:"identity"`
 	AdminAPI bool           `json:"-"`
 }
 
-func (e *IdentityOAuthConnectedEvent) NonBlockingEventType() event.Type {
+func (e *IdentityOAuthConnectedEventPayload) NonBlockingEventType() event.Type {
 	return IdentityOAuthConnected
 }
 
-func (e *IdentityOAuthConnectedEvent) UserID() string {
+func (e *IdentityOAuthConnectedEventPayload) UserID() string {
 	return e.User.ID
 }
 
-func (e *IdentityOAuthConnectedEvent) IsAdminAPI() bool {
+func (e *IdentityOAuthConnectedEventPayload) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
-func (e *IdentityOAuthConnectedEvent) FillContext(ctx *event.Context) {
+func (e *IdentityOAuthConnectedEventPayload) FillContext(ctx *event.Context) {
 }
 
-var _ event.NonBlockingPayload = &IdentityOAuthConnectedEvent{}
+var _ event.NonBlockingPayload = &IdentityOAuthConnectedEventPayload{}
