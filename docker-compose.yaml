@@ -17,6 +17,16 @@ services:
     ports:
       - "6379:6379"
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.12.1
+    environment:
+      discovery.type: single-node
+    ports:
+    - "9200:9200"
+    - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
   proxy:
     image: nginx:1.18
     volumes:
@@ -30,4 +40,6 @@ volumes:
   redis_data:
     driver: local
   db_data:
+    driver: local
+  elasticsearch_data:
     driver: local
