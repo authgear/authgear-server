@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 
 	"github.com/authgear/authgear-server/cmd/portal/internal"
@@ -15,9 +16,13 @@ var cmdInternalMigrateExample = &cobra.Command{
 	Use:   "example",
 	Short: "Migrate resources example",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf("missing db config: %s", err)
+			log.Fatalf(err.Error())
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
 		}
 
 		internal.MigrateResources(&internal.MigrateResourcesOptions{

@@ -4,14 +4,10 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 )
-
-var defaultAuthgearDomain string
-var customAuthgearDomain string
-var kubeConfigPath string
-var namespace string
 
 var cmdInternal = &cobra.Command{
 	Use:   "internal [setup-portal]",
@@ -22,9 +18,21 @@ var cmdInternalSetupPortal = &cobra.Command{
 	Use:   "setup-portal",
 	Short: "Initialize app configuration",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf("failed to create app: %s", err)
+			log.Fatalf(err.Error())
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		defaultAuthgearDomain, err := ArgDefaultAuthgearDomain.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		customAuthgearDomain, err := ArgCustomAuthgearDomain.GetRequired(viper.GetViper())
+		if err != nil {
+			log.Fatalf(err.Error())
 		}
 
 		resourceDir := "./"
@@ -39,7 +47,6 @@ var cmdInternalSetupPortal = &cobra.Command{
 			CustomAuthgearDomain:  customAuthgearDomain,
 			ResourceDir:           resourceDir,
 		})
-
 	},
 }
 
@@ -52,7 +59,18 @@ var cmdInternalBreakingChangeMigrateK8SToDB = &cobra.Command{
 	Use:   "migrate-k8s-to-db",
 	Short: "Migrate config source from Kubernetes to database",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dbURL, dbSchema, err := loadDBCredentials()
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		kubeConfigPath := ArgKubeconfig.Get(viper.GetViper())
+
+		namespace, err := ArgNamespace.GetRequired(viper.GetViper())
 		if err != nil {
 			return err
 		}
@@ -74,20 +92,13 @@ func init() {
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateK8SToDB)
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateResources)
 
-	cmdInternalSetupPortal.Flags().StringVar(&DatabaseURL, "database-url", "", "Database URL")
-	cmdInternalSetupPortal.Flags().StringVar(&DatabaseSchema, "database-schema", "", "Database schema name")
-	cmdInternalSetupPortal.Flags().StringVar(&defaultAuthgearDomain, "default-authgear-domain", "", "App default domain")
-	cmdInternalSetupPortal.Flags().StringVar(&customAuthgearDomain, "custom-authgear-domain", "", "App custom domain")
+	ArgDatabaseURL.Bind(cmdInternalSetupPortal.Flags(), viper.GetViper())
+	ArgDatabaseSchema.Bind(cmdInternalSetupPortal.Flags(), viper.GetViper())
+	ArgDefaultAuthgearDomain.Bind(cmdInternalSetupPortal.Flags(), viper.GetViper())
+	ArgCustomAuthgearDomain.Bind(cmdInternalSetupPortal.Flags(), viper.GetViper())
 
-	_ = cmdInternalSetupPortal.MarkFlagRequired("default-authgear-domain")
-	_ = cmdInternalSetupPortal.MarkFlagRequired("custom-authgear-domain")
-
-	cmdInternalBreakingChangeMigrateK8SToDB.Flags().StringVar(&DatabaseURL, "database-url", "", "Database URL")
-	cmdInternalBreakingChangeMigrateK8SToDB.Flags().StringVar(&DatabaseSchema, "database-schema", "", "Database schema name")
-	cmdInternalBreakingChangeMigrateK8SToDB.Flags().StringVar(&kubeConfigPath, "kubeconfig", "", "Path to kubeconfig")
-	cmdInternalBreakingChangeMigrateK8SToDB.Flags().StringVar(&namespace, "namespace", "", "Namespace")
-
-	// FIXME: Respect KUBECONFIG environment variable.
-	_ = cmdInternalBreakingChangeMigrateK8SToDB.MarkFlagRequired("kubeconfig")
-	_ = cmdInternalBreakingChangeMigrateK8SToDB.MarkFlagRequired("namespace")
+	ArgDatabaseURL.Bind(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), viper.GetViper())
+	ArgDatabaseSchema.Bind(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), viper.GetViper())
+	ArgKubeconfig.Bind(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), viper.GetViper())
+	ArgNamespace.Bind(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), viper.GetViper())
 }
