@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 func init() {
@@ -36,6 +37,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) IsDefaultAuthenticator() bool {
 	return false
 }
 
+// nolint: gocyclo
 func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var target string
 	var channel authn.AuthenticatorOOBChannel
@@ -53,6 +55,26 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 			return nil, interaction.ErrIncompatibleInput
 		}
 		target = input.GetOOBTarget()
+	}
+
+	// Validate target against channel
+	validationCtx := &validation.Context{}
+	switch channel {
+	case authn.AuthenticatorOOBChannelEmail:
+		err := validation.FormatEmail{AllowName: false}.CheckFormat(target)
+		if err != nil {
+			validationCtx.EmitError("format", map[string]interface{}{"format": "email"})
+		}
+	case authn.AuthenticatorOOBChannelSMS:
+		err := validation.FormatPhone{}.CheckFormat(target)
+		if err != nil {
+			validationCtx.EmitError("format", map[string]interface{}{"format": "phone"})
+		}
+	}
+
+	err := validationCtx.Error("invalid target")
+	if err != nil {
+		return nil, err
 	}
 
 	var spec *authenticator.Spec

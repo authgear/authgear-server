@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -186,23 +185,9 @@ func FormToOOBTarget(oobAuthenticatorType authn.AuthenticatorType, form url.Valu
 	if oobAuthenticatorType == authn.AuthenticatorTypeOOBSMS {
 		nationalNumber := form.Get("x_national_number")
 		countryCallingCode := form.Get("x_calling_code")
-		var e164 string
-		e164, err = phone.Parse(nationalNumber, countryCallingCode)
-		if err != nil {
-			err = &validation.AggregatedError{
-				Errors: []validation.Error{{
-					Keyword:  "format",
-					Location: "/x_national_number",
-					Info: map[string]interface{}{
-						"format": "phone",
-					},
-				}},
-			}
-			return
-		}
 
-		target = e164
 		inputType = "phone"
+		target = fmt.Sprintf("+%s%s", countryCallingCode, nationalNumber)
 		return
 	}
 

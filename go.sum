@@ -458,8 +458,8 @@ github.com/huandu/xstrings v1.3.1 h1:4jgBlKK6tLKFvO8u5pmYjG91cqytmDCDvGh7ECVFfFs
 github.com/huandu/xstrings v1.3.1/go.mod h1:y5/lhBue+AyNmUVz9RLU9xbLR0o4KIIExikq4ovT0aE=
 github.com/hudl/fargo v1.3.0/go.mod h1:y3CKSmjA+wD2gak7sUSXTAoopbhU08POFhmITJgmKTg=
 github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6/go.mod h1:aSSvb/t6k1mPoxDqO4vJh6VOCGPwU4O0C2/Eqndh1Sc=
-github.com/iawaknahc/gomessageformat v0.0.0-20210222053309-a80835face4b h1:T72/pCpkJ0glBsjsnn6UZ78oexl/ORwjk8ocv/4lBHw=
-github.com/iawaknahc/gomessageformat v0.0.0-20210222053309-a80835face4b/go.mod h1:N6C14Rpg3pJZ9zDMbmF/zPu8LJDsmVzMAD3bc+bregI=
+github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5 h1:i6r7zTbhSdHbhCVEJsM8W62F7MvxXfkpkwGrvfL+sFw=
+github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5/go.mod h1:N6C14Rpg3pJZ9zDMbmF/zPu8LJDsmVzMAD3bc+bregI=
 github.com/iawaknahc/jsonschema v0.0.0-20201115095512-87990d0baba1 h1:AuKXkt5l0o2hkGHFSaOoM84XTJL3nFADi/KNHxDiO78=
 github.com/iawaknahc/jsonschema v0.0.0-20201115095512-87990d0baba1/go.mod h1:2dwQ26l1MvCcsoMMZtmUDPdaNrybnKOXi0KeletnVJc=
 github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192 h1:ImC5FdRGeDBJK0Ye1H4F5zTspvoED+1kF6F5s1RLlNw=

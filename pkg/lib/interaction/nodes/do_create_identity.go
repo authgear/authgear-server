@@ -58,7 +58,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-					return interaction.ErrDuplicatedIdentity
+					return n.Identity.FillDetails(interaction.ErrDuplicatedIdentity)
 				}
 				return err
 			}

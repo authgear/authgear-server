@@ -22,7 +22,7 @@ require (
 	github.com/graphql-go/graphql v0.7.9
 	github.com/graphql-go/handler v0.2.3
 	github.com/huandu/xstrings v1.3.1 // indirect
-	github.com/iawaknahc/gomessageformat v0.0.0-20210222053309-a80835face4b
+	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5
 	github.com/iawaknahc/jsonschema v0.0.0-20201115095512-87990d0baba1
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
 	github.com/jetstack/cert-manager v1.1.0

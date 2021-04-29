@@ -29,13 +29,13 @@ func (e *EdgeConsumeRecoveryCode) Instantiate(ctx *interaction.Context, graph *i
 	rc, err := ctx.MFA.VerifyRecoveryCode(userID, recoveryCode)
 	if errors.Is(err, mfa.ErrRecoveryCodeNotFound) {
 		return &NodeAuthenticationEnd{
-			Stage:  interaction.AuthenticationStageSecondary,
-			Result: AuthenticationResultRecoveryCode,
+			Stage:              interaction.AuthenticationStageSecondary,
+			AuthenticationType: AuthenticationTypeRecoveryCode,
 		}, nil
 	} else if errors.Is(err, mfa.ErrRecoveryCodeConsumed) {
 		return &NodeAuthenticationEnd{
-			Stage:  interaction.AuthenticationStageSecondary,
-			Result: AuthenticationResultRecoveryCode,
+			Stage:              interaction.AuthenticationStageSecondary,
+			AuthenticationType: AuthenticationTypeRecoveryCode,
 		}, nil
 	} else if err != nil {
 		return nil, err
@@ -62,8 +62,8 @@ func (n *NodeDoConsumeRecoveryCode) GetEffects() ([]interaction.Effect, error) {
 
 func (n *NodeDoConsumeRecoveryCode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{&EdgeAuthenticationEnd{
-		Stage:        interaction.AuthenticationStageSecondary,
-		Result:       AuthenticationResultRecoveryCode,
-		RecoveryCode: n.RecoveryCode,
+		Stage:              interaction.AuthenticationStageSecondary,
+		AuthenticationType: AuthenticationTypeRecoveryCode,
+		RecoveryCode:       n.RecoveryCode,
 	}}, nil
 }

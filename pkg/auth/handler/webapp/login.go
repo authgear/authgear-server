@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -156,21 +156,7 @@ func FormToLoginID(form url.Values) (loginID string, err error) {
 	if form.Get("x_login_id_input_type") == "phone" {
 		nationalNumber := form.Get("x_national_number")
 		countryCallingCode := form.Get("x_calling_code")
-		var e164 string
-		e164, err = phone.Parse(nationalNumber, countryCallingCode)
-		if err != nil {
-			err = &validation.AggregatedError{
-				Errors: []validation.Error{{
-					Keyword:  "format",
-					Location: "/x_national_number",
-					Info: map[string]interface{}{
-						"format": "phone",
-					},
-				}},
-			}
-			return
-		}
-		loginID = e164
+		loginID = fmt.Sprintf("+%s%s", countryCallingCode, nationalNumber)
 		return
 	}
 
