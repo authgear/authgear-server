@@ -43,7 +43,7 @@ func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResu
 
 func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (string, error) {
 	graph, err := f.Interaction.Perform(
-		interactionintents.NewIntentSignup(),
+		interactionintents.NewIntentSignup(""),
 		&createUserInput{
 			identityDef: identityDef,
 			password:    password,

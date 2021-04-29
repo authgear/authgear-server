@@ -9,22 +9,25 @@ const (
 	UserAuthenticated event.Type = "user.authenticated"
 )
 
-type UserAuthenticatedEvent struct {
+type UserAuthenticatedEventPayload struct {
 	User     model.User    `json:"user"`
 	Session  model.Session `json:"session"`
 	AdminAPI bool          `json:"-"`
 }
 
-func (e *UserAuthenticatedEvent) NonBlockingEventType() event.Type {
+func (e *UserAuthenticatedEventPayload) NonBlockingEventType() event.Type {
 	return UserAuthenticated
 }
 
-func (e *UserAuthenticatedEvent) UserID() string {
+func (e *UserAuthenticatedEventPayload) UserID() string {
 	return e.User.ID
 }
 
-func (e *UserAuthenticatedEvent) IsAdminAPI() bool {
+func (e *UserAuthenticatedEventPayload) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
-var _ event.NonBlockingPayload = &UserAuthenticatedEvent{}
+func (e *UserAuthenticatedEventPayload) FillContext(ctx *event.Context) {
+}
+
+var _ event.NonBlockingPayload = &UserAuthenticatedEventPayload{}

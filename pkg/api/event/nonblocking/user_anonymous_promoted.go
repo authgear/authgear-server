@@ -9,23 +9,26 @@ const (
 	UserAnonymousPromoted event.Type = "user.anonymous.promoted"
 )
 
-type UserAnonymousPromotedEvent struct {
+type UserAnonymousPromotedEventPayload struct {
 	AnonymousUser model.User       `json:"anonymous_user"`
 	User          model.User       `json:"user"`
 	Identities    []model.Identity `json:"identities"`
 	AdminAPI      bool             `json:"-"`
 }
 
-func (e *UserAnonymousPromotedEvent) NonBlockingEventType() event.Type {
+func (e *UserAnonymousPromotedEventPayload) NonBlockingEventType() event.Type {
 	return UserAnonymousPromoted
 }
 
-func (e *UserAnonymousPromotedEvent) UserID() string {
+func (e *UserAnonymousPromotedEventPayload) UserID() string {
 	return e.User.ID
 }
 
-func (e *UserAnonymousPromotedEvent) IsAdminAPI() bool {
+func (e *UserAnonymousPromotedEventPayload) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
-var _ event.NonBlockingPayload = &UserAnonymousPromotedEvent{}
+func (e *UserAnonymousPromotedEventPayload) FillContext(ctx *event.Context) {
+}
+
+var _ event.NonBlockingPayload = &UserAnonymousPromotedEventPayload{}

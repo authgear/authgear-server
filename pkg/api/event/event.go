@@ -7,6 +7,7 @@ type Type string
 type Payload interface {
 	UserID() string
 	IsAdminAPI() bool
+	FillContext(ctx *Context)
 }
 
 type BlockingPayload interface {

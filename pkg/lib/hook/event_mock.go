@@ -35,6 +35,9 @@ func (e *MockNonBlockingEvent1) NonBlockingEventType() event.Type {
 	return MockNonBlockingEventType1
 }
 
+func (e *MockNonBlockingEvent1) FillContext(ctx *event.Context) {
+}
+
 type MockNonBlockingEvent2 struct {
 	MockUserEventBase
 }
@@ -43,8 +46,14 @@ func (e *MockNonBlockingEvent2) NonBlockingEventType() event.Type {
 	return MockNonBlockingEventType2
 }
 
+func (e *MockNonBlockingEvent2) FillContext(ctx *event.Context) {
+}
+
 type MockNonBlockingEvent3 struct {
 	MockUserEventBase
+}
+
+func (e *MockNonBlockingEvent3) FillContext(ctx *event.Context) {
 }
 
 func (e *MockNonBlockingEvent3) NonBlockingEventType() event.Type {
@@ -59,6 +68,9 @@ func (e *MockNonBlockingEvent4) NonBlockingEventType() event.Type {
 	return MockNonBlockingEventType4
 }
 
+func (e *MockNonBlockingEvent4) FillContext(ctx *event.Context) {
+}
+
 type MockBlockingEvent1 struct {
 	MockUserEventBase
 }
@@ -67,12 +79,18 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 	return MockBlockingEventType1
 }
 
+func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
+}
+
 type MockBlockingEvent2 struct {
 	MockUserEventBase
 }
 
 func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 	return MockBlockingEventType2
+}
+
+func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
 var _ event.NonBlockingPayload = &MockNonBlockingEvent1{}

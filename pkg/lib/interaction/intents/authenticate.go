@@ -26,6 +26,7 @@ const (
 type IntentAuthenticate struct {
 	Kind              IntentAuthenticateKind `json:"kind"`
 	SkipCreateSession bool                   `json:"skip_create_session"`
+	WebhookState      string                 `json:"webhook_state"`
 }
 
 func NewIntentLogin(skipCreateSession bool) *IntentAuthenticate {
@@ -35,10 +36,11 @@ func NewIntentLogin(skipCreateSession bool) *IntentAuthenticate {
 	}
 }
 
-func NewIntentSignup() *IntentAuthenticate {
+func NewIntentSignup(webhookState string) *IntentAuthenticate {
 	return &IntentAuthenticate{
 		Kind:              IntentAuthenticateKindSignup,
 		SkipCreateSession: false,
+		WebhookState:      webhookState,
 	}
 }
 
@@ -328,3 +330,9 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		panic(fmt.Errorf("interaction: unexpected node: %T", node))
 	}
 }
+
+func (i *IntentAuthenticate) GetWebhookState() string {
+	return i.WebhookState
+}
+
+var _ interaction.IntentWithWebhookState = &IntentAuthenticate{}

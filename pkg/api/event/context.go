@@ -25,4 +25,9 @@ type Context struct {
 	PreferredLanguages []string        `json:"preferred_languages"`
 	Language           string          `json:"language"`
 	TriggeredBy        TriggeredByType `json:"triggered_by"`
+	OAuth              *OAuthContext   `json:"oauth,omitempty"`
+}
+
+type OAuthContext struct {
+	State string `json:"state,omitempty"`
 }

@@ -9,22 +9,31 @@ const (
 	UserPreCreate event.Type = "user.pre_create"
 )
 
-type UserPreCreateBlockingEvent struct {
+type UserPreCreateBlockingEventPayload struct {
 	User       model.User       `json:"user"`
 	Identities []model.Identity `json:"identities"`
+	OAuthState string           `json:"-"`
 	AdminAPI   bool             `json:"-"`
 }
 
-func (e *UserPreCreateBlockingEvent) BlockingEventType() event.Type {
+func (e *UserPreCreateBlockingEventPayload) BlockingEventType() event.Type {
 	return UserPreCreate
 }
 
-func (e *UserPreCreateBlockingEvent) UserID() string {
+func (e *UserPreCreateBlockingEventPayload) UserID() string {
 	return e.User.ID
 }
 
-func (e *UserPreCreateBlockingEvent) IsAdminAPI() bool {
+func (e *UserPreCreateBlockingEventPayload) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
-var _ event.BlockingPayload = &UserPreCreateBlockingEvent{}
+func (e *UserPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {
+	if e.OAuthState != "" {
+		ctx.OAuth = &event.OAuthContext{
+			State: e.OAuthState,
+		}
+	}
+}
+
+var _ event.BlockingPayload = &UserPreCreateBlockingEventPayload{}

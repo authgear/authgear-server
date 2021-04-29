@@ -11,21 +11,21 @@ const (
 	IdentityLoginIDRemovedFormat string = "identity.%s.removed"
 )
 
-type IdentityLoginIDRemovedEvent struct {
+type IdentityLoginIDRemovedEventPayload struct {
 	User        model.User     `json:"user"`
 	Identity    model.Identity `json:"identity"`
 	LoginIDType string         `json:"-"`
 	AdminAPI    bool           `json:"-"`
 }
 
-func NewIdentityLoginIDRemovedEvent(
+func NewIdentityLoginIDRemovedEventPayload(
 	user model.User,
 	identity model.Identity,
 	loginIDType string,
 	adminAPI bool,
-) *IdentityLoginIDRemovedEvent {
+) *IdentityLoginIDRemovedEventPayload {
 	if checkIdentityEventSupportLoginIDType(loginIDType) {
-		return &IdentityLoginIDRemovedEvent{
+		return &IdentityLoginIDRemovedEventPayload{
 			User:        user,
 			Identity:    identity,
 			LoginIDType: loginIDType,
@@ -35,16 +35,19 @@ func NewIdentityLoginIDRemovedEvent(
 	return nil
 }
 
-func (e *IdentityLoginIDRemovedEvent) NonBlockingEventType() event.Type {
+func (e *IdentityLoginIDRemovedEventPayload) NonBlockingEventType() event.Type {
 	return event.Type(fmt.Sprintf(IdentityLoginIDRemovedFormat, e.LoginIDType))
 }
 
-func (e *IdentityLoginIDRemovedEvent) UserID() string {
+func (e *IdentityLoginIDRemovedEventPayload) UserID() string {
 	return e.User.ID
 }
 
-func (e *IdentityLoginIDRemovedEvent) IsAdminAPI() bool {
+func (e *IdentityLoginIDRemovedEventPayload) IsAdminAPI() bool {
 	return e.AdminAPI
 }
 
-var _ event.NonBlockingPayload = &IdentityLoginIDRemovedEvent{}
+func (e *IdentityLoginIDRemovedEventPayload) FillContext(ctx *event.Context) {
+}
+
+var _ event.NonBlockingPayload = &IdentityLoginIDRemovedEventPayload{}

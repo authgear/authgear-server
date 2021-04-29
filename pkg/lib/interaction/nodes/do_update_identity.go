@@ -68,7 +68,7 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 			switch n.IdentityAfterUpdate.Type {
 			case authn.IdentityTypeLoginID:
 				loginIDType := n.IdentityAfterUpdate.Claims[identity.IdentityClaimLoginIDType].(string)
-				e = nonblocking.NewIdentityLoginIDUpdatedEvent(
+				e = nonblocking.NewIdentityLoginIDUpdatedEventPayload(
 					*user,
 					n.IdentityBeforeUpdate.ToModel(),
 					n.IdentityAfterUpdate.ToModel(),

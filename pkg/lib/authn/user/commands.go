@@ -28,6 +28,7 @@ func (c *Commands) AfterCreate(
 	user *User,
 	identities []*identity.Info,
 	isAdminAPI bool,
+	webhookState string,
 ) error {
 	isVerified, err := c.Verification.IsUserVerified(identities)
 	if err != nil {
@@ -41,12 +42,13 @@ func (c *Commands) AfterCreate(
 	}
 
 	events := []event.Payload{
-		&blocking.UserPreCreateBlockingEvent{
+		&blocking.UserPreCreateBlockingEventPayload{
 			User:       *userModel,
 			Identities: identityModels,
 			AdminAPI:   isAdminAPI,
+			OAuthState: webhookState,
 		},
-		&nonblocking.UserCreatedEvent{
+		&nonblocking.UserCreatedEventPayload{
 			User:       *userModel,
 			Identities: identityModels,
 			AdminAPI:   isAdminAPI,

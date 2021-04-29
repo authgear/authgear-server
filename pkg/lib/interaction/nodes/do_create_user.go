@@ -79,8 +79,18 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
+			webhookState := ""
+			if intentWithWebhook, ok := graph.Intent.(interaction.IntentWithWebhookState); ok {
+				webhookState = intentWithWebhook.GetWebhookState()
+			}
+
 			// run the effects
-			err = ctx.Users.AfterCreate(u, graph.GetUserNewIdentities(), n.IsAdminAPI)
+			err = ctx.Users.AfterCreate(
+				u,
+				graph.GetUserNewIdentities(),
+				n.IsAdminAPI,
+				webhookState,
+			)
 			if err != nil {
 				return err
 			}
