@@ -10,6 +10,7 @@ require (
 	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc
 	github.com/dlclark/regexp2 v1.4.0 // indirect
+	github.com/elastic/go-elasticsearch/v7 v7.12.0
 	github.com/getsentry/sentry-go v0.6.1
 	github.com/go-http-utils/etag v0.0.0-20161124023236-513ea8f21eb1
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect

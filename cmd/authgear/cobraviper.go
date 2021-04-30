@@ -22,3 +22,9 @@ var ArgOutput = &cobraviper.StringArgument{
 	Short:        "o",
 	Usage:        "Path to output",
 }
+
+var ArgElasticsearchURL = &cobraviper.StringArgument{
+	ArgumentName: "elasticsearch-url",
+	EnvName:      "ELASTICSEARCH_URL",
+	Usage:        "Elasticsearch URL",
+}
