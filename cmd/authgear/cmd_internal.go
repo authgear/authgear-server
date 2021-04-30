@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	cmdes "github.com/authgear/authgear-server/cmd/authgear/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 var cmdInternal = &cobra.Command{
@@ -66,10 +68,49 @@ var cmdInternalElasticsearchDeleteIndex = &cobra.Command{
 }
 
 var cmdInternalElasticsearchReindex = &cobra.Command{
-	Use:   "reindex",
+	Use:   "reindex { app-id | --all }",
 	Short: "Reindex all documents of a given app into the search index",
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+			return fmt.Errorf("expected exactly 1 argument of app ID")
+		}
+		return nil
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Printf("It works\n")
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		esURL, err := ArgElasticsearchURL.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		client, err := cmdes.MakeClient(esURL)
+		if err != nil {
+			return err
+		}
+
+		dbCredentials := &config.DatabaseCredentials{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+		}
+
+		appID := args[0]
+
+		reindexer := cmdes.NewReindexer(context.Background(), dbCredentials, config.AppID(appID))
+
+		err = reindexer.Reindex(client)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	},
 }
@@ -80,4 +121,7 @@ func init() {
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchCreateIndex)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchDeleteIndex)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchReindex)
+
+	ArgDatabaseURL.Bind(cmdInternalElasticsearchReindex.PersistentFlags(), viper.GetViper())
+	ArgDatabaseSchema.Bind(cmdInternalElasticsearchReindex.PersistentFlags(), viper.GetViper())
 }

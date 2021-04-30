@@ -30,5 +30,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(user.Store), "*"),
 	wire.Struct(new(identityoauth.Store), "*"),
 	wire.Struct(new(identityloginid.Store), "*"),
-	wire.Struct(new(Query), "*"),
+	wire.Struct(new(Reindexer), "*"),
 )

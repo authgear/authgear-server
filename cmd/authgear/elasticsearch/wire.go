@@ -10,10 +10,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func NewQuery(
+func NewReindexer(
 	ctx context.Context,
 	databaseCredentials *config.DatabaseCredentials,
 	appID config.AppID,
-) *Query {
+) *Reindexer {
 	panic(wire.Build(DependencySet))
 }

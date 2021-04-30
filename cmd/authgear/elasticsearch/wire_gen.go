@@ -16,7 +16,7 @@ import (
 
 // Injectors from wire.go:
 
-func NewQuery(ctx context.Context, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Query {
+func NewReindexer(ctx context.Context, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
 	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	pool := tenant.NewPool()
 	databaseConfig := NewDatabaseConfig()
@@ -35,11 +35,11 @@ func NewQuery(ctx context.Context, databaseCredentials *config.DatabaseCredentia
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	query := &Query{
+	reindexer := &Reindexer{
 		AppID:   appID,
 		Users:   store,
 		OAuth:   oauthStore,
 		LoginID: loginidStore,
 	}
-	return query
+	return reindexer
 }
