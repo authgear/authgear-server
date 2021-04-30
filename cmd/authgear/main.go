@@ -29,4 +29,5 @@ func init() {
 	cmdRoot.AddCommand(cmdStart)
 	cmdRoot.AddCommand(cmdInit)
 	cmdRoot.AddCommand(cmdDatabase)
+	cmdRoot.AddCommand(cmdInternal)
 }
