@@ -156,3 +156,25 @@ func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
 
 	return nil
 }
+
+// ListAll is introduced by the need of authgear internal elasticsearch reindex --all.
+func (s *Store) ListAll() ([]*DatabaseSource, error) {
+	builder := s.selectConfigSourceQuery()
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []*DatabaseSource
+	for rows.Next() {
+		item, err := s.scanConfigSource(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
+}
