@@ -121,7 +121,7 @@ func (p *Provider) New(userID string, spec Spec, options CheckerOptions) (*Ident
 		return nil, err
 	}
 
-	claims := map[string]string{}
+	claims := make(map[string]interface{})
 	if claimName, ok := p.Checker.LoginIDKeyClaimName(spec.Key); ok {
 		claims[claimName] = normalized
 	}
@@ -163,7 +163,7 @@ func (p *Provider) WithValue(iden *Identity, value string, options CheckerOption
 		labels[key] = value
 	}
 
-	claims := map[string]string{}
+	claims := make(map[string]interface{})
 	if claimName, ok := p.Checker.LoginIDKeyClaimName(spec.Key); ok {
 		claims[claimName] = normalized
 	}

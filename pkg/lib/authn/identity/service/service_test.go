@@ -130,7 +130,7 @@ func TestProviderListCandidates(t *testing.T) {
 					LoginIDKey:      "email",
 					LoginID:         "john.doe@example.com",
 					OriginalLoginID: "john.doe@example.com",
-					Claims: map[string]string{
+					Claims: map[string]interface{}{
 						"email": "john.doe@example.com",
 					},
 				},

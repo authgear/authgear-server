@@ -17,5 +17,5 @@ type Identity struct {
 	LoginID         string
 	OriginalLoginID string
 	UniqueKey       string
-	Claims          map[string]string
+	Claims          map[string]interface{}
 }
