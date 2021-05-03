@@ -71,8 +71,15 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 	Use:   "reindex { app-id | --all }",
 	Short: "Reindex all documents of a given app into the search index",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 1 {
-			return fmt.Errorf("expected exactly 1 argument of app ID")
+		all, err := cmd.Flags().GetBool("all")
+		if err == nil && all {
+			if len(args) != 0 {
+				return fmt.Errorf("no app ID is expected when --all is specified")
+			}
+		} else {
+			if len(args) != 1 {
+				return fmt.Errorf("expected exactly 1 argument of app ID")
+			}
 		}
 		return nil
 	},
@@ -102,16 +109,35 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 			DatabaseSchema: dbSchema,
 		}
 
-		appID := args[0]
+		reindexApp := func(appID string) error {
+			reindexer := cmdes.NewReindexer(context.Background(), dbCredentials, config.AppID(appID))
 
-		reindexer := cmdes.NewReindexer(context.Background(), dbCredentials, config.AppID(appID))
+			err = reindexer.Reindex(client)
+			if err != nil {
+				return err
+			}
 
-		err = reindexer.Reindex(client)
-		if err != nil {
-			return err
+			return nil
 		}
 
-		return nil
+		if all, err := cmd.Flags().GetBool("all"); err == nil && all {
+			appLister := cmdes.NewAppLister(context.Background(), dbCredentials)
+			appIDs, err := appLister.ListApps()
+			if err != nil {
+				return err
+			}
+			for _, appID := range appIDs {
+				fmt.Printf("Reindexing app (%s)\n", appID)
+				err = reindexApp(appID)
+				if err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+
+		appID := args[0]
+		return reindexApp(appID)
 	},
 }
 
@@ -124,4 +150,6 @@ func init() {
 
 	ArgDatabaseURL.Bind(cmdInternalElasticsearchReindex.PersistentFlags(), viper.GetViper())
 	ArgDatabaseSchema.Bind(cmdInternalElasticsearchReindex.PersistentFlags(), viper.GetViper())
+	_ = cmdInternalElasticsearchReindex.Flags().Bool("all", false, "All apps")
+
 }

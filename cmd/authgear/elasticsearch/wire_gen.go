@@ -11,10 +11,31 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 // Injectors from wire.go:
+
+func NewAppLister(ctx context.Context, databaseCredentials *config.DatabaseCredentials) *AppLister {
+	databaseConfig := NewDatabaseConfig()
+	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	pool := global.NewPool(databaseEnvironmentConfig)
+	factory := NewLoggerFactory()
+	handle := global.NewHandle(ctx, pool, factory)
+	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlExecutor := global.NewSQLExecutor(ctx, handle)
+	store := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appLister := &AppLister{
+		Handle: handle,
+		Store:  store,
+	}
+	return appLister
+}
 
 func NewReindexer(ctx context.Context, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
 	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
