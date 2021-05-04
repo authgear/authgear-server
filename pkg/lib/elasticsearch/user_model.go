@@ -1,7 +1,10 @@
 package elasticsearch
 
 import (
+	"fmt"
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 const IndexNameUser = "user"
@@ -16,4 +19,100 @@ type User struct {
 	Email             []string   `json:"email,omitempty"`
 	PreferredUsername []string   `json:"preferred_username,omitempty"`
 	PhoneNumber       []string   `json:"phone_number,omitempty"`
+}
+
+type QueryUserSortBy string
+
+const (
+	QueryUserSortByDefault     QueryUserSortBy = ""
+	QueryUserSortByCreatedAt   QueryUserSortBy = "created_at"
+	QueryUserSortByLastLoginAt QueryUserSortBy = "last_login_at"
+)
+
+type SortDirection string
+
+const (
+	SortDirectionDefault SortDirection = ""
+	SortDirectionAsc     SortDirection = "asc"
+	SortDirectionDesc    SortDirection = "desc"
+)
+
+type QueryUserOptions struct {
+	SearchKeyword string
+	First         uint64
+	After         model.PageCursor
+	SortBy        QueryUserSortBy
+	SortDirection SortDirection
+}
+
+func (o *QueryUserOptions) SearchBody(appID string) interface{} {
+	body := map[string]interface{}{
+		"query": map[string]interface{}{
+			"bool": map[string]interface{}{
+				"minimum_should_match": 1,
+				"filter": []interface{}{
+					map[string]interface{}{
+						"term": map[string]interface{}{
+							"app_id": appID,
+						},
+					},
+				},
+				"should": []interface{}{
+					map[string]interface{}{
+						"term": map[string]interface{}{
+							"id": o.SearchKeyword,
+						},
+					},
+					map[string]interface{}{
+						"term": map[string]interface{}{
+							"email": o.SearchKeyword,
+						},
+					},
+					map[string]interface{}{
+						"term": map[string]interface{}{
+							"preferred_username": o.SearchKeyword,
+						},
+					},
+					map[string]interface{}{
+						"term": map[string]interface{}{
+							"phone_number": o.SearchKeyword,
+						},
+					},
+					map[string]interface{}{
+						"regexp": map[string]interface{}{
+							"email": map[string]interface{}{
+								"value":            fmt.Sprintf("\\@%s$", EscapeRegexp(o.SearchKeyword)),
+								"case_insensitive": true,
+							},
+						},
+					},
+					map[string]interface{}{
+						"regexp": map[string]interface{}{
+							"phone_number": map[string]interface{}{
+								"value": fmt.Sprintf("%s$", EscapeRegexp(o.SearchKeyword)),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	var sort []interface{}
+	if o.SortBy == QueryUserSortByDefault {
+		sort = append(sort, "_score")
+	} else {
+		dir := o.SortDirection
+		if dir == SortDirectionDefault {
+			dir = SortDirectionDesc
+		}
+		sort = append(sort, map[string]interface{}{
+			string(o.SortBy): map[string]interface{}{
+				"order": dir,
+			},
+		})
+	}
+	body["sort"] = sort
+
+	return body
 }
