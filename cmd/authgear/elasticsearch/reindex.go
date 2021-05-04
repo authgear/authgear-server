@@ -116,7 +116,7 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 
 		var res *esapi.Response
 		res, err = es.Bulk(buf, func(o *esapi.BulkRequest) {
-			o.Index = IndexName
+			o.Index = libes.IndexNameUser
 		})
 		if err != nil {
 			return

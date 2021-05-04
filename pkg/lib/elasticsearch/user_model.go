@@ -4,6 +4,8 @@ import (
 	"time"
 )
 
+const IndexNameUser = "user"
+
 type User struct {
 	ID                string     `json:"id,omitempty"`
 	AppID             string     `json:"app_id,omitempty"`
