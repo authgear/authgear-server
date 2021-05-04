@@ -29,9 +29,10 @@ func GenerateAppConfigFromOptions(opts *GenerateAppConfigOptions) *AppConfig {
 }
 
 type GenerateSecretConfigOptions struct {
-	DatabaseURL    string
-	DatabaseSchema string
-	RedisURL       string
+	DatabaseURL      string
+	DatabaseSchema   string
+	ElasticsearchURL string
+	RedisURL         string
 }
 
 func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rand io.Reader) *SecretConfig {
@@ -43,6 +44,14 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rand io.
 			Data: &DatabaseCredentials{
 				DatabaseURL:    opts.DatabaseURL,
 				DatabaseSchema: opts.DatabaseSchema,
+			},
+		})
+	}
+	if opts.ElasticsearchURL != "" {
+		items = append(items, SecretItem{
+			Key: ElasticsearchCredentialsKey,
+			Data: &ElasticsearchCredentials{
+				ElasticsearchURL: opts.ElasticsearchURL,
 			},
 		})
 	}

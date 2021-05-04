@@ -36,6 +36,25 @@ func (c *DatabaseCredentials) SetDefaults() {
 	}
 }
 
+var _ = SecretConfigSchema.Add("ElasticsearchCredentials", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"elasticsearch_url": { "type": "string" }
+	},
+	"required": ["elasticsearch_url"]
+}
+`)
+
+type ElasticsearchCredentials struct {
+	ElasticsearchURL string `json:"elasticsearch_url,omitempty"`
+}
+
+func (c *ElasticsearchCredentials) SensitiveStrings() []string {
+	return []string{c.ElasticsearchURL}
+}
+
 var _ = SecretConfigSchema.Add("RedisCredentials", `
 {
 	"type": "object",

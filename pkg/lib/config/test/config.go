@@ -17,8 +17,9 @@ func FixtureAppConfig(appID string) *config.AppConfig {
 
 func FixtureSecretConfig(seed int64) *config.SecretConfig {
 	return config.GenerateSecretConfigFromOptions(&config.GenerateSecretConfigOptions{
-		DatabaseURL:    "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
-		DatabaseSchema: "public",
-		RedisURL:       "redis://127.0.0.1",
+		DatabaseURL:      "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
+		DatabaseSchema:   "public",
+		ElasticsearchURL: "http://127.0.0.1:9200",
+		RedisURL:         "redis://127.0.0.1",
 	}, rand.New(rand.NewSource(seed)))
 }
