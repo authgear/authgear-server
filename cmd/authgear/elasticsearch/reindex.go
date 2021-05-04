@@ -14,6 +14,7 @@ import (
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
@@ -45,7 +46,7 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]model.Pag
 		if err != nil {
 			return nil, err
 		}
-		val := &User{
+		val := &libes.User{
 			ID:          u.ID,
 			AppID:       string(q.AppID),
 			CreatedAt:   u.CreatedAt,
@@ -105,7 +106,7 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 		// Process the items
 		buf := &bytes.Buffer{}
 		for _, item := range items {
-			user := item.Value.(*User)
+			user := item.Value.(*libes.User)
 			fmt.Printf("Indexing app (%s) user (%s)\n", user.AppID, user.ID)
 			err = q.writeBody(buf, user)
 			if err != nil {
@@ -130,7 +131,7 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 	return nil
 }
 
-func (q *Reindexer) writeBody(buf io.Writer, user *User) (err error) {
+func (q *Reindexer) writeBody(buf io.Writer, user *libes.User) (err error) {
 	id := fmt.Sprintf("%s:%s", user.AppID, user.ID)
 	action := map[string]interface{}{
 		"index": map[string]interface{}{
