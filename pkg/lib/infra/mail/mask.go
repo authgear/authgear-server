@@ -12,16 +12,7 @@ func MaskAddress(s string) string {
 		return ""
 	}
 
-	// Copied from stdlib
-	// https://golang.org/src/net/mail/message.go?s=5217:5250#L172
-	at := strings.LastIndex(a.Address, "@")
-	var local, domain string
-	if at < 0 {
-		local = a.Address
-	} else {
-		local, domain = a.Address[:at], a.Address[at+1:]
-	}
-	// Copied from stdlib
+	local, domain := SplitAddress(a.Address)
 
 	runes := []rune(local)
 	length := len(runes)
