@@ -16,6 +16,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type Reindexer struct {
@@ -66,10 +68,18 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]model.Pag
 		for _, claims := range arrClaims {
 			email, ok := claims["email"].(string)
 			if ok {
+				local, domain := mail.SplitAddress(email)
 				val.Email = append(val.Email, email)
+				val.EmailLocalPart = append(val.EmailLocalPart, local)
+				val.EmailDomain = append(val.EmailDomain, domain)
 			}
 			phoneNumber, ok := claims["phone_number"].(string)
 			if ok {
+				nationalNumber, callingCode, err := phone.ParseE164ToCallingCodeAndNumber(phoneNumber)
+				if err == nil {
+					val.PhoneNumberCountryCode = append(val.PhoneNumberCountryCode, callingCode)
+					val.PhoneNumberNationalNumber = append(val.PhoneNumberNationalNumber, nationalNumber)
+				}
 				val.PhoneNumber = append(val.PhoneNumber, phoneNumber)
 			}
 			preferredUsername, ok := claims["preferred_username"].(string)
