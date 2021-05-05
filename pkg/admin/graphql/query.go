@@ -4,8 +4,33 @@ import (
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
+
+var searchUsersSortBy = graphql.NewEnum(graphql.EnumConfig{
+	Name: "SearchUsersSortBy",
+	Values: graphql.EnumValueConfigMap{
+		"CREATED_AT": &graphql.EnumValueConfig{
+			Value: libes.QueryUserSortByCreatedAt,
+		},
+		"LAST_LOGIN_AT": &graphql.EnumValueConfig{
+			Value: libes.QueryUserSortByLastLoginAt,
+		},
+	},
+})
+
+var sortDirection = graphql.NewEnum(graphql.EnumConfig{
+	Name: "SortDirection",
+	Values: graphql.EnumValueConfigMap{
+		"ASC": &graphql.EnumValueConfig{
+			Value: libes.SortDirectionAsc,
+		},
+		"DESC": &graphql.EnumValueConfig{
+			Value: libes.SortDirectionDesc,
+		},
+	},
+})
 
 var query = graphql.NewObject(graphql.ObjectConfig{
 	Name: "Query",
@@ -24,6 +49,24 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 				return graphqlutil.NewConnection(result), nil
+			},
+		},
+		"searchUsers": &graphql.Field{
+			Description: "Search users",
+			Type:        connUser.ConnectionType,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"searchKeyword": &graphql.ArgumentConfig{
+					Type: graphql.String,
+				},
+				"sortBy": &graphql.ArgumentConfig{
+					Type: searchUsersSortBy,
+				},
+				"sortDirection": &graphql.ArgumentConfig{
+					Type: sortDirection,
+				},
+			}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				return nil, nil
 			},
 		},
 	},
