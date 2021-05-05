@@ -63,37 +63,58 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
-							"email": o.SearchKeyword,
+							"email": map[string]interface{}{
+								"value":            o.SearchKeyword,
+								"case_insensitive": true,
+							},
 						},
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
-							"email_local_part": o.SearchKeyword,
+							"email_local_part": map[string]interface{}{
+								"value":            o.SearchKeyword,
+								"case_insensitive": true,
+							},
 						},
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
-							"email_domain": o.SearchKeyword,
+							"email_domain": map[string]interface{}{
+								"value":            o.SearchKeyword,
+								"case_insensitive": true,
+							},
 						},
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
-							"preferred_username": o.SearchKeyword,
+							"preferred_username": map[string]interface{}{
+								"value":            o.SearchKeyword,
+								"case_insensitive": true,
+							},
 						},
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
-							"phone_number": o.SearchKeyword,
+							"phone_number": map[string]interface{}{
+								"value":            o.SearchKeyword,
+								"case_insensitive": true,
+							},
 						},
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
-							"phone_number_country_code": o.SearchKeyword,
+							"phone_number_country_code": map[string]interface{}{
+								"value":            o.SearchKeyword,
+								"case_insensitive": true,
+							},
 						},
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
-							"phone_number_national_number": o.SearchKeyword,
+							"phone_number_national_number": map[string]interface{}{
+								"value":            o.SearchKeyword,
+								"case_insensitive": true,
+							},
 						},
 					},
 				},
