@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -75,7 +76,34 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				return nil, nil
+				gqlCtx := GQLContext(p.Context)
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+				searchKeyword, _ := p.Args["searchKeyword"].(string)
+				sortBy, _ := p.Args["sortBy"].(libes.QueryUserSortBy)
+				sortDirection, _ := p.Args["sortDirection"].(libes.SortDirection)
+
+				opts := &libes.QueryUserOptions{
+					SearchKeyword: searchKeyword,
+					First:         *pageArgs.First,
+					After:         apimodel.PageCursor(pageArgs.After),
+					SortBy:        sortBy,
+					SortDirection: sortDirection,
+				}
+
+				refs, result, err := gqlCtx.UserFacade.SearchPage(pageArgs, opts)
+				if err != nil {
+					return nil, err
+				}
+
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.Users.Load(ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
 			},
 		},
 	},

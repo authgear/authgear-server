@@ -51,6 +51,7 @@ func ProvideSupportedLanguageTags(c *config.Config) template.SupportedLanguageTa
 
 var secretDeps = wire.NewSet(
 	ProvideDatabaseCredentials,
+	ProvideElasticsearchCredentials,
 	ProvideRedisCredentials,
 	ProvideAdminAPIAuthKeyMaterials,
 	ProvideOAuthClientCredentials,
@@ -64,6 +65,11 @@ var secretDeps = wire.NewSet(
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
 	s, _ := c.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials)
+	return s
+}
+
+func ProvideElasticsearchCredentials(c *config.SecretConfig) *config.ElasticsearchCredentials {
+	s, _ := c.LookupData(config.ElasticsearchCredentialsKey).(*config.ElasticsearchCredentials)
 	return s
 }
 

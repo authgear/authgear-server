@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -21,9 +22,14 @@ type UserService interface {
 	Delete(userID string) error
 }
 
+type UserSearchService interface {
+	QueryUser(opts *libes.QueryUserOptions) ([]apimodel.PageItemRef, error)
+}
+
 type UserFacade struct {
-	Users       UserService
-	Interaction InteractionService
+	UserSearchService UserSearchService
+	Users             UserService
+	Interaction       InteractionService
 }
 
 func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
@@ -33,6 +39,17 @@ func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) ([]apimodel.PageItemRe
 	}
 
 	return values, graphqlutil.NewPageResult(args, len(values), graphqlutil.NewLazy(func() (interface{}, error) {
+		return f.Users.Count()
+	})), nil
+}
+
+func (f *UserFacade) SearchPage(args graphqlutil.PageArgs, opts *libes.QueryUserOptions) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, err := f.UserSearchService.QueryUser(opts)
+	if err != nil {
+		return nil, nil, err
+	}
+	return refs, graphqlutil.NewPageResult(args, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+		// FIXME(search): How to return total?
 		return f.Users.Count()
 	})), nil
 }
