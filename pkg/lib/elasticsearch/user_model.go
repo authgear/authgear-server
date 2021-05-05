@@ -1,7 +1,6 @@
 package elasticsearch
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -77,6 +76,16 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
+							"email_local_part": o.SearchKeyword,
+						},
+					},
+					map[string]interface{}{
+						"term": map[string]interface{}{
+							"email_domain": o.SearchKeyword,
+						},
+					},
+					map[string]interface{}{
+						"term": map[string]interface{}{
 							"preferred_username": o.SearchKeyword,
 						},
 					},
@@ -86,18 +95,13 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 						},
 					},
 					map[string]interface{}{
-						"regexp": map[string]interface{}{
-							"email": map[string]interface{}{
-								"value":            fmt.Sprintf("\\@%s$", EscapeRegexp(o.SearchKeyword)),
-								"case_insensitive": true,
-							},
+						"term": map[string]interface{}{
+							"phone_number_country_code": o.SearchKeyword,
 						},
 					},
 					map[string]interface{}{
-						"regexp": map[string]interface{}{
-							"phone_number": map[string]interface{}{
-								"value": fmt.Sprintf("%s$", EscapeRegexp(o.SearchKeyword)),
-							},
+						"term": map[string]interface{}{
+							"phone_number_national_number": o.SearchKeyword,
 						},
 					},
 				},

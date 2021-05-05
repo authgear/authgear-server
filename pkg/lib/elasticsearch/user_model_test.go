@@ -47,6 +47,16 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 					},
 					{
 						"term": {
+							"email_local_part": "KEYWORD"
+						}
+					},
+					{
+						"term": {
+							"email_domain": "KEYWORD"
+						}
+					},
+					{
+						"term": {
 							"preferred_username": "KEYWORD"
 						}
 					},
@@ -56,18 +66,13 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 						}
 					},
 					{
-						"regexp": {
-							"email": {
-								"case_insensitive": true,
-								"value": "\\@KEYWORD$"
-							}
+						"term": {
+							"phone_number_country_code": "KEYWORD"
 						}
 					},
 					{
-						"regexp": {
-							"phone_number": {
-								"value": "KEYWORD$"
-							}
+						"term": {
+							"phone_number_national_number": "KEYWORD"
 						}
 					}
 					]
@@ -108,6 +113,16 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 					},
 					{
 						"term": {
+							"email_local_part": "example.com"
+						}
+					},
+					{
+						"term": {
+							"email_domain": "example.com"
+						}
+					},
+					{
+						"term": {
 							"preferred_username": "example.com"
 						}
 					},
@@ -117,18 +132,13 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 						}
 					},
 					{
-						"regexp": {
-							"email": {
-								"case_insensitive": true,
-								"value": "\\@example\\.com$"
-							}
+						"term": {
+							"phone_number_country_code": "example.com"
 						}
 					},
 					{
-						"regexp": {
-							"phone_number": {
-								"value": "example\\.com$"
-							}
+						"term": {
+							"phone_number_national_number": "example.com"
 						}
 					}
 					]
@@ -170,6 +180,16 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 					},
 					{
 						"term": {
+							"email_local_part": "KEYWORD"
+						}
+					},
+					{
+						"term": {
+							"email_domain": "KEYWORD"
+						}
+					},
+					{
+						"term": {
 							"preferred_username": "KEYWORD"
 						}
 					},
@@ -179,18 +199,13 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 						}
 					},
 					{
-						"regexp": {
-							"email": {
-								"case_insensitive": true,
-								"value": "\\@KEYWORD$"
-							}
+						"term": {
+							"phone_number_country_code": "KEYWORD"
 						}
 					},
 					{
-						"regexp": {
-							"phone_number": {
-								"value": "KEYWORD$"
-							}
+						"term": {
+							"phone_number_national_number": "KEYWORD"
 						}
 					}
 					]
@@ -232,6 +247,16 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 					},
 					{
 						"term": {
+							"email_local_part": "KEYWORD"
+						}
+					},
+					{
+						"term": {
+							"email_domain": "KEYWORD"
+						}
+					},
+					{
+						"term": {
 							"preferred_username": "KEYWORD"
 						}
 					},
@@ -241,18 +266,13 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 						}
 					},
 					{
-						"regexp": {
-							"email": {
-								"case_insensitive": true,
-								"value": "\\@KEYWORD$"
-							}
+						"term": {
+							"phone_number_country_code": "KEYWORD"
 						}
 					},
 					{
-						"regexp": {
-							"phone_number": {
-								"value": "KEYWORD$"
-							}
+						"term": {
+							"phone_number_national_number": "KEYWORD"
 						}
 					}
 					]
@@ -295,6 +315,16 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 					},
 					{
 						"term": {
+							"email_local_part": "KEYWORD"
+						}
+					},
+					{
+						"term": {
+							"email_domain": "KEYWORD"
+						}
+					},
+					{
+						"term": {
 							"preferred_username": "KEYWORD"
 						}
 					},
@@ -304,18 +334,13 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 						}
 					},
 					{
-						"regexp": {
-							"email": {
-								"case_insensitive": true,
-								"value": "\\@KEYWORD$"
-							}
+						"term": {
+							"phone_number_country_code": "KEYWORD"
 						}
 					},
 					{
-						"regexp": {
-							"phone_number": {
-								"value": "KEYWORD$"
-							}
+						"term": {
+							"phone_number_national_number": "KEYWORD"
 						}
 					}
 					]
