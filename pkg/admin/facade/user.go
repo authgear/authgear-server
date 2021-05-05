@@ -16,7 +16,7 @@ import (
 type UserService interface {
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
-	QueryPage(after, before apimodel.PageCursor, first, last *uint64) ([]apimodel.PageItem, error)
+	QueryPage(after, before apimodel.PageCursor, first, last *uint64) ([]apimodel.PageItemRef, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 	Delete(userID string) error
 }
@@ -26,13 +26,13 @@ type UserFacade struct {
 	Interaction InteractionService
 }
 
-func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error) {
+func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
 	values, err := f.Users.QueryPage(apimodel.PageCursor(args.After), apimodel.PageCursor(args.Before), args.First, args.Last)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return graphqlutil.NewPageResult(args, ConvertItems(values), graphqlutil.NewLazy(func() (interface{}, error) {
+	return values, graphqlutil.NewPageResult(args, len(values), graphqlutil.NewLazy(func() (interface{}, error) {
 		return f.Users.Count()
 	})), nil
 }

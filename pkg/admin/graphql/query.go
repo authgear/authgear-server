@@ -44,11 +44,20 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				args := relay.NewConnectionArguments(p.Args)
 				gqlCtx := GQLContext(p.Context)
-				result, err := gqlCtx.UserFacade.QueryPage(graphqlutil.NewPageArgs(args))
+				refs, result, err := gqlCtx.UserFacade.QueryPage(graphqlutil.NewPageArgs(args))
 				if err != nil {
 					return nil, err
 				}
-				return graphqlutil.NewConnection(result), nil
+
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.Users.Load(ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
 			},
 		},
 		"searchUsers": &graphql.Field{

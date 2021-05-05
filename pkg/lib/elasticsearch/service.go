@@ -27,7 +27,7 @@ type queryUserResponse struct {
 	} `json:"hits"`
 }
 
-func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItem, error) {
+func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, error) {
 	// Prepare body
 	bodyJSONValue := opts.SearchBody(string(s.AppID))
 	bodyJSONBytes, err := json.Marshal(bodyJSONValue)
@@ -77,7 +77,7 @@ func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItem, error) {
 		return nil, err
 	}
 
-	items := make([]model.PageItem, len(r.Hits.Hits))
+	items := make([]model.PageItemRef, len(r.Hits.Hits))
 	for i, u := range r.Hits.Hits {
 		user := u.Source
 		pageKey := db.PageKey{Offset: uint64(from) + uint64(i)}
@@ -86,7 +86,7 @@ func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItem, error) {
 			return nil, err
 		}
 
-		items[i] = model.PageItem{Value: &user, Cursor: cursor}
+		items[i] = model.PageItemRef{ID: user.ID, Cursor: cursor}
 	}
 
 	return items, nil

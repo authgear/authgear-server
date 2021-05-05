@@ -51,13 +51,13 @@ func (p *Queries) Count() (uint64, error) {
 	return p.Store.Count()
 }
 
-func (p *Queries) QueryPage(after, before model.PageCursor, first, last *uint64) ([]model.PageItem, error) {
+func (p *Queries) QueryPage(after, before model.PageCursor, first, last *uint64) ([]model.PageItemRef, error) {
 	users, offset, err := p.Store.QueryPage(after, before, first, last)
 	if err != nil {
 		return nil, err
 	}
 
-	var models = make([]model.PageItem, len(users))
+	var models = make([]model.PageItemRef, len(users))
 	for i, u := range users {
 		pageKey := db.PageKey{Offset: offset + uint64(i)}
 		cursor, err := pageKey.ToPageCursor()
@@ -65,7 +65,7 @@ func (p *Queries) QueryPage(after, before model.PageCursor, first, last *uint64)
 			return nil, err
 		}
 
-		models[i] = model.PageItem{Value: u, Cursor: cursor}
+		models[i] = model.PageItemRef{ID: u.ID, Cursor: cursor}
 	}
 	return models, nil
 }

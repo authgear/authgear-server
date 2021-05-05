@@ -20,6 +20,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
+type Item struct {
+	Value  interface{}
+	Cursor model.PageCursor
+}
+
 type Reindexer struct {
 	AppID   config.AppID
 	Users   *user.Store
@@ -27,13 +32,13 @@ type Reindexer struct {
 	LoginID *identityloginid.Store
 }
 
-func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]model.PageItem, error) {
+func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, error) {
 	users, offset, err := q.Users.QueryPage(after, model.PageCursor(""), &first, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	models := make([]model.PageItem, len(users))
+	models := make([]Item, len(users))
 	for i, u := range users {
 		pageKey := db.PageKey{Offset: offset + uint64(i)}
 		cursor, err := pageKey.ToPageCursor()
@@ -88,7 +93,7 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]model.Pag
 			}
 		}
 
-		models[i] = model.PageItem{Value: val, Cursor: cursor}
+		models[i] = Item{Value: val, Cursor: cursor}
 	}
 
 	return models, nil
@@ -97,7 +102,7 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]model.Pag
 func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 	var first uint64 = 50
 	var after model.PageCursor = ""
-	var items []model.PageItem
+	var items []Item
 
 	for {
 		items, err = q.QueryPage(after, first)
