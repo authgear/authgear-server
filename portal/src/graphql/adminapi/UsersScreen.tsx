@@ -7,9 +7,9 @@ import React, {
   useState,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { ICommandBarItemProps } from "@fluentui/react";
+import { ICommandBarItemProps, SearchBox } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, QueryLazyOptions } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -18,11 +18,17 @@ import {
   UsersListQuery,
   UsersListQueryVariables,
 } from "./__generated__/UsersListQuery";
+import {
+  UsersSearchQuery,
+  UsersSearchQueryVariables,
+} from "./__generated__/UsersSearchQuery";
 import ShowError from "../../ShowError";
 
 import styles from "./UsersScreen.module.scss";
 
-const query = gql`
+const pageSize = 10;
+
+const LIST_QUERY = gql`
   query UsersListQuery($pageSize: Int!, $cursor: String) {
     users(first: $pageSize, after: $cursor) {
       edges {
@@ -46,9 +52,42 @@ const query = gql`
   }
 `;
 
-const pageSize = 10;
+const SEARCH_QUERY = gql`
+  query UsersSearchQuery(
+    $searchKeyword: String!
+    $pageSize: Int!
+    $cursor: String
+  ) {
+    users: searchUsers(
+      searchKeyword: $searchKeyword
+      first: $pageSize
+      after: $cursor
+    ) {
+      edges {
+        node {
+          id
+          createdAt
+          lastLoginAt
+          isDisabled
+          identities {
+            edges {
+              node {
+                id
+                claims
+              }
+            }
+          }
+        }
+      }
+      totalCount
+    }
+  }
+`;
 
 const UsersScreen: React.FC = function UsersScreen() {
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [offset, setOffset] = useState(0);
+
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
 
@@ -56,7 +95,29 @@ const UsersScreen: React.FC = function UsersScreen() {
     return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
   }, []);
 
+  const onChangeSearchKeyword = useCallback((_e, value) => {
+    setSearchKeyword(value);
+  }, []);
+
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
+    return [
+      {
+        key: "search",
+        onRender: () => {
+          return (
+            <SearchBox
+              className={styles.searchBox}
+              placeholder={renderToString("search")}
+              value={searchKeyword}
+              onChange={onChangeSearchKeyword}
+            />
+          );
+        },
+      },
+    ];
+  }, [renderToString, onChangeSearchKeyword, searchKeyword]);
+
+  const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
     return [
       {
         key: "addUser",
@@ -66,8 +127,6 @@ const UsersScreen: React.FC = function UsersScreen() {
       },
     ];
   }, [navigate, renderToString]);
-
-  const [offset, setOffset] = useState(0);
 
   // after: is exclusive so if we pass it "offset:0",
   // The first item is excluded.
@@ -83,16 +142,38 @@ const UsersScreen: React.FC = function UsersScreen() {
     setOffset(offset);
   }, []);
 
-  const { loading, error, data, refetch } = useQuery<
-    UsersListQuery,
-    UsersListQueryVariables
-  >(query, {
-    variables: {
-      pageSize,
-      cursor,
-    },
-    fetchPolicy: "network-only",
-  });
+  const listQuery = useLazyQuery<UsersListQuery, UsersListQueryVariables>(
+    LIST_QUERY,
+    {
+      fetchPolicy: "network-only",
+    }
+  );
+
+  const searchQuery = useLazyQuery<UsersSearchQuery, UsersSearchQueryVariables>(
+    SEARCH_QUERY,
+    {
+      fetchPolicy: "network-only",
+    }
+  );
+
+  let execute: (options?: QueryLazyOptions<UsersSearchQueryVariables>) => void;
+  let refetch: (() => void) | undefined;
+  let loading: boolean;
+  let error: unknown;
+  let data: UsersListQuery | undefined;
+  if (searchKeyword !== "") {
+    execute = searchQuery[0];
+    data = searchQuery[1].data;
+    refetch = searchQuery[1].refetch;
+    loading = searchQuery[1].loading;
+    error = searchQuery[1].error;
+  } else {
+    execute = listQuery[0];
+    data = listQuery[1].data;
+    refetch = listQuery[1].refetch;
+    loading = listQuery[1].loading;
+    error = listQuery[1].error;
+  }
 
   const prevDataRef = useRef<UsersListQuery | undefined>();
   useEffect(() => {
@@ -100,16 +181,66 @@ const UsersScreen: React.FC = function UsersScreen() {
   });
   const prevData = prevDataRef.current;
 
-  const messageBar = useMemo(
-    () => error && <ShowError error={error} onRetry={refetch} />,
-    [error, refetch]
-  );
+  // Initial execute
+  useEffect(() => {
+    execute({
+      variables: {
+        searchKeyword,
+        pageSize,
+        cursor,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Execute when cursor changes.
+  useEffect(() => {
+    execute({
+      variables: {
+        searchKeyword,
+        pageSize,
+        cursor,
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cursor]);
+
+  // Debounced execute when searchKeyword changes.
+  const setTimeoutToken = useRef<ReturnType<typeof setTimeout> | undefined>();
+  useEffect(() => {
+    const token = setTimeout(() => {
+      execute({
+        variables: {
+          searchKeyword,
+          pageSize,
+          cursor,
+        },
+      });
+    }, 500);
+
+    setTimeoutToken.current = token;
+
+    return () => {
+      if (setTimeoutToken.current != null) {
+        clearTimeout(setTimeoutToken.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchKeyword]);
+
+  const messageBar = useMemo(() => {
+    if (error != null) {
+      return <ShowError error={error} onRetry={refetch} />;
+    }
+    return null;
+  }, [error, refetch]);
 
   return (
     <CommandBarContainer
       isLoading={loading}
       className={styles.root}
-      farItems={commandBarItems}
+      items={commandBarItems}
+      farItems={commandBarFarItems}
       messageBar={messageBar}
     >
       <main className={styles.content}>
