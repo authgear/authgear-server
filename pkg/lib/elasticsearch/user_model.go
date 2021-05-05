@@ -35,14 +35,6 @@ const (
 	QueryUserSortByLastLoginAt QueryUserSortBy = "last_login_at"
 )
 
-type SortDirection string
-
-const (
-	SortDirectionDefault SortDirection = ""
-	SortDirectionAsc     SortDirection = "asc"
-	SortDirectionDesc    SortDirection = "desc"
-)
-
 type QueryUserOptions struct {
 	SearchKeyword string
 	First         uint64

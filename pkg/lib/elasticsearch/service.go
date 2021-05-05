@@ -21,18 +21,21 @@ type Service struct {
 
 type queryUserResponse struct {
 	Hits struct {
+		Total struct {
+			Value int `json:"value"`
+		} `json:"total"`
 		Hits []struct {
 			Source User `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
 
-func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, error) {
+func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, *Stats, error) {
 	// Prepare body
 	bodyJSONValue := opts.SearchBody(string(s.AppID))
 	bodyJSONBytes, err := json.Marshal(bodyJSONValue)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	body := bytes.NewReader(bodyJSONBytes)
 
@@ -45,7 +48,7 @@ func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, error)
 	// Prepare from
 	pageKey, err := db.NewFromPageCursor(opts.After)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	from := 0
 	if pageKey != nil {
@@ -59,22 +62,22 @@ func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, error)
 		o.From = &from
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
 		bytes, err := ioutil.ReadAll(res.Body)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
-		return nil, fmt.Errorf("failed to query user: %v", string(bytes))
+		return nil, nil, fmt.Errorf("failed to query user: %v", string(bytes))
 	}
 
 	var r queryUserResponse
 	err = json.NewDecoder(res.Body).Decode(&r)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	items := make([]model.PageItemRef, len(r.Hits.Hits))
@@ -83,11 +86,13 @@ func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, error)
 		pageKey := db.PageKey{Offset: uint64(from) + uint64(i)}
 		cursor, err := pageKey.ToPageCursor()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		items[i] = model.PageItemRef{ID: user.ID, Cursor: cursor}
 	}
 
-	return items, nil
+	return items, &Stats{
+		TotalCount: r.Hits.Total.Value,
+	}, nil
 }
