@@ -26,10 +26,6 @@ type UserFacade struct {
 	Interaction InteractionService
 }
 
-func (f *UserFacade) Get(id string) (*user.User, error) {
-	return f.Users.GetRaw(id)
-}
-
 func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error) {
 	values, err := f.Users.QueryPage(apimodel.PageCursor(args.After), apimodel.PageCursor(args.Before), args.First, args.Last)
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -25,7 +24,6 @@ type AuthenticatorLoader interface {
 }
 
 type UserFacade interface {
-	Get(userID string) (*user.User, error)
 	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
 	Create(identityDef model.IdentityDef, password string) (string, error)
 	ResetPassword(id string, password string) error
