@@ -29,6 +29,9 @@ import (
 	certmanagerclientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 )
 
+var LabelAppID = "authgear.com/app-id"
+var LabelDomainID = "authgear.com/domain-id"
+
 type KubernetesLogger struct{ *log.Logger }
 
 func NewKubernetesLogger(lf *log.Factory) KubernetesLogger {

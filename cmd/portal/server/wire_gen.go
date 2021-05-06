@@ -25,18 +25,10 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		BaseResources: manager,
 		Config:        config,
 	}
-	kubernetesLogger := configsource.NewKubernetesLogger(factory)
-	clock := _wireSystemClockValue
+	databaseLogger := configsource.NewDatabaseLogger(factory)
 	environmentConfig := p.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	kubernetes := &configsource.Kubernetes{
-		Logger:        kubernetesLogger,
-		BaseResources: manager,
-		Clock:         clock,
-		TrustProxy:    trustProxy,
-		Config:        config,
-	}
-	databaseLogger := configsource.NewDatabaseLogger(factory)
+	clock := _wireSystemClockValue
 	databaseEnvironmentConfig := &environmentConfig.Database
 	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
 	pool := p.Database
@@ -56,7 +48,7 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 		Database:       handle,
 		DatabaseConfig: databaseEnvironmentConfig,
 	}
-	controller := configsource.NewController(config, localFS, kubernetes, database)
+	controller := configsource.NewController(config, localFS, database)
 	return controller
 }
 
