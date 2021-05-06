@@ -76,13 +76,6 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
 
   const columns: IColumn[] = [
     {
-      key: "id",
-      fieldName: "id",
-      name: renderToString("UsersList.column.id"),
-      minWidth: 400,
-      maxWidth: 400,
-    },
-    {
       key: "username",
       fieldName: "username",
       name: renderToString("UsersList.column.username"),
