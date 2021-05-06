@@ -22,6 +22,7 @@ import {
   UsersSearchQuery,
   UsersSearchQueryVariables,
 } from "./__generated__/UsersSearchQuery";
+import { SearchUsersSortBy, SortDirection } from "./__generated__/globalTypes";
 import ShowError from "../../ShowError";
 
 import styles from "./UsersScreen.module.scss";
@@ -57,11 +58,15 @@ const SEARCH_QUERY = gql`
     $searchKeyword: String!
     $pageSize: Int!
     $cursor: String
+    $sortBy: SearchUsersSortBy
+    $sortDirection: SortDirection
   ) {
     users: searchUsers(
-      searchKeyword: $searchKeyword
       first: $pageSize
       after: $cursor
+      searchKeyword: $searchKeyword
+      sortBy: $sortBy
+      sortDirection: $sortDirection
     ) {
       edges {
         node {
@@ -87,6 +92,12 @@ const SEARCH_QUERY = gql`
 const UsersScreen: React.FC = function UsersScreen() {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [offset, setOffset] = useState(0);
+  const [sortBy, setSortBy] = useState<SearchUsersSortBy | undefined>(
+    undefined
+  );
+  const [sortDirection, setSortDirection] = useState<SortDirection | undefined>(
+    undefined
+  );
 
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
@@ -96,7 +107,16 @@ const UsersScreen: React.FC = function UsersScreen() {
   }, []);
 
   const onChangeSearchKeyword = useCallback((_e, value) => {
-    setSearchKeyword(value);
+    if (value != null) {
+      setSearchKeyword(value);
+      // Reset offset when search keyword was changed.
+      setOffset(0);
+      // Reset sort when we are not searching.
+      if (value === "") {
+        setSortBy(undefined);
+        setSortDirection(undefined);
+      }
+    }
   }, []);
 
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
@@ -181,41 +201,35 @@ const UsersScreen: React.FC = function UsersScreen() {
   });
   const prevData = prevDataRef.current;
 
-  // Initial execute
-  useEffect(() => {
+  const search = useCallback(() => {
     execute({
       variables: {
+        sortBy,
+        sortDirection,
         searchKeyword,
         pageSize,
         cursor,
       },
     });
+  }, [execute, sortBy, sortDirection, searchKeyword, cursor]);
+
+  // Initial execute
+  useEffect(() => {
+    search();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Execute when cursor changes.
+  // Execute when cursor, sortBy, or sortDirection changes.
   useEffect(() => {
-    execute({
-      variables: {
-        searchKeyword,
-        pageSize,
-        cursor,
-      },
-    });
+    search();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor]);
+  }, [cursor, sortBy, sortDirection]);
 
   // Debounced execute when searchKeyword changes.
   const setTimeoutToken = useRef<ReturnType<typeof setTimeout> | undefined>();
   useEffect(() => {
     const token = setTimeout(() => {
-      execute({
-        variables: {
-          searchKeyword,
-          pageSize,
-          cursor,
-        },
-      });
+      search();
     }, 500);
 
     setTimeoutToken.current = token;
@@ -235,6 +249,32 @@ const UsersScreen: React.FC = function UsersScreen() {
     return null;
   }, [error, refetch]);
 
+  const onColumnClick = useCallback(
+    (columnKey: SearchUsersSortBy) => {
+      // Sort is not supported when we are not searching.
+      if (searchKeyword === "") {
+        setSortBy(undefined);
+        setSortDirection(undefined);
+        return;
+      }
+
+      if (sortBy === columnKey) {
+        if (sortDirection == null) {
+          setSortDirection(SortDirection.DESC);
+        } else if (sortDirection === SortDirection.DESC) {
+          setSortDirection(SortDirection.ASC);
+        } else {
+          setSortBy(undefined);
+          setSortDirection(undefined);
+        }
+      } else {
+        setSortBy(columnKey);
+        setSortDirection(SortDirection.DESC);
+      }
+    },
+    [searchKeyword, sortBy, sortDirection]
+  );
+
   return (
     <CommandBarContainer
       isLoading={loading}
@@ -253,6 +293,9 @@ const UsersScreen: React.FC = function UsersScreen() {
           pageSize={pageSize}
           totalCount={(data ?? prevData)?.users?.totalCount ?? undefined}
           onChangeOffset={onChangeOffset}
+          onColumnClick={onColumnClick}
+          sortBy={searchKeyword === "" ? undefined : sortBy}
+          sortDirection={searchKeyword === "" ? undefined : sortDirection}
         />
       </main>
     </CommandBarContainer>

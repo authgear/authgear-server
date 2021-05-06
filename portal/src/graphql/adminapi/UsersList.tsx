@@ -12,6 +12,7 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
 import { UsersListQuery_users } from "./__generated__/UsersListQuery";
+import { SearchUsersSortBy, SortDirection } from "./__generated__/globalTypes";
 
 import PaginationWidget from "../../PaginationWidget";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
@@ -31,6 +32,9 @@ interface UsersListProps {
   pageSize: number;
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
+  onColumnClick?: (columnKey: SearchUsersSortBy) => void;
+  sortBy?: SearchUsersSortBy;
+  sortDirection?: SortDirection;
 }
 
 interface UserListItem {
@@ -68,6 +72,9 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
     pageSize,
     totalCount,
     onChangeOffset,
+    onColumnClick,
+    sortBy,
+    sortDirection,
   } = props;
   const edges = props.users?.edges;
 
@@ -98,12 +105,16 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       fieldName: "createdAt",
       name: renderToString("UsersList.column.signed-up"),
       minWidth: 200,
+      isSorted: sortBy === "CREATED_AT",
+      isSortedDescending: sortDirection === SortDirection.DESC,
     },
     {
       key: "lastLoginAt",
       fieldName: "lastLoginAt",
       name: renderToString("UsersList.column.last-login-at"),
       minWidth: 200,
+      isSorted: sortBy === "LAST_LOGIN_AT",
+      isSortedDescending: sortDirection === SortDirection.DESC,
     },
     {
       key: "action",
@@ -218,6 +229,20 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
     setIsDisableUserDialogHidden(true);
   }, []);
 
+  const onColumnHeaderClick = useCallback(
+    (_e, column) => {
+      if (column != null) {
+        if (column.key === "createdAt") {
+          onColumnClick?.(SearchUsersSortBy.CREATED_AT);
+        }
+        if (column.key === "lastLoginAt") {
+          onColumnClick?.(SearchUsersSortBy.LAST_LOGIN_AT);
+        }
+      }
+    },
+    [onColumnClick]
+  );
+
   return (
     <>
       <div className={cn(styles.root, className)}>
@@ -226,6 +251,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
           enableShimmer={loading}
           onRenderRow={onRenderUserRow}
           onRenderItemColumn={onRenderUserItemColumn}
+          onColumnHeaderClick={onColumnHeaderClick}
           selectionMode={SelectionMode.none}
           layoutMode={DetailsListLayoutMode.justified}
           columns={columns}

@@ -3,6 +3,8 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
+import { SearchUsersSortBy, SortDirection } from "./globalTypes";
+
 // ====================================================
 // GraphQL query operation: UsersSearchQuery
 // ====================================================
@@ -81,4 +83,6 @@ export interface UsersSearchQueryVariables {
   searchKeyword: string;
   pageSize: number;
   cursor?: string | null;
+  sortBy?: SearchUsersSortBy | null;
+  sortDirection?: SortDirection | null;
 }
