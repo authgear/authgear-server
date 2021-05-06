@@ -118,7 +118,6 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	}
 
 	require(DatabaseCredentialsKey, "database credentials")
-	require(ElasticsearchCredentialsKey, "elasticsearch credentials")
 	require(RedisCredentialsKey, "redis credentials")
 	require(AdminAPIAuthKeyKey, "admin API auth key materials")
 

@@ -13,6 +13,7 @@ import { gql, useLazyQuery, QueryLazyOptions } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import {
   UsersListQuery,
@@ -90,6 +91,7 @@ const SEARCH_QUERY = gql`
 `;
 
 const UsersScreen: React.FC = function UsersScreen() {
+  const { searchEnabled } = useSystemConfig();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [offset, setOffset] = useState(0);
   const [sortBy, setSortBy] = useState<SearchUsersSortBy | undefined>(
@@ -120,22 +122,25 @@ const UsersScreen: React.FC = function UsersScreen() {
   }, []);
 
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
-    return [
-      {
-        key: "search",
-        onRender: () => {
-          return (
-            <SearchBox
-              className={styles.searchBox}
-              placeholder={renderToString("search")}
-              value={searchKeyword}
-              onChange={onChangeSearchKeyword}
-            />
-          );
+    if (searchEnabled) {
+      return [
+        {
+          key: "search",
+          onRender: () => {
+            return (
+              <SearchBox
+                className={styles.searchBox}
+                placeholder={renderToString("search")}
+                value={searchKeyword}
+                onChange={onChangeSearchKeyword}
+              />
+            );
+          },
         },
-      },
-    ];
-  }, [renderToString, onChangeSearchKeyword, searchKeyword]);
+      ];
+    }
+    return [];
+  }, [renderToString, onChangeSearchKeyword, searchKeyword, searchEnabled]);
 
   const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
     return [

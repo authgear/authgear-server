@@ -31,6 +31,10 @@ type queryUserResponse struct {
 }
 
 func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, *Stats, error) {
+	if s.Client == nil {
+		return nil, &Stats{TotalCount: 0}, nil
+	}
+
 	// Prepare body
 	bodyJSONValue := opts.SearchBody(string(s.AppID))
 	bodyJSONBytes, err := json.Marshal(bodyJSONValue)

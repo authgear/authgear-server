@@ -44,6 +44,9 @@ type Config struct {
 	// One of the purpose is for creating ingress when creating new domain
 	Kubernetes portalconfig.KubernetesConfig `envconfig:"KUBERNETES"`
 
+	// Search sets search related config.
+	Search portalconfig.SearchConfig `envconfig:"SEARCH"`
+
 	*config.EnvironmentConfig
 }
 

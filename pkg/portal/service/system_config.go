@@ -18,6 +18,7 @@ type ResourceManager interface {
 type SystemConfigProvider struct {
 	AuthgearConfig *config.AuthgearConfig
 	AppConfig      *config.AppConfig
+	SearchConfig   *config.SearchConfig
 	Resources      ResourceManager
 }
 
@@ -39,6 +40,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		SupportedResourceLocales: intl.SupportedResourceLocales,
 		Themes:                   themes,
 		Translations:             translations,
+		SearchEnabled:            p.SearchConfig.Enabled,
 	}, nil
 }
 
