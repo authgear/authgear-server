@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -25,8 +26,8 @@ type AuthenticatorLoader interface {
 }
 
 type UserFacade interface {
-	Get(userID string) (*user.User, error)
-	QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error)
+	QueryPage(args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	SearchPage(args graphqlutil.PageArgs, opts *libes.QueryUserOptions) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	Create(identityDef model.IdentityDef, password string) (string, error)
 	ResetPassword(id string, password string) error
 	SetDisabled(id string, isDisabled bool, reason *string) error

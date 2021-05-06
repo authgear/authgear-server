@@ -1,8 +1,6 @@
 package graphqlutil
 
 import (
-	"reflect"
-
 	"github.com/authgear/graphql-go-relay"
 )
 
@@ -48,19 +46,13 @@ func NewPageArgs(args relay.ConnectionArguments) PageArgs {
 	return pageArgs
 }
 
-type PageItem struct {
-	Value  interface{}
-	Cursor Cursor
-}
-
 type PageResult struct {
 	HasPreviousPage bool
 	HasNextPage     bool
 	TotalCount      *Lazy
-	Values          []PageItem
 }
 
-func NewPageResult(args PageArgs, values []PageItem, totalCount *Lazy) *PageResult {
+func NewPageResult(args PageArgs, itemsLen int, totalCount *Lazy) *PageResult {
 	hasPreviousPage := true
 	hasNextPage := true
 
@@ -74,7 +66,7 @@ func NewPageResult(args PageArgs, values []PageItem, totalCount *Lazy) *PageResu
 		hasPage = &hasPreviousPage
 	}
 
-	if limit != nil && uint64(reflect.ValueOf(values).Len()) < *limit {
+	if limit != nil && uint64(itemsLen) < *limit {
 		*hasPage = false
 	}
 
@@ -82,6 +74,5 @@ func NewPageResult(args PageArgs, values []PageItem, totalCount *Lazy) *PageResu
 		HasPreviousPage: hasPreviousPage,
 		HasNextPage:     hasNextPage,
 		TotalCount:      totalCount,
-		Values:          values,
 	}
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -413,6 +414,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:  appID,
+		Client: client,
+	}
 	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -575,8 +582,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Graph: interactionService,
 	}
 	facadeUserFacade := &facade2.UserFacade{
-		Users:       userFacade,
-		Interaction: serviceInteractionService,
+		UserSearchService: elasticsearchService,
+		Users:             userFacade,
+		Interaction:       serviceInteractionService,
 	}
 	facadeIdentityFacade := &facade2.IdentityFacade{
 		Identities:  serviceService,

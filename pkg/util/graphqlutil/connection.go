@@ -5,17 +5,26 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
+type LazyItem struct {
+	Lazy   *Lazy
+	Cursor Cursor
+}
+
 type Connection struct {
 	Edges      []*relay.Edge  `json:"edges"`
 	PageInfo   relay.PageInfo `json:"pageInfo"`
 	TotalCount interface{}    `json:"totalCount"`
 }
 
-func NewConnection(result *PageResult) *Connection {
-	var edges = make([]*relay.Edge, len(result.Values))
-	for i, item := range result.Values {
+func NewConnectionFromResult(lazyItems []LazyItem, result *PageResult) (*Connection, error) {
+	var edges = make([]*relay.Edge, len(lazyItems))
+	for i, item := range lazyItems {
+		node, err := item.Lazy.Value()
+		if err != nil {
+			return nil, err
+		}
 		edges[i] = &relay.Edge{
-			Node:   item.Value,
+			Node:   node,
 			Cursor: relay.ConnectionCursor(item.Cursor),
 		}
 	}
@@ -33,7 +42,7 @@ func NewConnection(result *PageResult) *Connection {
 		Edges:      edges,
 		PageInfo:   pageInfo,
 		TotalCount: result.TotalCount.Value,
-	}
+	}, nil
 }
 
 func NewConnectionFromArray(data []interface{}, args relay.ConnectionArguments) *Connection {

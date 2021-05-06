@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -16,28 +17,39 @@ import (
 type UserService interface {
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
-	QueryPage(after, before apimodel.PageCursor, first, last *uint64) ([]apimodel.PageItem, error)
+	QueryPage(after, before apimodel.PageCursor, first, last *uint64) ([]apimodel.PageItemRef, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 	Delete(userID string) error
 }
 
+type UserSearchService interface {
+	QueryUser(opts *libes.QueryUserOptions) ([]apimodel.PageItemRef, *libes.Stats, error)
+}
+
 type UserFacade struct {
-	Users       UserService
-	Interaction InteractionService
+	UserSearchService UserSearchService
+	Users             UserService
+	Interaction       InteractionService
 }
 
-func (f *UserFacade) Get(id string) (*user.User, error) {
-	return f.Users.GetRaw(id)
-}
-
-func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) (*graphqlutil.PageResult, error) {
+func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
 	values, err := f.Users.QueryPage(apimodel.PageCursor(args.After), apimodel.PageCursor(args.Before), args.First, args.Last)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return graphqlutil.NewPageResult(args, ConvertItems(values), graphqlutil.NewLazy(func() (interface{}, error) {
+	return values, graphqlutil.NewPageResult(args, len(values), graphqlutil.NewLazy(func() (interface{}, error) {
 		return f.Users.Count()
+	})), nil
+}
+
+func (f *UserFacade) SearchPage(args graphqlutil.PageArgs, opts *libes.QueryUserOptions) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, stats, err := f.UserSearchService.QueryUser(opts)
+	if err != nil {
+		return nil, nil, err
+	}
+	return refs, graphqlutil.NewPageResult(args, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+		return stats.TotalCount, nil
 	})), nil
 }
 

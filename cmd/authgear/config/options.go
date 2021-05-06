@@ -31,6 +31,11 @@ func ReadSecretConfigOptionsFromConsole() *config.GenerateSecretConfigOptions {
 		DefaultValue: "public",
 	}.Prompt()
 
+	opts.ElasticsearchURL = promptString{
+		Title:        "Elasticsearch URL",
+		DefaultValue: "http://localhost:9200",
+	}.Prompt()
+
 	opts.RedisURL = promptURL{
 		Title:        "Redis URL",
 		DefaultValue: "redis://localhost",

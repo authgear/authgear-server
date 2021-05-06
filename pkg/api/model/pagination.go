@@ -2,7 +2,7 @@ package model
 
 type PageCursor string
 
-type PageItem struct {
-	Value  interface{}
+type PageItemRef struct {
+	ID     string
 	Cursor PageCursor
 }

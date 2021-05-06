@@ -314,6 +314,9 @@ type Query {
     ids: [ID!]!
   ): [Node]!
 
+  """Search users"""
+  searchUsers(after: String, before: String, first: Int, last: Int, searchKeyword: String, sortBy: SearchUsersSortBy, sortDirection: SortDirection): UserConnection
+
   """All users"""
   users(after: String, before: String, first: Int, last: Int): UserConnection
 }
@@ -355,6 +358,15 @@ input RevokeSessionInput {
 type RevokeSessionPayload {
   """"""
   user: User!
+}
+
+""""""
+enum SearchUsersSortBy {
+  """"""
+  CREATED_AT
+
+  """"""
+  LAST_LOGIN_AT
 }
 
 """"""
@@ -459,6 +471,15 @@ input SetVerifiedStatusInput {
 type SetVerifiedStatusPayload {
   """"""
   user: User!
+}
+
+""""""
+enum SortDirection {
+  """"""
+  ASC
+
+  """"""
+  DESC
 }
 
 """Authgear user"""

@@ -6,9 +6,9 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-)
 
-var IndexName = "user"
+	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+)
 
 func CreateIndex(es *elasticsearch.Client) error {
 	bodyStr := `
@@ -28,7 +28,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 		}
 	}
 	`
-	res, err := es.Indices.Create(IndexName, func(o *esapi.IndicesCreateRequest) {
+	res, err := es.Indices.Create(libes.IndexNameUser, func(o *esapi.IndicesCreateRequest) {
 		o.Body = bytes.NewReader([]byte(bodyStr))
 	})
 	if err != nil {
@@ -42,7 +42,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 }
 
 func DeleteIndex(es *elasticsearch.Client) error {
-	res, err := es.Indices.Delete([]string{IndexName})
+	res, err := es.Indices.Delete([]string{libes.IndexNameUser})
 	if err != nil {
 		return err
 	}

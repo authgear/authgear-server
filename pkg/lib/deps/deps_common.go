@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -45,6 +46,8 @@ var CommonDependencySet = wire.NewSet(
 
 	tenantdb.DependencySet,
 	template.DependencySet,
+
+	libes.DependencySet,
 
 	wire.NewSet(
 		challenge.DependencySet,

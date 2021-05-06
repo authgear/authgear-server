@@ -118,6 +118,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	}
 
 	require(DatabaseCredentialsKey, "database credentials")
+	require(ElasticsearchCredentialsKey, "elasticsearch credentials")
 	require(RedisCredentialsKey, "redis credentials")
 	require(AdminAPIAuthKeyKey, "admin API auth key materials")
 
@@ -167,16 +168,17 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 type SecretKey string
 
 const (
-	DatabaseCredentialsKey    SecretKey = "db"
-	RedisCredentialsKey       SecretKey = "redis"
-	AdminAPIAuthKeyKey        SecretKey = "admin-api.auth"
-	OAuthClientCredentialsKey SecretKey = "sso.oauth.client"
-	SMTPServerCredentialsKey  SecretKey = "mail.smtp"
-	TwilioCredentialsKey      SecretKey = "sms.twilio"
-	NexmoCredentialsKey       SecretKey = "sms.nexmo"
-	OAuthKeyMaterialsKey      SecretKey = "oauth"
-	CSRFKeyMaterialsKey       SecretKey = "csrf"
-	WebhookKeyMaterialsKey    SecretKey = "webhook"
+	DatabaseCredentialsKey      SecretKey = "db"
+	ElasticsearchCredentialsKey SecretKey = "elasticsearch"
+	RedisCredentialsKey         SecretKey = "redis"
+	AdminAPIAuthKeyKey          SecretKey = "admin-api.auth"
+	OAuthClientCredentialsKey   SecretKey = "sso.oauth.client"
+	SMTPServerCredentialsKey    SecretKey = "mail.smtp"
+	TwilioCredentialsKey        SecretKey = "sms.twilio"
+	NexmoCredentialsKey         SecretKey = "sms.nexmo"
+	OAuthKeyMaterialsKey        SecretKey = "oauth"
+	CSRFKeyMaterialsKey         SecretKey = "csrf"
+	WebhookKeyMaterialsKey      SecretKey = "webhook"
 )
 
 type SecretItemData interface {
@@ -189,16 +191,17 @@ type secretKeyDef struct {
 }
 
 var secretItemKeys = map[SecretKey]secretKeyDef{
-	DatabaseCredentialsKey:    {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
-	RedisCredentialsKey:       {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
-	AdminAPIAuthKeyKey:        {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
-	OAuthClientCredentialsKey: {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
-	SMTPServerCredentialsKey:  {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
-	TwilioCredentialsKey:      {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
-	NexmoCredentialsKey:       {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
-	OAuthKeyMaterialsKey:      {"OAuthKeyMaterials", func() SecretItemData { return &OAuthKeyMaterials{} }},
-	CSRFKeyMaterialsKey:       {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
-	WebhookKeyMaterialsKey:    {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
+	DatabaseCredentialsKey:      {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
+	ElasticsearchCredentialsKey: {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
+	RedisCredentialsKey:         {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
+	AdminAPIAuthKeyKey:          {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
+	OAuthClientCredentialsKey:   {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
+	SMTPServerCredentialsKey:    {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},
+	TwilioCredentialsKey:        {"TwilioCredentials", func() SecretItemData { return &TwilioCredentials{} }},
+	NexmoCredentialsKey:         {"NexmoCredentials", func() SecretItemData { return &NexmoCredentials{} }},
+	OAuthKeyMaterialsKey:        {"OAuthKeyMaterials", func() SecretItemData { return &OAuthKeyMaterials{} }},
+	CSRFKeyMaterialsKey:         {"CSRFKeyMaterials", func() SecretItemData { return &CSRFKeyMaterials{} }},
+	WebhookKeyMaterialsKey:      {"WebhookKeyMaterials", func() SecretItemData { return &WebhookKeyMaterials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{

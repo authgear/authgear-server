@@ -9,7 +9,7 @@ type UserProvider interface {
 	Create(userID string) (*user.User, error)
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
-	QueryPage(after, before apimodel.PageCursor, first, last *uint64) ([]apimodel.PageItem, error)
+	QueryPage(after, before apimodel.PageCursor, first, last *uint64) ([]apimodel.PageItemRef, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 }
 
