@@ -249,6 +249,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
         <ShimmeredDetailsList
           className={styles.list}
           enableShimmer={loading}
+          enableUpdateAnimations={false}
           onRenderRow={onRenderUserRow}
           onRenderItemColumn={onRenderUserItemColumn}
           onColumnHeaderClick={onColumnHeaderClick}
