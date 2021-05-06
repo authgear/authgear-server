@@ -252,3 +252,16 @@ oauth:
 ## Credits
 
 - Free email provider domains list provided by: https://gist.github.com/tbrianjones/5992856/
+
+## Create release tag before deployment
+
+```sh
+# Create release tag when deploying to staging or production
+# For staging, prefix the tag with `staging-`. e.g. staging-2021-05-06.0
+# For production, no prefix is needed. e.g 2021-05-06.0
+# If there are more than 1 release in the same day, increment the last number by 1
+git tag -a YYYY-MM-DD.0
+
+# Show the logs summary
+make logs-summary A=<previous tag> B=<current tag>
+```
