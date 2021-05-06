@@ -23,6 +23,7 @@ import { nonNullable } from "../../util/types";
 
 import styles from "./UsersList.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import useDelayedValue from "../../hook/useDelayedValue";
 
 interface UsersListProps {
   className?: string;
@@ -67,7 +68,7 @@ const isUserListItem = (value: unknown): value is UserListItem => {
 const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   const {
     className,
-    loading,
+    loading: rawLoading,
     offset,
     pageSize,
     totalCount,
@@ -77,6 +78,8 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
     sortDirection,
   } = props;
   const edges = props.users?.edges;
+
+  const loading = useDelayedValue(rawLoading, 500);
 
   const { renderToString, locale } = useContext(Context);
   const { themes } = useSystemConfig();
