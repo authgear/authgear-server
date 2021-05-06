@@ -41,7 +41,7 @@ func loginIDFromIdentityInfo(i *identity.Info) *loginid.Identity {
 		CreatedAt: i.CreatedAt,
 		UpdatedAt: i.UpdatedAt,
 		UserID:    i.UserID,
-		Claims:    map[string]string{},
+		Claims:    make(map[string]interface{}),
 	}
 	for k, v := range i.Claims {
 		switch k {
