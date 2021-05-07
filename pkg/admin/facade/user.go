@@ -23,6 +23,7 @@ type UserService interface {
 }
 
 type UserSearchService interface {
+	ReindexUser(userID string, isDelete bool) error
 	QueryUser(searchKeyword string, sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *libes.Stats, error)
 }
 
@@ -96,9 +97,25 @@ func (f *UserFacade) ResetPassword(id string, password string) error {
 }
 
 func (f *UserFacade) SetDisabled(id string, isDisabled bool, reason *string) error {
-	return f.Users.UpdateDisabledStatus(id, isDisabled, reason)
+	err := f.Users.UpdateDisabledStatus(id, isDisabled, reason)
+	if err != nil {
+		return err
+	}
+	err = f.UserSearchService.ReindexUser(id, false)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (f *UserFacade) Delete(id string) error {
-	return f.Users.Delete(id)
+	err := f.Users.Delete(id)
+	if err != nil {
+		return err
+	}
+	err = f.UserSearchService.ReindexUser(id, true)
+	if err != nil {
+		return err
+	}
+	return nil
 }

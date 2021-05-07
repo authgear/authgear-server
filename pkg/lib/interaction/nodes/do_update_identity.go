@@ -86,6 +86,13 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			return nil
 		}),
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			err := ctx.Search.ReindexUser(n.IdentityAfterUpdate.UserID, false)
+			if err != nil {
+				return err
+			}
+			return nil
+		}),
 	}, nil
 }
 

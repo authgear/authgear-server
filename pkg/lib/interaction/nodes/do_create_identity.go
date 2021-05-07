@@ -105,6 +105,17 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			return nil
 		}),
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			if _, creating := graph.GetNewUserID(); creating {
+				return nil
+			}
+
+			err := ctx.Search.ReindexUser(n.Identity.UserID, false)
+			if err != nil {
+				return err
+			}
+			return nil
+		}),
 	}, nil
 }
 
