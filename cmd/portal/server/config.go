@@ -92,11 +92,6 @@ func (c *Config) Validate() error {
 		ctx.Child("DATABASE_URL").EmitErrorMessage("missing database URL")
 	}
 
-	c.App.Kubernetes.DefaultDomainTLSCert.
-		Validate(ctx.Child("APP_KUBERNETES_DEFAULT_DOMAIN_TLS_CERT"))
-	c.App.Kubernetes.CustomDomainTLSCert.
-		Validate(ctx.Child("APP_KUBERNETES_CUSTOM_DOMAIN_TLS_CERT"))
-
 	return ctx.Error("invalid server configuration")
 }
 

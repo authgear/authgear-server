@@ -42,7 +42,6 @@ type Controller struct {
 func NewController(
 	cfg *Config,
 	lf *LocalFS,
-	k8s *Kubernetes,
 	d *Database,
 ) *Controller {
 	switch cfg.Type {
@@ -51,12 +50,6 @@ func NewController(
 			Handle:          lf,
 			AppIDResolver:   lf,
 			ContextResolver: lf,
-		}
-	case TypeKubernetes:
-		return &Controller{
-			Handle:          k8s,
-			AppIDResolver:   k8s,
-			ContextResolver: k8s,
 		}
 	case TypeDatabase:
 		return &Controller{
