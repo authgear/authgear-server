@@ -8,6 +8,7 @@ import {
   IDetailsRowProps,
   DetailsRow,
   ActionButton,
+  ColumnActionsMode,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
@@ -90,18 +91,21 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       fieldName: "username",
       name: renderToString("UsersList.column.username"),
       minWidth: 150,
+      columnActionsMode: ColumnActionsMode.disabled,
     },
     {
       key: "email",
       fieldName: "email",
       name: renderToString("UsersList.column.email"),
       minWidth: 150,
+      columnActionsMode: ColumnActionsMode.disabled,
     },
     {
       key: "phone",
       fieldName: "phone",
       name: renderToString("UsersList.column.phone"),
       minWidth: 150,
+      columnActionsMode: ColumnActionsMode.disabled,
     },
     {
       key: "createdAt",
@@ -110,6 +114,8 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       minWidth: 200,
       isSorted: sortBy === "CREATED_AT",
       isSortedDescending: sortDirection === SortDirection.DESC,
+      iconName: "SortLines",
+      iconClassName: styles.sortIcon,
     },
     {
       key: "lastLoginAt",
@@ -118,12 +124,15 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       minWidth: 200,
       isSorted: sortBy === "LAST_LOGIN_AT",
       isSortedDescending: sortDirection === SortDirection.DESC,
+      iconName: "SortLines",
+      iconClassName: styles.sortIcon,
     },
     {
       key: "action",
       fieldName: "action",
       name: renderToString("action"),
       minWidth: 150,
+      columnActionsMode: ColumnActionsMode.disabled,
     },
   ];
 
