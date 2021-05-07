@@ -26,11 +26,6 @@ export enum IdentityType {
   OAUTH = "OAUTH",
 }
 
-export enum SearchUsersSortBy {
-  CREATED_AT = "CREATED_AT",
-  LAST_LOGIN_AT = "LAST_LOGIN_AT",
-}
-
 export enum SessionType {
   IDP = "IDP",
   OFFLINE_GRANT = "OFFLINE_GRANT",
@@ -39,6 +34,11 @@ export enum SessionType {
 export enum SortDirection {
   ASC = "ASC",
   DESC = "DESC",
+}
+
+export enum UserSortBy {
+  CREATED_AT = "CREATED_AT",
+  LAST_LOGIN_AT = "LAST_LOGIN_AT",
 }
 
 /**

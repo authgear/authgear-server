@@ -12,11 +12,7 @@ import {
   UsersListQuery,
   UsersListQueryVariables,
 } from "./__generated__/UsersListQuery";
-import {
-  UsersSearchQuery,
-  UsersSearchQueryVariables,
-} from "./__generated__/UsersSearchQuery";
-import { SearchUsersSortBy, SortDirection } from "./__generated__/globalTypes";
+import { UserSortBy, SortDirection } from "./__generated__/globalTypes";
 import ShowError from "../../ShowError";
 import useDelayedValue from "../../hook/useDelayedValue";
 
@@ -26,47 +22,13 @@ const pageSize = 10;
 
 const LIST_QUERY = gql`
   query UsersListQuery(
-    $pageSize: Int!
-    $cursor: String
-    $sortBy: SearchUsersSortBy
-    $sortDirection: SortDirection
-  ) {
-    users(
-      first: $pageSize
-      after: $cursor
-      sortBy: $sortBy
-      sortDirection: $sortDirection
-    ) {
-      edges {
-        node {
-          id
-          createdAt
-          lastLoginAt
-          isDisabled
-          identities {
-            edges {
-              node {
-                id
-                claims
-              }
-            }
-          }
-        }
-      }
-      totalCount
-    }
-  }
-`;
-
-const SEARCH_QUERY = gql`
-  query UsersSearchQuery(
     $searchKeyword: String!
     $pageSize: Int!
     $cursor: String
-    $sortBy: SearchUsersSortBy
+    $sortBy: UserSortBy
     $sortDirection: SortDirection
   ) {
-    users: searchUsers(
+    users(
       first: $pageSize
       after: $cursor
       searchKeyword: $searchKeyword
@@ -101,9 +63,7 @@ const UsersScreen: React.FC = function UsersScreen() {
   const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
 
   const [offset, setOffset] = useState(0);
-  const [sortBy, setSortBy] = useState<SearchUsersSortBy | undefined>(
-    undefined
-  );
+  const [sortBy, setSortBy] = useState<UserSortBy | undefined>(undefined);
   const [sortDirection, setSortDirection] = useState<SortDirection | undefined>(
     undefined
   );
@@ -169,48 +129,19 @@ const UsersScreen: React.FC = function UsersScreen() {
     setOffset(offset);
   }, []);
 
-  const listQuery = useQuery<UsersListQuery, UsersListQueryVariables>(
-    LIST_QUERY,
-    {
-      variables: {
-        pageSize,
-        cursor,
-        sortBy,
-        sortDirection,
-      },
-      fetchPolicy: "network-only",
-    }
-  );
-
-  const searchQuery = useQuery<UsersSearchQuery, UsersSearchQueryVariables>(
-    SEARCH_QUERY,
-    {
-      variables: {
-        pageSize,
-        cursor,
-        sortBy,
-        sortDirection,
-        searchKeyword: debouncedSearchKey,
-      },
-      fetchPolicy: "network-only",
-    }
-  );
-
-  let refetch: (() => void) | undefined;
-  let loading: boolean;
-  let error: unknown;
-  let data: UsersListQuery | undefined;
-  if (searchKeyword !== "") {
-    data = searchQuery.data;
-    refetch = searchQuery.refetch;
-    loading = searchQuery.loading;
-    error = searchQuery.error;
-  } else {
-    data = listQuery.data;
-    refetch = listQuery.refetch;
-    loading = listQuery.loading;
-    error = listQuery.error;
-  }
+  const { data, error, loading, refetch } = useQuery<
+    UsersListQuery,
+    UsersListQueryVariables
+  >(LIST_QUERY, {
+    variables: {
+      pageSize,
+      cursor,
+      sortBy,
+      sortDirection,
+      searchKeyword: debouncedSearchKey,
+    },
+    fetchPolicy: "network-only",
+  });
 
   const messageBar = useMemo(() => {
     if (error != null) {
@@ -220,7 +151,7 @@ const UsersScreen: React.FC = function UsersScreen() {
   }, [error, refetch]);
 
   const onColumnClick = useCallback(
-    (columnKey: SearchUsersSortBy) => {
+    (columnKey: UserSortBy) => {
       if (sortBy === columnKey) {
         if (sortDirection == null) {
           setSortDirection(SortDirection.DESC);

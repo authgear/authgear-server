@@ -13,7 +13,7 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
 import { UsersListQuery_users } from "./__generated__/UsersListQuery";
-import { SearchUsersSortBy, SortDirection } from "./__generated__/globalTypes";
+import { UserSortBy, SortDirection } from "./__generated__/globalTypes";
 
 import PaginationWidget from "../../PaginationWidget";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
@@ -34,8 +34,8 @@ interface UsersListProps {
   pageSize: number;
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
-  onColumnClick?: (columnKey: SearchUsersSortBy) => void;
-  sortBy?: SearchUsersSortBy;
+  onColumnClick?: (columnKey: UserSortBy) => void;
+  sortBy?: UserSortBy;
   sortDirection?: SortDirection;
 }
 
@@ -245,10 +245,10 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
     (_e, column) => {
       if (column != null) {
         if (column.key === "createdAt") {
-          onColumnClick?.(SearchUsersSortBy.CREATED_AT);
+          onColumnClick?.(UserSortBy.CREATED_AT);
         }
         if (column.key === "lastLoginAt") {
-          onColumnClick?.(SearchUsersSortBy.LAST_LOGIN_AT);
+          onColumnClick?.(UserSortBy.LAST_LOGIN_AT);
         }
       }
     },
