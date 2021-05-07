@@ -25,8 +25,18 @@ import styles from "./UsersScreen.module.scss";
 const pageSize = 10;
 
 const LIST_QUERY = gql`
-  query UsersListQuery($pageSize: Int!, $cursor: String) {
-    users(first: $pageSize, after: $cursor) {
+  query UsersListQuery(
+    $pageSize: Int!
+    $cursor: String
+    $sortBy: SearchUsersSortBy
+    $sortDirection: SortDirection
+  ) {
+    users(
+      first: $pageSize
+      after: $cursor
+      sortBy: $sortBy
+      sortDirection: $sortDirection
+    ) {
       edges {
         node {
           id
@@ -110,11 +120,6 @@ const UsersScreen: React.FC = function UsersScreen() {
       setSearchKeyword(value);
       // Reset offset when search keyword was changed.
       setOffset(0);
-      // Reset sort when we are not searching.
-      if (value === "") {
-        setSortBy(undefined);
-        setSortDirection(undefined);
-      }
     }
   }, []);
 
@@ -170,6 +175,8 @@ const UsersScreen: React.FC = function UsersScreen() {
       variables: {
         pageSize,
         cursor,
+        sortBy,
+        sortDirection,
       },
       fetchPolicy: "network-only",
     }
@@ -214,13 +221,6 @@ const UsersScreen: React.FC = function UsersScreen() {
 
   const onColumnClick = useCallback(
     (columnKey: SearchUsersSortBy) => {
-      // Sort is not supported when we are not searching.
-      if (searchKeyword === "") {
-        setSortBy(undefined);
-        setSortDirection(undefined);
-        return;
-      }
-
       if (sortBy === columnKey) {
         if (sortDirection == null) {
           setSortDirection(SortDirection.DESC);
@@ -235,7 +235,7 @@ const UsersScreen: React.FC = function UsersScreen() {
         setSortDirection(SortDirection.DESC);
       }
     },
-    [searchKeyword, sortBy, sortDirection]
+    [sortBy, sortDirection]
   );
 
   return (
@@ -257,8 +257,8 @@ const UsersScreen: React.FC = function UsersScreen() {
           totalCount={data?.users?.totalCount ?? undefined}
           onChangeOffset={onChangeOffset}
           onColumnClick={onColumnClick}
-          sortBy={searchKeyword === "" ? undefined : sortBy}
-          sortDirection={searchKeyword === "" ? undefined : sortDirection}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
         />
       </main>
     </CommandBarContainer>

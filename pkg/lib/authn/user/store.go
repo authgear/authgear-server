@@ -9,9 +9,9 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type store interface {
@@ -19,16 +19,11 @@ type store interface {
 	Get(userID string) (*User, error)
 	GetByIDs(userIDs []string) ([]*User, error)
 	Count() (uint64, error)
-	QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, uint64, error)
+	QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 	Delete(userID string) error
 }
-
-var queryPage = db.QueryPage(db.QueryPageConfig{
-	KeyColumn: "created_at",
-	IDColumn:  "id",
-})
 
 type Store struct {
 	SQLBuilder  *tenantdb.SQLBuilder
@@ -163,19 +158,12 @@ func (s *Store) Count() (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) QueryPage(after, before model.PageCursor, first, last *uint64) ([]*User, uint64, error) {
-	afterKey, err := db.NewFromPageCursor(after)
-	if err != nil {
-		return nil, 0, err
-	}
-	beforeKey, err := db.NewFromPageCursor(before)
-	if err != nil {
-		return nil, 0, err
-	}
+func (s *Store) QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
+	query := s.selectQuery()
 
-	selectQuery := s.selectQuery()
+	query = sortOption.Apply(query)
 
-	query, offset, err := queryPage(selectQuery, afterKey, beforeKey, first, last)
+	query, offset, err := db.ApplyPageArgs(query, pageArgs)
 	if err != nil {
 		return nil, 0, err
 	}

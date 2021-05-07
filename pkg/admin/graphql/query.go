@@ -41,11 +41,28 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"users": &graphql.Field{
 			Description: "All users",
 			Type:        connUser.ConnectionType,
-			Args:        relay.ConnectionArgs,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"sortBy": &graphql.ArgumentConfig{
+					Type: searchUsersSortBy,
+				},
+				"sortDirection": &graphql.ArgumentConfig{
+					Type: sortDirection,
+				},
+			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				args := relay.NewConnectionArguments(p.Args)
 				gqlCtx := GQLContext(p.Context)
-				refs, result, err := gqlCtx.UserFacade.QueryPage(graphqlutil.NewPageArgs(args))
+
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				sortBy, _ := p.Args["sortBy"].(libuser.SortBy)
+				sortDirection, _ := p.Args["sortDirection"].(apimodel.SortDirection)
+
+				sortOption := libuser.SortOption{
+					SortBy:        sortBy,
+					SortDirection: sortDirection,
+				}
+
+				refs, result, err := gqlCtx.UserFacade.ListPage(sortOption, pageArgs)
 				if err != nil {
 					return nil, err
 				}

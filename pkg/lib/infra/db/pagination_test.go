@@ -6,18 +6,15 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-func TestQueryPage(t *testing.T) {
-	Convey("QueryPage", t, func() {
+func TestApplyPageArgs(t *testing.T) {
+	Convey("ApplyPageArgs", t, func() {
 		builder := db.NewSQLBuilder("", "my-app").Tenant().
 			Select("id", "value").
 			From("values")
 
-		doQuery := db.QueryPage(db.QueryPageConfig{
-			KeyColumn: "value",
-			IDColumn:  "id",
-		})
 		query := func(after, before, first, last *uint64) (string, uint64) {
 			var a, b *db.PageKey
 			if after != nil {
@@ -26,7 +23,21 @@ func TestQueryPage(t *testing.T) {
 			if before != nil {
 				b = &db.PageKey{Offset: *before}
 			}
-			query, offset, err := doQuery(builder, a, b, first, last)
+			aftera, err := a.ToPageCursor()
+			if err != nil {
+				panic(err)
+			}
+			beforea, err := b.ToPageCursor()
+			if err != nil {
+				panic(err)
+			}
+
+			query, offset, err := db.ApplyPageArgs(builder, graphqlutil.PageArgs{
+				First:  first,
+				Last:   last,
+				After:  graphqlutil.Cursor(aftera),
+				Before: graphqlutil.Cursor(beforea),
+			})
 			if err != nil {
 				panic(err)
 			}
@@ -42,23 +53,23 @@ func TestQueryPage(t *testing.T) {
 		var offset uint64
 
 		sql, offset = query(nil, nil, nil, nil)
-		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id`)
+		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1`)
 		So(offset, ShouldEqual, 0)
 
 		sql, offset = query(nil, nil, newInt(0), nil)
-		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id LIMIT 0`)
+		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 LIMIT 0`)
 		So(offset, ShouldEqual, 0)
 
 		sql, offset = query(nil, nil, newInt(10), nil)
-		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id LIMIT 10`)
+		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 LIMIT 10`)
 		So(offset, ShouldEqual, 0)
 
 		sql, offset = query(newInt(9), nil, newInt(10), nil)
-		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id LIMIT 10 OFFSET 10`)
+		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 LIMIT 10 OFFSET 10`)
 		So(offset, ShouldEqual, 10)
 
 		sql, offset = query(newInt(9), newInt(20), nil, nil)
-		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 ORDER BY value, id LIMIT 10 OFFSET 10`)
+		So(sql, ShouldEqual, `SELECT id, value FROM values WHERE app_id = $1 LIMIT 10 OFFSET 10`)
 		So(offset, ShouldEqual, 10)
 	})
 }

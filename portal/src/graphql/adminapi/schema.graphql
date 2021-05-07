@@ -318,7 +318,7 @@ type Query {
   searchUsers(after: String, before: String, first: Int, last: Int, searchKeyword: String, sortBy: SearchUsersSortBy, sortDirection: SortDirection): UserConnection
 
   """All users"""
-  users(after: String, before: String, first: Int, last: Int): UserConnection
+  users(after: String, before: String, first: Int, last: Int, sortBy: SearchUsersSortBy, sortDirection: SortDirection): UserConnection
 }
 
 """"""

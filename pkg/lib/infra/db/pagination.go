@@ -5,10 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	sq "github.com/Masterminds/squirrel"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 var InvalidCursor = apierrors.Invalid.WithReason("InvalidCursor")
@@ -44,57 +43,58 @@ func NewFromPageCursor(k model.PageCursor) (*PageKey, error) {
 }
 
 func (k *PageKey) ToPageCursor() (model.PageCursor, error) {
+	if k == nil {
+		return "", nil
+	}
+
 	cursor := pageCursorPrefix + strconv.FormatUint(k.Offset, 10)
 	return model.PageCursor(base64.RawURLEncoding.EncodeToString([]byte(cursor))), nil
 }
 
 var InvalidQuery = apierrors.BadRequest.WithReason("InvalidQuery")
 
-type PageQuery func(builder SelectBuilder, after, before *PageKey, first, last *uint64) (sq.Sqlizer, uint64, error)
+func ApplyPageArgs(builder SelectBuilder, pageArgs graphqlutil.PageArgs) (out SelectBuilder, offset uint64, err error) {
+	query := builder.builder
 
-type QueryPageConfig struct {
-	KeyColumn string
-	IDColumn  string
-}
+	first := pageArgs.First
+	last := pageArgs.Last
 
-func QueryPage(config QueryPageConfig) PageQuery {
-	keyColumn := config.KeyColumn
-	idColumn := config.IDColumn
-
-	return func(builder SelectBuilder, after, before *PageKey, first, last *uint64) (sq.Sqlizer, uint64, error) {
-		query := builder.builder
-
-		var offset uint64
-		switch {
-		case after == nil && before == nil && first == nil && last == nil:
-			offset = 0
-
-		case after == nil && before == nil && first != nil && last == nil:
-			offset = 0
-			query = query.Limit(*first)
-
-		case after != nil && before == nil && first != nil && last == nil:
-			offset = after.Offset + 1
-			query = query.Limit(*first).Offset(offset)
-
-		case after != nil && before != nil:
-			offset = after.Offset + 1
-			limit := before.Offset - offset
-			if first != nil && *first < limit {
-				limit = *first
-			}
-			if last != nil && *last < limit {
-				delta := limit - *last
-				offset += delta
-				limit -= delta
-			}
-			query = query.Limit(limit).Offset(offset)
-
-		default:
-			return nil, 0, InvalidQuery.New("unsupported pagination")
-		}
-		query = query.OrderBy(keyColumn, idColumn)
-
-		return query, offset, nil
+	after, err := NewFromPageCursor(model.PageCursor(pageArgs.After))
+	if err != nil {
+		return
 	}
+	before, err := NewFromPageCursor(model.PageCursor(pageArgs.Before))
+	if err != nil {
+		return
+	}
+
+	switch {
+	case after == nil && before == nil && first == nil && last == nil:
+		offset = 0
+	case after == nil && before == nil && first != nil && last == nil:
+		offset = 0
+		query = query.Limit(*first)
+	case after != nil && before == nil && first != nil && last == nil:
+		offset = after.Offset + 1
+		query = query.Limit(*first).Offset(offset)
+	case after != nil && before != nil:
+		offset = after.Offset + 1
+		limit := before.Offset - offset
+		if first != nil && *first < limit {
+			limit = *first
+		}
+		if last != nil && *last < limit {
+			delta := limit - *last
+			offset += delta
+			limit -= delta
+		}
+		query = query.Limit(limit).Offset(offset)
+	default:
+		err = InvalidQuery.New("unsupported pagination")
+		return
+	}
+
+	out = builder
+	out.builder = query
+	return
 }
