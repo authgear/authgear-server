@@ -9,7 +9,7 @@ import React, {
 import { useNavigate } from "react-router-dom";
 import { ICommandBarItemProps, SearchBox } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { gql, useLazyQuery, QueryLazyOptions } from "@apollo/client";
+import { gql, useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
@@ -25,6 +25,7 @@ import {
 } from "./__generated__/UsersSearchQuery";
 import { SearchUsersSortBy, SortDirection } from "./__generated__/globalTypes";
 import ShowError from "../../ShowError";
+import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./UsersScreen.module.scss";
 
@@ -92,7 +93,10 @@ const SEARCH_QUERY = gql`
 
 const UsersScreen: React.FC = function UsersScreen() {
   const { searchEnabled } = useSystemConfig();
+
   const [searchKeyword, setSearchKeyword] = useState("");
+  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
+
   const [offset, setOffset] = useState(0);
   const [sortBy, setSortBy] = useState<SearchUsersSortBy | undefined>(
     undefined
@@ -167,37 +171,45 @@ const UsersScreen: React.FC = function UsersScreen() {
     setOffset(offset);
   }, []);
 
-  const listQuery = useLazyQuery<UsersListQuery, UsersListQueryVariables>(
+  const listQuery = useQuery<UsersListQuery, UsersListQueryVariables>(
     LIST_QUERY,
     {
+      variables: {
+        pageSize,
+        cursor,
+      },
       fetchPolicy: "network-only",
     }
   );
 
-  const searchQuery = useLazyQuery<UsersSearchQuery, UsersSearchQueryVariables>(
+  const searchQuery = useQuery<UsersSearchQuery, UsersSearchQueryVariables>(
     SEARCH_QUERY,
     {
+      variables: {
+        pageSize,
+        cursor,
+        sortBy,
+        sortDirection,
+        searchKeyword: debouncedSearchKey,
+      },
       fetchPolicy: "network-only",
     }
   );
 
-  let execute: (options?: QueryLazyOptions<UsersSearchQueryVariables>) => void;
   let refetch: (() => void) | undefined;
   let loading: boolean;
   let error: unknown;
   let data: UsersListQuery | undefined;
   if (searchKeyword !== "") {
-    execute = searchQuery[0];
-    data = searchQuery[1].data;
-    refetch = searchQuery[1].refetch;
-    loading = searchQuery[1].loading;
-    error = searchQuery[1].error;
+    data = searchQuery.data;
+    refetch = searchQuery.refetch;
+    loading = searchQuery.loading;
+    error = searchQuery.error;
   } else {
-    execute = listQuery[0];
-    data = listQuery[1].data;
-    refetch = listQuery[1].refetch;
-    loading = listQuery[1].loading;
-    error = listQuery[1].error;
+    data = listQuery.data;
+    refetch = listQuery.refetch;
+    loading = listQuery.loading;
+    error = listQuery.error;
   }
 
   const prevDataRef = useRef<UsersListQuery | undefined>();
@@ -205,47 +217,6 @@ const UsersScreen: React.FC = function UsersScreen() {
     prevDataRef.current = data;
   });
   const prevData = prevDataRef.current;
-
-  const search = useCallback(() => {
-    execute({
-      variables: {
-        sortBy,
-        sortDirection,
-        searchKeyword,
-        pageSize,
-        cursor,
-      },
-    });
-  }, [execute, sortBy, sortDirection, searchKeyword, cursor]);
-
-  // Initial execute
-  useEffect(() => {
-    search();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Execute when cursor, sortBy, or sortDirection changes.
-  useEffect(() => {
-    search();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor, sortBy, sortDirection]);
-
-  // Debounced execute when searchKeyword changes.
-  const setTimeoutToken = useRef<ReturnType<typeof setTimeout> | undefined>();
-  useEffect(() => {
-    const token = setTimeout(() => {
-      search();
-    }, 500);
-
-    setTimeoutToken.current = token;
-
-    return () => {
-      if (setTimeoutToken.current != null) {
-        clearTimeout(setTimeoutToken.current);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchKeyword]);
 
   const messageBar = useMemo(() => {
     if (error != null) {
