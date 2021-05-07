@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 const IndexNameUser = "user"
@@ -28,15 +29,11 @@ type User struct {
 	PhoneNumberNationalNumber []string `json:"phone_number_national_number,omitempty"`
 }
 
-type QueryUserOptions struct {
-	SearchKeyword string
-	First         uint64
-	After         model.PageCursor
-	SortBy        libuser.SortBy
-	SortDirection model.SortDirection
-}
-
-func (o *QueryUserOptions) SearchBody(appID string) interface{} {
+func MakeSearchBody(
+	appID config.AppID,
+	searchKeyword string,
+	sortOption libuser.SortOption,
+) interface{} {
 	body := map[string]interface{}{
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
@@ -51,13 +48,13 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 				"should": []interface{}{
 					map[string]interface{}{
 						"term": map[string]interface{}{
-							"id": o.SearchKeyword,
+							"id": searchKeyword,
 						},
 					},
 					map[string]interface{}{
 						"term": map[string]interface{}{
 							"email": map[string]interface{}{
-								"value":            o.SearchKeyword,
+								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
 						},
@@ -65,7 +62,7 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 					map[string]interface{}{
 						"term": map[string]interface{}{
 							"email_local_part": map[string]interface{}{
-								"value":            o.SearchKeyword,
+								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
 						},
@@ -73,7 +70,7 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 					map[string]interface{}{
 						"term": map[string]interface{}{
 							"email_domain": map[string]interface{}{
-								"value":            o.SearchKeyword,
+								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
 						},
@@ -81,7 +78,7 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 					map[string]interface{}{
 						"term": map[string]interface{}{
 							"preferred_username": map[string]interface{}{
-								"value":            o.SearchKeyword,
+								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
 						},
@@ -89,7 +86,7 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 					map[string]interface{}{
 						"term": map[string]interface{}{
 							"phone_number": map[string]interface{}{
-								"value":            o.SearchKeyword,
+								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
 						},
@@ -97,7 +94,7 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 					map[string]interface{}{
 						"term": map[string]interface{}{
 							"phone_number_country_code": map[string]interface{}{
-								"value":            o.SearchKeyword,
+								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
 						},
@@ -105,7 +102,7 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 					map[string]interface{}{
 						"term": map[string]interface{}{
 							"phone_number_national_number": map[string]interface{}{
-								"value":            o.SearchKeyword,
+								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
 						},
@@ -116,15 +113,15 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 	}
 
 	var sort []interface{}
-	if o.SortBy == libuser.SortByDefault {
+	if sortOption.SortBy == libuser.SortByDefault {
 		sort = append(sort, "_score")
 	} else {
-		dir := o.SortDirection
+		dir := sortOption.SortDirection
 		if dir == model.SortDirectionDefault {
 			dir = model.SortDirectionDesc
 		}
 		sort = append(sort, map[string]interface{}{
-			string(o.SortBy): map[string]interface{}{
+			string(sortOption.SortBy): map[string]interface{}{
 				"order": dir,
 			},
 		})

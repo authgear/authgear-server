@@ -16,6 +16,11 @@ const (
 	SortByLastLoginAt SortBy = "last_login_at"
 )
 
+type SortOption struct {
+	SortBy        SortBy
+	SortDirection model.SortDirection
+}
+
 type User struct {
 	ID            string
 	Labels        map[string]interface{}

@@ -6,7 +6,6 @@ import (
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
-	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -78,20 +77,20 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				gqlCtx := GQLContext(p.Context)
+
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
 				searchKeyword, _ := p.Args["searchKeyword"].(string)
+
 				sortBy, _ := p.Args["sortBy"].(libuser.SortBy)
 				sortDirection, _ := p.Args["sortDirection"].(apimodel.SortDirection)
 
-				opts := &libes.QueryUserOptions{
-					SearchKeyword: searchKeyword,
-					First:         *pageArgs.First,
-					After:         apimodel.PageCursor(pageArgs.After),
+				sortOption := libuser.SortOption{
 					SortBy:        sortBy,
 					SortDirection: sortDirection,
 				}
 
-				refs, result, err := gqlCtx.UserFacade.SearchPage(pageArgs, opts)
+				refs, result, err := gqlCtx.UserFacade.SearchPage(searchKeyword, sortOption, pageArgs)
 				if err != nil {
 					return nil, err
 				}

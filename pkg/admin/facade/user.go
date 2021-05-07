@@ -23,7 +23,7 @@ type UserService interface {
 }
 
 type UserSearchService interface {
-	QueryUser(opts *libes.QueryUserOptions) ([]apimodel.PageItemRef, *libes.Stats, error)
+	QueryUser(searchKeyword string, sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *libes.Stats, error)
 }
 
 type UserFacade struct {
@@ -43,12 +43,12 @@ func (f *UserFacade) QueryPage(args graphqlutil.PageArgs) ([]apimodel.PageItemRe
 	})), nil
 }
 
-func (f *UserFacade) SearchPage(args graphqlutil.PageArgs, opts *libes.QueryUserOptions) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
-	refs, stats, err := f.UserSearchService.QueryUser(opts)
+func (f *UserFacade) SearchPage(searchKeyword string, sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, stats, err := f.UserSearchService.QueryUser(searchKeyword, sortOption, pageArgs)
 	if err != nil {
 		return nil, nil, err
 	}
-	return refs, graphqlutil.NewPageResult(args, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
+	return refs, graphqlutil.NewPageResult(pageArgs, len(refs), graphqlutil.NewLazy(func() (interface{}, error) {
 		return stats.TotalCount, nil
 	})), nil
 }
