@@ -417,8 +417,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
-		AppID:  appID,
-		Client: client,
+		AppID:     appID,
+		Client:    client,
+		Users:     store,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
 	}
 	hookLogger := hook.NewLogger(factory)
 	rawProvider := &user.RawProvider{
@@ -561,6 +565,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,

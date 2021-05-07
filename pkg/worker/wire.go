@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
-	authtask "github.com/authgear/authgear-server/pkg/worker/tasks"
+	workertasks "github.com/authgear/authgear-server/pkg/worker/tasks"
 )
 
 func newInProcessExecutor(p *deps.RootProvider) *executor.InProcessExecutor {
@@ -21,6 +21,13 @@ func newInProcessExecutor(p *deps.RootProvider) *executor.InProcessExecutor {
 func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(task.Task), new(*authtask.SendMessagesTask)),
+		wire.Bind(new(task.Task), new(*workertasks.SendMessagesTask)),
+	))
+}
+
+func newReindexUserTask(p *deps.TaskProvider) task.Task {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(task.Task), new(*workertasks.ReindexUserTask)),
 	))
 }

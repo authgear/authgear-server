@@ -164,6 +164,10 @@ type NonceService interface {
 	GetAndClear() string
 }
 
+type SearchService interface {
+	ReindexUser(userID string, isDelete bool) error
+}
+
 type Context struct {
 	IsCommitting bool   `wire:"-"`
 	WebSessionID string `wire:"-"`
@@ -190,6 +194,8 @@ type Context struct {
 	RateLimiter              RateLimiter
 
 	Nonces NonceService
+
+	Search SearchService
 
 	Challenges           ChallengeProvider
 	Users                UserService

@@ -7,4 +7,7 @@ import (
 var DependencySet = wire.NewSet(
 	NewSendMessagesLogger,
 	wire.Struct(new(SendMessagesTask), "*"),
+
+	NewReindexUserLogger,
+	wire.Struct(new(ReindexUserTask), "*"),
 )

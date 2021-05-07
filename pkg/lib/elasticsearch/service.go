@@ -10,15 +10,25 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
+	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/task"
+	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type Service struct {
-	AppID  config.AppID
-	Client *elasticsearch.Client
+	AppID     config.AppID
+	Client    *elasticsearch.Client
+	Users     *libuser.Store
+	OAuth     *identityoauth.Store
+	LoginID   *identityloginid.Store
+	TaskQueue task.Queue
 }
 
 type queryUserResponse struct {
@@ -27,9 +37,77 @@ type queryUserResponse struct {
 			Value int `json:"value"`
 		} `json:"total"`
 		Hits []struct {
-			Source User `json:"_source"`
+			Source model.ElasticsearchUser `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
+}
+
+func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
+	if isDelete {
+		s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
+			DeleteUserAppID: string(s.AppID),
+			DeleteUserID:    userID,
+		})
+		return nil
+	}
+
+	u, err := s.Users.Get(userID)
+	if err != nil {
+		return
+	}
+	oauthIdentities, err := s.OAuth.List(u.ID)
+	if err != nil {
+		return
+	}
+	loginIDIdentities, err := s.LoginID.List(u.ID)
+	if err != nil {
+		return
+	}
+
+	val := &model.ElasticsearchUser{
+		ID:          u.ID,
+		AppID:       string(s.AppID),
+		CreatedAt:   u.CreatedAt,
+		UpdatedAt:   u.UpdatedAt,
+		LastLoginAt: u.LastLoginAt,
+		IsDisabled:  u.IsDisabled,
+	}
+
+	var arrClaims []map[string]interface{}
+	for _, oauthI := range oauthIdentities {
+		arrClaims = append(arrClaims, oauthI.Claims)
+	}
+	for _, loginIDI := range loginIDIdentities {
+		arrClaims = append(arrClaims, loginIDI.Claims)
+	}
+
+	for _, claims := range arrClaims {
+		email, ok := claims["email"].(string)
+		if ok {
+			local, domain := mail.SplitAddress(email)
+			val.Email = append(val.Email, email)
+			val.EmailLocalPart = append(val.EmailLocalPart, local)
+			val.EmailDomain = append(val.EmailDomain, domain)
+		}
+		phoneNumber, ok := claims["phone_number"].(string)
+		if ok {
+			nationalNumber, callingCode, err := phone.ParseE164ToCallingCodeAndNumber(phoneNumber)
+			if err == nil {
+				val.PhoneNumberCountryCode = append(val.PhoneNumberCountryCode, callingCode)
+				val.PhoneNumberNationalNumber = append(val.PhoneNumberNationalNumber, nationalNumber)
+			}
+			val.PhoneNumber = append(val.PhoneNumber, phoneNumber)
+		}
+		preferredUsername, ok := claims["preferred_username"].(string)
+		if ok {
+			val.PreferredUsername = append(val.PreferredUsername, preferredUsername)
+		}
+	}
+
+	s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
+		User: val,
+	})
+	return nil
 }
 
 func (s *Service) QueryUser(

@@ -7,6 +7,7 @@ package worker
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -64,4 +65,19 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		Logger:      sendMessagesLogger,
 	}
 	return sendMessagesTask
+}
+
+func newReindexUserTask(p *deps.TaskProvider) task.Task {
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	secretConfig := config.SecretConfig
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	factory := appProvider.LoggerFactory
+	reindexUserLogger := tasks.NewReindexUserLogger(factory)
+	reindexUserTask := &tasks.ReindexUserTask{
+		Client: client,
+		Logger: reindexUserLogger,
+	}
+	return reindexUserTask
 }
