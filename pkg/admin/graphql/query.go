@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -13,10 +14,10 @@ var searchUsersSortBy = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SearchUsersSortBy",
 	Values: graphql.EnumValueConfigMap{
 		"CREATED_AT": &graphql.EnumValueConfig{
-			Value: libes.QueryUserSortByCreatedAt,
+			Value: libuser.SortByCreatedAt,
 		},
 		"LAST_LOGIN_AT": &graphql.EnumValueConfig{
-			Value: libes.QueryUserSortByLastLoginAt,
+			Value: libuser.SortByLastLoginAt,
 		},
 	},
 })
@@ -25,10 +26,10 @@ var sortDirection = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SortDirection",
 	Values: graphql.EnumValueConfigMap{
 		"ASC": &graphql.EnumValueConfig{
-			Value: libes.SortDirectionAsc,
+			Value: apimodel.SortDirectionAsc,
 		},
 		"DESC": &graphql.EnumValueConfig{
-			Value: libes.SortDirectionDesc,
+			Value: apimodel.SortDirectionDesc,
 		},
 	},
 })
@@ -79,8 +80,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				gqlCtx := GQLContext(p.Context)
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 				searchKeyword, _ := p.Args["searchKeyword"].(string)
-				sortBy, _ := p.Args["sortBy"].(libes.QueryUserSortBy)
-				sortDirection, _ := p.Args["sortDirection"].(libes.SortDirection)
+				sortBy, _ := p.Args["sortBy"].(libuser.SortBy)
+				sortDirection, _ := p.Args["sortDirection"].(apimodel.SortDirection)
 
 				opts := &libes.QueryUserOptions{
 					SearchKeyword: searchKeyword,

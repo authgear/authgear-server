@@ -6,6 +6,8 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
+	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
@@ -196,7 +198,7 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 	Convey("QueryUserOptions.SearchBody sort by created_at", t, func() {
 		test(&QueryUserOptions{
 			SearchKeyword: "KEYWORD",
-			SortBy:        QueryUserSortByCreatedAt,
+			SortBy:        libuser.SortByCreatedAt,
 		}, `
 		{
 			"query": {
@@ -284,7 +286,7 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 	Convey("QueryUserOptions.SearchBody sort by last_login_at", t, func() {
 		test(&QueryUserOptions{
 			SearchKeyword: "KEYWORD",
-			SortBy:        QueryUserSortByLastLoginAt,
+			SortBy:        libuser.SortByLastLoginAt,
 		}, `
 		{
 			"query": {
@@ -372,8 +374,8 @@ func TestQueryUserOptionsSearchBody(t *testing.T) {
 	Convey("QueryUserOptions.SearchBody sort asc", t, func() {
 		test(&QueryUserOptions{
 			SearchKeyword: "KEYWORD",
-			SortBy:        QueryUserSortByCreatedAt,
-			SortDirection: SortDirectionAsc,
+			SortBy:        libuser.SortByCreatedAt,
+			SortDirection: model.SortDirectionAsc,
 		}, `
 		{
 			"query": {

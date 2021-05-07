@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 )
 
 const IndexNameUser = "user"
@@ -27,20 +28,12 @@ type User struct {
 	PhoneNumberNationalNumber []string `json:"phone_number_national_number,omitempty"`
 }
 
-type QueryUserSortBy string
-
-const (
-	QueryUserSortByDefault     QueryUserSortBy = ""
-	QueryUserSortByCreatedAt   QueryUserSortBy = "created_at"
-	QueryUserSortByLastLoginAt QueryUserSortBy = "last_login_at"
-)
-
 type QueryUserOptions struct {
 	SearchKeyword string
 	First         uint64
 	After         model.PageCursor
-	SortBy        QueryUserSortBy
-	SortDirection SortDirection
+	SortBy        libuser.SortBy
+	SortDirection model.SortDirection
 }
 
 func (o *QueryUserOptions) SearchBody(appID string) interface{} {
@@ -123,12 +116,12 @@ func (o *QueryUserOptions) SearchBody(appID string) interface{} {
 	}
 
 	var sort []interface{}
-	if o.SortBy == QueryUserSortByDefault {
+	if o.SortBy == libuser.SortByDefault {
 		sort = append(sort, "_score")
 	} else {
 		dir := o.SortDirection
-		if dir == SortDirectionDefault {
-			dir = SortDirectionDesc
+		if dir == model.SortDirectionDefault {
+			dir = model.SortDirectionDesc
 		}
 		sort = append(sort, map[string]interface{}{
 			string(o.SortBy): map[string]interface{}{

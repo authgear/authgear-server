@@ -8,6 +8,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
+type SortBy string
+
+const (
+	SortByDefault     SortBy = ""
+	SortByCreatedAt   SortBy = "created_at"
+	SortByLastLoginAt SortBy = "last_login_at"
+)
+
 type User struct {
 	ID            string
 	Labels        map[string]interface{}
