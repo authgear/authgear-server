@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ICommandBarItemProps, SearchBox } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -212,12 +205,6 @@ const UsersScreen: React.FC = function UsersScreen() {
     error = listQuery.error;
   }
 
-  const prevDataRef = useRef<UsersListQuery | undefined>();
-  useEffect(() => {
-    prevDataRef.current = data;
-  });
-  const prevData = prevDataRef.current;
-
   const messageBar = useMemo(() => {
     if (error != null) {
       return <ShowError error={error} onRetry={refetch} />;
@@ -267,7 +254,7 @@ const UsersScreen: React.FC = function UsersScreen() {
           users={data?.users ?? null}
           offset={offset}
           pageSize={pageSize}
-          totalCount={(data ?? prevData)?.users?.totalCount ?? undefined}
+          totalCount={data?.users?.totalCount ?? undefined}
           onChangeOffset={onChangeOffset}
           onColumnClick={onColumnClick}
           sortBy={searchKeyword === "" ? undefined : sortBy}
