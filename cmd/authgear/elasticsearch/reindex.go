@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -27,6 +28,7 @@ type Item struct {
 }
 
 type Reindexer struct {
+	Handle  *tenantdb.Handle
 	AppID   config.AppID
 	Users   *user.Store
 	OAuth   *identityoauth.Store
@@ -109,10 +111,13 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 	var items []Item
 
 	for {
-		items, err = q.QueryPage(after, first)
-		if err != nil {
-			return
-		}
+		err = q.Handle.WithTx(func() (err error) {
+			items, err = q.QueryPage(after, first)
+			if err != nil {
+				return
+			}
+			return nil
+		})
 
 		// Termination condition
 		if len(items) <= 0 {
