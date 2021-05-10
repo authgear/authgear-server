@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type IdentityService interface {
@@ -51,8 +52,8 @@ func (p *Queries) Count() (uint64, error) {
 	return p.Store.Count()
 }
 
-func (p *Queries) QueryPage(after, before model.PageCursor, first, last *uint64) ([]model.PageItemRef, error) {
-	users, offset, err := p.Store.QueryPage(after, before, first, last)
+func (p *Queries) QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
+	users, offset, err := p.Store.QueryPage(sortOption, pageArgs)
 	if err != nil {
 		return nil, err
 	}

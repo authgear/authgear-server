@@ -169,7 +169,6 @@
 
   "UserDetailsScreen.title": "User Details",
 
-  "UsersList.column.id": "ID",
   "UsersList.column.username": "Username",
   "UsersList.column.email": "Email",
   "UsersList.column.phone": "Phone",

@@ -9,6 +9,10 @@ import (
 )
 
 func NewClient(credentials *config.ElasticsearchCredentials) *elasticsearch.Client {
+	if credentials == nil {
+		return nil
+	}
+
 	cfg := elasticsearch.Config{
 		Addresses: []string{
 			credentials.ElasticsearchURL,

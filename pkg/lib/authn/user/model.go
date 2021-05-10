@@ -1,12 +1,41 @@
 package user
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
+
+type SortBy string
+
+const (
+	SortByDefault     SortBy = ""
+	SortByCreatedAt   SortBy = "created_at"
+	SortByLastLoginAt SortBy = "last_login_at"
+)
+
+type SortOption struct {
+	SortBy        SortBy
+	SortDirection model.SortDirection
+}
+
+func (o SortOption) Apply(builder db.SelectBuilder) db.SelectBuilder {
+	sortBy := o.SortBy
+	if sortBy == SortByDefault {
+		sortBy = SortByCreatedAt
+	}
+
+	sortDirection := o.SortDirection
+	if sortDirection == model.SortDirectionDefault {
+		sortDirection = model.SortDirectionDesc
+	}
+
+	return builder.OrderBy(fmt.Sprintf("%s %s NULLS LAST", sortBy, sortDirection))
+}
 
 type User struct {
 	ID            string

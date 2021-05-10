@@ -36,6 +36,7 @@ func (c *Controller) Start() {
 		&cfg.Mail,
 		&cfg.Kubernetes,
 		cfg.DomainImplementation,
+		&cfg.Search,
 		cfg.App.SecretKeyAllowlist,
 	)
 	if err != nil {

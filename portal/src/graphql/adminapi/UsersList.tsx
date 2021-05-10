@@ -8,10 +8,12 @@ import {
   IDetailsRowProps,
   DetailsRow,
   ActionButton,
+  ColumnActionsMode,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link } from "react-router-dom";
 import { UsersListQuery_users } from "./__generated__/UsersListQuery";
+import { UserSortBy, SortDirection } from "./__generated__/globalTypes";
 
 import PaginationWidget from "../../PaginationWidget";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
@@ -22,6 +24,7 @@ import { nonNullable } from "../../util/types";
 
 import styles from "./UsersList.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import useDelayedValue from "../../hook/useDelayedValue";
 
 interface UsersListProps {
   className?: string;
@@ -31,6 +34,9 @@ interface UsersListProps {
   pageSize: number;
   totalCount?: number;
   onChangeOffset?: (offset: number) => void;
+  onColumnClick?: (columnKey: UserSortBy) => void;
+  sortBy?: UserSortBy;
+  sortDirection?: SortDirection;
 }
 
 interface UserListItem {
@@ -63,60 +69,70 @@ const isUserListItem = (value: unknown): value is UserListItem => {
 const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   const {
     className,
-    loading,
+    loading: rawLoading,
     offset,
     pageSize,
     totalCount,
     onChangeOffset,
+    onColumnClick,
+    sortBy,
+    sortDirection,
   } = props;
   const edges = props.users?.edges;
+
+  const loading = useDelayedValue(rawLoading, 500);
 
   const { renderToString, locale } = useContext(Context);
   const { themes } = useSystemConfig();
 
   const columns: IColumn[] = [
     {
-      key: "id",
-      fieldName: "id",
-      name: renderToString("UsersList.column.id"),
-      minWidth: 400,
-      maxWidth: 400,
-    },
-    {
       key: "username",
       fieldName: "username",
       name: renderToString("UsersList.column.username"),
       minWidth: 150,
+      columnActionsMode: ColumnActionsMode.disabled,
     },
     {
       key: "email",
       fieldName: "email",
       name: renderToString("UsersList.column.email"),
       minWidth: 150,
+      columnActionsMode: ColumnActionsMode.disabled,
     },
     {
       key: "phone",
       fieldName: "phone",
       name: renderToString("UsersList.column.phone"),
       minWidth: 150,
+      columnActionsMode: ColumnActionsMode.disabled,
     },
     {
       key: "createdAt",
       fieldName: "createdAt",
       name: renderToString("UsersList.column.signed-up"),
       minWidth: 200,
+      isSorted: sortBy === "CREATED_AT",
+      isSortedDescending: sortDirection === SortDirection.DESC,
+      iconName: "SortLines",
+      iconClassName: styles.sortIcon,
     },
     {
       key: "lastLoginAt",
       fieldName: "lastLoginAt",
       name: renderToString("UsersList.column.last-login-at"),
       minWidth: 200,
+      isSorted: sortBy === "LAST_LOGIN_AT",
+      isSortedDescending: sortDirection === SortDirection.DESC,
+      iconName: "SortLines",
+      iconClassName: styles.sortIcon,
     },
     {
       key: "action",
       fieldName: "action",
       name: renderToString("action"),
       minWidth: 150,
+      columnActionsMode: ColumnActionsMode.disabled,
     },
   ];
 
@@ -225,14 +241,30 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
     setIsDisableUserDialogHidden(true);
   }, []);
 
+  const onColumnHeaderClick = useCallback(
+    (_e, column) => {
+      if (column != null) {
+        if (column.key === "createdAt") {
+          onColumnClick?.(UserSortBy.CREATED_AT);
+        }
+        if (column.key === "lastLoginAt") {
+          onColumnClick?.(UserSortBy.LAST_LOGIN_AT);
+        }
+      }
+    },
+    [onColumnClick]
+  );
+
   return (
     <>
       <div className={cn(styles.root, className)}>
         <ShimmeredDetailsList
           className={styles.list}
           enableShimmer={loading}
+          enableUpdateAnimations={false}
           onRenderRow={onRenderUserRow}
           onRenderItemColumn={onRenderUserItemColumn}
+          onColumnHeaderClick={onColumnHeaderClick}
           selectionMode={SelectionMode.none}
           layoutMode={DetailsListLayoutMode.justified}
           columns={columns}

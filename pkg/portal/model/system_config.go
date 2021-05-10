@@ -7,4 +7,5 @@ type SystemConfig struct {
 	SupportedResourceLocales []string    `json:"supportedResourceLocales"`
 	Themes                   interface{} `json:"themes,omitempty"`
 	Translations             interface{} `json:"translations,omitempty"`
+	SearchEnabled            bool        `json:"searchEnabled"`
 }

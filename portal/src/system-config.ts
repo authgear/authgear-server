@@ -9,6 +9,7 @@ export interface SystemConfig {
   supportedResourceLocales: string[];
   themes: SystemConfigThemes;
   translations: SystemConfigTranslations;
+  searchEnabled: boolean;
 }
 
 export interface SystemConfigThemes {
@@ -252,5 +253,6 @@ export function instantiateSystemConfig(
     translations: {
       en: config.translations?.en ?? {},
     },
+    searchEnabled: config.searchEnabled ?? false,
   };
 }

@@ -5,18 +5,18 @@ import (
 	"github.com/graphql-go/graphql"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
-	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-var searchUsersSortBy = graphql.NewEnum(graphql.EnumConfig{
-	Name: "SearchUsersSortBy",
+var userSortBy = graphql.NewEnum(graphql.EnumConfig{
+	Name: "UserSortBy",
 	Values: graphql.EnumValueConfigMap{
 		"CREATED_AT": &graphql.EnumValueConfig{
-			Value: libes.QueryUserSortByCreatedAt,
+			Value: libuser.SortByCreatedAt,
 		},
 		"LAST_LOGIN_AT": &graphql.EnumValueConfig{
-			Value: libes.QueryUserSortByLastLoginAt,
+			Value: libuser.SortByLastLoginAt,
 		},
 	},
 })
@@ -25,10 +25,10 @@ var sortDirection = graphql.NewEnum(graphql.EnumConfig{
 	Name: "SortDirection",
 	Values: graphql.EnumValueConfigMap{
 		"ASC": &graphql.EnumValueConfig{
-			Value: libes.SortDirectionAsc,
+			Value: apimodel.SortDirectionAsc,
 		},
 		"DESC": &graphql.EnumValueConfig{
-			Value: libes.SortDirectionDesc,
+			Value: apimodel.SortDirectionDesc,
 		},
 	},
 })
@@ -41,35 +41,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"users": &graphql.Field{
 			Description: "All users",
 			Type:        connUser.ConnectionType,
-			Args:        relay.ConnectionArgs,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				args := relay.NewConnectionArguments(p.Args)
-				gqlCtx := GQLContext(p.Context)
-				refs, result, err := gqlCtx.UserFacade.QueryPage(graphqlutil.NewPageArgs(args))
-				if err != nil {
-					return nil, err
-				}
-
-				var lazyItems []graphqlutil.LazyItem
-				for _, ref := range refs {
-					lazyItems = append(lazyItems, graphqlutil.LazyItem{
-						Lazy:   gqlCtx.Users.Load(ref.ID),
-						Cursor: graphqlutil.Cursor(ref.Cursor),
-					})
-				}
-
-				return graphqlutil.NewConnectionFromResult(lazyItems, result)
-			},
-		},
-		"searchUsers": &graphql.Field{
-			Description: "Search users",
-			Type:        connUser.ConnectionType,
 			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
 				"searchKeyword": &graphql.ArgumentConfig{
 					Type: graphql.String,
 				},
 				"sortBy": &graphql.ArgumentConfig{
-					Type: searchUsersSortBy,
+					Type: userSortBy,
 				},
 				"sortDirection": &graphql.ArgumentConfig{
 					Type: sortDirection,
@@ -77,20 +54,27 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				gqlCtx := GQLContext(p.Context)
-				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
-				searchKeyword, _ := p.Args["searchKeyword"].(string)
-				sortBy, _ := p.Args["sortBy"].(libes.QueryUserSortBy)
-				sortDirection, _ := p.Args["sortDirection"].(libes.SortDirection)
 
-				opts := &libes.QueryUserOptions{
-					SearchKeyword: searchKeyword,
-					First:         *pageArgs.First,
-					After:         apimodel.PageCursor(pageArgs.After),
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				searchKeyword, _ := p.Args["searchKeyword"].(string)
+
+				sortBy, _ := p.Args["sortBy"].(libuser.SortBy)
+				sortDirection, _ := p.Args["sortDirection"].(apimodel.SortDirection)
+
+				sortOption := libuser.SortOption{
 					SortBy:        sortBy,
 					SortDirection: sortDirection,
 				}
 
-				refs, result, err := gqlCtx.UserFacade.SearchPage(pageArgs, opts)
+				var refs []apimodel.PageItemRef
+				var result *graphqlutil.PageResult
+				var err error
+				if searchKeyword == "" {
+					refs, result, err = gqlCtx.UserFacade.ListPage(sortOption, pageArgs)
+				} else {
+					refs, result, err = gqlCtx.UserFacade.SearchPage(searchKeyword, sortOption, pageArgs)
+				}
 				if err != nil {
 					return nil, err
 				}

@@ -1,30 +1,40 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ICommandBarItemProps } from "@fluentui/react";
+import { ICommandBarItemProps, SearchBox } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { gql, useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import {
   UsersListQuery,
   UsersListQueryVariables,
 } from "./__generated__/UsersListQuery";
+import { UserSortBy, SortDirection } from "./__generated__/globalTypes";
 import ShowError from "../../ShowError";
+import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./UsersScreen.module.scss";
 
-const query = gql`
-  query UsersListQuery($pageSize: Int!, $cursor: String) {
-    users(first: $pageSize, after: $cursor) {
+const pageSize = 10;
+
+const LIST_QUERY = gql`
+  query UsersListQuery(
+    $searchKeyword: String!
+    $pageSize: Int!
+    $cursor: String
+    $sortBy: UserSortBy
+    $sortDirection: SortDirection
+  ) {
+    users(
+      first: $pageSize
+      after: $cursor
+      searchKeyword: $searchKeyword
+      sortBy: $sortBy
+      sortDirection: $sortDirection
+    ) {
       edges {
         node {
           id
@@ -46,9 +56,18 @@ const query = gql`
   }
 `;
 
-const pageSize = 10;
-
 const UsersScreen: React.FC = function UsersScreen() {
+  const { searchEnabled } = useSystemConfig();
+
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const debouncedSearchKey = useDelayedValue(searchKeyword, 500);
+
+  const [offset, setOffset] = useState(0);
+  const [sortBy, setSortBy] = useState<UserSortBy | undefined>(undefined);
+  const [sortDirection, setSortDirection] = useState<SortDirection | undefined>(
+    undefined
+  );
+
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
 
@@ -56,7 +75,36 @@ const UsersScreen: React.FC = function UsersScreen() {
     return [{ to: ".", label: <FormattedMessage id="UsersScreen.title" /> }];
   }, []);
 
+  const onChangeSearchKeyword = useCallback((_e, value) => {
+    if (value != null) {
+      setSearchKeyword(value);
+      // Reset offset when search keyword was changed.
+      setOffset(0);
+    }
+  }, []);
+
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
+    if (searchEnabled) {
+      return [
+        {
+          key: "search",
+          onRender: () => {
+            return (
+              <SearchBox
+                className={styles.searchBox}
+                placeholder={renderToString("search")}
+                value={searchKeyword}
+                onChange={onChangeSearchKeyword}
+              />
+            );
+          },
+        },
+      ];
+    }
+    return [];
+  }, [renderToString, onChangeSearchKeyword, searchKeyword, searchEnabled]);
+
+  const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
     return [
       {
         key: "addUser",
@@ -66,8 +114,6 @@ const UsersScreen: React.FC = function UsersScreen() {
       },
     ];
   }, [navigate, renderToString]);
-
-  const [offset, setOffset] = useState(0);
 
   // after: is exclusive so if we pass it "offset:0",
   // The first item is excluded.
@@ -83,33 +129,52 @@ const UsersScreen: React.FC = function UsersScreen() {
     setOffset(offset);
   }, []);
 
-  const { loading, error, data, refetch } = useQuery<
+  const { data, error, loading, refetch } = useQuery<
     UsersListQuery,
     UsersListQueryVariables
-  >(query, {
+  >(LIST_QUERY, {
     variables: {
       pageSize,
       cursor,
+      sortBy,
+      sortDirection,
+      searchKeyword: debouncedSearchKey,
     },
     fetchPolicy: "network-only",
   });
 
-  const prevDataRef = useRef<UsersListQuery | undefined>();
-  useEffect(() => {
-    prevDataRef.current = data;
-  });
-  const prevData = prevDataRef.current;
+  const messageBar = useMemo(() => {
+    if (error != null) {
+      return <ShowError error={error} onRetry={refetch} />;
+    }
+    return null;
+  }, [error, refetch]);
 
-  const messageBar = useMemo(
-    () => error && <ShowError error={error} onRetry={refetch} />,
-    [error, refetch]
+  const onColumnClick = useCallback(
+    (columnKey: UserSortBy) => {
+      if (sortBy === columnKey) {
+        if (sortDirection == null) {
+          setSortDirection(SortDirection.DESC);
+        } else if (sortDirection === SortDirection.DESC) {
+          setSortDirection(SortDirection.ASC);
+        } else {
+          setSortBy(undefined);
+          setSortDirection(undefined);
+        }
+      } else {
+        setSortBy(columnKey);
+        setSortDirection(SortDirection.DESC);
+      }
+    },
+    [sortBy, sortDirection]
   );
 
   return (
     <CommandBarContainer
       isLoading={loading}
       className={styles.root}
-      farItems={commandBarItems}
+      items={commandBarItems}
+      farItems={commandBarFarItems}
       messageBar={messageBar}
     >
       <main className={styles.content}>
@@ -120,8 +185,11 @@ const UsersScreen: React.FC = function UsersScreen() {
           users={data?.users ?? null}
           offset={offset}
           pageSize={pageSize}
-          totalCount={(data ?? prevData)?.users?.totalCount ?? undefined}
+          totalCount={data?.users?.totalCount ?? undefined}
           onChangeOffset={onChangeOffset}
+          onColumnClick={onColumnClick}
+          sortBy={sortBy}
+          sortDirection={sortDirection}
         />
       </main>
     </CommandBarContainer>

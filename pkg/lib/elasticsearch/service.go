@@ -10,8 +10,10 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type Service struct {
@@ -30,9 +32,17 @@ type queryUserResponse struct {
 	} `json:"hits"`
 }
 
-func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, *Stats, error) {
+func (s *Service) QueryUser(
+	searchKeyword string,
+	sortOption libuser.SortOption,
+	pageArgs graphqlutil.PageArgs,
+) ([]model.PageItemRef, *Stats, error) {
+	if s.Client == nil {
+		return nil, &Stats{TotalCount: 0}, nil
+	}
+
 	// Prepare body
-	bodyJSONValue := opts.SearchBody(string(s.AppID))
+	bodyJSONValue := MakeSearchBody(s.AppID, searchKeyword, sortOption)
 	bodyJSONBytes, err := json.Marshal(bodyJSONValue)
 	if err != nil {
 		return nil, nil, err
@@ -40,13 +50,13 @@ func (s *Service) QueryUser(opts *QueryUserOptions) ([]model.PageItemRef, *Stats
 	body := bytes.NewReader(bodyJSONBytes)
 
 	// Prepare size
-	size := int(opts.First)
+	size := int(*pageArgs.First)
 	if size == 0 {
 		size = 20
 	}
 
 	// Prepare from
-	pageKey, err := db.NewFromPageCursor(opts.After)
+	pageKey, err := db.NewFromPageCursor(model.PageCursor(pageArgs.After))
 	if err != nil {
 		return nil, nil, err
 	}

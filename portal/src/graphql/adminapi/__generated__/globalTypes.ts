@@ -31,6 +31,16 @@ export enum SessionType {
   OFFLINE_GRANT = "OFFLINE_GRANT",
 }
 
+export enum SortDirection {
+  ASC = "ASC",
+  DESC = "DESC",
+}
+
+export enum UserSortBy {
+  CREATED_AT = "CREATED_AT",
+  LAST_LOGIN_AT = "LAST_LOGIN_AT",
+}
+
 /**
  * Definition of an identity. This is a union object, exactly one of the available fields must be present.
  */

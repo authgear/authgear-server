@@ -17,6 +17,7 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
@@ -33,7 +34,10 @@ type Reindexer struct {
 }
 
 func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, error) {
-	users, offset, err := q.Users.QueryPage(after, model.PageCursor(""), &first, nil)
+	users, offset, err := q.Users.QueryPage(user.SortOption{}, graphqlutil.PageArgs{
+		First: &first,
+		After: graphqlutil.Cursor(after),
+	})
 	if err != nil {
 		return nil, err
 	}
