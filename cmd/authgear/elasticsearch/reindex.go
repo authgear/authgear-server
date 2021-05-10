@@ -57,7 +57,7 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 		if err != nil {
 			return nil, err
 		}
-		val := &libes.User{
+		val := &model.ElasticsearchUser{
 			ID:          u.ID,
 			AppID:       string(q.AppID),
 			CreatedAt:   u.CreatedAt,
@@ -125,7 +125,7 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 		// Process the items
 		buf := &bytes.Buffer{}
 		for _, item := range items {
-			user := item.Value.(*libes.User)
+			user := item.Value.(*model.ElasticsearchUser)
 			fmt.Printf("Indexing app (%s) user (%s)\n", user.AppID, user.ID)
 			err = q.writeBody(buf, user)
 			if err != nil {
@@ -150,7 +150,7 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 	return nil
 }
 
-func (q *Reindexer) writeBody(buf io.Writer, user *libes.User) (err error) {
+func (q *Reindexer) writeBody(buf io.Writer, user *model.ElasticsearchUser) (err error) {
 	id := fmt.Sprintf("%s:%s", user.AppID, user.ID)
 	action := map[string]interface{}{
 		"index": map[string]interface{}{

@@ -26,6 +26,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -430,6 +431,16 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -517,6 +528,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -966,6 +978,16 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -1037,6 +1059,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -2615,6 +2638,16 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -2686,6 +2719,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3128,6 +3162,16 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -3215,6 +3259,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -3661,6 +3706,16 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -3748,6 +3803,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4194,6 +4250,16 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -4281,6 +4347,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -4727,6 +4794,16 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -4814,6 +4891,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5253,6 +5331,16 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -5340,6 +5428,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -5782,6 +5871,16 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -5869,6 +5968,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6314,6 +6414,16 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -6401,6 +6511,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -6843,6 +6954,16 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -6930,6 +7051,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7371,6 +7493,16 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -7458,6 +7590,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -7900,6 +8033,16 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -7987,6 +8130,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8430,6 +8574,16 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -8517,6 +8671,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -8958,6 +9113,16 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -9045,6 +9210,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -9486,6 +9652,16 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -9573,6 +9749,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -10016,6 +10193,16 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -10103,6 +10290,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -10544,6 +10732,16 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -10631,6 +10829,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11072,6 +11271,16 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -11159,6 +11368,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -11603,6 +11813,16 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -11690,6 +11910,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -12131,6 +12352,16 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -12218,6 +12449,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -12664,6 +12896,16 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -12751,6 +12993,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -13192,6 +13435,16 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -13279,6 +13532,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -13721,6 +13975,16 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -13808,6 +14072,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -14249,6 +14514,16 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -14336,6 +14611,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -14796,6 +15072,16 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -14883,6 +15169,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -15326,6 +15613,16 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -15413,6 +15710,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -15855,6 +16153,16 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -15942,6 +16250,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -16393,6 +16702,16 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -16480,6 +16799,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -16922,6 +17242,16 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -17009,6 +17339,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -17451,6 +17782,16 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -17538,6 +17879,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -17981,6 +18323,16 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -18068,6 +18420,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -18516,6 +18869,16 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -18603,6 +18966,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -19045,6 +19409,16 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -19132,6 +19506,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -19574,6 +19949,16 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -19661,6 +20046,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -20479,6 +20865,16 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -20566,6 +20962,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,
@@ -21007,6 +21404,16 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     userStore,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
+	}
 	challengeProvider := &challenge.Provider{
 		Redis: redisHandle,
 		AppID: appID,
@@ -21094,6 +21501,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		VerificationCodeSender:   verificationCodeSender,
 		RateLimiter:              limiter,
 		Nonces:                   nonceService,
+		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Hooks:                    hookProvider,

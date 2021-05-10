@@ -47,7 +47,10 @@ var CommonDependencySet = wire.NewSet(
 	tenantdb.DependencySet,
 	template.DependencySet,
 
-	libes.DependencySet,
+	wire.NewSet(
+		libes.DependencySet,
+		wire.Bind(new(interaction.SearchService), new(*libes.Service)),
+	),
 
 	wire.NewSet(
 		challenge.DependencySet,

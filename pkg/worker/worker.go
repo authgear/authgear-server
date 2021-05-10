@@ -13,6 +13,6 @@ type Worker struct {
 func NewWorker(provider *deps.RootProvider) *Worker {
 	executor := newInProcessExecutor(provider)
 	tasks.ConfigureSendMessagesTask(executor, provider.Task(newSendMessagesTask))
-
+	tasks.ConfigureReindexUserTask(executor, provider.Task(newReindexUserTask))
 	return &Worker{Executor: executor}
 }

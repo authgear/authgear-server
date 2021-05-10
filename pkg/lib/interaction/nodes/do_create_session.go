@@ -133,6 +133,13 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 
 			return nil
 		}),
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			err := ctx.Search.ReindexUser(n.Session.Attrs.UserID, false)
+			if err != nil {
+				return err
+			}
+			return nil
+		}),
 	}, nil
 }
 
