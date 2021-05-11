@@ -41,7 +41,6 @@ var DependencySet = wire.NewSet(
 	global.NewPool,
 	global.DependencySet,
 	tenant.NewHandle,
-	tenant.NewPool,
 	tenant.DependencySet,
 	wire.Struct(new(user.Store), "*"),
 	wire.Struct(new(identityoauth.Store), "*"),

@@ -37,8 +37,7 @@ func NewAppLister(ctx context.Context, databaseCredentials *config.DatabaseCrede
 	return appLister
 }
 
-func NewReindexer(ctx context.Context, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
-	pool := tenant.NewPool()
+func NewReindexer(ctx context.Context, pool *tenant.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
 	databaseConfig := NewDatabaseConfig()
 	factory := NewLoggerFactory()
 	handle := tenant.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
