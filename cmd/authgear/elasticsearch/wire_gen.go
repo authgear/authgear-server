@@ -38,11 +38,11 @@ func NewAppLister(ctx context.Context, databaseCredentials *config.DatabaseCrede
 }
 
 func NewReindexer(ctx context.Context, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	pool := tenant.NewPool()
 	databaseConfig := NewDatabaseConfig()
 	factory := NewLoggerFactory()
 	handle := tenant.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	sqlExecutor := tenant.NewSQLExecutor(ctx, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
@@ -57,6 +57,7 @@ func NewReindexer(ctx context.Context, databaseCredentials *config.DatabaseCrede
 		SQLExecutor: sqlExecutor,
 	}
 	reindexer := &Reindexer{
+		Handle:  handle,
 		AppID:   appID,
 		Users:   store,
 		OAuth:   oauthStore,
