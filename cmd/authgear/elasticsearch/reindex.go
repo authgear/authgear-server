@@ -118,6 +118,9 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 			}
 			return nil
 		})
+		if err != nil {
+			return
+		}
 
 		// Termination condition
 		if len(items) <= 0 {
