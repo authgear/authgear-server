@@ -35,7 +35,7 @@ var cmdInternalMigrateExample = &cobra.Command{
 	},
 }
 
-func migrateResourcesExample(appID string, configSourceData map[string]string) error {
+func migrateResourcesExample(appID string, configSourceData map[string]string, DryRun bool) error {
 	// example update app accounts' dark_theme_disabled
 	if appID != "accounts" {
 		return nil

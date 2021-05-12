@@ -19,7 +19,7 @@ type MigrateResourcesOptions struct {
 	DatabaseURL            string
 	DatabaseSchema         string
 	DryRun                 *bool
-	UpdateConfigSourceFunc func(appID string, configSourceData map[string]string) error
+	UpdateConfigSourceFunc func(appID string, configSourceData map[string]string, DryRun bool) error
 }
 
 type configSource struct {
@@ -37,33 +37,37 @@ func MigrateResources(opt *MigrateResourcesOptions) {
 	if err != nil {
 		log.Fatalf("failed to connect db: %s", err)
 	}
+	// dryRun default is true
+	dryRun := true
+	if opt.DryRun != nil {
+		dryRun = *opt.DryRun
+	}
 
+	count := 0
 	for _, c := range configSourceList {
 		original := make(map[string]string)
 		for k, v := range c.Data {
 			original[k] = v
 		}
 
-		if err := opt.UpdateConfigSourceFunc(c.AppID, c.Data); err != nil {
+		if err := opt.UpdateConfigSourceFunc(c.AppID, c.Data, dryRun); err != nil {
 			log.Fatalf("failed to convert resources: %s, %s", c.AppID, err)
 		}
 
 		c.Updated = !reflect.DeepEqual(original, c.Data)
 		log.Printf("converting resources app_id: %s, updated: %t", c.AppID, c.Updated)
 
-	}
-
-	// dryRun default is true
-	dryRun := true
-	if opt.DryRun != nil {
-		dryRun = *opt.DryRun
-	}
-	if dryRun {
-		count := 0
-		for _, c := range configSourceList {
+		if dryRun {
 			if c.Updated {
-				log.Printf("dry run: resources to update: appid: %s", c.AppID)
-				data, err := json.MarshalIndent(c.Data, "", "  ")
+				log.Printf("dry run: original resources appid (%s)", c.AppID)
+				data, err := json.MarshalIndent(original, "", "  ")
+				if err != nil {
+					panic(err)
+				}
+				log.Printf("%s\n", string(data))
+
+				log.Printf("dry run: updated resources appid (%s)", c.AppID)
+				data, err = json.MarshalIndent(c.Data, "", "  ")
 				if err != nil {
 					panic(err)
 				}
@@ -71,12 +75,15 @@ func MigrateResources(opt *MigrateResourcesOptions) {
 				count++
 			}
 		}
+	}
+
+	if dryRun {
 		log.Printf("dry run: number of apps to update: %d", count)
 		return
 	}
 
 	// update config to db
-	count := 0
+	count = 0
 	for _, c := range configSourceList {
 		if c.Updated {
 			count++
