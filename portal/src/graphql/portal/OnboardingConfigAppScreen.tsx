@@ -807,7 +807,7 @@ const OnboardingConfigAppScreenContent: React.FC = function OnboardingConfigAppS
 
   useEffect(() => {
     if (form.isSubmitted) {
-      navigate(`/app/${encodeURIComponent(appID)}/done`);
+      navigate(`/project/${encodeURIComponent(appID)}/done`);
     }
   }, [form.isSubmitted, navigate, appID]);
 

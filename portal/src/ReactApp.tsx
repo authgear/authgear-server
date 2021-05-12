@@ -53,16 +53,16 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="apps/" replace={true} />} />
-        <Route path="/apps/" element={<AppsScreen />} />
-        <Route path="/apps/create" element={<CreateAppScreen />} />
-        <Route path="/app/:appID/*" element={<AppRoot />} />
+        <Route path="/" element={<Navigate to="projects/" replace={true} />} />
+        <Route path="/projects/" element={<AppsScreen />} />
+        <Route path="/projects/create" element={<CreateAppScreen />} />
+        <Route path="/project/:appID/*" element={<AppRoot />} />
         <Route
-          path="/app/:appID/onboarding"
+          path="/project/:appID/onboarding"
           element={<OnboardingConfigAppScreen />}
         />
         <Route
-          path="/app/:appID/done"
+          path="/project/:appID/done"
           element={<OnboardingCompletionScreen />}
         />
         <Route path="/oauth-redirect" element={<OAuthRedirect />} />

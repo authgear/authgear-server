@@ -54,7 +54,7 @@ const AppRoot: React.FC = function AppRoot() {
 
   // redirect to app list if app id is invalid
   if (isInvalidAppID) {
-    return <Navigate to="/apps" replace={true} />;
+    return <Navigate to="/projects" replace={true} />;
   }
 
   return (
@@ -121,7 +121,7 @@ const AppRoot: React.FC = function AppRoot() {
             element={<ForgotPasswordConfigurationScreen />}
           />
           <Route
-            path="/configuration/apps/cors"
+            path="/configuration/projects/cors"
             element={<CORSConfigurationScreen />}
           />
           <Route

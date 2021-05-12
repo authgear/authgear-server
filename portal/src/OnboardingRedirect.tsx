@@ -20,7 +20,7 @@ const OnboardingRedirect: React.FC = function OnboardingRedirect() {
     if (apps && apps.length > 0) {
       navigate("/");
     } else {
-      navigate("/apps/create");
+      navigate("/projects/create");
     }
   }, [navigate, error, apps, loading]);
 
