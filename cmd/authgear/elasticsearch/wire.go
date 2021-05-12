@@ -8,6 +8,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 func NewAppLister(
@@ -19,6 +20,7 @@ func NewAppLister(
 
 func NewReindexer(
 	ctx context.Context,
+	pool *tenantdb.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 	appID config.AppID,
 ) *Reindexer {
