@@ -2,6 +2,6 @@
 // .module.scss is just a naming convention.
 // All CSS files are parsed with CSS module, even the filename does not contain `.module.`.
 declare module "*.module.scss" {
-  const classes: { [key: string]: string };
+  const classes: Record<string, string>;
   export default classes;
 }

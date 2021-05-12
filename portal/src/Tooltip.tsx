@@ -19,6 +19,7 @@ const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {
   const { className, tooltipMessageId } = props;
   const tooltipProps: ITooltipProps = React.useMemo(() => {
     return {
+      // eslint-disable-next-line react/no-unstable-nested-components
       onRenderContent: () => (
         <div className={styles.tooltip}>
           <span>

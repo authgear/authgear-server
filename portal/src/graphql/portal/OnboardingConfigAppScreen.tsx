@@ -97,7 +97,7 @@ function sortLoginIDKeyTypes(loginIDTypes: LoginIDKeyType[]): LoginIDKeyType[] {
   return loginIDTypes.sort((a, b) => {
     if (indexMap.get(a) === undefined) return 1;
     if (indexMap.get(b) === undefined) return -1;
-    return (indexMap.get(a) as number) - (indexMap.get(b) as number);
+    return indexMap.get(a)! - indexMap.get(b)!;
   });
 }
 
@@ -115,7 +115,7 @@ function sortSecondaryAuthenticatorTypes(
   return authenticatorTypes.sort((a, b) => {
     if (indexMap.get(a) === undefined) return 1;
     if (indexMap.get(b) === undefined) return -1;
-    return (indexMap.get(a) as number) - (indexMap.get(b) as number);
+    return indexMap.get(a)! - indexMap.get(b)!;
   });
 }
 
@@ -158,6 +158,7 @@ function constructConfig(
   _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
+  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.authentication ??= {};
     config.authentication.identities = Array.from(

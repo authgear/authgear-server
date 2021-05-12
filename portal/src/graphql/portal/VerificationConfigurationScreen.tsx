@@ -59,6 +59,7 @@ function constructConfig(
   initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
+  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.verification ??= {};
     const v = config.verification;

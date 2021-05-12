@@ -180,6 +180,7 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
         name: renderToString("UserDetails.session.action"),
         minWidth: 60,
         maxWidth: 60,
+        // eslint-disable-next-line react/no-unstable-nested-components
         onRender: (item: SessionItemViewModel) => (
           <ActionButton
             className={styles.actionButton}
