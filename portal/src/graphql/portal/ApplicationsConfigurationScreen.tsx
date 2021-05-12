@@ -26,21 +26,24 @@ import {
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
 
-import styles from "./OAuthClientConfigurationScreen.module.scss";
+import styles from "./ApplicationsConfigurationScreen.module.scss";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
+import FormTextFieldList from "../../FormTextFieldList";
 
 interface FormState {
   publicOrigin: string;
   clients: OAuthClientConfig[];
+  allowedOrigins: string[];
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     publicOrigin: config.http?.public_origin ?? "",
     clients: config.oauth?.clients ?? [],
+    allowedOrigins: config.http?.allowed_origins ?? [],
   };
 }
 
@@ -52,6 +55,8 @@ function constructConfig(
   return produce(config, (config) => {
     config.oauth ??= {};
     config.oauth.clients = currentState.clients;
+    config.http ??= {};
+    config.http.allowed_origins = currentState.allowedOrigins;
     clearEmptyObject(config);
   });
 }
@@ -63,7 +68,7 @@ function makeOAuthClientListColumns(
     {
       key: "name",
       fieldName: "name",
-      name: renderToString("OAuthClientConfigurationScreen.client-list.name"),
+      name: renderToString("ApplicationsConfigurationScreen.client-list.name"),
       minWidth: 150,
       className: styles.columnHeader,
     },
@@ -72,7 +77,7 @@ function makeOAuthClientListColumns(
       key: "clientId",
       fieldName: "clientId",
       name: renderToString(
-        "OAuthClientConfigurationScreen.client-list.client-id"
+        "ApplicationsConfigurationScreen.client-list.client-id"
       ),
       minWidth: 300,
       className: styles.columnHeader,
@@ -138,6 +143,42 @@ const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> = func
   );
 };
 
+interface CORSConfigurationWidgetProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const CORSConfigurationWidget: React.FC<CORSConfigurationWidgetProps> = function CORSConfigurationWidget(
+  props
+) {
+  const { state, setState } = props.form;
+
+  const onAllowedOriginsChange = useCallback(
+    (allowedOrigins: string[]) => {
+      setState((state) => ({ ...state, allowedOrigins }));
+    },
+    [setState]
+  );
+
+  return (
+    <Widget className={cn(styles.widget, styles.controlGroup)}>
+      <WidgetTitle>
+        <FormattedMessage id="ApplicationsConfigurationScreen.cors.title" />
+      </WidgetTitle>
+      <Text className={styles.description}>
+        <FormattedMessage id="ApplicationsConfigurationScreen.cors.desc" />
+      </Text>
+      <FormTextFieldList
+        className={styles.control}
+        parentJSONPointer="/http"
+        fieldName="allowed_origins"
+        list={state.allowedOrigins}
+        onListChange={onAllowedOriginsChange}
+        addButtonLabelMessageID="add"
+      />
+    </Widget>
+  );
+};
+
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   showNotification: (msg: string) => void;
@@ -148,6 +189,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
 ) {
   const {
     showNotification,
+    form,
     form: { state, setState },
   } = props;
   const { renderToString } = useContext(Context);
@@ -158,7 +200,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
 
   const onClientIdCopied = useCallback(() => {
     showNotification(
-      renderToString("OAuthClientConfigurationScreen.client-id-copied")
+      renderToString("ApplicationsConfigurationScreen.client-id-copied")
     );
   }, [showNotification, renderToString]);
 
@@ -200,15 +242,15 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
   return (
     <ScreenContent className={styles.root}>
       <ScreenTitle>
-        <FormattedMessage id="OAuthClientConfigurationScreen.title" />
+        <FormattedMessage id="ApplicationsConfigurationScreen.title" />
       </ScreenTitle>
       <Widget className={cn(styles.widget, styles.controlGroup)}>
         <WidgetTitle>
-          <FormattedMessage id="OAuthClientConfigurationScreen.title" />
+          <FormattedMessage id="ApplicationsConfigurationScreen.title" />
         </WidgetTitle>
         <Text className={styles.description}>
           <FormattedMessage
-            id="OAuthClientConfigurationScreen.client-endpoint.desc"
+            id="ApplicationsConfigurationScreen.client-endpoint.desc"
             values={{
               clientEndpoint: state.publicOrigin,
               dnsUrl: "../../dns/custom-domains",
@@ -225,11 +267,12 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
           onRenderItemColumn={onRenderOAuthClientColumns}
         />
       </Widget>
+      <CORSConfigurationWidget form={form} />
     </ScreenContent>
   );
 };
 
-const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurationScreen() {
+const ApplicationsConfigurationScreen: React.FC = function ApplicationsConfigurationScreen() {
   const { appID } = useParams();
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();
@@ -250,7 +293,7 @@ const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurati
       {
         key: "save",
         text: renderToString(
-          "OAuthClientConfigurationScreen.add-client-button"
+          "ApplicationsConfigurationScreen.add-client-button"
         ),
         iconProps: { iconName: "CirclePlus" },
         onClick: () => navigate("./add"),
@@ -281,4 +324,4 @@ const OAuthClientConfigurationScreen: React.FC = function OAuthClientConfigurati
   );
 };
 
-export default OAuthClientConfigurationScreen;
+export default ApplicationsConfigurationScreen;

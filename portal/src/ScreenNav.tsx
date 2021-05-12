@@ -90,16 +90,6 @@ const links: NavLinkProps[] = [
   {
     textKey: "ScreenNav.client-applications",
     url: "configuration/apps",
-    children: [
-      {
-        textKey: "CORSConfigurationScreen.title",
-        url: "configuration/apps/cors",
-      },
-      {
-        textKey: "OAuthClientConfigurationScreen.title",
-        url: "configuration/apps/oauth",
-      },
-    ],
   },
   {
     textKey: "CustomDomainListScreen.title",

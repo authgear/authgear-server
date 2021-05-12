@@ -5,13 +5,23 @@
 
 .widget {
   margin: 10px 15px;
+  min-width: 600px;
 }
 
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+}
 
 .description {
   margin: 16px 8px;
   display: block;
-  white-space: pre;
+  white-space: pre-line;
+}
+
+.control {
+  margin: 10px;
+  width: 600px;
 }
 
 .columnHeader {

@@ -79,7 +79,7 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> = function E
     return [
       {
         to: "../..",
-        label: <FormattedMessage id="OAuthClientConfigurationScreen.title" />,
+        label: <FormattedMessage id="ApplicationsConfigurationScreen.title" />,
       },
       {
         to: ".",
