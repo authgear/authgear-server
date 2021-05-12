@@ -12,6 +12,7 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
+import cn from "classnames";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -23,10 +24,13 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import FormContainer from "../../FormContainer";
 
 import styles from "./OAuthClientConfigurationScreen.module.scss";
+import ScreenContent from "../../ScreenContent";
+import ScreenTitle from "../../ScreenTitle";
+import WidgetTitle from "../../WidgetTitle";
+import Widget from "../../Widget";
 
 interface FormState {
   publicOrigin: string;
@@ -148,15 +152,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
   } = props;
   const { renderToString } = useContext(Context);
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: ".",
-        label: <FormattedMessage id="OAuthClientConfigurationScreen.title" />,
-      },
-    ];
-  }, []);
-
   const oauthClientListColumns = useMemo(() => {
     return makeOAuthClientListColumns(renderToString);
   }, [renderToString]);
@@ -203,9 +198,14 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
   );
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <section className={styles.clientEndpointSection}>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="OAuthClientConfigurationScreen.title" />
+      </ScreenTitle>
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle>
+          <FormattedMessage id="OAuthClientConfigurationScreen.title" />
+        </WidgetTitle>
         <Text className={styles.description}>
           <FormattedMessage
             id="OAuthClientConfigurationScreen.client-endpoint.desc"
@@ -218,14 +218,14 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             }}
           />
         </Text>
-      </section>
-      <DetailsList
-        columns={oauthClientListColumns}
-        items={state.clients}
-        selectionMode={SelectionMode.none}
-        onRenderItemColumn={onRenderOAuthClientColumns}
-      />
-    </div>
+        <DetailsList
+          columns={oauthClientListColumns}
+          items={state.clients}
+          selectionMode={SelectionMode.none}
+          onRenderItemColumn={onRenderOAuthClientColumns}
+        />
+      </Widget>
+    </ScreenContent>
   );
 };
 

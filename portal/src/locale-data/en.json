@@ -399,7 +399,7 @@
   "CORSConfigurationScreen.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
 
   "OAuthClientConfigurationScreen.title": "Applications",
-  "OAuthClientConfigurationScreen.client-endpoint.desc": "Configure applications to be used at the endpoint:\n{a, react, href{{clientEndpoint}} children{{clientEndpoint}}}\nYou can change this endpoint at the {Link, react, to{{dnsUrl}} children{Custom Domains configuration}} with your custom domains.",
+  "OAuthClientConfigurationScreen.client-endpoint.desc": "Configure applications to be used at the endpoint: {a, react, href{{clientEndpoint}} children{{clientEndpoint}}}.\nYou can change this endpoint at the {Link, react, to{{dnsUrl}} children{Custom Domains configuration}} with your custom domains.",
   "OAuthClientConfigurationScreen.add-client-button": "Add Application",
   "OAuthClientConfigurationScreen.client-list.name": "Name",
   "OAuthClientConfigurationScreen.client-list.client-id": "Client ID",

@@ -1,22 +1,17 @@
 .root {
-  margin: 0 32px;
+  display: flex;
+  flex-direction: column;
 }
 
-.clientEndpointSection {
-  .header {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
+.widget {
+  margin: 10px 15px;
+}
 
-  .description {
-    margin: 16px 8px;
-    display: block;
-    max-width: 500px;
-    font-size: 13px;
-    line-height: 1.3;
-    white-space: pre;
-  }
+
+.description {
+  margin: 16px 8px;
+  display: block;
+  white-space: pre;
 }
 
 .columnHeader {
