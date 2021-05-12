@@ -23,6 +23,7 @@ interface ModifyOAuthClientFormProps {
   className?: string;
   clientConfig: OAuthClientConfig;
   onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
+  isCreation: boolean;
 }
 
 export function getReducedClientConfig(
@@ -57,10 +58,11 @@ function convertIntegerStringToNumber(value: string): number | undefined {
   return numericValue === 0 ? undefined : numericValue;
 }
 
+// eslint-disable-next-line complexity
 const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function ModifyOAuthClientForm(
   props: ModifyOAuthClientFormProps
 ) {
-  const { className, clientConfig, onClientConfigChange } = props;
+  const { className, clientConfig, onClientConfigChange, isCreation } = props;
 
   const { renderToString } = useContext(Context);
 
@@ -164,42 +166,50 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function Mod
         onChange={onClientNameChange}
         required={true}
       />
-      <FormTextField
-        parentJSONPointer="/oauth/clients/\d+"
-        fieldName="access_token_lifetime_seconds"
-        fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
-        className={styles.inputField}
-        value={clientConfig.access_token_lifetime_seconds?.toString() ?? ""}
-        onChange={onAccessTokenLifetimeChange}
-      />
-      <FormTextField
-        parentJSONPointer="/oauth/clients/\d+"
-        fieldName="refresh_token_lifetime_seconds"
-        fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
-        className={styles.inputField}
-        value={clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""}
-        onChange={onRefreshTokenLifetimeChange}
-      />
-      <Checkbox
-        className={styles.inputField}
-        checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
-        onChange={onChangeRefreshTokenIdleTimeoutEnabled}
-        label={renderToString(
-          "ModifyOAuthClientForm.refresh-token-idle-timeout-enabled.label"
-        )}
-        styles={CHECKBOX_STYLES}
-      />
-      <FormTextField
-        parentJSONPointer="/oauth/clients/\d+"
-        fieldName="refresh_token_idle_timeout_seconds"
-        fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
-        className={styles.inputField}
-        value={
-          clientConfig.refresh_token_idle_timeout_seconds?.toString() ?? ""
-        }
-        onChange={onIdleTimeoutChange}
-        disabled={!(clientConfig.refresh_token_idle_timeout_enabled ?? true)}
-      />
+      {!isCreation && (
+        <FormTextField
+          parentJSONPointer="/oauth/clients/\d+"
+          fieldName="access_token_lifetime_seconds"
+          fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
+          className={styles.inputField}
+          value={clientConfig.access_token_lifetime_seconds?.toString() ?? ""}
+          onChange={onAccessTokenLifetimeChange}
+        />
+      )}
+      {!isCreation && (
+        <FormTextField
+          parentJSONPointer="/oauth/clients/\d+"
+          fieldName="refresh_token_lifetime_seconds"
+          fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
+          className={styles.inputField}
+          value={clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""}
+          onChange={onRefreshTokenLifetimeChange}
+        />
+      )}
+      {!isCreation && (
+        <Checkbox
+          className={styles.inputField}
+          checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
+          onChange={onChangeRefreshTokenIdleTimeoutEnabled}
+          label={renderToString(
+            "ModifyOAuthClientForm.refresh-token-idle-timeout-enabled.label"
+          )}
+          styles={CHECKBOX_STYLES}
+        />
+      )}
+      {!isCreation && (
+        <FormTextField
+          parentJSONPointer="/oauth/clients/\d+"
+          fieldName="refresh_token_idle_timeout_seconds"
+          fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
+          className={styles.inputField}
+          value={
+            clientConfig.refresh_token_idle_timeout_seconds?.toString() ?? ""
+          }
+          onChange={onIdleTimeoutChange}
+          disabled={!(clientConfig.refresh_token_idle_timeout_enabled ?? true)}
+        />
+      )}
       <div className={cn(styles.inputField, styles.checkboxContainer)}>
         <Checkbox
           checked={clientConfig.issue_jwt_access_token}
