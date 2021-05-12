@@ -130,6 +130,8 @@ func generateOctetKey(rand io.Reader) jwk.Set {
 	}
 
 	_ = jwkKey.Set(jwk.KeyIDKey, generateKeyID(rand))
+	_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
+	_ = jwkKey.Set(jwk.AlgorithmKey, "HS256")
 
 	keySet := jwk.NewSet()
 	_ = keySet.Add(jwkKey)
