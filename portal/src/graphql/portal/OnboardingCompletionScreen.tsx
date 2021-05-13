@@ -112,8 +112,8 @@ const OnboardingCompletionContent: React.FC<OnboardingCompletionContentProps> = 
   const rawAppID = config.id;
   const endpoint = rawAppID ? "https://" + rawAppID + appHostSuffix : undefined;
 
-  const portalAppEndpoint = `/app/${encodeURIComponent(appID)}`;
-  const portalSSOEndpoint = `/app/${encodeURIComponent(
+  const portalAppEndpoint = `/project/${encodeURIComponent(appID)}`;
+  const portalSSOEndpoint = `/project/${encodeURIComponent(
     appID
   )}/configuration/single-sign-on`;
 

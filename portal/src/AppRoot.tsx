@@ -19,7 +19,7 @@ import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersCo
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
 import PasswordPolicyConfigurationScreen from "./graphql/portal/PasswordPolicyConfigurationScreen";
 import ForgotPasswordConfigurationScreen from "./graphql/portal/ForgotPasswordConfigurationScreen";
-import OAuthClientConfigurationScreen from "./graphql/portal/OAuthClientConfigurationScreen";
+import ApplicationsConfigurationScreen from "./graphql/portal/ApplicationsConfigurationScreen";
 import CreateOAuthClientScreen from "./graphql/portal/CreateOAuthClientScreen";
 import EditOAuthClientScreen from "./graphql/portal/EditOAuthClientScreen";
 import CustomDomainListScreen from "./graphql/portal/CustomDomainListScreen";
@@ -30,7 +30,6 @@ import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
 import SessionConfigurationScreen from "./graphql/portal/SessionConfigurationScreen";
 import WebhookConfigurationScreen from "./graphql/portal/WebhookConfigurationScreen";
-import CORSConfigurationScreen from "./graphql/portal/CORSConfigurationScreen";
 import LoginIDConfigurationScreen from "./graphql/portal/LoginIDConfigurationScreen";
 import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConfigurationScreen";
 import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
@@ -54,7 +53,7 @@ const AppRoot: React.FC = function AppRoot() {
 
   // redirect to app list if app id is invalid
   if (isInvalidAppID) {
-    return <Navigate to="/apps" replace={true} />;
+    return <Navigate to="/projects" replace={true} />;
   }
 
   return (
@@ -121,19 +120,15 @@ const AppRoot: React.FC = function AppRoot() {
             element={<ForgotPasswordConfigurationScreen />}
           />
           <Route
-            path="/configuration/apps/cors"
-            element={<CORSConfigurationScreen />}
+            path="/configuration/apps"
+            element={<ApplicationsConfigurationScreen />}
           />
           <Route
-            path="/configuration/apps/oauth"
-            element={<OAuthClientConfigurationScreen />}
-          />
-          <Route
-            path="/configuration/apps/oauth/add"
+            path="/configuration/apps/add"
             element={<CreateOAuthClientScreen />}
           />
           <Route
-            path="/configuration/apps/oauth/:clientID/edit"
+            path="/configuration/apps/:clientID/edit"
             element={<EditOAuthClientScreen />}
           />
           <Route

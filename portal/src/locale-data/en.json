@@ -93,16 +93,16 @@
 
   "NavBreadcrumb.label": "Nested navigation",
 
-  "AppsScreen.title": "Select App",
-  "AppsScreen.create-app": "Create App",
+  "AppsScreen.title": "Select Project",
+  "AppsScreen.create-app": "Create Project",
 
   "CreateAppScreen.title": "Create a new project",
   "CreateAppScreen.desc": "Answer a few question, and we can quickly setup authentication for your apps!",
   "CreateAppScreen.app-id.label": "What is the name of your project?",
-  "CreateAppScreen.error.duplicated-app-id": "App ID already exist",
-  "CreateAppScreen.error.reserved-app-id": "App ID is reserved",
-  "CreateAppScreen.error.invalid-app-id": "Invalid App ID. App ID should start and end with lowercase alphanumeric characters or numbers, and it should contain only lowercase alphanumeric characters, numbers or '-'",
-  "CreateAppScreen.error.generic": "Failed to create app",
+  "CreateAppScreen.error.duplicated-app-id": "Project ID already exist",
+  "CreateAppScreen.error.reserved-app-id": "Project ID is reserved",
+  "CreateAppScreen.error.invalid-app-id": "Invalid Project ID. Project ID should start and end with lowercase alphanumeric characters or numbers, and it should contain only lowercase alphanumeric characters, numbers or '-'",
+  "CreateAppScreen.error.generic": "Failed to create project",
 
   "Onboarding.title": "Configure your project",
   "Onboarding.desc": "Here are a series of questions to help you configure the authentication scenario. You can further configure other settings in the Portal after this setup wizard.",
@@ -395,15 +395,14 @@
   "ForgotPasswordConfigurationScreen.code-settings": "Code Settings",
   "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
 
-  "CORSConfigurationScreen.title": "Allowed Origins",
-  "CORSConfigurationScreen.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
-
-  "OAuthClientConfigurationScreen.title": "Applications",
-  "OAuthClientConfigurationScreen.client-endpoint.desc": "Configure applications to be used at the endpoint:\n{a, react, href{{clientEndpoint}} children{{clientEndpoint}}}\nYou can change this endpoint at the {Link, react, to{{dnsUrl}} children{Custom Domains configuration}} with your custom domains.",
-  "OAuthClientConfigurationScreen.add-client-button": "Add Application",
-  "OAuthClientConfigurationScreen.client-list.name": "Name",
-  "OAuthClientConfigurationScreen.client-list.client-id": "Client ID",
-  "OAuthClientConfigurationScreen.client-id-copied": "Client ID is copied to clipboard",
+  "ApplicationsConfigurationScreen.title": "Applications",
+  "ApplicationsConfigurationScreen.client-endpoint.desc": "Configure applications to be used at the endpoint: {a, react, href{{clientEndpoint}} children{{clientEndpoint}}}.\nYou can change this endpoint at the {Link, react, to{{dnsUrl}} children{Custom Domains configuration}} with your custom domains.",
+  "ApplicationsConfigurationScreen.add-client-button": "Add Application",
+  "ApplicationsConfigurationScreen.client-list.name": "Name",
+  "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
+  "ApplicationsConfigurationScreen.client-id-copied": "Client ID is copied to clipboard",
+  "ApplicationsConfigurationScreen.cors.title": "Allowed Origins",
+  "ApplicationsConfigurationScreen.cors.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
 
   "CreateOAuthClientScreen.title": "Create Application",
   "CreateOAuthClientScreen.success-dialog.title": "Created Application Successfully",

@@ -93,7 +93,7 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
   useEffect(() => {
     if (form.submissionResult) {
       const appID = form.submissionResult;
-      navigate(`/app/${encodeURIComponent(appID)}/onboarding`);
+      navigate(`/project/${encodeURIComponent(appID)}/onboarding`);
     }
   }, [form, navigate]);
 

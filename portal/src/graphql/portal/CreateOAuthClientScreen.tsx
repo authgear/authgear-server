@@ -168,7 +168,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> = functi
     return [
       {
         to: "..",
-        label: <FormattedMessage id="OAuthClientConfigurationScreen.title" />,
+        label: <FormattedMessage id="ApplicationsConfigurationScreen.title" />,
       },
       {
         to: ".",
@@ -196,6 +196,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> = functi
     <div className={styles.root}>
       <NavBreadcrumb items={navBreadcrumbItems} />
       <ModifyOAuthClientForm
+        isCreation={true}
         clientConfig={client}
         onClientConfigChange={onClientConfigChange}
       />

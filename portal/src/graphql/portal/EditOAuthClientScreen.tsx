@@ -79,7 +79,7 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> = function E
     return [
       {
         to: "../..",
-        label: <FormattedMessage id="OAuthClientConfigurationScreen.title" />,
+        label: <FormattedMessage id="ApplicationsConfigurationScreen.title" />,
       },
       {
         to: ".",
@@ -117,6 +117,7 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> = function E
       </Label>
       <Text className={styles.clientIdField}>{client.client_id}</Text>
       <ModifyOAuthClientForm
+        isCreation={false}
         clientConfig={client}
         onClientConfigChange={onClientConfigChange}
       />

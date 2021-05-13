@@ -40,7 +40,7 @@ const AppList: React.FC<AppListProps> = function AppList(props: AppListProps) {
     (e) => {
       e?.preventDefault();
       e?.stopPropagation();
-      navigate("/apps/create");
+      navigate("/projects/create");
     },
     [navigate]
   );
@@ -49,7 +49,7 @@ const AppList: React.FC<AppListProps> = function AppList(props: AppListProps) {
     return (apps ?? []).map((app) => {
       const appID = app.effectiveAppConfig.id;
       const appOrigin = app.effectiveAppConfig.http?.public_origin;
-      const relPath = "/app/" + encodeURIComponent(String(app.id));
+      const relPath = "/project/" + encodeURIComponent(String(app.id));
       return {
         appID,
         appName: appOrigin ?? appID,
