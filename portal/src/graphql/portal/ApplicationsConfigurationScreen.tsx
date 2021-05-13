@@ -261,6 +261,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
           />
         </Text>
         <DetailsList
+          className={styles.clientList}
           columns={oauthClientListColumns}
           items={state.clients}
           selectionMode={SelectionMode.none}
