@@ -232,6 +232,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       return {
         key: loginIdType,
         text: renderToString(messageId),
+        // eslint-disable-next-line react/no-unstable-nested-components
         onRenderLabel: (option) => {
           return option ? (
             <div className={styles.identityOption}>

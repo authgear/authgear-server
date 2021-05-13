@@ -590,10 +590,15 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
     };
   }, [confirmationDialogData, renderToString]);
 
+  const contextValue = useMemo(() => {
+    return {
+      settingVerifiedStatus,
+      deletingIdentity,
+    };
+  }, [settingVerifiedStatus, deletingIdentity]);
+
   return (
-    <ConnectedIdentitiesMutationLoadingContext.Provider
-      value={{ settingVerifiedStatus, deletingIdentity }}
-    >
+    <ConnectedIdentitiesMutationLoadingContext.Provider value={contextValue}>
       <div className={styles.root}>
         <Dialog
           hidden={!isConfirmationDialogVisible}

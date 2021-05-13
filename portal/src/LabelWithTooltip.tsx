@@ -43,6 +43,7 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> = function LabelWithTool
 
   const tooltipProps: ITooltipProps = useMemo(() => {
     return {
+      // eslint-disable-next-line react/no-unstable-nested-components
       onRenderContent: () => (
         <div className={styles.tooltip}>
           {tooltipHeaderId && (

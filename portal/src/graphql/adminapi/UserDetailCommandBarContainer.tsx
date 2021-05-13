@@ -77,6 +77,7 @@ const UserDetailCommandBarContainer: React.FC<UserDetailCommandBarContainerProps
         key: "remove",
         text: renderToString("remove"),
         iconProps: { iconName: "Delete" },
+        // eslint-disable-next-line react/no-unstable-nested-components
         onRender: (props) => {
           return (
             <CommandButton
@@ -106,6 +107,7 @@ const UserDetailCommandBarContainer: React.FC<UserDetailCommandBarContainerProps
           ? renderToString("enable")
           : renderToString("disable"),
         iconProps: { iconName: user.isDisabled ? "Play" : "CircleStop" },
+        // eslint-disable-next-line react/no-unstable-nested-components
         onRender: (props) => {
           return (
             <CommandButton

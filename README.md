@@ -180,6 +180,15 @@ See https://github.com/apollographql/apollo-client/compare/v3.3.3..v3.3.4
 However, with `no-scope-hoisting` specified, the CSS of `@fluentui/react` is not bundled at all, causing the UI to break.
 See https://github.com/parcel-bundler/parcel/issues/6071
 
+postcss-modules>=4 requires postcss>=8
+
+@monaco-editor/react>=4 is slow in our usage. We need to adjust how we use it when we upgrade.
+
+prettier==2.3.0 changes formatting a lot.
+
+We cannot upgrade @fluentui/react because installing a new version will update @fluentui/utilities to >= 8.1.0
+@fluentui/utilities>=8.1.0 has export statement which parcel cannot transform.
+
 ### Setup environment variable
 
 We need to set up environment variables for Authgear servers and portal server.

@@ -88,6 +88,7 @@ const UsersScreen: React.FC = function UsersScreen() {
       return [
         {
           key: "search",
+          // eslint-disable-next-line react/no-unstable-nested-components
           onRender: () => {
             return (
               <SearchBox
