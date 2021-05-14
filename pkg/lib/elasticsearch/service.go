@@ -15,11 +15,9 @@ import (
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type Service struct {
@@ -37,7 +35,7 @@ type queryUserResponse struct {
 			Value int `json:"value"`
 		} `json:"total"`
 		Hits []struct {
-			Source model.ElasticsearchUser `json:"_source"`
+			Source model.ElasticsearchUserSource `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
@@ -64,7 +62,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		return
 	}
 
-	val := &model.ElasticsearchUser{
+	raw := &model.ElasticsearchUserRaw{
 		ID:          u.ID,
 		AppID:       string(s.AppID),
 		CreatedAt:   u.CreatedAt,
@@ -82,30 +80,19 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 	}
 
 	for _, claims := range arrClaims {
-		email, ok := claims["email"].(string)
-		if ok {
-			local, domain := mail.SplitAddress(email)
-			val.Email = append(val.Email, email)
-			val.EmailLocalPart = append(val.EmailLocalPart, local)
-			val.EmailDomain = append(val.EmailDomain, domain)
+		if email, ok := claims["email"].(string); ok {
+			raw.Email = append(raw.Email, email)
 		}
-		phoneNumber, ok := claims["phone_number"].(string)
-		if ok {
-			nationalNumber, callingCode, err := phone.ParseE164ToCallingCodeAndNumber(phoneNumber)
-			if err == nil {
-				val.PhoneNumberCountryCode = append(val.PhoneNumberCountryCode, callingCode)
-				val.PhoneNumberNationalNumber = append(val.PhoneNumberNationalNumber, nationalNumber)
-			}
-			val.PhoneNumber = append(val.PhoneNumber, phoneNumber)
+		if phoneNumber, ok := claims["phone_number"].(string); ok {
+			raw.PhoneNumber = append(raw.PhoneNumber, phoneNumber)
 		}
-		preferredUsername, ok := claims["preferred_username"].(string)
-		if ok {
-			val.PreferredUsername = append(val.PreferredUsername, preferredUsername)
+		if preferredUsername, ok := claims["preferred_username"].(string); ok {
+			raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
 		}
 	}
 
 	s.TaskQueue.Enqueue(&tasks.ReindexUserParam{
-		User: val,
+		User: RawToSource(raw),
 	})
 	return nil
 }

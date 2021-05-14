@@ -39,8 +39,24 @@ func MakeSearchBody(
 						},
 					},
 					map[string]interface{}{
+						"prefix": map[string]interface{}{
+							"email_text": map[string]interface{}{
+								"value":            searchKeyword,
+								"case_insensitive": true,
+							},
+						},
+					},
+					map[string]interface{}{
 						"term": map[string]interface{}{
 							"email_local_part": map[string]interface{}{
+								"value":            searchKeyword,
+								"case_insensitive": true,
+							},
+						},
+					},
+					map[string]interface{}{
+						"prefix": map[string]interface{}{
+							"email_local_part_text": map[string]interface{}{
 								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
@@ -55,6 +71,14 @@ func MakeSearchBody(
 						},
 					},
 					map[string]interface{}{
+						"prefix": map[string]interface{}{
+							"email_domain_text": map[string]interface{}{
+								"value":            searchKeyword,
+								"case_insensitive": true,
+							},
+						},
+					},
+					map[string]interface{}{
 						"term": map[string]interface{}{
 							"preferred_username": map[string]interface{}{
 								"value":            searchKeyword,
@@ -63,8 +87,24 @@ func MakeSearchBody(
 						},
 					},
 					map[string]interface{}{
+						"prefix": map[string]interface{}{
+							"preferred_username_text": map[string]interface{}{
+								"value":            searchKeyword,
+								"case_insensitive": true,
+							},
+						},
+					},
+					map[string]interface{}{
 						"term": map[string]interface{}{
 							"phone_number": map[string]interface{}{
+								"value":            searchKeyword,
+								"case_insensitive": true,
+							},
+						},
+					},
+					map[string]interface{}{
+						"prefix": map[string]interface{}{
+							"phone_number_text": map[string]interface{}{
 								"value":            searchKeyword,
 								"case_insensitive": true,
 							},
@@ -81,6 +121,14 @@ func MakeSearchBody(
 					map[string]interface{}{
 						"term": map[string]interface{}{
 							"phone_number_national_number": map[string]interface{}{
+								"value":            searchKeyword,
+								"case_insensitive": true,
+							},
+						},
+					},
+					map[string]interface{}{
+						"prefix": map[string]interface{}{
+							"phone_number_national_number_text": map[string]interface{}{
 								"value":            searchKeyword,
 								"case_insensitive": true,
 							},

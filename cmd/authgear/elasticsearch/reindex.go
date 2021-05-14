@@ -17,9 +17,7 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
-	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 type Item struct {
@@ -59,7 +57,7 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 		if err != nil {
 			return nil, err
 		}
-		val := &model.ElasticsearchUser{
+		raw := &model.ElasticsearchUserRaw{
 			ID:          u.ID,
 			AppID:       string(q.AppID),
 			CreatedAt:   u.CreatedAt,
@@ -77,29 +75,18 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 		}
 
 		for _, claims := range arrClaims {
-			email, ok := claims["email"].(string)
-			if ok {
-				local, domain := mail.SplitAddress(email)
-				val.Email = append(val.Email, email)
-				val.EmailLocalPart = append(val.EmailLocalPart, local)
-				val.EmailDomain = append(val.EmailDomain, domain)
+			if email, ok := claims["email"].(string); ok {
+				raw.Email = append(raw.Email, email)
 			}
-			phoneNumber, ok := claims["phone_number"].(string)
-			if ok {
-				nationalNumber, callingCode, err := phone.ParseE164ToCallingCodeAndNumber(phoneNumber)
-				if err == nil {
-					val.PhoneNumberCountryCode = append(val.PhoneNumberCountryCode, callingCode)
-					val.PhoneNumberNationalNumber = append(val.PhoneNumberNationalNumber, nationalNumber)
-				}
-				val.PhoneNumber = append(val.PhoneNumber, phoneNumber)
+			if phoneNumber, ok := claims["phone_number"].(string); ok {
+				raw.PhoneNumber = append(raw.PhoneNumber, phoneNumber)
 			}
-			preferredUsername, ok := claims["preferred_username"].(string)
-			if ok {
-				val.PreferredUsername = append(val.PreferredUsername, preferredUsername)
+			if preferredUsername, ok := claims["preferred_username"].(string); ok {
+				raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
 			}
 		}
 
-		models[i] = Item{Value: val, Cursor: cursor}
+		models[i] = Item{Value: raw, Cursor: cursor}
 	}
 
 	return models, nil
@@ -133,7 +120,7 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 		// Process the items
 		buf := &bytes.Buffer{}
 		for _, item := range items {
-			user := item.Value.(*model.ElasticsearchUser)
+			user := item.Value.(*model.ElasticsearchUserRaw)
 			fmt.Printf("Indexing app (%s) user (%s)\n", user.AppID, user.ID)
 			err = q.writeBody(buf, user)
 			if err != nil {
@@ -158,8 +145,9 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 	return nil
 }
 
-func (q *Reindexer) writeBody(buf io.Writer, user *model.ElasticsearchUser) (err error) {
-	id := fmt.Sprintf("%s:%s", user.AppID, user.ID)
+func (q *Reindexer) writeBody(buf io.Writer, raw *model.ElasticsearchUserRaw) (err error) {
+	source := libes.RawToSource(raw)
+	id := fmt.Sprintf("%s:%s", source.AppID, source.ID)
 	action := map[string]interface{}{
 		"index": map[string]interface{}{
 			"_id": id,
@@ -180,7 +168,7 @@ func (q *Reindexer) writeBody(buf io.Writer, user *model.ElasticsearchUser) (err
 		return
 	}
 
-	sourceBytes, err := json.Marshal(user)
+	sourceBytes, err := json.Marshal(source)
 	if err != nil {
 		return
 	}

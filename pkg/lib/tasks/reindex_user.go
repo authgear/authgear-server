@@ -9,7 +9,7 @@ const ReindexUser = "ReindexUser"
 type ReindexUserParam struct {
 	DeleteUserAppID string
 	DeleteUserID    string
-	User            *apimodel.ElasticsearchUser
+	User            *apimodel.ElasticsearchUserSource
 }
 
 func (p *ReindexUserParam) TaskName() string {

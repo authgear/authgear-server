@@ -50,8 +50,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"email_local_part": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"email_local_part_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -66,6 +82,14 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_domain_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"preferred_username": {
 								"value": "KEYWORD",
@@ -74,8 +98,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"preferred_username_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"phone_number": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -92,6 +132,14 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"term": {
 							"phone_number_national_number": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_national_number_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -135,8 +183,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_text": {
+								"value": "example.com",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"email_local_part": {
+								"value": "example.com",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"email_local_part_text": {
 								"value": "example.com",
 								"case_insensitive": true
 							}
@@ -151,6 +215,14 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_domain_text": {
+								"value": "example.com",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"preferred_username": {
 								"value": "example.com",
@@ -159,8 +231,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"preferred_username_text": {
+								"value": "example.com",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"phone_number": {
+								"value": "example.com",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_text": {
 								"value": "example.com",
 								"case_insensitive": true
 							}
@@ -177,6 +265,14 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"term": {
 							"phone_number_national_number": {
+								"value": "example.com",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_national_number_text": {
 								"value": "example.com",
 								"case_insensitive": true
 							}
@@ -220,8 +316,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"email_local_part": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"email_local_part_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -236,6 +348,14 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_domain_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"preferred_username": {
 								"value": "KEYWORD",
@@ -244,8 +364,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"preferred_username_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"phone_number": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -262,6 +398,14 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"term": {
 							"phone_number_national_number": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_national_number_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -305,8 +449,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"email_local_part": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"email_local_part_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -321,6 +481,14 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_domain_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"preferred_username": {
 								"value": "KEYWORD",
@@ -329,8 +497,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"preferred_username_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"phone_number": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -347,6 +531,14 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"term": {
 							"phone_number_national_number": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_national_number_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -393,8 +585,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"email_local_part": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"email_local_part_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -409,6 +617,14 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"email_domain_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"preferred_username": {
 								"value": "KEYWORD",
@@ -417,8 +633,24 @@ func TestMakeSearchBody(t *testing.T) {
 						}
 					},
 					{
+						"prefix": {
+							"preferred_username_text": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
 						"term": {
 							"phone_number": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
@@ -435,6 +667,14 @@ func TestMakeSearchBody(t *testing.T) {
 					{
 						"term": {
 							"phone_number_national_number": {
+								"value": "KEYWORD",
+								"case_insensitive": true
+							}
+						}
+					},
+					{
+						"prefix": {
+							"phone_number_national_number_text": {
 								"value": "KEYWORD",
 								"case_insensitive": true
 							}
