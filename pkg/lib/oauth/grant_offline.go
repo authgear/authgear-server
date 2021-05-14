@@ -15,6 +15,7 @@ type OfflineGrant struct {
 	Labels          map[string]interface{} `json:"labels"`
 	ClientID        string                 `json:"client_id"`
 	AuthorizationID string                 `json:"authz_id"`
+	IDPSessionID    string                 `json:"idp_session_id,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`
 	Scopes    []string  `json:"scopes"`
