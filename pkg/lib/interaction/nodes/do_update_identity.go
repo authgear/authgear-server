@@ -70,8 +70,8 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 				loginIDType := n.IdentityAfterUpdate.Claims[identity.IdentityClaimLoginIDType].(string)
 				e = nonblocking.NewIdentityLoginIDUpdatedEventPayload(
 					*user,
-					n.IdentityBeforeUpdate.ToModel(),
 					n.IdentityAfterUpdate.ToModel(),
+					n.IdentityBeforeUpdate.ToModel(),
 					loginIDType,
 					n.IsAdminAPI,
 				)
