@@ -38,6 +38,8 @@ func (m MockSession) GetCreatedAt() time.Time { return time.Time{} }
 
 func (m MockSession) GetAccessInfo() *access.Info { return nil }
 
+func (m MockSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }
+
 func (m MockSession) ToAPIModel() *model.Session { return nil }
 
 func (m *MockSession) SetUserID(id string) *MockSession {

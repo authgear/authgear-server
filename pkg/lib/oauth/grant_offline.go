@@ -37,9 +37,10 @@ func (g *OfflineGrant) SessionID() string            { return g.ID }
 func (g *OfflineGrant) SessionType() session.Type    { return session.TypeOfflineGrant }
 func (g *OfflineGrant) SessionAttrs() *session.Attrs { return &g.Attrs }
 
-func (g *OfflineGrant) GetCreatedAt() time.Time     { return g.CreatedAt }
-func (g *OfflineGrant) GetClientID() string         { return g.ClientID }
-func (g *OfflineGrant) GetAccessInfo() *access.Info { return &g.AccessInfo }
+func (g *OfflineGrant) GetCreatedAt() time.Time                       { return g.CreatedAt }
+func (g *OfflineGrant) GetClientID() string                           { return g.ClientID }
+func (g *OfflineGrant) GetAccessInfo() *access.Info                   { return &g.AccessInfo }
+func (g *OfflineGrant) GetDeviceInfo() (map[string]interface{}, bool) { return g.DeviceInfo, true }
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {
 	var displayName string

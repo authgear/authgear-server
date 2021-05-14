@@ -22,6 +22,7 @@ type Session interface {
 	GetClientID() string
 	GetCreatedAt() time.Time
 	GetAccessInfo() *access.Info
+	GetDeviceInfo() (map[string]interface{}, bool)
 	ToAPIModel() *model.Session
 }
 
