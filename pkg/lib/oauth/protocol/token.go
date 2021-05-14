@@ -52,7 +52,7 @@ func (r TokenRequest) DeviceInfo() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	formatted := deviceinfo.Format(deviceInfo)
+	formatted := deviceinfo.DeviceModel(deviceInfo)
 	if formatted == "" {
 		return nil, fmt.Errorf("invalid device info: %s", string(bytes))
 	}

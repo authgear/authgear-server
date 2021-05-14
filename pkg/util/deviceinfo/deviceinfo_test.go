@@ -15,22 +15,22 @@ const ExampleAndroid = `
 {"android": {"Build": {"BOARD": "blueline", "BRAND": "google", "MODEL": "Pixel 3", "DEVICE": "blueline", "DISPLAY": "RQ1A.201205.003", "PRODUCT": "blueline", "HARDWARE": "blueline", "MANUFACTURER": "Google"}}}
 `
 
-func TestFormat(t *testing.T) {
-	Convey("Format", t, func() {
+func TestDeviceModel(t *testing.T) {
+	Convey("DeviceModel", t, func() {
 		var ios map[string]interface{}
 		err := json.Unmarshal([]byte(ExampleIOS), &ios)
 		So(err, ShouldBeNil)
 
-		actual := Format(ios)
+		actual := DeviceModel(ios)
 		So(actual, ShouldEqual, "iPhone 12 mini")
 
 		var android map[string]interface{}
 		err = json.Unmarshal([]byte(ExampleAndroid), &android)
 		So(err, ShouldBeNil)
 
-		actual = Format(android)
+		actual = DeviceModel(android)
 		So(actual, ShouldEqual, "Google Pixel 3")
 
-		So(Format(nil), ShouldEqual, "")
+		So(DeviceModel(nil), ShouldEqual, "")
 	})
 }

@@ -44,7 +44,7 @@ func (g *OfflineGrant) GetDeviceInfo() (map[string]interface{}, bool) { return g
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {
 	var displayName string
-	formattedDeviceInfo := deviceinfo.Format(g.DeviceInfo)
+	formattedDeviceInfo := deviceinfo.DeviceModel(g.DeviceInfo)
 	ua := model.ParseUserAgent(g.AccessInfo.LastAccess.UserAgent)
 	if formattedDeviceInfo != "" {
 		displayName = formattedDeviceInfo

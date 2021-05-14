@@ -113,19 +113,19 @@ var iosMachineMapping = map[string]string{
 	"AppleTV6,2": "Apple TV 4K", // Apple TV 4K
 }
 
-func Format(deviceInfo map[string]interface{}) string {
+func DeviceModel(deviceInfo map[string]interface{}) string {
 	android, ok := deviceInfo["android"].(map[string]interface{})
 	if ok {
-		return FormatAndroid(android)
+		return DeviceModelAndroid(android)
 	}
 	ios, ok := deviceInfo["ios"].(map[string]interface{})
 	if ok {
-		return FormatIOS(ios)
+		return DeviceModelIOS(ios)
 	}
 	return ""
 }
 
-func FormatAndroid(android map[string]interface{}) string {
+func DeviceModelAndroid(android map[string]interface{}) string {
 	build, ok := android["Build"].(map[string]interface{})
 	if !ok {
 		return ""
@@ -141,7 +141,7 @@ func FormatAndroid(android map[string]interface{}) string {
 	return fmt.Sprintf("%v %v", manufacturer, model)
 }
 
-func FormatIOS(ios map[string]interface{}) string {
+func DeviceModelIOS(ios map[string]interface{}) string {
 	uname, ok := ios["uname"].(map[string]interface{})
 	if !ok {
 		return ""
