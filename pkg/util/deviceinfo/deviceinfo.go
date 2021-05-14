@@ -163,3 +163,45 @@ func DeviceModelIOS(ios map[string]interface{}) string {
 
 	return iosMachineMapping[machine]
 }
+
+func DeviceName(deviceInfo map[string]interface{}) string {
+	android, ok := deviceInfo["android"].(map[string]interface{})
+	if ok {
+		return DeviceNameAndroid(android)
+	}
+	ios, ok := deviceInfo["ios"].(map[string]interface{})
+	if ok {
+		return DeviceNameIOS(ios)
+	}
+	return ""
+}
+
+func DeviceNameAndroid(android map[string]interface{}) string {
+	if settings, ok := android["Settings"].(map[string]interface{}); ok {
+		if global, ok := settings["Global"].(map[string]interface{}); ok {
+			if deviceName, ok := global["DEVICE_NAME"].(string); ok {
+				return deviceName
+			}
+		}
+		if secure, ok := settings["Secure"].(map[string]interface{}); ok {
+			if bluetoothName, ok := secure["bluetooth_name"].(string); ok {
+				return bluetoothName
+			}
+		}
+	}
+	return ""
+}
+
+func DeviceNameIOS(ios map[string]interface{}) string {
+	if uiDevice, ok := ios["UIDevice"].(map[string]interface{}); ok {
+		if name, ok := uiDevice["name"].(string); ok {
+			return name
+		}
+	}
+	if uname, ok := ios["uname"].(map[string]interface{}); ok {
+		if nodename, ok := uname["nodename"].(string); ok {
+			return nodename
+		}
+	}
+	return ""
+}
