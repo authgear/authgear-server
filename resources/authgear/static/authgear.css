@@ -258,6 +258,11 @@ h1, h2, h3, h4, h5, h6 {
   padding: 6px;
 }
 
+.padding-v-4 {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
 .padding-v-10 {
   padding-top: 10px;
   padding-bottom: 10px;

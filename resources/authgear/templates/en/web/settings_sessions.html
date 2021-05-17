@@ -9,43 +9,42 @@
 <div class="pane margin-6 flex flex-direction-column">
 {{ template "__header.html" . }}
 <div class="padding-6 flex flex-direction-column">
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc">
-    <h1 class="grid-area-title font-inherit margin-0 primary-txt">
+  <div class="margin-h-14 padding-v-10 row-sep grid grid-name-desc-action">
+    <h1 class="grid-area-name font-inherit margin-0 primary-txt">
       {{ template "settings-sessions-title" }}
     </h1>
-    <p class="grid-area-area font-smaller margin-0 secondary-txt">
+    <p class="grid-area-desc font-smaller margin-0 padding-v-4 secondary-txt">
       {{ template "settings-sessions-description" }}
     </p>
-  </section>
-
-  {{ range $.Sessions }}
-    <form class="margin-h-14 padding-v-10 row-sep grid grid-name-desc-action" method="post" novalidate>
-      <p class="grid-area-name font-inherit align-self-center margin-0 primary-txt">
-        {{ .DisplayName }}
-      </p>
-      <p class="grid-area-desc font-smaller align-self-center margin-0 secondary-txt">
-        <!-- FIXME(ui): Use user preferred timezone -->
-        {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt) }}
-      </p>
-      {{ if not (eq .ID $.CurrentSessionID) }}
-      {{ $.CSRFField }}
-      <input type="hidden" name="x_session_id" value="{{ .ID }}">
-      <button class="grid-area-action align-self-start justify-self-end btn destructive-btn" type="submit" name="x_action" value="revoke">
-        {{ template "settings-sessions-revoke-label" }}
-      </button>
-      {{ end }}
-    </form>
-  {{ end }}
-  <section class="margin-h-14 padding-v-10 row-sep">
-    <form class="primary-action" method="post" novalidate>
+    <form class="grid-area-action primary-action" method="post" novalidate>
       {{ $.CSRFField }}
       <button class="btn destructive-btn" type="submit" name="x_action" value="revoke_all">
         {{ template "settings-sessions-revoke-all-label" }}
       </button>
     </form>
-  </section>
-
+  </div>
 </div>
+</div>
+
+<div class="pane margin-6 flex flex-direction-column">
+{{ range $.Sessions }}
+  <form class="margin-h-14 padding-v-10 row-sep grid grid-name-desc-action" method="post" novalidate>
+    <p class="grid-area-name font-inherit align-self-center margin-0 primary-txt">
+      {{ .DisplayName }}
+    </p>
+    <p class="grid-area-desc font-smaller align-self-center margin-0 secondary-txt">
+      <!-- FIXME(ui): Use user preferred timezone -->
+      {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt) }}
+    </p>
+    {{ if not (eq .ID $.CurrentSessionID) }}
+    {{ $.CSRFField }}
+    <input type="hidden" name="x_session_id" value="{{ .ID }}">
+    <button class="grid-area-action align-self-start justify-self-end btn destructive-btn" type="submit" name="x_action" value="revoke">
+      {{ template "settings-sessions-revoke-label" }}
+    </button>
+    {{ end }}
+  </form>
+{{ end }}
 </div>
 
 </main>
