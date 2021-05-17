@@ -119,4 +119,6 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		result.WriteResponse(w, r)
 		return nil
 	})
+
+	// FIXME(session): revoke_group
 }

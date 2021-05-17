@@ -9,11 +9,11 @@
 <div class="pane margin-6 flex flex-direction-column">
 {{ template "__header.html" . }}
 <div class="padding-6 flex flex-direction-column">
-  <div class="margin-h-14 padding-v-10 row-sep grid grid-name-desc-action">
+  <div class="margin-h-14 row-sep grid grid-name-desc-action">
     <h1 class="grid-area-name font-inherit margin-0 primary-txt">
       {{ template "settings-sessions-title" }}
     </h1>
-    <p class="grid-area-desc font-smaller margin-0 padding-v-4 secondary-txt">
+    <p class="grid-area-desc font-smaller margin-0 padding-v-8 secondary-txt">
       {{ template "settings-sessions-description" }}
     </p>
     <form class="grid-area-action primary-action" method="post" novalidate>
@@ -26,26 +26,46 @@
 </div>
 </div>
 
-<div class="pane margin-6 flex flex-direction-column">
-{{ range $.Sessions }}
-  <form class="margin-h-14 padding-v-10 row-sep grid grid-name-desc-action" method="post" novalidate>
-    <p class="grid-area-name font-inherit align-self-center margin-0 primary-txt">
-      {{ .DisplayName }}
+{{ range $.SessionGroups }}
+<div class="pane margin-6 flex flex-direction-column padding-h-18 padding-bottom-8 divide-y">
+  <div class="grid grid-icon-title-action padding-v-12">
+    {{ $icon := "" }}
+    {{ if eq .Type "grouped" }}{{ $icon = "mobile-alt" }}{{ else }}{{ $icon = "laptop" }}{{ end }}
+    <i class="grid-area-icon fas fa-{{ $icon }}" aria-hidden="true"></i>
+
+    <h2 class="grid-area-title font-inherit margin-0 margin-h-10 text-ellipsis">{{ .DisplayName }}</h2>
+
+    {{ if .OfflineGrantIDs }}
+    <form class="grid-area-action" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_session_id" value="{{ index .OfflineGrantIDs 0 }}">
+      <button class="btn destructive-btn" type="submit" name="x_action" value="revoke_group">
+        {{ template "settings-sessions-revoke-group-label" }}
+      </button>
+    </form>
+    {{ end }}
+  </div>
+  {{ range .Sessions }}
+  <div class="grid grid-name-desc-action padding-v-10">
+    <p class="grid-area-name font-inherit margin-0 primary-txt">
+      {{/* FIXME(session): Show country */}}
+      {{ .LastAccessedByIP }}
     </p>
-    <p class="grid-area-desc font-smaller align-self-center margin-0 secondary-txt">
-      <!-- FIXME(ui): Use user preferred timezone -->
+    <p class="grid-area-desc font-smaller margin-0 secondary-txt">
+      {{/* FIXME(session): Show application name */}}
       {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt) }}
     </p>
     {{ if not (eq .ID $.CurrentSessionID) }}
-    {{ $.CSRFField }}
-    <input type="hidden" name="x_session_id" value="{{ .ID }}">
-    <button class="grid-area-action align-self-start justify-self-end btn destructive-btn" type="submit" name="x_action" value="revoke">
-      {{ template "settings-sessions-revoke-label" }}
-    </button>
+    <form class="grid-area-action" method="post" novalidate>
+      {{ $.CSRFField }}
+      <input type="hidden" name="x_session_id" value="{{ .ID }}">
+      <button class="btn remove-btn" type="submit" name="x_action" value="revoke" aria-label="{{ template "settings-sessions-revoke-label" }}"></button>
+    </form>
     {{ end }}
-  </form>
-{{ end }}
+  </div>
+  {{ end }}
 </div>
+{{ end }}
 
 </main>
 </body>
