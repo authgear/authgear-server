@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/sessiongroup"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -27,6 +28,7 @@ func ConfigureSettingsSessionsRoute(route httproute.Route) httproute.Route {
 type SettingsSessionsViewModel struct {
 	CurrentSessionID string
 	Sessions         []*model.Session
+	SessionGroups    []*model.SessionGroup
 }
 
 type SettingsSessionsHandler struct {
@@ -50,6 +52,7 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 		viewModel.Sessions = append(viewModel.Sessions, s.ToAPIModel())
 	}
 	viewModel.CurrentSessionID = s.SessionID()
+	viewModel.SessionGroups = sessiongroup.Group(ss)
 	viewmodels.Embed(data, viewModel)
 
 	return data, nil
