@@ -120,5 +120,42 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return nil
 	})
 
-	// FIXME(session): revoke_group
+	ctrl.PostAction("revoke_group", func() error {
+		sessionID := r.Form.Get("x_session_id")
+
+		ss, err := h.Sessions.List(currentSession.SessionAttrs().UserID)
+		if err != nil {
+			return err
+		}
+
+		// Group the sessions again to find out the target group.
+		var targetIDs []string
+		groups := sessiongroup.Group(ss)
+		for _, group := range groups {
+			for _, offlineGrantID := range group.OfflineGrantIDs {
+				if sessionID == offlineGrantID {
+					for _, s := range group.Sessions {
+						if s.ID != currentSession.SessionID() {
+							targetIDs = append(targetIDs, s.ID)
+						}
+					}
+				}
+			}
+		}
+
+		for _, id := range targetIDs {
+			for _, s := range ss {
+				if s.SessionID() == id {
+					err := h.Sessions.Revoke(s, false)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		result := webapp.Result{RedirectURI: redirectURI}
+		result.WriteResponse(w, r)
+		return nil
+	})
 }
