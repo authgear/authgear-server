@@ -36,6 +36,7 @@ require (
 	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/nyaruka/phonenumbers v1.0.60
+	github.com/oschwald/geoip2-golang v1.5.0
 	github.com/pquerna/otp v1.3.0
 	github.com/rubenv/sql-migrate v0.0.0-20200616145509-8d140a17f351
 	github.com/sfreiberg/gotwilio v0.0.0-20200916182813-169c4cd5c691
