@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
 )
 
 type OfflineGrant struct {
@@ -54,7 +55,8 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 
 	amr, _ := g.Attrs.GetAMR()
 	acr, _ := g.Attrs.GetACR()
-	return &model.Session{
+
+	apiModel := &model.Session{
 		Meta: model.Meta{
 			ID:        g.ID,
 			CreatedAt: g.CreatedAt,
@@ -73,4 +75,12 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 		DisplayName:     displayName,
 		ApplicationName: deviceinfo.ApplicationName(g.DeviceInfo),
 	}
+
+	ipInfo, ok := geoip.DefaultDatabase.IPString(g.AccessInfo.LastAccess.RemoteIP)
+	if ok {
+		apiModel.LastAccessedByIPCountryCode = ipInfo.CountryCode
+		apiModel.LastAccessedByIPEnglishCountryName = ipInfo.EnglishCountryName
+	}
+
+	return apiModel
 }

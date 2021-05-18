@@ -48,8 +48,11 @@
   {{ range .Sessions }}
   <div class="grid grid-name-desc-action padding-v-10">
     <p class="grid-area-name font-inherit margin-0 primary-txt">
-      {{/* FIXME(session): Show country */}}
+      {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
+      {{ template "settings-sessions-item-title" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
+      {{ else }}
       {{ .LastAccessedByIP }}
+      {{ end }}
     </p>
     <p class="grid-area-desc font-smaller margin-0 secondary-txt">
       {{ $desc := .DisplayName }}

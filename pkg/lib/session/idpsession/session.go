@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
 )
 
 type IDPSession struct {
@@ -34,7 +35,7 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
 	acr, _ := s.Attrs.GetACR()
 	amr, _ := s.Attrs.GetAMR()
-	return &model.Session{
+	apiModel := &model.Session{
 		Meta: model.Meta{
 			ID:        s.ID,
 			CreatedAt: s.CreatedAt,
@@ -52,4 +53,12 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 
 		DisplayName: ua.Format(),
 	}
+
+	ipInfo, ok := geoip.DefaultDatabase.IPString(s.AccessInfo.LastAccess.RemoteIP)
+	if ok {
+		apiModel.LastAccessedByIPCountryCode = ipInfo.CountryCode
+		apiModel.LastAccessedByIPEnglishCountryName = ipInfo.EnglishCountryName
+	}
+
+	return apiModel
 }
