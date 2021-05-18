@@ -205,3 +205,31 @@ func DeviceNameIOS(ios map[string]interface{}) string {
 	}
 	return ""
 }
+
+func ApplicationName(deviceInfo map[string]interface{}) string {
+	android, ok := deviceInfo["android"].(map[string]interface{})
+	if ok {
+		return ApplicationNameAndroid(android)
+	}
+	ios, ok := deviceInfo["ios"].(map[string]interface{})
+	if ok {
+		return ApplicationNameIOS(ios)
+	}
+	return ""
+}
+
+func ApplicationNameAndroid(android map[string]interface{}) string {
+	if applicationInfoLabel, ok := android["ApplicationInfoLabel"].(string); ok {
+		return applicationInfoLabel
+	}
+	return ""
+}
+
+func ApplicationNameIOS(ios map[string]interface{}) string {
+	if nsBundle, ok := ios["NSBundle"].(map[string]interface{}); ok {
+		if cfBundleDisplayName, ok := nsBundle["CFBundleDisplayName"].(string); ok {
+			return cfBundleDisplayName
+		}
+	}
+	return ""
+}

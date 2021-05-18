@@ -52,8 +52,11 @@
       {{ .LastAccessedByIP }}
     </p>
     <p class="grid-area-desc font-smaller margin-0 secondary-txt">
-      {{/* FIXME(session): Show application name */}}
-      {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt) }}
+      {{ $desc := .DisplayName }}
+      {{ if .ApplicationName }}
+      {{ $desc = .ApplicationName }}
+      {{ end }}
+      {{ template "settings-sessions-item-description" (dict "desc" $desc "time" .LastAccessedAt) }}
     </p>
     {{ if not (eq .ID $.CurrentSessionID) }}
     <form class="grid-area-action" method="post" novalidate>

@@ -23,5 +23,6 @@ type Session struct {
 	CreatedByIP      string    `json:"createdByIP"`
 	LastAccessedByIP string    `json:"lastAccessedByIP"`
 
-	DisplayName string `json:"displayName"`
+	DisplayName     string `json:"displayName"`
+	ApplicationName string `json:"applicationName,omitempty"`
 }

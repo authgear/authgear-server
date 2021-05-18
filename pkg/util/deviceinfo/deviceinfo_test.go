@@ -27,6 +27,13 @@ const ExampleIOS = `
 		"NSProcessInfo": {
 			"isiOSAppOnMac": false,
 			"isMacCatalystApp": false
+		},
+		"NSBundle": {
+			"CFBundleVersion": "1",
+			"CFBundleExecutable": "ios_example",
+			"CFBundleIdentifier": "com.authgear.exampleapp.ios",
+			"CFBundleDisplayName": "Authgear demo iOS",
+			"CFBundleShortVersionString": "1.0"
 		}
 	}
 }
@@ -52,7 +59,8 @@ const ExampleAndroid = `
 			"Secure": {
 				"bluetooth_name": "myandroid"
 			}
-		}
+		},
+		"ApplicationInfoLabel": "Authgear demo Android"
 	}
 }
 `
@@ -94,5 +102,25 @@ func TestDeviceName(t *testing.T) {
 		So(actual, ShouldEqual, "myandroid")
 
 		So(DeviceName(nil), ShouldEqual, "")
+	})
+}
+
+func TestApplicationName(t *testing.T) {
+	Convey("ApplicationName", t, func() {
+		var ios map[string]interface{}
+		err := json.Unmarshal([]byte(ExampleIOS), &ios)
+		So(err, ShouldBeNil)
+
+		var android map[string]interface{}
+		err = json.Unmarshal([]byte(ExampleAndroid), &android)
+		So(err, ShouldBeNil)
+
+		actual := ApplicationName(ios)
+		So(actual, ShouldEqual, "Authgear demo iOS")
+
+		actual = ApplicationName(android)
+		So(actual, ShouldEqual, "Authgear demo Android")
+
+		So(ApplicationName(nil), ShouldEqual, "")
 	})
 }

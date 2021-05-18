@@ -70,6 +70,7 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,
 		LastAccessedByIP: g.AccessInfo.LastAccess.RemoteIP,
 
-		DisplayName: displayName,
+		DisplayName:     displayName,
+		ApplicationName: deviceinfo.ApplicationName(g.DeviceInfo),
 	}
 }
