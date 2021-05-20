@@ -23,8 +23,11 @@ type Manager struct {
 	CookieDef     session.CookieDef
 }
 
-func (m *Manager) ClearCookie() *http.Cookie {
-	return m.CookieFactory.ClearCookie(m.CookieDef.Def)
+func (m *Manager) ClearCookie() []*http.Cookie {
+	return []*http.Cookie{
+		m.CookieFactory.ClearCookie(m.CookieDef.Def),
+		m.CookieFactory.ClearCookie(m.CookieDef.SameSiteStrictDef),
+	}
 }
 
 func (m *Manager) Get(id string) (session.Session, error) {
