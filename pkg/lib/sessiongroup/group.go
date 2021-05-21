@@ -10,9 +10,29 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 )
 
-type keyDeviceModelDeviceName struct {
-	DeviceModel string
-	DeviceName  string
+type key struct {
+	DeviceModel     string
+	DeviceName      string
+	UserAgentString string
+}
+
+func newKey(deviceModel string, deviceName string, userAgentString string) key {
+	if deviceModel == "" {
+		return key{
+			UserAgentString: userAgentString,
+		}
+	}
+	return key{
+		DeviceModel: deviceModel,
+		DeviceName:  deviceName,
+	}
+}
+
+func (k key) DisplayName() string {
+	if k.DeviceModel == "" {
+		return k.UserAgentString
+	}
+	return k.DeviceModel
 }
 
 type group struct {
@@ -23,18 +43,17 @@ type group struct {
 // Group groups sessions into a list of SessionGroup.
 func Group(sessions []session.Session) []*model.SessionGroup {
 	// 1. Offline grants are first grouped by Device Name and Device model.
-	groupMap := make(map[keyDeviceModelDeviceName]group)
+	groupMap := make(map[key]group)
 	for _, sess := range sessions {
 		if offlineGrant, ok := sess.(*oauth.OfflineGrant); ok {
-			if deviceInfo, ok := offlineGrant.GetDeviceInfo(); ok {
-				key := keyDeviceModelDeviceName{
-					DeviceModel: deviceinfo.DeviceModel(deviceInfo),
-					DeviceName:  deviceinfo.DeviceName(deviceInfo),
-				}
-				group := groupMap[key]
-				group.OfflineGrants = append(group.OfflineGrants, offlineGrant)
-				groupMap[key] = group
-			}
+			deviceInfo, _ := offlineGrant.GetDeviceInfo()
+			deviceModel := deviceinfo.DeviceModel(deviceInfo)
+			deviceName := deviceinfo.DeviceName(deviceInfo)
+			ua := model.ParseUserAgent(offlineGrant.AccessInfo.LastAccess.UserAgent)
+			key := newKey(deviceModel, deviceName, ua.Format())
+			group := groupMap[key]
+			group.OfflineGrants = append(group.OfflineGrants, offlineGrant)
+			groupMap[key] = group
 		}
 	}
 
@@ -63,7 +82,7 @@ func Group(sessions []session.Session) []*model.SessionGroup {
 	for key, group := range groupMap {
 		sessionGroup := &model.SessionGroup{
 			Type:        model.SessionGroupTypeGrouped,
-			DisplayName: key.DeviceModel,
+			DisplayName: key.DisplayName(),
 		}
 		for _, offlineGrant := range group.OfflineGrants {
 			sessionGroup.OfflineGrantIDs = append(sessionGroup.OfflineGrantIDs, offlineGrant.ID)
