@@ -30,9 +30,6 @@ import (
 const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 const BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
 
-// nolint: gosec
-const IDTokenGrantType = "urn:authgear:params:oauth:grant-type:id-token"
-
 const AppSessionTokenDuration = duration.Short
 
 // whitelistedGrantTypes is a list of grant types that would be always allowed
@@ -40,7 +37,6 @@ const AppSessionTokenDuration = duration.Short
 var whitelistedGrantTypes = []string{
 	AnonymousRequestGrantType,
 	BiometricRequestGrantType,
-	IDTokenGrantType,
 }
 
 type IDTokenIssuer interface {
@@ -153,8 +149,6 @@ func (h *TokenHandler) doHandle(
 		return h.handleAnonymousRequest(client, r)
 	case BiometricRequestGrantType:
 		return h.handleBiometricRequest(rw, req, client, r)
-	case IDTokenGrantType:
-		return h.handleIDTokenGrantType(rw, req, client, r)
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -181,8 +175,6 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}
-	case IDTokenGrantType:
-		break
 	default:
 		return protocol.NewError("unsupported_grant_type", "grant type is not supported")
 	}
@@ -421,26 +413,6 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	return tokenResultOK{Response: resp}, nil
-}
-
-func (h *TokenHandler) handleIDTokenGrantType(
-	rw http.ResponseWriter,
-	req *http.Request,
-	client *config.OAuthClientConfig,
-	r protocol.TokenRequest,
-) (httputil.Result, error) {
-	s := session.GetSession(req.Context())
-	if s == nil {
-		return nil, protocol.NewErrorStatusCode("invalid_request", "valid session is required", http.StatusUnauthorized)
-	}
-	nonce := ""
-	idToken, err := h.IDTokenIssuer.IssueIDToken(client, s, nonce)
-	if err != nil {
-		return nil, err
-	}
-	resp := protocol.TokenResponse{}
-	resp.IDToken(idToken)
 	return tokenResultOK{Response: resp}, nil
 }
 
