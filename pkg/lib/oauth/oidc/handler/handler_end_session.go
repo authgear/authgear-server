@@ -28,27 +28,20 @@ type EndSessionHandler struct {
 	Config         *config.OAuthConfig
 	Endpoints      oidc.EndpointsProvider
 	URLs           WebAppURLsProvider
-	IDTokens       IDTokenIssuer
 	SessionManager LogoutSessionManager
+	SessionCookie  session.CookieDef
 }
 
 func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
-	idTokenHint := req.IDTokenHint()
-	if s != nil && idTokenHint != "" {
-		sessionInIDToken, err := h.IDTokens.ValidateIDTokenHint(idTokenHint)
-		if err == nil && s.SessionType() == sessionInIDToken.SessionType() && s.SessionID() == sessionInIDToken.SessionID() {
-			// Logout directly.
-			err := h.SessionManager.Logout(s, rw)
-			if err != nil {
-				return err
-			}
-			// Set s to nil and fall through.
-			s = nil
-		} else {
-			// id_token_hint is invalid. Delete it and proceed.
-			// That is, ask confirmation before logout.
-			delete(req, "id_token_hint")
+	sameSiteStrict, err := r.Cookie(h.SessionCookie.SameSiteStrictDef.Name)
+	if s != nil && err == nil && sameSiteStrict.Value == "true" {
+		// Logout directly.
+		err := h.SessionManager.Logout(s, rw)
+		if err != nil {
+			return err
 		}
+		// Set s to nil and fall through.
+		s = nil
 	}
 
 	if s != nil {

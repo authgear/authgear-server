@@ -33,27 +33,33 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *interaction.Context, graph *inter
 
 	sess, token := ctx.Sessions.MakeSession(attrs)
 	cookie := ctx.CookieFactory.ValueCookie(ctx.SessionCookie.Def, token)
+	sameSiteStrictCookie := ctx.CookieFactory.ValueCookie(
+		ctx.SessionCookie.SameSiteStrictDef,
+		"true",
+	)
 
 	return &NodeDoCreateSession{
-		Reason:            e.Reason,
-		SkipCreateSession: e.SkipCreateSession,
-		Session:           sess,
-		SessionCookie:     cookie,
-		IsAdminAPI:        interaction.IsAdminAPI(input),
+		Reason:               e.Reason,
+		SkipCreateSession:    e.SkipCreateSession,
+		Session:              sess,
+		SessionCookie:        cookie,
+		SameSiteStrictCookie: sameSiteStrictCookie,
+		IsAdminAPI:           interaction.IsAdminAPI(input),
 	}, nil
 }
 
 type NodeDoCreateSession struct {
-	Reason            session.CreateReason   `json:"reason"`
-	SkipCreateSession bool                   `json:"skip_create_session"`
-	Session           *idpsession.IDPSession `json:"session"`
-	SessionCookie     *http.Cookie           `json:"session_cookie"`
-	IsAdminAPI        bool                   `json:"is_admin_api"`
+	Reason               session.CreateReason   `json:"reason"`
+	SkipCreateSession    bool                   `json:"skip_create_session"`
+	Session              *idpsession.IDPSession `json:"session"`
+	SessionCookie        *http.Cookie           `json:"session_cookie"`
+	SameSiteStrictCookie *http.Cookie           `json:"same_site_strict_cookie"`
+	IsAdminAPI           bool                   `json:"is_admin_api"`
 }
 
 // GetCookies implements CookiesGetter
 func (n *NodeDoCreateSession) GetCookies() []*http.Cookie {
-	return []*http.Cookie{n.SessionCookie}
+	return []*http.Cookie{n.SessionCookie, n.SameSiteStrictCookie}
 }
 
 func (n *NodeDoCreateSession) SessionAttrs() *session.Attrs {

@@ -15,8 +15,8 @@ type SessionManager struct {
 	Config *config.OAuthConfig
 }
 
-func (m *SessionManager) ClearCookie() *http.Cookie {
-	return nil
+func (m *SessionManager) ClearCookie() []*http.Cookie {
+	return []*http.Cookie{}
 }
 
 func (m *SessionManager) Get(id string) (session.Session, error) {

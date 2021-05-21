@@ -23,7 +23,7 @@ type UserQuery interface {
 }
 
 type ManagementService interface {
-	ClearCookie() *http.Cookie
+	ClearCookie() []*http.Cookie
 	Get(id string) (Session, error)
 	Update(Session) error
 	Delete(Session) error
@@ -67,7 +67,7 @@ func (m *Manager) Logout(session Session, rw http.ResponseWriter) error {
 		return err
 	}
 
-	if cookie := provider.ClearCookie(); cookie != nil {
+	for _, cookie := range provider.ClearCookie() {
 		httputil.UpdateCookie(rw, cookie)
 	}
 
