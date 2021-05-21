@@ -190,7 +190,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.AccessTokenIssuer), new(*oauth.AccessTokenEncoding)),
 		wire.Bind(new(oauth.UserClaimsProvider), new(*oidc.IDTokenIssuer)),
-		wire.Bind(new(oidchandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 
 		oidchandler.DependencySet,
 	),

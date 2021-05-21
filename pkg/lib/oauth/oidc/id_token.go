@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -20,7 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/jwsutil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
@@ -97,61 +95,6 @@ func (ti *IDTokenIssuer) GetPublicKeySet() (jwk.Set, error) {
 
 func (ti *IDTokenIssuer) Iss() string {
 	return ti.BaseURL.BaseURL().String()
-}
-
-func (ti *IDTokenIssuer) ValidateIDTokenHint(idToken string) (session.Session, error) {
-	compact := []byte(idToken)
-	keySet, err := ti.GetPublicKeySet()
-	if err != nil {
-		return nil, err
-	}
-	_, payload, err := jwsutil.VerifyWithSet(keySet, compact)
-	if err != nil {
-		return nil, err
-	}
-
-	// https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
-
-	// When an id_token_hint parameter is present, the OP MUST validate that it was the issuer of the ID Token.
-	if payload.Issuer() != ti.Iss() {
-		return nil, errors.New("iss not satisfied")
-	}
-
-	// The OP SHOULD accept ID Tokens when the RP identified by the ID Token's aud claim and/or sid claim has a current session or had a recent session at the OP,
-	// even when the exp time has passed.
-
-	// If the ID Token's sid claim does not correspond to the RP's current session or a recent session at the OP,
-	// the OP SHOULD treat the logout request as suspect, and MAY decline to act upon it.
-	sidIface, ok := payload.Get("sid")
-	if !ok {
-		return nil, errors.New("missing sid")
-	}
-	sid, ok := sidIface.(string)
-	if !ok {
-		return nil, fmt.Errorf("expected sid to be string but was %T", sidIface)
-	}
-
-	typ, sessionID, ok := DecodeSID(sid)
-	if !ok {
-		return nil, fmt.Errorf("invalid sid")
-	}
-
-	switch typ {
-	case session.TypeIdentityProvider:
-		var s session.Session
-		s, err = ti.IDPSessions.Get(sessionID)
-		if err != nil {
-			return nil, err
-		}
-		return s, nil
-	case session.TypeOfflineGrant:
-		// TODO(logout): Support id_token_hint with sid referring to a offline grant.
-		// 1. Check if the cookie session and the offline grant is referring to the same user.
-		// 2. Check if the offline grant has full access scope.
-		return nil, errors.New("id_token_hint does not support offline grant yet")
-	default:
-		panic(fmt.Errorf("unexpected session type: %s", typ))
-	}
 }
 
 func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s session.Session, nonce string) (string, error) {

@@ -15,11 +15,6 @@ type WebAppURLsProvider interface {
 	LogoutURL(redirectURI *url.URL) *url.URL
 	SettingsURL() *url.URL
 }
-
-type IDTokenIssuer interface {
-	ValidateIDTokenHint(idTokenHint string) (session.Session, error)
-}
-
 type LogoutSessionManager interface {
 	Logout(session.Session, http.ResponseWriter) error
 }
