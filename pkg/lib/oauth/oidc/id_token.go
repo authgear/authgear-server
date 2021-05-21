@@ -169,10 +169,9 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	_ = claims.Set(jwt.IssuedAtKey, now.Unix())
 	_ = claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
 
-	// Avoid putting user claims in ID token
-	// ID token is used as `id_token_hint` in `end_session_endpoint` for direct logout
-	// To avoid putting user data in `GET` request parameters, so those claims
-	// are removed from the ID token
+	for key, value := range s.SessionAttrs().Claims {
+		_ = claims.Set(string(key), value)
+	}
 
 	if nonce != "" {
 		_ = claims.Set("nonce", nonce)
@@ -199,12 +198,6 @@ func (ti *IDTokenIssuer) LoadUserClaims(userID string) (jwt.Token, error) {
 	_ = claims.Set(jwt.SubjectKey, userID)
 	_ = claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
 	_ = claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
-
-	// Avoid putting user claims in LoadUserClaims
-	// LoadUserClaims defines claims in ID token and
-	// ID token is used as `id_token_hint` in `end_session_endpoint` for direct logout
-	// To avoid putting user data in `GET` request parameters, so don't
-	// put user claims in LoadUserClaims
 
 	return claims, nil
 }
