@@ -226,7 +226,7 @@
   "settings-sessions-title": "Signed in Sessions",
   "settings-sessions-description": "You’re currently signed in to your account on these devices",
   "settings-sessions-item-title": "{countryName} ({countryCode}) - {ip}",
-  "settings-sessions-item-description": "{desc} · {time, datetime, long}",
+  "settings-sessions-item-description": "{isCurrent, select, true {{desc} · <b class=\"good-txt\">Active Now</b>} other {{desc} · {time, datetime, long}}}",
   "settings-sessions-revoke-label": "Terminate",
   "settings-sessions-revoke-group-label": "Terminate sessions of this group",
   "settings-sessions-revoke-all-label": "Terminate all sessions",
