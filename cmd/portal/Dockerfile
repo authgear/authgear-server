@@ -53,6 +53,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 RUN update-ca-certificates
+COPY ./GeoLite2-Country.mmdb ./GeoLite2-Country.mmdb
 COPY ./migrations ./migrations
 COPY --from=stage1 /src/authgear-portal /usr/local/bin/
 COPY ./resources/ ./resources/

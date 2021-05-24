@@ -225,9 +225,11 @@
 
   "settings-sessions-title": "Signed in Sessions",
   "settings-sessions-description": "You’re currently signed in to your account on these devices",
-  "settings-sessions-item-description": "Last activity: {time, datetime, long}",
+  "settings-sessions-item-title": "{countryName} ({countryCode}) - {ip}",
+  "settings-sessions-item-description": "{isCurrent, select, true {{desc} · <b class=\"good-txt\">Active Now</b>} other {{desc} · {time, datetime, long}}}",
   "settings-sessions-revoke-label": "Terminate",
-  "settings-sessions-revoke-all-label": "Terminate all other sessions",
+  "settings-sessions-revoke-group-label": "Terminate sessions of this group",
+  "settings-sessions-revoke-all-label": "Terminate all sessions",
 
   "settings-oob-otp-email-title": "Channels for receiving verification code via Email",
   "settings-oob-otp-sms-title": "Channels for receiving verification code via SMS",

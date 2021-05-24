@@ -258,9 +258,38 @@ h1, h2, h3, h4, h5, h6 {
   padding: 6px;
 }
 
+.padding-h-18 {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+.padding-v-2 {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.padding-v-4 {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.padding-v-8 {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
 .padding-v-10 {
   padding-top: 10px;
   padding-bottom: 10px;
+}
+
+.padding-v-12 {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.padding-bottom-8 {
+  padding-bottom: 8px;
 }
 
 .text-ellipsis {
@@ -488,6 +517,45 @@ h1, h2, h3, h4, h5, h6 {
 }
 .description-btn:disabled {
   color: var(--color-error-shaded-1);
+}
+
+.remove-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.remove-btn::before {
+  content: "";
+  width: 10px;
+  height: 1px;
+  display: block;
+  background-color: var(--color-status-dark);
+}
+.remove-btn {
+  border: 1px solid var(--color-status-dark);
+}
+.remove-btn::before {
+  background-color: var(--color-status-dark);
+}
+.remove-btn:hover, .remove-btn:focus, .remove-btn:active {
+  border: 0;
+  background-color: var(--color-error-unshaded);
+}
+.remove-btn:hover::before, .remove-btn:focus::before, .remove-btn:active::before {
+  background-color: var(--color-white-unshaded);
+}
+.remove-btn:active {
+  border: 0;
+  background-color: var(--color-error-shaded-4);
+}
+.remove-btn:hover::before, .remove-btn:focus::before, .remove-btn:active::before {
+  background-color: var(--color-white-unshaded);
+}
+.remove-btn:disabled {
+  opacity: 0.4;
 }
 
 .page {
@@ -743,6 +811,11 @@ h1, h2, h3, h4, h5, h6 {
   align-self: center;
 }
 
+.grid-icon-title-action {
+  grid: "icon title action" auto
+      /  auto 1fr   auto;
+}
+
 .grid-title-action {
   grid: "title  action" auto
       /   1fr    auto;
@@ -832,6 +905,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .row-sep:not(:last-child) {
   border-bottom: 1px solid var(--color-separator);
+}
+
+.divide-y > * + * {
+  border-top-width: 1px;
+  border-top-style: solid;
+  border-top-color: var(--color-separator);
 }
 
 .recovery-code-list-section {

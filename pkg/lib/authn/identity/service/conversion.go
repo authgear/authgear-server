@@ -127,7 +127,7 @@ func biometricToIdentityInfo(b *biometric.Identity) *identity.Info {
 		identity.IdentityClaimBiometricKeyID:               b.KeyID,
 		identity.IdentityClaimBiometricKey:                 string(b.Key),
 		identity.IdentityClaimBiometricDeviceInfo:          b.DeviceInfo,
-		identity.IdentityClaimBiometricFormattedDeviceInfo: deviceinfo.Format(b.DeviceInfo),
+		identity.IdentityClaimBiometricFormattedDeviceInfo: deviceinfo.DeviceModel(b.DeviceInfo),
 	}
 
 	return &identity.Info{

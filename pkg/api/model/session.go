@@ -19,9 +19,12 @@ type Session struct {
 	ACR string   `json:"acr,omitempty"`
 	AMR []string `json:"amr,omitempty"`
 
-	LastAccessedAt   time.Time `json:"lastAccessedAt"`
-	CreatedByIP      string    `json:"createdByIP"`
-	LastAccessedByIP string    `json:"lastAccessedByIP"`
+	LastAccessedAt                     time.Time `json:"lastAccessedAt"`
+	CreatedByIP                        string    `json:"createdByIP"`
+	LastAccessedByIP                   string    `json:"lastAccessedByIP"`
+	LastAccessedByIPCountryCode        string    `json:"lastAccessedByIPCountryCode"`
+	LastAccessedByIPEnglishCountryName string    `json:"lastAccessedByIPEnglishCountryName"`
 
-	DisplayName string `json:"displayName"`
+	DisplayName     string `json:"displayName"`
+	ApplicationName string `json:"applicationName,omitempty"`
 }

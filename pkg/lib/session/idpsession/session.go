@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
 )
 
 type IDPSession struct {
@@ -25,15 +26,16 @@ func (s *IDPSession) SessionID() string            { return s.ID }
 func (s *IDPSession) SessionType() session.Type    { return session.TypeIdentityProvider }
 func (s *IDPSession) SessionAttrs() *session.Attrs { return &s.Attrs }
 
-func (s *IDPSession) GetCreatedAt() time.Time     { return s.CreatedAt }
-func (s *IDPSession) GetClientID() string         { return "" }
-func (s *IDPSession) GetAccessInfo() *access.Info { return &s.AccessInfo }
+func (s *IDPSession) GetCreatedAt() time.Time                       { return s.CreatedAt }
+func (s *IDPSession) GetClientID() string                           { return "" }
+func (s *IDPSession) GetAccessInfo() *access.Info                   { return &s.AccessInfo }
+func (s *IDPSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }
 
 func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
 	acr, _ := s.Attrs.GetACR()
 	amr, _ := s.Attrs.GetAMR()
-	return &model.Session{
+	apiModel := &model.Session{
 		Meta: model.Meta{
 			ID:        s.ID,
 			CreatedAt: s.CreatedAt,
@@ -51,4 +53,12 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 
 		DisplayName: ua.Format(),
 	}
+
+	ipInfo, ok := geoip.DefaultDatabase.IPString(s.AccessInfo.LastAccess.RemoteIP)
+	if ok {
+		apiModel.LastAccessedByIPCountryCode = ipInfo.CountryCode
+		apiModel.LastAccessedByIPEnglishCountryName = ipInfo.EnglishCountryName
+	}
+
+	return apiModel
 }

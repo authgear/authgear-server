@@ -402,7 +402,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, deviceInfo, resp)
+	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, "", deviceInfo, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -570,7 +570,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, deviceInfo, resp)
+	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, "", deviceInfo, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -622,7 +622,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var sessionKind oauth.GrantSessionKind
 	var atSession session.Session
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, s.SessionAttrs(), deviceInfo, resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, s.SessionAttrs(), s.ID, deviceInfo, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -695,6 +695,7 @@ func (h *TokenHandler) issueOfflineGrant(
 	scopes []string,
 	authzID string,
 	attrs *session.Attrs,
+	idpSessionID string,
 	deviceInfo map[string]interface{},
 	resp protocol.TokenResponse,
 ) (*oauth.OfflineGrant, error) {
@@ -707,6 +708,7 @@ func (h *TokenHandler) issueOfflineGrant(
 		Labels:          make(map[string]interface{}),
 		AuthorizationID: authzID,
 		ClientID:        client.ClientID,
+		IDPSessionID:    idpSessionID,
 
 		CreatedAt: now,
 		Scopes:    scopes,

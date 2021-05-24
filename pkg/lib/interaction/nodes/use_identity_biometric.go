@@ -60,7 +60,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 	var iden *identitybiometric.Identity
 	switch request.Action {
 	case identitybiometric.RequestActionSetup:
-		displayName := deviceinfo.Format(request.DeviceInfo)
+		displayName := deviceinfo.DeviceModel(request.DeviceInfo)
 		if displayName == "" {
 			return nil, interaction.ErrInvalidCredentials
 		}
