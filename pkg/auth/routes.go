@@ -31,7 +31,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		},
 		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(newSessionMiddleware),
-		p.Middleware(newSecHeadersMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
@@ -90,6 +89,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		webappChain,
 		p.Middleware(newCSRFMiddleware),
 		webapp.TurbolinksMiddleware{},
+		p.Middleware(newSecHeadersMiddleware),
 	)
 	webappAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
