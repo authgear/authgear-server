@@ -84,7 +84,7 @@ func NewPubSub(logger *log.Logger, client *redis.Client, connKey string, supervi
 					// Close all subscriber channels
 					for channelName, subscribers := range pubsub.Subscriber {
 						for _, sub := range subscribers {
-							pubsub.Logger.Infof("closing channel ID: %v", sub.SubscriberID)
+							pubsub.Logger.Debugf("closing channel ID: %v", sub.SubscriberID)
 							close(sub.MessageChannel)
 						}
 						delete(pubsub.Subscriber, channelName)
@@ -111,7 +111,7 @@ func NewPubSub(logger *log.Logger, client *redis.Client, connKey string, supervi
 
 					// Subscribe if it is the first subscriber.
 					if len(pubsub.Subscriber[n.ChannelName]) == 1 {
-						pubsub.Logger.Infof("subscribe because the first subscriber is joining")
+						pubsub.Logger.Debugf("subscribe because the first subscriber is joining")
 						ctx := context.Background()
 						err := pubsub.PubSub.Subscribe(ctx, n.ChannelName)
 						if err != nil {
@@ -134,7 +134,7 @@ func NewPubSub(logger *log.Logger, client *redis.Client, connKey string, supervi
 					}
 					if idx != -1 {
 						sub := subscribers[idx]
-						pubsub.Logger.Infof("closing channel ID: %v", sub.SubscriberID)
+						pubsub.Logger.Debugf("closing channel ID: %v", sub.SubscriberID)
 						close(sub.MessageChannel)
 					}
 
@@ -144,7 +144,7 @@ func NewPubSub(logger *log.Logger, client *redis.Client, connKey string, supervi
 
 					// Unsubscribe if subscriber is the last one subscribing the channelName.
 					if numRemaining == 0 {
-						pubsub.Logger.Infof("unsubscribe because the last subscriber is leaving")
+						pubsub.Logger.Debugf("unsubscribe because the last subscriber is leaving")
 						ctx := context.Background()
 						err := pubsub.PubSub.Unsubscribe(ctx, n.ChannelName)
 						if err != nil {
