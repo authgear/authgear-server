@@ -74,6 +74,24 @@ Note that there is no event when the session expires normally.
 
 > More events can be added in the future.
 
+## Fields
+
+### Core fields
+
+Every log entry has `id`, `app_id`, `created_at`, `user_id` and `activity_type`.
+
+### IP address
+
+`ip_address` is the IP address associated with the HTTP request when the log entry is created.
+
+### User Agent
+
+`user_agent` is the value of the HTTP User-Agent header when the log entry is created.
+
+### Client ID
+
+`client_id` is the client id associated with the event.
+
 ## Database table schema
 
 ```sql
@@ -84,6 +102,7 @@ CREATE TABLE _audit_log (
   created_at timestamp without time zone NOT NULL,
   user_id text NOT NULL,
   activity_type text NOT NULL,
+  -- ip_address, user_agent and client_id are stored in the data column.
   data jsonb NOT NULL
 ) PARTITION BY RANGE (created_at);
 CREATE INDEX _audit_log_idx_created_at_brin ON _audit_log USING BRIN (created_at);
@@ -148,5 +167,8 @@ type AuditLog implements Node {
   createdAt: DateTime!
   activityType: AuditLogActivityType!
   user: User!
+  ipAddress: String
+  userAgent: String
+  clientID: String
 }
 ```
