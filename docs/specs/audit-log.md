@@ -60,17 +60,73 @@ For deployment on Kubernetes, we will use CronJob to run the procedure.
 
 The event list mainly borrows from [the webhook non-block event list](./webhook.md#non-blocking-events).
 
+### user.created
+
+See [user.created](./webhook.md#usercreated)
 
 ### user.authenticated
 
-Occurs after the user logged in.
-Note that there is no event when a new user is created.
+See [user.authenticated](./webhook.md#userauthenticated)
+
+### user.failed_authentication
+
+> Not sure if this event name follows the naming convention.
+
+Occurs after the user failed to authenticate themselves.
+Note that there is no event when the user is not known yet.
+For example, the given email does not exist at all so an existing user cannot be identified.
 
 ### user.signed_out
+
+> Not sure if this event name follows the naming convention.
 
 Occurs after the user actively signed out,
 including revoking a refresh token and signing out from the web UI.
 Note that there is no event when the session expires normally.
+
+### identity.email.added
+
+See [identity.email.added](./webhook.md#identityemailadded)
+
+### identity.email.removed
+
+See [identity.email.removed](./webhook.md#identityemailremoved)
+
+### identity.email.updated
+
+See [identity.email.updated](./webhook.md#identityemailupdated)
+
+### identity.phone.added
+
+See [identity.phone.added](./webhook.md#identityphoneadded)
+
+### identity.phone.removed
+
+See [identity.phone.removed](./webhook.md#identityphoneremoved)
+
+### identity.phone.updated
+
+See [identity.phone.updated](./webhook.md#identityphoneupdated)
+
+### identity.username.added
+
+See [identity.username.added](./webhook.md#identityusernameadded)
+
+### identity.username.removed
+
+See [identity.username.removed](./webhook.md#identityusernameremoved)
+
+### identity.username.updated
+
+See [identity.username.updated](./webhook.md#identityusernameupdated)
+
+### identity.oauth.connected
+
+See [identity.oauth.connected](./webhook.md#identityoauthconnected)
+
+### identity.oauth.disconnected
+
+See [identity.oauth.disconnected](./webhook.md#identityoauthdisconnected)
 
 > More events can be added in the future.
 
