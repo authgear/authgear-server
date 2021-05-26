@@ -22,7 +22,7 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 type SessionOptions struct {
 	RedirectURI     string
 	KeepAfterFinish bool
-	Prompt          string
+	Prompt          []string
 	Extra           map[string]interface{}
 	WebhookState    string
 	UpdatedAt       time.Time
@@ -55,7 +55,8 @@ type Session struct {
 	Extra map[string]interface{} `json:"extra"`
 
 	// Prompt is used to indicate requested authentication behavior
-	Prompt string `json:"prompt,omitempty"`
+	// which includes both supported and unsupported prompt
+	Prompt []string `json:"prompt,omitempty"`
 
 	// UpdatedAt indicate the session last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`

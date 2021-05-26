@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type AuthEntryPointMiddleware struct {
@@ -18,7 +19,8 @@ func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 
 		hasPrompt := false
 		if webSession != nil {
-			hasPrompt = webSession.Prompt != ""
+			// stay in the auth entry point if prompt = login
+			hasPrompt = slice.ContainsString(webSession.Prompt, "login")
 		}
 
 		if userID != nil && !hasPrompt {

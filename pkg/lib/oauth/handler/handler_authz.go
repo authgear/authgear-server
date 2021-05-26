@@ -110,6 +110,7 @@ func (h *AuthorizationHandler) doHandle(
 
 	s := session.GetSession(h.Context)
 	authnOptions := webapp.AuthenticateURLOptions{}
+	authnOptions.Prompt = r.Prompt()
 	if slice.ContainsString(r.Prompt(), "login") {
 		// Request login prompt => force re-authentication and retry
 		r2 := protocol.AuthorizationRequest{}
@@ -118,7 +119,6 @@ func (h *AuthorizationHandler) doHandle(
 		}
 		prompt := slice.ExceptStrings(r.Prompt(), []string{"login"})
 		r2.SetPrompt(prompt)
-		authnOptions.Prompt = "login"
 
 		r = r2
 		// Treat as not authenticated
