@@ -50,18 +50,18 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		doneChan <- struct{}{}
 		doneChan <- struct{}{}
 		cancel()
-		logger.Info("canceled root context")
+		logger.Debug("canceled root context")
 	}()
 
 	wsConn, err := websocket.Accept(w, r, &websocket.AcceptOptions{})
 	if err != nil {
-		logger.WithError(err).Info("failed to accept websocket connection")
+		logger.WithError(err).Debug("failed to accept websocket connection")
 		return
 	}
 
 	channelName, err := h.Delegate.Accept(r)
 	if err != nil {
-		logger.WithError(err).Info("reject websocket connection")
+		logger.WithError(err).Debug("reject websocket connection")
 		wsConn.Close(websocket.StatusNormalClosure, "connection rejected")
 		return
 	}
@@ -75,13 +75,13 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		err := h.Delegate.OnRedisSubscribe(r)
 		if err != nil {
-			logger.WithError(err).Info("failed to call on redis subscribe")
+			logger.WithError(err).Debug("failed to call on redis subscribe")
 			return
 		}
 
 		defer func() {
 			cancel()
-			logger.Info("redis goroutine is tearing down")
+			logger.Debug("redis goroutine is tearing down")
 		}()
 
 		for {
@@ -106,7 +106,7 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer func() {
-			logger.Info("websocket goroutine is tearing down")
+			logger.Debug("websocket goroutine is tearing down")
 		}()
 
 		for {
@@ -128,5 +128,5 @@ func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	err = <-errChan
-	logger.WithError(err).Info("closing websocket connection due to error")
+	logger.WithError(err).Debug("closing websocket connection due to error")
 }
