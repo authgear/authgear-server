@@ -34,6 +34,7 @@ func (f *LinkedInImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		scope:       f.ProviderConfig.Type.Scope(),
 		state:       param.State,
 		baseURL:     linkedinAuthorizationURL,
+		prompt:      f.GetPrompt(param.Prompt),
 	}
 	return authURL(p)
 }
@@ -85,6 +86,10 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	authInfo.ProviderRawProfile = combinedResponse
 	authInfo.ProviderUserInfo = providerUserInfo
 	return
+}
+
+func (f *LinkedInImpl) GetPrompt(prompt []string) []string {
+	return []string{}
 }
 
 func decodeLinkedIn(userInfo map[string]interface{}) ProviderUserInfo {

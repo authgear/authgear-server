@@ -75,6 +75,7 @@ func (f *AppleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Nonce:          param.Nonce,
 		State:          param.State,
+		Prompt:         f.GetPrompt(param.Prompt),
 	}), nil
 }
 
@@ -154,6 +155,10 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 	}
 
 	return
+}
+
+func (f *AppleImpl) GetPrompt(prompt []string) []string {
+	return []string{}
 }
 
 var (

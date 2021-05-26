@@ -30,9 +30,7 @@ func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Nonce:          param.Nonce,
 		State:          param.State,
-		ExtraParams: map[string]string{
-			"prompt": "select_account",
-		},
+		Prompt:         f.GetPrompt(param.Prompt),
 	}), nil
 }
 
@@ -117,6 +115,10 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 	}
 
 	return
+}
+
+func (f *GoogleImpl) GetPrompt(prompt []string) []string {
+	return []string{"select_account"}
 }
 
 var (

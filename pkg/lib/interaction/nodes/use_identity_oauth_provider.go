@@ -15,6 +15,7 @@ func init() {
 type InputUseIdentityOAuthProvider interface {
 	GetProviderAlias() string
 	GetErrorRedirectURI() string
+	GetPrompt() []string
 }
 
 type EdgeUseIdentityOAuthProvider struct {
@@ -62,8 +63,9 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	nonce := crypto.SHA256String(nonceSource)
 
 	param := sso.GetAuthURLParam{
-		State: state,
-		Nonce: nonce,
+		State:  state,
+		Nonce:  nonce,
+		Prompt: input.GetPrompt(),
 	}
 
 	redirectURI, err := oauthProvider.GetAuthURL(param)

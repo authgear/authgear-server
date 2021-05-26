@@ -82,6 +82,7 @@ func (f *Azureadv2Impl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Nonce:          param.Nonce,
 		State:          param.State,
+		Prompt:         f.GetPrompt(param.Prompt),
 	}), nil
 }
 
@@ -147,6 +148,10 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 	}
 
 	return
+}
+
+func (f *Azureadv2Impl) GetPrompt(prompt []string) []string {
+	return []string{}
 }
 
 var (

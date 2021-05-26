@@ -40,6 +40,7 @@ func (f *ADFSImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Nonce:          param.Nonce,
 		State:          param.State,
+		Prompt:         f.GetPrompt(param.Prompt),
 	}), nil
 }
 
@@ -116,6 +117,10 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 	}
 
 	return
+}
+
+func (f *ADFSImpl) GetPrompt(prompt []string) []string {
+	return []string{}
 }
 
 var (

@@ -2,6 +2,7 @@ package sso
 
 import (
 	"net/url"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -36,6 +37,10 @@ func (w *WechatImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 	v.Add("redirect_uri", w.URLProvider.CallbackEndpointURL().String())
 	v.Add("scope", w.ProviderConfig.Type.Scope())
 	v.Add("state", param.State)
+	prompt := w.GetPrompt(param.Prompt)
+	if len(prompt) > 0 {
+		v.Add("prompt", strings.Join(prompt, " "))
+	}
 
 	authURL := wechatAuthorizationURL + "?" + v.Encode()
 	v = url.Values{}
@@ -87,6 +92,10 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		ID: userID,
 	}
 	return
+}
+
+func (w *WechatImpl) GetPrompt(prompt []string) []string {
+	return []string{}
 }
 
 var (
