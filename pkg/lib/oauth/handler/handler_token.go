@@ -402,7 +402,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, "", deviceInfo, resp)
+	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, "", deviceInfo, "", resp)
 	if err != nil {
 		return nil, err
 	}
@@ -545,6 +545,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	attrs := session.NewBiometricAttrs(graph.MustGetUserID())
+	biometricIdentity := graph.MustGetUserLastIdentity()
 
 	err = h.Graphs.Run("", graph)
 	if apierrors.IsAPIError(err) {
@@ -568,9 +569,23 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
+	// Clean up any offline grants that were issued with the same identity.
+	offlineGrants, err := h.OfflineGrants.ListOfflineGrants(authz.UserID)
+	if err != nil {
+		return nil, err
+	}
+	for _, offlineGrant := range offlineGrants {
+		if offlineGrant.IdentityID == biometricIdentity.ID {
+			err := h.OfflineGrants.DeleteOfflineGrant(offlineGrant)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, "", deviceInfo, resp)
+	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, "", deviceInfo, biometricIdentity.ID, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -622,7 +637,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var sessionKind oauth.GrantSessionKind
 	var atSession session.Session
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, s.SessionAttrs(), s.ID, deviceInfo, resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, s.SessionAttrs(), s.ID, deviceInfo, "", resp)
 		if err != nil {
 			return nil, err
 		}
@@ -697,6 +712,7 @@ func (h *TokenHandler) issueOfflineGrant(
 	attrs *session.Attrs,
 	idpSessionID string,
 	deviceInfo map[string]interface{},
+	identityID string,
 	resp protocol.TokenResponse,
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
@@ -709,6 +725,7 @@ func (h *TokenHandler) issueOfflineGrant(
 		AuthorizationID: authzID,
 		ClientID:        client.ClientID,
 		IDPSessionID:    idpSessionID,
+		IdentityID:      identityID,
 
 		CreatedAt: now,
 		Scopes:    scopes,

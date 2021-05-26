@@ -534,6 +534,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -1065,6 +1066,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 provider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef,
 		MFADeviceTokenCookie:     mfaCookieDef,
 	}
@@ -2699,6 +2701,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 provider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef,
 		MFADeviceTokenCookie:     mfaCookieDef,
 	}
@@ -3239,6 +3242,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -3783,6 +3787,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -4327,6 +4332,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -4871,6 +4877,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -5408,6 +5415,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -5948,6 +5956,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -6491,6 +6500,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -7031,6 +7041,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -7570,6 +7581,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -8110,6 +8122,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -8651,6 +8664,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -9190,6 +9204,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -9729,6 +9744,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -10270,6 +10286,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -10809,6 +10826,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -11348,6 +11366,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -11890,6 +11909,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -12429,6 +12449,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -12973,6 +12994,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -13512,6 +13534,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -14052,6 +14075,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -14591,6 +14615,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -15149,6 +15174,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -15690,6 +15716,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -16230,6 +16257,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -16779,6 +16807,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -17319,6 +17348,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -17859,6 +17889,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -18400,6 +18431,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -18946,6 +18978,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -19486,6 +19519,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -20026,6 +20060,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -20942,6 +20977,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}
@@ -21481,6 +21517,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
 	}

@@ -135,6 +135,15 @@ func (n *NodeDoCreateSession) GetEffects() ([]interaction.Effect, error) {
 				if err != nil {
 					return err
 				}
+
+				// Clean up unreachable IdP Session.
+				s := session.GetSession(ctx.Request.Context())
+				if s != nil && s.SessionType() == session.TypeIdentityProvider {
+					err = ctx.SessionManager.Delete(s)
+					if err != nil {
+						return err
+					}
+				}
 			}
 
 			return nil

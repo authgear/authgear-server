@@ -16,7 +16,11 @@ type OfflineGrant struct {
 	Labels          map[string]interface{} `json:"labels"`
 	ClientID        string                 `json:"client_id"`
 	AuthorizationID string                 `json:"authz_id"`
-	IDPSessionID    string                 `json:"idp_session_id,omitempty"`
+	// IDPSessionID refers to the IDP session.
+	IDPSessionID string `json:"idp_session_id,omitempty"`
+	// IdentityID refers to the identity.
+	// It is only set for biometric authentication.
+	IdentityID string `json:"identity_id,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`
 	Scopes    []string  `json:"scopes"`

@@ -571,6 +571,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Hooks:                    hookProvider,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
+		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef,
 		MFADeviceTokenCookie:     mfaCookieDef,
 	}

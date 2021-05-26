@@ -111,6 +111,10 @@ type SessionProvider interface {
 	Create(*idpsession.IDPSession) error
 }
 
+type SessionManager interface {
+	Delete(session.Session) error
+}
+
 type OAuthProviderFactory interface {
 	NewOAuthProvider(alias string) sso.OAuthProvider
 }
@@ -202,6 +206,7 @@ type Context struct {
 	Hooks                HookProvider
 	CookieFactory        CookieFactory
 	Sessions             SessionProvider
+	SessionManager       SessionManager
 	SessionCookie        session.CookieDef
 	MFADeviceTokenCookie mfa.CookieDef
 }
