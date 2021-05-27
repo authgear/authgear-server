@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -58,10 +59,14 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
+		event.DependencySet,
+		wire.Bind(new(interaction.HookProvider), new(*event.Service)),
+		wire.Bind(new(user.HookProvider), new(*event.Service)),
+		wire.Bind(new(session.HookProvider), new(*event.Service)),
+	),
+
+	wire.NewSet(
 		hook.DependencySet,
-		wire.Bind(new(interaction.HookProvider), new(*hook.Provider)),
-		wire.Bind(new(user.HookProvider), new(*hook.Provider)),
-		wire.Bind(new(session.HookProvider), new(*hook.Provider)),
 	),
 
 	wire.NewSet(
@@ -143,7 +148,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
-		wire.Bind(new(hook.UserProvider), new(*user.RawProvider)),
+		wire.Bind(new(event.UserService), new(*user.RawProvider)),
 		wire.Bind(new(facade.UserCommands), new(*user.RawCommands)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),

@@ -29,6 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -424,11 +425,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:   loginidStore,
 		TaskQueue: queue,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -444,19 +446,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Hooks:        eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -568,7 +566,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Hooks:                    eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -605,7 +603,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               hookProvider,
+		Hooks:               eventService,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}

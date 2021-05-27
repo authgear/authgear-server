@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/event"
 	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -51,7 +51,7 @@ var appRootDeps = wire.NewSet(
 		"Resources",
 	),
 
-	wire.Bind(new(hook.DatabaseHandle), new(*tenantdb.Handle)),
+	wire.Bind(new(event.Database), new(*tenantdb.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),

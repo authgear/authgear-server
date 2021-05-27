@@ -29,13 +29,18 @@ type Event struct {
 	IsNonBlocking bool    `json:"-"`
 }
 
+func (e *Event) SetSeq(seq int64) {
+	e.Seq = seq
+	e.ID = fmt.Sprintf("%016x", seq)
+}
+
 func newEvent(seqNo int64, payload Payload, context Context) *Event {
-	return &Event{
-		ID:      fmt.Sprintf("%016x", seqNo),
-		Seq:     seqNo,
+	e := &Event{
 		Payload: payload,
 		Context: context,
 	}
+	e.SetSeq(seqNo)
+	return e
 }
 
 func NewBlockingEvent(seqNo int64, payload BlockingPayload, context Context) *Event {
