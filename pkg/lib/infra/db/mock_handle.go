@@ -6,7 +6,7 @@ import (
 
 type MockHandle struct{}
 
-func (h *MockHandle) Conn() (sqlx.ExtContext, error) {
+func (h *MockHandle) conn() (sqlx.ExtContext, error) {
 	panic("not mocked")
 }
 

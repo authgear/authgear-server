@@ -30,7 +30,7 @@ func NewHookHandle(ctx context.Context, pool *Pool, opts ConnectionOptions, lf *
 	}
 }
 
-func (h *HookHandle) Conn() (sqlx.ExtContext, error) {
+func (h *HookHandle) conn() (sqlx.ExtContext, error) {
 	tx := h.tx
 	if tx == nil {
 		panic("db: transaction not started")
