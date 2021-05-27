@@ -124,7 +124,7 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 		}
 
 		if all, err := cmd.Flags().GetBool("all"); err == nil && all {
-			appLister := cmdes.NewAppLister(context.Background(), dbCredentials)
+			appLister := cmdes.NewAppLister(context.Background(), dbPool, dbCredentials)
 			appIDs, err := appLister.ListApps()
 			if err != nil {
 				return err

@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -38,8 +38,7 @@ var DependencySet = wire.NewSet(
 	NewLoggerFactory,
 	NewDatabaseConfig,
 	NewDatabaseEnvironmentConfig,
-	global.NewPool,
-	global.DependencySet,
+	globaldb.DependencySet,
 	tenant.NewHandle,
 	tenant.DependencySet,
 	wire.Struct(new(user.Store), "*"),

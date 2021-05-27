@@ -19,12 +19,11 @@ import (
 
 // Injectors from wire.go:
 
-func NewAppLister(ctx context.Context, databaseCredentials *config.DatabaseCredentials) *AppLister {
+func NewAppLister(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *AppLister {
 	databaseConfig := NewDatabaseConfig()
 	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
-	pool := global.NewPool(databaseEnvironmentConfig)
 	factory := NewLoggerFactory()
-	handle := global.NewHandle(ctx, pool, factory)
+	handle := global.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
 	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
 	sqlExecutor := global.NewSQLExecutor(ctx, handle)
 	store := &configsource.Store{

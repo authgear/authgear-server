@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -25,7 +24,6 @@ type RootProvider struct {
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
 	DatabasePool       *db.Pool
-	GlobalDatabasePool *globaldb.Pool
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
 	TaskQueueFactory   TaskQueueFactory
@@ -58,7 +56,6 @@ func NewRootProvider(
 	)
 
 	dbPool := db.NewPool()
-	globalDBPool := globaldb.NewPool(&cfg.Database)
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)
 
@@ -68,7 +65,6 @@ func NewRootProvider(
 		LoggerFactory:      loggerFactory,
 		SentryHub:          sentryHub,
 		DatabasePool:       dbPool,
-		GlobalDatabasePool: globalDBPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
 		TaskQueueFactory:   taskQueueFactory,

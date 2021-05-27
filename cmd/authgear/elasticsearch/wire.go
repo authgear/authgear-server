@@ -13,6 +13,7 @@ import (
 
 func NewAppLister(
 	ctx context.Context,
+	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 ) *AppLister {
 	panic(wire.Build(DependencySet))
