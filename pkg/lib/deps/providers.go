@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -23,7 +24,7 @@ type RootProvider struct {
 	ConfigSourceConfig *configsource.Config
 	LoggerFactory      *log.Factory
 	SentryHub          *getsentry.Hub
-	DatabasePool       *tenantdb.Pool
+	DatabasePool       *db.Pool
 	GlobalDatabasePool *globaldb.Pool
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
@@ -56,7 +57,7 @@ func NewRootProvider(
 		sentry.NewLogHookFromHub(sentryHub),
 	)
 
-	dbPool := tenantdb.NewPool()
+	dbPool := db.NewPool()
 	globalDBPool := globaldb.NewPool(&cfg.Database)
 	redisPool := redis.NewPool()
 	redisHub := redis.NewHub(redisPool, loggerFactory)

@@ -9,7 +9,7 @@ import (
 
 	cmdes "github.com/authgear/authgear-server/cmd/authgear/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 var cmdInternal = &cobra.Command{
@@ -110,10 +110,10 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 			DatabaseSchema: dbSchema,
 		}
 
-		tenantPool := tenantdb.NewPool()
+		dbPool := db.NewPool()
 
 		reindexApp := func(appID string) error {
-			reindexer := cmdes.NewReindexer(context.Background(), tenantPool, dbCredentials, config.AppID(appID))
+			reindexer := cmdes.NewReindexer(context.Background(), dbPool, dbCredentials, config.AppID(appID))
 
 			err = reindexer.Reindex(client)
 			if err != nil {

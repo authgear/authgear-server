@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
@@ -37,7 +38,7 @@ func NewAppLister(ctx context.Context, databaseCredentials *config.DatabaseCrede
 	return appLister
 }
 
-func NewReindexer(ctx context.Context, pool *tenant.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
+func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
 	databaseConfig := NewDatabaseConfig()
 	factory := NewLoggerFactory()
 	handle := tenant.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
