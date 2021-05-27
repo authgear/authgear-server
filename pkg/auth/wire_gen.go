@@ -481,7 +481,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -529,7 +529,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -1026,7 +1026,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -1058,7 +1058,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 provider,
 		SessionManager:           idpsessionManager,
@@ -2157,36 +2157,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
-	eventLogger := event.NewLogger(factory)
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               eventService,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
@@ -2655,7 +2627,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -2687,7 +2659,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 provider,
 		SessionManager:           idpsessionManager,
@@ -3177,7 +3149,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -3225,7 +3197,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -3719,7 +3691,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -3767,7 +3739,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -4261,7 +4233,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -4309,7 +4281,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -4803,7 +4775,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -4851,7 +4823,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -5338,7 +5310,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -5386,7 +5358,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -5876,7 +5848,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -5924,7 +5896,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -6417,7 +6389,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -6465,7 +6437,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -6955,7 +6927,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -7003,7 +6975,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -7492,7 +7464,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -7540,7 +7512,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -8030,7 +8002,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -8078,7 +8050,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -8569,7 +8541,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -8617,7 +8589,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -9106,7 +9078,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -9154,7 +9126,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -9643,7 +9615,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -9691,7 +9663,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -10182,7 +10154,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -10230,7 +10202,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -10719,7 +10691,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -10767,7 +10739,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -11256,7 +11228,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -11304,7 +11276,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -11796,7 +11768,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -11844,7 +11816,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -12333,7 +12305,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -12381,7 +12353,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -12875,7 +12847,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -12923,7 +12895,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -13412,7 +13384,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -13460,7 +13432,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -13950,7 +13922,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -13998,7 +13970,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -14487,7 +14459,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -14535,7 +14507,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -14609,7 +14581,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               eventService,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
@@ -15043,7 +15014,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -15091,7 +15062,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -15582,7 +15553,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -15630,7 +15601,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -16120,7 +16091,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -16168,7 +16139,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -16667,7 +16638,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -16715,7 +16686,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -17205,7 +17176,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -17253,7 +17224,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -17743,7 +17714,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -17791,7 +17762,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -18282,7 +18253,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -18330,7 +18301,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -18396,7 +18367,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               eventService,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
@@ -18826,7 +18796,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -18874,7 +18844,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -19364,7 +19334,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -19412,7 +19382,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -19902,7 +19872,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -19950,7 +19920,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -20317,36 +20287,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
-	eventLogger := event.NewLogger(factory)
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Store:     hookStore,
-		Deliverer: deliverer,
-	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               eventService,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
@@ -20813,7 +20755,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -20861,7 +20803,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -21350,7 +21292,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -21398,7 +21340,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,

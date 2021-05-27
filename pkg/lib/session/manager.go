@@ -5,15 +5,10 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
-
-type HookProvider interface {
-	DispatchEvent(payload event.Payload) error
-}
 
 var ErrSessionNotFound = errors.New("session not found")
 
@@ -35,7 +30,6 @@ type AccessTokenSessionManager ManagementService
 
 type Manager struct {
 	Users               UserQuery
-	Hooks               HookProvider
 	IDPSessions         IDPSessionManager
 	AccessTokenSessions AccessTokenSessionManager
 }

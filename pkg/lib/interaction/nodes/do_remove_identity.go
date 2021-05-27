@@ -91,7 +91,7 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if e != nil {
-				err = ctx.Hooks.DispatchEvent(e)
+				err = ctx.Events.DispatchEvent(e)
 				if err != nil {
 					return err
 				}

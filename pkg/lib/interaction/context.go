@@ -102,7 +102,7 @@ type UserService interface {
 	UpdateLoginTime(userID string, lastLoginAt time.Time) error
 }
 
-type HookProvider interface {
+type EventService interface {
 	DispatchEvent(payload event.Payload) error
 }
 
@@ -203,7 +203,7 @@ type Context struct {
 
 	Challenges           ChallengeProvider
 	Users                UserService
-	Hooks                HookProvider
+	Events               EventService
 	CookieFactory        CookieFactory
 	Sessions             SessionProvider
 	SessionManager       SessionManager

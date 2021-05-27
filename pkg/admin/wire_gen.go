@@ -454,7 +454,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        eventService,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -566,7 +566,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    eventService,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -603,7 +603,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               eventService,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
