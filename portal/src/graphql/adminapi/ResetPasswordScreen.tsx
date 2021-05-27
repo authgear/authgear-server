@@ -87,9 +87,8 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
   const { appID } = useParams();
   const navigate = useNavigate();
 
-  const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
-    appID
-  );
+  const { effectiveAppConfig, loading, error, refetch } =
+    useAppConfigQuery(appID);
   const passwordPolicy = useMemo(
     () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
     [effectiveAppConfig]

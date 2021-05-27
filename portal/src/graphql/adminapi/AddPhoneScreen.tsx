@@ -76,18 +76,16 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
     return `+ ${countryCode}`;
   }, []);
 
-  const {
-    options: countryCodeOptions,
-    onChange: onCountryCodeChange,
-  } = useDropdown(
-    countryCodes,
-    (option) => {
-      setCountryCode(option);
-      onChange(makePhoneNumber(option, phone));
-    },
-    defaultCountryCode,
-    displayCountryCode
-  );
+  const { options: countryCodeOptions, onChange: onCountryCodeChange } =
+    useDropdown(
+      countryCodes,
+      (option) => {
+        setCountryCode(option);
+        onChange(makePhoneNumber(option, phone));
+      },
+      defaultCountryCode,
+      displayCountryCode
+    );
 
   const { onChange: onPhoneChange } = useIntegerTextField((value) => {
     setPhone(value);

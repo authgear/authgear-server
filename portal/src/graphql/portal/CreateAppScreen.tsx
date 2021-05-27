@@ -42,41 +42,40 @@ interface CreateAppContentProps {
   form: SimpleFormModel<FormState, string | null>;
 }
 
-const CreateAppContent: React.FC<CreateAppContentProps> = function CreateAppContent(
-  props
-) {
-  const { state, setState } = props.form;
-  const systemConfig = useSystemConfig();
+const CreateAppContent: React.FC<CreateAppContentProps> =
+  function CreateAppContent(props) {
+    const { state, setState } = props.form;
+    const systemConfig = useSystemConfig();
 
-  const { onChange: onAppIDChange } = useTextField((value) =>
-    setState((prev) => ({ ...prev, appID: value }))
-  );
+    const { onChange: onAppIDChange } = useTextField((value) =>
+      setState((prev) => ({ ...prev, appID: value }))
+    );
 
-  return (
-    <main>
-      <Text className={styles.pageTitle} block={true} variant="xLarge">
-        <FormattedMessage id="CreateAppScreen.title" />
-      </Text>
-      <Text className={styles.pageDesc} block={true} variant="small">
-        <FormattedMessage id="CreateAppScreen.desc" />
-      </Text>
-      <Label className={styles.fieldLabel}>
-        <FormattedMessage id="CreateAppScreen.app-id.label" />
-      </Label>
-      <FormTextField
-        className={styles.appIDField}
-        parentJSONPointer="/"
-        fieldName="app_id"
-        value={state.appID}
-        errorRules={errorRules}
-        disabled={props.form.isUpdating}
-        onChange={onAppIDChange}
-        prefix={APP_ID_SCHEME}
-        suffix={systemConfig.appHostSuffix}
-      />
-    </main>
-  );
-};
+    return (
+      <main>
+        <Text className={styles.pageTitle} block={true} variant="xLarge">
+          <FormattedMessage id="CreateAppScreen.title" />
+        </Text>
+        <Text className={styles.pageDesc} block={true} variant="small">
+          <FormattedMessage id="CreateAppScreen.desc" />
+        </Text>
+        <Label className={styles.fieldLabel}>
+          <FormattedMessage id="CreateAppScreen.app-id.label" />
+        </Label>
+        <FormTextField
+          className={styles.appIDField}
+          parentJSONPointer="/"
+          fieldName="app_id"
+          value={state.appID}
+          errorRules={errorRules}
+          disabled={props.form.isUpdating}
+          onChange={onAppIDChange}
+          prefix={APP_ID_SCHEME}
+          suffix={systemConfig.appHostSuffix}
+        />
+      </main>
+    );
+  };
 
 const CreateAppScreen: React.FC = function CreateAppScreen() {
   const navigate = useNavigate();

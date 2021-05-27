@@ -390,642 +390,646 @@ interface LoginIDTypeEditProps {
   swapPosition: (index1: number, index2: number) => void;
 }
 
-const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> = function LoginIDTypeEdit(
-  props
-) {
-  const { index, loginIDType, toggleLoginIDType, swapPosition, state } = props;
-  const { renderToString } = useContext(Context);
+const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
+  function LoginIDTypeEdit(props) {
+    const { index, loginIDType, toggleLoginIDType, swapPosition, state } =
+      props;
+    const { renderToString } = useContext(Context);
 
-  const isEnabled =
-    state.types.find((t) => t.type === loginIDType)?.isEnabled ?? false;
-  const onToggleIsEnabled = useCallback(
-    (_, isEnabled?: boolean) =>
-      toggleLoginIDType(loginIDType, isEnabled ?? false),
-    [toggleLoginIDType, loginIDType]
-  );
+    const isEnabled =
+      state.types.find((t) => t.type === loginIDType)?.isEnabled ?? false;
+    const onToggleIsEnabled = useCallback(
+      (_, isEnabled?: boolean) =>
+        toggleLoginIDType(loginIDType, isEnabled ?? false),
+      [toggleLoginIDType, loginIDType]
+    );
 
-  const titleId = {
-    email: "LoginIDConfigurationScreen.email.title",
-    username: "LoginIDConfigurationScreen.username.title",
-    phone: "LoginIDConfigurationScreen.phone.title",
-  }[loginIDType];
+    const titleId = {
+      email: "LoginIDConfigurationScreen.email.title",
+      username: "LoginIDConfigurationScreen.username.title",
+      phone: "LoginIDConfigurationScreen.phone.title",
+    }[loginIDType];
 
-  const renderAriaLabel = useCallback(() => renderToString(titleId), [
-    renderToString,
-    titleId,
-  ]);
+    const renderAriaLabel = useCallback(
+      () => renderToString(titleId),
+      [renderToString, titleId]
+    );
 
-  const widgetHeader = useMemo(
-    () => (
-      <Toggle
-        label={<FormattedMessage id={titleId} />}
-        inlineLabel={true}
-        styles={switchStyle}
-        checked={isEnabled}
-        onChange={onToggleIsEnabled}
-      />
-    ),
-    [titleId, isEnabled, onToggleIsEnabled]
-  );
+    const widgetHeader = useMemo(
+      () => (
+        <Toggle
+          label={<FormattedMessage id={titleId} />}
+          inlineLabel={true}
+          styles={switchStyle}
+          checked={isEnabled}
+          onChange={onToggleIsEnabled}
+        />
+      ),
+      [titleId, isEnabled, onToggleIsEnabled]
+    );
 
-  return (
-    <WidgetWithOrdering
-      className={styles.widget}
-      index={index}
-      itemCount={loginIDKeyTypes.length}
-      onSwapClicked={swapPosition}
-      readOnly={!isEnabled}
-      renderAriaLabel={renderAriaLabel}
-      HeaderComponent={widgetHeader}
-    >
-      {props.children}
-    </WidgetWithOrdering>
-  );
-};
+    return (
+      <WidgetWithOrdering
+        className={styles.widget}
+        index={index}
+        itemCount={loginIDKeyTypes.length}
+        onSwapClicked={swapPosition}
+        readOnly={!isEnabled}
+        renderAriaLabel={renderAriaLabel}
+        HeaderComponent={widgetHeader}
+      >
+        {props.children}
+      </WidgetWithOrdering>
+    );
+  };
 
 interface AuthenticationLoginIDSettingsContentProps {
   form: FormModel;
 }
 
-const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettingsContentProps> = function AuthenticationLoginIDSettingsContent(
-  props
-) {
-  const { state, setState } = props.form;
+const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettingsContentProps> =
+  function AuthenticationLoginIDSettingsContent(props) {
+    const { state, setState } = props.form;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const swapPosition = useCallback(
-    (index1: number, index2: number) => {
-      setState((state) =>
-        produce(state, (state) => {
-          const tmp = state.types[index1];
-          state.types[index1] = state.types[index2];
-          state.types[index2] = tmp;
-        })
-      );
-    },
-    [setState]
-  );
+    const swapPosition = useCallback(
+      (index1: number, index2: number) => {
+        setState((state) =>
+          produce(state, (state) => {
+            const tmp = state.types[index1];
+            state.types[index1] = state.types[index2];
+            state.types[index2] = tmp;
+          })
+        );
+      },
+      [setState]
+    );
 
-  const toggleLoginIDType = useCallback(
-    (loginIDType: LoginIDKeyType, isEnabled: boolean) => {
-      setState((state) =>
-        produce(state, (state) => {
-          const type = state.types.find((t) => t.type === loginIDType);
-          if (type) {
-            type.isEnabled = isEnabled;
+    const toggleLoginIDType = useCallback(
+      (loginIDType: LoginIDKeyType, isEnabled: boolean) => {
+        setState((state) =>
+          produce(state, (state) => {
+            const type = state.types.find((t) => t.type === loginIDType);
+            if (type) {
+              type.isEnabled = isEnabled;
+            }
+          })
+        );
+      },
+      [setState]
+    );
+
+    const change = useCallback(
+      (fn: (state: ConfigFormState) => void) =>
+        setState((state) =>
+          produce(state, (state) => {
+            fn(state);
+          })
+        ),
+      [setState]
+    );
+
+    const onEmailModifyDisabledChange = useCallback(
+      (_, value?: boolean) => {
+        change((state) => {
+          state.email.modify_disabled = value ?? false;
+        });
+      },
+      [change]
+    );
+    const onEmailCaseSensitiveChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.email.case_sensitive = value ?? false;
+        }),
+      [change]
+    );
+    const onEmailIgnoreDotLocalChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.email.ignore_dot_sign = value ?? false;
+        }),
+      [change]
+    );
+    const onEmailBlockPlusChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.email.block_plus_sign = value ?? false;
+        }),
+      [change]
+    );
+
+    const onEmailDomainBlocklistEnabledChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.email.domain_blocklist_enabled = value ?? false;
+          if (state.email.domain_blocklist_enabled) {
+            state.email.domain_allowlist_enabled = false;
+          } else {
+            state.email.block_free_email_provider_domains = false;
           }
-        })
-      );
-    },
-    [setState]
-  );
+        }),
+      [change]
+    );
+    const onEmailBlockFreeEmailProviderDomainsChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.email.block_free_email_provider_domains = value ?? false;
+          if (state.email.block_free_email_provider_domains) {
+            state.email.domain_blocklist_enabled = true;
+            state.email.domain_allowlist_enabled = false;
+          }
+        }),
+      [change]
+    );
+    const onEmailDomainAllowlistEnabledChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.email.domain_allowlist_enabled = value ?? false;
+          if (state.email.domain_allowlist_enabled) {
+            state.email.domain_blocklist_enabled = false;
+            state.email.block_free_email_provider_domains = false;
+          }
+        }),
+      [change]
+    );
 
-  const change = useCallback(
-    (fn: (state: ConfigFormState) => void) =>
-      setState((state) =>
-        produce(state, (state) => {
-          fn(state);
-        })
-      ),
-    [setState]
-  );
+    const valueForDomainBlocklist = useMemo(() => {
+      const resource =
+        state.resources[specifierId(emailDomainBlocklistSpecifier)];
+      if (resource == null) {
+        return [];
+      }
+      return splitByNewline(resource.value);
+    }, [state.resources]);
 
-  const onEmailModifyDisabledChange = useCallback(
-    (_, value?: boolean) => {
-      change((state) => {
-        state.email.modify_disabled = value ?? false;
-      });
-    },
-    [change]
-  );
-  const onEmailCaseSensitiveChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.email.case_sensitive = value ?? false;
-      }),
-    [change]
-  );
-  const onEmailIgnoreDotLocalChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.email.ignore_dot_sign = value ?? false;
-      }),
-    [change]
-  );
-  const onEmailBlockPlusChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.email.block_plus_sign = value ?? false;
-      }),
-    [change]
-  );
+    const valueForDomainAllowlist = useMemo(() => {
+      const resource =
+        state.resources[specifierId(emailDomainAllowlistSpecifier)];
+      if (resource == null) {
+        return [];
+      }
+      return splitByNewline(resource.value);
+    }, [state.resources]);
 
-  const onEmailDomainBlocklistEnabledChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.email.domain_blocklist_enabled = value ?? false;
-        if (state.email.domain_blocklist_enabled) {
-          state.email.domain_allowlist_enabled = false;
-        } else {
-          state.email.block_free_email_provider_domains = false;
-        }
-      }),
-    [change]
-  );
-  const onEmailBlockFreeEmailProviderDomainsChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.email.block_free_email_provider_domains = value ?? false;
-        if (state.email.block_free_email_provider_domains) {
-          state.email.domain_blocklist_enabled = true;
-          state.email.domain_allowlist_enabled = false;
-        }
-      }),
-    [change]
-  );
-  const onEmailDomainAllowlistEnabledChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.email.domain_allowlist_enabled = value ?? false;
-        if (state.email.domain_allowlist_enabled) {
-          state.email.domain_blocklist_enabled = false;
-          state.email.block_free_email_provider_domains = false;
-        }
-      }),
-    [change]
-  );
+    const updateEmailDomainBlocklist = useCallback(
+      (value: string[]) => {
+        setState((prev) => {
+          const updatedResources = { ...prev.resources };
+          const specifier = emailDomainBlocklistSpecifier;
+          const newResource: Resource = {
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {}),
+            value: joinByNewline(value),
+          };
+          updatedResources[specifierId(newResource.specifier)] = newResource;
+          return {
+            ...prev,
+            resources: updatedResources,
+          };
+        });
+      },
+      [setState]
+    );
 
-  const valueForDomainBlocklist = useMemo(() => {
-    const resource =
-      state.resources[specifierId(emailDomainBlocklistSpecifier)];
-    if (resource == null) {
-      return [];
-    }
-    return splitByNewline(resource.value);
-  }, [state.resources]);
+    const addDomainToEmailDomainBlocklist = useCallback(
+      (value: string) => {
+        updateEmailDomainBlocklist([...valueForDomainBlocklist, value]);
+      },
+      [valueForDomainBlocklist, updateEmailDomainBlocklist]
+    );
 
-  const valueForDomainAllowlist = useMemo(() => {
-    const resource =
-      state.resources[specifierId(emailDomainAllowlistSpecifier)];
-    if (resource == null) {
-      return [];
-    }
-    return splitByNewline(resource.value);
-  }, [state.resources]);
+    const updateEmailDomainAllowlist = useCallback(
+      (value: string[]) => {
+        setState((prev) => {
+          const updatedResources = { ...prev.resources };
+          const specifier = emailDomainAllowlistSpecifier;
+          const newResource: Resource = {
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {}),
+            value: joinByNewline(value),
+          };
+          updatedResources[specifierId(newResource.specifier)] = newResource;
+          return {
+            ...prev,
+            resources: updatedResources,
+          };
+        });
+      },
+      [setState]
+    );
 
-  const updateEmailDomainBlocklist = useCallback(
-    (value: string[]) => {
-      setState((prev) => {
-        const updatedResources = { ...prev.resources };
-        const specifier = emailDomainBlocklistSpecifier;
-        const newResource: Resource = {
-          specifier,
-          path: renderPath(specifier.def.resourcePath, {}),
-          value: joinByNewline(value),
-        };
-        updatedResources[specifierId(newResource.specifier)] = newResource;
-        return {
-          ...prev,
-          resources: updatedResources,
-        };
-      });
-    },
-    [setState]
-  );
+    const addDomainToEmailDomainAllowlist = useCallback(
+      (value: string) => {
+        updateEmailDomainAllowlist([...valueForDomainAllowlist, value]);
+      },
+      [valueForDomainAllowlist, updateEmailDomainAllowlist]
+    );
 
-  const addDomainToEmailDomainBlocklist = useCallback(
-    (value: string) => {
-      updateEmailDomainBlocklist([...valueForDomainBlocklist, value]);
-    },
-    [valueForDomainBlocklist, updateEmailDomainBlocklist]
-  );
+    const {
+      selectedItems: domainBlocklist,
+      onChange: onDomainBlocklistChange,
+      onResolveSuggestions: onDomainBlocklistSuggestions,
+    } = useTagPickerWithNewTags(
+      valueForDomainBlocklist,
+      updateEmailDomainBlocklist
+    );
 
-  const updateEmailDomainAllowlist = useCallback(
-    (value: string[]) => {
-      setState((prev) => {
-        const updatedResources = { ...prev.resources };
-        const specifier = emailDomainAllowlistSpecifier;
-        const newResource: Resource = {
-          specifier,
-          path: renderPath(specifier.def.resourcePath, {}),
-          value: joinByNewline(value),
-        };
-        updatedResources[specifierId(newResource.specifier)] = newResource;
-        return {
-          ...prev,
-          resources: updatedResources,
-        };
-      });
-    },
-    [setState]
-  );
+    const {
+      selectedItems: domainAllowlist,
+      onChange: onDomainAllowlistChange,
+      onResolveSuggestions: onDomainAllowlistSuggestions,
+    } = useTagPickerWithNewTags(
+      valueForDomainAllowlist,
+      updateEmailDomainAllowlist
+    );
 
-  const addDomainToEmailDomainAllowlist = useCallback(
-    (value: string) => {
-      updateEmailDomainAllowlist([...valueForDomainAllowlist, value]);
-    },
-    [valueForDomainAllowlist, updateEmailDomainAllowlist]
-  );
-
-  const {
-    selectedItems: domainBlocklist,
-    onChange: onDomainBlocklistChange,
-    onResolveSuggestions: onDomainBlocklistSuggestions,
-  } = useTagPickerWithNewTags(
-    valueForDomainBlocklist,
-    updateEmailDomainBlocklist
-  );
-
-  const {
-    selectedItems: domainAllowlist,
-    onChange: onDomainAllowlistChange,
-    onResolveSuggestions: onDomainAllowlistSuggestions,
-  } = useTagPickerWithNewTags(
-    valueForDomainAllowlist,
-    updateEmailDomainAllowlist
-  );
-
-  const emailSection = (
-    <div className={styles.widgetContent}>
-      <Checkbox
-        label={renderToString("LoginIDConfigurationScreen.email.caseSensitive")}
-        className={styles.control}
-        checked={state.email.case_sensitive}
-        onChange={onEmailCaseSensitiveChange}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.ignoreDotLocal"
-        )}
-        className={styles.control}
-        checked={state.email.ignore_dot_sign}
-        onChange={onEmailIgnoreDotLocalChange}
-      />
-      <CheckboxWithTooltip
-        label={renderToString("LoginIDConfigurationScreen.email.blockPlus")}
-        className={styles.control}
-        checked={state.email.block_plus_sign}
-        onChange={onEmailBlockPlusChange}
-        tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
-      />
-      <CheckboxWithContentLayout className={styles.control}>
-        <CheckboxWithTooltip
+    const emailSection = (
+      <div className={styles.widgetContent}>
+        <Checkbox
           label={renderToString(
-            "LoginIDConfigurationScreen.email.domainBlocklist"
+            "LoginIDConfigurationScreen.email.caseSensitive"
           )}
-          checked={state.email.domain_blocklist_enabled}
-          onChange={onEmailDomainBlocklistEnabledChange}
-          disabled={state.email.domain_allowlist_enabled}
-          tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
+          className={styles.control}
+          checked={state.email.case_sensitive}
+          onChange={onEmailCaseSensitiveChange}
         />
-        <CustomTagPicker
-          inputProps={{
-            "aria-label": renderToString(
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.email.ignoreDotLocal"
+          )}
+          className={styles.control}
+          checked={state.email.ignore_dot_sign}
+          onChange={onEmailIgnoreDotLocalChange}
+        />
+        <CheckboxWithTooltip
+          label={renderToString("LoginIDConfigurationScreen.email.blockPlus")}
+          className={styles.control}
+          checked={state.email.block_plus_sign}
+          onChange={onEmailBlockPlusChange}
+          tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
+        />
+        <CheckboxWithContentLayout className={styles.control}>
+          <CheckboxWithTooltip
+            label={renderToString(
               "LoginIDConfigurationScreen.email.domainBlocklist"
-            ),
-          }}
-          className={styles.widgetInputField}
-          disabled={!state.email.domain_blocklist_enabled}
-          selectedItems={domainBlocklist}
-          onChange={onDomainBlocklistChange}
-          onResolveSuggestions={onDomainBlocklistSuggestions}
-          onAdd={addDomainToEmailDomainBlocklist}
-        />
-      </CheckboxWithContentLayout>
-      <CheckboxWithTooltip
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
-        )}
-        className={styles.control}
-        checked={state.email.block_free_email_provider_domains}
-        onChange={onEmailBlockFreeEmailProviderDomainsChange}
-        disabled={state.email.domain_allowlist_enabled}
-        tooltipMessageId="LoginIDConfigurationScreen.email.blockFreeEmailProviderDomainsTooltipMessage"
-      />
-      <CheckboxWithContentLayout className={styles.control}>
+            )}
+            checked={state.email.domain_blocklist_enabled}
+            onChange={onEmailDomainBlocklistEnabledChange}
+            disabled={state.email.domain_allowlist_enabled}
+            tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
+          />
+          <CustomTagPicker
+            inputProps={{
+              "aria-label": renderToString(
+                "LoginIDConfigurationScreen.email.domainBlocklist"
+              ),
+            }}
+            className={styles.widgetInputField}
+            disabled={!state.email.domain_blocklist_enabled}
+            selectedItems={domainBlocklist}
+            onChange={onDomainBlocklistChange}
+            onResolveSuggestions={onDomainBlocklistSuggestions}
+            onAdd={addDomainToEmailDomainBlocklist}
+          />
+        </CheckboxWithContentLayout>
         <CheckboxWithTooltip
           label={renderToString(
-            "LoginIDConfigurationScreen.email.domainAllowlist"
+            "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
           )}
-          checked={state.email.domain_allowlist_enabled}
-          onChange={onEmailDomainAllowlistEnabledChange}
-          disabled={state.email.domain_blocklist_enabled}
-          tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
+          className={styles.control}
+          checked={state.email.block_free_email_provider_domains}
+          onChange={onEmailBlockFreeEmailProviderDomainsChange}
+          disabled={state.email.domain_allowlist_enabled}
+          tooltipMessageId="LoginIDConfigurationScreen.email.blockFreeEmailProviderDomainsTooltipMessage"
         />
-        <CustomTagPicker
-          inputProps={{
-            "aria-label": renderToString(
+        <CheckboxWithContentLayout className={styles.control}>
+          <CheckboxWithTooltip
+            label={renderToString(
               "LoginIDConfigurationScreen.email.domainAllowlist"
-            ),
-          }}
-          className={styles.widgetInputField}
-          disabled={!state.email.domain_allowlist_enabled}
-          selectedItems={domainAllowlist}
-          onChange={onDomainAllowlistChange}
-          onResolveSuggestions={onDomainAllowlistSuggestions}
-          onAdd={addDomainToEmailDomainAllowlist}
-        />
-      </CheckboxWithContentLayout>
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.email.modify-disabled"
-        )}
-        className={styles.control}
-        checked={state.email.modify_disabled}
-        onChange={onEmailModifyDisabledChange}
-      />
-    </div>
-  );
-
-  const onUsernameModifyDisabledChange = useCallback(
-    (_, value?: boolean) => {
-      change((state) => {
-        state.username.modify_disabled = value ?? false;
-      });
-    },
-    [change]
-  );
-  const onUsernameBlockReservedUsernameChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.username.block_reserved_usernames = value ?? false;
-      }),
-    [change]
-  );
-  const onUsernameCaseSensitiveChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.username.case_sensitive = value ?? false;
-      }),
-    [change]
-  );
-  const onUsernameASCIIOnlyChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.username.ascii_only = value ?? false;
-      }),
-    [change]
-  );
-  const onUsernameIsExcludedKeywordsEnabledChange = useCallback(
-    (_, value?: boolean) =>
-      change((state) => {
-        state.username.exclude_keywords_enabled = value ?? false;
-      }),
-    [change]
-  );
-
-  const valueForUsernameExcludedKeywords = useMemo(() => {
-    const resource =
-      state.resources[specifierId(usernameExcludeKeywordsTXTSpecifier)];
-    if (resource == null) {
-      return [];
-    }
-    return splitByNewline(resource.value);
-  }, [state.resources]);
-
-  const updateUsernameExcludeKeywords = useCallback(
-    (value: string[]) => {
-      setState((prev) => {
-        const updatedResources = { ...prev.resources };
-        const specifier = usernameExcludeKeywordsTXTSpecifier;
-        const newResource: Resource = {
-          specifier,
-          path: renderPath(specifier.def.resourcePath, {}),
-          value: joinByNewline(value),
-        };
-        updatedResources[specifierId(newResource.specifier)] = newResource;
-        return {
-          ...prev,
-          resources: updatedResources,
-        };
-      });
-    },
-    [setState]
-  );
-
-  const addKeywordToUsernameExcludeKeywords = useCallback(
-    (value: string) => {
-      updateUsernameExcludeKeywords([
-        ...valueForUsernameExcludedKeywords,
-        value,
-      ]);
-    },
-    [valueForUsernameExcludedKeywords, updateUsernameExcludeKeywords]
-  );
-
-  const {
-    selectedItems: excludedKeywordItems,
-    onChange: onExcludedKeywordsChange,
-    onResolveSuggestions: onResolveExcludedKeywordSuggestions,
-  } = useTagPickerWithNewTags(
-    valueForUsernameExcludedKeywords,
-    updateUsernameExcludeKeywords
-  );
-  const usernameSection = (
-    <div className={styles.widgetContent}>
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.username.blockReservedUsername"
-        )}
-        checked={state.username.block_reserved_usernames}
-        onChange={onUsernameBlockReservedUsernameChange}
-        className={styles.control}
-      />
-      <CheckboxWithContentLayout className={styles.control}>
-        <CheckboxWithTooltip
+            )}
+            checked={state.email.domain_allowlist_enabled}
+            onChange={onEmailDomainAllowlistEnabledChange}
+            disabled={state.email.domain_blocklist_enabled}
+            tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
+          />
+          <CustomTagPicker
+            inputProps={{
+              "aria-label": renderToString(
+                "LoginIDConfigurationScreen.email.domainAllowlist"
+              ),
+            }}
+            className={styles.widgetInputField}
+            disabled={!state.email.domain_allowlist_enabled}
+            selectedItems={domainAllowlist}
+            onChange={onDomainAllowlistChange}
+            onResolveSuggestions={onDomainAllowlistSuggestions}
+            onAdd={addDomainToEmailDomainAllowlist}
+          />
+        </CheckboxWithContentLayout>
+        <Checkbox
           label={renderToString(
-            "LoginIDConfigurationScreen.username.excludeKeywords"
+            "LoginIDConfigurationScreen.email.modify-disabled"
           )}
-          checked={state.username.exclude_keywords_enabled}
-          onChange={onUsernameIsExcludedKeywordsEnabledChange}
-          tooltipMessageId="LoginIDConfigurationScreen.username.excludeKeywordsTooltipMessage"
+          className={styles.control}
+          checked={state.email.modify_disabled}
+          onChange={onEmailModifyDisabledChange}
         />
-        <CustomTagPicker
-          inputProps={{
-            "aria-label": renderToString(
+      </div>
+    );
+
+    const onUsernameModifyDisabledChange = useCallback(
+      (_, value?: boolean) => {
+        change((state) => {
+          state.username.modify_disabled = value ?? false;
+        });
+      },
+      [change]
+    );
+    const onUsernameBlockReservedUsernameChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.username.block_reserved_usernames = value ?? false;
+        }),
+      [change]
+    );
+    const onUsernameCaseSensitiveChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.username.case_sensitive = value ?? false;
+        }),
+      [change]
+    );
+    const onUsernameASCIIOnlyChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.username.ascii_only = value ?? false;
+        }),
+      [change]
+    );
+    const onUsernameIsExcludedKeywordsEnabledChange = useCallback(
+      (_, value?: boolean) =>
+        change((state) => {
+          state.username.exclude_keywords_enabled = value ?? false;
+        }),
+      [change]
+    );
+
+    const valueForUsernameExcludedKeywords = useMemo(() => {
+      const resource =
+        state.resources[specifierId(usernameExcludeKeywordsTXTSpecifier)];
+      if (resource == null) {
+        return [];
+      }
+      return splitByNewline(resource.value);
+    }, [state.resources]);
+
+    const updateUsernameExcludeKeywords = useCallback(
+      (value: string[]) => {
+        setState((prev) => {
+          const updatedResources = { ...prev.resources };
+          const specifier = usernameExcludeKeywordsTXTSpecifier;
+          const newResource: Resource = {
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {}),
+            value: joinByNewline(value),
+          };
+          updatedResources[specifierId(newResource.specifier)] = newResource;
+          return {
+            ...prev,
+            resources: updatedResources,
+          };
+        });
+      },
+      [setState]
+    );
+
+    const addKeywordToUsernameExcludeKeywords = useCallback(
+      (value: string) => {
+        updateUsernameExcludeKeywords([
+          ...valueForUsernameExcludedKeywords,
+          value,
+        ]);
+      },
+      [valueForUsernameExcludedKeywords, updateUsernameExcludeKeywords]
+    );
+
+    const {
+      selectedItems: excludedKeywordItems,
+      onChange: onExcludedKeywordsChange,
+      onResolveSuggestions: onResolveExcludedKeywordSuggestions,
+    } = useTagPickerWithNewTags(
+      valueForUsernameExcludedKeywords,
+      updateUsernameExcludeKeywords
+    );
+    const usernameSection = (
+      <div className={styles.widgetContent}>
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.username.blockReservedUsername"
+          )}
+          checked={state.username.block_reserved_usernames}
+          onChange={onUsernameBlockReservedUsernameChange}
+          className={styles.control}
+        />
+        <CheckboxWithContentLayout className={styles.control}>
+          <CheckboxWithTooltip
+            label={renderToString(
               "LoginIDConfigurationScreen.username.excludeKeywords"
-            ),
-          }}
-          className={styles.widgetInputField}
-          disabled={!state.username.exclude_keywords_enabled}
-          selectedItems={excludedKeywordItems}
-          onChange={onExcludedKeywordsChange}
-          onResolveSuggestions={onResolveExcludedKeywordSuggestions}
-          onAdd={addKeywordToUsernameExcludeKeywords}
+            )}
+            checked={state.username.exclude_keywords_enabled}
+            onChange={onUsernameIsExcludedKeywordsEnabledChange}
+            tooltipMessageId="LoginIDConfigurationScreen.username.excludeKeywordsTooltipMessage"
+          />
+          <CustomTagPicker
+            inputProps={{
+              "aria-label": renderToString(
+                "LoginIDConfigurationScreen.username.excludeKeywords"
+              ),
+            }}
+            className={styles.widgetInputField}
+            disabled={!state.username.exclude_keywords_enabled}
+            selectedItems={excludedKeywordItems}
+            onChange={onExcludedKeywordsChange}
+            onResolveSuggestions={onResolveExcludedKeywordSuggestions}
+            onAdd={addKeywordToUsernameExcludeKeywords}
+          />
+        </CheckboxWithContentLayout>
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.username.caseSensitive"
+          )}
+          className={styles.control}
+          checked={state.username.case_sensitive}
+          onChange={onUsernameCaseSensitiveChange}
         />
-      </CheckboxWithContentLayout>
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.username.caseSensitive"
-        )}
-        className={styles.control}
-        checked={state.username.case_sensitive}
-        onChange={onUsernameCaseSensitiveChange}
-      />
-      <Checkbox
-        label={renderToString("LoginIDConfigurationScreen.username.asciiOnly")}
-        className={styles.control}
-        checked={state.username.ascii_only}
-        onChange={onUsernameASCIIOnlyChange}
-      />
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.username.modify-disabled"
-        )}
-        className={styles.control}
-        checked={state.username.modify_disabled}
-        onChange={onUsernameModifyDisabledChange}
-      />
-    </div>
-  );
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.username.asciiOnly"
+          )}
+          className={styles.control}
+          checked={state.username.ascii_only}
+          onChange={onUsernameASCIIOnlyChange}
+        />
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.username.modify-disabled"
+          )}
+          className={styles.control}
+          checked={state.username.modify_disabled}
+          onChange={onUsernameModifyDisabledChange}
+        />
+      </div>
+    );
 
-  const onPhoneModifyDisabledChange = useCallback(
-    (_, value?: boolean) => {
-      change((state) => {
-        state.phone.modify_disabled = value ?? false;
-      });
-    },
-    [change]
-  );
-  const onPhoneListChange = useCallback(
-    (allowlist: string[], pinnedList: string[]) =>
-      change((state) => {
-        state.phone.allowlist = allowlist;
-        state.phone.pinned_list = pinnedList;
+    const onPhoneModifyDisabledChange = useCallback(
+      (_, value?: boolean) => {
+        change((state) => {
+          state.phone.modify_disabled = value ?? false;
+        });
+      },
+      [change]
+    );
+    const onPhoneListChange = useCallback(
+      (allowlist: string[], pinnedList: string[]) =>
+        change((state) => {
+          state.phone.allowlist = allowlist;
+          state.phone.pinned_list = pinnedList;
+        }),
+      [change]
+    );
+    const phoneSection = (
+      <div className={styles.widgetContent}>
+        <Widget className={styles.control}>
+          <CountryCallingCodeList
+            allCountryCallingCodes={supportedCountryCallingCodes}
+            selectedCountryCallingCodes={state.phone.allowlist}
+            pinnedCountryCallingCodes={state.phone.pinned_list}
+            onChange={onPhoneListChange}
+          />
+        </Widget>
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.phone.modify-disabled"
+          )}
+          className={styles.control}
+          checked={state.phone.modify_disabled}
+          onChange={onPhoneModifyDisabledChange}
+        />
+      </div>
+    );
+
+    const sections = {
+      email: emailSection,
+      username: usernameSection,
+      phone: phoneSection,
+    };
+
+    return (
+      <ScreenContent className={styles.root}>
+        <ScreenTitle>
+          <FormattedMessage id="LoginIDConfigurationScreen.title" />
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="LoginIDConfigurationScreen.columns.orderTooltipMessage" />
+        </ScreenDescription>
+        {state.types.map(({ type }, index) => (
+          <LoginIDTypeEdit
+            key={type}
+            state={state}
+            index={index}
+            loginIDType={type}
+            toggleLoginIDType={toggleLoginIDType}
+            swapPosition={swapPosition}
+          >
+            {sections[type]}
+          </LoginIDTypeEdit>
+        ))}
+      </ScreenContent>
+    );
+  };
+
+const LoginIDConfigurationScreen: React.FC =
+  function LoginIDConfigurationScreen() {
+    const { appID } = useParams();
+    const { renderToString } = useContext(Context);
+
+    const config = useAppConfigForm(
+      appID,
+      constructConfigFormState,
+      constructConfig
+    );
+    const localValidationError = validateForm(config.state, renderToString);
+
+    const resources = useResourceForm(
+      appID,
+      specifiers,
+      constructResourcesFormState,
+      constructResources
+    );
+
+    const state = useMemo<FormState>(
+      () => ({
+        resources: resources.state.resources,
+        types: config.state.types,
+        email: config.state.email,
+        username: config.state.username,
+        phone: config.state.phone,
       }),
-    [change]
-  );
-  const phoneSection = (
-    <div className={styles.widgetContent}>
-      <Widget className={styles.control}>
-        <CountryCallingCodeList
-          allCountryCallingCodes={supportedCountryCallingCodes}
-          selectedCountryCallingCodes={state.phone.allowlist}
-          pinnedCountryCallingCodes={state.phone.pinned_list}
-          onChange={onPhoneListChange}
-        />
-      </Widget>
-      <Checkbox
-        label={renderToString(
-          "LoginIDConfigurationScreen.phone.modify-disabled"
-        )}
-        className={styles.control}
-        checked={state.phone.modify_disabled}
-        onChange={onPhoneModifyDisabledChange}
-      />
-    </div>
-  );
+      [
+        resources.state.resources,
+        config.state.types,
+        config.state.email,
+        config.state.username,
+        config.state.phone,
+      ]
+    );
 
-  const sections = {
-    email: emailSection,
-    username: usernameSection,
-    phone: phoneSection,
+    const form: FormModel = {
+      isLoading: config.isLoading || resources.isLoading,
+      isUpdating: config.isUpdating || resources.isUpdating,
+      isDirty: config.isDirty || resources.isDirty,
+      loadError: config.loadError ?? resources.loadError,
+      updateError: config.updateError ?? resources.updateError,
+      state,
+      setState: (fn) => {
+        const newState = fn(state);
+        config.setState(() => ({
+          types: newState.types,
+          email: newState.email,
+          username: newState.username,
+          phone: newState.phone,
+        }));
+        resources.setState(() => ({ resources: newState.resources }));
+      },
+      reload: () => {
+        config.reload();
+        resources.reload();
+      },
+      reset: () => {
+        config.reset();
+        resources.reset();
+      },
+      save: async () => {
+        await config.save();
+        await resources.save();
+      },
+    };
+
+    if (form.isLoading) {
+      return <ShowLoading />;
+    }
+
+    if (form.loadError) {
+      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
+
+    return (
+      <FormContainer form={form} localError={localValidationError}>
+        <AuthenticationLoginIDSettingsContent form={form} />
+      </FormContainer>
+    );
   };
-
-  return (
-    <ScreenContent className={styles.root}>
-      <ScreenTitle>
-        <FormattedMessage id="LoginIDConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="LoginIDConfigurationScreen.columns.orderTooltipMessage" />
-      </ScreenDescription>
-      {state.types.map(({ type }, index) => (
-        <LoginIDTypeEdit
-          key={type}
-          state={state}
-          index={index}
-          loginIDType={type}
-          toggleLoginIDType={toggleLoginIDType}
-          swapPosition={swapPosition}
-        >
-          {sections[type]}
-        </LoginIDTypeEdit>
-      ))}
-    </ScreenContent>
-  );
-};
-
-const LoginIDConfigurationScreen: React.FC = function LoginIDConfigurationScreen() {
-  const { appID } = useParams();
-  const { renderToString } = useContext(Context);
-
-  const config = useAppConfigForm(
-    appID,
-    constructConfigFormState,
-    constructConfig
-  );
-  const localValidationError = validateForm(config.state, renderToString);
-
-  const resources = useResourceForm(
-    appID,
-    specifiers,
-    constructResourcesFormState,
-    constructResources
-  );
-
-  const state = useMemo<FormState>(
-    () => ({
-      resources: resources.state.resources,
-      types: config.state.types,
-      email: config.state.email,
-      username: config.state.username,
-      phone: config.state.phone,
-    }),
-    [
-      resources.state.resources,
-      config.state.types,
-      config.state.email,
-      config.state.username,
-      config.state.phone,
-    ]
-  );
-
-  const form: FormModel = {
-    isLoading: config.isLoading || resources.isLoading,
-    isUpdating: config.isUpdating || resources.isUpdating,
-    isDirty: config.isDirty || resources.isDirty,
-    loadError: config.loadError ?? resources.loadError,
-    updateError: config.updateError ?? resources.updateError,
-    state,
-    setState: (fn) => {
-      const newState = fn(state);
-      config.setState(() => ({
-        types: newState.types,
-        email: newState.email,
-        username: newState.username,
-        phone: newState.phone,
-      }));
-      resources.setState(() => ({ resources: newState.resources }));
-    },
-    reload: () => {
-      config.reload();
-      resources.reload();
-    },
-    reset: () => {
-      config.reset();
-      resources.reset();
-    },
-    save: async () => {
-      await config.save();
-      await resources.save();
-    },
-  };
-
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
-
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
-
-  return (
-    <FormContainer form={form} localError={localValidationError}>
-      <AuthenticationLoginIDSettingsContent form={form} />
-    </FormContainer>
-  );
-};
 
 export default LoginIDConfigurationScreen;

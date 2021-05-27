@@ -88,102 +88,102 @@ interface AnonymousUserConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationContentProps> = function AnonymousUserConfigurationContent(
-  props
-) {
-  const { state, setState } = props.form;
+const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationContentProps> =
+  function AnonymousUserConfigurationContent(props) {
+    const { state, setState } = props.form;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const conflictBehaviourOptions = useMemo(
-    () =>
-      promotionConflictBehaviours.map((behaviour) => {
-        const selectedBehaviour = state.promotionConflictBehaviour;
-        return {
-          key: behaviour,
-          text: renderToString(conflictBehaviourMessageId[behaviour]),
-          isSelected: selectedBehaviour === behaviour,
-        };
-      }),
-    [state, renderToString]
-  );
+    const conflictBehaviourOptions = useMemo(
+      () =>
+        promotionConflictBehaviours.map((behaviour) => {
+          const selectedBehaviour = state.promotionConflictBehaviour;
+          return {
+            key: behaviour,
+            text: renderToString(conflictBehaviourMessageId[behaviour]),
+            isSelected: selectedBehaviour === behaviour,
+          };
+        }),
+      [state, renderToString]
+    );
 
-  const onEnableChange = useCallback(
-    (_event, checked?: boolean) =>
-      setState((state) => ({
-        ...state,
-        enabled: checked ?? false,
-      })),
-    [setState]
-  );
-
-  const onConflictOptionChange = useCallback(
-    (_event, option?: IDropdownOption) => {
-      const key = option?.key;
-      if (key && isPromotionConflictBehaviour(key)) {
+    const onEnableChange = useCallback(
+      (_event, checked?: boolean) =>
         setState((state) => ({
           ...state,
-          promotionConflictBehaviour: key,
-        }));
-      }
-    },
-    [setState]
-  );
+          enabled: checked ?? false,
+        })),
+      [setState]
+    );
 
-  return (
-    <ScreenContent className={styles.root}>
-      <ScreenTitle>
-        <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
-      </ScreenDescription>
-      <Widget className={cn(styles.widget, styles.controlGroup)}>
-        <WidgetTitle>
+    const onConflictOptionChange = useCallback(
+      (_event, option?: IDropdownOption) => {
+        const key = option?.key;
+        if (key && isPromotionConflictBehaviour(key)) {
+          setState((state) => ({
+            ...state,
+            promotionConflictBehaviour: key,
+          }));
+        }
+      },
+      [setState]
+    );
+
+    return (
+      <ScreenContent className={styles.root}>
+        <ScreenTitle>
           <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
-        </WidgetTitle>
-        <Toggle
-          className={styles.control}
-          checked={state.enabled}
-          onChange={onEnableChange}
-          label={renderToString(
-            "AnonymousUsersConfigurationScreen.enable.label"
-          )}
-          inlineLabel={true}
-        />
-        <Dropdown
-          className={styles.control}
-          styles={dropDownStyles}
-          label={renderToString(
-            "AnonymousUsersConfigurationScreen.conflict-droplist.label"
-          )}
-          disabled={!state.enabled}
-          options={conflictBehaviourOptions}
-          selectedKey={state.promotionConflictBehaviour}
-          onChange={onConflictOptionChange}
-        />
-      </Widget>
-    </ScreenContent>
-  );
-};
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
+        </ScreenDescription>
+        <Widget className={cn(styles.widget, styles.controlGroup)}>
+          <WidgetTitle>
+            <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
+          </WidgetTitle>
+          <Toggle
+            className={styles.control}
+            checked={state.enabled}
+            onChange={onEnableChange}
+            label={renderToString(
+              "AnonymousUsersConfigurationScreen.enable.label"
+            )}
+            inlineLabel={true}
+          />
+          <Dropdown
+            className={styles.control}
+            styles={dropDownStyles}
+            label={renderToString(
+              "AnonymousUsersConfigurationScreen.conflict-droplist.label"
+            )}
+            disabled={!state.enabled}
+            options={conflictBehaviourOptions}
+            selectedKey={state.promotionConflictBehaviour}
+            onChange={onConflictOptionChange}
+          />
+        </Widget>
+      </ScreenContent>
+    );
+  };
 
-const AnonymousUserConfigurationScreen: React.FC = function AnonymousUserConfigurationScreen() {
-  const { appID } = useParams();
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+const AnonymousUserConfigurationScreen: React.FC =
+  function AnonymousUserConfigurationScreen() {
+    const { appID } = useParams();
+    const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
+    if (form.isLoading) {
+      return <ShowLoading />;
+    }
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
+    if (form.loadError) {
+      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
 
-  return (
-    <FormContainer form={form}>
-      <AnonymousUserConfigurationContent form={form} />
-    </FormContainer>
-  );
-};
+    return (
+      <FormContainer form={form}>
+        <AnonymousUserConfigurationContent form={form} />
+      </FormContainer>
+    );
+  };
 
 export default AnonymousUserConfigurationScreen;

@@ -161,155 +161,156 @@ interface OAuthClientItemProps {
   form: AppSecretConfigFormModel<FormState>;
 }
 
-const OAuthClientItem: React.FC<OAuthClientItemProps> = function OAuthClientItem(
-  props
-) {
-  const { providerItemKey, form } = props;
-  const {
-    state: { providers, isEnabled },
-    setState,
-  } = form;
+const OAuthClientItem: React.FC<OAuthClientItemProps> =
+  function OAuthClientItem(props) {
+    const { providerItemKey, form } = props;
+    const {
+      state: { providers, isEnabled },
+      setState,
+    } = form;
 
-  const [providerType, appType] = parseOAuthSSOProviderItemKey(providerItemKey);
+    const [providerType, appType] =
+      parseOAuthSSOProviderItemKey(providerItemKey);
 
-  const provider = useMemo(
-    () =>
-      providers.find((p) =>
-        isOAuthSSOProvider(p.config, providerType, appType)
-      ) ?? {
-        config: {
-          type: providerType,
-          alias: defaultAlias(providerType, appType),
-          ...(appType && { app_type: appType }),
+    const provider = useMemo(
+      () =>
+        providers.find((p) =>
+          isOAuthSSOProvider(p.config, providerType, appType)
+        ) ?? {
+          config: {
+            type: providerType,
+            alias: defaultAlias(providerType, appType),
+            ...(appType && { app_type: appType }),
+          },
+          secret: {
+            alias: defaultAlias(providerType, appType),
+            client_secret: "",
+          },
         },
-        secret: {
-          alias: defaultAlias(providerType, appType),
-          client_secret: "",
-        },
+      [providers, providerType, appType]
+    );
+
+    const enabledProviders = providers.filter(
+      (p) =>
+        isEnabled[
+          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
+        ]
+    );
+    const index = enabledProviders.findIndex((p) =>
+      isOAuthSSOProvider(p.config, providerType, appType)
+    );
+    const jsonPointer = index >= 0 ? `/identity/oauth/providers/${index}` : "";
+    const clientSecretParentJsonPointer =
+      index >= 0 ? `/secrets/\\d+/data/items/${index}` : "";
+
+    const onIsEnabledChange = useCallback(
+      (isEnabled: boolean) => {
+        setState((state) =>
+          produce(state, (state) => {
+            state.isEnabled[
+              createOAuthSSOProviderItemKey(providerType, appType)
+            ] = isEnabled;
+            const hasProvider = state.providers.some((p) =>
+              isOAuthSSOProvider(p.config, providerType, appType)
+            );
+            if (isEnabled && !hasProvider) {
+              state.providers.push(provider);
+            }
+          })
+        );
       },
-    [providers, providerType, appType]
-  );
+      [setState, providerType, appType, provider]
+    );
 
-  const enabledProviders = providers.filter(
-    (p) =>
-      isEnabled[createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)]
-  );
-  const index = enabledProviders.findIndex((p) =>
-    isOAuthSSOProvider(p.config, providerType, appType)
-  );
-  const jsonPointer = index >= 0 ? `/identity/oauth/providers/${index}` : "";
-  const clientSecretParentJsonPointer =
-    index >= 0 ? `/secrets/\\d+/data/items/${index}` : "";
+    const onChange = useCallback(
+      (config: OAuthSSOProviderConfig, secret: OAuthClientCredentialItem) =>
+        setState((state) =>
+          produce(state, (state) => {
+            const index = state.providers.findIndex((p) =>
+              isOAuthSSOProvider(p.config, providerType, appType)
+            );
+            if (index === -1) {
+              state.providers.push({ config, secret });
+            } else if (index >= 0) {
+              state.providers[index] = { config, secret };
+            }
+          })
+        ),
+      [setState, providerType, appType]
+    );
 
-  const onIsEnabledChange = useCallback(
-    (isEnabled: boolean) => {
-      setState((state) =>
-        produce(state, (state) => {
-          state.isEnabled[
-            createOAuthSSOProviderItemKey(providerType, appType)
-          ] = isEnabled;
-          const hasProvider = state.providers.some((p) =>
-            isOAuthSSOProvider(p.config, providerType, appType)
-          );
-          if (isEnabled && !hasProvider) {
-            state.providers.push(provider);
-          }
-        })
-      );
-    },
-    [setState, providerType, appType, provider]
-  );
-
-  const onChange = useCallback(
-    (config: OAuthSSOProviderConfig, secret: OAuthClientCredentialItem) =>
-      setState((state) =>
-        produce(state, (state) => {
-          const index = state.providers.findIndex((p) =>
-            isOAuthSSOProvider(p.config, providerType, appType)
-          );
-          if (index === -1) {
-            state.providers.push({ config, secret });
-          } else if (index >= 0) {
-            state.providers[index] = { config, secret };
-          }
-        })
-      ),
-    [setState, providerType, appType]
-  );
-
-  return (
-    <SingleSignOnConfigurationWidget
-      className={styles.widget}
-      jsonPointer={jsonPointer}
-      clientSecretParentJsonPointer={clientSecretParentJsonPointer}
-      isEnabled={
-        isEnabled[createOAuthSSOProviderItemKey(providerType, appType)]
-      }
-      onIsEnabledChange={onIsEnabledChange}
-      config={provider.config}
-      secret={provider.secret}
-      onChange={onChange}
-    />
-  );
-};
+    return (
+      <SingleSignOnConfigurationWidget
+        className={styles.widget}
+        jsonPointer={jsonPointer}
+        clientSecretParentJsonPointer={clientSecretParentJsonPointer}
+        isEnabled={
+          isEnabled[createOAuthSSOProviderItemKey(providerType, appType)]
+        }
+        onIsEnabledChange={onIsEnabledChange}
+        config={provider.config}
+        secret={provider.secret}
+        onChange={onChange}
+      />
+    );
+  };
 
 interface SingleSignOnConfigurationContentProps {
   form: AppSecretConfigFormModel<FormState>;
 }
 
-const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationContentProps> = function SingleSignOnConfigurationContent(
-  props
-) {
-  return (
-    <ScreenContent className={styles.root}>
-      <ScreenTitle>
-        <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage
-          id="SingleSignOnConfigurationScreen.description"
-          values={{
-            HREF:
-              "https://docs.authgear.com/how-tos/how-to-setup-sso-integrations",
-          }}
-          components={{
-            Link,
-          }}
-        />
-      </ScreenDescription>
-      {oauthSSOProviderItemKeys.map((providerItemKey) => (
-        <OAuthClientItem
-          key={providerItemKey}
-          providerItemKey={providerItemKey}
-          form={props.form}
-        />
-      ))}
-    </ScreenContent>
-  );
-};
+const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationContentProps> =
+  function SingleSignOnConfigurationContent(props) {
+    return (
+      <ScreenContent className={styles.root}>
+        <ScreenTitle>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage
+            id="SingleSignOnConfigurationScreen.description"
+            values={{
+              HREF: "https://docs.authgear.com/how-tos/how-to-setup-sso-integrations",
+            }}
+            components={{
+              Link,
+            }}
+          />
+        </ScreenDescription>
+        {oauthSSOProviderItemKeys.map((providerItemKey) => (
+          <OAuthClientItem
+            key={providerItemKey}
+            providerItemKey={providerItemKey}
+            form={props.form}
+          />
+        ))}
+      </ScreenContent>
+    );
+  };
 
-const SingleSignOnConfigurationScreen: React.FC = function SingleSignOnConfigurationScreen() {
-  const { appID } = useParams();
+const SingleSignOnConfigurationScreen: React.FC =
+  function SingleSignOnConfigurationScreen() {
+    const { appID } = useParams();
 
-  const form = useAppSecretConfigForm(
-    appID,
-    constructFormState,
-    constructConfig
-  );
+    const form = useAppSecretConfigForm(
+      appID,
+      constructFormState,
+      constructConfig
+    );
 
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
+    if (form.isLoading) {
+      return <ShowLoading />;
+    }
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
+    if (form.loadError) {
+      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
 
-  return (
-    <FormContainer form={form}>
-      <SingleSignOnConfigurationContent form={form} />
-    </FormContainer>
-  );
-};
+    return (
+      <FormContainer form={form}>
+        <SingleSignOnConfigurationContent form={form} />
+      </FormContainer>
+    );
+  };
 
 export default SingleSignOnConfigurationScreen;

@@ -36,9 +36,7 @@ const setVerifiedStatusMutation = gql`
   }
 `;
 
-export function useSetVerifiedStatusMutation(
-  userID: string
-): {
+export function useSetVerifiedStatusMutation(userID: string): {
   setVerifiedStatus: (
     claimName: string,
     claimValue: string,
@@ -47,10 +45,8 @@ export function useSetVerifiedStatusMutation(
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { loading, error },
-  ] = useMutation<SetVerifiedStatusMutation>(setVerifiedStatusMutation);
+  const [mutationFunction, { loading, error }] =
+    useMutation<SetVerifiedStatusMutation>(setVerifiedStatusMutation);
 
   const setVerifiedStatus = useCallback(
     async (claimName: string, claimValue: string, isVerified: boolean) => {

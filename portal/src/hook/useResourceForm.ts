@@ -43,10 +43,10 @@ export function useResourceForm<State>(
     resetError,
   } = useUpdateAppTemplatesMutation(appID);
 
-  const initialState = useMemo(() => constructState(resources), [
-    resources,
-    constructState,
-  ]);
+  const initialState = useMemo(
+    () => constructState(resources),
+    [resources, constructState]
+  );
   const [currentState, setCurrentState] = useState<State | null>(null);
 
   const newResources: Resource[] | null = useMemo(() => {

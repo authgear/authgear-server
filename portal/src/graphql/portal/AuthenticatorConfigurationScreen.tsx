@@ -181,301 +181,302 @@ interface AuthenticatorCheckboxProps {
   onChange: (item: AuthenticatorColumnItem, checked: boolean) => void;
 }
 
-const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> = function AuthenticatorCheckbox(
-  props
-) {
-  const { item, onChange } = props;
-  const onCheckboxChange = useCallback(
-    (_event, checked?: boolean) => onChange(item, checked ?? false),
-    [item, onChange]
-  );
+const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> =
+  function AuthenticatorCheckbox(props) {
+    const { item, onChange } = props;
+    const onCheckboxChange = useCallback(
+      (_event, checked?: boolean) => onChange(item, checked ?? false),
+      [item, onChange]
+    );
 
-  return <Checkbox checked={item.isEnabled} onChange={onCheckboxChange} />;
-};
+    return <Checkbox checked={item.isEnabled} onChange={onCheckboxChange} />;
+  };
 
 interface AuthenticationAuthenticatorSettingsContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthenticatorSettingsContentProps> = function AuthenticationAuthenticatorSettingsContent(
-  props
-) {
-  const { state, setState } = props.form;
+const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthenticatorSettingsContentProps> =
+  function AuthenticationAuthenticatorSettingsContent(props) {
+    const { state, setState } = props.form;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const authenticatorColumns: IColumn[] = [
-    {
-      key: "activated",
-      fieldName: "activated",
-      name: renderToString("AuthenticatorConfigurationScreen.columns.activate"),
-      className: styles.authenticatorColumn,
-      minWidth: 120,
-      maxWidth: 120,
-    },
-    {
-      key: "key",
-      fieldName: "key",
-      name: renderToString(
-        "AuthenticatorConfigurationScreen.columns.authenticator"
-      ),
-      className: styles.authenticatorColumn,
-      minWidth: 300,
-      maxWidth: 300,
-    },
-  ];
+    const authenticatorColumns: IColumn[] = [
+      {
+        key: "activated",
+        fieldName: "activated",
+        name: renderToString(
+          "AuthenticatorConfigurationScreen.columns.activate"
+        ),
+        className: styles.authenticatorColumn,
+        minWidth: 120,
+        maxWidth: 120,
+      },
+      {
+        key: "key",
+        fieldName: "key",
+        name: renderToString(
+          "AuthenticatorConfigurationScreen.columns.authenticator"
+        ),
+        className: styles.authenticatorColumn,
+        minWidth: 300,
+        maxWidth: 300,
+      },
+    ];
 
-  const renderSecondaryAuthenticatorMode = useCallback(
-    (key: SecondaryAuthenticationMode) => {
-      const messageIdMap: Record<SecondaryAuthenticationMode, string> = {
-        required:
-          "AuthenticatorConfigurationScreen.policy.require-mfa.required",
-        if_exists:
-          "AuthenticatorConfigurationScreen.policy.require-mfa.if-exists",
-        if_requested:
-          "AuthenticatorConfigurationScreen.policy.require-mfa.if-requested",
-      };
+    const renderSecondaryAuthenticatorMode = useCallback(
+      (key: SecondaryAuthenticationMode) => {
+        const messageIdMap: Record<SecondaryAuthenticationMode, string> = {
+          required:
+            "AuthenticatorConfigurationScreen.policy.require-mfa.required",
+          if_exists:
+            "AuthenticatorConfigurationScreen.policy.require-mfa.if-exists",
+          if_requested:
+            "AuthenticatorConfigurationScreen.policy.require-mfa.if-requested",
+        };
 
-      return renderToString(messageIdMap[key]);
-    },
-    [renderToString]
-  );
+        return renderToString(messageIdMap[key]);
+      },
+      [renderToString]
+    );
 
-  const {
-    options: requireMFAOptions,
-    onChange: onRequireMFAOptionChange,
-  } = useDropdown(
-    ALL_REQUIRE_MFA_OPTIONS,
-    (option) => {
-      setState((prev) => ({
-        ...prev,
-        mfaMode: option,
-      }));
-    },
-    state.mfaMode,
-    renderSecondaryAuthenticatorMode,
-    // NOTE: not supported yet
-    new Set(HIDDEN_REQUIRE_MFA_OPTIONS)
-  );
+    const { options: requireMFAOptions, onChange: onRequireMFAOptionChange } =
+      useDropdown(
+        ALL_REQUIRE_MFA_OPTIONS,
+        (option) => {
+          setState((prev) => ({
+            ...prev,
+            mfaMode: option,
+          }));
+        },
+        state.mfaMode,
+        renderSecondaryAuthenticatorMode,
+        // NOTE: not supported yet
+        new Set(HIDDEN_REQUIRE_MFA_OPTIONS)
+      );
 
-  const { onChange: onRecoveryCodeNumberChange } = useIntegerTextField(
-    (value) => {
-      setState((prev) => ({
-        ...prev,
-        numRecoveryCode: Number(value),
-      }));
-    }
-  );
-
-  const { onChange: onAllowRetrieveRecoveryCodeChange } = useCheckbox(
-    (checked: boolean) => {
-      setState((prev) => ({
-        ...prev,
-        allowListRecoveryCode: checked,
-      }));
-    }
-  );
-
-  const onPrimarySwapClicked = useCallback(
-    (index1: number, index2: number) => {
-      setState((prev) => ({
-        ...prev,
-        primary: swap(prev.primary, index1, index2),
-      }));
-    },
-    [setState]
-  );
-  const onSecondarySwapClicked = useCallback(
-    (index1: number, index2: number) => {
-      setState((prev) => ({
-        ...prev,
-        secondary: swap(prev.secondary, index1, index2),
-      }));
-    },
-    [setState]
-  );
-
-  const onAuthenticatorEnabledChange = useCallback(
-    (item: AuthenticatorColumnItem, checked: boolean) =>
-      setState((state) =>
-        produce(state, (state) => {
-          let t: AuthenticatorTypeFormState | undefined;
-          switch (item.kind) {
-            case "primary":
-              t = state.primary.find((t) => t.type === item.type);
-              break;
-            case "secondary":
-              t = state.secondary.find((t) => t.type === item.type);
-              break;
-          }
-          if (t) {
-            t.isEnabled = checked;
-          }
-        })
-      ),
-    [setState]
-  );
-
-  const onRenderColumn = useCallback(
-    (item: AuthenticatorColumnItem, _index?: number, column?: IColumn) => {
-      switch (column?.key) {
-        case "activated":
-          return (
-            <AuthenticatorCheckbox
-              item={item}
-              onChange={onAuthenticatorEnabledChange}
-            />
-          );
-
-        case "key": {
-          let nameId: string;
-          switch (item.kind) {
-            case "primary":
-              nameId = primaryAuthenticatorNameIds[item.type];
-              break;
-            case "secondary":
-              nameId = secondaryAuthenticatorNameIds[item.type];
-              break;
-          }
-          return (
-            <span>
-              <FormattedMessage id={nameId} />
-            </span>
-          );
-        }
-
-        default:
-          return null;
+    const { onChange: onRecoveryCodeNumberChange } = useIntegerTextField(
+      (value) => {
+        setState((prev) => ({
+          ...prev,
+          numRecoveryCode: Number(value),
+        }));
       }
-    },
-    [onAuthenticatorEnabledChange]
-  );
+    );
 
-  const renderPrimaryAriaLabel = React.useCallback(
-    (index?: number): string => {
-      return index != null
-        ? renderToString(primaryAuthenticatorNameIds[state.primary[index].type])
-        : "";
-    },
-    [state.primary, renderToString]
-  );
-  const renderSecondaryAriaLabel = React.useCallback(
-    (index?: number): string => {
-      return index != null
-        ? renderToString(
-            secondaryAuthenticatorNameIds[state.secondary[index].type]
-          )
-        : "";
-    },
-    [state.secondary, renderToString]
-  );
+    const { onChange: onAllowRetrieveRecoveryCodeChange } = useCheckbox(
+      (checked: boolean) => {
+        setState((prev) => ({
+          ...prev,
+          allowListRecoveryCode: checked,
+        }));
+      }
+    );
 
-  const primaryItems: AuthenticatorColumnItem[] = useMemo(
-    () =>
-      state.primary.map(({ type, isEnabled }) => ({
-        kind: "primary",
-        type,
-        isEnabled,
-      })),
-    [state.primary]
-  );
+    const onPrimarySwapClicked = useCallback(
+      (index1: number, index2: number) => {
+        setState((prev) => ({
+          ...prev,
+          primary: swap(prev.primary, index1, index2),
+        }));
+      },
+      [setState]
+    );
+    const onSecondarySwapClicked = useCallback(
+      (index1: number, index2: number) => {
+        setState((prev) => ({
+          ...prev,
+          secondary: swap(prev.secondary, index1, index2),
+        }));
+      },
+      [setState]
+    );
 
-  const secondaryItems: AuthenticatorColumnItem[] = useMemo(
-    () =>
-      state.secondary.map(({ type, isEnabled }) => ({
-        kind: "secondary",
-        type,
-        isEnabled,
-      })),
-    [state.secondary]
-  );
+    const onAuthenticatorEnabledChange = useCallback(
+      (item: AuthenticatorColumnItem, checked: boolean) =>
+        setState((state) =>
+          produce(state, (state) => {
+            let t: AuthenticatorTypeFormState | undefined;
+            switch (item.kind) {
+              case "primary":
+                t = state.primary.find((t) => t.type === item.type);
+                break;
+              case "secondary":
+                t = state.secondary.find((t) => t.type === item.type);
+                break;
+            }
+            if (t) {
+              t.isEnabled = checked;
+            }
+          })
+        ),
+      [setState]
+    );
 
-  return (
-    <ScreenContent className={styles.root}>
-      <ScreenTitle>
-        <FormattedMessage id="AuthenticatorConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="AuthenticatorConfigurationScreen.description" />
-      </ScreenDescription>
-      <Widget className={styles.widget}>
-        <WidgetTitle>
-          <FormattedMessage id="AuthenticatorConfigurationScreen.primary-authenticators.title" />
-        </WidgetTitle>
-        <DetailsListWithOrdering
-          items={primaryItems}
-          columns={authenticatorColumns}
-          onRenderItemColumn={onRenderColumn}
-          onSwapClicked={onPrimarySwapClicked}
-          selectionMode={SelectionMode.none}
-          renderAriaLabel={renderPrimaryAriaLabel}
-        />
-      </Widget>
-      <Widget className={styles.widget}>
-        <WidgetTitle>
-          <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.title" />
-        </WidgetTitle>
-        <DetailsListWithOrdering
-          items={secondaryItems}
-          columns={authenticatorColumns}
-          onRenderItemColumn={onRenderColumn}
-          onSwapClicked={onSecondarySwapClicked}
-          selectionMode={SelectionMode.none}
-          renderAriaLabel={renderSecondaryAriaLabel}
-        />
-      </Widget>
-      <Widget className={cn(styles.widget, styles.controlGroup)}>
-        <WidgetTitle>
-          <FormattedMessage id="AuthenticatorConfigurationScreen.policy.title" />
-        </WidgetTitle>
-        <Dropdown
-          className={styles.control}
-          label={renderToString(
-            "AuthenticatorConfigurationScreen.policy.require-mfa"
-          )}
-          options={requireMFAOptions}
-          selectedKey={state.mfaMode}
-          onChange={onRequireMFAOptionChange}
-        />
-        <FormTextField
-          parentJSONPointer="/authentication/recovery_code"
-          fieldName="count"
-          fieldNameMessageID="AuthenticatorConfigurationScreen.policy.recovery-code-number"
-          className={styles.control}
-          value={String(state.numRecoveryCode)}
-          onChange={onRecoveryCodeNumberChange}
-        />
-        <Toggle
-          className={styles.control}
-          inlineLabel={true}
-          label={
-            <FormattedMessage id="AuthenticatorConfigurationScreen.policy.allow-retrieve-recovery-code" />
+    const onRenderColumn = useCallback(
+      (item: AuthenticatorColumnItem, _index?: number, column?: IColumn) => {
+        switch (column?.key) {
+          case "activated":
+            return (
+              <AuthenticatorCheckbox
+                item={item}
+                onChange={onAuthenticatorEnabledChange}
+              />
+            );
+
+          case "key": {
+            let nameId: string;
+            switch (item.kind) {
+              case "primary":
+                nameId = primaryAuthenticatorNameIds[item.type];
+                break;
+              case "secondary":
+                nameId = secondaryAuthenticatorNameIds[item.type];
+                break;
+            }
+            return (
+              <span>
+                <FormattedMessage id={nameId} />
+              </span>
+            );
           }
-          checked={state.allowListRecoveryCode}
-          onChange={onAllowRetrieveRecoveryCodeChange}
-        />
-      </Widget>
-    </ScreenContent>
-  );
-};
 
-const AuthenticatorConfigurationScreen: React.FC = function AuthenticatorConfigurationScreen() {
-  const { appID } = useParams();
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+          default:
+            return null;
+        }
+      },
+      [onAuthenticatorEnabledChange]
+    );
 
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
+    const renderPrimaryAriaLabel = React.useCallback(
+      (index?: number): string => {
+        return index != null
+          ? renderToString(
+              primaryAuthenticatorNameIds[state.primary[index].type]
+            )
+          : "";
+      },
+      [state.primary, renderToString]
+    );
+    const renderSecondaryAriaLabel = React.useCallback(
+      (index?: number): string => {
+        return index != null
+          ? renderToString(
+              secondaryAuthenticatorNameIds[state.secondary[index].type]
+            )
+          : "";
+      },
+      [state.secondary, renderToString]
+    );
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
+    const primaryItems: AuthenticatorColumnItem[] = useMemo(
+      () =>
+        state.primary.map(({ type, isEnabled }) => ({
+          kind: "primary",
+          type,
+          isEnabled,
+        })),
+      [state.primary]
+    );
 
-  return (
-    <FormContainer form={form}>
-      <AuthenticationAuthenticatorSettingsContent form={form} />
-    </FormContainer>
-  );
-};
+    const secondaryItems: AuthenticatorColumnItem[] = useMemo(
+      () =>
+        state.secondary.map(({ type, isEnabled }) => ({
+          kind: "secondary",
+          type,
+          isEnabled,
+        })),
+      [state.secondary]
+    );
+
+    return (
+      <ScreenContent className={styles.root}>
+        <ScreenTitle>
+          <FormattedMessage id="AuthenticatorConfigurationScreen.title" />
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="AuthenticatorConfigurationScreen.description" />
+        </ScreenDescription>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="AuthenticatorConfigurationScreen.primary-authenticators.title" />
+          </WidgetTitle>
+          <DetailsListWithOrdering
+            items={primaryItems}
+            columns={authenticatorColumns}
+            onRenderItemColumn={onRenderColumn}
+            onSwapClicked={onPrimarySwapClicked}
+            selectionMode={SelectionMode.none}
+            renderAriaLabel={renderPrimaryAriaLabel}
+          />
+        </Widget>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.title" />
+          </WidgetTitle>
+          <DetailsListWithOrdering
+            items={secondaryItems}
+            columns={authenticatorColumns}
+            onRenderItemColumn={onRenderColumn}
+            onSwapClicked={onSecondarySwapClicked}
+            selectionMode={SelectionMode.none}
+            renderAriaLabel={renderSecondaryAriaLabel}
+          />
+        </Widget>
+        <Widget className={cn(styles.widget, styles.controlGroup)}>
+          <WidgetTitle>
+            <FormattedMessage id="AuthenticatorConfigurationScreen.policy.title" />
+          </WidgetTitle>
+          <Dropdown
+            className={styles.control}
+            label={renderToString(
+              "AuthenticatorConfigurationScreen.policy.require-mfa"
+            )}
+            options={requireMFAOptions}
+            selectedKey={state.mfaMode}
+            onChange={onRequireMFAOptionChange}
+          />
+          <FormTextField
+            parentJSONPointer="/authentication/recovery_code"
+            fieldName="count"
+            fieldNameMessageID="AuthenticatorConfigurationScreen.policy.recovery-code-number"
+            className={styles.control}
+            value={String(state.numRecoveryCode)}
+            onChange={onRecoveryCodeNumberChange}
+          />
+          <Toggle
+            className={styles.control}
+            inlineLabel={true}
+            label={
+              <FormattedMessage id="AuthenticatorConfigurationScreen.policy.allow-retrieve-recovery-code" />
+            }
+            checked={state.allowListRecoveryCode}
+            onChange={onAllowRetrieveRecoveryCodeChange}
+          />
+        </Widget>
+      </ScreenContent>
+    );
+  };
+
+const AuthenticatorConfigurationScreen: React.FC =
+  function AuthenticatorConfigurationScreen() {
+    const { appID } = useParams();
+    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+
+    if (form.isLoading) {
+      return <ShowLoading />;
+    }
+
+    if (form.loadError) {
+      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
+
+    return (
+      <FormContainer form={form}>
+        <AuthenticationAuthenticatorSettingsContent form={form} />
+      </FormContainer>
+    );
+  };
 
 export default AuthenticatorConfigurationScreen;

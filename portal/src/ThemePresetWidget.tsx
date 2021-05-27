@@ -224,72 +224,71 @@ function Custom(props: CustomProps) {
   );
 }
 
-const ThemePresetWidget: React.FC<ThemePresetWidgetProps> = function ThemePresetWidget(
-  props: ThemePresetWidgetProps
-) {
-  const {
-    disabled,
-    className,
-    isDarkMode,
-    highlightedLightTheme,
-    highlightedDarkTheme,
-    darkThemeIsCustom,
-    lightThemeIsCustom,
-    onClickLightTheme,
-    onClickDarkTheme,
-    onClickCustom,
-  } = props;
-  const children = [];
+const ThemePresetWidget: React.FC<ThemePresetWidgetProps> =
+  function ThemePresetWidget(props: ThemePresetWidgetProps) {
+    const {
+      disabled,
+      className,
+      isDarkMode,
+      highlightedLightTheme,
+      highlightedDarkTheme,
+      darkThemeIsCustom,
+      lightThemeIsCustom,
+      onClickLightTheme,
+      onClickDarkTheme,
+      onClickCustom,
+    } = props;
+    const children = [];
 
-  if (isDarkMode) {
-    for (let i = 0; i < DARK_THEME_PRESETS.length; i++) {
-      const presetTheme = DARK_THEME_PRESETS[i];
-      const isSelected =
-        highlightedDarkTheme != null &&
-        isDarkThemeEqual(presetTheme, highlightedDarkTheme);
-      children.push(
-        <ThemePreset
-          key={String(i)}
-          disabled={disabled}
-          isDarkMode={isDarkMode}
-          isSelected={isSelected}
-          presetNameID={"ThemeConfigurationWidget.preset." + String(i)}
-          presetTheme={presetTheme}
-          onClickLightTheme={onClickLightTheme}
-          onClickDarkTheme={onClickDarkTheme}
-        />
-      );
+    if (isDarkMode) {
+      for (let i = 0; i < DARK_THEME_PRESETS.length; i++) {
+        const presetTheme = DARK_THEME_PRESETS[i];
+        const isSelected =
+          highlightedDarkTheme != null &&
+          isDarkThemeEqual(presetTheme, highlightedDarkTheme);
+        children.push(
+          <ThemePreset
+            key={String(i)}
+            disabled={disabled}
+            isDarkMode={isDarkMode}
+            isSelected={isSelected}
+            presetNameID={"ThemeConfigurationWidget.preset." + String(i)}
+            presetTheme={presetTheme}
+            onClickLightTheme={onClickLightTheme}
+            onClickDarkTheme={onClickDarkTheme}
+          />
+        );
+      }
+    } else {
+      for (let i = 0; i < LIGHT_THEME_PRESETS.length; i++) {
+        const presetTheme = LIGHT_THEME_PRESETS[i];
+        const isSelected =
+          highlightedLightTheme != null &&
+          isLightThemeEqual(presetTheme, highlightedLightTheme);
+        children.push(
+          <ThemePreset
+            key={String(i)}
+            isDarkMode={isDarkMode}
+            isSelected={isSelected}
+            presetNameID={"ThemeConfigurationWidget.preset." + String(i)}
+            presetTheme={presetTheme}
+            onClickLightTheme={onClickLightTheme}
+            onClickDarkTheme={onClickDarkTheme}
+          />
+        );
+      }
     }
-  } else {
-    for (let i = 0; i < LIGHT_THEME_PRESETS.length; i++) {
-      const presetTheme = LIGHT_THEME_PRESETS[i];
-      const isSelected =
-        highlightedLightTheme != null &&
-        isLightThemeEqual(presetTheme, highlightedLightTheme);
-      children.push(
-        <ThemePreset
-          key={String(i)}
-          isDarkMode={isDarkMode}
-          isSelected={isSelected}
-          presetNameID={"ThemeConfigurationWidget.preset." + String(i)}
-          presetTheme={presetTheme}
-          onClickLightTheme={onClickLightTheme}
-          onClickDarkTheme={onClickDarkTheme}
-        />
-      );
-    }
-  }
 
-  children.push(
-    <Custom
-      key="custom"
-      disabled={disabled}
-      onClickCustom={onClickCustom}
-      isSelected={isDarkMode ? darkThemeIsCustom : lightThemeIsCustom}
-    />
-  );
+    children.push(
+      <Custom
+        key="custom"
+        disabled={disabled}
+        onClickCustom={onClickCustom}
+        isSelected={isDarkMode ? darkThemeIsCustom : lightThemeIsCustom}
+      />
+    );
 
-  return <div className={cn(styles.root, className)}>{children}</div>;
-};
+    return <div className={cn(styles.root, className)}>{children}</div>;
+  };
 
 export default ThemePresetWidget;

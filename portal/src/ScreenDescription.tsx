@@ -8,18 +8,17 @@ export interface ScreenDescriptionProps {
   children?: React.ReactNode;
 }
 
-const ScreenDescription: React.FC<ScreenDescriptionProps> = function ScreenDescription(
-  props: ScreenDescriptionProps
-) {
-  const { className, children } = props;
-  return (
-    <div
-      className={cn(className, styles.description)}
-      style={{ boxShadow: DefaultEffects.elevation4 }}
-    >
-      <Text>{children}</Text>
-    </div>
-  );
-};
+const ScreenDescription: React.FC<ScreenDescriptionProps> =
+  function ScreenDescription(props: ScreenDescriptionProps) {
+    const { className, children } = props;
+    return (
+      <div
+        className={cn(className, styles.description)}
+        style={{ boxShadow: DefaultEffects.elevation4 }}
+      >
+        <Text>{children}</Text>
+      </div>
+    );
+  };
 
 export default ScreenDescription;

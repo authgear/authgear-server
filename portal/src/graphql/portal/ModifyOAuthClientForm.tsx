@@ -58,205 +58,208 @@ function convertIntegerStringToNumber(value: string): number | undefined {
   return numericValue === 0 ? undefined : numericValue;
 }
 
-// eslint-disable-next-line complexity
-const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> = function ModifyOAuthClientForm(
-  props: ModifyOAuthClientFormProps
-) {
-  const { className, clientConfig, onClientConfigChange, isCreation } = props;
+const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
+  // eslint-disable-next-line complexity
+  function ModifyOAuthClientForm(props: ModifyOAuthClientFormProps) {
+    const { className, clientConfig, onClientConfigChange, isCreation } = props;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const { onChange: onClientNameChange } = useTextField((value) => {
-    onClientConfigChange(
-      updateClientConfig(clientConfig, "name", ensureNonEmptyString(value))
-    );
-  });
-
-  const { onChange: onAccessTokenLifetimeChange } = useIntegerTextField(
-    (value) => {
+    const { onChange: onClientNameChange } = useTextField((value) => {
       onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "access_token_lifetime_seconds",
-          convertIntegerStringToNumber(value)
-        )
+        updateClientConfig(clientConfig, "name", ensureNonEmptyString(value))
       );
-    }
-  );
-  const { onChange: onRefreshTokenLifetimeChange } = useIntegerTextField(
-    (value) => {
-      onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "refresh_token_lifetime_seconds",
-          convertIntegerStringToNumber(value)
-        )
-      );
-    }
-  );
-  const { onChange: onIdleTimeoutChange } = useIntegerTextField((value) => {
-    onClientConfigChange(
-      updateClientConfig(
-        clientConfig,
-        "refresh_token_idle_timeout_seconds",
-        convertIntegerStringToNumber(value)
-      )
-    );
-  });
+    });
 
-  const onRedirectUrisChange = useCallback(
-    (list: string[]) => {
-      onClientConfigChange(
-        updateClientConfig(clientConfig, "redirect_uris", list)
-      );
-    },
-    [onClientConfigChange, clientConfig]
-  );
-
-  const onPostLogoutRedirectUrisChange = useCallback(
-    (list: string[]) => {
-      onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "post_logout_redirect_uris",
-          list.length > 0 ? list : undefined
-        )
-      );
-    },
-    [onClientConfigChange, clientConfig]
-  );
-
-  const onChangeRefreshTokenIdleTimeoutEnabled = useCallback(
-    (_, value?: boolean) => {
-      if (value == null) {
-        return;
+    const { onChange: onAccessTokenLifetimeChange } = useIntegerTextField(
+      (value) => {
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "access_token_lifetime_seconds",
+            convertIntegerStringToNumber(value)
+          )
+        );
       }
+    );
+    const { onChange: onRefreshTokenLifetimeChange } = useIntegerTextField(
+      (value) => {
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "refresh_token_lifetime_seconds",
+            convertIntegerStringToNumber(value)
+          )
+        );
+      }
+    );
+    const { onChange: onIdleTimeoutChange } = useIntegerTextField((value) => {
       onClientConfigChange(
         updateClientConfig(
           clientConfig,
-          "refresh_token_idle_timeout_enabled",
-          value
+          "refresh_token_idle_timeout_seconds",
+          convertIntegerStringToNumber(value)
         )
       );
-    },
-    [onClientConfigChange, clientConfig]
-  );
+    });
 
-  const onIssueJWTAccessTokenChange = useCallback(
-    (_, value?: boolean) => {
-      onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "issue_jwt_access_token",
-          value ?? false
-        )
-      );
-    },
-    [onClientConfigChange, clientConfig]
-  );
+    const onRedirectUrisChange = useCallback(
+      (list: string[]) => {
+        onClientConfigChange(
+          updateClientConfig(clientConfig, "redirect_uris", list)
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
 
-  return (
-    <section className={cn(styles.root, className)}>
-      <FormTextField
-        parentJSONPointer="/oauth/clients/\d+"
-        fieldName="name"
-        fieldNameMessageID="ModifyOAuthClientForm.name-label"
-        className={styles.inputField}
-        value={clientConfig.name ?? ""}
-        onChange={onClientNameChange}
-        required={true}
-      />
-      {!isCreation && (
+    const onPostLogoutRedirectUrisChange = useCallback(
+      (list: string[]) => {
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "post_logout_redirect_uris",
+            list.length > 0 ? list : undefined
+          )
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
+    const onChangeRefreshTokenIdleTimeoutEnabled = useCallback(
+      (_, value?: boolean) => {
+        if (value == null) {
+          return;
+        }
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "refresh_token_idle_timeout_enabled",
+            value
+          )
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
+    const onIssueJWTAccessTokenChange = useCallback(
+      (_, value?: boolean) => {
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "issue_jwt_access_token",
+            value ?? false
+          )
+        );
+      },
+      [onClientConfigChange, clientConfig]
+    );
+
+    return (
+      <section className={cn(styles.root, className)}>
         <FormTextField
           parentJSONPointer="/oauth/clients/\d+"
-          fieldName="access_token_lifetime_seconds"
-          fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
+          fieldName="name"
+          fieldNameMessageID="ModifyOAuthClientForm.name-label"
           className={styles.inputField}
-          value={clientConfig.access_token_lifetime_seconds?.toString() ?? ""}
-          onChange={onAccessTokenLifetimeChange}
+          value={clientConfig.name ?? ""}
+          onChange={onClientNameChange}
+          required={true}
         />
-      )}
-      {!isCreation && (
-        <FormTextField
+        {!isCreation && (
+          <FormTextField
+            parentJSONPointer="/oauth/clients/\d+"
+            fieldName="access_token_lifetime_seconds"
+            fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
+            className={styles.inputField}
+            value={clientConfig.access_token_lifetime_seconds?.toString() ?? ""}
+            onChange={onAccessTokenLifetimeChange}
+          />
+        )}
+        {!isCreation && (
+          <FormTextField
+            parentJSONPointer="/oauth/clients/\d+"
+            fieldName="refresh_token_lifetime_seconds"
+            fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
+            className={styles.inputField}
+            value={
+              clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""
+            }
+            onChange={onRefreshTokenLifetimeChange}
+          />
+        )}
+        {!isCreation && (
+          <Checkbox
+            className={styles.inputField}
+            checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
+            onChange={onChangeRefreshTokenIdleTimeoutEnabled}
+            label={renderToString(
+              "ModifyOAuthClientForm.refresh-token-idle-timeout-enabled.label"
+            )}
+            styles={CHECKBOX_STYLES}
+          />
+        )}
+        {!isCreation && (
+          <FormTextField
+            parentJSONPointer="/oauth/clients/\d+"
+            fieldName="refresh_token_idle_timeout_seconds"
+            fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
+            className={styles.inputField}
+            value={
+              clientConfig.refresh_token_idle_timeout_seconds?.toString() ?? ""
+            }
+            onChange={onIdleTimeoutChange}
+            disabled={
+              !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
+            }
+          />
+        )}
+        <div className={cn(styles.inputField, styles.checkboxContainer)}>
+          <Checkbox
+            checked={clientConfig.issue_jwt_access_token}
+            onChange={onIssueJWTAccessTokenChange}
+          />
+          <LabelWithTooltip
+            labelId="ModifyOAuthClientForm.issue-jwt-access-token-label"
+            tooltipHeaderId=""
+            tooltipMessageId="ModifyOAuthClientForm.issue-jwt-access-token-tooltip-message"
+            directionalHint={DirectionalHint.bottomLeftEdge}
+          />
+        </div>
+        <FormTextFieldList
+          className={styles.inputFieldList}
           parentJSONPointer="/oauth/clients/\d+"
-          fieldName="refresh_token_lifetime_seconds"
-          fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
-          className={styles.inputField}
-          value={clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""}
-          onChange={onRefreshTokenLifetimeChange}
-        />
-      )}
-      {!isCreation && (
-        <Checkbox
-          className={styles.inputField}
-          checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
-          onChange={onChangeRefreshTokenIdleTimeoutEnabled}
-          label={renderToString(
-            "ModifyOAuthClientForm.refresh-token-idle-timeout-enabled.label"
-          )}
-          styles={CHECKBOX_STYLES}
-        />
-      )}
-      {!isCreation && (
-        <FormTextField
-          parentJSONPointer="/oauth/clients/\d+"
-          fieldName="refresh_token_idle_timeout_seconds"
-          fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
-          className={styles.inputField}
-          value={
-            clientConfig.refresh_token_idle_timeout_seconds?.toString() ?? ""
+          fieldName="redirect_uris"
+          list={clientConfig.redirect_uris}
+          onListChange={onRedirectUrisChange}
+          addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
+          label={
+            <LabelWithTooltip
+              labelId="ModifyOAuthClientForm.redirect-uris-label"
+              tooltipHeaderId="ModifyOAuthClientForm.redirect-uris-label"
+              tooltipMessageId="ModifyOAuthClientForm.redirect-uris-tooltip-message"
+              directionalHint={DirectionalHint.bottomLeftEdge}
+              required={true}
+            />
           }
-          onChange={onIdleTimeoutChange}
-          disabled={!(clientConfig.refresh_token_idle_timeout_enabled ?? true)}
         />
-      )}
-      <div className={cn(styles.inputField, styles.checkboxContainer)}>
-        <Checkbox
-          checked={clientConfig.issue_jwt_access_token}
-          onChange={onIssueJWTAccessTokenChange}
+        <FormTextFieldList
+          className={styles.inputFieldList}
+          parentJSONPointer="/oauth/clients/\d+"
+          fieldName="post_logout_redirect_uris"
+          list={clientConfig.post_logout_redirect_uris ?? []}
+          onListChange={onPostLogoutRedirectUrisChange}
+          addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
+          label={
+            <LabelWithTooltip
+              labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
+              tooltipHeaderId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
+              tooltipMessageId="ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message"
+              directionalHint={DirectionalHint.bottomLeftEdge}
+            />
+          }
         />
-        <LabelWithTooltip
-          labelId="ModifyOAuthClientForm.issue-jwt-access-token-label"
-          tooltipHeaderId=""
-          tooltipMessageId="ModifyOAuthClientForm.issue-jwt-access-token-tooltip-message"
-          directionalHint={DirectionalHint.bottomLeftEdge}
-        />
-      </div>
-      <FormTextFieldList
-        className={styles.inputFieldList}
-        parentJSONPointer="/oauth/clients/\d+"
-        fieldName="redirect_uris"
-        list={clientConfig.redirect_uris}
-        onListChange={onRedirectUrisChange}
-        addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
-        label={
-          <LabelWithTooltip
-            labelId="ModifyOAuthClientForm.redirect-uris-label"
-            tooltipHeaderId="ModifyOAuthClientForm.redirect-uris-label"
-            tooltipMessageId="ModifyOAuthClientForm.redirect-uris-tooltip-message"
-            directionalHint={DirectionalHint.bottomLeftEdge}
-            required={true}
-          />
-        }
-      />
-      <FormTextFieldList
-        className={styles.inputFieldList}
-        parentJSONPointer="/oauth/clients/\d+"
-        fieldName="post_logout_redirect_uris"
-        list={clientConfig.post_logout_redirect_uris ?? []}
-        onListChange={onPostLogoutRedirectUrisChange}
-        addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
-        label={
-          <LabelWithTooltip
-            labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
-            tooltipHeaderId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
-            tooltipMessageId="ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message"
-            directionalHint={DirectionalHint.bottomLeftEdge}
-          />
-        }
-      />
-    </section>
-  );
-};
+      </section>
+    );
+  };
 
 export default ModifyOAuthClientForm;

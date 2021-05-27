@@ -50,68 +50,68 @@ interface ForgotPasswordConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigurationScreenContentProps> = function ForgotPasswordConfigurationScreenContent(
-  props
-) {
-  const { state, setState } = props.form;
+const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigurationScreenContentProps> =
+  function ForgotPasswordConfigurationScreenContent(props) {
+    const { state, setState } = props.form;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const onCodeExpirySecondsChange = useCallback(
-    (_, value?: string) => {
-      setState((state) => ({
-        ...state,
-        codeExpirySeconds: Number(value),
-      }));
-    },
-    [setState]
-  );
+    const onCodeExpirySecondsChange = useCallback(
+      (_, value?: string) => {
+        setState((state) => ({
+          ...state,
+          codeExpirySeconds: Number(value),
+        }));
+      },
+      [setState]
+    );
 
-  return (
-    <ScreenContent className={styles.root}>
-      <ScreenTitle>
-        <FormattedMessage id="ForgotPasswordConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="ForgotPasswordConfigurationScreen.description" />
-      </ScreenDescription>
-      <Widget className={cn(styles.widget, styles.controlGroup)}>
-        <WidgetTitle>
-          <FormattedMessage id="ForgotPasswordConfigurationScreen.code-settings" />
-        </WidgetTitle>
-        <TextField
-          className={styles.control}
-          type="number"
-          min="0"
-          step="1"
-          label={renderToString(
-            "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
-          )}
-          value={String(state.codeExpirySeconds)}
-          onChange={onCodeExpirySecondsChange}
-        />
-      </Widget>
-    </ScreenContent>
-  );
-};
+    return (
+      <ScreenContent className={styles.root}>
+        <ScreenTitle>
+          <FormattedMessage id="ForgotPasswordConfigurationScreen.title" />
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="ForgotPasswordConfigurationScreen.description" />
+        </ScreenDescription>
+        <Widget className={cn(styles.widget, styles.controlGroup)}>
+          <WidgetTitle>
+            <FormattedMessage id="ForgotPasswordConfigurationScreen.code-settings" />
+          </WidgetTitle>
+          <TextField
+            className={styles.control}
+            type="number"
+            min="0"
+            step="1"
+            label={renderToString(
+              "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
+            )}
+            value={String(state.codeExpirySeconds)}
+            onChange={onCodeExpirySecondsChange}
+          />
+        </Widget>
+      </ScreenContent>
+    );
+  };
 
-const ForgotPasswordConfigurationScreenScreen: React.FC = function ForgotPasswordConfigurationScreenScreen() {
-  const { appID } = useParams();
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+const ForgotPasswordConfigurationScreenScreen: React.FC =
+  function ForgotPasswordConfigurationScreenScreen() {
+    const { appID } = useParams();
+    const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
+    if (form.isLoading) {
+      return <ShowLoading />;
+    }
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
+    if (form.loadError) {
+      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
 
-  return (
-    <FormContainer form={form}>
-      <ForgotPasswordConfigurationScreenContent form={form} />
-    </FormContainer>
-  );
-};
+    return (
+      <FormContainer form={form}>
+        <ForgotPasswordConfigurationScreenContent form={form} />
+      </FormContainer>
+    );
+  };
 
 export default ForgotPasswordConfigurationScreenScreen;

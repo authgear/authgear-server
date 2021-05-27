@@ -191,555 +191,562 @@ interface ResourcesConfigurationContentProps {
   supportedLanguages: LanguageTag[];
 }
 
-const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> = function ResourcesConfigurationContent(
-  props
-) {
-  const { state, setState } = props.form;
-  const { supportedLanguages } = props;
+const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps> =
+  function ResourcesConfigurationContent(props) {
+    const { state, setState } = props.form;
+    const { supportedLanguages } = props;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const setSelectedLanguage = useCallback(
-    (selectedLanguage: LanguageTag) => {
-      setState((s) => ({ ...s, selectedLanguage }));
-    },
-    [setState]
-  );
+    const setSelectedLanguage = useCallback(
+      (selectedLanguage: LanguageTag) => {
+        setState((s) => ({ ...s, selectedLanguage }));
+      },
+      [setState]
+    );
 
-  const onChangeLanguages = useCallback(
-    (supportedLanguages: LanguageTag[], fallbackLanguage: LanguageTag) => {
-      setState((prev) => {
-        // Reset selected language to fallback language if it was removed.
-        let { selectedLanguage, resources } = prev;
-        resources = { ...resources };
-        if (!supportedLanguages.includes(selectedLanguage)) {
-          selectedLanguage = fallbackLanguage;
-        }
-
-        // Populate initial values for added languages from fallback language.
-        const addedLanguages = supportedLanguages.filter(
-          (l) => !prev.supportedLanguages.includes(l)
-        );
-        for (const language of addedLanguages) {
-          for (const def of ALL_LANGUAGES_TEMPLATES) {
-            const defaultResource =
-              prev.resources[
-                specifierId({ def, locale: prev.fallbackLanguage })
-              ];
-            const newResource: Resource = {
-              specifier: {
-                def,
-                locale: language,
-              },
-              path: renderPath(def.resourcePath, { locale: language }),
-              value: defaultResource?.value ?? "",
-            };
-            resources[specifierId(newResource.specifier)] = newResource;
-          }
-        }
-
-        // Remove resources of removed languges
-        const removedLanguages = prev.supportedLanguages.filter(
-          (l) => !supportedLanguages.includes(l)
-        );
-        for (const [id, resource] of Object.entries(resources)) {
-          const language = resource?.specifier.locale;
-          if (
-            resource != null &&
-            language != null &&
-            removedLanguages.includes(language)
-          ) {
-            resources[id] = { ...resource, value: "" };
-          }
-        }
-
-        return {
-          ...prev,
-          selectedLanguage,
-          supportedLanguages,
-          fallbackLanguage,
-          resources,
-        };
-      });
-    },
-    [setState]
-  );
-
-  const getValueIgnoreEmptyString = useCallback(
-    (def: ResourceDefinition) => {
-      const specifier: ResourceSpecifier = {
-        def,
-        locale: state.selectedLanguage,
-      };
-      const resource = state.resources[specifierId(specifier)];
-      if (resource == null || resource.value === "") {
-        return undefined;
-      }
-      return resource.value;
-    },
-    [state.resources, state.selectedLanguage]
-  );
-
-  const getOnChangeImage = useCallback(
-    (def: ResourceDefinition) => {
-      const specifier: ResourceSpecifier = {
-        def,
-        locale: state.selectedLanguage,
-      };
-      return (base64EncodedData?: string, extension?: string) => {
+    const onChangeLanguages = useCallback(
+      (supportedLanguages: LanguageTag[], fallbackLanguage: LanguageTag) => {
         setState((prev) => {
-          const updatedResources = { ...prev.resources };
+          // Reset selected language to fallback language if it was removed.
+          let { selectedLanguage, resources } = prev;
+          resources = { ...resources };
+          if (!supportedLanguages.includes(selectedLanguage)) {
+            selectedLanguage = fallbackLanguage;
+          }
 
-          // We always remove the old one first.
-          const oldResource = prev.resources[specifierId(specifier)];
-          if (oldResource != null) {
+          // Populate initial values for added languages from fallback language.
+          const addedLanguages = supportedLanguages.filter(
+            (l) => !prev.supportedLanguages.includes(l)
+          );
+          for (const language of addedLanguages) {
+            for (const def of ALL_LANGUAGES_TEMPLATES) {
+              const defaultResource =
+                prev.resources[
+                  specifierId({ def, locale: prev.fallbackLanguage })
+                ];
+              const newResource: Resource = {
+                specifier: {
+                  def,
+                  locale: language,
+                },
+                path: renderPath(def.resourcePath, { locale: language }),
+                value: defaultResource?.value ?? "",
+              };
+              resources[specifierId(newResource.specifier)] = newResource;
+            }
+          }
+
+          // Remove resources of removed languges
+          const removedLanguages = prev.supportedLanguages.filter(
+            (l) => !supportedLanguages.includes(l)
+          );
+          for (const [id, resource] of Object.entries(resources)) {
+            const language = resource?.specifier.locale;
+            if (
+              resource != null &&
+              language != null &&
+              removedLanguages.includes(language)
+            ) {
+              resources[id] = { ...resource, value: "" };
+            }
+          }
+
+          return {
+            ...prev,
+            selectedLanguage,
+            supportedLanguages,
+            fallbackLanguage,
+            resources,
+          };
+        });
+      },
+      [setState]
+    );
+
+    const getValueIgnoreEmptyString = useCallback(
+      (def: ResourceDefinition) => {
+        const specifier: ResourceSpecifier = {
+          def,
+          locale: state.selectedLanguage,
+        };
+        const resource = state.resources[specifierId(specifier)];
+        if (resource == null || resource.value === "") {
+          return undefined;
+        }
+        return resource.value;
+      },
+      [state.resources, state.selectedLanguage]
+    );
+
+    const getOnChangeImage = useCallback(
+      (def: ResourceDefinition) => {
+        const specifier: ResourceSpecifier = {
+          def,
+          locale: state.selectedLanguage,
+        };
+        return (base64EncodedData?: string, extension?: string) => {
+          setState((prev) => {
+            const updatedResources = { ...prev.resources };
+
+            // We always remove the old one first.
+            const oldResource = prev.resources[specifierId(specifier)];
+            if (oldResource != null) {
+              updatedResources[specifierId(specifier)] = {
+                ...oldResource,
+                value: "",
+              };
+            }
+
+            // Add the new one.
+            if (base64EncodedData != null && extension != null) {
+              const resource: Resource = {
+                specifier,
+                path: renderPath(specifier.def.resourcePath, {
+                  locale: specifier.locale,
+                  extension,
+                }),
+                value: base64EncodedData,
+              };
+              updatedResources[specifierId(specifier)] = resource;
+            }
+
+            return { ...prev, resources: updatedResources };
+          });
+        };
+      },
+      [state.selectedLanguage, setState]
+    );
+
+    const valueForTranslationJSON = useCallback(
+      (key: string) => {
+        const specifier: ResourceSpecifier = {
+          def: RESOURCE_TRANSLATION_JSON,
+          locale: state.selectedLanguage,
+        };
+        const resource = state.resources[specifierId(specifier)];
+        if (resource == null) {
+          return "";
+        }
+        const jsonValue = JSON.parse(resource.value);
+        return jsonValue[key] ?? "";
+      },
+      [state.selectedLanguage, state.resources]
+    );
+
+    const onChangeForTranslationJSON = useCallback(
+      (key: string) => {
+        const specifier: ResourceSpecifier = {
+          def: RESOURCE_TRANSLATION_JSON,
+          locale: state.selectedLanguage,
+        };
+        return (
+          _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+          value?: string
+        ) => {
+          if (value == null) {
+            return;
+          }
+          setState((prev) => {
+            const updatedResources = { ...prev.resources };
+            const oldResource = prev.resources[specifierId(specifier)];
+            if (oldResource == null) {
+              return prev;
+            }
+            const jsonValue = JSON.parse(oldResource.value);
+            jsonValue[key] = value;
             updatedResources[specifierId(specifier)] = {
               ...oldResource,
-              value: "",
+              value: JSON.stringify(jsonValue, null, 2),
             };
-          }
+            return { ...prev, resources: updatedResources };
+          });
+        };
+      },
+      [state.selectedLanguage, setState]
+    );
 
-          // Add the new one.
-          if (base64EncodedData != null && extension != null) {
-            const resource: Resource = {
-              specifier,
-              path: renderPath(specifier.def.resourcePath, {
-                locale: specifier.locale,
-                extension,
-              }),
-              value: base64EncodedData,
+    const valueForState = useCallback(
+      (key: keyof PropertyNames) => {
+        return state[key];
+      },
+      [state]
+    );
+
+    const onChangeForState = useCallback(
+      (key: keyof PropertyNames) => {
+        return (
+          _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
+          value?: string
+        ) => {
+          if (value == null) {
+            return;
+          }
+          setState((prev) => {
+            return {
+              ...prev,
+              [key]: value,
             };
-            updatedResources[specifierId(specifier)] = resource;
-          }
+          });
+        };
+      },
+      [setState]
+    );
 
-          return { ...prev, resources: updatedResources };
-        });
-      };
-    },
-    [state.selectedLanguage, setState]
-  );
-
-  const valueForTranslationJSON = useCallback(
-    (key: string) => {
-      const specifier: ResourceSpecifier = {
-        def: RESOURCE_TRANSLATION_JSON,
-        locale: state.selectedLanguage,
-      };
-      const resource = state.resources[specifierId(specifier)];
-      if (resource == null) {
-        return "";
+    const lightTheme = useMemo(() => {
+      let lightTheme = null;
+      for (const r of Object.values(state.resources)) {
+        if (
+          r != null &&
+          r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS
+        ) {
+          const root = parse(r.value);
+          lightTheme = getLightTheme(root.nodes);
+        }
       }
-      const jsonValue = JSON.parse(resource.value);
-      return jsonValue[key] ?? "";
-    },
-    [state.selectedLanguage, state.resources]
-  );
 
-  const onChangeForTranslationJSON = useCallback(
-    (key: string) => {
-      const specifier: ResourceSpecifier = {
-        def: RESOURCE_TRANSLATION_JSON,
-        locale: state.selectedLanguage,
-      };
-      return (
-        _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-        value?: string
-      ) => {
-        if (value == null) {
-          return;
+      return lightTheme;
+    }, [state.resources]);
+
+    const darkTheme = useMemo(() => {
+      let darkTheme = null;
+      for (const r of Object.values(state.resources)) {
+        if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
+          const root = parse(r.value);
+          darkTheme = getDarkTheme(root.nodes);
         }
+      }
+      return darkTheme;
+    }, [state.resources]);
+
+    const lightBannerConfiguration = useMemo(() => {
+      let bannerConfiguration = null;
+      for (const r of Object.values(state.resources)) {
+        if (
+          r != null &&
+          r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS
+        ) {
+          const root = parse(r.value);
+          bannerConfiguration = getLightBannerConfiguration(root.nodes);
+        }
+      }
+      return bannerConfiguration;
+    }, [state.resources]);
+
+    const darkBannerConfiguration = useMemo(() => {
+      let bannerConfiguration = null;
+      for (const r of Object.values(state.resources)) {
+        if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
+          const root = parse(r.value);
+          bannerConfiguration = getDarkBannerConfiguration(root.nodes);
+        }
+      }
+      return bannerConfiguration;
+    }, [state.resources]);
+
+    const setLightThemeAndBannerConfiguration = useCallback(
+      (
+        newLightTheme: LightTheme | null,
+        bannerConfiguration: BannerConfiguration | null
+      ) => {
         setState((prev) => {
-          const updatedResources = { ...prev.resources };
-          const oldResource = prev.resources[specifierId(specifier)];
-          if (oldResource == null) {
-            return prev;
-          }
-          const jsonValue = JSON.parse(oldResource.value);
-          jsonValue[key] = value;
-          updatedResources[specifierId(specifier)] = {
-            ...oldResource,
-            value: JSON.stringify(jsonValue, null, 2),
+          const specifier: ResourceSpecifier = {
+            def: RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
+            locale: state.selectedLanguage,
           };
-          return { ...prev, resources: updatedResources };
+          const updatedResources = { ...prev.resources };
+          const root = new Root();
+          if (newLightTheme != null) {
+            addLightTheme(root, newLightTheme);
+          }
+          if (bannerConfiguration != null) {
+            addLightBannerConfiguration(root, bannerConfiguration);
+          }
+          const css = root.toResult().css;
+          const newResource: Resource = {
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {
+              locale: specifier.locale,
+            }),
+            value: css,
+          };
+          updatedResources[specifierId(newResource.specifier)] = newResource;
+          return {
+            ...prev,
+            resources: updatedResources,
+          };
         });
-      };
-    },
-    [state.selectedLanguage, setState]
-  );
+      },
+      [setState, state.selectedLanguage]
+    );
 
-  const valueForState = useCallback(
-    (key: keyof PropertyNames) => {
-      return state[key];
-    },
-    [state]
-  );
-
-  const onChangeForState = useCallback(
-    (key: keyof PropertyNames) => {
-      return (
-        _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
-        value?: string
+    const setDarkThemeAndBannerConfiguration = useCallback(
+      (
+        newDarkTheme: DarkTheme | null,
+        bannerConfiguration: BannerConfiguration | null
       ) => {
-        if (value == null) {
-          return;
+        setState((prev) => {
+          const specifier: ResourceSpecifier = {
+            def: RESOURCE_AUTHGEAR_DARK_THEME_CSS,
+            locale: state.selectedLanguage,
+          };
+          const updatedResources = { ...prev.resources };
+          const root = new Root();
+          if (newDarkTheme != null) {
+            addDarkTheme(root, newDarkTheme);
+          }
+          if (bannerConfiguration != null) {
+            addDarkBannerConfiguration(root, bannerConfiguration);
+          }
+          const css = root.toResult().css;
+          const newResource: Resource = {
+            specifier,
+            path: renderPath(specifier.def.resourcePath, {
+              locale: specifier.locale,
+            }),
+            value: css,
+          };
+          updatedResources[specifierId(newResource.specifier)] = newResource;
+          return {
+            ...prev,
+            resources: updatedResources,
+          };
+        });
+      },
+      [setState, state.selectedLanguage]
+    );
+
+    const setLightTheme = useCallback(
+      (newLightTheme: LightTheme) => {
+        setLightThemeAndBannerConfiguration(
+          newLightTheme,
+          lightBannerConfiguration
+        );
+      },
+      [lightBannerConfiguration, setLightThemeAndBannerConfiguration]
+    );
+
+    const setLightBannerConfiguration = useCallback(
+      (bannerConfiguration: BannerConfiguration) => {
+        setLightThemeAndBannerConfiguration(lightTheme, bannerConfiguration);
+      },
+      [lightTheme, setLightThemeAndBannerConfiguration]
+    );
+
+    const setDarkTheme = useCallback(
+      (newDarkTheme: DarkTheme) => {
+        setDarkThemeAndBannerConfiguration(
+          newDarkTheme,
+          darkBannerConfiguration
+        );
+      },
+      [darkBannerConfiguration, setDarkThemeAndBannerConfiguration]
+    );
+
+    const setDarkBannerConfiguration = useCallback(
+      (bannerConfiguration: BannerConfiguration) => {
+        setDarkThemeAndBannerConfiguration(darkTheme, bannerConfiguration);
+      },
+      [darkTheme, setDarkThemeAndBannerConfiguration]
+    );
+
+    const getOnChangeLightThemeColor = useCallback(
+      (key: keyof LightTheme) => {
+        return (color: string) => {
+          const newLightTheme: LightTheme = {
+            ...(lightTheme ?? DEFAULT_LIGHT_THEME),
+            [key]: color,
+          };
+          setLightTheme(newLightTheme);
+        };
+      },
+      [lightTheme, setLightTheme]
+    );
+
+    const getOnChangeDarkThemeColor = useCallback(
+      (key: keyof DarkTheme) => {
+        return (color: string) => {
+          const newDarkTheme: DarkTheme = {
+            ...(darkTheme ?? DEFAULT_DARK_THEME),
+            [key]: color,
+          };
+          setDarkTheme(newDarkTheme);
+        };
+      },
+      [darkTheme, setDarkTheme]
+    );
+
+    const onChangeLightModePrimaryColor =
+      getOnChangeLightThemeColor("primaryColor");
+    const onChangeLightModeTextColor = getOnChangeLightThemeColor("textColor");
+    const onChangeLightModeBackgroundColor =
+      getOnChangeLightThemeColor("backgroundColor");
+    const onChangeDarkModePrimaryColor =
+      getOnChangeDarkThemeColor("primaryColor");
+    const onChangeDarkModeTextColor = getOnChangeDarkThemeColor("textColor");
+    const onChangeDarkModeBackgroundColor =
+      getOnChangeDarkThemeColor("backgroundColor");
+
+    const onChangeDarkModeEnabled = useCallback(
+      (enabled) => {
+        if (enabled) {
+          // Become enabled, copy the light theme with text color and background color swapped.
+          const base = lightTheme ?? DEFAULT_LIGHT_THEME;
+          const newDarkTheme: DarkTheme = {
+            isDarkTheme: true,
+            primaryColor: base.primaryColor,
+            textColor: base.backgroundColor,
+            backgroundColor: base.textColor,
+          };
+          setDarkTheme(newDarkTheme);
         }
+
         setState((prev) => {
           return {
             ...prev,
-            [key]: value,
+            darkThemeDisabled: !enabled,
           };
         });
-      };
-    },
-    [setState]
-  );
+      },
+      [setState, lightTheme, setDarkTheme]
+    );
 
-  const lightTheme = useMemo(() => {
-    let lightTheme = null;
-    for (const r of Object.values(state.resources)) {
-      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS) {
-        const root = parse(r.value);
-        lightTheme = getLightTheme(root.nodes);
-      }
-    }
-
-    return lightTheme;
-  }, [state.resources]);
-
-  const darkTheme = useMemo(() => {
-    let darkTheme = null;
-    for (const r of Object.values(state.resources)) {
-      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
-        const root = parse(r.value);
-        darkTheme = getDarkTheme(root.nodes);
-      }
-    }
-    return darkTheme;
-  }, [state.resources]);
-
-  const lightBannerConfiguration = useMemo(() => {
-    let bannerConfiguration = null;
-    for (const r of Object.values(state.resources)) {
-      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS) {
-        const root = parse(r.value);
-        bannerConfiguration = getLightBannerConfiguration(root.nodes);
-      }
-    }
-    return bannerConfiguration;
-  }, [state.resources]);
-
-  const darkBannerConfiguration = useMemo(() => {
-    let bannerConfiguration = null;
-    for (const r of Object.values(state.resources)) {
-      if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
-        const root = parse(r.value);
-        bannerConfiguration = getDarkBannerConfiguration(root.nodes);
-      }
-    }
-    return bannerConfiguration;
-  }, [state.resources]);
-
-  const setLightThemeAndBannerConfiguration = useCallback(
-    (
-      newLightTheme: LightTheme | null,
-      bannerConfiguration: BannerConfiguration | null
-    ) => {
-      setState((prev) => {
-        const specifier: ResourceSpecifier = {
-          def: RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
-          locale: state.selectedLanguage,
-        };
-        const updatedResources = { ...prev.resources };
-        const root = new Root();
-        if (newLightTheme != null) {
-          addLightTheme(root, newLightTheme);
-        }
-        if (bannerConfiguration != null) {
-          addLightBannerConfiguration(root, bannerConfiguration);
-        }
-        const css = root.toResult().css;
-        const newResource: Resource = {
-          specifier,
-          path: renderPath(specifier.def.resourcePath, {
-            locale: specifier.locale,
-          }),
-          value: css,
-        };
-        updatedResources[specifierId(newResource.specifier)] = newResource;
-        return {
-          ...prev,
-          resources: updatedResources,
-        };
-      });
-    },
-    [setState, state.selectedLanguage]
-  );
-
-  const setDarkThemeAndBannerConfiguration = useCallback(
-    (
-      newDarkTheme: DarkTheme | null,
-      bannerConfiguration: BannerConfiguration | null
-    ) => {
-      setState((prev) => {
-        const specifier: ResourceSpecifier = {
-          def: RESOURCE_AUTHGEAR_DARK_THEME_CSS,
-          locale: state.selectedLanguage,
-        };
-        const updatedResources = { ...prev.resources };
-        const root = new Root();
-        if (newDarkTheme != null) {
-          addDarkTheme(root, newDarkTheme);
-        }
-        if (bannerConfiguration != null) {
-          addDarkBannerConfiguration(root, bannerConfiguration);
-        }
-        const css = root.toResult().css;
-        const newResource: Resource = {
-          specifier,
-          path: renderPath(specifier.def.resourcePath, {
-            locale: specifier.locale,
-          }),
-          value: css,
-        };
-        updatedResources[specifierId(newResource.specifier)] = newResource;
-        return {
-          ...prev,
-          resources: updatedResources,
-        };
-      });
-    },
-    [setState, state.selectedLanguage]
-  );
-
-  const setLightTheme = useCallback(
-    (newLightTheme: LightTheme) => {
-      setLightThemeAndBannerConfiguration(
-        newLightTheme,
-        lightBannerConfiguration
-      );
-    },
-    [lightBannerConfiguration, setLightThemeAndBannerConfiguration]
-  );
-
-  const setLightBannerConfiguration = useCallback(
-    (bannerConfiguration: BannerConfiguration) => {
-      setLightThemeAndBannerConfiguration(lightTheme, bannerConfiguration);
-    },
-    [lightTheme, setLightThemeAndBannerConfiguration]
-  );
-
-  const setDarkTheme = useCallback(
-    (newDarkTheme: DarkTheme) => {
-      setDarkThemeAndBannerConfiguration(newDarkTheme, darkBannerConfiguration);
-    },
-    [darkBannerConfiguration, setDarkThemeAndBannerConfiguration]
-  );
-
-  const setDarkBannerConfiguration = useCallback(
-    (bannerConfiguration: BannerConfiguration) => {
-      setDarkThemeAndBannerConfiguration(darkTheme, bannerConfiguration);
-    },
-    [darkTheme, setDarkThemeAndBannerConfiguration]
-  );
-
-  const getOnChangeLightThemeColor = useCallback(
-    (key: keyof LightTheme) => {
-      return (color: string) => {
-        const newLightTheme: LightTheme = {
-          ...(lightTheme ?? DEFAULT_LIGHT_THEME),
-          [key]: color,
-        };
-        setLightTheme(newLightTheme);
-      };
-    },
-    [lightTheme, setLightTheme]
-  );
-
-  const getOnChangeDarkThemeColor = useCallback(
-    (key: keyof DarkTheme) => {
-      return (color: string) => {
-        const newDarkTheme: DarkTheme = {
-          ...(darkTheme ?? DEFAULT_DARK_THEME),
-          [key]: color,
-        };
-        setDarkTheme(newDarkTheme);
-      };
-    },
-    [darkTheme, setDarkTheme]
-  );
-
-  const onChangeLightModePrimaryColor = getOnChangeLightThemeColor(
-    "primaryColor"
-  );
-  const onChangeLightModeTextColor = getOnChangeLightThemeColor("textColor");
-  const onChangeLightModeBackgroundColor = getOnChangeLightThemeColor(
-    "backgroundColor"
-  );
-  const onChangeDarkModePrimaryColor = getOnChangeDarkThemeColor(
-    "primaryColor"
-  );
-  const onChangeDarkModeTextColor = getOnChangeDarkThemeColor("textColor");
-  const onChangeDarkModeBackgroundColor = getOnChangeDarkThemeColor(
-    "backgroundColor"
-  );
-
-  const onChangeDarkModeEnabled = useCallback(
-    (enabled) => {
-      if (enabled) {
-        // Become enabled, copy the light theme with text color and background color swapped.
-        const base = lightTheme ?? DEFAULT_LIGHT_THEME;
-        const newDarkTheme: DarkTheme = {
-          isDarkTheme: true,
-          primaryColor: base.primaryColor,
-          textColor: base.backgroundColor,
-          backgroundColor: base.textColor,
-        };
-        setDarkTheme(newDarkTheme);
-      }
-
-      setState((prev) => {
-        return {
-          ...prev,
-          darkThemeDisabled: !enabled,
-        };
-      });
-    },
-    [setState, lightTheme, setDarkTheme]
-  );
-
-  return (
-    <ScreenContent className={styles.root}>
-      <div className={styles.titleContainer}>
-        <ScreenTitle>
-          <FormattedMessage id="UISettingsScreen.title" />
-        </ScreenTitle>
-        <ManageLanguageWidget
-          supportedLanguages={supportedLanguages}
-          selectedLanguage={state.selectedLanguage}
-          fallbackLanguage={state.fallbackLanguage}
-          onChangeSelectedLanguage={setSelectedLanguage}
-          onChangeLanguages={onChangeLanguages}
+    return (
+      <ScreenContent className={styles.root}>
+        <div className={styles.titleContainer}>
+          <ScreenTitle>
+            <FormattedMessage id="UISettingsScreen.title" />
+          </ScreenTitle>
+          <ManageLanguageWidget
+            supportedLanguages={supportedLanguages}
+            selectedLanguage={state.selectedLanguage}
+            fallbackLanguage={state.fallbackLanguage}
+            onChangeSelectedLanguage={setSelectedLanguage}
+            onChangeLanguages={onChangeLanguages}
+          />
+        </div>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="UISettingsScreen.description" />
+        </ScreenDescription>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="UISettingsScreen.app-name-title" />
+          </WidgetTitle>
+          <TextField
+            className={styles.textField}
+            label={renderToString("UISettingsScreen.app-name-label")}
+            value={valueForTranslationJSON("app.name")}
+            onChange={onChangeForTranslationJSON("app.name")}
+          />
+        </Widget>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="UISettingsScreen.link-settings-title" />
+          </WidgetTitle>
+          <TextField
+            className={styles.textField}
+            label={renderToString("UISettingsScreen.privacy-policy-link-label")}
+            description={renderToString(
+              "UISettingsScreen.privacy-policy-link-description"
+            )}
+            value={valueForTranslationJSON("privacy-policy-link")}
+            onChange={onChangeForTranslationJSON("privacy-policy-link")}
+          />
+          <TextField
+            className={styles.textField}
+            label={renderToString(
+              "UISettingsScreen.terms-of-service-link-label"
+            )}
+            description={renderToString(
+              "UISettingsScreen.terms-of-service-link-description"
+            )}
+            value={valueForTranslationJSON("terms-of-service-link")}
+            onChange={onChangeForTranslationJSON("terms-of-service-link")}
+          />
+          <TextField
+            className={styles.textField}
+            label={renderToString("UISettingsScreen.default-client-uri-label")}
+            description={renderToString(
+              "UISettingsScreen.default-client-uri-description"
+            )}
+            value={valueForState("default_client_uri")}
+            onChange={onChangeForState("default_client_uri")}
+          />
+          <TextField
+            className={styles.textField}
+            label={renderToString(
+              "UISettingsScreen.default-redirect-uri-label"
+            )}
+            description={renderToString(
+              "UISettingsScreen.default-redirect-uri-description"
+            )}
+            value={valueForState("default_redirect_uri")}
+            onChange={onChangeForState("default_redirect_uri")}
+          />
+          <TextField
+            className={styles.textField}
+            label={renderToString(
+              "UISettingsScreen.default-post-logout-redirect-uri-label"
+            )}
+            description={renderToString(
+              "UISettingsScreen.default-post-logout-redirect-uri-description"
+            )}
+            value={valueForState("default_post_logout_redirect_uri")}
+            onChange={onChangeForState("default_post_logout_redirect_uri")}
+          />
+        </Widget>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="UISettingsScreen.favicon-title" />
+          </WidgetTitle>
+          <ImageFilePicker
+            className={styles.faviconImagePicker}
+            base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
+            onChange={getOnChangeImage(RESOURCE_FAVICON)}
+          />
+        </Widget>
+        <ThemeConfigurationWidget
+          className={styles.widget}
+          darkTheme={darkTheme}
+          lightTheme={lightTheme}
+          isDarkMode={false}
+          darkModeEnabled={false}
+          appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
+          onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO)}
+          onChangeDarkModeEnabled={NOOP}
+          onChangeLightTheme={setLightTheme}
+          onChangeDarkTheme={setDarkTheme}
+          onChangePrimaryColor={onChangeLightModePrimaryColor}
+          onChangeTextColor={onChangeLightModeTextColor}
+          onChangeBackgroundColor={onChangeLightModeBackgroundColor}
+          bannerConfiguration={lightBannerConfiguration}
+          onChangeBannerConfiguration={setLightBannerConfiguration}
         />
-      </div>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="UISettingsScreen.description" />
-      </ScreenDescription>
-      <Widget className={styles.widget}>
-        <WidgetTitle>
-          <FormattedMessage id="UISettingsScreen.app-name-title" />
-        </WidgetTitle>
-        <TextField
-          className={styles.textField}
-          label={renderToString("UISettingsScreen.app-name-label")}
-          value={valueForTranslationJSON("app.name")}
-          onChange={onChangeForTranslationJSON("app.name")}
+        <ThemeConfigurationWidget
+          className={styles.widget}
+          darkTheme={darkTheme}
+          lightTheme={lightTheme}
+          isDarkMode={true}
+          darkModeEnabled={!state.darkThemeDisabled}
+          appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO_DARK)}
+          onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO_DARK)}
+          onChangeLightTheme={setLightTheme}
+          onChangeDarkTheme={setDarkTheme}
+          onChangeDarkModeEnabled={onChangeDarkModeEnabled}
+          onChangePrimaryColor={onChangeDarkModePrimaryColor}
+          onChangeTextColor={onChangeDarkModeTextColor}
+          onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
+          bannerConfiguration={darkBannerConfiguration}
+          onChangeBannerConfiguration={setDarkBannerConfiguration}
         />
-      </Widget>
-      <Widget className={styles.widget}>
-        <WidgetTitle>
-          <FormattedMessage id="UISettingsScreen.link-settings-title" />
-        </WidgetTitle>
-        <TextField
-          className={styles.textField}
-          label={renderToString("UISettingsScreen.privacy-policy-link-label")}
-          description={renderToString(
-            "UISettingsScreen.privacy-policy-link-description"
-          )}
-          value={valueForTranslationJSON("privacy-policy-link")}
-          onChange={onChangeForTranslationJSON("privacy-policy-link")}
-        />
-        <TextField
-          className={styles.textField}
-          label={renderToString("UISettingsScreen.terms-of-service-link-label")}
-          description={renderToString(
-            "UISettingsScreen.terms-of-service-link-description"
-          )}
-          value={valueForTranslationJSON("terms-of-service-link")}
-          onChange={onChangeForTranslationJSON("terms-of-service-link")}
-        />
-        <TextField
-          className={styles.textField}
-          label={renderToString("UISettingsScreen.default-client-uri-label")}
-          description={renderToString(
-            "UISettingsScreen.default-client-uri-description"
-          )}
-          value={valueForState("default_client_uri")}
-          onChange={onChangeForState("default_client_uri")}
-        />
-        <TextField
-          className={styles.textField}
-          label={renderToString("UISettingsScreen.default-redirect-uri-label")}
-          description={renderToString(
-            "UISettingsScreen.default-redirect-uri-description"
-          )}
-          value={valueForState("default_redirect_uri")}
-          onChange={onChangeForState("default_redirect_uri")}
-        />
-        <TextField
-          className={styles.textField}
-          label={renderToString(
-            "UISettingsScreen.default-post-logout-redirect-uri-label"
-          )}
-          description={renderToString(
-            "UISettingsScreen.default-post-logout-redirect-uri-description"
-          )}
-          value={valueForState("default_post_logout_redirect_uri")}
-          onChange={onChangeForState("default_post_logout_redirect_uri")}
-        />
-      </Widget>
-      <Widget className={styles.widget}>
-        <WidgetTitle>
-          <FormattedMessage id="UISettingsScreen.favicon-title" />
-        </WidgetTitle>
-        <ImageFilePicker
-          className={styles.faviconImagePicker}
-          base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
-          onChange={getOnChangeImage(RESOURCE_FAVICON)}
-        />
-      </Widget>
-      <ThemeConfigurationWidget
-        className={styles.widget}
-        darkTheme={darkTheme}
-        lightTheme={lightTheme}
-        isDarkMode={false}
-        darkModeEnabled={false}
-        appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
-        onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO)}
-        onChangeDarkModeEnabled={NOOP}
-        onChangeLightTheme={setLightTheme}
-        onChangeDarkTheme={setDarkTheme}
-        onChangePrimaryColor={onChangeLightModePrimaryColor}
-        onChangeTextColor={onChangeLightModeTextColor}
-        onChangeBackgroundColor={onChangeLightModeBackgroundColor}
-        bannerConfiguration={lightBannerConfiguration}
-        onChangeBannerConfiguration={setLightBannerConfiguration}
-      />
-      <ThemeConfigurationWidget
-        className={styles.widget}
-        darkTheme={darkTheme}
-        lightTheme={lightTheme}
-        isDarkMode={true}
-        darkModeEnabled={!state.darkThemeDisabled}
-        appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO_DARK)}
-        onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO_DARK)}
-        onChangeLightTheme={setLightTheme}
-        onChangeDarkTheme={setDarkTheme}
-        onChangeDarkModeEnabled={onChangeDarkModeEnabled}
-        onChangePrimaryColor={onChangeDarkModePrimaryColor}
-        onChangeTextColor={onChangeDarkModeTextColor}
-        onChangeBackgroundColor={onChangeDarkModeBackgroundColor}
-        bannerConfiguration={darkBannerConfiguration}
-        onChangeBannerConfiguration={setDarkBannerConfiguration}
-      />
-    </ScreenContent>
-  );
-};
+      </ScreenContent>
+    );
+  };
 
 const UISettingsScreen: React.FC = function UISettingsScreen() {
   const { appID } = useParams();
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageTag | null>(
-    null
-  );
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<LanguageTag | null>(null);
 
   const config = useAppConfigForm(
     appID,

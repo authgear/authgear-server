@@ -46,9 +46,8 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   const availableLoginIdIdentities = useMemo(() => {
     const authenticationIdentities =
       appConfig?.authentication?.identities ?? [];
-    const loginIdIdentityEnabled = authenticationIdentities.includes(
-      "login_id"
-    );
+    const loginIdIdentityEnabled =
+      authenticationIdentities.includes("login_id");
     if (!loginIdIdentityEnabled) {
       return [];
     }

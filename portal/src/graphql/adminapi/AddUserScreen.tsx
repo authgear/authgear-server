@@ -210,17 +210,15 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
     );
   }, [phone, onPhoneChange]);
 
-  const textFieldRenderer: Record<
-    LoginIDKeyType,
-    () => React.ReactNode
-  > = useMemo(
-    () => ({
-      username: renderUsernameField,
-      email: renderEmailField,
-      phone: renderPhoneField,
-    }),
-    [renderUsernameField, renderEmailField, renderPhoneField]
-  );
+  const textFieldRenderer: Record<LoginIDKeyType, () => React.ReactNode> =
+    useMemo(
+      () => ({
+        username: renderUsernameField,
+        email: renderEmailField,
+        phone: renderPhoneField,
+      }),
+      [renderUsernameField, renderEmailField, renderPhoneField]
+    );
 
   const loginIdTypeOptions: IChoiceGroupOption[] = useMemo(() => {
     return loginIDTypes.map((loginIdType) => {
@@ -288,9 +286,8 @@ const AddUserScreen: React.FC = function AddUserScreen() {
   const { appID } = useParams();
   const navigate = useNavigate();
 
-  const { effectiveAppConfig, loading, error, refetch } = useAppConfigQuery(
-    appID
-  );
+  const { effectiveAppConfig, loading, error, refetch } =
+    useAppConfigQuery(appID);
   const loginIDTypes = useMemo(
     () => getLoginIdTypeOptions(effectiveAppConfig),
     [effectiveAppConfig]

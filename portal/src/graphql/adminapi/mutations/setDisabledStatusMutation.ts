@@ -13,17 +13,13 @@ const setDisabledStatusMutation = gql`
   }
 `;
 
-export function useSetDisabledStatusMutation(
-  userID: string
-): {
+export function useSetDisabledStatusMutation(userID: string): {
   setDisabledStatus: (isDisabled: boolean) => Promise<boolean>;
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { loading, error },
-  ] = useMutation<SetDisabledStatusMutation>(setDisabledStatusMutation);
+  const [mutationFunction, { loading, error }] =
+    useMutation<SetDisabledStatusMutation>(setDisabledStatusMutation);
 
   const setDisabledStatus = useCallback(
     async (isDisabled: boolean) => {

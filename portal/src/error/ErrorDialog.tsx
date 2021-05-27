@@ -32,10 +32,10 @@ const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
     return parseAPIErrors(apiErrors, [], rules ?? [], fallbackErrorMessageID);
   }, [error, rules, fallbackErrorMessageID]);
 
-  const message = useMemo(() => renderErrors(null, topErrors, renderToString), [
-    topErrors,
-    renderToString,
-  ]);
+  const message = useMemo(
+    () => renderErrors(null, topErrors, renderToString),
+    [topErrors, renderToString]
+  );
 
   const [visible, setVisible] = useState(false);
 

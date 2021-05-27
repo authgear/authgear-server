@@ -28,30 +28,29 @@ export interface CommandBarContainerProps {
   messageBar?: React.ReactNode;
 }
 
-const CommandBarContainer: React.FC<CommandBarContainerProps> = function CommandBarContainer(
-  props
-) {
-  const { className, isLoading, items, farItems, messageBar } = props;
+const CommandBarContainer: React.FC<CommandBarContainerProps> =
+  function CommandBarContainer(props) {
+    const { className, isLoading, items, farItems, messageBar } = props;
 
-  return (
-    <div className={className}>
-      <div className={styles.header}>
-        <CommandBar
-          className={styles.commandBar}
-          items={items ?? []}
-          farItems={farItems}
-        />
-        {isLoading && (
-          <ProgressIndicator
-            className={styles.progressBar}
-            styles={progressIndicatorStyles}
+    return (
+      <div className={className}>
+        <div className={styles.header}>
+          <CommandBar
+            className={styles.commandBar}
+            items={items ?? []}
+            farItems={farItems}
           />
-        )}
-        {messageBar}
+          {isLoading && (
+            <ProgressIndicator
+              className={styles.progressBar}
+              styles={progressIndicatorStyles}
+            />
+          )}
+          {messageBar}
+        </div>
+        {props.children}
       </div>
-      {props.children}
-    </div>
-  );
-};
+    );
+  };
 
 export default CommandBarContainer;

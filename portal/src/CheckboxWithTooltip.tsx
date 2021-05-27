@@ -9,17 +9,19 @@ interface CheckboxWithTooltipProps extends ICheckboxProps {
   tooltipMessageId: string;
 }
 
-const CheckboxWithTooltip: React.FC<CheckboxWithTooltipProps> = function CheckboxWithTooltip(
-  props: CheckboxWithTooltipProps
-) {
-  const { tooltipMessageId, className, ...rest } = props;
+const CheckboxWithTooltip: React.FC<CheckboxWithTooltipProps> =
+  function CheckboxWithTooltip(props: CheckboxWithTooltipProps) {
+    const { tooltipMessageId, className, ...rest } = props;
 
-  return (
-    <div className={cn(styles.root, className)}>
-      <Checkbox {...rest} />
-      <Tooltip tooltipMessageId={tooltipMessageId} className={styles.tooltip} />
-    </div>
-  );
-};
+    return (
+      <div className={cn(styles.root, className)}>
+        <Checkbox {...rest} />
+        <Tooltip
+          tooltipMessageId={tooltipMessageId}
+          className={styles.tooltip}
+        />
+      </div>
+    );
+  };
 
 export default CheckboxWithTooltip;

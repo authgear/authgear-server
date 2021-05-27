@@ -35,12 +35,13 @@ export const RESOURCE_SETUP_PRIMARY_OOB_SMS_TXT: ResourceDefinition = {
   usesEffectiveDataAsFallbackValue: true,
 };
 
-export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML: ResourceDefinition = {
-  resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.html`,
-  type: "text",
-  extensions: [],
-  usesEffectiveDataAsFallbackValue: true,
-};
+export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML: ResourceDefinition =
+  {
+    resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.html`,
+    type: "text",
+    extensions: [],
+    usesEffectiveDataAsFallbackValue: true,
+  };
 export const RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/messages/authenticate_primary_oob_email.txt`,
   type: "text",

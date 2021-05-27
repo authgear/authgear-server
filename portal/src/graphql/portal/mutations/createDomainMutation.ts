@@ -32,19 +32,15 @@ const createDomainMutation = gql`
   }
 `;
 
-export function useCreateDomainMutation(
-  appID: string
-): {
+export function useCreateDomainMutation(appID: string): {
   createDomain: (domain: string) => Promise<boolean>;
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { error, loading },
-  ] = useMutation<CreateDomainMutation>(createDomainMutation, {
-    client,
-  });
+  const [mutationFunction, { error, loading }] =
+    useMutation<CreateDomainMutation>(createDomainMutation, {
+      client,
+    });
   const createDomain = useCallback(
     async (domain: string) => {
       const result = await mutationFunction({

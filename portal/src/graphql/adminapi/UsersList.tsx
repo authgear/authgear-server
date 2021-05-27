@@ -136,13 +136,10 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
     },
   ];
 
-  const [isDisableUserDialogHidden, setIsDisableUserDialogHidden] = useState(
-    true
-  );
-  const [
-    disableUserDialogData,
-    setDisableUserDialogData,
-  ] = useState<DisableUserDialogData | null>(null);
+  const [isDisableUserDialogHidden, setIsDisableUserDialogHidden] =
+    useState(true);
+  const [disableUserDialogData, setDisableUserDialogData] =
+    useState<DisableUserDialogData | null>(null);
 
   // TODO: consider update UI design to allow multiple email, username and phone number
   const items: UserListItem[] = useMemo(() => {

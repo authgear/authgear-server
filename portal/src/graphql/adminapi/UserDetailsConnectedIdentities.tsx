@@ -252,183 +252,159 @@ const VerifyButton: React.FC<VerifyButtonProps> = function VerifyButton(
   );
 };
 
-const IdentityListCell: React.FC<IdentityListCellProps> = function IdentityListCell(
-  props: IdentityListCellProps
-) {
-  const {
-    identityID,
-    identityType,
-    icon,
-    claimName,
-    claimValue,
-    identityName,
-    connectedOn,
-    verified,
-    setVerifiedStatus,
-    onRemoveClicked: _onRemoveClicked,
-  } = props;
+const IdentityListCell: React.FC<IdentityListCellProps> =
+  function IdentityListCell(props: IdentityListCellProps) {
+    const {
+      identityID,
+      identityType,
+      icon,
+      claimName,
+      claimValue,
+      identityName,
+      connectedOn,
+      verified,
+      setVerifiedStatus,
+      onRemoveClicked: _onRemoveClicked,
+    } = props;
 
-  const { themes } = useSystemConfig();
-  const { settingVerifiedStatus } = useContext(
-    ConnectedIdentitiesMutationLoadingContext
-  );
-  const [verifying, setVerifying] = useState(false);
-  const onRemoveClicked = useCallback(() => {
-    _onRemoveClicked(identityID, identityName);
-  }, [identityID, identityName, _onRemoveClicked]);
+    const { themes } = useSystemConfig();
+    const { settingVerifiedStatus } = useContext(
+      ConnectedIdentitiesMutationLoadingContext
+    );
+    const [verifying, setVerifying] = useState(false);
+    const onRemoveClicked = useCallback(() => {
+      _onRemoveClicked(identityID, identityName);
+    }, [identityID, identityName, _onRemoveClicked]);
 
-  const onVerifyClicked = useCallback(
-    (verified: boolean) => {
-      if (claimName === undefined || claimValue === undefined) {
-        return;
-      }
-      setVerifying(true);
-      setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
-        setVerifying(false);
-      });
-    },
-    [setVerifiedStatus, claimName, claimValue]
-  );
+    const onVerifyClicked = useCallback(
+      (verified: boolean) => {
+        if (claimName === undefined || claimValue === undefined) {
+          return;
+        }
+        setVerifying(true);
+        setVerifiedStatus?.(claimName, claimValue, verified).finally(() => {
+          setVerifying(false);
+        });
+      },
+      [setVerifiedStatus, claimName, claimValue]
+    );
 
-  return (
-    <ListCellLayout className={styles.cellContainer}>
-      <div className={styles.cellIcon}>{icon}</div>
-      <Text className={styles.cellName}>{identityName}</Text>
-      {verified != null && (
-        <>
-          {verified ? (
-            <Text className={styles.cellDescVerified}>
-              <FormattedMessage id="verified" />
-            </Text>
-          ) : (
-            <Text className={styles.cellDescUnverified}>
-              <FormattedMessage id="unverified" />
-            </Text>
+    return (
+      <ListCellLayout className={styles.cellContainer}>
+        <div className={styles.cellIcon}>{icon}</div>
+        <Text className={styles.cellName}>{identityName}</Text>
+        {verified != null && (
+          <>
+            {verified ? (
+              <Text className={styles.cellDescVerified}>
+                <FormattedMessage id="verified" />
+              </Text>
+            ) : (
+              <Text className={styles.cellDescUnverified}>
+                <FormattedMessage id="unverified" />
+              </Text>
+            )}
+            <Text className={styles.cellDescSeparator}>{" | "}</Text>
+          </>
+        )}
+        <Text className={styles.cellDesc}>
+          {identityType === "oauth" && (
+            <FormattedMessage
+              id="UserDetails.connected-identities.connected-on"
+              values={{ datetime: connectedOn }}
+            />
           )}
-          <Text className={styles.cellDescSeparator}>{" | "}</Text>
-        </>
-      )}
-      <Text className={styles.cellDesc}>
-        {identityType === "oauth" && (
-          <FormattedMessage
-            id="UserDetails.connected-identities.connected-on"
-            values={{ datetime: connectedOn }}
+          {identityType === "login_id" && (
+            <FormattedMessage
+              id="UserDetails.connected-identities.added-on"
+              values={{ datetime: connectedOn }}
+            />
+          )}
+          {identityType === "biometric" && (
+            <FormattedMessage
+              id="UserDetails.connected-identities.added-on"
+              values={{ datetime: connectedOn }}
+            />
+          )}
+        </Text>
+        {verified != null && setVerifiedStatus != null && (
+          <VerifyButton
+            verified={verified}
+            verifying={verifying}
+            toggleVerified={onVerifyClicked}
           />
         )}
-        {identityType === "login_id" && (
-          <FormattedMessage
-            id="UserDetails.connected-identities.added-on"
-            values={{ datetime: connectedOn }}
-          />
-        )}
-        {identityType === "biometric" && (
-          <FormattedMessage
-            id="UserDetails.connected-identities.added-on"
-            values={{ datetime: connectedOn }}
-          />
-        )}
-      </Text>
-      {verified != null && setVerifiedStatus != null && (
-        <VerifyButton
-          verified={verified}
-          verifying={verifying}
-          toggleVerified={onVerifyClicked}
-        />
-      )}
-      <DefaultButton
-        className={cn(styles.controlButton, styles.removeButton)}
-        disabled={settingVerifiedStatus}
-        theme={themes.destructive}
-        onClick={onRemoveClicked}
-      >
-        <FormattedMessage id={removeButtonTextId[identityType]} />
-      </DefaultButton>
-    </ListCellLayout>
-  );
-};
+        <DefaultButton
+          className={cn(styles.controlButton, styles.removeButton)}
+          disabled={settingVerifiedStatus}
+          theme={themes.destructive}
+          onClick={onRemoveClicked}
+        >
+          <FormattedMessage id={removeButtonTextId[identityType]} />
+        </DefaultButton>
+      </ListCellLayout>
+    );
+  };
 
-const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesProps> = function UserDetailsConnectedIdentities(
-  props: UserDetailsConnectedIdentitiesProps
-) {
-  const { identities, verifiedClaims, availableLoginIdIdentities } = props;
-  const { locale, renderToString } = useContext(Context);
+const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesProps> =
+  function UserDetailsConnectedIdentities(
+    props: UserDetailsConnectedIdentitiesProps
+  ) {
+    const { identities, verifiedClaims, availableLoginIdIdentities } = props;
+    const { locale, renderToString } = useContext(Context);
 
-  const { userID } = useParams();
-  const navigate = useNavigate();
+    const { userID } = useParams();
+    const navigate = useNavigate();
 
-  /* TODO: implement save primary identities
+    /* TODO: implement save primary identities
   const [remountIdentifier, setRemountIdentifier] = useState(0);
   const resetForm = useCallback(() => {
     setRemountIdentifier((prev) => prev + 1);
   }, []);
   */
 
-  const {
-    deleteIdentity,
-    loading: deletingIdentity,
-    error: deleteIdentityError,
-  } = useDeleteIdentityMutation();
-  const {
-    setVerifiedStatus,
-    loading: settingVerifiedStatus,
-    error: setVerifiedStatusError,
-  } = useSetVerifiedStatusMutation(userID);
+    const {
+      deleteIdentity,
+      loading: deletingIdentity,
+      error: deleteIdentityError,
+    } = useDeleteIdentityMutation();
+    const {
+      setVerifiedStatus,
+      loading: settingVerifiedStatus,
+      error: setVerifiedStatusError,
+    } = useSetVerifiedStatusMutation(userID);
 
-  const [
-    isConfirmationDialogVisible,
-    setIsConfirmationDialogVisible,
-  ] = useState(false);
+    const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
+      useState(false);
 
-  const [
-    confirmationDialogData,
-    setConfirmationDialogData,
-  ] = useState<ConfirmationDialogData>({
-    identityID: "",
-    identityName: "",
-  });
+    const [confirmationDialogData, setConfirmationDialogData] =
+      useState<ConfirmationDialogData>({
+        identityID: "",
+        identityName: "",
+      });
 
-  const identityLists: IdentityLists = useMemo(() => {
-    const oauthIdentityList: OAuthIdentityListItem[] = [];
-    const emailIdentityList: LoginIDIdentityListItem[] = [];
-    const phoneIdentityList: LoginIDIdentityListItem[] = [];
-    const usernameIdentityList: LoginIDIdentityListItem[] = [];
-    const biometricIdentityList: BiometricIdentityListItem[] = [];
+    const identityLists: IdentityLists = useMemo(() => {
+      const oauthIdentityList: OAuthIdentityListItem[] = [];
+      const emailIdentityList: LoginIDIdentityListItem[] = [];
+      const phoneIdentityList: LoginIDIdentityListItem[] = [];
+      const usernameIdentityList: LoginIDIdentityListItem[] = [];
+      const biometricIdentityList: BiometricIdentityListItem[] = [];
 
-    for (const identity of identities) {
-      const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
-      if (identity.type === "OAUTH") {
-        const providerType = identity.claims[
-          "https://authgear.com/claims/oauth/provider_type"
-        ]!;
+      for (const identity of identities) {
+        const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
+        if (identity.type === "OAUTH") {
+          const providerType =
+            identity.claims["https://authgear.com/claims/oauth/provider_type"]!;
 
-        const claimName = "email";
-        const claimValue = identity.claims.email!;
-
-        oauthIdentityList.push({
-          id: identity.id,
-          type: "oauth",
-          claimName,
-          claimValue,
-          providerType: providerType,
-          verified: checkIsClaimVerified(verifiedClaims, claimName, claimValue),
-          connectedOn: createdAtStr,
-        });
-      }
-
-      if (identity.type === "LOGIN_ID") {
-        if (
-          identity.claims["https://authgear.com/claims/login_id/type"] ===
-          "email"
-        ) {
           const claimName = "email";
           const claimValue = identity.claims.email!;
 
-          emailIdentityList.push({
+          oauthIdentityList.push({
             id: identity.id,
-            type: "login_id",
-            loginIDKey: "email",
+            type: "oauth",
             claimName,
             claimValue,
+            providerType: providerType,
             verified: checkIsClaimVerified(
               verifiedClaims,
               claimName,
@@ -438,285 +414,308 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           });
         }
 
-        if (
-          identity.claims["https://authgear.com/claims/login_id/type"] ===
-          "phone"
-        ) {
-          const claimName = "phone_number";
-          const claimValue = identity.claims.phone_number!;
+        if (identity.type === "LOGIN_ID") {
+          if (
+            identity.claims["https://authgear.com/claims/login_id/type"] ===
+            "email"
+          ) {
+            const claimName = "email";
+            const claimValue = identity.claims.email!;
 
-          phoneIdentityList.push({
-            id: identity.id,
-            type: "login_id",
-            loginIDKey: "phone",
-            claimName,
-            claimValue,
-            verified: checkIsClaimVerified(
-              verifiedClaims,
+            emailIdentityList.push({
+              id: identity.id,
+              type: "login_id",
+              loginIDKey: "email",
               claimName,
-              claimValue
-            ),
-            connectedOn: createdAtStr,
-          });
+              claimValue,
+              verified: checkIsClaimVerified(
+                verifiedClaims,
+                claimName,
+                claimValue
+              ),
+              connectedOn: createdAtStr,
+            });
+          }
+
+          if (
+            identity.claims["https://authgear.com/claims/login_id/type"] ===
+            "phone"
+          ) {
+            const claimName = "phone_number";
+            const claimValue = identity.claims.phone_number!;
+
+            phoneIdentityList.push({
+              id: identity.id,
+              type: "login_id",
+              loginIDKey: "phone",
+              claimName,
+              claimValue,
+              verified: checkIsClaimVerified(
+                verifiedClaims,
+                claimName,
+                claimValue
+              ),
+              connectedOn: createdAtStr,
+            });
+          }
+
+          if (
+            identity.claims["https://authgear.com/claims/login_id/type"] ===
+            "username"
+          ) {
+            usernameIdentityList.push({
+              id: identity.id,
+              type: "login_id",
+              loginIDKey: "username",
+              claimName: "preferred_username",
+              claimValue: identity.claims.preferred_username!,
+              connectedOn: createdAtStr,
+            });
+          }
         }
 
-        if (
-          identity.claims["https://authgear.com/claims/login_id/type"] ===
-          "username"
-        ) {
-          usernameIdentityList.push({
+        if (identity.type === "BIOMETRIC") {
+          const info =
+            identity.claims[
+              "https://authgear.com/claims/biometric/formatted_device_info"
+            ];
+          const formattedDeviceInfo = typeof info === "string" ? info : "";
+          biometricIdentityList.push({
             id: identity.id,
-            type: "login_id",
-            loginIDKey: "username",
-            claimName: "preferred_username",
-            claimValue: identity.claims.preferred_username!,
+            type: "biometric",
             connectedOn: createdAtStr,
+            verified: undefined,
+            formattedDeviceInfo: formattedDeviceInfo,
           });
         }
       }
+      return {
+        oauth: oauthIdentityList,
+        email: emailIdentityList,
+        phone: phoneIdentityList,
+        username: usernameIdentityList,
+        biometric: biometricIdentityList,
+      };
+    }, [locale, identities, verifiedClaims]);
 
-      if (identity.type === "BIOMETRIC") {
-        const info =
-          identity.claims[
-            "https://authgear.com/claims/biometric/formatted_device_info"
-          ];
-        const formattedDeviceInfo = typeof info === "string" ? info : "";
-        biometricIdentityList.push({
-          id: identity.id,
-          type: "biometric",
-          connectedOn: createdAtStr,
-          verified: undefined,
-          formattedDeviceInfo: formattedDeviceInfo,
+    const onRemoveClicked = useCallback(
+      (identityID: string, identityName: string) => {
+        setConfirmationDialogData({
+          identityID,
+          identityName,
         });
-      }
-    }
-    return {
-      oauth: oauthIdentityList,
-      email: emailIdentityList,
-      phone: phoneIdentityList,
-      username: usernameIdentityList,
-      biometric: biometricIdentityList,
-    };
-  }, [locale, identities, verifiedClaims]);
+        setIsConfirmationDialogVisible(true);
+      },
+      [setConfirmationDialogData]
+    );
 
-  const onRemoveClicked = useCallback(
-    (identityID: string, identityName: string) => {
-      setConfirmationDialogData({
-        identityID,
-        identityName,
+    const onDismissConfirmationDialog = useCallback(() => {
+      if (!deletingIdentity) {
+        setIsConfirmationDialogVisible(false);
+      }
+    }, [deletingIdentity]);
+
+    const onConfirmRemoveIdentity = useCallback(() => {
+      const { identityID } = confirmationDialogData;
+      deleteIdentity(identityID).finally(() => {
+        onDismissConfirmationDialog();
       });
-      setIsConfirmationDialogVisible(true);
-    },
-    [setConfirmationDialogData]
-  );
+    }, [confirmationDialogData, deleteIdentity, onDismissConfirmationDialog]);
 
-  const onDismissConfirmationDialog = useCallback(() => {
-    if (!deletingIdentity) {
-      setIsConfirmationDialogVisible(false);
-    }
-  }, [deletingIdentity]);
+    const onRenderIdentityCell = useCallback(
+      (item?: IdentityListItem, _index?: number): React.ReactNode => {
+        if (item == null) {
+          return null;
+        }
 
-  const onConfirmRemoveIdentity = useCallback(() => {
-    const { identityID } = confirmationDialogData;
-    deleteIdentity(identityID).finally(() => {
-      onDismissConfirmationDialog();
-    });
-  }, [confirmationDialogData, deleteIdentity, onDismissConfirmationDialog]);
-
-  const onRenderIdentityCell = useCallback(
-    (item?: IdentityListItem, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-
-      const icon = getIcon(item);
-      return (
-        <IdentityListCell
-          identityID={item.id}
-          identityType={item.type}
-          icon={icon}
-          claimName={getClaimName(item)}
-          claimValue={getClaimValue(item)}
-          identityName={getIdentityName(item, renderToString)}
-          verified={item.verified}
-          connectedOn={item.connectedOn}
-          onRemoveClicked={onRemoveClicked}
-          setVerifiedStatus={setVerifiedStatus}
-        />
-      );
-    },
-    [onRemoveClicked, setVerifiedStatus, renderToString]
-  );
-
-  const addIdentitiesMenuProps: IContextualMenuProps = useMemo(() => {
-    const availableMenuItem = [
-      {
-        key: "email",
-        text: renderToString("UserDetails.connected-identities.email"),
-        iconProps: { iconName: "Mail" },
-        onClick: () => navigate("./add-email"),
+        const icon = getIcon(item);
+        return (
+          <IdentityListCell
+            identityID={item.id}
+            identityType={item.type}
+            icon={icon}
+            claimName={getClaimName(item)}
+            claimValue={getClaimValue(item)}
+            identityName={getIdentityName(item, renderToString)}
+            verified={item.verified}
+            connectedOn={item.connectedOn}
+            onRemoveClicked={onRemoveClicked}
+            setVerifiedStatus={setVerifiedStatus}
+          />
+        );
       },
-      {
-        key: "phone",
-        text: renderToString("UserDetails.connected-identities.phone"),
-        iconProps: { iconName: "CellPhone" },
-        onClick: () => navigate("./add-phone"),
-      },
-      {
-        key: "username",
-        text: renderToString("UserDetails.connected-identities.username"),
-        iconProps: { iconName: "Accounts" },
-        onClick: () => navigate("./add-username"),
-      },
-    ];
-    const enabledItems = availableMenuItem.filter((item) => {
-      return availableLoginIdIdentities.includes(item.key);
-    });
-    return {
-      items: enabledItems,
-      directionalHintFixed: true,
-    };
-  }, [renderToString, navigate, availableLoginIdIdentities]);
+      [onRemoveClicked, setVerifiedStatus, renderToString]
+    );
 
-  const confirmationDialogContentProps = useMemo(() => {
-    return {
-      title: (
-        <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
-      ),
-      subText: renderToString(
-        "UserDetails.connected-identities.confirm-remove-identity-message",
-        { identityName: confirmationDialogData.identityName }
-      ),
-    };
-  }, [confirmationDialogData, renderToString]);
+    const addIdentitiesMenuProps: IContextualMenuProps = useMemo(() => {
+      const availableMenuItem = [
+        {
+          key: "email",
+          text: renderToString("UserDetails.connected-identities.email"),
+          iconProps: { iconName: "Mail" },
+          onClick: () => navigate("./add-email"),
+        },
+        {
+          key: "phone",
+          text: renderToString("UserDetails.connected-identities.phone"),
+          iconProps: { iconName: "CellPhone" },
+          onClick: () => navigate("./add-phone"),
+        },
+        {
+          key: "username",
+          text: renderToString("UserDetails.connected-identities.username"),
+          iconProps: { iconName: "Accounts" },
+          onClick: () => navigate("./add-username"),
+        },
+      ];
+      const enabledItems = availableMenuItem.filter((item) => {
+        return availableLoginIdIdentities.includes(item.key);
+      });
+      return {
+        items: enabledItems,
+        directionalHintFixed: true,
+      };
+    }, [renderToString, navigate, availableLoginIdIdentities]);
 
-  const contextValue = useMemo(() => {
-    return {
-      settingVerifiedStatus,
-      deletingIdentity,
-    };
-  }, [settingVerifiedStatus, deletingIdentity]);
+    const confirmationDialogContentProps = useMemo(() => {
+      return {
+        title: (
+          <FormattedMessage id="UserDetails.connected-identities.confirm-remove-identity-title" />
+        ),
+        subText: renderToString(
+          "UserDetails.connected-identities.confirm-remove-identity-message",
+          { identityName: confirmationDialogData.identityName }
+        ),
+      };
+    }, [confirmationDialogData, renderToString]);
 
-  return (
-    <ConnectedIdentitiesMutationLoadingContext.Provider value={contextValue}>
-      <div className={styles.root}>
-        <Dialog
-          hidden={!isConfirmationDialogVisible}
-          dialogContentProps={confirmationDialogContentProps}
-          modalProps={{ isBlocking: deletingIdentity }}
-          onDismiss={onDismissConfirmationDialog}
-        >
-          <DialogFooter>
-            <ButtonWithLoading
-              labelId="confirm"
-              onClick={onConfirmRemoveIdentity}
-              loading={deletingIdentity}
-              disabled={!isConfirmationDialogVisible}
-            />
-            <DefaultButton
-              disabled={deletingIdentity || !isConfirmationDialogVisible}
-              onClick={onDismissConfirmationDialog}
-            >
-              <FormattedMessage id="cancel" />
-            </DefaultButton>
-          </DialogFooter>
-        </Dialog>
-        <ErrorDialog
-          error={deleteIdentityError}
-          rules={[
-            {
-              reason: "InvariantViolated",
-              kind: "RemoveLastIdentity",
-              errorMessageID:
-                "UserDetails.connected-identities.remove-identity-error.connot-remove-last",
-            },
-          ]}
-          fallbackErrorMessageID="UserDetails.connected-identities.remove-identity-error.generic"
-        />
-        <ErrorDialog
-          error={setVerifiedStatusError}
-          rules={[]}
-          fallbackErrorMessageID="UserDetails.connected-identities.verify-identity-error.generic"
-        />
-        <section className={styles.headerSection}>
-          <Text as="h2" className={styles.header}>
-            <FormattedMessage id="UserDetails.connected-identities.title" />
-          </Text>
-          <PrimaryButton
-            disabled={addIdentitiesMenuProps.items.length === 0}
-            iconProps={{ iconName: "CirclePlus" }}
-            menuProps={addIdentitiesMenuProps}
-            styles={{
-              menuIcon: { paddingLeft: "3px" },
-              icon: { paddingRight: "3px" },
-            }}
+    const contextValue = useMemo(() => {
+      return {
+        settingVerifiedStatus,
+        deletingIdentity,
+      };
+    }, [settingVerifiedStatus, deletingIdentity]);
+
+    return (
+      <ConnectedIdentitiesMutationLoadingContext.Provider value={contextValue}>
+        <div className={styles.root}>
+          <Dialog
+            hidden={!isConfirmationDialogVisible}
+            dialogContentProps={confirmationDialogContentProps}
+            modalProps={{ isBlocking: deletingIdentity }}
+            onDismiss={onDismissConfirmationDialog}
           >
-            <FormattedMessage id="UserDetails.connected-identities.add-identity" />
-          </PrimaryButton>
-        </section>
-        <section className={styles.identityLists}>
-          {identityLists.oauth.length > 0 && (
-            <>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.oauth" />
-              </Text>
-              <List
-                className={styles.list}
-                items={identityLists.oauth}
-                onRenderCell={onRenderIdentityCell}
+            <DialogFooter>
+              <ButtonWithLoading
+                labelId="confirm"
+                onClick={onConfirmRemoveIdentity}
+                loading={deletingIdentity}
+                disabled={!isConfirmationDialogVisible}
               />
-            </>
-          )}
-          {identityLists.email.length > 0 && (
-            <>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.email" />
-              </Text>
-              <List
-                className={styles.list}
-                items={identityLists.email}
-                onRenderCell={onRenderIdentityCell}
-              />
-            </>
-          )}
-          {identityLists.phone.length > 0 && (
-            <>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.phone" />
-              </Text>
-              <List
-                className={styles.list}
-                items={identityLists.phone}
-                onRenderCell={onRenderIdentityCell}
-              />
-            </>
-          )}
-          {identityLists.username.length > 0 && (
-            <>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.username" />
-              </Text>
-              <List
-                className={styles.list}
-                items={identityLists.username}
-                onRenderCell={onRenderIdentityCell}
-              />
-            </>
-          )}
-          {identityLists.biometric.length > 0 && (
-            <>
-              <Text as="h3" className={styles.subHeader}>
-                <FormattedMessage id="UserDetails.connected-identities.biometric" />
-              </Text>
-              <List
-                className={styles.list}
-                items={identityLists.biometric}
-                onRenderCell={onRenderIdentityCell}
-              />
-            </>
-          )}
-        </section>
-        {/* TODO: implement primary identities mutation
+              <DefaultButton
+                disabled={deletingIdentity || !isConfirmationDialogVisible}
+                onClick={onDismissConfirmationDialog}
+              >
+                <FormattedMessage id="cancel" />
+              </DefaultButton>
+            </DialogFooter>
+          </Dialog>
+          <ErrorDialog
+            error={deleteIdentityError}
+            rules={[
+              {
+                reason: "InvariantViolated",
+                kind: "RemoveLastIdentity",
+                errorMessageID:
+                  "UserDetails.connected-identities.remove-identity-error.connot-remove-last",
+              },
+            ]}
+            fallbackErrorMessageID="UserDetails.connected-identities.remove-identity-error.generic"
+          />
+          <ErrorDialog
+            error={setVerifiedStatusError}
+            rules={[]}
+            fallbackErrorMessageID="UserDetails.connected-identities.verify-identity-error.generic"
+          />
+          <section className={styles.headerSection}>
+            <Text as="h2" className={styles.header}>
+              <FormattedMessage id="UserDetails.connected-identities.title" />
+            </Text>
+            <PrimaryButton
+              disabled={addIdentitiesMenuProps.items.length === 0}
+              iconProps={{ iconName: "CirclePlus" }}
+              menuProps={addIdentitiesMenuProps}
+              styles={{
+                menuIcon: { paddingLeft: "3px" },
+                icon: { paddingRight: "3px" },
+              }}
+            >
+              <FormattedMessage id="UserDetails.connected-identities.add-identity" />
+            </PrimaryButton>
+          </section>
+          <section className={styles.identityLists}>
+            {identityLists.oauth.length > 0 && (
+              <>
+                <Text as="h3" className={styles.subHeader}>
+                  <FormattedMessage id="UserDetails.connected-identities.oauth" />
+                </Text>
+                <List
+                  className={styles.list}
+                  items={identityLists.oauth}
+                  onRenderCell={onRenderIdentityCell}
+                />
+              </>
+            )}
+            {identityLists.email.length > 0 && (
+              <>
+                <Text as="h3" className={styles.subHeader}>
+                  <FormattedMessage id="UserDetails.connected-identities.email" />
+                </Text>
+                <List
+                  className={styles.list}
+                  items={identityLists.email}
+                  onRenderCell={onRenderIdentityCell}
+                />
+              </>
+            )}
+            {identityLists.phone.length > 0 && (
+              <>
+                <Text as="h3" className={styles.subHeader}>
+                  <FormattedMessage id="UserDetails.connected-identities.phone" />
+                </Text>
+                <List
+                  className={styles.list}
+                  items={identityLists.phone}
+                  onRenderCell={onRenderIdentityCell}
+                />
+              </>
+            )}
+            {identityLists.username.length > 0 && (
+              <>
+                <Text as="h3" className={styles.subHeader}>
+                  <FormattedMessage id="UserDetails.connected-identities.username" />
+                </Text>
+                <List
+                  className={styles.list}
+                  items={identityLists.username}
+                  onRenderCell={onRenderIdentityCell}
+                />
+              </>
+            )}
+            {identityLists.biometric.length > 0 && (
+              <>
+                <Text as="h3" className={styles.subHeader}>
+                  <FormattedMessage id="UserDetails.connected-identities.biometric" />
+                </Text>
+                <List
+                  className={styles.list}
+                  items={identityLists.biometric}
+                  onRenderCell={onRenderIdentityCell}
+                />
+              </>
+            )}
+          </section>
+          {/* TODO: implement primary identities mutation
         <Text as="h2" className={styles.primaryIdentitiesTitle}>
           <FormattedMessage id="UserDetails.connected-identities.primary-identities.title" />
         </Text>
@@ -727,9 +726,9 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           resetForm={resetForm}
         />
         */}
-      </div>
-    </ConnectedIdentitiesMutationLoadingContext.Provider>
-  );
-};
+        </div>
+      </ConnectedIdentitiesMutationLoadingContext.Provider>
+    );
+  };
 
 export default UserDetailsConnectedIdentities;

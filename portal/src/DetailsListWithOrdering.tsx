@@ -17,45 +17,44 @@ interface DetailsListWithOrderingProps extends IDetailsListProps {
   orderColumnMaxWidth?: number;
 }
 
-const DetailsListWithOrdering: React.FC<DetailsListWithOrderingProps> = function DetailsListWithOrdering(
-  props: DetailsListWithOrderingProps
-) {
-  const { renderToString } = React.useContext(Context);
-  const onRenderItemColumn = React.useCallback(
-    (item?: any, index?: number, column?: IColumn) => {
-      if (column?.key === "order") {
-        return (
-          <OrderButtons
-            index={index}
-            itemCount={props.items.length}
-            onSwapClicked={props.onSwapClicked}
-            renderAriaLabel={props.renderAriaLabel}
-          />
-        );
-      }
-      return props.onRenderItemColumn(item, index, column);
-    },
-    [props]
-  );
+const DetailsListWithOrdering: React.FC<DetailsListWithOrderingProps> =
+  function DetailsListWithOrdering(props: DetailsListWithOrderingProps) {
+    const { renderToString } = React.useContext(Context);
+    const onRenderItemColumn = React.useCallback(
+      (item?: any, index?: number, column?: IColumn) => {
+        if (column?.key === "order") {
+          return (
+            <OrderButtons
+              index={index}
+              itemCount={props.items.length}
+              onSwapClicked={props.onSwapClicked}
+              renderAriaLabel={props.renderAriaLabel}
+            />
+          );
+        }
+        return props.onRenderItemColumn(item, index, column);
+      },
+      [props]
+    );
 
-  const columns: IColumn[] = [
-    ...props.columns,
-    {
-      key: "order",
-      fieldName: "order",
-      name: renderToString("DetailsListWithOrdering.order"),
-      minWidth: props.orderColumnMinWidth ?? 100,
-      maxWidth: props.orderColumnMaxWidth ?? 100,
-    },
-  ];
+    const columns: IColumn[] = [
+      ...props.columns,
+      {
+        key: "order",
+        fieldName: "order",
+        name: renderToString("DetailsListWithOrdering.order"),
+        minWidth: props.orderColumnMinWidth ?? 100,
+        maxWidth: props.orderColumnMaxWidth ?? 100,
+      },
+    ];
 
-  return (
-    <DetailsList
-      {...props}
-      columns={columns}
-      onRenderItemColumn={onRenderItemColumn}
-    />
-  );
-};
+    return (
+      <DetailsList
+        {...props}
+        columns={columns}
+        onRenderItemColumn={onRenderItemColumn}
+      />
+    );
+  };
 
 export default DetailsListWithOrdering;

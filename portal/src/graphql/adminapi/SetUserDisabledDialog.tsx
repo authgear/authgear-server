@@ -26,9 +26,8 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
     const { isHidden, onDismiss, isDisablingUser, userID, username } = props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
-    const { setDisabledStatus, loading, error } = useSetDisabledStatusMutation(
-      userID
-    );
+    const { setDisabledStatus, loading, error } =
+      useSetDisabledStatusMutation(userID);
 
     const onDialogDismiss = useCallback(() => {
       if (loading || isHidden) {

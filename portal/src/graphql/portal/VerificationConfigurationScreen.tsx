@@ -99,182 +99,182 @@ interface VerificationConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const VerificationConfigurationContent: React.FC<VerificationConfigurationContentProps> = function VerificationConfigurationContent(
-  props
-) {
-  const { state, setState } = props.form;
+const VerificationConfigurationContent: React.FC<VerificationConfigurationContentProps> =
+  function VerificationConfigurationContent(props) {
+    const { state, setState } = props.form;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const onCodeExpirySecondsChange = useCallback(
-    (_, value?: string) => {
-      setState((state) => ({
-        ...state,
-        codeExpirySeconds: Number(value),
-      }));
-    },
-    [setState]
-  );
-
-  const criteriaOptions = useMemo(
-    () =>
-      verificationCriteriaList.map((criteria) => {
-        return {
-          key: criteria,
-          text: renderToString(criteriaMessageIds[criteria]),
-          isSelected: criteria === state.criteria,
-        };
-      }),
-    [state, renderToString]
-  );
-
-  const onCriteriaChange = useCallback(
-    (_, option?: IDropdownOption) => {
-      const key = option?.key as VerificationCriteria | undefined;
-      if (key) {
+    const onCodeExpirySecondsChange = useCallback(
+      (_, value?: string) => {
         setState((state) => ({
           ...state,
-          criteria: key,
+          codeExpirySeconds: Number(value),
         }));
-      }
-    },
-    [setState]
-  );
+      },
+      [setState]
+    );
 
-  const onEmailEnabledChange = useCallback(
-    (_, value?: boolean) => {
-      setState((s) => ({
-        ...s,
-        email: { ...s.email, enabled: value ?? false },
-      }));
-    },
-    [setState]
-  );
+    const criteriaOptions = useMemo(
+      () =>
+        verificationCriteriaList.map((criteria) => {
+          return {
+            key: criteria,
+            text: renderToString(criteriaMessageIds[criteria]),
+            isSelected: criteria === state.criteria,
+          };
+        }),
+      [state, renderToString]
+    );
 
-  const onEmailRequiredChange = useCallback(
-    (_, value?: boolean) => {
-      setState((s) => ({
-        ...s,
-        email: { ...s.email, required: value ?? false },
-      }));
-    },
-    [setState]
-  );
+    const onCriteriaChange = useCallback(
+      (_, option?: IDropdownOption) => {
+        const key = option?.key as VerificationCriteria | undefined;
+        if (key) {
+          setState((state) => ({
+            ...state,
+            criteria: key,
+          }));
+        }
+      },
+      [setState]
+    );
 
-  const onPhoneEnabledChange = useCallback(
-    (_, value?: boolean) => {
-      setState((s) => ({
-        ...s,
-        phone: { ...s.phone, enabled: value ?? false },
-      }));
-    },
-    [setState]
-  );
+    const onEmailEnabledChange = useCallback(
+      (_, value?: boolean) => {
+        setState((s) => ({
+          ...s,
+          email: { ...s.email, enabled: value ?? false },
+        }));
+      },
+      [setState]
+    );
 
-  const onPhoneRequiredChange = useCallback(
-    (_, value?: boolean) => {
-      setState((s) => ({
-        ...s,
-        phone: { ...s.phone, required: value ?? false },
-      }));
-    },
-    [setState]
-  );
+    const onEmailRequiredChange = useCallback(
+      (_, value?: boolean) => {
+        setState((s) => ({
+          ...s,
+          email: { ...s.email, required: value ?? false },
+        }));
+      },
+      [setState]
+    );
 
-  return (
-    <ScreenContent className={styles.root}>
-      <ScreenTitle>
-        <FormattedMessage id="VerificationConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="VerificationConfigurationScreen.description" />
-      </ScreenDescription>
-      <Widget className={cn(styles.controlGroup, styles.widget)}>
-        <WidgetTitle>
-          <FormattedMessage id="VerificationConfigurationScreen.basic-settings" />
-        </WidgetTitle>
-        <TextField
-          className={styles.control}
-          type="number"
-          min="0"
-          step="1"
-          label={renderToString(
-            "VerificationConfigurationScreen.code-expiry-seconds.label"
-          )}
-          value={String(state.codeExpirySeconds)}
-          onChange={onCodeExpirySecondsChange}
-        />
-        <Dropdown
-          className={styles.control}
-          label={renderToString(
-            "VerificationConfigurationScreen.criteria.label"
-          )}
-          options={criteriaOptions}
-          selectedKey={state.criteria}
-          onChange={onCriteriaChange}
-        />
-      </Widget>
-      <Widget className={cn(styles.controlGroup, styles.widget)}>
-        <Toggle
-          className={styles.control}
-          checked={state.email.enabled}
-          onChange={onEmailEnabledChange}
-          label={renderToString(
-            "VerificationConfigurationScreen.verification.claims.email"
-          )}
-          inlineLabel={true}
-        />
-        <Checkbox
-          className={styles.control}
-          disabled={!state.email.enabled}
-          checked={state.email.required}
-          onChange={onEmailRequiredChange}
-          label={renderToString(
-            "VerificationConfigurationScreen.verification.required.label"
-          )}
-        />
-      </Widget>
-      <Widget className={cn(styles.controlGroup, styles.widget)}>
-        <Toggle
-          className={styles.control}
-          checked={state.phone.enabled}
-          onChange={onPhoneEnabledChange}
-          label={renderToString(
-            "VerificationConfigurationScreen.verification.claims.phoneNumber"
-          )}
-          inlineLabel={true}
-        />
-        <Checkbox
-          className={styles.control}
-          disabled={!state.phone.enabled}
-          checked={state.phone.required}
-          onChange={onPhoneRequiredChange}
-          label={renderToString(
-            "VerificationConfigurationScreen.verification.required.label"
-          )}
-        />
-      </Widget>
-    </ScreenContent>
-  );
-};
+    const onPhoneEnabledChange = useCallback(
+      (_, value?: boolean) => {
+        setState((s) => ({
+          ...s,
+          phone: { ...s.phone, enabled: value ?? false },
+        }));
+      },
+      [setState]
+    );
 
-const VerificationConfigurationScreen: React.FC = function VerificationConfigurationScreen() {
-  const { appID } = useParams();
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const onPhoneRequiredChange = useCallback(
+      (_, value?: boolean) => {
+        setState((s) => ({
+          ...s,
+          phone: { ...s.phone, required: value ?? false },
+        }));
+      },
+      [setState]
+    );
 
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
+    return (
+      <ScreenContent className={styles.root}>
+        <ScreenTitle>
+          <FormattedMessage id="VerificationConfigurationScreen.title" />
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="VerificationConfigurationScreen.description" />
+        </ScreenDescription>
+        <Widget className={cn(styles.controlGroup, styles.widget)}>
+          <WidgetTitle>
+            <FormattedMessage id="VerificationConfigurationScreen.basic-settings" />
+          </WidgetTitle>
+          <TextField
+            className={styles.control}
+            type="number"
+            min="0"
+            step="1"
+            label={renderToString(
+              "VerificationConfigurationScreen.code-expiry-seconds.label"
+            )}
+            value={String(state.codeExpirySeconds)}
+            onChange={onCodeExpirySecondsChange}
+          />
+          <Dropdown
+            className={styles.control}
+            label={renderToString(
+              "VerificationConfigurationScreen.criteria.label"
+            )}
+            options={criteriaOptions}
+            selectedKey={state.criteria}
+            onChange={onCriteriaChange}
+          />
+        </Widget>
+        <Widget className={cn(styles.controlGroup, styles.widget)}>
+          <Toggle
+            className={styles.control}
+            checked={state.email.enabled}
+            onChange={onEmailEnabledChange}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.claims.email"
+            )}
+            inlineLabel={true}
+          />
+          <Checkbox
+            className={styles.control}
+            disabled={!state.email.enabled}
+            checked={state.email.required}
+            onChange={onEmailRequiredChange}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.required.label"
+            )}
+          />
+        </Widget>
+        <Widget className={cn(styles.controlGroup, styles.widget)}>
+          <Toggle
+            className={styles.control}
+            checked={state.phone.enabled}
+            onChange={onPhoneEnabledChange}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.claims.phoneNumber"
+            )}
+            inlineLabel={true}
+          />
+          <Checkbox
+            className={styles.control}
+            disabled={!state.phone.enabled}
+            checked={state.phone.required}
+            onChange={onPhoneRequiredChange}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.required.label"
+            )}
+          />
+        </Widget>
+      </ScreenContent>
+    );
+  };
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
+const VerificationConfigurationScreen: React.FC =
+  function VerificationConfigurationScreen() {
+    const { appID } = useParams();
+    const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-  return (
-    <FormContainer form={form}>
-      <VerificationConfigurationContent form={form} />
-    </FormContainer>
-  );
-};
+    if (form.isLoading) {
+      return <ShowLoading />;
+    }
+
+    if (form.loadError) {
+      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
+
+    return (
+      <FormContainer form={form}>
+        <VerificationConfigurationContent form={form} />
+      </FormContainer>
+    );
+  };
 
 export default VerificationConfigurationScreen;

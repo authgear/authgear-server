@@ -15,34 +15,33 @@ interface WidgetWithOrderingProps {
   className?: string;
 }
 
-const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> = function WidgetWithOrdering(
-  props: WidgetWithOrderingProps
-) {
-  const {
-    index,
-    itemCount,
-    HeaderComponent,
-    onSwapClicked,
-    readOnly,
-    children,
-    className,
-    renderAriaLabel,
-  } = props;
+const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> =
+  function WidgetWithOrdering(props: WidgetWithOrderingProps) {
+    const {
+      index,
+      itemCount,
+      HeaderComponent,
+      onSwapClicked,
+      readOnly,
+      children,
+      className,
+      renderAriaLabel,
+    } = props;
 
-  return (
-    <Widget className={className}>
-      <div className={styles.header}>
-        {HeaderComponent}
-        <OrderButtons
-          index={index}
-          itemCount={itemCount}
-          onSwapClicked={onSwapClicked}
-          renderAriaLabel={renderAriaLabel}
-        />
-      </div>
-      <div className={cn({ [styles.readOnly]: readOnly })}>{children}</div>
-    </Widget>
-  );
-};
+    return (
+      <Widget className={className}>
+        <div className={styles.header}>
+          {HeaderComponent}
+          <OrderButtons
+            index={index}
+            itemCount={itemCount}
+            onSwapClicked={onSwapClicked}
+            renderAriaLabel={renderAriaLabel}
+          />
+        </div>
+        <div className={cn({ [styles.readOnly]: readOnly })}>{children}</div>
+      </Widget>
+    );
+  };
 
 export default WidgetWithOrdering;

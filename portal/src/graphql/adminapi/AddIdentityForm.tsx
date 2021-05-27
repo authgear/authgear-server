@@ -70,126 +70,126 @@ interface AddIdentityFormProps {
   onReset?: () => void;
 }
 
-const AddIdentityForm: React.FC<AddIdentityFormProps> = function AddIdentityForm(
-  props: AddIdentityFormProps
-) {
-  const {
-    appConfig,
-    rawUser,
-    loginIDType,
-    title,
-    loginIDField: LoginIDField,
-    onReset,
-  } = props;
+const AddIdentityForm: React.FC<AddIdentityFormProps> =
+  function AddIdentityForm(props: AddIdentityFormProps) {
+    const {
+      appConfig,
+      rawUser,
+      loginIDType,
+      title,
+      loginIDField: LoginIDField,
+      onReset,
+    } = props;
 
-  const navigate = useNavigate();
-  const { renderToString } = useContext(Context);
+    const navigate = useNavigate();
+    const { renderToString } = useContext(Context);
 
-  const user: User = useMemo(() => {
-    if (!rawUser) {
-      return { id: "", primaryAuthenticators: [] };
-    }
-    const authenticators =
-      rawUser.authenticators?.edges?.map((e) => e?.node) ?? [];
-    return {
-      id: rawUser.id,
-      primaryAuthenticators: authenticators
-        .filter((a) => a?.kind === AuthenticatorKind.PRIMARY)
-        .map((a) => a!.type),
-    };
-  }, [rawUser]);
-
-  const { createIdentity } = useCreateLoginIDIdentityMutation(user.id);
-
-  const requirePassword = useMemo(() => {
-    return isPasswordRequired(appConfig, user, loginIDType);
-  }, [appConfig, user, loginIDType]);
-
-  const passwordPolicy = useMemo(() => {
-    return appConfig?.authenticator?.password?.policy ?? {};
-  }, [appConfig]);
-
-  const validate = useCallback(
-    (state: FormState) => {
-      if (!requirePassword) {
-        return null;
+    const user: User = useMemo(() => {
+      if (!rawUser) {
+        return { id: "", primaryAuthenticators: [] };
       }
-      return validatePassword(state.password, passwordPolicy);
-    },
-    [requirePassword, passwordPolicy]
-  );
+      const authenticators =
+        rawUser.authenticators?.edges?.map((e) => e?.node) ?? [];
+      return {
+        id: rawUser.id,
+        primaryAuthenticators: authenticators
+          .filter((a) => a?.kind === AuthenticatorKind.PRIMARY)
+          .map((a) => a!.type),
+      };
+    }, [rawUser]);
 
-  const submit = useCallback(
-    async (state: FormState) => {
-      const password = requirePassword ? state.password : undefined;
-      await createIdentity(
-        { key: loginIDType, value: state.loginID },
-        password
-      );
-    },
-    [loginIDType, requirePassword, createIdentity]
-  );
+    const { createIdentity } = useCreateLoginIDIdentityMutation(user.id);
 
-  const rawForm = useSimpleForm(defaultFormState, submit, validate);
-  const form = useMemo(
-    () => ({
-      ...rawForm,
-      reset: () => {
-        rawForm.reset();
-        onReset?.();
+    const requirePassword = useMemo(() => {
+      return isPasswordRequired(appConfig, user, loginIDType);
+    }, [appConfig, user, loginIDType]);
+
+    const passwordPolicy = useMemo(() => {
+      return appConfig?.authenticator?.password?.policy ?? {};
+    }, [appConfig]);
+
+    const validate = useCallback(
+      (state: FormState) => {
+        if (!requirePassword) {
+          return null;
+        }
+        return validatePassword(state.password, passwordPolicy);
       },
-    }),
-    [rawForm, onReset]
-  );
-
-  useEffect(() => {
-    if (form.isSubmitted) {
-      navigate("..#connected-identities");
-    }
-  }, [form.isSubmitted, navigate]);
-
-  const onLoginIDChange = useCallback(
-    (value: string) => form.setState((state) => ({ ...state, loginID: value })),
-    [form]
-  );
-  const onPasswordChange = useCallback(
-    (_, value?: string) =>
-      form.setState((state) => ({ ...state, password: value ?? "" })),
-    [form]
-  );
-
-  const canSave =
-    form.state.loginID.length > 0 &&
-    (!requirePassword || form.state.password.length > 0);
-
-  if (!canCreateLoginIDIdentity(appConfig)) {
-    return (
-      <Text className={styles.helpText}>
-        <FormattedMessage id="CreateIdentity.require-login-id" />
-      </Text>
+      [requirePassword, passwordPolicy]
     );
-  }
 
-  return (
-    <FormContainer form={form} canSave={canSave}>
-      <div className={styles.root}>
-        {title}
-        <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />
-        {requirePassword && (
-          <PasswordField
-            className={styles.password}
-            textFieldClassName={styles.passwordField}
-            passwordPolicy={passwordPolicy}
-            label={renderToString("AddUsernameScreen.password.label")}
-            value={form.state.password}
-            onChange={onPasswordChange}
-            parentJSONPointer="/"
-            fieldName="password"
-          />
-        )}
-      </div>
-    </FormContainer>
-  );
-};
+    const submit = useCallback(
+      async (state: FormState) => {
+        const password = requirePassword ? state.password : undefined;
+        await createIdentity(
+          { key: loginIDType, value: state.loginID },
+          password
+        );
+      },
+      [loginIDType, requirePassword, createIdentity]
+    );
+
+    const rawForm = useSimpleForm(defaultFormState, submit, validate);
+    const form = useMemo(
+      () => ({
+        ...rawForm,
+        reset: () => {
+          rawForm.reset();
+          onReset?.();
+        },
+      }),
+      [rawForm, onReset]
+    );
+
+    useEffect(() => {
+      if (form.isSubmitted) {
+        navigate("..#connected-identities");
+      }
+    }, [form.isSubmitted, navigate]);
+
+    const onLoginIDChange = useCallback(
+      (value: string) =>
+        form.setState((state) => ({ ...state, loginID: value })),
+      [form]
+    );
+    const onPasswordChange = useCallback(
+      (_, value?: string) =>
+        form.setState((state) => ({ ...state, password: value ?? "" })),
+      [form]
+    );
+
+    const canSave =
+      form.state.loginID.length > 0 &&
+      (!requirePassword || form.state.password.length > 0);
+
+    if (!canCreateLoginIDIdentity(appConfig)) {
+      return (
+        <Text className={styles.helpText}>
+          <FormattedMessage id="CreateIdentity.require-login-id" />
+        </Text>
+      );
+    }
+
+    return (
+      <FormContainer form={form} canSave={canSave}>
+        <div className={styles.root}>
+          {title}
+          <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />
+          {requirePassword && (
+            <PasswordField
+              className={styles.password}
+              textFieldClassName={styles.passwordField}
+              passwordPolicy={passwordPolicy}
+              label={renderToString("AddUsernameScreen.password.label")}
+              value={form.state.password}
+              onChange={onPasswordChange}
+              parentJSONPointer="/"
+              fieldName="password"
+            />
+          )}
+        </div>
+      </FormContainer>
+    );
+  };
 
 export default AddIdentityForm;

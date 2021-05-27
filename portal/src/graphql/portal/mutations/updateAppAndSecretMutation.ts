@@ -33,9 +33,7 @@ const updateAppAndSecretConfigMutation = gql`
   }
 `;
 
-export function useUpdateAppAndSecretConfigMutation(
-  appID: string
-): {
+export function useUpdateAppAndSecretConfigMutation(appID: string): {
   updateAppAndSecretConfig: (
     appConfig: PortalAPIAppConfig,
     secretConfig: PortalAPISecretConfig

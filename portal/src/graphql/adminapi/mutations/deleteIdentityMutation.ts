@@ -31,10 +31,8 @@ export function useDeleteIdentityMutation(): {
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { error, loading },
-  ] = useMutation<DeleteIdentityMutation>(deleteIdentityMutation);
+  const [mutationFunction, { error, loading }] =
+    useMutation<DeleteIdentityMutation>(deleteIdentityMutation);
 
   const deleteIdentity = useCallback(
     async (identityID: string) => {
