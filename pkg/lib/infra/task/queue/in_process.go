@@ -19,7 +19,7 @@ type InProcessQueue struct {
 }
 
 func (s *InProcessQueue) Enqueue(param task.Param) {
-	if s.Database != nil && s.Database.HasTx() {
+	if s.Database != nil {
 		s.pendingTasks = append(s.pendingTasks, param)
 		if !s.hooked {
 			s.Database.UseHook(s)

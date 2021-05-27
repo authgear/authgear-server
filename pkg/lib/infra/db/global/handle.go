@@ -34,10 +34,6 @@ func (h *Handle) Conn() (sqlx.ExtContext, error) {
 	return tx, nil
 }
 
-func (h *Handle) HasTx() bool {
-	return h.tx != nil
-}
-
 // WithTx commits if do finishes without error and rolls back otherwise.
 func (h *Handle) WithTx(do func() error) (err error) {
 	if err = h.beginTx(); err != nil {

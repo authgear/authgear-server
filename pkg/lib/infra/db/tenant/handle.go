@@ -19,7 +19,6 @@ type Handle struct {
 	credentials *config.DatabaseCredentials
 	logger      *log.Logger
 
-	db    *sqlx.DB
 	tx    *sqlx.Tx
 	hooks []TransactionHook
 }
@@ -37,13 +36,9 @@ func NewHandle(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, cred
 func (h *Handle) Conn() (sqlx.ExtContext, error) {
 	tx := h.tx
 	if tx == nil {
-		return h.openDB()
+		panic("db: transaction not started")
 	}
 	return tx, nil
-}
-
-func (h *Handle) HasTx() bool {
-	return h.tx != nil
 }
 
 func (h *Handle) UseHook(hook TransactionHook) {
@@ -160,28 +155,24 @@ func (h *Handle) rollbackTx() error {
 }
 
 func (h *Handle) openDB() (*sqlx.DB, error) {
-	if h.db == nil {
-		opts := OpenOptions{
-			URL:             h.credentials.DatabaseURL,
-			MaxOpenConns:    *h.cfg.MaxOpenConnection,
-			MaxIdleConns:    *h.cfg.MaxIdleConnection,
-			ConnMaxLifetime: h.cfg.MaxConnectionLifetime.Duration(),
-			ConnMaxIdleTime: h.cfg.IdleConnectionTimeout.Duration(),
-		}
-		h.logger.WithFields(map[string]interface{}{
-			"max_open_conns":             opts.MaxOpenConns,
-			"max_idle_conns":             opts.MaxIdleConns,
-			"conn_max_lifetime_seconds":  opts.ConnMaxLifetime.Seconds(),
-			"conn_max_idle_time_seconds": opts.ConnMaxIdleTime.Seconds(),
-		}).Debug("open database")
+	opts := OpenOptions{
+		URL:             h.credentials.DatabaseURL,
+		MaxOpenConns:    *h.cfg.MaxOpenConnection,
+		MaxIdleConns:    *h.cfg.MaxIdleConnection,
+		ConnMaxLifetime: h.cfg.MaxConnectionLifetime.Duration(),
+		ConnMaxIdleTime: h.cfg.IdleConnectionTimeout.Duration(),
+	}
+	h.logger.WithFields(map[string]interface{}{
+		"max_open_conns":             opts.MaxOpenConns,
+		"max_idle_conns":             opts.MaxIdleConns,
+		"conn_max_lifetime_seconds":  opts.ConnMaxLifetime.Seconds(),
+		"conn_max_idle_time_seconds": opts.ConnMaxIdleTime.Seconds(),
+	}).Debug("open database")
 
-		db, err := h.pool.Open(opts)
-		if err != nil {
-			return nil, fmt.Errorf("failed to connect to database: %w", err)
-		}
-
-		h.db = db
+	db, err := h.pool.Open(opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	return h.db, nil
+	return db, nil
 }
