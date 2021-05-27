@@ -85,3 +85,40 @@ func (mr *MockVerificationServiceMockRecorder) IsUserVerified(identities interfa
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserVerified", reflect.TypeOf((*MockVerificationService)(nil).IsUserVerified), identities)
 }
+
+// MockDatabase is a mock of Database interface
+type MockDatabase struct {
+	ctrl     *gomock.Controller
+	recorder *MockDatabaseMockRecorder
+}
+
+// MockDatabaseMockRecorder is the mock recorder for MockDatabase
+type MockDatabaseMockRecorder struct {
+	mock *MockDatabase
+}
+
+// NewMockDatabase creates a new mock instance
+func NewMockDatabase(ctrl *gomock.Controller) *MockDatabase {
+	mock := &MockDatabase{ctrl: ctrl}
+	mock.recorder = &MockDatabaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
+	return m.recorder
+}
+
+// ReadOnly mocks base method
+func (m *MockDatabase) ReadOnly(arg0 func() error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ReadOnly", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReadOnly indicates an expected call of ReadOnly
+func (mr *MockDatabaseMockRecorder) ReadOnly(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockDatabase)(nil).ReadOnly), arg0)
+}

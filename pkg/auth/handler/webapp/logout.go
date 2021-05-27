@@ -39,14 +39,16 @@ type LogoutHandler struct {
 
 func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		baseViewModel := h.BaseViewModel.ViewModel(r, w)
+		_ = h.Database.WithTx(func() error {
+			baseViewModel := h.BaseViewModel.ViewModel(r, w)
 
-		data := map[string]interface{}{}
+			data := map[string]interface{}{}
 
-		viewmodels.Embed(data, baseViewModel)
+			viewmodels.Embed(data, baseViewModel)
 
-		h.Renderer.RenderHTML(w, r, TemplateWebLogoutHTML, data)
-		return
+			h.Renderer.RenderHTML(w, r, TemplateWebLogoutHTML, data)
+			return nil
+		})
 	}
 
 	if r.Method == "POST" {

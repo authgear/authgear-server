@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -78,12 +79,17 @@ type JSONResponseWriter interface {
 			@JSONSchema {OAuthChallengeResponse}
 */
 type ChallengeHandler struct {
+	Database   *tenantdb.Handle
 	Challenges ChallengeProvider
 	JSON       JSONResponseWriter
 }
 
 func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	result, err := h.Handle(resp, req)
+	var result *ChallengeResponse
+	err := h.Database.WithTx(func() (err error) {
+		result, err = h.Handle(resp, req)
+		return err
+	})
 	if err == nil {
 		h.JSON.WriteResponse(resp, &api.Response{Result: result})
 	} else {
