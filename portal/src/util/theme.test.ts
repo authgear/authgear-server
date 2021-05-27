@@ -264,14 +264,14 @@ describe("addLightBannerConfiguration", () => {
     const actual = root.toResult().css;
     const expected = `.banner {
     width: initial;
-    height: 55px;
+    height: 55px
 }
 .banner-frame {
-    background-color: transparent
     padding-top: 16px;
     padding-right: 16px;
     padding-bottom: 16px;
-    padding-left: 16px
+    padding-left: 16px;
+    background-color: transparent
 }`;
     expect(actual).toEqual(expected);
   });
@@ -285,14 +285,14 @@ describe("addDarkBannerConfiguration", () => {
     const expected = `@media (prefers-color-scheme: dark) {
     .banner {
         width: initial;
-        height: 55px;
+        height: 55px
     }
     .banner-frame {
-        background-color: transparent
         padding-top: 16px;
         padding-right: 16px;
         padding-bottom: 16px;
-        padding-left: 16px
+        padding-left: 16px;
+        background-color: transparent
     }
 }`;
     expect(actual).toEqual(expected);
