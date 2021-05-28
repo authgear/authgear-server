@@ -54,17 +54,13 @@ export type CreateIdentityFunction = (
   password?: string
 ) => Promise<Identity | undefined>;
 
-export function useCreateLoginIDIdentityMutation(
-  userID: string
-): {
+export function useCreateLoginIDIdentityMutation(userID: string): {
   createIdentity: CreateIdentityFunction;
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { error, loading },
-  ] = useMutation<CreateIdentityMutation>(createIdentityMutation);
+  const [mutationFunction, { error, loading }] =
+    useMutation<CreateIdentityMutation>(createIdentityMutation);
 
   const createIdentity = useCallback(
     async (loginIDIdentity: IdentityDefinitionLoginID, password?: string) => {

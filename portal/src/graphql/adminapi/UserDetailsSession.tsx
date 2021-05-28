@@ -31,59 +31,52 @@ interface RevokeConfirmationDialogProps {
   onDismiss: () => void;
 }
 
-const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> = function RevokeConfirmationDialog(
-  props
-) {
-  const {
-    isHidden,
-    isLoading,
-    titleKey,
-    messageKey,
-    onConfirm,
-    onDismiss,
-  } = props;
+const RevokeConfirmationDialog: React.FC<RevokeConfirmationDialogProps> =
+  function RevokeConfirmationDialog(props) {
+    const { isHidden, isLoading, titleKey, messageKey, onConfirm, onDismiss } =
+      props;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const onDialogConfirm = useCallback(() => {
-    if (!isHidden && !isLoading) {
-      onConfirm();
-    }
-  }, [isHidden, isLoading, onConfirm]);
+    const onDialogConfirm = useCallback(() => {
+      if (!isHidden && !isLoading) {
+        onConfirm();
+      }
+    }, [isHidden, isLoading, onConfirm]);
 
-  const onDialogDismiss = useCallback(() => {
-    if (!isHidden && !isLoading) {
-      onDismiss();
-    }
-  }, [isHidden, isLoading, onDismiss]);
+    const onDialogDismiss = useCallback(() => {
+      if (!isHidden && !isLoading) {
+        onDismiss();
+      }
+    }, [isHidden, isLoading, onDismiss]);
 
-  const dialogContentProps = useMemo(() => {
-    return {
-      title: <FormattedMessage id={titleKey} />,
-      subText: renderToString(messageKey),
-    };
-  }, [titleKey, messageKey, renderToString]);
+    const dialogContentProps = useMemo(() => {
+      return {
+        title: <FormattedMessage id={titleKey} />,
+        subText: renderToString(messageKey),
+      };
+    }, [titleKey, messageKey, renderToString]);
 
-  return (
-    <Dialog
-      hidden={isHidden}
-      dialogContentProps={dialogContentProps}
-      modalProps={{ isBlocking: isLoading }}
-      onDismiss={onDialogDismiss}
-    >
-      <DialogFooter>
-        <ButtonWithLoading
-          onClick={onDialogConfirm}
-          labelId="confirm"
-          loading={isLoading}
-        />
-        <DefaultButton disabled={isLoading} onClick={onDialogDismiss}>
-          <FormattedMessage id="cancel" />
-        </DefaultButton>
-      </DialogFooter>
-    </Dialog>
-  );
-};
+    return (
+      <Dialog
+        hidden={isHidden}
+        dialogContentProps={dialogContentProps}
+        modalProps={{ isBlocking: isLoading }}
+        onDismiss={onDialogDismiss}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            onClick={onDialogConfirm}
+            labelId="confirm"
+            loading={isLoading}
+          />
+          <DefaultButton disabled={isLoading} onClick={onDialogDismiss}>
+            <FormattedMessage id="cancel" />
+          </DefaultButton>
+        </DialogFooter>
+      </Dialog>
+    );
+  };
 
 function sessionTypeDisplayKey(type: SessionType): string {
   switch (type) {
@@ -131,10 +124,8 @@ const UserDetailsSession: React.FC<Props> = function UserDetailsSession(props) {
     messageKey: string;
     onConfirm: () => void;
   }
-  const [
-    confirmDialogProps,
-    setConfirmDialogProps,
-  ] = useState<ConfirmDialogProps | null>(null);
+  const [confirmDialogProps, setConfirmDialogProps] =
+    useState<ConfirmDialogProps | null>(null);
   const [isConfirmDialogHidden, setIsConfirmDialogHidden] = useState(true);
 
   const onConfirmDialogDismiss = useCallback(() => {

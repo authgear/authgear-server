@@ -24,10 +24,8 @@ export function useDeleteAuthenticatorMutation(): {
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { error, loading },
-  ] = useMutation<DeleteAuthenticatorMutation>(deleteAuthenticatorMutation);
+  const [mutationFunction, { error, loading }] =
+    useMutation<DeleteAuthenticatorMutation>(deleteAuthenticatorMutation);
   const deleteAuthenticator = useCallback(
     async (authenticatorID: string) => {
       const result = await mutationFunction({

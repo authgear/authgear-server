@@ -35,112 +35,114 @@ function mediaTypeToExtension(mime: string): ImageFileExtension {
   }
 }
 
-const ImageFilePicker: React.FC<ImageFilePickerProps> = function ImageFilePicker(
-  props: ImageFilePickerProps
-) {
-  const { disabled, className, base64EncodedData, onChange } = props;
+const ImageFilePicker: React.FC<ImageFilePickerProps> =
+  function ImageFilePicker(props: ImageFilePickerProps) {
+    const { disabled, className, base64EncodedData, onChange } = props;
 
-  const hasImage = base64EncodedData != null;
+    const hasImage = base64EncodedData != null;
 
-  const { themes } = useSystemConfig();
+    const { themes } = useSystemConfig();
 
-  const src = useMemo(() => {
-    if (base64EncodedData != null) {
-      return base64EncodedDataToDataURI(base64EncodedData);
-    }
-    return undefined;
-  }, [base64EncodedData]);
-
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const onClickRemoveImage = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      e.preventDefault();
-      e.stopPropagation();
-      // Reset the input value so that onChange can fire again.
-      // If we do not do this, the state of the input and the state of component
-      // becomes out of sync.
-      if (inputRef.current != null) {
-        inputRef.current.value = "";
+    const src = useMemo(() => {
+      if (base64EncodedData != null) {
+        return base64EncodedDataToDataURI(base64EncodedData);
       }
-      onChange?.(undefined, undefined);
-    },
-    [onChange]
-  );
+      return undefined;
+    }, [base64EncodedData]);
 
-  const onClickSelectImage = useCallback((e: React.MouseEvent<HTMLElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Emulate a click on the input to open the user agent file select dialog.
-    inputRef.current?.click();
-  }, []);
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const onInputChange = useCallback(
-    (e?: React.SyntheticEvent<HTMLInputElement>) => {
-      const target = e?.target;
-      if (target instanceof HTMLInputElement) {
-        const file = target.files?.[0];
-        if (file != null) {
-          const extension = mediaTypeToExtension(file.type);
-          const reader = new FileReader();
-          reader.addEventListener("load", function () {
-            const result = reader.result;
-            if (typeof result === "string") {
-              onChange?.(dataURIToBase64EncodedData(result), extension);
-            }
-          });
-          reader.readAsDataURL(file);
+    const onClickRemoveImage = useCallback(
+      (e: React.MouseEvent<HTMLElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Reset the input value so that onChange can fire again.
+        // If we do not do this, the state of the input and the state of component
+        // becomes out of sync.
+        if (inputRef.current != null) {
+          inputRef.current.value = "";
         }
-      }
-    },
-    [onChange]
-  );
+        onChange?.(undefined, undefined);
+      },
+      [onChange]
+    );
 
-  const borderColor = themes.main.semanticColors.inputBorder;
+    const onClickSelectImage = useCallback(
+      (e: React.MouseEvent<HTMLElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Emulate a click on the input to open the user agent file select dialog.
+        inputRef.current?.click();
+      },
+      []
+    );
 
-  return (
-    <div className={cn(className, styles.root)}>
-      <input
-        ref={inputRef}
-        className={styles.input}
-        type="file"
-        accept="image/png, image/jpeg, image/gif"
-        onChange={onInputChange}
-        disabled={disabled}
-      />
-      <Image
-        src={src}
-        className={styles.image}
-        styles={{
-          root: {
-            borderColor,
-            borderWidth: "1px",
-            borderStyle: "solid",
-          },
-        }}
-        imageFit={ImageFit.centerContain}
-        maximizeFrame={true}
-      />
-      {hasImage ? (
-        <PrimaryButton
-          className={styles.button}
-          onClick={onClickRemoveImage}
-          theme={themes.destructive}
+    const onInputChange = useCallback(
+      (e?: React.SyntheticEvent<HTMLInputElement>) => {
+        const target = e?.target;
+        if (target instanceof HTMLInputElement) {
+          const file = target.files?.[0];
+          if (file != null) {
+            const extension = mediaTypeToExtension(file.type);
+            const reader = new FileReader();
+            reader.addEventListener("load", function () {
+              const result = reader.result;
+              if (typeof result === "string") {
+                onChange?.(dataURIToBase64EncodedData(result), extension);
+              }
+            });
+            reader.readAsDataURL(file);
+          }
+        }
+      },
+      [onChange]
+    );
+
+    const borderColor = themes.main.semanticColors.inputBorder;
+
+    return (
+      <div className={cn(className, styles.root)}>
+        <input
+          ref={inputRef}
+          className={styles.input}
+          type="file"
+          accept="image/png, image/jpeg, image/gif"
+          onChange={onInputChange}
           disabled={disabled}
-        >
-          <FormattedMessage id={"ImageFilePicker.remove"} />
-        </PrimaryButton>
-      ) : (
-        <DefaultButton
-          className={styles.button}
-          onClick={onClickSelectImage}
-          disabled={disabled}
-        >
-          <FormattedMessage id="ImageFilePicker.upload" />
-        </DefaultButton>
-      )}
-    </div>
-  );
-};
+        />
+        <Image
+          src={src}
+          className={styles.image}
+          styles={{
+            root: {
+              borderColor,
+              borderWidth: "1px",
+              borderStyle: "solid",
+            },
+          }}
+          imageFit={ImageFit.centerContain}
+          maximizeFrame={true}
+        />
+        {hasImage ? (
+          <PrimaryButton
+            className={styles.button}
+            onClick={onClickRemoveImage}
+            theme={themes.destructive}
+            disabled={disabled}
+          >
+            <FormattedMessage id={"ImageFilePicker.remove"} />
+          </PrimaryButton>
+        ) : (
+          <DefaultButton
+            className={styles.button}
+            onClick={onClickSelectImage}
+            disabled={disabled}
+          >
+            <FormattedMessage id="ImageFilePicker.upload" />
+          </DefaultButton>
+        )}
+      </div>
+    );
+  };
 
 export default ImageFilePicker;

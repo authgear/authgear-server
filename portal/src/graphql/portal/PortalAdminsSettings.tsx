@@ -117,9 +117,10 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
     setIsRemovePortalAdminConfirmationDialogVisible(false);
   }, []);
 
-  const dismissRemovePortalAdminInvitationConfirmationDialog = useCallback(() => {
-    setIsRemovePortalAdminInvitationConfirmationDialogVisible(false);
-  }, []);
+  const dismissRemovePortalAdminInvitationConfirmationDialog =
+    useCallback(() => {
+      setIsRemovePortalAdminInvitationConfirmationDialogVisible(false);
+    }, []);
 
   const onDeleteCollaborator = useCallback(
     (userID: string) => {

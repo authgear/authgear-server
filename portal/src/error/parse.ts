@@ -68,7 +68,7 @@ function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   if (!messageID) {
     return {
       messageID: "errors.validation.unknown",
-      arguments: (cause as unknown) as Values,
+      arguments: cause as unknown as Values,
     };
   }
   let args: Values = cause.details;

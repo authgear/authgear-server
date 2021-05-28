@@ -27,9 +27,7 @@ const updateAppConfigMutation = gql`
   }
 `;
 
-export function useUpdateAppConfigMutation(
-  appID: string
-): {
+export function useUpdateAppConfigMutation(appID: string): {
   updateAppConfig: (
     appConfig: PortalAPIAppConfig
   ) => Promise<PortalAPIApp | null>;

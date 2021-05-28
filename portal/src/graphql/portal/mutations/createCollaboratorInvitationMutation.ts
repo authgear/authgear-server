@@ -27,9 +27,7 @@ const createCollaboratorInvitationMutation = gql`
   }
 `;
 
-export function useCreateCollaboratorInvitationMutation(
-  appID: string
-): {
+export function useCreateCollaboratorInvitationMutation(appID: string): {
   createCollaboratorInvitation: (email: string) => Promise<string | null>;
   loading: boolean;
   error: unknown;

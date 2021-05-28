@@ -32,17 +32,13 @@ const verifyDomainMutation = gql`
   }
 `;
 
-export function useVerifyDomainMutation(
-  appID: string
-): {
+export function useVerifyDomainMutation(appID: string): {
   verifyDomain: (domainID: string) => Promise<boolean>;
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { error, loading },
-  ] = useMutation<VerifyDomainMutation>(verifyDomainMutation, { client });
+  const [mutationFunction, { error, loading }] =
+    useMutation<VerifyDomainMutation>(verifyDomainMutation, { client });
   const verifyDomain = useCallback(
     async (domainID: string) => {
       const result = await mutationFunction({

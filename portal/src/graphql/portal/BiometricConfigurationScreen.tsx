@@ -67,82 +67,82 @@ interface BiometricConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps> = function BiometricConfigurationContent(
-  props
-) {
-  const { state, setState } = props.form;
+const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps> =
+  function BiometricConfigurationContent(props) {
+    const { state, setState } = props.form;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const onEnableChange = useCallback(
-    (_event, checked?: boolean) =>
-      setState((state) => ({
-        ...state,
-        enabled: checked ?? false,
-      })),
-    [setState]
-  );
+    const onEnableChange = useCallback(
+      (_event, checked?: boolean) =>
+        setState((state) => ({
+          ...state,
+          enabled: checked ?? false,
+        })),
+      [setState]
+    );
 
-  const onListEnabledChange = useCallback(
-    (_event, checked?: boolean) =>
-      setState((state) => ({
-        ...state,
-        list_enabled: checked ?? false,
-      })),
-    [setState]
-  );
+    const onListEnabledChange = useCallback(
+      (_event, checked?: boolean) =>
+        setState((state) => ({
+          ...state,
+          list_enabled: checked ?? false,
+        })),
+      [setState]
+    );
 
-  return (
-    <ScreenContent className={styles.root}>
-      <ScreenTitle>
-        <FormattedMessage id="BiometricConfigurationScreen.title" />
-      </ScreenTitle>
-      <ScreenDescription className={styles.widget}>
-        <FormattedMessage id="BiometricConfigurationScreen.description" />
-      </ScreenDescription>
-      <Widget className={cn(styles.widget, styles.controlGroup)}>
-        <WidgetTitle>
+    return (
+      <ScreenContent className={styles.root}>
+        <ScreenTitle>
           <FormattedMessage id="BiometricConfigurationScreen.title" />
-        </WidgetTitle>
-        <Toggle
-          className={styles.control}
-          checked={state.enabled}
-          onChange={onEnableChange}
-          label={renderToString("BiometricConfigurationScreen.enable.label")}
-          inlineLabel={true}
-        />
-        <Toggle
-          className={styles.control}
-          disabled={!state.enabled}
-          checked={state.list_enabled ?? false}
-          onChange={onListEnabledChange}
-          label={renderToString(
-            "BiometricConfigurationScreen.list-enabled.label"
-          )}
-          inlineLabel={true}
-        />
-      </Widget>
-    </ScreenContent>
-  );
-};
+        </ScreenTitle>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="BiometricConfigurationScreen.description" />
+        </ScreenDescription>
+        <Widget className={cn(styles.widget, styles.controlGroup)}>
+          <WidgetTitle>
+            <FormattedMessage id="BiometricConfigurationScreen.title" />
+          </WidgetTitle>
+          <Toggle
+            className={styles.control}
+            checked={state.enabled}
+            onChange={onEnableChange}
+            label={renderToString("BiometricConfigurationScreen.enable.label")}
+            inlineLabel={true}
+          />
+          <Toggle
+            className={styles.control}
+            disabled={!state.enabled}
+            checked={state.list_enabled ?? false}
+            onChange={onListEnabledChange}
+            label={renderToString(
+              "BiometricConfigurationScreen.list-enabled.label"
+            )}
+            inlineLabel={true}
+          />
+        </Widget>
+      </ScreenContent>
+    );
+  };
 
-const BiometricConfigurationScreen: React.FC = function BiometricConfigurationScreen() {
-  const { appID } = useParams();
-  const form = useAppConfigForm(appID, constructFormState, constructConfig);
+const BiometricConfigurationScreen: React.FC =
+  function BiometricConfigurationScreen() {
+    const { appID } = useParams();
+    const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-  if (form.isLoading) {
-    return <ShowLoading />;
-  }
+    if (form.isLoading) {
+      return <ShowLoading />;
+    }
 
-  if (form.loadError) {
-    return <ShowError error={form.loadError} onRetry={form.reload} />;
-  }
+    if (form.loadError) {
+      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
 
-  return (
-    <FormContainer form={form}>
-      <BiometricConfigurationContent form={form} />
-    </FormContainer>
-  );
-};
+    return (
+      <FormContainer form={form}>
+        <BiometricConfigurationContent form={form} />
+      </FormContainer>
+    );
+  };
 
 export default BiometricConfigurationScreen;

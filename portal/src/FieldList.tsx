@@ -120,14 +120,14 @@ function FieldListItem<T>(props: FieldListItemProps<T>) {
   const { index, value, onItemChange, onItemDelete, renderListItem } = props;
   const { themes } = useSystemConfig();
 
-  const onChange = useCallback((newValue: T) => onItemChange(index, newValue), [
-    onItemChange,
-    index,
-  ]);
-  const onDelete = useCallback(() => onItemDelete(index), [
-    onItemDelete,
-    index,
-  ]);
+  const onChange = useCallback(
+    (newValue: T) => onItemChange(index, newValue),
+    [onItemChange, index]
+  );
+  const onDelete = useCallback(
+    () => onItemDelete(index),
+    [onItemDelete, index]
+  );
 
   return (
     <div className={styles.listItem}>

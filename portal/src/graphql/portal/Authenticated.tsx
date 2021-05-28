@@ -13,39 +13,38 @@ function encodeOAuthState(state: Record<string, unknown>): string {
   return btoa(JSON.stringify(state));
 }
 
-const ShowQueryResult: React.FC<ShowQueryResultProps> = function ShowQueryResult(
-  props: ShowQueryResultProps
-) {
-  const { isAuthenticated } = props;
+const ShowQueryResult: React.FC<ShowQueryResultProps> =
+  function ShowQueryResult(props: ShowQueryResultProps) {
+    const { isAuthenticated } = props;
 
-  const redirectURI = window.location.origin + "/oauth-redirect";
-  const originalPath = `${window.location.pathname}${window.location.search}`;
+    const redirectURI = window.location.origin + "/oauth-redirect";
+    const originalPath = `${window.location.pathname}${window.location.search}`;
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      // Normally we should call endAuthorization after being redirected back to here.
-      // But we know that we are first party app and are using response_type=none so
-      // we can skip that.
-      authgear
-        .startAuthorization({
-          redirectURI,
-          prompt: "login",
-          state: encodeOAuthState({
-            originalPath,
-          }),
-        })
-        .catch((err) => {
-          console.error(err);
-        });
+    useEffect(() => {
+      if (!isAuthenticated) {
+        // Normally we should call endAuthorization after being redirected back to here.
+        // But we know that we are first party app and are using response_type=none so
+        // we can skip that.
+        authgear
+          .startAuthorization({
+            redirectURI,
+            prompt: "login",
+            state: encodeOAuthState({
+              originalPath,
+            }),
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+    }, [isAuthenticated, redirectURI, originalPath]);
+
+    if (isAuthenticated) {
+      return props.children ?? null;
     }
-  }, [isAuthenticated, redirectURI, originalPath]);
 
-  if (isAuthenticated) {
-    return props.children ?? null;
-  }
-
-  return null;
-};
+    return null;
+  };
 
 interface Props {
   children?: React.ReactElement;

@@ -25,19 +25,15 @@ const deleteDomainMutation = gql`
   }
 `;
 
-export function useDeleteDomainMutation(
-  appID: string
-): {
+export function useDeleteDomainMutation(appID: string): {
   deleteDomain: (domainID: string) => Promise<boolean>;
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { error, loading },
-  ] = useMutation<DeleteDomainMutation>(deleteDomainMutation, {
-    client,
-  });
+  const [mutationFunction, { error, loading }] =
+    useMutation<DeleteDomainMutation>(deleteDomainMutation, {
+      client,
+    });
 
   const deleteDomain = useCallback(
     async (domainID: string) => {

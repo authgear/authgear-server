@@ -304,431 +304,426 @@ function constructAuthenticatorLists(
       };
 }
 
-const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> = function RemoveConfirmationDialog(
-  props: RemoveConfirmationDialogProps
-) {
-  const {
-    visible,
-    deleteAuthenticator,
-    deletingAuthenticator,
-    authenticatorID,
-    authenticatorName,
-    onDismiss: onDismissProps,
-  } = props;
+const RemoveConfirmationDialog: React.FC<RemoveConfirmationDialogProps> =
+  function RemoveConfirmationDialog(props: RemoveConfirmationDialogProps) {
+    const {
+      visible,
+      deleteAuthenticator,
+      deletingAuthenticator,
+      authenticatorID,
+      authenticatorName,
+      onDismiss: onDismissProps,
+    } = props;
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const onConfirmClicked = useCallback(() => {
-    deleteAuthenticator(authenticatorID!);
-  }, [deleteAuthenticator, authenticatorID]);
+    const onConfirmClicked = useCallback(() => {
+      deleteAuthenticator(authenticatorID!);
+    }, [deleteAuthenticator, authenticatorID]);
 
-  const onDismiss = useCallback(() => {
-    if (!deletingAuthenticator) {
-      onDismissProps();
-    }
-  }, [onDismissProps, deletingAuthenticator]);
+    const onDismiss = useCallback(() => {
+      if (!deletingAuthenticator) {
+        onDismissProps();
+      }
+    }, [onDismissProps, deletingAuthenticator]);
 
-  const dialogMessage = useMemo(() => {
-    return renderToString(
-      "UserDetails.account-security.remove-confirm-dialog.message",
-      { authenticatorName: authenticatorName ?? "" }
+    const dialogMessage = useMemo(() => {
+      return renderToString(
+        "UserDetails.account-security.remove-confirm-dialog.message",
+        { authenticatorName: authenticatorName ?? "" }
+      );
+    }, [renderToString, authenticatorName]);
+
+    const removeConfirmDialogContentProps = useMemo(() => {
+      return {
+        title: (
+          <FormattedMessage id="UserDetails.account-security.remove-confirm-dialog.title" />
+        ),
+        subText: dialogMessage,
+      };
+    }, [dialogMessage]);
+
+    return (
+      <Dialog
+        hidden={!visible}
+        dialogContentProps={removeConfirmDialogContentProps}
+        modalProps={{ isBlocking: deletingAuthenticator }}
+        onDismiss={onDismiss}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            onClick={onConfirmClicked}
+            labelId="confirm"
+            loading={deletingAuthenticator}
+            disabled={!visible}
+          />
+          <DefaultButton
+            disabled={deletingAuthenticator || !visible}
+            onClick={onDismiss}
+          >
+            <FormattedMessage id="cancel" />
+          </DefaultButton>
+        </DialogFooter>
+      </Dialog>
     );
-  }, [renderToString, authenticatorName]);
+  };
 
-  const removeConfirmDialogContentProps = useMemo(() => {
-    return {
-      title: (
-        <FormattedMessage id="UserDetails.account-security.remove-confirm-dialog.title" />
-      ),
-      subText: dialogMessage,
-    };
-  }, [dialogMessage]);
+const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> =
+  function PasswordAuthenticatorCell(props: PasswordAuthenticatorCellProps) {
+    const { id, kind, lastUpdated, showConfirmationDialog } = props;
+    const navigate = useNavigate();
+    const { renderToString } = useContext(Context);
+    const { themes } = useSystemConfig();
 
-  return (
-    <Dialog
-      hidden={!visible}
-      dialogContentProps={removeConfirmDialogContentProps}
-      modalProps={{ isBlocking: deletingAuthenticator }}
-      onDismiss={onDismiss}
-    >
-      <DialogFooter>
-        <ButtonWithLoading
-          onClick={onConfirmClicked}
-          labelId="confirm"
-          loading={deletingAuthenticator}
-          disabled={!visible}
-        />
-        <DefaultButton
-          disabled={deletingAuthenticator || !visible}
-          onClick={onDismiss}
-        >
-          <FormattedMessage id="cancel" />
-        </DefaultButton>
-      </DialogFooter>
-    </Dialog>
-  );
-};
+    const labelId = getLocaleKeyWithAuthenticatorType("PASSWORD", kind);
 
-const PasswordAuthenticatorCell: React.FC<PasswordAuthenticatorCellProps> = function PasswordAuthenticatorCell(
-  props: PasswordAuthenticatorCellProps
-) {
-  const { id, kind, lastUpdated, showConfirmationDialog } = props;
-  const navigate = useNavigate();
-  const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
+    const onResetPasswordClicked = useCallback(() => {
+      navigate("./reset-password");
+    }, [navigate]);
 
-  const labelId = getLocaleKeyWithAuthenticatorType("PASSWORD", kind);
+    const onRemoveClicked = useCallback(() => {
+      showConfirmationDialog(id, renderToString(labelId!));
+    }, [labelId, id, renderToString, showConfirmationDialog]);
 
-  const onResetPasswordClicked = useCallback(() => {
-    navigate("./reset-password");
-  }, [navigate]);
+    return (
+      <ListCellLayout className={cn(styles.cell, styles.passwordCell)}>
+        <Text className={cn(styles.cellLabel, styles.passwordCellLabel)}>
+          <FormattedMessage id={labelId!} />
+        </Text>
+        <Text className={cn(styles.cellDesc, styles.passwordCellDesc)}>
+          <FormattedMessage
+            id="UserDetails.account-security.last-updated"
+            values={{ datetime: lastUpdated }}
+          />
+        </Text>
+        {kind === "PRIMARY" && (
+          <PrimaryButton
+            className={cn(styles.button, styles.resetPasswordButton)}
+            onClick={onResetPasswordClicked}
+          >
+            <FormattedMessage id="UserDetails.account-security.reset-password" />
+          </PrimaryButton>
+        )}
+        {kind === "SECONDARY" && (
+          <DefaultButton
+            className={cn(
+              styles.button,
+              styles.removeButton,
+              styles.removePasswordButton
+            )}
+            onClick={onRemoveClicked}
+            theme={themes.destructive}
+          >
+            <FormattedMessage id="remove" />
+          </DefaultButton>
+        )}
+      </ListCellLayout>
+    );
+  };
 
-  const onRemoveClicked = useCallback(() => {
-    showConfirmationDialog(id, renderToString(labelId!));
-  }, [labelId, id, renderToString, showConfirmationDialog]);
+const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> =
+  function TOTPAuthenticatorCell(props: TOTPAuthenticatorCellProps) {
+    const { id, kind, label, addedOn, showConfirmationDialog } = props;
+    const { themes } = useSystemConfig();
 
-  return (
-    <ListCellLayout className={cn(styles.cell, styles.passwordCell)}>
-      <Text className={cn(styles.cellLabel, styles.passwordCellLabel)}>
-        <FormattedMessage id={labelId!} />
-      </Text>
-      <Text className={cn(styles.cellDesc, styles.passwordCellDesc)}>
-        <FormattedMessage
-          id="UserDetails.account-security.last-updated"
-          values={{ datetime: lastUpdated }}
-        />
-      </Text>
-      {kind === "PRIMARY" && (
-        <PrimaryButton
-          className={cn(styles.button, styles.resetPasswordButton)}
-          onClick={onResetPasswordClicked}
-        >
-          <FormattedMessage id="UserDetails.account-security.reset-password" />
-        </PrimaryButton>
-      )}
-      {kind === "SECONDARY" && (
-        <DefaultButton
-          className={cn(
-            styles.button,
-            styles.removeButton,
-            styles.removePasswordButton
-          )}
-          onClick={onRemoveClicked}
-          theme={themes.destructive}
-        >
-          <FormattedMessage id="remove" />
-        </DefaultButton>
-      )}
-    </ListCellLayout>
-  );
-};
+    const onRemoveClicked = useCallback(() => {
+      showConfirmationDialog(id, label);
+    }, [id, label, showConfirmationDialog]);
 
-const TOTPAuthenticatorCell: React.FC<TOTPAuthenticatorCellProps> = function TOTPAuthenticatorCell(
-  props: TOTPAuthenticatorCellProps
-) {
-  const { id, kind, label, addedOn, showConfirmationDialog } = props;
-  const { themes } = useSystemConfig();
+    return (
+      <ListCellLayout className={cn(styles.cell, styles.totpCell)}>
+        <Text className={cn(styles.cellLabel, styles.totpCellLabel)}>
+          {label}
+        </Text>
+        <Text className={cn(styles.cellDesc, styles.totpCellDesc)}>
+          <FormattedMessage
+            id="UserDetails.account-security.added-on"
+            values={{ datetime: addedOn }}
+          />
+        </Text>
+        {kind === "SECONDARY" && (
+          <DefaultButton
+            className={cn(
+              styles.button,
+              styles.removeButton,
+              styles.totpRemoveButton
+            )}
+            onClick={onRemoveClicked}
+            theme={themes.destructive}
+          >
+            <FormattedMessage id="remove" />
+          </DefaultButton>
+        )}
+      </ListCellLayout>
+    );
+  };
 
-  const onRemoveClicked = useCallback(() => {
-    showConfirmationDialog(id, label);
-  }, [id, label, showConfirmationDialog]);
+const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> =
+  function (props: OOBOTPAuthenticatorCellProps) {
+    const { id, label, iconName, kind, addedOn, showConfirmationDialog } =
+      props;
+    const { themes } = useSystemConfig();
 
-  return (
-    <ListCellLayout className={cn(styles.cell, styles.totpCell)}>
-      <Text className={cn(styles.cellLabel, styles.totpCellLabel)}>
-        {label}
-      </Text>
-      <Text className={cn(styles.cellDesc, styles.totpCellDesc)}>
-        <FormattedMessage
-          id="UserDetails.account-security.added-on"
-          values={{ datetime: addedOn }}
-        />
-      </Text>
-      {kind === "SECONDARY" && (
-        <DefaultButton
-          className={cn(
-            styles.button,
-            styles.removeButton,
-            styles.totpRemoveButton
-          )}
-          onClick={onRemoveClicked}
-          theme={themes.destructive}
-        >
-          <FormattedMessage id="remove" />
-        </DefaultButton>
-      )}
-    </ListCellLayout>
-  );
-};
+    const onRemoveClicked = useCallback(() => {
+      showConfirmationDialog(id, label);
+    }, [id, label, showConfirmationDialog]);
 
-const OOBOTPAuthenticatorCell: React.FC<OOBOTPAuthenticatorCellProps> = function (
-  props: OOBOTPAuthenticatorCellProps
-) {
-  const { id, label, iconName, kind, addedOn, showConfirmationDialog } = props;
-  const { themes } = useSystemConfig();
+    return (
+      <ListCellLayout className={cn(styles.cell, styles.oobOtpCell)}>
+        <Icon className={styles.oobOtpCellIcon} iconName={iconName} />
+        <Text className={cn(styles.cellLabel, styles.oobOtpCellLabel)}>
+          {label}
+        </Text>
+        <Text className={cn(styles.cellDesc, styles.oobOtpCellAddedOn)}>
+          <FormattedMessage
+            id="UserDetails.account-security.added-on"
+            values={{ datetime: addedOn }}
+          />
+        </Text>
 
-  const onRemoveClicked = useCallback(() => {
-    showConfirmationDialog(id, label);
-  }, [id, label, showConfirmationDialog]);
+        {kind === "SECONDARY" && (
+          <DefaultButton
+            className={cn(
+              styles.button,
+              styles.removeButton,
+              styles.oobOtpRemoveButton
+            )}
+            onClick={onRemoveClicked}
+            theme={themes.destructive}
+          >
+            <FormattedMessage id="remove" />
+          </DefaultButton>
+        )}
+      </ListCellLayout>
+    );
+  };
 
-  return (
-    <ListCellLayout className={cn(styles.cell, styles.oobOtpCell)}>
-      <Icon className={styles.oobOtpCellIcon} iconName={iconName} />
-      <Text className={cn(styles.cellLabel, styles.oobOtpCellLabel)}>
-        {label}
-      </Text>
-      <Text className={cn(styles.cellDesc, styles.oobOtpCellAddedOn)}>
-        <FormattedMessage
-          id="UserDetails.account-security.added-on"
-          values={{ datetime: addedOn }}
-        />
-      </Text>
+const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> =
+  // eslint-disable-next-line complexity
+  function UserDetailsAccountSecurity(props: UserDetailsAccountSecurityProps) {
+    const { authenticators } = props;
+    const { locale } = useContext(Context);
 
-      {kind === "SECONDARY" && (
-        <DefaultButton
-          className={cn(
-            styles.button,
-            styles.removeButton,
-            styles.oobOtpRemoveButton
-          )}
-          onClick={onRemoveClicked}
-          theme={themes.destructive}
-        >
-          <FormattedMessage id="remove" />
-        </DefaultButton>
-      )}
-    </ListCellLayout>
-  );
-};
+    const {
+      deleteAuthenticator,
+      loading: deletingAuthenticator,
+      error: deleteAuthenticatorError,
+    } = useDeleteAuthenticatorMutation();
 
-// eslint-disable-next-line complexity
-const UserDetailsAccountSecurity: React.FC<UserDetailsAccountSecurityProps> = function UserDetailsAccountSecurity(
-  props: UserDetailsAccountSecurityProps
-) {
-  const { authenticators } = props;
-  const { locale } = useContext(Context);
+    const [isConfirmationDialogVisible, setIsConfirmationDialogVisible] =
+      useState(false);
+    const [confirmationDialogData, setConfirmationDialogData] =
+      useState<RemoveConfirmationDialogData | null>(null);
 
-  const {
-    deleteAuthenticator,
-    loading: deletingAuthenticator,
-    error: deleteAuthenticatorError,
-  } = useDeleteAuthenticatorMutation();
+    const primaryAuthenticatorLists = useMemo(() => {
+      return constructAuthenticatorLists(authenticators, "PRIMARY", locale);
+    }, [locale, authenticators]);
 
-  const [
-    isConfirmationDialogVisible,
-    setIsConfirmationDialogVisible,
-  ] = useState(false);
-  const [
-    confirmationDialogData,
-    setConfirmationDialogData,
-  ] = useState<RemoveConfirmationDialogData | null>(null);
+    const secondaryAuthenticatorLists = useMemo(() => {
+      return constructAuthenticatorLists(authenticators, "SECONDARY", locale);
+    }, [locale, authenticators]);
 
-  const primaryAuthenticatorLists = useMemo(() => {
-    return constructAuthenticatorLists(authenticators, "PRIMARY", locale);
-  }, [locale, authenticators]);
-
-  const secondaryAuthenticatorLists = useMemo(() => {
-    return constructAuthenticatorLists(authenticators, "SECONDARY", locale);
-  }, [locale, authenticators]);
-
-  const showConfirmationDialog = useCallback(
-    (authenticatorID: string, authenticatorName: string) => {
-      setConfirmationDialogData({
-        authenticatorID,
-        authenticatorName,
-      });
-      setIsConfirmationDialogVisible(true);
-    },
-    []
-  );
-
-  const dismissConfirmationDialog = useCallback(() => {
-    setIsConfirmationDialogVisible(false);
-  }, []);
-
-  const onRenderPasswordAuthenticatorDetailCell = useCallback(
-    (item?: PasswordAuthenticatorData, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-      return (
-        <PasswordAuthenticatorCell
-          {...item}
-          showConfirmationDialog={showConfirmationDialog}
-        />
-      );
-    },
-    [showConfirmationDialog]
-  );
-
-  const onRenderOobOtpAuthenticatorDetailCell = useCallback(
-    (item?: OOBOTPAuthenticatorData, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-      return (
-        <OOBOTPAuthenticatorCell
-          {...item}
-          showConfirmationDialog={showConfirmationDialog}
-        />
-      );
-    },
-    [showConfirmationDialog]
-  );
-
-  const onRenderTotpAuthenticatorDetailCell = useCallback(
-    (item?: TOTPAuthenticatorData, _index?: number): React.ReactNode => {
-      if (item == null) {
-        return null;
-      }
-      return (
-        <TOTPAuthenticatorCell
-          {...item}
-          showConfirmationDialog={showConfirmationDialog}
-        />
-      );
-    },
-    [showConfirmationDialog]
-  );
-
-  const onConfirmDeleteAuthenticator = useCallback(
-    (authenticatorID) => {
-      deleteAuthenticator(authenticatorID)
-        .catch(() => {})
-        .finally(() => {
-          dismissConfirmationDialog();
+    const showConfirmationDialog = useCallback(
+      (authenticatorID: string, authenticatorName: string) => {
+        setConfirmationDialogData({
+          authenticatorID,
+          authenticatorName,
         });
-    },
-    [deleteAuthenticator, dismissConfirmationDialog]
-  );
+        setIsConfirmationDialogVisible(true);
+      },
+      []
+    );
 
-  return (
-    <div className={styles.root}>
-      <RemoveConfirmationDialog
-        visible={isConfirmationDialogVisible}
-        authenticatorID={confirmationDialogData?.authenticatorID}
-        authenticatorName={confirmationDialogData?.authenticatorName}
-        onDismiss={dismissConfirmationDialog}
-        deleteAuthenticator={onConfirmDeleteAuthenticator}
-        deletingAuthenticator={deletingAuthenticator}
-      />
-      <ErrorDialog
-        rules={[]}
-        error={deleteAuthenticatorError}
-        fallbackErrorMessageID="UserDetails.account-security.remove-authenticator.generic-error"
-      />
-      {primaryAuthenticatorLists.hasVisibleList && (
-        <div className={styles.authenticatorContainer}>
-          <Text
-            as="h2"
-            className={cn(styles.header, styles.authenticatorKindHeader)}
-          >
-            <FormattedMessage id="UserDetails.account-security.primary" />
-          </Text>
-          {primaryAuthenticatorLists.password.length > 0 && (
-            <List
-              className={styles.list}
-              items={primaryAuthenticatorLists.password}
-              onRenderCell={onRenderPasswordAuthenticatorDetailCell}
-            />
-          )}
-          {primaryAuthenticatorLists.oobOtpEmail.length > 0 && (
-            <>
-              <Text
-                as="h3"
-                className={cn(styles.header, styles.authenticatorTypeHeader)}
-              >
-                <FormattedMessage id="AuthenticatorType.primary.oob-otp-email" />
-              </Text>
+    const dismissConfirmationDialog = useCallback(() => {
+      setIsConfirmationDialogVisible(false);
+    }, []);
+
+    const onRenderPasswordAuthenticatorDetailCell = useCallback(
+      (item?: PasswordAuthenticatorData, _index?: number): React.ReactNode => {
+        if (item == null) {
+          return null;
+        }
+        return (
+          <PasswordAuthenticatorCell
+            {...item}
+            showConfirmationDialog={showConfirmationDialog}
+          />
+        );
+      },
+      [showConfirmationDialog]
+    );
+
+    const onRenderOobOtpAuthenticatorDetailCell = useCallback(
+      (item?: OOBOTPAuthenticatorData, _index?: number): React.ReactNode => {
+        if (item == null) {
+          return null;
+        }
+        return (
+          <OOBOTPAuthenticatorCell
+            {...item}
+            showConfirmationDialog={showConfirmationDialog}
+          />
+        );
+      },
+      [showConfirmationDialog]
+    );
+
+    const onRenderTotpAuthenticatorDetailCell = useCallback(
+      (item?: TOTPAuthenticatorData, _index?: number): React.ReactNode => {
+        if (item == null) {
+          return null;
+        }
+        return (
+          <TOTPAuthenticatorCell
+            {...item}
+            showConfirmationDialog={showConfirmationDialog}
+          />
+        );
+      },
+      [showConfirmationDialog]
+    );
+
+    const onConfirmDeleteAuthenticator = useCallback(
+      (authenticatorID) => {
+        deleteAuthenticator(authenticatorID)
+          .catch(() => {})
+          .finally(() => {
+            dismissConfirmationDialog();
+          });
+      },
+      [deleteAuthenticator, dismissConfirmationDialog]
+    );
+
+    return (
+      <div className={styles.root}>
+        <RemoveConfirmationDialog
+          visible={isConfirmationDialogVisible}
+          authenticatorID={confirmationDialogData?.authenticatorID}
+          authenticatorName={confirmationDialogData?.authenticatorName}
+          onDismiss={dismissConfirmationDialog}
+          deleteAuthenticator={onConfirmDeleteAuthenticator}
+          deletingAuthenticator={deletingAuthenticator}
+        />
+        <ErrorDialog
+          rules={[]}
+          error={deleteAuthenticatorError}
+          fallbackErrorMessageID="UserDetails.account-security.remove-authenticator.generic-error"
+        />
+        {primaryAuthenticatorLists.hasVisibleList && (
+          <div className={styles.authenticatorContainer}>
+            <Text
+              as="h2"
+              className={cn(styles.header, styles.authenticatorKindHeader)}
+            >
+              <FormattedMessage id="UserDetails.account-security.primary" />
+            </Text>
+            {primaryAuthenticatorLists.password.length > 0 && (
               <List
-                className={cn(styles.list, styles.oobOtpList)}
-                items={primaryAuthenticatorLists.oobOtpEmail}
-                onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+                className={styles.list}
+                items={primaryAuthenticatorLists.password}
+                onRenderCell={onRenderPasswordAuthenticatorDetailCell}
               />
-            </>
-          )}
-          {primaryAuthenticatorLists.oobOtpSMS.length > 0 && (
-            <>
-              <Text
-                as="h3"
-                className={cn(styles.header, styles.authenticatorTypeHeader)}
-              >
-                <FormattedMessage id="AuthenticatorType.primary.oob-otp-sms" />
-              </Text>
-              <List
-                className={cn(styles.list, styles.oobOtpList)}
-                items={primaryAuthenticatorLists.oobOtpSMS}
-                onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
-              />
-            </>
-          )}
-        </div>
-      )}
-      {secondaryAuthenticatorLists.hasVisibleList && (
-        <div className={styles.authenticatorContainer}>
-          <Text
-            as="h2"
-            className={cn(styles.header, styles.authenticatorKindHeader)}
-          >
-            <FormattedMessage id="UserDetails.account-security.secondary" />
-          </Text>
-          {secondaryAuthenticatorLists.totp != null &&
-            secondaryAuthenticatorLists.totp.length > 0 && (
+            )}
+            {primaryAuthenticatorLists.oobOtpEmail.length > 0 && (
               <>
                 <Text
                   as="h3"
                   className={cn(styles.header, styles.authenticatorTypeHeader)}
                 >
-                  <FormattedMessage id="AuthenticatorType.secondary.totp" />
+                  <FormattedMessage id="AuthenticatorType.primary.oob-otp-email" />
                 </Text>
                 <List
-                  className={cn(styles.list, styles.totpList)}
-                  items={secondaryAuthenticatorLists.totp}
-                  onRenderCell={onRenderTotpAuthenticatorDetailCell}
+                  className={cn(styles.list, styles.oobOtpList)}
+                  items={primaryAuthenticatorLists.oobOtpEmail}
+                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
                 />
               </>
             )}
-          {secondaryAuthenticatorLists.oobOtpEmail.length > 0 && (
-            <>
-              <Text
-                as="h3"
-                className={cn(styles.header, styles.authenticatorTypeHeader)}
-              >
-                <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
-              </Text>
+            {primaryAuthenticatorLists.oobOtpSMS.length > 0 && (
+              <>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.primary.oob-otp-sms" />
+                </Text>
+                <List
+                  className={cn(styles.list, styles.oobOtpList)}
+                  items={primaryAuthenticatorLists.oobOtpSMS}
+                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+                />
+              </>
+            )}
+          </div>
+        )}
+        {secondaryAuthenticatorLists.hasVisibleList && (
+          <div className={styles.authenticatorContainer}>
+            <Text
+              as="h2"
+              className={cn(styles.header, styles.authenticatorKindHeader)}
+            >
+              <FormattedMessage id="UserDetails.account-security.secondary" />
+            </Text>
+            {secondaryAuthenticatorLists.totp != null &&
+              secondaryAuthenticatorLists.totp.length > 0 && (
+                <>
+                  <Text
+                    as="h3"
+                    className={cn(
+                      styles.header,
+                      styles.authenticatorTypeHeader
+                    )}
+                  >
+                    <FormattedMessage id="AuthenticatorType.secondary.totp" />
+                  </Text>
+                  <List
+                    className={cn(styles.list, styles.totpList)}
+                    items={secondaryAuthenticatorLists.totp}
+                    onRenderCell={onRenderTotpAuthenticatorDetailCell}
+                  />
+                </>
+              )}
+            {secondaryAuthenticatorLists.oobOtpEmail.length > 0 && (
+              <>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-email" />
+                </Text>
+                <List
+                  className={cn(styles.list, styles.oobOtpList)}
+                  items={secondaryAuthenticatorLists.oobOtpEmail}
+                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+                />
+              </>
+            )}
+            {secondaryAuthenticatorLists.oobOtpSMS.length > 0 && (
+              <>
+                <Text
+                  as="h3"
+                  className={cn(styles.header, styles.authenticatorTypeHeader)}
+                >
+                  <FormattedMessage id="AuthenticatorType.secondary.oob-otp-sms" />
+                </Text>
+                <List
+                  className={cn(styles.list, styles.oobOtpList)}
+                  items={secondaryAuthenticatorLists.oobOtpSMS}
+                  onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+                />
+              </>
+            )}
+            {secondaryAuthenticatorLists.password.length > 0 && (
               <List
-                className={cn(styles.list, styles.oobOtpList)}
-                items={secondaryAuthenticatorLists.oobOtpEmail}
-                onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
+                className={cn(styles.list, styles.passwordList)}
+                items={secondaryAuthenticatorLists.password}
+                onRenderCell={onRenderPasswordAuthenticatorDetailCell}
               />
-            </>
-          )}
-          {secondaryAuthenticatorLists.oobOtpSMS.length > 0 && (
-            <>
-              <Text
-                as="h3"
-                className={cn(styles.header, styles.authenticatorTypeHeader)}
-              >
-                <FormattedMessage id="AuthenticatorType.secondary.oob-otp-sms" />
-              </Text>
-              <List
-                className={cn(styles.list, styles.oobOtpList)}
-                items={secondaryAuthenticatorLists.oobOtpSMS}
-                onRenderCell={onRenderOobOtpAuthenticatorDetailCell}
-              />
-            </>
-          )}
-          {secondaryAuthenticatorLists.password.length > 0 && (
-            <List
-              className={cn(styles.list, styles.passwordList)}
-              items={secondaryAuthenticatorLists.password}
-              onRenderCell={onRenderPasswordAuthenticatorDetailCell}
-            />
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
 export default UserDetailsAccountSecurity;

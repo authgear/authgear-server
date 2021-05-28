@@ -89,9 +89,9 @@ export const createOAuthSSOProviderItemKey = (
   type: OAuthSSOProviderType,
   appType?: OAuthSSOWeChatAppType
 ): OAuthSSOProviderItemKey => {
-  return (!appType
-    ? type
-    : [type, appType].join(".")) as OAuthSSOProviderItemKey;
+  return (
+    !appType ? type : [type, appType].join(".")
+  ) as OAuthSSOProviderItemKey;
 };
 
 export const parseOAuthSSOProviderItemKey = (
@@ -115,7 +115,8 @@ export interface OAuthSSOConfig {
 
 // IdentityConflictConfig
 export const promotionConflictBehaviours = ["error", "login"] as const;
-export type PromotionConflictBehaviour = typeof promotionConflictBehaviours[number];
+export type PromotionConflictBehaviour =
+  typeof promotionConflictBehaviours[number];
 export const isPromotionConflictBehaviour = (
   value: unknown
 ): value is PromotionConflictBehaviour => {
@@ -146,7 +147,8 @@ export interface IdentityConfig {
 // AuthenticatorConfig
 
 export const passwordPolicyGuessableLevels = [0, 1, 2, 3, 4, 5] as const;
-export type PasswordPolicyGuessableLevel = typeof passwordPolicyGuessableLevels[number];
+export type PasswordPolicyGuessableLevel =
+  typeof passwordPolicyGuessableLevels[number];
 export const isPasswordPolicyGuessableLevel = (
   value: unknown
 ): value is PasswordPolicyGuessableLevel => {
@@ -196,7 +198,8 @@ export const secondaryAuthenticatorTypes = [
   "oob_otp_sms",
   "totp",
 ] as const;
-export type SecondaryAuthenticatorType = typeof secondaryAuthenticatorTypes[number];
+export type SecondaryAuthenticatorType =
+  typeof secondaryAuthenticatorTypes[number];
 export function isSecondaryAuthenticatorType(
   type: any
 ): type is SecondaryAuthenticatorType {
@@ -216,7 +219,8 @@ export const secondaryAuthenticationModes = [
   "if_exists",
   "required",
 ] as const;
-export type SecondaryAuthenticationMode = typeof secondaryAuthenticationModes[number];
+export type SecondaryAuthenticationMode =
+  typeof secondaryAuthenticationModes[number];
 
 export interface RecoveryCodeConfig {
   count?: number;

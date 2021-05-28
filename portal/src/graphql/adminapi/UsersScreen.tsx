@@ -64,9 +64,8 @@ const UsersScreen: React.FC = function UsersScreen() {
 
   const [offset, setOffset] = useState(0);
   const [sortBy, setSortBy] = useState<UserSortBy | undefined>(undefined);
-  const [sortDirection, setSortDirection] = useState<SortDirection | undefined>(
-    undefined
-  );
+  const [sortDirection, setSortDirection] =
+    useState<SortDirection | undefined>(undefined);
 
   const { renderToString } = useContext(Context);
   const navigate = useNavigate();

@@ -49,19 +49,19 @@ export function useAppSecretConfigForm<State>(
     resetError,
   } = useUpdateAppAndSecretConfigMutation(appID);
 
-  const effectiveConfig = useMemo(() => effectiveAppConfig ?? { id: appID }, [
-    effectiveAppConfig,
-    appID,
-  ]);
-  const secrets = useMemo(() => secretConfig ?? { secrets: [] }, [
-    secretConfig,
-  ]);
+  const effectiveConfig = useMemo(
+    () => effectiveAppConfig ?? { id: appID },
+    [effectiveAppConfig, appID]
+  );
+  const secrets = useMemo(
+    () => secretConfig ?? { secrets: [] },
+    [secretConfig]
+  );
 
-  const initialState = useMemo(() => constructState(effectiveConfig, secrets), [
-    effectiveConfig,
-    secrets,
-    constructState,
-  ]);
+  const initialState = useMemo(
+    () => constructState(effectiveConfig, secrets),
+    [effectiveConfig, secrets, constructState]
+  );
   const [currentState, setCurrentState] = useState<State | null>(null);
 
   const isDirty = useMemo(() => {

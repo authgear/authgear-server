@@ -50,15 +50,15 @@ export function useAppConfigForm<State>(
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [canSave, setCanSave] = useState<boolean | undefined>(initialCanSave);
 
-  const effectiveConfig = useMemo(() => effectiveAppConfig ?? { id: appID }, [
-    effectiveAppConfig,
-    appID,
-  ]);
+  const effectiveConfig = useMemo(
+    () => effectiveAppConfig ?? { id: appID },
+    [effectiveAppConfig, appID]
+  );
 
-  const initialState = useMemo(() => constructState(effectiveConfig), [
-    effectiveConfig,
-    constructState,
-  ]);
+  const initialState = useMemo(
+    () => constructState(effectiveConfig),
+    [effectiveConfig, constructState]
+  );
   const [currentState, setCurrentState] = useState<State | null>(null);
 
   const isDirty = useMemo(() => {

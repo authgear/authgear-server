@@ -12,34 +12,33 @@ interface ModifiedIndicatorWrapperProps {
 
 const MODIFIED_INDICATOR_CONTAINER_ID = "__modified-indicator-container";
 
-export const ModifiedIndicatorContainer: React.FC = function ModifiedIndicatorContainer() {
-  return <div id={MODIFIED_INDICATOR_CONTAINER_ID} />;
-};
+export const ModifiedIndicatorContainer: React.FC =
+  function ModifiedIndicatorContainer() {
+    return <div id={MODIFIED_INDICATOR_CONTAINER_ID} />;
+  };
 
-export const ModifiedIndicatorWrapper: React.FC<ModifiedIndicatorWrapperProps> = function ModifiedIndicatorWrapper(
-  props
-) {
-  const { className } = props;
+export const ModifiedIndicatorWrapper: React.FC<ModifiedIndicatorWrapperProps> =
+  function ModifiedIndicatorWrapper(props) {
+    const { className } = props;
 
-  return (
-    <div className={styles.wrapper}>
-      <ModifiedIndicatorContainer />
-      <div className={styles.scrollWrapper}>
-        <ScrollablePane>
-          <div className={className}>{props.children}</div>
-        </ScrollablePane>
+    return (
+      <div className={styles.wrapper}>
+        <ModifiedIndicatorContainer />
+        <div className={styles.scrollWrapper}>
+          <ScrollablePane>
+            <div className={className}>{props.children}</div>
+          </ScrollablePane>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
-export const ModifiedIndicatorPortal: React.FC<ModifiedIndicatorProps> = function ModifiedIndicatorPortal(
-  props: ModifiedIndicatorProps
-) {
-  const container = document.getElementById(MODIFIED_INDICATOR_CONTAINER_ID);
+export const ModifiedIndicatorPortal: React.FC<ModifiedIndicatorProps> =
+  function ModifiedIndicatorPortal(props: ModifiedIndicatorProps) {
+    const container = document.getElementById(MODIFIED_INDICATOR_CONTAINER_ID);
 
-  // NOTE: when portal is rendered for first time, container would be null
-  return container != null
-    ? ReactDOM.createPortal(<ModifiedIndicator {...props} />, container)
-    : null;
-};
+    // NOTE: when portal is rendered for first time, container would be null
+    return container != null
+      ? ReactDOM.createPortal(<ModifiedIndicator {...props} />, container)
+      : null;
+  };

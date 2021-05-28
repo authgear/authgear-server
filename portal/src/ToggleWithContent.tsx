@@ -9,16 +9,15 @@ interface ToggleWithContentProps extends IToggleProps {
   children: React.ReactNode;
 }
 
-const ToggleWithContent: React.FC<ToggleWithContentProps> = function ToggleWithContent(
-  props: ToggleWithContentProps
-) {
-  const { className, children, ...rest } = props;
-  return (
-    <div className={cn(className, styles.root)}>
-      <Toggle className={styles.toggle} {...rest} />
-      <div className={styles.content}>{children}</div>
-    </div>
-  );
-};
+const ToggleWithContent: React.FC<ToggleWithContentProps> =
+  function ToggleWithContent(props: ToggleWithContentProps) {
+    const { className, children, ...rest } = props;
+    return (
+      <div className={cn(className, styles.root)}>
+        <Toggle className={styles.toggle} {...rest} />
+        <div className={styles.content}>{children}</div>
+      </div>
+    );
+  };
 
 export default ToggleWithContent;

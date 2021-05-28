@@ -8,15 +8,18 @@ export interface WidgetDescriptionProps {
   children?: React.ReactNode;
 }
 
-const WidgetDescription: React.FC<WidgetDescriptionProps> = function WidgetDescription(
-  props: WidgetDescriptionProps
-) {
-  const { className, children } = props;
-  return (
-    <Text as="p" variant="medium" className={cn(className, styles.description)}>
-      {children}
-    </Text>
-  );
-};
+const WidgetDescription: React.FC<WidgetDescriptionProps> =
+  function WidgetDescription(props: WidgetDescriptionProps) {
+    const { className, children } = props;
+    return (
+      <Text
+        as="p"
+        variant="medium"
+        className={cn(className, styles.description)}
+      >
+        {children}
+      </Text>
+    );
+  };
 
 export default WidgetDescription;

@@ -81,132 +81,132 @@ interface CreateClientSuccessDialogProps {
 
 const CALLOUT_VISIBLE_DURATION = 3000;
 
-const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> = function CreateClientSuccessDialog(
-  props: CreateClientSuccessDialogProps
-) {
-  const { visible, clientId } = props;
-  const navigate = useNavigate();
+const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> =
+  function CreateClientSuccessDialog(props: CreateClientSuccessDialogProps) {
+    const { visible, clientId } = props;
+    const navigate = useNavigate();
 
-  const [isCalloutVisible, setIsCalloutVisible] = useState(false);
-  const [calloutActiveCount, setCalloutActiveCount] = useState(0);
+    const [isCalloutVisible, setIsCalloutVisible] = useState(false);
+    const [calloutActiveCount, setCalloutActiveCount] = useState(0);
 
-  useEffect(() => {
-    if (calloutActiveCount === 0) {
-      // consistent return type in arrow function
-      return () => {};
-    }
-
-    setIsCalloutVisible(true);
-    const handle = setTimeout(
-      () => setIsCalloutVisible(false),
-      CALLOUT_VISIBLE_DURATION
-    );
-    return () => {
-      // clear previous timeout when count is updated
-      clearTimeout(handle);
-    };
-  }, [calloutActiveCount]);
-
-  const onConfirmCreateClientSuccess = useCallback(() => {
-    navigate("../");
-  }, [navigate]);
-
-  const onCopyClick = useCallback(() => {
-    copyToClipboard(clientId);
-    setCalloutActiveCount((c) => c + 1);
-  }, [clientId]);
-
-  return (
-    <Dialog
-      hidden={!visible}
-      title={
-        <FormattedMessage id="CreateOAuthClientScreen.success-dialog.title" />
+    useEffect(() => {
+      if (calloutActiveCount === 0) {
+        // consistent return type in arrow function
+        return () => {};
       }
-    >
-      <Label>
-        <FormattedMessage id="CreateOAuthClientScreen.success-dialog.client-id-label" />
-      </Label>
-      <div className={styles.dialogClientId}>
-        <Text>{clientId}</Text>
-        <IconButton
-          onClick={onCopyClick}
-          className={styles.dialogCopyIcon}
-          iconProps={{ iconName: "Copy" }}
-        />
-      </div>
-      {isCalloutVisible && (
-        <Callout
-          className={styles.copyButtonCallout}
-          target={`.${styles.dialogCopyIcon}`}
-          directionalHint={DirectionalHint.bottomLeftEdge}
-          hideOverflow={true}
-        >
-          <Text>
-            <FormattedMessage id="CreateOAuthClientScreen.success-dialog.copied" />
-          </Text>
-        </Callout>
-      )}
-      <DialogFooter>
-        <PrimaryButton onClick={onConfirmCreateClientSuccess}>
-          <FormattedMessage id="done" />
-        </PrimaryButton>
-      </DialogFooter>
-    </Dialog>
-  );
-};
+
+      setIsCalloutVisible(true);
+      const handle = setTimeout(
+        () => setIsCalloutVisible(false),
+        CALLOUT_VISIBLE_DURATION
+      );
+      return () => {
+        // clear previous timeout when count is updated
+        clearTimeout(handle);
+      };
+    }, [calloutActiveCount]);
+
+    const onConfirmCreateClientSuccess = useCallback(() => {
+      navigate("../");
+    }, [navigate]);
+
+    const onCopyClick = useCallback(() => {
+      copyToClipboard(clientId);
+      setCalloutActiveCount((c) => c + 1);
+    }, [clientId]);
+
+    return (
+      <Dialog
+        hidden={!visible}
+        title={
+          <FormattedMessage id="CreateOAuthClientScreen.success-dialog.title" />
+        }
+      >
+        <Label>
+          <FormattedMessage id="CreateOAuthClientScreen.success-dialog.client-id-label" />
+        </Label>
+        <div className={styles.dialogClientId}>
+          <Text>{clientId}</Text>
+          <IconButton
+            onClick={onCopyClick}
+            className={styles.dialogCopyIcon}
+            iconProps={{ iconName: "Copy" }}
+          />
+        </div>
+        {isCalloutVisible && (
+          <Callout
+            className={styles.copyButtonCallout}
+            target={`.${styles.dialogCopyIcon}`}
+            directionalHint={DirectionalHint.bottomLeftEdge}
+            hideOverflow={true}
+          >
+            <Text>
+              <FormattedMessage id="CreateOAuthClientScreen.success-dialog.copied" />
+            </Text>
+          </Callout>
+        )}
+        <DialogFooter>
+          <PrimaryButton onClick={onConfirmCreateClientSuccess}>
+            <FormattedMessage id="done" />
+          </PrimaryButton>
+        </DialogFooter>
+      </Dialog>
+    );
+  };
 
 interface CreateOAuthClientContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> = function CreateOAuthClientContent(
-  props
-) {
-  const { state, setState } = props.form;
+const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
+  function CreateOAuthClientContent(props) {
+    const { state, setState } = props.form;
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: "..",
-        label: <FormattedMessage id="ApplicationsConfigurationScreen.title" />,
+    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+      return [
+        {
+          to: "..",
+          label: (
+            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+          ),
+        },
+        {
+          to: ".",
+          label: <FormattedMessage id="CreateOAuthClientScreen.title" />,
+        },
+      ];
+    }, []);
+
+    const [clientId] = useState(state.newClient.client_id);
+    const client =
+      state.clients.find((c) => c.client_id === clientId) ?? state.newClient;
+
+    const onClientConfigChange = useCallback(
+      (newClient: OAuthClientConfig) => {
+        setState((state) => ({ ...state, newClient }));
       },
-      {
-        to: ".",
-        label: <FormattedMessage id="CreateOAuthClientScreen.title" />,
-      },
-    ];
-  }, []);
+      [setState]
+    );
 
-  const [clientId] = useState(state.newClient.client_id);
-  const client =
-    state.clients.find((c) => c.client_id === clientId) ?? state.newClient;
+    const isSuccessDialogVisible = state.clients.some(
+      (c) => c.client_id === clientId
+    );
 
-  const onClientConfigChange = useCallback(
-    (newClient: OAuthClientConfig) => {
-      setState((state) => ({ ...state, newClient }));
-    },
-    [setState]
-  );
-
-  const isSuccessDialogVisible = state.clients.some(
-    (c) => c.client_id === clientId
-  );
-
-  return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <ModifyOAuthClientForm
-        isCreation={true}
-        clientConfig={client}
-        onClientConfigChange={onClientConfigChange}
-      />
-      <CreateClientSuccessDialog
-        visible={isSuccessDialogVisible}
-        clientId={clientId}
-      />
-    </div>
-  );
-};
+    return (
+      <div className={styles.root}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <ModifyOAuthClientForm
+          isCreation={true}
+          clientConfig={client}
+          onClientConfigChange={onClientConfigChange}
+        />
+        <CreateClientSuccessDialog
+          visible={isSuccessDialogVisible}
+          clientId={clientId}
+        />
+      </div>
+    );
+  };
 
 const CreateOAuthClientScreen: React.FC = function CreateOAuthClientScreen() {
   const { appID } = useParams();

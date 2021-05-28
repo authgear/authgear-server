@@ -16,40 +16,39 @@ const iconProps = {
   iconName: "SignOut",
 };
 
-const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> = function ScreenHeaderAppSection(
-  props: ScreenHeaderAppSectionProps
-) {
-  const { appID } = props;
-  const { effectiveAppConfig, loading } = useAppConfigQuery(appID);
-  const { appHostSuffix, themes } = useSystemConfig();
+const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> =
+  function ScreenHeaderAppSection(props: ScreenHeaderAppSectionProps) {
+    const { appID } = props;
+    const { effectiveAppConfig, loading } = useAppConfigQuery(appID);
+    const { appHostSuffix, themes } = useSystemConfig();
 
-  const rawAppID = effectiveAppConfig?.id;
-  const endpoint =
-    rawAppID != null ? "https://" + rawAppID + appHostSuffix : null;
+    const rawAppID = effectiveAppConfig?.id;
+    const endpoint =
+      rawAppID != null ? "https://" + rawAppID + appHostSuffix : null;
 
-  if (loading) {
-    return null;
-  }
+    if (loading) {
+      return null;
+    }
 
-  return (
-    <>
-      <Icon className={styles.headerArrow} iconName="ChevronRight" />
-      {rawAppID != null && endpoint != null ? (
-        <FluentUILink
-          className={styles.headerAppID}
-          target="_blank"
-          rel="noopener"
-          href={endpoint}
-          theme={themes.inverted}
-        >
-          {`${rawAppID} - ${endpoint}`}
-        </FluentUILink>
-      ) : (
-        <Text className={styles.headerAppID}>{appID}</Text>
-      )}
-    </>
-  );
-};
+    return (
+      <>
+        <Icon className={styles.headerArrow} iconName="ChevronRight" />
+        {rawAppID != null && endpoint != null ? (
+          <FluentUILink
+            className={styles.headerAppID}
+            target="_blank"
+            rel="noopener"
+            href={endpoint}
+            theme={themes.inverted}
+          >
+            {`${rawAppID} - ${endpoint}`}
+          </FluentUILink>
+        ) : (
+          <Text className={styles.headerAppID}>{appID}</Text>
+        )}
+      </>
+    );
+  };
 
 const ScreenHeader: React.FC = function ScreenHeader() {
   const { renderToString } = useContext(Context);

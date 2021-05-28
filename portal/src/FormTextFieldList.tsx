@@ -15,48 +15,50 @@ interface TextFieldListItemProps {
   onChange: (value: string) => void;
 }
 
-const TextFieldListItem: React.FC<TextFieldListItemProps> = function TextFieldListItem(
-  props: TextFieldListItemProps
-) {
-  const { index, parentJSONPointer, textFieldProps, value, onChange } = props;
-  const { value: _value, className: inputClassName, ...reducedTextFieldProps } =
-    textFieldProps ?? {};
+const TextFieldListItem: React.FC<TextFieldListItemProps> =
+  function TextFieldListItem(props: TextFieldListItemProps) {
+    const { index, parentJSONPointer, textFieldProps, value, onChange } = props;
+    const {
+      value: _value,
+      className: inputClassName,
+      ...reducedTextFieldProps
+    } = textFieldProps ?? {};
 
-  const { renderToString } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
-  const field = useMemo(
-    () => ({
-      parentJSONPointer,
-      fieldName: index.toString(10),
-    }),
-    [parentJSONPointer, index]
-  );
-  const { errors } = useFormField(field);
-  const errorMessage = useMemo(
-    () => renderErrors(field, errors, renderToString),
-    [field, errors, renderToString]
-  );
+    const field = useMemo(
+      () => ({
+        parentJSONPointer,
+        fieldName: index.toString(10),
+      }),
+      [parentJSONPointer, index]
+    );
+    const { errors } = useFormField(field);
+    const errorMessage = useMemo(
+      () => renderErrors(field, errors, renderToString),
+      [field, errors, renderToString]
+    );
 
-  const _onChange = useCallback(
-    (_event, newValue) => {
-      if (newValue == null) {
-        return;
-      }
-      onChange(newValue);
-    },
-    [onChange]
-  );
+    const _onChange = useCallback(
+      (_event, newValue) => {
+        if (newValue == null) {
+          return;
+        }
+        onChange(newValue);
+      },
+      [onChange]
+    );
 
-  return (
-    <TextField
-      {...reducedTextFieldProps}
-      className={cn(styles.inputField, inputClassName)}
-      value={value}
-      onChange={_onChange}
-      errorMessage={errorMessage}
-    />
-  );
-};
+    return (
+      <TextField
+        {...reducedTextFieldProps}
+        className={cn(styles.inputField, inputClassName)}
+        value={value}
+        onChange={_onChange}
+        errorMessage={errorMessage}
+      />
+    );
+  };
 
 interface FormTextFieldListProps {
   className?: string;
@@ -69,46 +71,45 @@ interface FormTextFieldListProps {
   addButtonLabelMessageID?: string;
 }
 
-const FormTextFieldList: React.FC<FormTextFieldListProps> = function FormTextFieldList(
-  props
-) {
-  const {
-    className,
-    label,
-    parentJSONPointer,
-    fieldName,
-    inputProps,
-    list,
-    onListChange,
-    addButtonLabelMessageID,
-  } = props;
-  const makeDefaultItem = useCallback(() => "", []);
-  const renderListItem = useCallback(
-    (index: number, value: string, onChange: (newValue: string) => void) => (
-      <TextFieldListItem
-        index={index}
-        parentJSONPointer={`${parentJSONPointer}/${fieldName}`}
-        textFieldProps={inputProps}
-        value={value}
-        onChange={onChange}
-      />
-    ),
-    [inputProps, parentJSONPointer, fieldName]
-  );
+const FormTextFieldList: React.FC<FormTextFieldListProps> =
+  function FormTextFieldList(props) {
+    const {
+      className,
+      label,
+      parentJSONPointer,
+      fieldName,
+      inputProps,
+      list,
+      onListChange,
+      addButtonLabelMessageID,
+    } = props;
+    const makeDefaultItem = useCallback(() => "", []);
+    const renderListItem = useCallback(
+      (index: number, value: string, onChange: (newValue: string) => void) => (
+        <TextFieldListItem
+          index={index}
+          parentJSONPointer={`${parentJSONPointer}/${fieldName}`}
+          textFieldProps={inputProps}
+          value={value}
+          onChange={onChange}
+        />
+      ),
+      [inputProps, parentJSONPointer, fieldName]
+    );
 
-  return (
-    <FieldList
-      className={className}
-      label={label}
-      parentJSONPointer={parentJSONPointer}
-      fieldName={fieldName}
-      list={list}
-      onListChange={onListChange}
-      makeDefaultItem={makeDefaultItem}
-      renderListItem={renderListItem}
-      addButtonLabelMessageID={addButtonLabelMessageID}
-    />
-  );
-};
+    return (
+      <FieldList
+        className={className}
+        label={label}
+        parentJSONPointer={parentJSONPointer}
+        fieldName={fieldName}
+        list={list}
+        onListChange={onListChange}
+        makeDefaultItem={makeDefaultItem}
+        renderListItem={renderListItem}
+        addButtonLabelMessageID={addButtonLabelMessageID}
+      />
+    );
+  };
 
 export default FormTextFieldList;

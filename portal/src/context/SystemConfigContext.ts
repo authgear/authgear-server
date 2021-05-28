@@ -3,9 +3,8 @@ import { SystemConfig } from "../system-config";
 
 type SystemConfigContextValue = SystemConfig;
 
-export const SystemConfigContext = createContext<SystemConfigContextValue | null>(
-  null
-);
+export const SystemConfigContext =
+  createContext<SystemConfigContextValue | null>(null);
 
 export function useSystemConfig(): SystemConfigContextValue {
   const value = useContext(SystemConfigContext);

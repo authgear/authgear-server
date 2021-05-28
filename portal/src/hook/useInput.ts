@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from "react";
 import { IDropdownOption, ITag } from "@fluentui/react";
 
-export function useTextField(
-  onChange: (value: string) => void
-): { onChange: (_event: any, value?: string) => void } {
+export function useTextField(onChange: (value: string) => void): {
+  onChange: (_event: any, value?: string) => void;
+} {
   const onTextFieldChange = useCallback(
     (_event, value?: string) => {
       onChange(value ?? "");
@@ -15,9 +15,9 @@ export function useTextField(
   };
 }
 
-export function useIntegerTextField(
-  onChange: (value: string) => void
-): { onChange: (_event: any, value?: string) => void } {
+export function useIntegerTextField(onChange: (value: string) => void): {
+  onChange: (_event: any, value?: string) => void;
+} {
   const onTextFieldChange = useCallback(
     (_event: any, value?: string) => {
       if (/^[0-9]*$/.test(value ?? "")) {
@@ -29,9 +29,7 @@ export function useIntegerTextField(
   return { onChange: onTextFieldChange };
 }
 
-export function useCheckbox(
-  onChange: (checked: boolean) => void
-): {
+export function useCheckbox(onChange: (checked: boolean) => void): {
   onChange: (_event: any, checked?: boolean) => void;
 } {
   const onCheckboxChange = useCallback(

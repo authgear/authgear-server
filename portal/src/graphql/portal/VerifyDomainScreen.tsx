@@ -90,26 +90,25 @@ function makeDNSRecordListItems(
   ];
 }
 
-const DNSRecordListValueCell: React.FC<DNSRecordListValueCellProps> = function DNSRecordListValueCell(
-  props: DNSRecordListValueCellProps
-) {
-  const { value } = props;
+const DNSRecordListValueCell: React.FC<DNSRecordListValueCellProps> =
+  function DNSRecordListValueCell(props: DNSRecordListValueCellProps) {
+    const { value } = props;
 
-  const onCopyClick = useCallback(() => {
-    copyToClipboard(value);
-  }, [value]);
+    const onCopyClick = useCallback(() => {
+      copyToClipboard(value);
+    }, [value]);
 
-  return (
-    <div className={styles.valueCell}>
-      <span className={styles.valueCellText}>{value}</span>
-      <IconButton
-        className={styles.copyIconButton}
-        onClick={onCopyClick}
-        iconProps={{ iconName: "Copy" }}
-      />
-    </div>
-  );
-};
+    return (
+      <div className={styles.valueCell}>
+        <span className={styles.valueCellText}>{value}</span>
+        <IconButton
+          className={styles.copyIconButton}
+          onClick={onCopyClick}
+          iconProps={{ iconName: "Copy" }}
+        />
+      </div>
+    );
+  };
 
 const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
   props: VerifyDomainProps

@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 /* global describe, it, expect */
 import { getPaginationRenderData, encodeOffsetToCursor } from "./pagination";
 

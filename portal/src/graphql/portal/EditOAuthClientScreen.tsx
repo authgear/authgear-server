@@ -67,63 +67,64 @@ interface EditOAuthClientContentProps {
   clientID: string;
 }
 
-const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> = function EditOAuthClientContent(
-  props
-) {
-  const {
-    clientID,
-    form: { state, setState },
-  } = props;
+const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
+  function EditOAuthClientContent(props) {
+    const {
+      clientID,
+      form: { state, setState },
+    } = props;
 
-  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
-    return [
-      {
-        to: "../..",
-        label: <FormattedMessage id="ApplicationsConfigurationScreen.title" />,
+    const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+      return [
+        {
+          to: "../..",
+          label: (
+            <FormattedMessage id="ApplicationsConfigurationScreen.title" />
+          ),
+        },
+        {
+          to: ".",
+          label: <FormattedMessage id="EditOAuthClientScreen.title" />,
+        },
+      ];
+    }, []);
+
+    const client =
+      state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
+
+    const onClientConfigChange = useCallback(
+      (editedClient: OAuthClientConfig) => {
+        setState((state) => ({ ...state, editedClient }));
       },
-      {
-        to: ".",
-        label: <FormattedMessage id="EditOAuthClientScreen.title" />,
-      },
-    ];
-  }, []);
-
-  const client =
-    state.editedClient ?? state.clients.find((c) => c.client_id === clientID);
-
-  const onClientConfigChange = useCallback(
-    (editedClient: OAuthClientConfig) => {
-      setState((state) => ({ ...state, editedClient }));
-    },
-    [setState]
-  );
-
-  if (client == null) {
-    return (
-      <Text>
-        <FormattedMessage
-          id="EditOAuthClientScreen.client-not-found"
-          values={{ clientID }}
-        />
-      </Text>
+      [setState]
     );
-  }
 
-  return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
-      <Label>
-        <FormattedMessage id="EditOAuthClientScreen.client-id" />
-      </Label>
-      <Text className={styles.clientIdField}>{client.client_id}</Text>
-      <ModifyOAuthClientForm
-        isCreation={false}
-        clientConfig={client}
-        onClientConfigChange={onClientConfigChange}
-      />
-    </div>
-  );
-};
+    if (client == null) {
+      return (
+        <Text>
+          <FormattedMessage
+            id="EditOAuthClientScreen.client-not-found"
+            values={{ clientID }}
+          />
+        </Text>
+      );
+    }
+
+    return (
+      <div className={styles.root}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+        <Label>
+          <FormattedMessage id="EditOAuthClientScreen.client-id" />
+        </Label>
+        <Text className={styles.clientIdField}>{client.client_id}</Text>
+        <ModifyOAuthClientForm
+          isCreation={false}
+          clientConfig={client}
+          onClientConfigChange={onClientConfigChange}
+        />
+      </div>
+    );
+  };
 
 const EditOAuthClientScreen: React.FC = function EditOAuthClientScreen() {
   const { appID, clientID } = useParams();

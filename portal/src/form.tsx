@@ -64,11 +64,8 @@ export const FormProvider: React.FC<FormProviderProps> = (props) => {
 
   const { fieldErrors, topErrors } = useMemo(() => {
     const apiErrors = parseRawError(error);
-    const {
-      fields,
-      topRules,
-      fallbackErrorMessageID,
-    } = errorContextRef.current;
+    const { fields, topRules, fallbackErrorMessageID } =
+      errorContextRef.current;
     const { fieldErrors, topErrors } = parseAPIErrors(
       apiErrors,
       fields,
@@ -94,9 +91,9 @@ export const FormProvider: React.FC<FormProviderProps> = (props) => {
   return <context.Provider value={value}>{children}</context.Provider>;
 };
 
-export function useFormField(
-  field: FormField
-): { errors: readonly ParsedAPIError[] } {
+export function useFormField(field: FormField): {
+  errors: readonly ParsedAPIError[];
+} {
   const ctx = useContext(context);
   if (!ctx) {
     throw new Error("Attempted to use useFormField outside FormProvider");

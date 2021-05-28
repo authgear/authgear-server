@@ -39,9 +39,7 @@ export type AppTemplatesUpdater = (
   updates: ResourceUpdate[]
 ) => Promise<PortalAPIApp | null>;
 
-export function useUpdateAppTemplatesMutation(
-  appID: string
-): {
+export function useUpdateAppTemplatesMutation(appID: string): {
   updateAppTemplates: AppTemplatesUpdater;
   loading: boolean;
   error: unknown;

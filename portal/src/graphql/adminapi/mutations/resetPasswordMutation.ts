@@ -12,17 +12,13 @@ const resetPasswordMutation = gql`
   }
 `;
 
-export function useResetPasswordMutation(
-  userID: string
-): {
+export function useResetPasswordMutation(userID: string): {
   resetPassword: (password: string) => Promise<string | null>;
   loading: boolean;
   error: unknown;
 } {
-  const [
-    mutationFunction,
-    { loading, error },
-  ] = useMutation<ResetPasswordMutation>(resetPasswordMutation);
+  const [mutationFunction, { loading, error }] =
+    useMutation<ResetPasswordMutation>(resetPasswordMutation);
 
   const resetPassword = useCallback(
     async (password: string) => {
