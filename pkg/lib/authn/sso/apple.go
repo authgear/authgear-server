@@ -158,6 +158,9 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 }
 
 func (f *AppleImpl) GetPrompt(prompt []string) []string {
+	// apple doesn't support prompt parameter
+	// see "Send the Required Query Parameters" section for supporting parameters
+	// ref: https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms
 	return []string{}
 }
 

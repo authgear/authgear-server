@@ -95,6 +95,8 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 }
 
 func (f *FacebookImpl) GetPrompt(prompt []string) []string {
+	// facebook doesn't support prompt parameter
+	// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/
 	return []string{}
 }
 

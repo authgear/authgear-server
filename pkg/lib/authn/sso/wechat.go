@@ -95,6 +95,8 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 }
 
 func (w *WechatImpl) GetPrompt(prompt []string) []string {
+	// wechat doesn't support prompt parameter
+	// ref: https://developers.weixin.qq.com/doc/oplatform/en/Third-party_Platforms/Official_Accounts/official_account_website_authorization.html
 	return []string{}
 }
 

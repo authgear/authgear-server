@@ -89,6 +89,8 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 }
 
 func (f *LinkedInImpl) GetPrompt(prompt []string) []string {
+	// linkedin doesn't support prompt parameter
+	// ref: https://docs.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow?tabs=HTTPS#step-2-request-an-authorization-code
 	return []string{}
 }
 

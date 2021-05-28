@@ -118,7 +118,22 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 }
 
 func (f *GoogleImpl) GetPrompt(prompt []string) []string {
-	return []string{"select_account"}
+	// google support `none`, `concent` and `select_account` for prompt
+	// the usage of `none` is for checking existing authentication and/or consent
+	// which doesn't fit auth ui case
+	// ref: https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
+	newPrompt := []string{}
+	for _, p := range prompt {
+		if p == "consent" ||
+			p == "select_account" {
+			newPrompt = append(newPrompt, p)
+		}
+	}
+	if len(newPrompt) == 0 {
+		// default
+		return []string{"select_account"}
+	}
+	return newPrompt
 }
 
 var (

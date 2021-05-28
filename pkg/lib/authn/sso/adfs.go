@@ -120,6 +120,13 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 }
 
 func (f *ADFSImpl) GetPrompt(prompt []string) []string {
+	// adfs only support prompt=login
+	// ref: https://docs.microsoft.com/en-us/windows-server/identity/ad-fs/operations/ad-fs-prompt-login
+	for _, p := range prompt {
+		if p == "login" {
+			return []string{"login"}
+		}
+	}
 	return []string{}
 }
 
