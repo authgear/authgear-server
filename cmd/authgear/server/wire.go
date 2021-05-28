@@ -16,7 +16,7 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 	panic(wire.Build(
 		deps.RootDependencySet,
 		wire.FieldsOf(new(*deps.RootProvider),
-			"GlobalDatabasePool",
+			"DatabasePool",
 		),
 	))
 }

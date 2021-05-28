@@ -33,8 +33,8 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 	clock := _wireSystemClockValue
 	databaseEnvironmentConfig := &environmentConfig.Database
 	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
-	pool := p.GlobalDatabasePool
-	handle := global.NewHandle(c, pool, factory)
+	pool := p.DatabasePool
+	handle := global.NewHandle(c, pool, databaseEnvironmentConfig, factory)
 	sqlExecutor := global.NewSQLExecutor(c, handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,

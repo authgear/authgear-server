@@ -29,6 +29,10 @@ type VerificationService interface {
 	IsUserVerified(identities []*identity.Info) (bool, error)
 }
 
+type Database interface {
+	ReadOnly(func() error) error
+}
+
 type ResolveHandlerLogger struct{ *log.Logger }
 
 func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
@@ -36,12 +40,19 @@ func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
 }
 
 type ResolveHandler struct {
+	Database     Database
 	Identities   IdentityService
 	Verification VerificationService
 	Logger       ResolveHandlerLogger
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	_ = h.Database.ReadOnly(func() error {
+		return h.Handle(rw, r)
+	})
+}
+
+func (h *ResolveHandler) Handle(rw http.ResponseWriter, r *http.Request) (err error) {
 	info, err := h.resolve(r)
 	if err != nil {
 		h.Logger.WithError(err).Error("failed to resolve user")
@@ -52,6 +63,8 @@ func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if info != nil {
 		info.PopulateHeaders(rw)
 	}
+
+	return
 }
 
 func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {

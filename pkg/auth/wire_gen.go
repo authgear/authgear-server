@@ -2179,13 +2179,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 
 func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Redis
+	handle := appProvider.Database
+	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	clockClock := _wireSystemClockValue
 	provider := &challenge.Provider{
-		Redis: handle,
+		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -2195,6 +2196,7 @@ func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 		Logger: jsonResponseWriterLogger,
 	}
 	challengeHandler := &oauth.ChallengeHandler{
+		Database:   handle,
 		Challenges: provider,
 		JSON:       jsonResponseWriter,
 	}
@@ -2203,6 +2205,7 @@ func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 
 func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.Database
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
@@ -2221,7 +2224,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	handle := appProvider.Database
 	sqlExecutor := tenant.NewSQLExecutor(context, handle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -2712,6 +2714,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Users:             queries,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
+		Database:         handle,
 		JSON:             jsonResponseWriter,
 		AppSessionTokens: tokenHandler,
 	}

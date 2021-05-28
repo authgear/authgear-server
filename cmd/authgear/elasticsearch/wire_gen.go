@@ -12,18 +12,18 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 // Injectors from wire.go:
 
-func NewAppLister(ctx context.Context, databaseCredentials *config.DatabaseCredentials) *AppLister {
+func NewAppLister(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *AppLister {
 	databaseConfig := NewDatabaseConfig()
 	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
-	pool := global.NewPool(databaseEnvironmentConfig)
 	factory := NewLoggerFactory()
-	handle := global.NewHandle(ctx, pool, factory)
+	handle := global.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
 	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
 	sqlExecutor := global.NewSQLExecutor(ctx, handle)
 	store := &configsource.Store{
@@ -37,7 +37,7 @@ func NewAppLister(ctx context.Context, databaseCredentials *config.DatabaseCrede
 	return appLister
 }
 
-func NewReindexer(ctx context.Context, pool *tenant.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
+func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
 	databaseConfig := NewDatabaseConfig()
 	factory := NewLoggerFactory()
 	handle := tenant.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)

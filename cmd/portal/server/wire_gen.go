@@ -32,7 +32,7 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 	databaseEnvironmentConfig := &environmentConfig.Database
 	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
 	pool := p.Database
-	handle := global.NewHandle(c, pool, factory)
+	handle := global.NewHandle(c, pool, databaseEnvironmentConfig, factory)
 	sqlExecutor := global.NewSQLExecutor(c, handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,

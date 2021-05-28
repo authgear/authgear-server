@@ -1,9 +1,8 @@
-package tenant
+package db
 
 import (
 	"errors"
 	"sync"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -16,25 +15,17 @@ type Pool struct {
 	cacheMutex sync.RWMutex
 }
 
-type OpenOptions struct {
-	URL             string
-	MaxOpenConns    int
-	MaxIdleConns    int
-	ConnMaxLifetime time.Duration
-	ConnMaxIdleTime time.Duration
-}
-
 func NewPool() *Pool {
 	return &Pool{cache: map[string]*sqlx.DB{}}
 }
 
-func (p *Pool) Open(opts OpenOptions) (db *sqlx.DB, err error) {
-	source := opts.URL
+func (p *Pool) Open(opts ConnectionOptions) (db *sqlx.DB, err error) {
+	source := opts.DatabaseURL
 
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
-		return nil, errors.New("skydb: pool is closed")
+		return nil, errors.New("db: pool is closed")
 	}
 
 	p.cacheMutex.RLock()
@@ -70,15 +61,15 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func (p *Pool) openPostgresDB(opts OpenOptions) (db *sqlx.DB, err error) {
-	db, err = sqlx.Open("postgres", opts.URL)
+func (p *Pool) openPostgresDB(opts ConnectionOptions) (db *sqlx.DB, err error) {
+	db, err = sqlx.Open("postgres", opts.DatabaseURL)
 	if err != nil {
 		return
 	}
 
-	db.SetMaxOpenConns(opts.MaxOpenConns)
-	db.SetMaxIdleConns(opts.MaxIdleConns)
-	db.SetConnMaxLifetime(opts.ConnMaxLifetime)
-	db.SetConnMaxIdleTime(opts.ConnMaxIdleTime)
+	db.SetMaxOpenConns(opts.MaxOpenConnection)
+	db.SetMaxIdleConns(opts.MaxIdleConnection)
+	db.SetConnMaxLifetime(opts.MaxConnectionLifetime)
+	db.SetConnMaxIdleTime(opts.IdleConnectionTimeout)
 	return
 }

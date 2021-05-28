@@ -7,7 +7,7 @@ package event
 import (
 	event "github.com/authgear/authgear-server/pkg/api/event"
 	model "github.com/authgear/authgear-server/pkg/api/model"
-	tenant "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	db "github.com/authgear/authgear-server/pkg/lib/infra/db"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -74,7 +74,7 @@ func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 }
 
 // UseHook mocks base method
-func (m *MockDatabase) UseHook(hook tenant.TransactionHook) {
+func (m *MockDatabase) UseHook(hook db.TransactionHook) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UseHook", hook)
 }

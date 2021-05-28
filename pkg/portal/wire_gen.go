@@ -106,7 +106,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
-	handle := global.NewHandle(context, pool, factory)
+	handle := global.NewHandle(context, pool, databaseEnvironmentConfig, factory)
 	sqlExecutor := global.NewSQLExecutor(context, handle)
 	appConfig := rootProvider.AppConfig
 	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
@@ -258,8 +258,9 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	rootProvider := p.RootProvider
 	pool := rootProvider.Database
+	databaseEnvironmentConfig := rootProvider.DatabaseConfig
 	factory := rootProvider.LoggerFactory
-	handle := global.NewHandle(context, pool, factory)
+	handle := global.NewHandle(context, pool, databaseEnvironmentConfig, factory)
 	configServiceLogger := service.NewConfigServiceLogger(factory)
 	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
@@ -282,7 +283,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Kubernetes:           kubernetes,
 	}
 	clockClock := _wireSystemClockValue
-	databaseEnvironmentConfig := rootProvider.DatabaseConfig
 	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
 	sqlExecutor := global.NewSQLExecutor(context, handle)
 	mailConfig := rootProvider.MailConfig

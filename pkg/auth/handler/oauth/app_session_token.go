@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -56,12 +57,17 @@ type AppSessionTokenIssuer interface {
 }
 
 type AppSessionTokenHandler struct {
+	Database         *tenantdb.Handle
 	JSON             JSONResponseWriter
 	AppSessionTokens AppSessionTokenIssuer
 }
 
 func (h *AppSessionTokenHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	result, err := h.Handle(resp, req)
+	var result *AppSessionTokenResponse
+	err := h.Database.WithTx(func() (err error) {
+		result, err = h.Handle(resp, req)
+		return err
+	})
 	if err == nil {
 		h.JSON.WriteResponse(resp, &api.Response{Result: result})
 	} else {

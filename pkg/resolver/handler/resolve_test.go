@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
@@ -21,7 +22,9 @@ func TestResolveHandler(t *testing.T) {
 
 		identities := NewMockIdentityService(ctrl)
 		verificationService := NewMockVerificationService(ctrl)
+		database := &db.MockHandle{}
 		h := &ResolveHandler{
+			Database:     database,
 			Identities:   identities,
 			Verification: verificationService,
 		}

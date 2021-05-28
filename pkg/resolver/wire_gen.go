@@ -445,6 +445,7 @@ var (
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	handle := appProvider.Database
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	authenticationConfig := appConfig.Authentication
@@ -455,7 +456,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	handle := appProvider.Database
 	sqlExecutor := tenant.NewSQLExecutor(context, handle)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
@@ -557,6 +557,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	resolveHandler := &handler.ResolveHandler{
+		Database:     handle,
 		Identities:   serviceService,
 		Verification: verificationService,
 		Logger:       resolveHandlerLogger,

@@ -4,7 +4,7 @@ import (
 	"github.com/google/wire"
 
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
-	"github.com/authgear/authgear-server/pkg/portal/db"
+	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
@@ -27,7 +27,9 @@ var DependencySet = wire.NewSet(
 	service.DependencySet,
 	adminauthz.DependencySet,
 	clock.DependencySet,
-	db.DependencySet,
+
+	globaldb.DependencySet,
+
 	template.DependencySet,
 	endpoint.DependencySet,
 

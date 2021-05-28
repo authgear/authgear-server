@@ -8,11 +8,12 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
 func NewAppLister(
 	ctx context.Context,
+	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 ) *AppLister {
 	panic(wire.Build(DependencySet))
@@ -20,7 +21,7 @@ func NewAppLister(
 
 func NewReindexer(
 	ctx context.Context,
-	pool *tenantdb.Pool,
+	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 	appID config.AppID,
 ) *Reindexer {

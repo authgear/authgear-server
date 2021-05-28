@@ -1,4 +1,4 @@
-package tenant
+package db
 
 import (
 	"context"
@@ -7,51 +7,43 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type Handle struct {
-	ctx         context.Context
-	pool        *Pool
-	cfg         *config.DatabaseConfig
-	credentials *config.DatabaseCredentials
-	logger      *log.Logger
+type HookHandle struct {
+	Context           context.Context
+	Pool              *Pool
+	ConnectionOptions ConnectionOptions
+	Logger            *log.Logger
 
-	db    *sqlx.DB
 	tx    *sqlx.Tx
 	hooks []TransactionHook
 }
 
-func NewHandle(ctx context.Context, pool *Pool, cfg *config.DatabaseConfig, credentials *config.DatabaseCredentials, lf *log.Factory) *Handle {
-	return &Handle{
-		ctx:         ctx,
-		pool:        pool,
-		cfg:         cfg,
-		credentials: credentials,
-		logger:      lf.New("db-handle"),
+func NewHookHandle(ctx context.Context, pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHandle {
+	return &HookHandle{
+		Context:           ctx,
+		Pool:              pool,
+		ConnectionOptions: opts,
+		Logger:            lf.New("db-handle"),
 	}
 }
 
-func (h *Handle) Conn() (sqlx.ExtContext, error) {
+func (h *HookHandle) conn() (sqlx.ExtContext, error) {
 	tx := h.tx
 	if tx == nil {
-		return h.openDB()
+		panic("db: transaction not started")
 	}
 	return tx, nil
 }
 
-func (h *Handle) HasTx() bool {
-	return h.tx != nil
-}
-
-func (h *Handle) UseHook(hook TransactionHook) {
+func (h *HookHandle) UseHook(hook TransactionHook) {
 	h.hooks = append(h.hooks, hook)
 }
 
 // WithTx commits if do finishes without error and rolls back otherwise.
-func (h *Handle) WithTx(do func() error) (err error) {
+func (h *HookHandle) WithTx(do func() error) (err error) {
 	if err = h.beginTx(); err != nil {
 		return
 	}
@@ -62,7 +54,7 @@ func (h *Handle) WithTx(do func() error) (err error) {
 			panic(r)
 		} else if err != nil {
 			if rbErr := h.rollbackTx(); rbErr != nil {
-				h.logger.WithError(rbErr).Error("failed to rollback tx")
+				h.Logger.WithError(rbErr).Error("failed to rollback tx")
 			}
 		} else {
 			err = h.commitTx()
@@ -74,7 +66,7 @@ func (h *Handle) WithTx(do func() error) (err error) {
 }
 
 // ReadOnly runs do in a transaction and rolls back always.
-func (h *Handle) ReadOnly(do func() error) (err error) {
+func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	if err = h.beginTx(); err != nil {
 		return
 	}
@@ -85,7 +77,7 @@ func (h *Handle) ReadOnly(do func() error) (err error) {
 			panic(r)
 		} else if err != nil {
 			if rbErr := h.rollbackTx(); rbErr != nil {
-				h.logger.WithError(rbErr).Error("failed to rollback tx")
+				h.Logger.WithError(rbErr).Error("failed to rollback tx")
 			}
 		} else {
 			err = h.rollbackTx()
@@ -96,7 +88,7 @@ func (h *Handle) ReadOnly(do func() error) (err error) {
 	return
 }
 
-func (h *Handle) beginTx() error {
+func (h *HookHandle) beginTx() error {
 	if h.tx != nil {
 		panic("db: a transaction has already begun")
 	}
@@ -105,7 +97,7 @@ func (h *Handle) beginTx() error {
 	if err != nil {
 		return err
 	}
-	tx, err := db.BeginTxx(h.ctx, &sql.TxOptions{
+	tx, err := db.BeginTxx(h.Context, &sql.TxOptions{
 		Isolation: sql.LevelRepeatableRead,
 	})
 	if err != nil {
@@ -117,7 +109,7 @@ func (h *Handle) beginTx() error {
 	return nil
 }
 
-func (h *Handle) commitTx() error {
+func (h *HookHandle) commitTx() error {
 	if h.tx == nil {
 		panic("db: a transaction has not begun")
 	}
@@ -145,7 +137,7 @@ func (h *Handle) commitTx() error {
 	return nil
 }
 
-func (h *Handle) rollbackTx() error {
+func (h *HookHandle) rollbackTx() error {
 	if h.tx == nil {
 		panic("db: a transaction has not begun")
 	}
@@ -159,29 +151,18 @@ func (h *Handle) rollbackTx() error {
 	return nil
 }
 
-func (h *Handle) openDB() (*sqlx.DB, error) {
-	if h.db == nil {
-		opts := OpenOptions{
-			URL:             h.credentials.DatabaseURL,
-			MaxOpenConns:    *h.cfg.MaxOpenConnection,
-			MaxIdleConns:    *h.cfg.MaxIdleConnection,
-			ConnMaxLifetime: h.cfg.MaxConnectionLifetime.Duration(),
-			ConnMaxIdleTime: h.cfg.IdleConnectionTimeout.Duration(),
-		}
-		h.logger.WithFields(map[string]interface{}{
-			"max_open_conns":             opts.MaxOpenConns,
-			"max_idle_conns":             opts.MaxIdleConns,
-			"conn_max_lifetime_seconds":  opts.ConnMaxLifetime.Seconds(),
-			"conn_max_idle_time_seconds": opts.ConnMaxIdleTime.Seconds(),
-		}).Debug("open database")
+func (h *HookHandle) openDB() (*sqlx.DB, error) {
+	h.Logger.WithFields(map[string]interface{}{
+		"max_open_conns":             h.ConnectionOptions.MaxOpenConnection,
+		"max_idle_conns":             h.ConnectionOptions.MaxIdleConnection,
+		"conn_max_lifetime_seconds":  h.ConnectionOptions.MaxConnectionLifetime.Seconds(),
+		"conn_max_idle_time_seconds": h.ConnectionOptions.IdleConnectionTimeout.Seconds(),
+	}).Debug("open database")
 
-		db, err := h.pool.Open(opts)
-		if err != nil {
-			return nil, fmt.Errorf("failed to connect to database: %w", err)
-		}
-
-		h.db = db
+	db, err := h.Pool.Open(h.ConnectionOptions)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	return h.db, nil
+	return db, nil
 }
