@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 )
 
 // Injectors from wire.go:
@@ -23,9 +23,9 @@ func NewAppLister(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 	databaseConfig := NewDatabaseConfig()
 	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
 	factory := NewLoggerFactory()
-	handle := global.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
-	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
-	sqlExecutor := global.NewSQLExecutor(ctx, handle)
+	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,

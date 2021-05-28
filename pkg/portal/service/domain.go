@@ -17,7 +17,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"

@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 )
 
 type Store struct {

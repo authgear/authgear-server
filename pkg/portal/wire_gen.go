@@ -7,7 +7,7 @@ package portal
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
@@ -102,12 +102,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := loader.NewUserLoader(adminAPIService)
 	appServiceLogger := service.NewAppServiceLogger(factory)
 	databaseEnvironmentConfig := rootProvider.DatabaseConfig
-	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
-	handle := global.NewHandle(context, pool, databaseEnvironmentConfig, factory)
-	sqlExecutor := global.NewSQLExecutor(context, handle)
+	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, factory)
+	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	appConfig := rootProvider.AppConfig
 	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
 	configServiceLogger := service.NewConfigServiceLogger(factory)
@@ -260,7 +260,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	pool := rootProvider.Database
 	databaseEnvironmentConfig := rootProvider.DatabaseConfig
 	factory := rootProvider.LoggerFactory
-	handle := global.NewHandle(context, pool, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, factory)
 	configServiceLogger := service.NewConfigServiceLogger(factory)
 	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
@@ -283,8 +283,8 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Kubernetes:           kubernetes,
 	}
 	clockClock := _wireSystemClockValue
-	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
-	sqlExecutor := global.NewSQLExecutor(context, handle)
+	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)
 	logger := mail.NewLogger(factory)

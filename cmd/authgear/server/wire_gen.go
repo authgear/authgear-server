@@ -9,7 +9,7 @@ import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -32,10 +32,10 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 	trustProxy := environmentConfig.TrustProxy
 	clock := _wireSystemClockValue
 	databaseEnvironmentConfig := &environmentConfig.Database
-	sqlBuilder := global.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
 	pool := p.DatabasePool
-	handle := global.NewHandle(c, pool, databaseEnvironmentConfig, factory)
-	sqlExecutor := global.NewSQLExecutor(c, handle)
+	handle := globaldb.NewHandle(c, pool, databaseEnvironmentConfig, factory)
+	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
