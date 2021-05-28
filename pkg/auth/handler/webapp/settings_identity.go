@@ -96,6 +96,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		intent := intents.NewIntentAddIdentity(userID)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			// FIXME(settings): support prompt parameters for connecting oauth
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
