@@ -16,7 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -26,7 +26,7 @@ type Item struct {
 }
 
 type Reindexer struct {
-	Handle  *tenantdb.Handle
+	Handle  *appdb.Handle
 	AppID   config.AppID
 	Users   *user.Store
 	OAuth   *identityoauth.Store

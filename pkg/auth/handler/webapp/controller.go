@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -32,7 +32,7 @@ type PageService interface {
 }
 
 type ControllerDeps struct {
-	Database      *tenantdb.Handle
+	Database      *appdb.Handle
 	RedisHandle   *redis.Handle
 	AppID         config.AppID
 	Page          PageService

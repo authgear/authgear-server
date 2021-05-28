@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -85,7 +85,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-	database := tenantdb.NewHandle(
+	database := appdb.NewHandle(
 		ctx,
 		p.DatabasePool,
 		cfg.AppConfig.Database,
@@ -150,7 +150,7 @@ type AppProvider struct {
 	Context       context.Context
 	Config        *config.Config
 	LoggerFactory *log.Factory
-	Database      *tenantdb.Handle
+	Database      *appdb.Handle
 	Redis         *redis.Handle
 	TaskQueue     task.Queue
 	Resources     *resource.Manager

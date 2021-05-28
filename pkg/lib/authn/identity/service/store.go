@@ -4,12 +4,12 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 
 type Store struct {
-	SQLBuilder  *tenantdb.SQLBuilder
-	SQLExecutor *tenantdb.SQLExecutor
+	SQLBuilder  *appdb.SQLBuilder
+	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *Store) Count(userID string) (uint64, error) {

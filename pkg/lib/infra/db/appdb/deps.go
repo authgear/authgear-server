@@ -1,4 +1,4 @@
-package tenant
+package appdb
 
 import (
 	"context"

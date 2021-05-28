@@ -3,12 +3,12 @@ package event
 import (
 	"fmt"
 
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	appdb "github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 
 type StoreImpl struct {
-	SQLBuilder  *tenantdb.SQLBuilder
-	SQLExecutor *tenantdb.SQLExecutor
+	SQLBuilder  *appdb.SQLBuilder
+	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *StoreImpl) NextSequenceNumber() (seq int64, err error) {

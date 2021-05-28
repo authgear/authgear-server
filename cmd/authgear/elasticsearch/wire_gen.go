@@ -13,8 +13,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/global"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
 )
 
 // Injectors from wire.go:
@@ -40,9 +40,9 @@ func NewAppLister(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
 	databaseConfig := NewDatabaseConfig()
 	factory := NewLoggerFactory()
-	handle := tenant.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
-	sqlExecutor := tenant.NewSQLExecutor(ctx, handle)
+	handle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,

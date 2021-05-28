@@ -8,13 +8,13 @@ import (
 	"github.com/jmoiron/sqlx"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 )
 
 type AuthorizationStore struct {
-	SQLBuilder  *tenantdb.SQLBuilder
-	SQLExecutor *tenantdb.SQLExecutor
+	SQLBuilder  *appdb.SQLBuilder
+	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *AuthorizationStore) selectQuery() db.SelectBuilder {
