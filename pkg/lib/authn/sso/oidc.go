@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/jwk"
@@ -30,6 +31,7 @@ type OIDCAuthParams struct {
 	RedirectURI    string
 	Nonce          string
 	State          string
+	Prompt         []string
 	ExtraParams    map[string]string
 }
 
@@ -76,7 +78,9 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params OIDCAuthParams) string {
 		v.Add(key, value)
 	}
 	v.Add("state", params.State)
-
+	if len(params.Prompt) > 0 {
+		v.Add("prompt", strings.Join(params.Prompt, " "))
+	}
 	return d.AuthorizationEndpoint + "?" + v.Encode()
 }
 

@@ -9,8 +9,9 @@ import (
 )
 
 type GetAuthURLParam struct {
-	Nonce string
-	State string
+	Nonce  string
+	State  string
+	Prompt []string
 }
 
 type GetAuthInfoParam struct {
@@ -23,6 +24,7 @@ type OAuthProvider interface {
 	Config() config.OAuthSSOProviderConfig
 	GetAuthURL(param GetAuthURLParam) (url string, err error)
 	GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (AuthInfo, error)
+	GetPrompt(prompt []string) []string
 }
 
 // NonOpenIDConnectProvider are OAuth 2.0 provider that does not

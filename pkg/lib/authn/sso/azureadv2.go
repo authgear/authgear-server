@@ -82,6 +82,7 @@ func (f *Azureadv2Impl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		RedirectURI:    f.RedirectURL.SSOCallbackURL(f.ProviderConfig).String(),
 		Nonce:          param.Nonce,
 		State:          param.State,
+		Prompt:         f.GetPrompt(param.Prompt),
 	}), nil
 }
 
@@ -147,6 +148,24 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 	}
 
 	return
+}
+
+func (f *Azureadv2Impl) GetPrompt(prompt []string) []string {
+	// Azureadv2 only support single value for prompt
+	// the first supporting value in the list will be used
+	// the usage of `none` is for checking existing authentication and/or consent
+	// which doesn't fit auth ui case
+	// ref: https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow
+	for _, p := range prompt {
+		if p == "login" {
+			return []string{"login"}
+		} else if p == "consent" {
+			return []string{"consent"}
+		} else if p == "select_account" {
+			return []string{"select_account"}
+		}
+	}
+	return []string{}
 }
 
 var (

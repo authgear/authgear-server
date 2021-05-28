@@ -93,8 +93,10 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	webhookState := ""
+	prompt := []string{}
 	if s := webapp.GetSession(r.Context()); s != nil {
 		webhookState = s.WebhookState
+		prompt = s.Prompt
 	}
 	intent := intents.NewIntentSignup(webhookState)
 
@@ -119,6 +121,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				Prompt:           prompt,
 			}
 			return
 		})

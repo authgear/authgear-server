@@ -10,12 +10,14 @@ import (
 type InputUseOAuth struct {
 	ProviderAlias    string
 	ErrorRedirectURI string
+	Prompt           []string
 }
 
 var _ nodes.InputUseIdentityOAuthProvider = &InputUseOAuth{}
 
 func (i *InputUseOAuth) GetProviderAlias() string    { return i.ProviderAlias }
 func (i *InputUseOAuth) GetErrorRedirectURI() string { return i.ErrorRedirectURI }
+func (i *InputUseOAuth) GetPrompt() []string         { return i.Prompt }
 
 type InputUseLoginID struct {
 	LoginIDKey string

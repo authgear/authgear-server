@@ -78,7 +78,7 @@ type AuthenticateURLOptions struct {
 	ClientID         string
 	RedirectURI      string
 	UILocales        string
-	Prompt           string
+	Prompt           []string
 	Page             string
 	WebhookState     string
 	AuthenticateHint interface{}

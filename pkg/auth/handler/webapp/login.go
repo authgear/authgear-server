@@ -93,6 +93,11 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	intent := intents.NewIntentLogin(false)
 
+	prompt := []string{}
+	if s := webapp.GetSession(r.Context()); s != nil {
+		prompt = s.Prompt
+	}
+
 	ctrl.Get(func() error {
 		graph, err := ctrl.EntryPointGet(opts, intent)
 		if err != nil {
@@ -114,6 +119,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				Prompt:           prompt,
 			}
 			return
 		})

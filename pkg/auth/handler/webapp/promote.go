@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -86,6 +87,11 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	h.FormPrefiller.Prefill(r.Form)
 
+	prompt := []string{}
+	if s := webapp.GetSession(r.Context()); s != nil {
+		prompt = s.Prompt
+	}
+
 	ctrl.Get(func() error {
 		graph, err := ctrl.InteractionGet()
 		if err != nil {
@@ -107,6 +113,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
+				Prompt:           prompt,
 			}
 			return
 		})

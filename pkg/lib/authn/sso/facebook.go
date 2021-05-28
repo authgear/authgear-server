@@ -36,6 +36,7 @@ func (f *FacebookImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
 		scope:       f.ProviderConfig.Type.Scope(),
 		state:       param.State,
 		baseURL:     facebookAuthorizationURL,
+		prompt:      f.GetPrompt(param.Prompt),
 	}
 	return authURL(p)
 }
@@ -91,6 +92,12 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	}
 
 	return
+}
+
+func (f *FacebookImpl) GetPrompt(prompt []string) []string {
+	// facebook doesn't support prompt parameter
+	// https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow/
+	return []string{}
 }
 
 var (
