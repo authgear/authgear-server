@@ -29,6 +29,10 @@ type Sink interface {
 	ReceiveNonBlockingEvent(e *event.Event) error
 }
 
+type Store interface {
+	NextSequenceNumber() (int64, error)
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("event")} }
@@ -40,11 +44,12 @@ type Service struct {
 	Clock        clock.Clock
 	Users        UserService
 	Localization *config.LocalizationConfig
+	Store        Store
 	Sinks        []Sink
 
-	NonBlockingEventPayloads []event.NonBlockingPayload `wire:"-"`
-	DatabaseHooked           bool                       `wire:"-"`
-	IsDispatchEventErr       bool                       `wire:"-"`
+	NonBlockingEvents  []*event.Event `wire:"-"`
+	DatabaseHooked     bool           `wire:"-"`
+	IsDispatchEventErr bool           `wire:"-"`
 }
 
 func (s *Service) DispatchEvent(payload event.Payload) (err error) {
@@ -59,18 +64,25 @@ func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 		s.DatabaseHooked = true
 	}
 
+	eventContext := s.makeContext(payload)
+	var seq int64
+	seq, err = s.Store.NextSequenceNumber()
+	if err != nil {
+		return
+	}
+
 	switch typedPayload := payload.(type) {
 	case event.BlockingPayload:
+		e := event.NewBlockingEvent(seq, typedPayload, eventContext)
 		for _, sink := range s.Sinks {
-			eventContext := s.makeContext(typedPayload)
-			e := event.NewBlockingEvent(0, typedPayload, eventContext)
 			err = sink.ReceiveBlockingEvent(e)
 			if err != nil {
 				return
 			}
 		}
 	case event.NonBlockingPayload:
-		s.NonBlockingEventPayloads = append(s.NonBlockingEventPayloads, typedPayload)
+		e := event.NewNonBlockingEvent(seq, typedPayload, eventContext)
+		s.NonBlockingEvents = append(s.NonBlockingEvents, e)
 	default:
 		panic(fmt.Sprintf("event: invalid event payload: %T", payload))
 	}
@@ -78,9 +90,9 @@ func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 	return
 }
 
-func (s *Service) WillCommitTx() error {
+func (s *Service) WillCommitTx() (err error) {
 	// no-op
-	return nil
+	return
 }
 
 func (s *Service) DidCommitTx() {
@@ -89,14 +101,7 @@ func (s *Service) DidCommitTx() {
 		return
 	}
 
-	var events []*event.Event
-	for _, payload := range s.NonBlockingEventPayloads {
-		eventContext := s.makeContext(payload)
-		e := event.NewNonBlockingEvent(0, payload, eventContext)
-		events = append(events, e)
-	}
-
-	for _, e := range events {
+	for _, e := range s.NonBlockingEvents {
 		for _, sink := range s.Sinks {
 			err := sink.ReceiveNonBlockingEvent(e)
 			if err != nil {
@@ -104,6 +109,7 @@ func (s *Service) DidCommitTx() {
 			}
 		}
 	}
+	s.NonBlockingEvents = nil
 }
 
 func (s *Service) makeContext(payload event.Payload) event.Context {

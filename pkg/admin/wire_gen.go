@@ -430,11 +430,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -448,10 +448,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,

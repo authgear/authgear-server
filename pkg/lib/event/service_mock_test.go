@@ -135,3 +135,41 @@ func (mr *MockSinkMockRecorder) ReceiveNonBlockingEvent(e interface{}) *gomock.C
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveNonBlockingEvent", reflect.TypeOf((*MockSink)(nil).ReceiveNonBlockingEvent), e)
 }
+
+// MockStore is a mock of Store interface
+type MockStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockStoreMockRecorder
+}
+
+// MockStoreMockRecorder is the mock recorder for MockStore
+type MockStoreMockRecorder struct {
+	mock *MockStore
+}
+
+// NewMockStore creates a new mock instance
+func NewMockStore(ctrl *gomock.Controller) *MockStore {
+	mock := &MockStore{ctrl: ctrl}
+	mock.recorder = &MockStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockStore) EXPECT() *MockStoreMockRecorder {
+	return m.recorder
+}
+
+// NextSequenceNumber mocks base method
+func (m *MockStore) NextSequenceNumber() (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "NextSequenceNumber")
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NextSequenceNumber indicates an expected call of NextSequenceNumber
+func (mr *MockStoreMockRecorder) NextSequenceNumber() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NextSequenceNumber", reflect.TypeOf((*MockStore)(nil).NextSequenceNumber))
+}

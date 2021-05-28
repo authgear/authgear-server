@@ -28,6 +28,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 		users := NewMockUserService(ctrl)
 		database := NewMockDatabase(ctrl)
 		sink := NewMockSink(ctrl)
+		store := NewMockStore(ctrl)
 		fallbackLanguage := "en"
 		supportedLanguages := []string{"en"}
 		logger := Logger{log.Null}
@@ -43,8 +44,12 @@ func TestServiceDispatchEvent(t *testing.T) {
 			Clock:        clock,
 			Users:        users,
 			Localization: localization,
+			Store:        store,
 			Sinks:        []Sink{sink},
 		}
+
+		var seq0 int64
+		store.EXPECT().NextSequenceNumber().AnyTimes().Return(seq0, nil)
 
 		Convey("only use database hook once", func() {
 			user := model.User{
@@ -88,7 +93,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 
 			err := service.DispatchEvent(payload)
 			So(err, ShouldBeNil)
-			So(service.NonBlockingEventPayloads, ShouldBeEmpty)
+			So(service.NonBlockingEvents, ShouldBeEmpty)
 		})
 
 		Convey("include user", func() {
@@ -156,7 +161,21 @@ func TestServiceDispatchEvent(t *testing.T) {
 			database.EXPECT().UseHook(service).AnyTimes()
 			err := service.DispatchEvent(payload)
 			So(err, ShouldBeNil)
-			So(service.NonBlockingEventPayloads, ShouldResemble, []event.NonBlockingPayload{payload})
+			So(service.NonBlockingEvents, ShouldResemble, []*event.Event{
+				&event.Event{
+					ID:      "0000000000000000",
+					Type:    payload.NonBlockingEventType(),
+					Seq:     0,
+					Payload: payload,
+					Context: event.Context{
+						Timestamp:   1136214245,
+						UserID:      nil,
+						Language:    fallbackLanguage,
+						TriggeredBy: event.TriggeredByTypeUser,
+					},
+					IsNonBlocking: true,
+				},
+			})
 		})
 
 		Convey("send events to sink when transaction was committed", func() {
@@ -165,8 +184,20 @@ func TestServiceDispatchEvent(t *testing.T) {
 					Meta: model.Meta{ID: "user-id"},
 				}},
 			}
-			service.NonBlockingEventPayloads = []event.NonBlockingPayload{
-				payload,
+			service.NonBlockingEvents = []*event.Event{
+				&event.Event{
+					ID:      "0000000000000000",
+					Type:    payload.NonBlockingEventType(),
+					Seq:     0,
+					Payload: payload,
+					Context: event.Context{
+						Timestamp:   1136214245,
+						UserID:      nil,
+						Language:    fallbackLanguage,
+						TriggeredBy: event.TriggeredByTypeUser,
+					},
+					IsNonBlocking: true,
+				},
 			}
 
 			sink.EXPECT().ReceiveNonBlockingEvent(&event.Event{
