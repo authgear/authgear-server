@@ -27,6 +27,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -446,7 +447,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -456,6 +457,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -471,19 +473,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -531,7 +529,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -994,7 +992,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -1004,6 +1002,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1019,19 +1018,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -1063,7 +1058,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 provider,
 		SessionManager:           idpsessionManager,
@@ -2162,39 +2157,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
-	hookLogger := hook.NewLogger(factory)
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
-	}
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               hookProvider,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
@@ -2629,7 +2593,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -2639,6 +2603,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2654,19 +2619,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -2698,7 +2659,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 provider,
 		SessionManager:           idpsessionManager,
@@ -3154,7 +3115,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -3164,6 +3125,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -3179,19 +3141,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -3239,7 +3197,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -3699,7 +3657,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -3709,6 +3667,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -3724,19 +3683,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -3784,7 +3739,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -4244,7 +4199,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -4254,6 +4209,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4269,19 +4225,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -4329,7 +4281,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -4789,7 +4741,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -4799,6 +4751,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4814,19 +4767,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -4874,7 +4823,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -5327,7 +5276,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -5337,6 +5286,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5352,19 +5302,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -5412,7 +5358,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -5868,7 +5814,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -5878,6 +5824,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5893,19 +5840,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -5953,7 +5896,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -6412,7 +6355,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -6422,6 +6365,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -6437,19 +6381,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -6497,7 +6437,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -6953,7 +6893,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -6963,6 +6903,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -6978,19 +6919,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -7038,7 +6975,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -7493,7 +7430,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -7503,6 +7440,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -7518,19 +7456,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -7578,7 +7512,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -8034,7 +7968,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -8044,6 +7978,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -8059,19 +7994,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -8119,7 +8050,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -8576,7 +8507,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -8586,6 +8517,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -8601,19 +8533,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -8661,7 +8589,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -9116,7 +9044,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -9126,6 +9054,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -9141,19 +9070,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -9201,7 +9126,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -9656,7 +9581,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -9666,6 +9591,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -9681,19 +9607,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -9741,7 +9663,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -10198,7 +10120,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -10208,6 +10130,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -10223,19 +10146,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -10283,7 +10202,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -10738,7 +10657,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -10748,6 +10667,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -10763,19 +10683,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -10823,7 +10739,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -11278,7 +11194,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -11288,6 +11204,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -11303,19 +11220,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -11363,7 +11276,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -11821,7 +11734,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -11831,6 +11744,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -11846,19 +11760,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -11906,7 +11816,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -12361,7 +12271,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -12371,6 +12281,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -12386,19 +12297,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -12446,7 +12353,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -12906,7 +12813,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -12916,6 +12823,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -12931,19 +12839,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -12991,7 +12895,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -13446,7 +13350,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -13456,6 +13360,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -13471,19 +13376,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -13531,7 +13432,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -13987,7 +13888,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -13997,6 +13898,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -14012,19 +13914,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -14072,7 +13970,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -14527,7 +14425,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -14537,6 +14435,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -14552,19 +14451,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -14612,7 +14507,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -14686,7 +14581,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               hookProvider,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
@@ -15086,7 +14980,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -15096,6 +14990,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -15111,19 +15006,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -15171,7 +15062,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -15628,7 +15519,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -15638,6 +15529,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -15653,19 +15545,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -15713,7 +15601,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -16169,7 +16057,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -16179,6 +16067,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -16194,19 +16083,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -16254,7 +16139,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -16719,7 +16604,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -16729,6 +16614,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -16744,19 +16630,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -16804,7 +16686,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -17260,7 +17142,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -17270,6 +17152,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -17285,19 +17168,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -17345,7 +17224,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -17801,7 +17680,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -17811,6 +17690,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -17826,19 +17706,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -17886,7 +17762,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -18343,7 +18219,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -18353,6 +18229,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -18368,19 +18245,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -18428,7 +18301,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -18494,7 +18367,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               hookProvider,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
@@ -18890,7 +18762,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -18900,6 +18772,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -18915,19 +18788,15 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -18975,7 +18844,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -19431,7 +19300,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -19441,6 +19310,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -19456,19 +19326,15 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -19516,7 +19382,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -19972,7 +19838,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -19982,6 +19848,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -19997,19 +19864,15 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -20057,7 +19920,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -20424,39 +20287,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
-	hookLogger := hook.NewLogger(factory)
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	hookStore := &hook.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
-	}
 	manager2 := &session.Manager{
 		Users:               queries,
-		Hooks:               hookProvider,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 	}
@@ -20889,7 +20721,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -20899,6 +20731,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -20914,19 +20747,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -20974,7 +20803,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
@@ -21429,7 +21258,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	hookLogger := hook.NewLogger(factory)
+	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
 		Store:        userStore,
 		Identities:   identityFacade,
@@ -21439,6 +21268,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookStore := &hook.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -21454,19 +21284,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SyncHTTP:  syncHTTPClient,
 		AsyncHTTP: asyncHTTPClient,
 	}
-	hookProvider := &hook.Provider{
-		Context:      context,
-		Logger:       hookLogger,
-		Database:     handle,
-		Clock:        clockClock,
-		Users:        rawProvider,
-		Store:        hookStore,
-		Deliverer:    deliverer,
-		Localization: localizationConfig,
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Store:     hookStore,
+		Deliverer: deliverer,
 	}
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
-		Hooks:        hookProvider,
+		Events:       eventService,
 		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
@@ -21514,7 +21340,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Search:                   elasticsearchService,
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
-		Hooks:                    hookProvider,
+		Events:                   eventService,
 		CookieFactory:            cookieFactory,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,

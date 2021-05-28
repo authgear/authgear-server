@@ -10,13 +10,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
-type HookProvider interface {
+type EventService interface {
 	DispatchEvent(payload event.Payload) error
 }
 
 type Commands struct {
 	Raw          *RawCommands
-	Hooks        HookProvider
+	Events       EventService
 	Verification VerificationService
 }
 
@@ -56,7 +56,7 @@ func (c *Commands) AfterCreate(
 	}
 
 	for _, e := range events {
-		if err := c.Hooks.DispatchEvent(e); err != nil {
+		if err := c.Events.DispatchEvent(e); err != nil {
 			return err
 		}
 	}
