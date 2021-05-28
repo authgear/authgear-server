@@ -129,7 +129,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,

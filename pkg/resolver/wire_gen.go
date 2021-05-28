@@ -130,7 +130,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	appdbHandle := appProvider.Database
+	appdbHandle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
@@ -445,7 +445,7 @@ var (
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	authenticationConfig := appConfig.Authentication

@@ -26,7 +26,7 @@ func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queu
 		deps.RootDependencySet,
 		wire.FieldsOf(new(*deps.AppProvider),
 			"Config",
-			"Database",
+			"AppDatabase",
 		),
 		queue.DependencySet,
 		wire.Bind(new(queue.Executor), new(*executor.InProcessExecutor)),

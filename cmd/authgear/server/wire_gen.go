@@ -59,7 +59,7 @@ var (
 )
 
 func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {
-	handle := p.Database
+	handle := p.AppDatabase
 	config := p.Config
 	captureTaskContext := deps.ProvideCaptureTaskContext(config)
 	inProcessQueue := &queue.InProcessQueue{

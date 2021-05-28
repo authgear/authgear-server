@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -85,11 +86,22 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		sentry.NewLogHookFromContext(ctx),
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
-	database := appdb.NewHandle(
+	appDatabase := appdb.NewHandle(
 		ctx,
 		p.DatabasePool,
 		cfg.AppConfig.Database,
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
+		loggerFactory,
+	)
+	var auditDatabaseCredentials *config.AuditDatabaseCredentials
+	if a := cfg.SecretConfig.LookupData(config.AuditDatabaseCredentialsKey); a != nil {
+		auditDatabaseCredentials = a.(*config.AuditDatabaseCredentials)
+	}
+	auditDatabase := auditdb.NewHandle(
+		ctx,
+		p.DatabasePool,
+		cfg.AppConfig.Database,
+		auditDatabaseCredentials,
 		loggerFactory,
 	)
 	redis := redis.NewHandle(
@@ -105,7 +117,8 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		Context:       ctx,
 		Config:        cfg,
 		LoggerFactory: loggerFactory,
-		Database:      database,
+		AppDatabase:   appDatabase,
+		AuditDatabase: auditDatabase,
 		Redis:         redis,
 		Resources:     appCtx.Resources,
 	}
@@ -150,7 +163,8 @@ type AppProvider struct {
 	Context       context.Context
 	Config        *config.Config
 	LoggerFactory *log.Factory
-	Database      *appdb.Handle
+	AppDatabase   *appdb.Handle
+	AuditDatabase *auditdb.Handle
 	Redis         *redis.Handle
 	TaskQueue     task.Queue
 	Resources     *resource.Manager

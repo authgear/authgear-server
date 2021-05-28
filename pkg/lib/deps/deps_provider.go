@@ -10,8 +10,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/event"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -45,7 +45,8 @@ var appRootDeps = wire.NewSet(
 		"RootProvider",
 		"Config",
 		"LoggerFactory",
-		"Database",
+		"AppDatabase",
+		"AuditDatabase",
 		"Redis",
 		"TaskQueue",
 		"Resources",
