@@ -26,11 +26,39 @@ type DatabaseCredentials struct {
 func (c *DatabaseCredentials) SensitiveStrings() []string {
 	return []string{
 		c.DatabaseURL,
-		c.DatabaseSchema,
 	}
 }
 
 func (c *DatabaseCredentials) SetDefaults() {
+	if c.DatabaseSchema == "" {
+		c.DatabaseSchema = "public"
+	}
+}
+
+var _ = SecretConfigSchema.Add("AuditDatabaseCredentials", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"database_url": { "type": "string" },
+		"database_schema": { "type": "string" }
+	},
+	"required": ["database_url"]
+}
+`)
+
+type AuditDatabaseCredentials struct {
+	DatabaseURL    string `json:"database_url,omitempty"`
+	DatabaseSchema string `json:"database_schema,omitempty"`
+}
+
+func (c *AuditDatabaseCredentials) SensitiveStrings() []string {
+	return []string{
+		c.DatabaseURL,
+	}
+}
+
+func (c *AuditDatabaseCredentials) SetDefaults() {
 	if c.DatabaseSchema == "" {
 		c.DatabaseSchema = "public"
 	}

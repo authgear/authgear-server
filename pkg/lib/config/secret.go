@@ -118,6 +118,8 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	}
 
 	require(DatabaseCredentialsKey, "database credentials")
+	// AuditDatabaseCredentialsKey is not required
+	// ElasticsearchCredentialsKey is not required
 	require(RedisCredentialsKey, "redis credentials")
 	require(AdminAPIAuthKeyKey, "admin API auth key materials")
 
@@ -168,6 +170,7 @@ type SecretKey string
 
 const (
 	DatabaseCredentialsKey      SecretKey = "db"
+	AuditDatabaseCredentialsKey SecretKey = "audit.db"
 	ElasticsearchCredentialsKey SecretKey = "elasticsearch"
 	RedisCredentialsKey         SecretKey = "redis"
 	AdminAPIAuthKeyKey          SecretKey = "admin-api.auth"
@@ -191,6 +194,7 @@ type secretKeyDef struct {
 
 var secretItemKeys = map[SecretKey]secretKeyDef{
 	DatabaseCredentialsKey:      {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
+	AuditDatabaseCredentialsKey: {"AuditDatabaseCredentials", func() SecretItemData { return &AuditDatabaseCredentials{} }},
 	ElasticsearchCredentialsKey: {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
 	RedisCredentialsKey:         {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
 	AdminAPIAuthKeyKey:          {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
