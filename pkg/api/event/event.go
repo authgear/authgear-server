@@ -29,17 +29,13 @@ type Event struct {
 	IsNonBlocking bool    `json:"-"`
 }
 
-func (e *Event) SetSeq(seq int64) {
-	e.Seq = seq
-	e.ID = fmt.Sprintf("%016x", seq)
-}
-
-func newEvent(seqNo int64, payload Payload, context Context) *Event {
+func newEvent(seq int64, payload Payload, context Context) *Event {
 	e := &Event{
 		Payload: payload,
 		Context: context,
 	}
-	e.SetSeq(seqNo)
+	e.Seq = seq
+	e.ID = fmt.Sprintf("%016x", seq)
 	return e
 }
 

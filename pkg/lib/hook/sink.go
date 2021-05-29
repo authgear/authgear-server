@@ -15,31 +15,17 @@ type deliverer interface {
 	DeliverNonBlockingEvent(event *event.Event) error
 }
 
-type store interface {
-	NextSequenceNumber() (int64, error)
-}
-
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("hook-sink")} }
 
 type Sink struct {
 	Logger    Logger
-	Store     store
 	Deliverer deliverer
 }
 
 func (s *Sink) ReceiveBlockingEvent(e *event.Event) (err error) {
-	var seq int64
-
 	if s.Deliverer.WillDeliverBlockingEvent(e.Type) {
-		seq, err = s.Store.NextSequenceNumber()
-		if err != nil {
-			err = fmt.Errorf("failed to dispatch event: %w", err)
-			return
-		}
-		e.SetSeq(seq)
-
 		err = s.Deliverer.DeliverBlockingEvent(e)
 		if err != nil {
 			if !apierrors.IsKind(err, WebHookDisallowed) {
@@ -53,16 +39,7 @@ func (s *Sink) ReceiveBlockingEvent(e *event.Event) (err error) {
 }
 
 func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) (err error) {
-	var seq int64
-
 	if s.Deliverer.WillDeliverNonBlockingEvent(e.Type) {
-		seq, err = s.Store.NextSequenceNumber()
-		if err != nil {
-			err = fmt.Errorf("failed to persist event: %w", err)
-			return
-		}
-		e.SetSeq(seq)
-
 		if err := s.Deliverer.DeliverNonBlockingEvent(e); err != nil {
 			s.Logger.WithError(err).Error("failed to dispatch non blocking event")
 		}

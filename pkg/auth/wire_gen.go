@@ -457,11 +457,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -475,10 +475,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -1002,11 +1001,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -1020,10 +1019,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -2605,11 +2603,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -2623,10 +2621,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -3128,11 +3125,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -3146,10 +3143,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -3670,11 +3666,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -3688,10 +3684,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -4212,11 +4207,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -4230,10 +4225,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -4754,11 +4748,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -4772,10 +4766,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -5289,11 +5282,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -5307,10 +5300,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -5827,11 +5819,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -5845,10 +5837,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -6368,11 +6359,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -6386,10 +6377,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -6906,11 +6896,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -6924,10 +6914,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -7443,11 +7432,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -7461,10 +7450,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -7981,11 +7969,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -7999,10 +7987,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -8520,11 +8507,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -8538,10 +8525,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -9057,11 +9043,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -9075,10 +9061,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -9594,11 +9579,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -9612,10 +9597,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -10133,11 +10117,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -10151,10 +10135,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -10670,11 +10653,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -10688,10 +10671,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -11207,11 +11189,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -11225,10 +11207,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -11747,11 +11728,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -11765,10 +11746,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -12284,11 +12264,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -12302,10 +12282,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -12826,11 +12805,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -12844,10 +12823,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -13363,11 +13341,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -13381,10 +13359,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -13901,11 +13878,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -13919,10 +13896,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -14438,11 +14414,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -14456,10 +14432,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -14993,11 +14968,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -15011,10 +14986,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -15532,11 +15506,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -15550,10 +15524,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -16070,11 +16043,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -16088,10 +16061,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -16617,11 +16589,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -16635,10 +16607,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -17155,11 +17126,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -17173,10 +17144,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -17693,11 +17663,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -17711,10 +17681,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -18232,11 +18201,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -18250,10 +18219,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -18775,11 +18743,11 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -18793,10 +18761,9 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -19313,11 +19280,11 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -19331,10 +19298,9 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -19851,11 +19817,11 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -19869,10 +19835,9 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -20734,11 +20699,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -20752,10 +20717,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -21271,11 +21235,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RawCommands: rawCommands,
 		Queries:     queries,
 	}
-	hookLogger := hook.NewLogger(factory)
-	hookStore := &hook.Store{
+	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
@@ -21289,10 +21253,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
-		Store:     hookStore,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, sink)
+	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,

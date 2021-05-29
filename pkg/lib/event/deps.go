@@ -13,6 +13,8 @@ import (
 var DependencySet = wire.NewSet(
 	NewLogger,
 	NewService,
+	wire.Struct(new(StoreImpl), "*"),
+	wire.Bind(new(Store), new(*StoreImpl)),
 )
 
 func NewService(
@@ -22,6 +24,7 @@ func NewService(
 	clock clock.Clock,
 	users UserService,
 	localization *config.LocalizationConfig,
+	store Store,
 	hookSink *hook.Sink,
 ) *Service {
 	return &Service{
@@ -31,6 +34,7 @@ func NewService(
 		Clock:        clock,
 		Users:        users,
 		Localization: localization,
+		Store:        store,
 		Sinks:        []Sink{hookSink},
 	}
 }

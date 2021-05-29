@@ -10,7 +10,5 @@ var DependencySet = wire.NewSet(
 	NewLogger,
 	wire.Struct(new(Deliverer), "*"),
 	wire.Bind(new(deliverer), new(*Deliverer)),
-	wire.Struct(new(Store), "*"),
-	wire.Bind(new(store), new(*Store)),
 	wire.Struct(new(Sink), "*"),
 )
