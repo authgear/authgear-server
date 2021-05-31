@@ -230,3 +230,9 @@ type AuditLog implements Node {
   clientID: String
 }
 ```
+
+## Future Works
+
+In the future, we may introduce activity types that start with `portal.`.
+Those events are triggered by portal administrators.
+The origin events and the portal events are likely to be stored together.
