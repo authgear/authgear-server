@@ -1,8 +1,6 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
-{{ template "__message_bar.html" . }}
+{{ template "__page_frame.html" . }}
+
+{{ define "page-content" }}
 <div class="content">
 
 {{ if eq $.Action "update_session_step" }}
@@ -77,5 +75,4 @@
 </div>
 
 </div>
-</body>
-</html>
+{{ end }}

@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html>
+{{ template "__page_frame.html" . }}
 
-{{ template "__html_head.html" . }}
-
-<body class="page">
-	{{ template "__message_bar.html" . }}
+{{ define "page-content" }}
 	<div class="content">
 
 		{{ template "__nav_bar.html" true }}
@@ -170,5 +166,4 @@
 		</div>
 		{{ end }}
 	</div>
-</body>
-</html>
+{{ end }}
