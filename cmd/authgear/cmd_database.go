@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/authgear/authgear-server/cmd/authgear/migrate"
+	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
 func init() {
@@ -26,6 +26,8 @@ func init() {
 	}
 }
 
+var MainMigrationSet = sqlmigrate.NewMigrateSet("_auth_migration", "migrations/authgear")
+
 var cmdDatabase = &cobra.Command{
 	Use:   "database migrate",
 	Short: "Database commands",
@@ -39,47 +41,58 @@ var cmdMigrate = &cobra.Command{
 var cmdMigrateNew = &cobra.Command{
 	Use:    "new",
 	Hidden: true,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		name := strings.Join(args, "_")
-		migrate.CreateMigration(name)
+		_, err = MainMigrationSet.Create(name)
+		if err != nil {
+			return
+		}
+
+		return
 	},
 }
 
 var cmdMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf(err.Error())
+			return
 		}
 		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf(err.Error())
+			return
 		}
 
-		migrate.Up(migrate.Options{
+		_, err = MainMigrationSet.Up(sqlmigrate.ConnectionOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
-		})
+		}, 0)
+		if err != nil {
+			return
+		}
+
+		return
 	},
 }
 
 var cmdMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf(err.Error())
+			return
 		}
 		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf(err.Error())
+			return
 		}
 
 		if len(args) == 0 {
-			log.Fatalf("number of migrations to revert not specified; specify 'all' to revert all migrations")
+			err = fmt.Errorf("number of migrations to revert not specified; specify 'all' to revert all migrations")
+			return
 		}
 
 		var numMigrations int
@@ -88,38 +101,51 @@ var cmdMigrateDown = &cobra.Command{
 		} else {
 			numMigrations, err = strconv.Atoi(args[0])
 			if err != nil {
-				log.Fatalf("invalid number of migrations specified: %s", err)
+				err = fmt.Errorf("invalid number of migrations specified: %s", err)
+				return
 			} else if numMigrations <= 0 {
-				log.Fatal("no migrations specified to revert")
+				err = fmt.Errorf("no migrations specified to revert")
+				return
 			}
 		}
 
-		migrate.Down(numMigrations, migrate.Options{
+		_, err = MainMigrationSet.Down(sqlmigrate.ConnectionOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
-		})
+		}, numMigrations)
+		if err != nil {
+			return
+		}
+
+		return
 	},
 }
 
 var cmdMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf(err.Error())
+			return
 		}
 		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
 		if err != nil {
-			log.Fatalf(err.Error())
+			return
 		}
 
-		latest := migrate.Status(migrate.Options{
+		plans, err := MainMigrationSet.Status(sqlmigrate.ConnectionOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 		})
-		if !latest {
+		if err != nil {
+			return
+		}
+
+		if len(plans) != 0 {
 			os.Exit(1)
 		}
+
+		return
 	},
 }
