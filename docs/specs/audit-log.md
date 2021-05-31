@@ -158,7 +158,9 @@ CREATE TABLE _audit_log (
   created_at timestamp without time zone NOT NULL,
   user_id text NOT NULL,
   activity_type text NOT NULL,
-  -- ip_address, user_agent and client_id are stored in the data column.
+  ip_address inet,
+  user_agent text,
+  client_id text,
   data jsonb NOT NULL
 ) PARTITION BY RANGE (created_at);
 CREATE INDEX _audit_log_idx_created_at_brin ON _audit_log USING BRIN (created_at);
