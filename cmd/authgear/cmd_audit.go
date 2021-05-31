@@ -15,13 +15,14 @@ import (
 func init() {
 	cmdAudit.AddCommand(cmdAuditDatabase)
 	cmdAuditDatabase.AddCommand(cmdAuditDatabaseMigrate)
+	cmdAuditDatabase.AddCommand(cmdAuditDatabaseMaintain)
 
 	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateNew)
 	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateUp)
 	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateDown)
 	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateStatus)
 
-	for _, cmd := range []*cobra.Command{cmdAuditDatabaseMigrateUp, cmdAuditDatabaseMigrateDown, cmdAuditDatabaseMigrateStatus} {
+	for _, cmd := range []*cobra.Command{cmdAuditDatabaseMigrateUp, cmdAuditDatabaseMigrateDown, cmdAuditDatabaseMigrateStatus, cmdAuditDatabaseMaintain} {
 		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
 		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
 	}
@@ -35,13 +36,40 @@ var cmdAudit = &cobra.Command{
 }
 
 var cmdAuditDatabase = &cobra.Command{
-	Use:   "database migrate",
+	Use:   "database [migrate|maintain]",
 	Short: "Audit log database commands",
 }
 
 var cmdAuditDatabaseMigrate = &cobra.Command{
 	Use:   "migrate [new|status|up|down]",
 	Short: "Migrate database schema",
+}
+
+var cmdAuditDatabaseMaintain = &cobra.Command{
+	Use:   "maintain",
+	Short: "Run pg_partman maintain procedure",
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			return
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			return
+		}
+
+		maintainer := sqlmigrate.PartmanMaintainer{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+			TableName:      "_audit_log",
+		}
+		err = maintainer.RunMaintenance()
+		if err != nil {
+			return
+		}
+
+		return
+	},
 }
 
 var cmdAuditDatabaseMigrateNew = &cobra.Command{
