@@ -60,9 +60,7 @@ func (s MigrationSet) Up(opts ConnectionOptions, max int) (n int, err error) {
 		return
 	}
 
-	source := &migrate.FileMigrationSource{
-		Dir: s.Dir,
-	}
+	source := s.makeSource(opts)
 
 	n, err = s.MigrationSet.ExecMax(db, "postgres", source, migrate.Up, max)
 	if err != nil {
@@ -79,9 +77,7 @@ func (s MigrationSet) Down(opts ConnectionOptions, max int) (n int, err error) {
 		return
 	}
 
-	source := &migrate.FileMigrationSource{
-		Dir: s.Dir,
-	}
+	source := s.makeSource(opts)
 
 	n, err = s.MigrationSet.ExecMax(db, "postgres", source, migrate.Down, max)
 	if err != nil {
@@ -98,9 +94,7 @@ func (s MigrationSet) Status(opts ConnectionOptions) (plans []*migrate.PlannedMi
 		return
 	}
 
-	source := &migrate.FileMigrationSource{
-		Dir: s.Dir,
-	}
+	source := s.makeSource(opts)
 
 	plans, _, err = s.MigrationSet.PlanMigration(db, "postgres", source, migrate.Up, 0)
 	if err != nil {
@@ -133,4 +127,15 @@ func (s MigrationSet) openDB(opts ConnectionOptions) (db *sql.DB, err error) {
 	}
 
 	return
+}
+
+func (s MigrationSet) makeSource(opts ConnectionOptions) *TemplateMigrationSource {
+	return &TemplateMigrationSource{
+		OriginSource: &migrate.FileMigrationSource{
+			Dir: s.Dir,
+		},
+		Data: map[string]interface{}{
+			"SCHEMA": opts.DatabaseSchema,
+		},
+	}
 }
