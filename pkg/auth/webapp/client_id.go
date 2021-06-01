@@ -1,9 +1,9 @@
 package webapp
 
 import (
-	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -27,7 +27,7 @@ func (m *ClientIDMiddleware) Handle(next http.Handler) http.Handler {
 
 		// Restore client_id into the request context.
 		if clientID != "" {
-			ctx := WithClientID(r.Context(), clientID)
+			ctx := clientid.WithClientID(r.Context(), clientID)
 			r = r.WithContext(ctx)
 		}
 
@@ -62,32 +62,4 @@ func (m *ClientIDMiddleware) ReadClientID(r *http.Request) (clientID string, ok 
 	}
 
 	return
-}
-
-type clientIDContextKeyType struct{}
-
-var clientIDContextKey = clientIDContextKeyType{}
-
-type clientIDContext struct {
-	ClientID string
-}
-
-func WithClientID(ctx context.Context, clientID string) context.Context {
-	v, ok := ctx.Value(clientIDContextKey).(*clientIDContext)
-	if ok {
-		v.ClientID = clientID
-		return ctx
-	}
-
-	return context.WithValue(ctx, clientIDContextKey, &clientIDContext{
-		ClientID: clientID,
-	})
-}
-
-func GetClientID(ctx context.Context) string {
-	v, ok := ctx.Value(clientIDContextKey).(*clientIDContext)
-	if ok {
-		return v.ClientID
-	}
-	return ""
 }
