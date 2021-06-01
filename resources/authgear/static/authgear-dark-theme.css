@@ -180,3 +180,20 @@
     color: var(--color-signin-signup-link-current);
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  .wechat {
+    /* The class is used in both WeChat login button and login proceed button */
+    color: var(--color-white-unshaded);
+    background-color: var(--color-wechat-unshaded);
+  }
+  .wechat:hover, .wechat:focus {
+    background-color: var(--color-wechat-shaded-4);
+  }
+  .wechat:active {
+    background-color: var(--color-wechat-shaded-7);
+  }
+  .wechat:disabled {
+    background-color: var(--color-wechat-shaded-2);
+  }
+}
