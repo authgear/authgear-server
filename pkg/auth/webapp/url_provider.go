@@ -104,6 +104,7 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 	now := p.Clock.NowUTC()
 	session := NewSession(SessionOptions{
 		RedirectURI:  options.RedirectURI,
+		ClientID:     options.ClientID,
 		Prompt:       options.Prompt,
 		WebhookState: options.WebhookState,
 		UpdatedAt:    now,

@@ -21,6 +21,7 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 
 type SessionOptions struct {
 	RedirectURI     string
+	ClientID        string
 	KeepAfterFinish bool
 	Prompt          []string
 	Extra           map[string]interface{}
@@ -31,6 +32,7 @@ type SessionOptions struct {
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
 	return SessionOptions{
 		RedirectURI:     s.RedirectURI,
+		ClientID:        s.ClientID,
 		KeepAfterFinish: s.KeepAfterFinish,
 		Prompt:          s.Prompt,
 		Extra:           nil, // Omit extra by default
@@ -50,6 +52,9 @@ type Session struct {
 	// KeepAfterFinish indicates the session would not be deleted after the
 	// completion of interaction graph.
 	KeepAfterFinish bool `json:"keep_after_finish,omitempty"`
+
+	// ClientID is the client ID associated with this session.
+	ClientID string `json:"client_id,omitempty"`
 
 	// Extra is used to store extra information for use of webapp.
 	Extra map[string]interface{} `json:"extra"`
@@ -84,6 +89,7 @@ func NewSession(options SessionOptions) *Session {
 		ID:              newSessionID(),
 		RedirectURI:     options.RedirectURI,
 		KeepAfterFinish: options.KeepAfterFinish,
+		ClientID:        options.ClientID,
 		Extra:           make(map[string]interface{}),
 		Prompt:          options.Prompt,
 		UpdatedAt:       options.UpdatedAt,
