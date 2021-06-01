@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -29,6 +30,7 @@ func NewService(
 	localization *config.LocalizationConfig,
 	store Store,
 	hookSink *hook.Sink,
+	auditSink *audit.Sink,
 ) *Service {
 	return &Service{
 		Context:      ctx,
@@ -40,6 +42,6 @@ func NewService(
 		Users:        users,
 		Localization: localization,
 		Store:        store,
-		Sinks:        []Sink{hookSink},
+		Sinks:        []Sink{hookSink, auditSink},
 	}
 }

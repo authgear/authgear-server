@@ -12,6 +12,7 @@ import (
 	service3 "github.com/authgear/authgear-server/pkg/admin/service"
 	"github.com/authgear/authgear-server/pkg/admin/transport"
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
+	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -36,6 +37,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -450,7 +452,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	auditLogger := audit.NewLogger(factory)
+	auditdbHandle := appProvider.AuditDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
+	auditStore := &audit.Store{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: auditdbSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: auditdbHandle,
+		Store:    auditStore,
+	}
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
