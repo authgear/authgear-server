@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -28,10 +30,15 @@ type ManagementService interface {
 type IDPSessionManager ManagementService
 type AccessTokenSessionManager ManagementService
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type Manager struct {
 	Users               UserQuery
 	IDPSessions         IDPSessionManager
 	AccessTokenSessions AccessTokenSessionManager
+	Events              EventService
 }
 
 func (m *Manager) resolveManagementProvider(session Session) ManagementService {
@@ -46,8 +53,24 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 }
 
 func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
+	sessionModel := session.ToAPIModel()
+
+	user, err := m.Users.Get(session.SessionAttrs().UserID)
+	if err != nil {
+		return nil, err
+	}
+
 	provider := m.resolveManagementProvider(session)
-	err := provider.Delete(session)
+	err = provider.Delete(session)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
+		User:     *user,
+		Session:  *sessionModel,
+		AdminAPI: isAdminAPI,
+	})
 	if err != nil {
 		return nil, err
 	}

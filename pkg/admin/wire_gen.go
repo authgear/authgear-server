@@ -620,6 +620,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	sessionFacade := &facade2.SessionFacade{
 		Sessions: manager2,

@@ -1441,10 +1441,51 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
+	eventLogger := event.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	auditdbHandle := appProvider.AuditDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
+	auditStore := &audit.Store{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: auditdbSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: auditdbHandle,
+		Store:    auditStore,
+	}
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	revokeHandler := &handler.RevokeHandler{
 		SessionManager: manager2,
@@ -2461,10 +2502,51 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
+	eventLogger := event.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	auditdbHandle := appProvider.AuditDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
+	auditStore := &audit.Store{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: auditdbSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: auditdbHandle,
+		Store:    auditStore,
+	}
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
 		Config:         oAuthConfig,
@@ -15189,6 +15271,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	settingsHandler := &webapp2.SettingsHandler{
 		ControllerFactory: controllerFactory,
@@ -19066,6 +19149,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	settingsSessionsHandler := &webapp2.SettingsSessionsHandler{
 		ControllerFactory: controllerFactory,
@@ -21023,10 +21107,51 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Identities:   identityFacade,
 		Verification: verificationService,
 	}
+	eventLogger := event.NewLogger(factory)
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	auditdbHandle := appProvider.AuditDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
+	auditStore := &audit.Store{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: auditdbSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: auditdbHandle,
+		Store:    auditStore,
+	}
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
+		Events:              eventService,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
