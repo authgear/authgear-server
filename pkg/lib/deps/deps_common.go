@@ -93,6 +93,7 @@ var CommonDependencySet = wire.NewSet(
 		session.DependencySet,
 		wire.Bind(new(idpsession.AccessEventProvider), new(*access.EventProvider)),
 		wire.Bind(new(oidchandler.LogoutSessionManager), new(*session.Manager)),
+		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
 	),
 
 	wire.NewSet(

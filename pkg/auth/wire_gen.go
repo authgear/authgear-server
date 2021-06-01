@@ -1151,29 +1151,305 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	factory := appProvider.LoggerFactory
 	revokeHandlerLogger := oauth.NewRevokeHandlerLogger(factory)
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
 	config := appProvider.Config
-	appConfig := config.AppConfig
-	appID := appConfig.ID
-	logger := redis.NewLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
+	appConfig := config.AppConfig
+	appID := appConfig.ID
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	store := &user.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticationConfig := appConfig.Authentication
+	identityConfig := appConfig.Identity
+	serviceStore := &service.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginidStore := &loginid.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	loginIDConfig := identityConfig.LoginID
+	manager := appProvider.Resources
+	typeCheckerFactory := &loginid.TypeCheckerFactory{
+		Config:    loginIDConfig,
+		Resources: manager,
+	}
+	checker := &loginid.Checker{
+		Config:             loginIDConfig,
+		TypeCheckerFactory: typeCheckerFactory,
+	}
+	normalizerFactory := &loginid.NormalizerFactory{
+		Config: loginIDConfig,
+	}
 	clockClock := _wireSystemClockValue
-	store := &redis.Store{
+	provider := &loginid.Provider{
+		Store:             loginidStore,
+		Config:            loginIDConfig,
+		Checker:           checker,
+		NormalizerFactory: normalizerFactory,
+		Clock:             clockClock,
+	}
+	oauthStore := &oauth3.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	oauthProvider := &oauth3.Provider{
+		Store: oauthStore,
+		Clock: clockClock,
+	}
+	anonymousStore := &anonymous.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	anonymousProvider := &anonymous.Provider{
+		Store: anonymousStore,
+		Clock: clockClock,
+	}
+	biometricStore := &biometric.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	biometricProvider := &biometric.Provider{
+		Store: biometricStore,
+		Clock: clockClock,
+	}
+	serviceService := &service.Service{
+		Authentication: authenticationConfig,
+		Identity:       identityConfig,
+		Store:          serviceStore,
+		LoginID:        provider,
+		OAuth:          oauthProvider,
+		Anonymous:      anonymousProvider,
+		Biometric:      biometricProvider,
+	}
+	store2 := &service2.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordStore := &password.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorConfig := appConfig.Authenticator
+	authenticatorPasswordConfig := authenticatorConfig.Password
+	logger := password.NewLogger(factory)
+	historyStore := &password.HistoryStore{
+		Clock:       clockClock,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
+	housekeeperLogger := password.NewHousekeeperLogger(factory)
+	housekeeper := &password.Housekeeper{
+		Store:  historyStore,
+		Logger: housekeeperLogger,
+		Config: authenticatorPasswordConfig,
+	}
+	passwordProvider := &password.Provider{
+		Store:           passwordStore,
+		Config:          authenticatorPasswordConfig,
+		Clock:           clockClock,
+		Logger:          logger,
+		PasswordHistory: historyStore,
+		PasswordChecker: passwordChecker,
+		Housekeeper:     housekeeper,
+	}
+	totpStore := &totp.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	authenticatorTOTPConfig := authenticatorConfig.TOTP
+	totpProvider := &totp.Provider{
+		Store:  totpStore,
+		Config: authenticatorTOTPConfig,
+		Clock:  clockClock,
+	}
+	authenticatorOOBConfig := authenticatorConfig.OOB
+	oobStore := &oob.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	redisHandle := appProvider.Redis
+	storeRedis := &oob.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	oobLogger := oob.NewLogger(factory)
+	oobProvider := &oob.Provider{
+		Config:    authenticatorOOBConfig,
+		Store:     oobStore,
+		CodeStore: storeRedis,
+		Clock:     clockClock,
+		Logger:    oobLogger,
+	}
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := &ratelimit.StorageRedis{
+		AppID: appID,
+		Redis: redisHandle,
+	}
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		Clock:   clockClock,
+	}
+	service3 := &service2.Service{
+		Store:       store2,
+		Password:    passwordProvider,
+		TOTP:        totpProvider,
+		OOBOTP:      oobProvider,
+		RateLimiter: limiter,
+	}
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	verificationStoreRedis := &verification.StoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storePQ := &verification.StorePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	verificationService := &verification.Service{
+		Request:     request,
+		Logger:      verificationLogger,
+		Config:      verificationConfig,
+		TrustProxy:  trustProxy,
+		Clock:       clockClock,
+		CodeStore:   verificationStoreRedis,
+		ClaimStore:  storePQ,
+		RateLimiter: limiter,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: redisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
+	}
+	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
+	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
+	resolver := &template.Resolver{
+		Resources:             manager,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
+	}
+	engine := &template.Engine{
+		Resolver: resolver,
+	}
+	httpConfig := appConfig.HTTP
+	localizationConfig := appConfig.Localization
+	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
+	staticAssetResolver := &web.StaticAssetResolver{
+		Context:            context,
+		Config:             httpConfig,
+		Localization:       localizationConfig,
+		StaticAssetsPrefix: staticAssetURLPrefix,
+		Resources:          manager,
+	}
+	translationService := &translation.Service{
+		Context:           context,
+		EnvironmentConfig: environmentConfig,
+		TemplateEngine:    engine,
+		StaticAssets:      staticAssetResolver,
+	}
+	welcomeMessageConfig := appConfig.WelcomeMessage
+	queue := appProvider.TaskQueue
+	welcomemessageProvider := &welcomemessage.Provider{
+		Translation:          translationService,
+		RateLimiter:          limiter,
+		WelcomeMessageConfig: welcomeMessageConfig,
+		TaskQueue:            queue,
+	}
+	rawCommands := &user.RawCommands{
+		Store:                  store,
+		Clock:                  clockClock,
+		WelcomeMessageProvider: welcomemessageProvider,
+	}
+	authorizationStore := &pq.AuthorizationStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:         idpsessionStoreRedis,
+		Clock:         clockClock,
+		Config:        sessionConfig,
+		CookieFactory: cookieFactory,
+		CookieDef:     cookieDef,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
-		Logger:      logger,
+		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
+	}
+	coordinator := &facade.Coordinator{
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		Users:           rawCommands,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
+	}
+	identityFacade := facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	queries := &user.Queries{
+		Store:        store,
+		Identities:   identityFacade,
+		Verification: verificationService,
+	}
+	manager2 := &session.Manager{
+		Users:               queries,
+		IDPSessions:         idpsessionManager,
+		AccessTokenSessions: sessionManager,
+	}
 	revokeHandler := &handler.RevokeHandler{
-		OfflineGrants: store,
-		AccessGrants:  store,
+		SessionManager: manager2,
+		OfflineGrants:  redisStore,
+		AccessGrants:   redisStore,
 	}
 	oauthRevokeHandler := &oauth.RevokeHandler{
 		Logger:        revokeHandlerLogger,

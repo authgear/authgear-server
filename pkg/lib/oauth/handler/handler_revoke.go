@@ -6,11 +6,17 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
+type SessionManager interface {
+	Revoke(session session.Session, isAdminAPI bool) error
+}
+
 type RevokeHandler struct {
-	OfflineGrants oauth.OfflineGrantStore
-	AccessGrants  oauth.AccessGrantStore
+	SessionManager SessionManager
+	OfflineGrants  oauth.OfflineGrantStore
+	AccessGrants   oauth.AccessGrantStore
 }
 
 func (h *RevokeHandler) Handle(r protocol.RevokeRequest) error {
@@ -34,7 +40,7 @@ func (h *RevokeHandler) revokeOfflineGrant(token, grantID string) error {
 		return nil
 	}
 
-	err = h.OfflineGrants.DeleteOfflineGrant(offlineGrant)
+	err = h.SessionManager.Revoke(offlineGrant, false)
 	if err != nil {
 		return err
 	}
