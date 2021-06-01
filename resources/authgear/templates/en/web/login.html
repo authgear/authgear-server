@@ -1,24 +1,24 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-	<div class="content">
+<div class="content">
+	<div class="pane flex flex-direction-column">
+	<div class="flex flex-direction-column">
+		{{ if not $.PublicSignupDisabled }}
+		<div class="signin-signup-switch flex flex-direction-row">
+			<a class="not-a signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
+		</div>
+		{{ end }}
+
 		{{ template "__nav_bar.html" true }}
-		<div class="pane margin-6 flex flex-direction-column">
-		{{ template "__header.html" . }}
-		<div class="padding-6 flex flex-direction-column">
 
-			{{ if not $.PublicSignupDisabled }}
-			<div class="signin-signup-switch flex flex-direction-row">
-				<a class="not-a signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
-				<a class="not-a signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
-			</div>
-			{{ end }}
-
-			<form class="flex flex-direction-column margin-6 width-full" method="post" novalidate>
+		<div class="width-full margin-t-40 margin-b-20">
+			<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
-				<div class="margin-6 phone-input">
+				<div class="margin-b-20 phone-input">
 					<select class="select primary-txt" name="x_calling_code">
 						{{ range $.CountryCallingCodes }}
 						<option
@@ -50,7 +50,7 @@
 				<input
 					tabindex="0"
 					autofocus
-					class="margin-6 input text-input primary-txt"
+					class="margin-b-20 input text-input primary-txt"
 					type="{{ $.LoginPageTextLoginIDInputType }}"
 					autocomplete="username"
 					autocapitalize="none"
@@ -62,15 +62,15 @@
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<a class="link font-smaller align-self-flex-start block margin-v-12 margin-h-6" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
+				<a class="link font-smaller align-self-flex-start block margin-b-20" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
-				<a class="link font-smaller align-self-flex-start block margin-v-12 margin-h-6" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
+				<a class="link font-smaller align-self-flex-start block margin-b-20" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<button class="btn primary-btn margin-6" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
+				<button class="btn primary-btn margin-b-20" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
 				{{ end }}
 
 				{{/* Forgot password link is deliberately omitted here. */}}
@@ -89,18 +89,18 @@
 			{{ end }}
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
-			<div class="sso-loginid-separator flex flex-direction-row align-items-center margin-6 width-full">
+			<div class="sso-loginid-separator flex flex-direction-row align-items-center margin-b-20">
 				<span class="primary-txt margin-h-6">{{ template "sso-login-id-separator-both-present" }}</span>
 			</div>
 			{{ end }}{{ end }}
 
 			{{ if $has_oauth }}{{ if not $has_login_id }}
-			<div class="text-align-center margin-v-12 margin-h-6">
+			<div class="text-center margin-b-20">
 				{{ template "sso-login-id-separator-oauth-present" }}
 			</div>
 			{{ end }}{{ end }}
 
-			<div class="flex flex-direction-column margin-6 width-full">
+			<div class="flex flex-direction-column">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				<form class="flex flex-direction-column" method="post" novalidate>
@@ -113,7 +113,7 @@
 				{{ $skip = true }}
 				{{ end }}
 				{{- if not $skip -}}
-				<button class="btn sso-btn margin-v-4 margin-h-6 {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
+				<button class="btn sso-btn margin-b-20 {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
@@ -153,13 +153,15 @@
 			</div>
 
 			{{ if ($.Translations.HasKey "toc-pp-footer") }}
-			<p class="font-smaller primary-txt margin-6 padding-6 width-full">
+			<p class="font-smaller primary-txt margin-t-0 margin-b-20">
 			{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
 			</p>
 			{{ end }}
 
-			<div class="footer-watermark margin-12 width-full"></div>
 		</div>
-		</div>
+
+		<div class="footer-watermark margin-b-20"></div>
 	</div>
+	</div>
+</div>
 {{ end }}

@@ -41,10 +41,13 @@
     --color-google-shaded-8: #254b89;
 
     --color-pane-background: #252525;
+    --color-pane-border: #252525;
 
     --color-separator: #3e3e3e;
 
     --color-password-strength-meter-0: #8a8886;
+
+    --color-signin-signup-link-current: #ffffff;
   }
 }
 
@@ -173,7 +176,7 @@
 
 @media (prefers-color-scheme: dark) {
   .signin-signup-link.current {
-    border-bottom: 2px solid var(--color-primary-shaded-5);
-    color: var(--color-primary-shaded-5);
+    border-bottom: 2px solid var(--color-signin-signup-link-current);
+    color: var(--color-signin-signup-link-current);
   }
 }

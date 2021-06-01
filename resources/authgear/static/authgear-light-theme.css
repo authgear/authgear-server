@@ -144,7 +144,8 @@
   --color-status-dark: #8a8886;
 
   --color-pane-background: #ffffff;
-  --color-pane-shadow: rgba(0, 0, 0, 0.25);
+  --color-pane-shadow: rgba(0, 0, 0, 0.05);
+  --color-pane-border: #e5e5e5;
 
   --color-separator: #e5e5e5;
 
