@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -36,9 +37,11 @@ func TestServiceDispatchEvent(t *testing.T) {
 			FallbackLanguage:   &fallbackLanguage,
 			SupportedLanguages: supportedLanguages,
 		}
+		request, _ := http.NewRequest("GET", "/", nil)
 
 		service := &Service{
 			Context:      ctx,
+			Request:      request,
 			Logger:       logger,
 			Database:     database,
 			Clock:        clock,

@@ -477,7 +477,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -1021,7 +1021,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -2623,7 +2623,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -3145,7 +3145,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -3686,7 +3686,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -4227,7 +4227,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -4768,7 +4768,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -5302,7 +5302,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -5839,7 +5839,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -6379,7 +6379,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -6916,7 +6916,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -7452,7 +7452,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -7989,7 +7989,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -8527,7 +8527,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -9063,7 +9063,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -9599,7 +9599,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -10137,7 +10137,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -10673,7 +10673,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -11209,7 +11209,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -11748,7 +11748,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -12284,7 +12284,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -12825,7 +12825,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -13361,7 +13361,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -13898,7 +13898,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -14434,7 +14434,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -14988,7 +14988,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -15526,7 +15526,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -16063,7 +16063,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -16609,7 +16609,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -17146,7 +17146,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -17683,7 +17683,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -18221,7 +18221,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -18763,7 +18763,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -19300,7 +19300,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -19837,7 +19837,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -20719,7 +20719,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -21255,7 +21255,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,

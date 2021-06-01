@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/google/wire"
 
@@ -19,6 +20,8 @@ var DependencySet = wire.NewSet(
 
 func NewService(
 	ctx context.Context,
+	request *http.Request,
+	trustProxy config.TrustProxy,
 	logger Logger,
 	database Database,
 	clock clock.Clock,
@@ -29,6 +32,8 @@ func NewService(
 ) *Service {
 	return &Service{
 		Context:      ctx,
+		Request:      request,
+		TrustProxy:   trustProxy,
 		Logger:       logger,
 		Database:     database,
 		Clock:        clock,

@@ -450,7 +450,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:    hookLogger,
 		Deliverer: deliverer,
 	}
-	eventService := event.NewService(context, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
+	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
