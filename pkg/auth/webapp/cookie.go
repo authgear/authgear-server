@@ -82,6 +82,22 @@ type ErrorCookie struct {
 	CookieFactory CookieFactory
 }
 
+type ClientIDCookieDef struct {
+	Def *httputil.CookieDef
+}
+
+func NewClientIDCookieDef(httpCfg *config.HTTPConfig) ClientIDCookieDef {
+	def := &httputil.CookieDef{
+		Name:     "client_id",
+		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
+	}
+	if httpCfg.CookieDomain != nil {
+		def.Domain = *httpCfg.CookieDomain
+	}
+	return ClientIDCookieDef{Def: def}
+}
+
 func (c *ErrorCookie) GetError(r *http.Request) (*apierrors.APIError, bool) {
 	cookie, err := r.Cookie(c.Cookie.Def.Name)
 	if err != nil || cookie.Value == "" {

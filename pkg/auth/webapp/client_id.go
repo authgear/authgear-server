@@ -7,35 +7,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-// ClientIDCookieDef is a HTTP session cookie.
-var ClientIDCookieDef = httputil.CookieDef{
-	Name:     "client_id",
-	Path:     "/",
-	SameSite: http.SameSiteNoneMode,
-}
-
 type ClientIDMiddleware struct {
-	CookieFactory CookieFactory
+	States            SessionMiddlewareStore
+	SessionCookieDef  SessionCookieDef
+	ClientIDCookieDef ClientIDCookieDef
+	CookieFactory     CookieFactory
 }
 
 func (m *ClientIDMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		q := r.URL.Query()
-		clientID := q.Get("client_id")
+		clientID, ok := m.ReadClientID(r)
 
 		// Persist client_id into cookie.
 		// So that client_id no longer need to be present on the query.
-		if clientID != "" {
-			cookie := m.CookieFactory.ValueCookie(&ClientIDCookieDef, clientID)
+		if ok {
+			cookie := m.CookieFactory.ValueCookie(m.ClientIDCookieDef.Def, clientID)
 			httputil.UpdateCookie(w, cookie)
-		}
-
-		// Restore client_id from cookie
-		if clientID == "" {
-			cookie, err := r.Cookie(ClientIDCookieDef.Name)
-			if err == nil {
-				clientID = cookie.Value
-			}
 		}
 
 		// Restore client_id into the request context.
@@ -46,6 +33,35 @@ func (m *ClientIDMiddleware) Handle(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (m *ClientIDMiddleware) ReadClientID(r *http.Request) (clientID string, ok bool) {
+	// Read client_id in the following order.
+	// 1. From query
+	// 2. From web session cookie
+	// 3. From client ID cookie
+	q := r.URL.Query()
+	clientID = q.Get("client_id")
+	if clientID != "" {
+		ok = true
+		return
+	}
+
+	if cookie, err := r.Cookie(m.SessionCookieDef.Def.Name); err == nil {
+		if s, err := m.States.Get(cookie.Value); err == nil && s.ClientID != "" {
+			clientID = s.ClientID
+			ok = true
+			return
+		}
+	}
+
+	if cookie, err := r.Cookie(m.ClientIDCookieDef.Def.Name); err == nil {
+		clientID = cookie.Value
+		ok = true
+		return
+	}
+
+	return
 }
 
 type clientIDContextKeyType struct{}

@@ -21979,14 +21979,28 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 }
 
 func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	request := p.Request
 	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	appID := appConfig.ID
+	handle := appProvider.Redis
+	sessionStoreRedis := &webapp.SessionStoreRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	httpConfig := appConfig.HTTP
+	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	clientIDCookieDef := webapp.NewClientIDCookieDef(httpConfig)
+	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	clientIDMiddleware := &webapp.ClientIDMiddleware{
-		CookieFactory: cookieFactory,
+		States:            sessionStoreRedis,
+		SessionCookieDef:  sessionCookieDef,
+		ClientIDCookieDef: clientIDCookieDef,
+		CookieFactory:     cookieFactory,
 	}
 	return clientIDMiddleware
 }
