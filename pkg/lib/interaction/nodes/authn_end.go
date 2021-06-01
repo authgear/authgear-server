@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -30,12 +31,28 @@ type EdgeAuthenticationEnd struct {
 }
 
 func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
-	return &NodeAuthenticationEnd{
+	node := &NodeAuthenticationEnd{
 		Stage:                 e.Stage,
 		AuthenticationType:    e.AuthenticationType,
 		VerifiedAuthenticator: e.VerifiedAuthenticator,
 		RecoveryCode:          e.RecoveryCode,
-	}, nil
+	}
+
+	if err := node.IsFailure(); err != nil {
+		userID := graph.MustGetUserID()
+		user, err := ctx.Users.Get(userID)
+		if err != nil {
+			return nil, err
+		}
+		err = ctx.Events.DispatchEvent(&nonblocking.UserFailedAuthenticationEventPayload{
+			User: *user,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return node, nil
 }
 
 type NodeAuthenticationEnd struct {
@@ -54,25 +71,9 @@ func (n *NodeAuthenticationEnd) GetEffects() ([]interaction.Effect, error) {
 }
 
 func (n *NodeAuthenticationEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	switch n.AuthenticationType {
-	case AuthenticationTypeNone:
-		break
-	case AuthenticationTypePassword:
-		if n.VerifiedAuthenticator == nil {
-			return nil, n.FillDetails(interaction.ErrInvalidCredentials)
-		}
-	case AuthenticationTypeOTP:
-		if n.VerifiedAuthenticator == nil {
-			return nil, n.FillDetails(interaction.ErrInvalidCredentials)
-		}
-	case AuthenticationTypeRecoveryCode:
-		if n.RecoveryCode == nil {
-			return nil, n.FillDetails(interaction.ErrInvalidCredentials)
-		}
-	case AuthenticationTypeDeviceToken:
-		break
-	default:
-		panic("interaction: unknown authentication type: " + n.AuthenticationType)
+	err := n.IsFailure()
+	if err != nil {
+		return nil, err
 	}
 
 	return graph.Intent.DeriveEdgesForNode(graph, n)
@@ -82,4 +83,32 @@ func (n *NodeAuthenticationEnd) FillDetails(err error) error {
 	return errorutil.WithDetails(err, errorutil.Details{
 		"AuthenticationType": apierrors.APIErrorDetail.Value(n.AuthenticationType),
 	})
+}
+
+func (n *NodeAuthenticationEnd) IsFailure() (err error) {
+	switch n.AuthenticationType {
+	case AuthenticationTypeNone:
+		break
+	case AuthenticationTypePassword:
+		if n.VerifiedAuthenticator == nil {
+			err = n.FillDetails(interaction.ErrInvalidCredentials)
+			return
+		}
+	case AuthenticationTypeOTP:
+		if n.VerifiedAuthenticator == nil {
+			err = n.FillDetails(interaction.ErrInvalidCredentials)
+			return
+		}
+	case AuthenticationTypeRecoveryCode:
+		if n.RecoveryCode == nil {
+			err = n.FillDetails(interaction.ErrInvalidCredentials)
+			return
+		}
+	case AuthenticationTypeDeviceToken:
+		break
+	default:
+		panic("interaction: unknown authentication type: " + n.AuthenticationType)
+	}
+
+	return
 }
