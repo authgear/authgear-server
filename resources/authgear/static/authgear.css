@@ -998,9 +998,15 @@ h1, h2, h3, h4, h5, h6 {
 
 .recovery-code-list-section {
   align-self: center;
+  min-width: 100%;
+}
+
+.recovery-code-list-section .code-list {
+  padding: 20px 0 20px 20px;
 }
 
 .recovery-code-list-section .code-list-container {
+  background-color: var(--color-recovery-code-list-background);
   display: flex;
   justify-content: center;
 }
@@ -1015,19 +1021,24 @@ h1, h2, h3, h4, h5, h6 {
   white-space: pre;
   font-family: monospace;
   font-size: larger;
-  margin: 0 50px;
+  margin: 0 20px 0 30px;
 }
 
 .recovery-code-action-section {
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
+  flex-flow: wrap;
+  /* space between button */
+  margin: 0 -4px;
 }
 
 .recovery-code-action-section .action {
-  margin: 5px;
-  padding: 4px 16px;
-  font-size: 1rem;
+  flex: 0 0 50%;
+  padding: 0 4px;
+}
+
+.recovery-code-action-section .action > button {
+  width: 100%;
 }
 
 .recovery-codes-container {
