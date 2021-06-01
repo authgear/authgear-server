@@ -2,16 +2,16 @@
 
 {{ define "page-content" }}
 <div class="content">
+<div class="pane flex flex-direction-column">
 {{ template "__nav_bar.html" true }}
+<div class="flex flex-direction-column width-full margin-v-20">
 
-<div class="pane margin-6 flex flex-direction-column">
-<div class="padding-6 flex flex-direction-column">
+<h1 class="font-inherit primary-txt margin-b-20 text-center">{{ template "return-page-title" }}</h1>
 
-<h1 class="font-inherit primary-txt margin-10">{{ template "return-page-title" }}</h1>
-
-<p class="font-smaller overflow-wrap-break-word primary-txt margin-10">{{ template "return-page-description" }}</p>
+<p class="font-smaller overflow-wrap-break-word primary-txt margin-b-20 text-center">{{ template "return-page-description" }}</p>
 
 </div>
+<div class="footer-watermark margin-v-20"></div>
 </div>
 
 </div>

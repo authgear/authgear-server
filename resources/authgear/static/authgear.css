@@ -106,6 +106,12 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 24px;  /* 40px - 16px = 8px */
 }
 
+.nav-bar {
+  display: flex;
+  flex-direction: row;
+  margin: 0 20px;
+}
+
 @media (min-width: 641px) {
   .page {
     display: flex;
@@ -116,8 +122,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .content {
     padding: 0 0 20px 0;
-    /* 390px + 6px + 6px = 402px */
-    width: 402px;
+    width: 390px;
   }
 
   .width-full {
@@ -129,6 +134,10 @@ h1, h2, h3, h4, h5, h6 {
     /* 16px is the banner default padding */
     padding-top: 66px; /* 80px - 16px = 48px */
     padding-bottom: 48px;  /* 64px - 16px = 32px */
+  }
+
+  .nav-bar {
+    margin: 0 32px;
   }
 }
 
@@ -142,8 +151,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .content {
     padding: 0 0 20px 0;
-    /* 436px + 6px + 6px = 448px */
-    width: 448px;
+    width: 436px;
   }
 
   .width-full {
@@ -155,6 +163,10 @@ h1, h2, h3, h4, h5, h6 {
     /* 16px is the banner default padding */
     padding-top: 66px; /* 80px - 16px = 48px */
     padding-bottom: 48px;  /* 64px - 16px = 32px */
+  }
+
+  .nav-bar {
+    margin: 0 32px;
   }
 }
 
@@ -172,6 +184,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .text-center {
   text-align: center;
+}
+
+.text-left {
+  text-align: left;
 }
 
 .overflow-wrap-break-word {
@@ -260,6 +276,16 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 20px;
 }
 
+.margin-v-24 {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.margin-v-32 {
+  margin-top: 32px;
+  margin-bottom: 32px;
+}
+
 .margin-v-40 {
   margin-top: 40px;
   margin-bottom: 40px;
@@ -295,6 +321,16 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 14px;
 }
 
+.margin-h-24 {
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+.margin-h-32 {
+  margin-left: 32px;
+  margin-right: 32px;
+}
+
 .margin-t-0 {
   margin-top: 0px;
 }
@@ -303,12 +339,24 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 20px;
 }
 
+.margin-t-24 {
+  margin-top: 24px;
+}
+
+.margin-t-32 {
+  margin-top: 32px;
+}
+
 .margin-t-40 {
   margin-top: 40px;
 }
 
 .margin-b-0 {
   margin-bottom: 0px;
+}
+
+.margin-b-12 {
+  margin-bottom: 12px;
 }
 
 .margin-b-20 {
@@ -329,6 +377,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .padding-6 {
   padding: 6px;
+}
+
+.padding-h-4 {
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 .padding-h-18 {
@@ -377,6 +430,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .font-inherit {
   font-size: inherit;
+}
+
+.leading-normal {
+  line-height: 1.5;
 }
 
 .align-self-flex-start {
@@ -679,11 +736,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .pane > :last-child {
   border-radius: 0 0 6px 6px;
-}
-
-.nav-bar {
-  display: flex;
-  flex-direction: row;
 }
 
 .back-btn {

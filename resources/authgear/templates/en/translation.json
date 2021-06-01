@@ -254,9 +254,10 @@
 
   "setup-totp-title": "Setup authenticator",
   "setup-totp-code-placeholder": "code",
+  "setup-totp-description": "Please scan the QR code with your authenticator device / app",
+  "setup-totp-fallback-description": "Alternatively, please enter this key\n<b>{secret}</b>\nMake sure that Time based is turned on",
   "setup-totp-get-google-authenticator-description": "If you don''t have any authenticator device / app, you can get the Google Authenticator App from <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> or <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a>",
   "setup-totp-use-google-authenticator-description": "In the App select <b>Set up account</b>.\nChoose <b>Scan barcode</b>",
-  "setup-totp-fallback-description": "Can''t scan the barcode?\nChoose <b>Manual entry</b>.\nEnter your email address and this key:\n<b>{secret}</b>\nMake sure that Time based is turned on",
   "setup-totp-code-description": "Enter the 6-digit code that you see in the app / device",
 
   "enter-totp-title": "2-step verification",

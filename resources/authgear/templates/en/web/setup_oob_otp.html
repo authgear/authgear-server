@@ -2,12 +2,11 @@
 
 {{ define "page-content" }}
 <div class="content">
+<div class="pane flex flex-direction-column">
 {{ template "__nav_bar.html" }}
+<div class="flex flex-direction-column width-full margin-v-20">
 
-<div class="pane margin-6 flex flex-direction-column">
-<div class="padding-6 flex flex-direction-column">
-
-<h1 class="font-inherit margin-10 primary-txt">
+<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center">
 	{{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
 	{{ template "setup-oob-otp-title--sms" }}
 	{{ end }}
@@ -21,7 +20,7 @@
 {{ $.CSRFField }}
 
 {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-<div class="phone-input margin-10">
+<div class="phone-input margin-b-20">
 	<select class="select primary-txt" name="x_calling_code">
 		{{ range $.CountryCallingCodes }}
 		<option
@@ -51,7 +50,7 @@
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-10"
+	class="input text-input primary-txt margin-b-20"
 	type="email"
 	name="x_email"
 	autocomplete="email"
@@ -60,16 +59,17 @@
 >
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end margin-10" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn margin-b-20" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
 </form>
 
-<div class="margin-10">
+<div>
 {{ template "__alternatives.html" . }}
 </div>
 
 </div>
-</div>
 
+<div class="footer-watermark margin-v-20"></div>
+</div>
 </div>
 {{ end }}

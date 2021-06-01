@@ -6,7 +6,7 @@
             {{ range $name, $value := .Input }}
                 <input type="hidden" name="{{ $name }}" value="{{ $value }}">
             {{ end }}
-            <button class="btn secondary-btn align-self-flex-end font-smaller" type="submit" name="x_action" value="choose_step">
+            <button class="btn secondary-btn align-self-flex-end font-smaller margin-b-20" type="submit" name="x_action" value="choose_step">
                 {{ if eq .Step "setup-totp" }}
                     {{ template "setup-totp-instead" .Data }}
                 {{ end }}

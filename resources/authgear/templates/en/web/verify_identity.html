@@ -3,6 +3,7 @@
 {{ define "page-content" }}
 <div class="content">
 
+<div class="pane flex flex-direction-column">
 {{ if eq $.Action "update_session_step" }}
 {{ template "__nav_bar.html" true }}
 {{ else if $.IdentityDisplayID }}
@@ -10,21 +11,19 @@
 {{ else }}
 {{ template "__nav_bar.html" true }}
 {{ end }}
-
-<div class="pane margin-6 flex flex-direction-column">
-<div class="padding-6 flex flex-direction-column">
+<div class="flex flex-direction-column width-full margin-v-20">
 
 {{ if $.IdentityDisplayID }}
 {{ if eq $.VerificationCodeChannel "sms" }}
-<h1 class="font-inherit margin-10 primary-txt">{{ template "verify-user-page-title--sms" }}</h1>
+<h1 class="font-inherit primary-txt margin-t-0 margin-b-20 text-center">{{ template "verify-user-page-title--sms" }}</h1>
 {{ end }}
 {{ if eq $.VerificationCodeChannel "email" }}
-<h1 class="font-inherit margin-10 primary-txt">{{ template "verify-user-page-title--email" }}</h1>
+<h1 class="font-inherit primary-txt margin-t-0 margin-b-20 text-center">{{ template "verify-user-page-title--email" }}</h1>
 {{ end }}
 {{ end }}
 
 {{ if $.IdentityDisplayID }}
-<div class="font-smaller overflow-wrap-break-word primary-txt margin-10">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
+<div class="font-smaller overflow-wrap-break-word primary-txt margin-b-20 text-center">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
 
 <form class="flex flex-direction-column" method="post" novalidate>
 {{ $.CSRFField }}
@@ -32,7 +31,7 @@
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-10"
+	class="input text-input primary-txt margin-b-20"
 	type="text"
 	inputmode="numeric"
 	pattern="[0-9]*"
@@ -44,7 +43,7 @@
 	{{ if eq $.Action "update_session_step" }}readonly{{ end }}
 >
 <button
-	class="btn primary-btn align-self-flex-end margin-10"
+	class="btn primary-btn margin-b-20"
 	type="submit"
 	name="x_action"
 	value="{{ $.Action }}"
@@ -54,7 +53,7 @@
 </button>
 </form>
 
-<form class="link margin-10" method="post" novalidate>
+<form class="link margin-b-20" method="post" novalidate>
 {{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}
@@ -71,6 +70,7 @@
 {{ end }}
 
 </div>
+<div class="footer-watermark margin-v-20"></div>
 </div>
 
 </div>
