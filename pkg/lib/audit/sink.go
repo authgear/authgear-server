@@ -17,28 +17,17 @@ type Sink struct {
 }
 
 func (s *Sink) ReceiveBlockingEvent(e *event.Event) (err error) {
-	if s.Database == nil {
-		s.Logger.WithFields(map[string]interface{}{
-			"event": e,
-		}).Debug("skip persisting event")
-		return
-	}
-
-	s.Logger.WithFields(map[string]interface{}{
-		"event": e,
-	}).Debug("persisting event")
-
-	err = s.Database.WithTx(func() error {
-		return s.Store.PersistEvent(e)
-	})
-	if err != nil {
-		return
-	}
-
+	// We do not log blocking event.
 	return
 }
 
 func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) (err error) {
+	// Skip events that are not for audit.
+	payload := e.Payload.(event.NonBlockingPayload)
+	if !payload.ForAudit() {
+		return
+	}
+
 	if s.Database == nil {
 		s.Logger.WithFields(map[string]interface{}{
 			"event": e,

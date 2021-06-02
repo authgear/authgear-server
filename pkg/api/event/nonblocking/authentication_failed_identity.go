@@ -33,4 +33,12 @@ func (e *AuthenticationFailedIdentityEventPayload) FillContext(ctx *event.Contex
 	ctx.UserID = &userID
 }
 
+func (e *AuthenticationFailedIdentityEventPayload) ForWebHook() bool {
+	return false
+}
+
+func (e *AuthenticationFailedIdentityEventPayload) ForAudit() bool {
+	return true
+}
+
 var _ event.NonBlockingPayload = &AuthenticationFailedIdentityEventPayload{}

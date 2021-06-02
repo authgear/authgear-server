@@ -30,4 +30,12 @@ func (e *UserSignedOutEventPayload) IsAdminAPI() bool {
 func (e *UserSignedOutEventPayload) FillContext(ctx *event.Context) {
 }
 
+func (e *UserSignedOutEventPayload) ForWebHook() bool {
+	return false
+}
+
+func (e *UserSignedOutEventPayload) ForAudit() bool {
+	return true
+}
+
 var _ event.NonBlockingPayload = &UserSignedOutEventPayload{}

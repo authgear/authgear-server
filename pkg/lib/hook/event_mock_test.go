@@ -38,6 +38,14 @@ func (e *MockNonBlockingEvent1) NonBlockingEventType() event.Type {
 func (e *MockNonBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
+func (e *MockNonBlockingEvent1) ForWebHook() bool {
+	return true
+}
+
+func (e *MockNonBlockingEvent1) ForAudit() bool {
+	return true
+}
+
 type MockNonBlockingEvent2 struct {
 	MockUserEventBase
 }
@@ -47,6 +55,14 @@ func (e *MockNonBlockingEvent2) NonBlockingEventType() event.Type {
 }
 
 func (e *MockNonBlockingEvent2) FillContext(ctx *event.Context) {
+}
+
+func (e *MockNonBlockingEvent2) ForWebHook() bool {
+	return true
+}
+
+func (e *MockNonBlockingEvent2) ForAudit() bool {
+	return true
 }
 
 type MockNonBlockingEvent3 struct {
@@ -60,6 +76,14 @@ func (e *MockNonBlockingEvent3) NonBlockingEventType() event.Type {
 	return MockNonBlockingEventType3
 }
 
+func (e *MockNonBlockingEvent3) ForWebHook() bool {
+	return true
+}
+
+func (e *MockNonBlockingEvent3) ForAudit() bool {
+	return true
+}
+
 type MockNonBlockingEvent4 struct {
 	MockUserEventBase
 }
@@ -69,6 +93,14 @@ func (e *MockNonBlockingEvent4) NonBlockingEventType() event.Type {
 }
 
 func (e *MockNonBlockingEvent4) FillContext(ctx *event.Context) {
+}
+
+func (e *MockNonBlockingEvent4) ForWebHook() bool {
+	return true
+}
+
+func (e *MockNonBlockingEvent4) ForAudit() bool {
+	return true
 }
 
 type MockBlockingEvent1 struct {
