@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -17,7 +18,7 @@ type InputCreateAuthenticatorTOTP interface {
 }
 
 type EdgeCreateAuthenticatorTOTP struct {
-	Stage         interaction.AuthenticationStage
+	Stage         authn.AuthenticationStage
 	Authenticator *authenticator.Info
 }
 
@@ -41,8 +42,8 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *interaction.Context, grap
 }
 
 type NodeCreateAuthenticatorTOTP struct {
-	Stage         interaction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info             `json:"authenticator"`
+	Stage         authn.AuthenticationStage `json:"stage"`
+	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
 func (n *NodeCreateAuthenticatorTOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

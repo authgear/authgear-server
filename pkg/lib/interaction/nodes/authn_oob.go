@@ -17,7 +17,7 @@ type InputAuthenticationOOB interface {
 }
 
 type EdgeAuthenticationOOB struct {
-	Stage         interaction.AuthenticationStage
+	Stage         authn.AuthenticationStage
 	Authenticator *authenticator.Info
 	Secret        string
 }
@@ -38,9 +38,9 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 }
 
 type NodeAuthenticationOOB struct {
-	Stage             interaction.AuthenticationStage `json:"stage"`
-	AuthenticatorType authn.AuthenticatorType         `json:"authenticator_type"`
-	Authenticator     *authenticator.Info             `json:"authenticator"`
+	Stage             authn.AuthenticationStage `json:"stage"`
+	AuthenticatorType authn.AuthenticatorType   `json:"authenticator_type"`
+	Authenticator     *authenticator.Info       `json:"authenticator"`
 }
 
 func (n *NodeAuthenticationOOB) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

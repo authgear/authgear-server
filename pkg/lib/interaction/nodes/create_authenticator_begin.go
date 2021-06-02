@@ -15,7 +15,7 @@ func init() {
 }
 
 type EdgeCreateAuthenticatorBegin struct {
-	Stage             interaction.AuthenticationStage
+	Stage             authn.AuthenticationStage
 	AuthenticatorType *authn.AuthenticatorType
 }
 
@@ -41,10 +41,10 @@ func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *interaction.Context, gra
 }
 
 type NodeCreateAuthenticatorBegin struct {
-	Stage             interaction.AuthenticationStage `json:"stage"`
-	AuthenticatorType *authn.AuthenticatorType        `json:"authenticator_type"`
-	SkipMFASetup      bool                            `json:"skip_mfa_setup"`
-	RequestedByUser   bool                            `json:"requested_by_user"`
+	Stage             authn.AuthenticationStage `json:"stage"`
+	AuthenticatorType *authn.AuthenticatorType  `json:"authenticator_type"`
+	SkipMFASetup      bool                      `json:"skip_mfa_setup"`
+	RequestedByUser   bool                      `json:"requested_by_user"`
 
 	Identity             *identity.Info               `json:"-"`
 	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
@@ -63,7 +63,7 @@ func (n *NodeCreateAuthenticatorBegin) Prepare(ctx *interaction.Context, graph *
 		return err
 	}
 
-	if n.Stage == interaction.AuthenticationStagePrimary {
+	if n.Stage == authn.AuthenticationStagePrimary {
 		n.Identity = graph.MustGetUserLastIdentity()
 	}
 	n.AuthenticationConfig = ctx.Config.Authentication
@@ -105,7 +105,7 @@ func (n *NodeCreateAuthenticatorBegin) GetCreateAuthenticatorEdges() ([]interact
 	return n.deriveEdges()
 }
 
-func (n *NodeCreateAuthenticatorBegin) GetCreateAuthenticatorStage() interaction.AuthenticationStage {
+func (n *NodeCreateAuthenticatorBegin) GetCreateAuthenticatorStage() authn.AuthenticationStage {
 	return n.Stage
 }
 
@@ -114,12 +114,12 @@ func (n *NodeCreateAuthenticatorBegin) deriveEdges() ([]interaction.Edge, error)
 	var err error
 
 	switch n.Stage {
-	case interaction.AuthenticationStagePrimary:
+	case authn.AuthenticationStagePrimary:
 		edges, err = n.derivePrimary()
 		if err != nil {
 			return nil, err
 		}
-	case interaction.AuthenticationStageSecondary:
+	case authn.AuthenticationStageSecondary:
 		edges = n.deriveSecondary()
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)

@@ -210,7 +210,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		}
 		return []interaction.Edge{
 			&nodes.EdgeAuthenticationBegin{
-				Stage: interaction.AuthenticationStagePrimary,
+				Stage: authn.AuthenticationStagePrimary,
 			},
 		}, nil
 
@@ -227,18 +227,18 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 
 	case *nodes.NodeAuthenticationEnd:
 		switch node.Stage {
-		case interaction.AuthenticationStagePrimary:
+		case authn.AuthenticationStagePrimary:
 			return []interaction.Edge{
 				&nodes.EdgeDoUseAuthenticator{
-					Stage:         interaction.AuthenticationStagePrimary,
+					Stage:         authn.AuthenticationStagePrimary,
 					Authenticator: node.VerifiedAuthenticator,
 				},
 			}, nil
 
-		case interaction.AuthenticationStageSecondary:
+		case authn.AuthenticationStageSecondary:
 			return []interaction.Edge{
 				&nodes.EdgeDoUseAuthenticator{
-					Stage:         interaction.AuthenticationStageSecondary,
+					Stage:         authn.AuthenticationStageSecondary,
 					Authenticator: node.VerifiedAuthenticator,
 				},
 			}, nil
@@ -248,12 +248,12 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		}
 	case *nodes.NodeDoUseAuthenticator:
 		switch node.Stage {
-		case interaction.AuthenticationStagePrimary:
+		case authn.AuthenticationStagePrimary:
 			return []interaction.Edge{
-				&nodes.EdgeAuthenticationBegin{Stage: interaction.AuthenticationStageSecondary},
+				&nodes.EdgeAuthenticationBegin{Stage: authn.AuthenticationStageSecondary},
 			}, nil
 
-		case interaction.AuthenticationStageSecondary:
+		case authn.AuthenticationStageSecondary:
 			return []interaction.Edge{
 				&nodes.EdgeValidateUser{},
 			}, nil
@@ -271,7 +271,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		}
 
 		return []interaction.Edge{
-			&nodes.EdgeCreateAuthenticatorBegin{Stage: interaction.AuthenticationStagePrimary},
+			&nodes.EdgeCreateAuthenticatorBegin{Stage: authn.AuthenticationStagePrimary},
 		}, nil
 
 	case *nodes.NodeCreateAuthenticatorEnd:
@@ -283,12 +283,12 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		}, nil
 	case *nodes.NodeDoCreateAuthenticator:
 		switch node.Stage {
-		case interaction.AuthenticationStagePrimary:
+		case authn.AuthenticationStagePrimary:
 			return []interaction.Edge{
-				&nodes.EdgeCreateAuthenticatorBegin{Stage: interaction.AuthenticationStageSecondary},
+				&nodes.EdgeCreateAuthenticatorBegin{Stage: authn.AuthenticationStageSecondary},
 			}, nil
 
-		case interaction.AuthenticationStageSecondary:
+		case authn.AuthenticationStageSecondary:
 			return []interaction.Edge{
 				&nodes.EdgeGenerateRecoveryCode{},
 			}, nil

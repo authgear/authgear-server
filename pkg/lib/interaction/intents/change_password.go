@@ -3,6 +3,7 @@ package intents
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
@@ -12,21 +13,21 @@ func init() {
 }
 
 type IntentChangePassword struct {
-	UserID string                          `json:"user_id"`
-	Stage  interaction.AuthenticationStage `json:"stage"`
+	UserID string                    `json:"user_id"`
+	Stage  authn.AuthenticationStage `json:"stage"`
 }
 
 func NewIntentChangePrimaryPassword(userID string) *IntentChangePassword {
 	return &IntentChangePassword{
 		UserID: userID,
-		Stage:  interaction.AuthenticationStagePrimary,
+		Stage:  authn.AuthenticationStagePrimary,
 	}
 }
 
 func NewIntentChangeSecondaryPassword(userID string) *IntentChangePassword {
 	return &IntentChangePassword{
 		UserID: userID,
-		Stage:  interaction.AuthenticationStageSecondary,
+		Stage:  authn.AuthenticationStageSecondary,
 	}
 }
 

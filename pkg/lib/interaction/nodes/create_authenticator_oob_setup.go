@@ -20,7 +20,7 @@ type InputCreateAuthenticatorOOBSetup interface {
 }
 
 type EdgeCreateAuthenticatorOOBSetup struct {
-	Stage     interaction.AuthenticationStage
+	Stage     authn.AuthenticationStage
 	IsDefault bool
 
 	OOBAuthenticatorType authn.AuthenticatorType
@@ -80,7 +80,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	var spec *authenticator.Spec
 	var identityInfo *identity.Info
 	var oobAuthenticatorType authn.AuthenticatorType
-	if e.Stage == interaction.AuthenticationStagePrimary {
+	if e.Stage == authn.AuthenticationStagePrimary {
 		// Primary OOB authenticators must be bound to login ID identity
 		identityInfo = graph.MustGetUserLastIdentity()
 		if identityInfo.Type != authn.IdentityTypeLoginID {
@@ -196,11 +196,11 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 }
 
 type NodeCreateAuthenticatorOOBSetup struct {
-	Stage         interaction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info             `json:"authenticator"`
-	Target        string                          `json:"target"`
-	Channel       string                          `json:"channel"`
-	CodeLength    int                             `json:"code_length"`
+	Stage         authn.AuthenticationStage `json:"stage"`
+	Authenticator *authenticator.Info       `json:"authenticator"`
+	Target        string                    `json:"target"`
+	Channel       string                    `json:"channel"`
+	CodeLength    int                       `json:"code_length"`
 }
 
 // GetOOBOTPTarget implements OOBOTPNode.
@@ -216,9 +216,9 @@ func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPChannel() string {
 // GetOOBOTPOOBType implements OOBOTPNode.
 func (n *NodeCreateAuthenticatorOOBSetup) GetOOBOTPOOBType() interaction.OOBType {
 	switch n.Stage {
-	case interaction.AuthenticationStagePrimary:
+	case authn.AuthenticationStagePrimary:
 		return interaction.OOBTypeSetupPrimary
-	case interaction.AuthenticationStageSecondary:
+	case authn.AuthenticationStageSecondary:
 		return interaction.OOBTypeSetupSecondary
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)

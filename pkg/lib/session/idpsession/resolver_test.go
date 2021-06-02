@@ -57,10 +57,10 @@ func TestResolver(t *testing.T) {
 		}
 
 		resolver := Resolver{
-			Cookie:        cookie,
-			Provider:      provider,
-			TrustProxy:    true,
-			Clock:         clock.NewMockClock(),
+			Cookie:     cookie,
+			Provider:   provider,
+			TrustProxy: true,
+			Clock:      clock.NewMockClock(),
 		}
 
 		Convey("resolve without session cookie", func() {

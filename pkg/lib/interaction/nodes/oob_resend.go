@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -10,7 +11,7 @@ type InputOOBResendCode interface {
 }
 
 type EdgeOOBResendCode struct {
-	Stage            interaction.AuthenticationStage
+	Stage            authn.AuthenticationStage
 	IsAuthenticating bool
 	Authenticator    *authenticator.Info
 }

@@ -3,6 +3,7 @@ package intents
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
@@ -64,7 +65,7 @@ func (i *IntentAddIdentity) DeriveEdgesForNode(graph *interaction.Graph, node in
 	case *nodes.NodeDoUseIdentity:
 		return []interaction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{
-				Stage: interaction.AuthenticationStagePrimary,
+				Stage: authn.AuthenticationStagePrimary,
 			},
 		}, nil
 
@@ -78,10 +79,10 @@ func (i *IntentAddIdentity) DeriveEdgesForNode(graph *interaction.Graph, node in
 
 	case *nodes.NodeDoCreateAuthenticator:
 		switch node.Stage {
-		case interaction.AuthenticationStagePrimary:
+		case authn.AuthenticationStagePrimary:
 			return nil, nil
 
-		case interaction.AuthenticationStageSecondary:
+		case authn.AuthenticationStageSecondary:
 			return []interaction.Edge{
 				&nodes.EdgeGenerateRecoveryCode{},
 			}, nil

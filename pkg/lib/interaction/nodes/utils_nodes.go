@@ -1,6 +1,9 @@
 package nodes
 
-import "github.com/authgear/authgear-server/pkg/lib/interaction"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
+)
 
 func getIdentityConflictNode(graph *interaction.Graph) (*NodeCheckIdentityConflict, bool) {
 	for _, node := range graph.Nodes {
@@ -22,5 +25,5 @@ func (e *EdgeTerminal) Instantiate(ctx *interaction.Context, graph *interaction.
 }
 
 type InputAuthenticationStage interface {
-	GetAuthenticationStage() interaction.AuthenticationStage
+	GetAuthenticationStage() authn.AuthenticationStage
 }

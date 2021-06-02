@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -59,7 +60,7 @@ func (h *CreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter,
 	if !graph.FindLastNode(&node) {
 		panic("create_authenticator_begin: expected graph has node implementing CreateAuthenticatorBeginNode")
 	}
-	isPrimary := node.GetCreateAuthenticatorStage() == interaction.AuthenticationStagePrimary
+	isPrimary := node.GetCreateAuthenticatorStage() == authn.AuthenticationStagePrimary
 	if isPrimary {
 		identityInfo := graph.MustGetUserLastIdentity()
 		displayID = identityInfo.DisplayID()

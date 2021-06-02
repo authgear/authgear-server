@@ -15,7 +15,7 @@ func init() {
 }
 
 type EdgeAuthenticationEnd struct {
-	Stage                 interaction.AuthenticationStage
+	Stage                 authn.AuthenticationStage
 	AuthenticationType    authn.AuthenticationType
 	VerifiedAuthenticator *authenticator.Info
 	RecoveryCode          *mfa.RecoveryCode
@@ -47,10 +47,10 @@ func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *int
 }
 
 type NodeAuthenticationEnd struct {
-	Stage                 interaction.AuthenticationStage `json:"stage"`
-	AuthenticationType    authn.AuthenticationType        `json:"authentication_type"`
-	VerifiedAuthenticator *authenticator.Info             `json:"verified_authenticator"`
-	RecoveryCode          *mfa.RecoveryCode               `json:"recovery_code"`
+	Stage                 authn.AuthenticationStage `json:"stage"`
+	AuthenticationType    authn.AuthenticationType  `json:"authentication_type"`
+	VerifiedAuthenticator *authenticator.Info       `json:"verified_authenticator"`
+	RecoveryCode          *mfa.RecoveryCode         `json:"recovery_code"`
 }
 
 func (n *NodeAuthenticationEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

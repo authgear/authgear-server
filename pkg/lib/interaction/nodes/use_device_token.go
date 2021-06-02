@@ -36,7 +36,7 @@ func (e *EdgeUseDeviceToken) Instantiate(ctx *interaction.Context, graph *intera
 	}
 
 	return &NodeAuthenticationEnd{
-		Stage:              interaction.AuthenticationStageSecondary,
+		Stage:              authn.AuthenticationStageSecondary,
 		AuthenticationType: authn.AuthenticationTypeDeviceToken,
 	}, nil
 }

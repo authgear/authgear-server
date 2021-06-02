@@ -3,6 +3,7 @@ package nodes
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -16,7 +17,7 @@ type InputCreateDeviceToken interface {
 }
 
 type EdgeDoUseAuthenticator struct {
-	Stage         interaction.AuthenticationStage
+	Stage         authn.AuthenticationStage
 	Authenticator *authenticator.Info
 }
 
@@ -44,9 +45,9 @@ func (e *EdgeDoUseAuthenticator) Instantiate(ctx *interaction.Context, graph *in
 }
 
 type NodeDoUseAuthenticator struct {
-	Stage             interaction.AuthenticationStage `json:"stage"`
-	Authenticator     *authenticator.Info             `json:"authenticator"`
-	DeviceTokenCookie *http.Cookie                    `json:"device_token_cookie"`
+	Stage             authn.AuthenticationStage `json:"stage"`
+	Authenticator     *authenticator.Info       `json:"authenticator"`
+	DeviceTokenCookie *http.Cookie              `json:"device_token_cookie"`
 }
 
 // GetCookies implements CookiesGetter
@@ -69,7 +70,7 @@ func (n *NodeDoUseAuthenticator) DeriveEdges(graph *interaction.Graph) ([]intera
 	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
 
-func (n *NodeDoUseAuthenticator) UserAuthenticator(stage interaction.AuthenticationStage) (*authenticator.Info, bool) {
+func (n *NodeDoUseAuthenticator) UserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {
 	if n.Stage == stage && n.Authenticator != nil {
 		return n.Authenticator, true
 	}

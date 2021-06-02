@@ -182,10 +182,10 @@ func (g *Graph) GetUserNewIdentities() []*identity.Info {
 	return identities
 }
 
-func (g *Graph) GetUserAuthenticator(stage AuthenticationStage) (*authenticator.Info, bool) {
+func (g *Graph) GetUserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {
 	for i := len(g.Nodes) - 1; i >= 0; i-- {
 		if n, ok := g.Nodes[i].(interface {
-			UserAuthenticator(stage AuthenticationStage) (*authenticator.Info, bool)
+			UserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool)
 		}); ok {
 			ai, ok := n.UserAuthenticator(stage)
 			if ok {
@@ -210,15 +210,15 @@ func (g *Graph) GetAMR() []string {
 	seen := make(map[string]struct{})
 	amr := []string{}
 
-	stages := []AuthenticationStage{
-		AuthenticationStagePrimary,
-		AuthenticationStageSecondary,
+	stages := []authn.AuthenticationStage{
+		authn.AuthenticationStagePrimary,
+		authn.AuthenticationStageSecondary,
 	}
 
 	for _, stage := range stages {
 		ai, ok := g.GetUserAuthenticator(stage)
 		if ok {
-			if stage == AuthenticationStageSecondary {
+			if stage == authn.AuthenticationStageSecondary {
 				amr = append(amr, authn.AMRMFA)
 			}
 

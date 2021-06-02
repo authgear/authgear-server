@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -82,7 +81,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
-			interaction.AuthenticationStageSecondary,
+			authn.AuthenticationStageSecondary,
 			authn.AuthenticatorTypePassword,
 		)
 
@@ -123,7 +122,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
-			interaction.AuthenticationStageSecondary,
+			authn.AuthenticationStageSecondary,
 			authn.AuthenticatorTypeTOTP,
 		)
 
@@ -145,7 +144,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
-			interaction.AuthenticationStageSecondary,
+			authn.AuthenticationStageSecondary,
 			authn.AuthenticatorTypeOOBEmail,
 		)
 
@@ -167,7 +166,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
-			interaction.AuthenticationStageSecondary,
+			authn.AuthenticationStageSecondary,
 			authn.AuthenticatorTypeOOBSMS,
 		)
 

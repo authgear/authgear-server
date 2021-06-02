@@ -143,7 +143,7 @@ func TestGraph(t *testing.T) {
 }
 
 type testGraphGetAMRnode struct {
-	Stage         AuthenticationStage
+	Stage         authn.AuthenticationStage
 	Authenticator *authenticator.Info
 }
 
@@ -159,7 +159,7 @@ func (n *testGraphGetAMRnode) DeriveEdges(graph *Graph) ([]Edge, error) {
 	return nil, nil
 }
 
-func (n *testGraphGetAMRnode) UserAuthenticator(stage AuthenticationStage) (*authenticator.Info, bool) {
+func (n *testGraphGetAMRnode) UserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {
 	if n.Stage == stage && n.Authenticator != nil {
 		return n.Authenticator, true
 	}
@@ -178,7 +178,7 @@ func TestGraphGetAMRACR(t *testing.T) {
 		graph = &Graph{
 			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: AuthenticationStagePrimary,
+					Stage: authn.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypePassword,
 					},
@@ -193,7 +193,7 @@ func TestGraphGetAMRACR(t *testing.T) {
 		graph = &Graph{
 			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: AuthenticationStagePrimary,
+					Stage: authn.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type:   authn.AuthenticatorTypeOOBSMS,
 						Claims: map[string]interface{}{},
@@ -209,13 +209,13 @@ func TestGraphGetAMRACR(t *testing.T) {
 		graph = &Graph{
 			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: AuthenticationStagePrimary,
+					Stage: authn.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypePassword,
 					},
 				},
 				&testGraphGetAMRnode{
-					Stage: AuthenticationStageSecondary,
+					Stage: authn.AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
 						Type:   authn.AuthenticatorTypeOOBEmail,
 						Claims: map[string]interface{}{},
@@ -231,13 +231,13 @@ func TestGraphGetAMRACR(t *testing.T) {
 		graph = &Graph{
 			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: AuthenticationStagePrimary,
+					Stage: authn.AuthenticationStagePrimary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypePassword,
 					},
 				},
 				&testGraphGetAMRnode{
-					Stage: AuthenticationStageSecondary,
+					Stage: authn.AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
 						Type:   authn.AuthenticatorTypeOOBSMS,
 						Claims: map[string]interface{}{},
@@ -253,7 +253,7 @@ func TestGraphGetAMRACR(t *testing.T) {
 		graph = &Graph{
 			Nodes: []Node{
 				&testGraphGetAMRnode{
-					Stage: AuthenticationStageSecondary,
+					Stage: authn.AuthenticationStageSecondary,
 					Authenticator: &authenticator.Info{
 						Type: authn.AuthenticatorTypeTOTP,
 					},
