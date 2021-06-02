@@ -73,8 +73,9 @@ func TestServiceDispatchEvent(t *testing.T) {
 		})
 
 		Convey("dispatch blocking event", func() {
+			userID := "user-id"
 			user := model.User{
-				Meta: model.Meta{ID: "user-id"},
+				Meta: model.Meta{ID: userID},
 			}
 			payload := &MockBlockingEvent1{
 				MockUserEventBase: MockUserEventBase{user},
@@ -88,7 +89,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 				Payload: payload,
 				Context: event.Context{
 					Timestamp:   1136214245,
-					UserID:      nil,
+					UserID:      &userID,
 					Language:    fallbackLanguage,
 					TriggeredBy: event.TriggeredByTypeUser,
 				},
@@ -154,8 +155,9 @@ func TestServiceDispatchEvent(t *testing.T) {
 		})
 
 		Convey("dispatch non-blocking event", func() {
+			userID := "user-id"
 			user := model.User{
-				Meta: model.Meta{ID: "user-id"},
+				Meta: model.Meta{ID: userID},
 			}
 			payload := &MockNonBlockingEvent1{
 				MockUserEventBase: MockUserEventBase{user},
@@ -172,7 +174,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 					Payload: payload,
 					Context: event.Context{
 						Timestamp:   1136214245,
-						UserID:      nil,
+						UserID:      &userID,
 						Language:    fallbackLanguage,
 						TriggeredBy: event.TriggeredByTypeUser,
 					},
@@ -240,7 +242,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 				Payload: blocking,
 				Context: event.Context{
 					Timestamp:   1136214245,
-					UserID:      nil,
+					UserID:      &userID,
 					Language:    fallbackLanguage,
 					TriggeredBy: event.TriggeredByTypeUser,
 				},

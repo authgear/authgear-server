@@ -119,6 +119,13 @@ func (s *Service) DidCommitTx() {
 
 func (s *Service) makeContext(payload event.Payload) event.Context {
 	userID := session.GetUserID(s.Context)
+	if userID == nil {
+		uid := payload.UserID()
+		if uid != "" {
+			userID = &uid
+		}
+	}
+
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
 	resolvedLanguageIdx, _ := intl.Resolve(
 		preferredLanguageTags,

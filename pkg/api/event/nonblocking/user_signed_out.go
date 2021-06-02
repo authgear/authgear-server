@@ -28,8 +28,6 @@ func (e *UserSignedOutEventPayload) IsAdminAPI() bool {
 }
 
 func (e *UserSignedOutEventPayload) FillContext(ctx *event.Context) {
-	userID := e.UserID()
-	ctx.UserID = &userID
 }
 
 var _ event.NonBlockingPayload = &UserSignedOutEventPayload{}

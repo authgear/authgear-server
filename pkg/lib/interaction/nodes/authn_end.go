@@ -35,8 +35,10 @@ func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *int
 		if err != nil {
 			return nil, err
 		}
-		err = ctx.Events.DispatchEvent(&nonblocking.UserFailedAuthenticationEventPayload{
-			User: *user,
+		err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedEventPayload{
+			User:                *user,
+			AuthenticationStage: string(e.Stage),
+			AuthenticationType:  string(e.AuthenticationType),
 		})
 		if err != nil {
 			return nil, err
