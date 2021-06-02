@@ -1,13 +1,13 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content">
+<main class="content settings-content">
 {{ template "__nav_bar.html" true }}
 
 {{/* Identity */}}
-<div class="pane margin-6 flex flex-direction-column">
-<div class="padding-6 flex flex-direction-column">
-  <section class="margin-h-14 padding-v-10 gap-8 row-sep grid grid-title-desc">
+<div class="pane flex flex-direction-column margin-b-20">
+<div class="flex flex-direction-column">
+  <section class="padding-20 gap-4 row-sep grid grid-title-desc">
     <h1 class="grid-area-title margin-0 font-inherit primary-txt">
       {{ template "settings-identity-title" }}
     </h1>
@@ -27,7 +27,7 @@
   {{ $is_oauth_candidate := (and (eq .type "oauth") (not .identity_id)) }}
 
   {{ if not $is_oauth_candidate }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-icon-name-claim-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2">
     {{ $fa := "" }}
 
     {{ if eq .type "oauth" }}
@@ -47,8 +47,8 @@
 
     {{ end }}
 
-    <i class="grid-area-icon align-self-start justify-self-center margin-2 primary-txt {{ $fa }}" aria-hidden="true"></i>
-    <h2 class="grid-area-name align-self-center font-inherit margin-0 primary-txt">
+    <i class="grid-area-icon align-self-start justify-self-start margin-0 primary-txt leading-normal {{ $fa }}" aria-hidden="true"></i>
+    <p class="grid-area-name align-self-center font-smaller margin-0 primary-txt leading-normal">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
         {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
@@ -64,10 +64,10 @@
         {{ if eq .login_id_type "username" }}{{ template "settings-identity-login-id-username" }}{{ end }}
         {{ if eq .login_id_type "raw" }}{{ template "settings-identity-login-id-raw" }}{{ end }}
       {{ end }}
-    </h2>
+    </p>
 
     {{ if .display_id }}
-    <h3 class="grid-area-claim align-self-center font-smaller margin-0 secondary-txt text-ellipsis">
+    <p class="grid-area-claim align-self-center font-smaller margin-0 secondary-txt leading-normal">
       {{ .display_id }}
 
       <!-- TODO(verification): show verification for all identity types -->
@@ -85,7 +85,7 @@
       {{ end }}
       {{ end }}
       {{ end }}
-    </h3>
+    </p>
     {{ end }}
 
     {{ if eq .type "oauth" }}
@@ -94,18 +94,18 @@
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
+    <button class="btn destructive-btn font-smaller" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
     {{ else }}
-    <button class="btn secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
+    <button class="btn secondary-btn font-smaller" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
     {{ end }}{{ end }}
     </form>
     {{ end }}
 
     {{ if eq .type "login_id" }}
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
+    <a class="link grid-area-action1 align-self-center justify-self-end font-smaller" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
     {{ else }}
-    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+    <a class="link grid-area-action1 align-self-center justify-self-end font-smaller" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
       {{ if eq .login_id_type "username" }}
       {{ template "setup-button-label" }}
       {{ else }}
@@ -133,8 +133,8 @@
   {{ end }}
   {{ end }}
 
-  <section class="margin-h-14 padding-v-10 row-sep">
-    <a class="link action" href="/settings/identity">
+  <section class="padding-20 row-sep">
+    <a class="link action font-smaller" href="/settings/identity">
       {{ template "more-button-label" }}
     </a>
   </section>
@@ -142,6 +142,7 @@
 </div>
 </div>
 
+<!-- Primary password, oob_otp -->
 {{ $has_primary_password := false }}
 {{ $has_primary_oob_otp_email := false }}
 {{ $has_primary_oob_otp_sms := false }}
@@ -157,80 +158,6 @@
   {{ $has_primary_oob_otp_sms = true }}
   {{ end }}
 {{ end }}
-{{ end }}
-{{ $show_security := (or $has_primary_password $has_primary_oob_otp_email $has_primary_oob_otp_sms ) }}
-
-{{ if $show_security }}
-<div class="pane margin-6 padding-6">
-  <!-- The title and the description -->
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <h2 class="grid-area-title font-inherit margin-0 primary-txt">
-      {{ template "settings-page-security-section-title" }}
-    </h2>
-    <p class="grid-area-desc font-smaller margin-0 secondary-txt">
-      {{ template "settings-page-security-section-description" }}
-    </p>
-  </section>
-
-  {{ range $.Authenticators }}
-  <!-- Primary Password -->
-  {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <p class="grid-area-title font-inherit margin-0 primary-txt">
-      {{ template "settings-page-primary-password-title" }}
-    </p>
-    <p class="grid-area-desc font-smaller margin-0 secondary-txt">
-      <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-primary-password-description" (dict "time" .UpdatedAt) }}
-    </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/change_password">
-      {{ template "change-password-button-label" }}
-    </a>
-  </section>
-  {{ end }}{{ end }}
-
-  <!-- Primary OOB OTP Email -->
-  {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-info-desc-action">
-    <p class="grid-area-title margin-0 primary-txt">
-      {{ template "settings-page-primary-oob-otp-title--email" }}
-    </p>
-    <p class="grid-area-info margin-0 font-smaller secondary-txt">
-      <i class="fas fa-envelope" aria-hidden="true"></i>
-      {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
-    </p>
-    <p class="grid-area-desc margin-0 font-smaller secondary-txt">
-      <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
-    </p>
-    <a class="link grid-area-action" href="/settings/identity">
-      {{ template "details-button-label" }}
-    </a>
-  </section>
-  {{ end }}{{ end }}
-
-  <!-- Primary OOB OTP SMS -->
-  {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-info-desc-action">
-    <p class="grid-area-title margin-0 primary-txt">
-      {{ template "settings-page-primary-oob-otp-title--sms" }}
-    </p>
-    <p class="grid-area-info margin-0 font-smaller secondary-txt">
-      <i class="fas fa-phone" aria-hidden="true"></i>
-      {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
-    </p>
-    <p class="grid-area-desc margin-0 font-smaller secondary-txt">
-      <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
-    </p>
-    <a class="link grid-area-action" href="/settings/identity">
-      {{ template "details-button-label" }}
-    </a>
-  </section>
-  {{ end }}{{ end }}
-  {{ end }}
-
-</div>
 {{ end }}
 
 <!-- MFA -->
@@ -259,57 +186,110 @@
 {{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
 {{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password) }}
 
-{{ if $show_mfa }}
-<div class="pane margin-6 padding-6">
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <h2 class="grid-area-title font-inherit margin-0 primary-txt">
-      {{ template "settings-page-mfa-section-title" }}
-    </h2>
-    <p class="grid-area-desc font-smaller margin-0 secondary-txt">
-      {{ template "settings-page-mfa-section-description" }}
-    </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa">
-      {{ template "details-button-label" }}
-    </a>
-  </section>
-</div>
-{{ end }}
 
-{{ if $.ShowBiometric }}
-<!-- Biometric -->
-<div class="pane margin-6 padding-6">
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <h2 class="grid-area-title font-inherit margin-0 primary-txt">
-      {{ template "settings-page-biometric-section-title" }}
-    </h2>
-    <p class="grid-area-desc font-smaller margin-0 secondary-txt">
-      {{ template "settings-page-biometric-section-description" }}
-    </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/biometric">
-      {{ template "details-button-label" }}
+<div class="pane margin-b-20">
+<!-- The title and the description -->
+<section class="padding-20 gap-4 grid grid-title-desc-action1-action2">
+  <h2 class="grid-area-title font-inherit margin-0 primary-txt">
+    {{ template "settings-page-security-section-title" }}
+  </h2>
+  <p class="grid-area-desc font-smaller margin-0 secondary-txt">
+    {{ template "settings-page-security-section-description" }}
+  </p>
+</section>
+<section class="padding-20 padding-t-0">
+  <div class="settings-security-list">
+    {{ range $.Authenticators }}
+    <!-- Primary Password -->
+    {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
+    <a class="settings-security-item" href="/settings/change_password">
+      <i class="fas fa-key icon margin-b-10 primary-txt"></i>
+      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+        {{ template "settings-page-primary-password-title" }}
+      </p>
+      <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
+        <!-- FIXME(ui): Use user preferred timezone -->
+        {{ template "settings-page-primary-password-description" (dict "time" .UpdatedAt) }}
+      </p>
     </a>
-  </section>
-</div>
-{{ end }}
+    {{ end }}{{ end }}
 
-<!-- Sessions -->
-<div class="pane margin-6 padding-6">
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <h2 class="grid-area-title font-inherit margin-0 primary-txt">
-      {{ template "settings-page-session-section-title" }}
-    </h2>
-    <p class="grid-area-desc font-smaller margin-0 secondary-txt">
-      {{ template "settings-page-session-section-description" }}
-    </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/sessions">
-      {{ template "details-button-label" }}
+    <!-- Primary OOB OTP Email -->
+    {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
+    <a class="settings-security-item" href="/settings/identity">
+      <i class="far fa-envelope icon margin-b-10 primary-txt" aria-hidden="true"></i>
+      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+        {{ template "settings-page-primary-oob-otp-title--email" }}
+      </p>
+      <p class="margin-0 font-smaller secondary-txt text-xs text-ellipsis">
+        {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
+      </p>
+      <p class="margin-t-0 margin-b-10 font-smaller secondary-txt text-xs">
+        <!-- FIXME(ui): Use user preferred timezone -->
+        {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
+      </p>
     </a>
-  </section>
-</div>
+    {{ end }}{{ end }}
 
+    <!-- Primary OOB OTP SMS -->
+    {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
+    <a class="settings-security-item" href="/settings/identity">
+      <i class="fas fa-mobile-alt icon margin-b-10 primary-txt" aria-hidden="true"></i>
+      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+        {{ template "settings-page-primary-oob-otp-title--sms" }}
+      </p>
+      <p class="margin-0 secondary-txt text-xs">
+        {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
+      </p>
+      <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
+        <!-- FIXME(ui): Use user preferred timezone -->
+        {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
+      </p>
+    </a>
+    {{ end }}{{ end }}
+    {{ end }}
+
+    <!-- MFA -->
+    {{ if $show_mfa }}
+    <a class="settings-security-item" href="/settings/mfa">
+      <i class="fas fa-shield-alt icon margin-b-10 primary-txt" aria-hidden="true"></i>
+      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+        {{ template "settings-page-mfa-section-title" }}
+      </p>
+      <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
+        {{ template "settings-page-mfa-section-description" }}
+      </p>
+    </a>
+    {{ end }}
+
+    {{ if $.ShowBiometric }}
+    <!-- Biometric -->
+    <a class="settings-security-item" href="/settings/biometric">
+      <i class="fas fa-fingerprint icon margin-b-10 primary-txt" aria-hidden="true"></i>
+      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+        {{ template "settings-page-biometric-section-title" }}
+      </p>
+      <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
+        {{ template "settings-page-biometric-section-description" }}
+      </p>
+    </a>
+    {{ end }}
+
+    <a class="settings-security-item" href="/settings/sessions">
+      <i class="fas fa-sign-in-alt icon margin-b-10 primary-txt" aria-hidden="true"></i>
+      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+        {{ template "settings-page-session-section-title" }}
+      </p>
+      <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
+        {{ template "settings-page-session-section-description" }}
+      </p>
+    </a>
+  </div>
+</section>
+</div>
 
 {{ if $.ClientURI }}
-<form class="flex flex-direction-row-reverse margin-v-6" method="post">
+<form class="flex flex-direction-row-reverse margin-b-20" method="post">
 {{ $.CSRFField }}
 <a class="link margin-6" href="{{ $.ClientURI }}">
   <i class="fas fa-home"></i>

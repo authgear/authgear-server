@@ -112,6 +112,14 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 20px;
 }
 
+.settings-content .nav-bar {
+  margin: 0 20px;
+}
+
+.settings-content .nav-bar .back-btn {
+  margin: 20px 0;
+}
+
 @media (min-width: 641px) {
   .page {
     display: flex;
@@ -123,6 +131,10 @@ h1, h2, h3, h4, h5, h6 {
   .content {
     padding: 0 0 20px 0;
     width: 390px;
+  }
+
+  .content.settings-content {
+    width: 546px;
   }
 
   .width-full {
@@ -152,6 +164,10 @@ h1, h2, h3, h4, h5, h6 {
   .content {
     padding: 0 0 20px 0;
     width: 436px;
+  }
+
+  .content.settings-content {
+    width: 546px;
   }
 
   .width-full {
@@ -220,6 +236,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .flex-direction-row-reverse {
   flex-direction: row-reverse;
+}
+
+.gap-4 {
+  gap: 4px;
 }
 
 .gap-8 {
@@ -359,6 +379,10 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 12px;
 }
 
+.margin-b-10 {
+  margin-bottom: 10px;
+}
+
 .margin-b-20 {
   margin-bottom: 20px;
 }
@@ -379,6 +403,10 @@ h1, h2, h3, h4, h5, h6 {
   padding: 6px;
 }
 
+.padding-20 {
+  padding: 20px;
+}
+
 .padding-h-4 {
   padding-left: 4px;
   padding-right: 4px;
@@ -387,6 +415,11 @@ h1, h2, h3, h4, h5, h6 {
 .padding-h-18 {
   padding-left: 18px;
   padding-right: 18px;
+}
+
+.padding-h-20 {
+  padding-left: 20px;
+  padding-right: 20px;
 }
 
 .padding-v-2 {
@@ -418,6 +451,10 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 8px;
 }
 
+.padding-t-0 {
+  padding-top: 0px;
+}
+
 .text-ellipsis {
   text-overflow: ellipsis;
   overflow: hidden;
@@ -430,6 +467,29 @@ h1, h2, h3, h4, h5, h6 {
 
 .font-inherit {
   font-size: inherit;
+}
+
+.text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.leading-none {
+  line-height: 1;
+}
+
+.leading-tight {
+  line-height: 1.25;
 }
 
 .leading-normal {
@@ -986,8 +1046,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .grid-icon-name-claim-action1-action2 {
   grid: "icon  name   action1" auto
-        "icon  claim  action2" auto
-      /  32px   1fr    auto;
+        "claim  claim  action2" auto
+      /  28px   1fr    auto;
 }
 
 .grid-icon-name-desc-action {
@@ -1117,4 +1177,30 @@ h1, h2, h3, h4, h5, h6 {
 
 .switch-link-group.switched .click-to-switch, .switch-link-group .switch-to-item {
   display: none;
+}
+
+.settings-security-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.settings-security-item {
+  /* gap value * 2 = 32px */
+  width: calc((100% - 32px) / 3 );
+  min-height: 146px;
+  border: 1px solid var(--color-separator);
+  border-radius: 6px;
+  padding: 16px 4px 16px 16px;
+}
+
+@media (max-width: 640px) {
+  .settings-security-item {
+    /* gap value = 16px */
+    width: calc((100% - 16px) / 2 );
+  }
+}
+
+.settings-security-item .icon {
+  font-size: 32px;
 }
