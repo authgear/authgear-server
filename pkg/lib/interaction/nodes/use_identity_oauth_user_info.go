@@ -26,6 +26,7 @@ type InputUseIdentityOAuthUserInfo interface {
 }
 
 type EdgeUseIdentityOAuthUserInfo struct {
+	IsAuthentication bool
 	IsCreating       bool
 	Config           config.OAuthSSOProviderConfig
 	HashedNonce      string
@@ -96,14 +97,16 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	}
 
 	return &NodeUseIdentityOAuthUserInfo{
-		IsCreating:   e.IsCreating,
-		IdentitySpec: spec,
+		IsAuthentication: e.IsAuthentication,
+		IsCreating:       e.IsCreating,
+		IdentitySpec:     spec,
 	}, nil
 }
 
 type NodeUseIdentityOAuthUserInfo struct {
-	IsCreating   bool           `json:"is_creating"`
-	IdentitySpec *identity.Spec `json:"identity_spec"`
+	IsAuthentication bool           `json:"is_authentication"`
+	IsCreating       bool           `json:"is_creating"`
+	IdentitySpec     *identity.Spec `json:"identity_spec"`
 }
 
 func (n *NodeUseIdentityOAuthUserInfo) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -118,5 +121,5 @@ func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(graph *interaction.Graph) ([]
 	if n.IsCreating {
 		return []interaction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	}
-	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec, IsAuthentication: n.IsAuthentication}}, nil
 }

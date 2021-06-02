@@ -12,16 +12,19 @@ func init() {
 }
 
 type EdgeSelectIdentityBegin struct {
-	Identity *identity.Info
+	IsAuthentication bool
 }
 
 func (e *EdgeSelectIdentityBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	return &NodeSelectIdentityBegin{}, nil
+	return &NodeSelectIdentityBegin{
+		IsAuthentication: e.IsAuthentication,
+	}, nil
 }
 
 type NodeSelectIdentityBegin struct {
-	IdentityTypes  []authn.IdentityType   `json:"-"`
-	IdentityConfig *config.IdentityConfig `json:"-"`
+	IsAuthentication bool                   `json:"is_authentication"`
+	IdentityTypes    []authn.IdentityType   `json:"-"`
+	IdentityConfig   *config.IdentityConfig `json:"-"`
 }
 
 func (n *NodeSelectIdentityBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -42,8 +45,12 @@ func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 	var edges []interaction.Edge
 	// The checking of enable is done is the edge itself.
 	// So we always add edges here.
-	edges = append(edges, &EdgeUseIdentityAnonymous{})
-	edges = append(edges, &EdgeUseIdentityBiometric{})
+	edges = append(edges, &EdgeUseIdentityAnonymous{
+		IsAuthentication: n.IsAuthentication,
+	})
+	edges = append(edges, &EdgeUseIdentityBiometric{
+		IsAuthentication: n.IsAuthentication,
+	})
 
 	for _, t := range n.IdentityTypes {
 		switch t {
@@ -53,13 +60,15 @@ func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 			break
 		case authn.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
-				Mode:    UseIdentityLoginIDModeSelect,
-				Configs: n.IdentityConfig.LoginID.Keys,
+				IsAuthentication: n.IsAuthentication,
+				Mode:             UseIdentityLoginIDModeSelect,
+				Configs:          n.IdentityConfig.LoginID.Keys,
 			})
 		case authn.IdentityTypeOAuth:
 			edges = append(edges, &EdgeUseIdentityOAuthProvider{
-				IsCreating: false,
-				Configs:    n.IdentityConfig.OAuth.Providers,
+				IsAuthentication: n.IsAuthentication,
+				IsCreating:       false,
+				Configs:          n.IdentityConfig.OAuth.Providers,
 			})
 		default:
 			panic("interaction: unknown identity type: " + t)

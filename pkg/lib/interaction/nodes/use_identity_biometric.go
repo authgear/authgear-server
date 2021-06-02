@@ -20,7 +20,8 @@ type InputUseIdentityBiometric interface {
 }
 
 type EdgeUseIdentityBiometric struct {
-	IsCreating bool
+	IsAuthentication bool
+	IsCreating       bool
 }
 
 func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -93,14 +94,16 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	return &NodeUseIdentityBiometric{
-		IsCreating:   e.IsCreating,
-		IdentitySpec: spec,
+		IsAuthentication: e.IsAuthentication,
+		IsCreating:       e.IsCreating,
+		IdentitySpec:     spec,
 	}, nil
 }
 
 type NodeUseIdentityBiometric struct {
-	IsCreating   bool           `json:"is_creating"`
-	IdentitySpec *identity.Spec `json:"identity_spec"`
+	IsAuthentication bool           `json:"is_authentication"`
+	IsCreating       bool           `json:"is_creating"`
+	IdentitySpec     *identity.Spec `json:"identity_spec"`
 }
 
 func (n *NodeUseIdentityBiometric) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -115,5 +118,5 @@ func (n *NodeUseIdentityBiometric) DeriveEdges(graph *interaction.Graph) ([]inte
 	if n.IsCreating {
 		return []interaction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	}
-	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec, IsAuthentication: n.IsAuthentication}}, nil
 }

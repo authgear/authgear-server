@@ -52,7 +52,10 @@ func NewIntentPromote() *IntentAuthenticate {
 }
 
 func (i *IntentAuthenticate) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
-	edge := nodes.EdgeSelectIdentityBegin{}
+	isAuthentication := i.Kind == IntentAuthenticateKindLogin
+	edge := nodes.EdgeSelectIdentityBegin{
+		IsAuthentication: isAuthentication,
+	}
 	return edge.Instantiate(ctx, graph, i)
 }
 

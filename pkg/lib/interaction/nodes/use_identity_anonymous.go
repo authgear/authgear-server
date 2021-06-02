@@ -18,7 +18,9 @@ type InputUseIdentityAnonymous interface {
 	GetAnonymousRequestToken() string
 }
 
-type EdgeUseIdentityAnonymous struct{}
+type EdgeUseIdentityAnonymous struct {
+	IsAuthentication bool
+}
 
 func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityAnonymous
@@ -87,12 +89,14 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	return &NodeUseIdentityAnonymous{
-		IdentitySpec: spec,
+		IsAuthentication: e.IsAuthentication,
+		IdentitySpec:     spec,
 	}, nil
 }
 
 type NodeUseIdentityAnonymous struct {
-	IdentitySpec *identity.Spec `json:"identity_spec"`
+	IsAuthentication bool           `json:"is_authentication"`
+	IdentitySpec     *identity.Spec `json:"identity_spec"`
 }
 
 func (n *NodeUseIdentityAnonymous) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -104,5 +108,5 @@ func (n *NodeUseIdentityAnonymous) GetEffects() ([]interaction.Effect, error) {
 }
 
 func (n *NodeUseIdentityAnonymous) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec, IsAuthentication: n.IsAuthentication}}, nil
 }
