@@ -1,12 +1,12 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content">
+<main class="content settings-content">
 {{ template "__nav_bar.html" }}
 
-<div class="pane margin-6 flex flex-direction-column">
-<div class="padding-6 flex flex-direction-column">
-  <section class="margin-h-14 padding-v-10 row-sep">
+<div class="pane flex flex-direction-column">
+<div class="flex flex-direction-column">
+  <section class="padding-20 row-sep">
     <h1 class="font-inherit margin-0 primary-txt">
       {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
       {{ template "settings-oob-otp-email-title" }}
@@ -17,34 +17,34 @@
   </section>
 
   {{ range $.Authenticators }}
-    <form class="margin-h-14 padding-v-10 row-sep grid grid-icon-name-desc-action" method="post" novalidate>
+    <form class="padding-20 row-sep grid grid-icon-name-desc-action" method="post" novalidate>
       {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
-        <i class="grid-area-icon align-self-start justify-self-center margin-2 fas fa-envelope" aria-hidden="true"></i>
-        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt">
+        <i class="grid-area-icon align-self-start justify-self-center margin-2 fas fa-envelope font-smaller leading-normal" aria-hidden="true"></i>
+        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt font-smaller leading-normal">
           {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
         </p>
       {{ end }}
       {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-        <i class="grid-area-icon align-self-start justify-self-center margin-2 fas fa-phone" aria-hidden="true"></i>
-        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt">
+        <i class="grid-area-icon align-self-start justify-self-center margin-2 fas fa-phone font-smaller leading-normal" aria-hidden="true"></i>
+        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt font-smaller leading-normal">
           {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
         </p>
       {{ end }}
-      <p class="grid-area-desc align-self-center font-smaller margin-0 secondary-txt">
+      <p class="grid-area-desc align-self-center font-smaller leading-normal margin-0 secondary-txt">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
-      <button class="grid-area-action align-self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
+      <button class="grid-area-action align-self-center justify-self-end btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="remove">
         {{ template "remove-button-label" }}
       </button>
     </form>
   {{ end }}
-  <section class="margin-h-14 padding-v-10 row-sep">
+  <section class="padding-20 row-sep">
     <form class="primary-action" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="add">
+      <button class="btn secondary-btn font-smaller leading-normal" type="submit" name="x_action" value="add">
         {{ template "add-button-label" }}
       </button>
     </form>

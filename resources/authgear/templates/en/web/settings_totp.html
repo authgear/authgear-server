@@ -1,37 +1,37 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content">
+<main class="content settings-content">
 {{ template "__nav_bar.html" }}
 
-<div class="pane margin-6 flex flex-direction-column">
-<div class="padding-6 flex flex-direction-column">
-  <section class="margin-h-14 padding-v-10 row-sep">
+<div class="pane flex flex-direction-column">
+<div class="flex flex-direction-column">
+  <section class="padding-20 row-sep">
     <h1 class="font-inherit margin-0 primary-txt">
       {{ template "settings-totp-title" }}
     </h1>
   </section>
 
   {{ range $.Authenticators }}
-    <form class="margin-h-14 padding-v-10 row-sep grid grid-title-desc-action1-action2" method="post" novalidate>
-      <p class="grid-area-title align-self-center font-inherit margin-0 primary-txt">
+    <form class="padding-20 row-sep grid grid-title-desc-action1-action2" method="post" novalidate>
+      <p class="grid-area-title align-self-center margin-0 primary-txt font-smaller leading-normal">
         {{ index .Claims "https://authgear.com/claims/totp/display_name" }}
       </p>
-      <p class="grid-area-desc align-self-center font-smaller margin-0 secondary-txt">
+      <p class="grid-area-desc align-self-center margin-0 secondary-txt font-smaller leading-normal">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
-      <button class="grid-area-action1 align-self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
+      <button class="grid-area-action1 align-self-center justify-self-end btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="remove">
         {{ template "remove-button-label" }}
       </button>
     </form>
   {{ end }}
-  <section class="margin-h-14 padding-v-10 row-sep">
+  <section class="padding-20 row-sep">
     <form class="primary-action" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="add">
+      <button class="btn secondary-btn font-smaller leading-normal" type="submit" name="x_action" value="add">
         {{ template "add-button-label" }}
       </button>
     </form>
