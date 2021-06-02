@@ -3,15 +3,21 @@
     + [TimescaleDB](#timescaledb)
     + [PostgreSQL 10 native partitioning](#postgresql-10-native-partitioning)
     + [pg\_partman](#pg--partman)
-  * [Event List](#event-list)
-    + [user.authenticated](#userauthenticated)
-    + [user.signed_out](#usersigned-out)
+  * [Fields](#fields)
+    + [Core fields](#core-fields)
+    + [Activity Type](#activity-type)
+    + [IP address](#ip-address)
+    + [User Agent](#user-agent)
+    + [Client ID](#client-id)
   * [Database table schema](#database-table-schema)
   * [Admin API](#admin-api)
+  * [Future Works](#future-works)
 
 # Audit Log
 
 Audit log records important user activities.
+
+For the definition of events, see [Event](./event.md)
 
 ## Storage Considerations
 
@@ -56,85 +62,15 @@ We still have to call a stored procedure provided by pg\_partman to perform main
 That procedure creates new child tables and drop expired child tables.
 For deployment on Kubernetes, we will use CronJob to run the procedure.
 
-## Event List
-
-The event list mainly borrows from [the webhook non-block event list](./webhook.md#non-blocking-events).
-
-### user.created
-
-See [user.created](./webhook.md#usercreated)
-
-### user.authenticated
-
-See [user.authenticated](./webhook.md#userauthenticated)
-
-### user.failed_authentication
-
-> Not sure if this event name follows the naming convention.
-
-Occurs after the user failed to authenticate themselves.
-Note that there is no event when the user is not known yet.
-For example, the given email does not exist at all so an existing user cannot be identified.
-
-### user.signed_out
-
-> Not sure if this event name follows the naming convention.
-
-Occurs after the user actively signed out,
-including revoking a refresh token and signing out from the web UI.
-Note that there is no event when the session expires normally.
-
-### identity.email.added
-
-See [identity.email.added](./webhook.md#identityemailadded)
-
-### identity.email.removed
-
-See [identity.email.removed](./webhook.md#identityemailremoved)
-
-### identity.email.updated
-
-See [identity.email.updated](./webhook.md#identityemailupdated)
-
-### identity.phone.added
-
-See [identity.phone.added](./webhook.md#identityphoneadded)
-
-### identity.phone.removed
-
-See [identity.phone.removed](./webhook.md#identityphoneremoved)
-
-### identity.phone.updated
-
-See [identity.phone.updated](./webhook.md#identityphoneupdated)
-
-### identity.username.added
-
-See [identity.username.added](./webhook.md#identityusernameadded)
-
-### identity.username.removed
-
-See [identity.username.removed](./webhook.md#identityusernameremoved)
-
-### identity.username.updated
-
-See [identity.username.updated](./webhook.md#identityusernameupdated)
-
-### identity.oauth.connected
-
-See [identity.oauth.connected](./webhook.md#identityoauthconnected)
-
-### identity.oauth.disconnected
-
-See [identity.oauth.disconnected](./webhook.md#identityoauthdisconnected)
-
-> More events can be added in the future.
-
 ## Fields
 
 ### Core fields
 
 Every log entry has `id`, `app_id`, `created_at`, `user_id` and `activity_type`.
+
+### Activity Type
+
+Activity Type is [the event type](./event.md#event-shape)
 
 ### IP address
 
