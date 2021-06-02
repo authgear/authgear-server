@@ -5,11 +5,25 @@
     + [Event Context](#event-context)
   * [Event List](#event-list)
     + [Blocking Events](#blocking-events)
-    + [Non-blocking Events](#non-blocking-events)
       - [user.pre_create](#userpre-create)
+    + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
       - [user.authenticated](#userauthenticated)
+      - [user.signed_out](#usersigned-out)
       - [user.anonymous.promoted](#useranonymouspromoted)
+      - [authentication.identity.email.failed](#authenticationidentityemailfailed)
+      - [authentication.identity.phone.failed](#authenticationidentityphonefailed)
+      - [authentication.identity.username.failed](#authenticationidentityusernamefailed)
+      - [authentication.identity.anonymous.failed](#authenticationidentityanonymousfailed)
+      - [authentication.identity.biometric.failed](#authenticationidentitybiometricfailed)
+      - [authentication.primary.password.failed](#authenticationprimarypasswordfailed)
+      - [authentication.primary.oob_otp_email.failed](#authenticationprimaryoob-otp-emailfailed)
+      - [authentication.primary.oob_otp_sms.failed](#authenticationprimaryoob-otp-smsfailed)
+      - [authentication.secondary.password.failed](#authenticationsecondarypasswordfailed)
+      - [authentication.secondary.totp.failed](#authenticationsecondarytotpfailed)
+      - [authentication.secondary.oob_otp_email.failed](#authenticationsecondaryoob-otp-emailfailed)
+      - [authentication.secondary.oob_otp_sms.failed](#authenticationsecondaryoob-otp-smsfailed)
+      - [authentication.secondary.recovery_code.failed](#authenticationsecondaryrecovery-codefailed)
       - [identity.email.added](#identityemailadded)
       - [identity.email.removed](#identityemailremoved)
       - [identity.email.updated](#identityemailupdated)
@@ -75,23 +89,6 @@ All fields are guaranteed that only backward-compatible changes would be made.
 
 - [user.pre_create](#userpre_create)
 
-### Non-blocking Events
-
-- [user.created](#usercreated)
-- [user.authenticated](#userauthenticated)
-- [user.anonymous.promoted](#useranonymouspromoted)
-- [identity.email.added](#identityemailadded)
-- [identity.email.removed](#identityemailremoved)
-- [identity.email.updated](#identityemailupdated)
-- [identity.phone.added](#identityphoneadded)
-- [identity.phone.removed](#identityphoneremoved)
-- [identity.phone.updated](#identityphoneupdated)
-- [identity.username.added](#identityusernameadded)
-- [identity.username.removed](#identityusernameremoved)
-- [identity.username.updated](#identityusernameupdated)
-- [identity.oauth.connected](#identityoauthconnected)
-- [identity.oauth.disconnected](#identityoauthdisconnected)
-
 #### user.pre_create
 
 Occurs right before the user creation. User can be created by user signup, user signup as anonymous user, admin api or admin portal create an user.
@@ -112,6 +109,37 @@ Occurs right before the user creation. User can be created by user signup, user 
 ```
 
 - `oauth.state`: OAuth state if the signup is triggered through authorize endpoint with state parameter.
+
+### Non-blocking Events
+
+- [user.created](#usercreated)
+- [user.authenticated](#userauthenticated)
+- [user.signed_out](#usersigned-out)
+- [user.anonymous.promoted](#useranonymouspromoted)
+- [authentication.identity.email.failed](#authenticationidentityemailfailed)
+- [authentication.identity.phone.failed](#authenticationidentityphonefailed)
+- [authentication.identity.username.failed](#authenticationidentityusernamefailed)
+- [authentication.identity.anonymous.failed](#authenticationidentityanonymousfailed)
+- [authentication.identity.biometric.failed](#authenticationidentitybiometricfailed)
+- [authentication.primary.password.failed](#authenticationprimarypasswordfailed)
+- [authentication.primary.oob_otp_email.failed](#authenticationprimaryoob-otp-emailfailed)
+- [authentication.primary.oob_otp_sms.failed](#authenticationprimaryoob-otp-smsfailed)
+- [authentication.secondary.password.failed](#authenticationsecondarypasswordfailed)
+- [authentication.secondary.totp.failed](#authenticationsecondarytotpfailed)
+- [authentication.secondary.oob_otp_email.failed](#authenticationsecondaryoob-otp-emailfailed)
+- [authentication.secondary.oob_otp_sms.failed](#authenticationsecondaryoob-otp-smsfailed)
+- [authentication.secondary.recovery_code.failed](#authenticationsecondaryrecovery-codefailed)
+- [identity.email.added](#identityemailadded)
+- [identity.email.removed](#identityemailremoved)
+- [identity.email.updated](#identityemailupdated)
+- [identity.phone.added](#identityphoneadded)
+- [identity.phone.removed](#identityphoneremoved)
+- [identity.phone.updated](#identityphoneupdated)
+- [identity.username.added](#identityusernameadded)
+- [identity.username.removed](#identityusernameremoved)
+- [identity.username.updated](#identityusernameupdated)
+- [identity.oauth.connected](#identityoauthconnected)
+- [identity.oauth.disconnected](#identityoauthdisconnected)
 
 #### user.created
 
@@ -139,28 +167,9 @@ Occurs after user logged in.
 }
 ```
 
-### user.failed_authentication
+#### user.signed_out
 
-> Not sure if this event name follows the naming convention.
-
-Occurs after the user failed to authenticate themselves.
-Note that there is no event when the user is not known yet.
-For example, the given email does not exist at all so an existing user cannot be identified.
-
-```json5
-{
-  "payload": {
-    "user": { /* ... */ }
-  }
-}
-```
-
-### user.signed_out
-
-> Not sure if this event name follows the naming convention.
-
-Occurs after the user actively signed out,
-including revoking a refresh token and signing out from the web UI.
+Occurs after the user signed out, or revoked their session.
 Note that there is no event when the session expires normally.
 
 ```json5
@@ -182,6 +191,162 @@ Occurs whenever an anonymous user is promoted to normal user.
     "anonymous_user": { /* ... */ },
     "user": { /* ... */ },
     "identities": [{ /* ... */ }]
+  }
+}
+```
+
+#### authentication.identity.email.failed
+
+Occurs after a Email Login ID was attempted to log in but it does not exist.
+
+```json5
+{
+  "payload": {
+    "login_id": "..."
+  }
+}
+```
+
+#### authentication.identity.phone.failed
+
+Occurs after a Phone Login ID was attempted to log in but it does not exist.
+
+```json5
+{
+  "payload": {
+    "login_id": "..."
+  }
+}
+```
+
+#### authentication.identity.username.failed
+
+Occurs after a Phone Login ID was attempted to log in but it does not exist.
+
+```json5
+{
+  "payload": {
+    "login_id": "..."
+  }
+}
+```
+
+#### authentication.identity.anonymous.failed
+
+Occurs after an anonymous user attempted to log in but failed to do so.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.identity.biometric.failed
+
+Occurs after an user attempted to log in with biometric but failed to do so.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.primary.password.failed
+
+Occurs after the user failed to input their primary password.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.primary.oob_otp_email.failed
+
+Occurs after the user failed to input the OTP delivered to their email address.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.primary.oob_otp_sms.failed
+
+Occurs after the user failed to input the OTP delivered to their phone.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.secondary.password.failed
+
+Occurs after the user failed to input their secondary password.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.secondary.totp.failed
+
+Occurs after the user failed to input the time-based one-time password.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.secondary.oob_otp_email.failed
+
+Occurs after the user failed to input the OTP delivered to their email address.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.secondary.oob_otp_sms.failed
+
+Occurs after the user failed to input the OTP delivered to their phone.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### authentication.secondary.recovery_code.failed
+
+Occurs after the user failed to input the recovery code.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
   }
 }
 ```
