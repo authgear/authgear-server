@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -68,6 +69,23 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		// verify the JWT signature before proceeding to use the key ID.
 		request, err = ctx.AnonymousIdentities.ParseRequest(jwt, anonIdentity)
 		if err != nil {
+			dispatchEvent := func() error {
+				userID := anonIdentity.UserID
+				user, err := ctx.Users.Get(userID)
+				if err != nil {
+					return err
+				}
+				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
+					User:         *user,
+					IdentityType: string(authn.IdentityTypeAnonymous),
+				})
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}
+			_ = dispatchEvent()
 			return nil, interaction.ErrInvalidCredentials
 		}
 	} else if request.Key == nil {

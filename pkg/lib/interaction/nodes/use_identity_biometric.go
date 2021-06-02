@@ -3,6 +3,7 @@ package nodes
 import (
 	"encoding/json"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -75,6 +76,24 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 		}
 		request, err = ctx.BiometricIdentities.ParseRequest(jwt, iden)
 		if err != nil {
+			dispatchEvent := func() error {
+				userID := iden.UserID
+				user, err := ctx.Users.Get(userID)
+				if err != nil {
+					return err
+				}
+				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
+					User:         *user,
+					IdentityType: string(authn.IdentityTypeBiometric),
+				})
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}
+			_ = dispatchEvent()
+
 			return nil, interaction.ErrInvalidCredentials
 		}
 	}

@@ -43,7 +43,11 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 
 		if e.IsAuthentication {
 			switch e.IdentitySpec.Type {
-			case authn.IdentityTypeOAuth, authn.IdentityTypeAnonymous, authn.IdentityTypeBiometric:
+			case authn.IdentityTypeOAuth:
+				// This branch should be unreachable.
+				break
+			case authn.IdentityTypeAnonymous, authn.IdentityTypeBiometric:
+				// Anonymous and biometric are handled in their own node.
 				break
 			case authn.IdentityTypeLoginID:
 				loginIDValue := e.IdentitySpec.Claims[identity.IdentityClaimLoginIDValue].(string)
