@@ -7,7 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -57,7 +57,7 @@ type AppSessionTokenIssuer interface {
 }
 
 type AppSessionTokenHandler struct {
-	Database         *tenantdb.Handle
+	Database         *appdb.Handle
 	JSON             JSONResponseWriter
 	AppSessionTokens AppSessionTokenIssuer
 }

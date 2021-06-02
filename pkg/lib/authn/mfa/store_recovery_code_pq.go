@@ -6,12 +6,12 @@ import (
 
 	"github.com/lib/pq"
 
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 
 type StoreRecoveryCodePQ struct {
-	SQLBuilder  *tenantdb.SQLBuilder
-	SQLExecutor *tenantdb.SQLExecutor
+	SQLBuilder  *appdb.SQLBuilder
+	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {

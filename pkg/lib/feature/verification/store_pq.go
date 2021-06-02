@@ -5,12 +5,12 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 
 type StorePQ struct {
-	SQLBuilder  *tenantdb.SQLBuilder
-	SQLExecutor *tenantdb.SQLExecutor
+	SQLBuilder  *appdb.SQLBuilder
+	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *StorePQ) selectQuery() db.SelectBuilder {

@@ -6,7 +6,7 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -20,7 +20,7 @@ var DependencySet = wire.NewSet(
 	middleware.DependencySet,
 
 	handler.DependencySet,
-	wire.Bind(new(handler.Database), new(*tenantdb.Handle)),
+	wire.Bind(new(handler.Database), new(*appdb.Handle)),
 	wire.Bind(new(handler.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handler.VerificationService), new(*verification.Service)),
 

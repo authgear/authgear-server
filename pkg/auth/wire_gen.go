@@ -33,7 +33,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -63,7 +63,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	authorizeHandlerLogger := oauth.NewAuthorizeHandlerLogger(factory)
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	config := appProvider.Config
@@ -74,8 +74,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -606,7 +606,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	tokenHandlerLogger := oauth.NewTokenHandlerLogger(factory)
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -618,9 +618,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	handlerTokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1120,7 +1120,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	revokeHandlerLogger := oauth.NewRevokeHandlerLogger(factory)
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -1128,10 +1128,10 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	store := &redis.Store{
 		Redis:       redisHandle,
@@ -1220,10 +1220,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	tenantHandle := appProvider.Database
-	sqlExecutor := tenant.NewSQLExecutor(context, tenantHandle)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
 	store := &redis.Store{
 		Redis:       handle,
 		AppID:       appID,
@@ -1518,7 +1518,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	userInfoHandlerLogger := oauth.NewUserInfoHandlerLogger(factory)
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	request := p.Request
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
@@ -1556,9 +1556,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	store := &redis.Store{
 		Redis:       redisHandle,
 		AppID:       appID,
@@ -1854,7 +1854,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	endSessionHandlerLogger := oauth.NewEndSessionHandlerLogger(factory)
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
@@ -1875,9 +1875,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2177,7 +2177,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 
 func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -2203,7 +2203,7 @@ func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 
 func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
@@ -2220,9 +2220,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2735,7 +2735,7 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -2762,12 +2762,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -3276,7 +3276,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -3303,12 +3303,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -3817,7 +3817,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -3844,12 +3844,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4358,7 +4358,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -4385,12 +4385,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4892,7 +4892,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -4919,12 +4919,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5429,7 +5429,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -5456,12 +5456,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5969,7 +5969,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -5996,12 +5996,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -6506,7 +6506,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -6533,12 +6533,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -7042,7 +7042,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -7069,12 +7069,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -7579,7 +7579,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -7606,12 +7606,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -8117,7 +8117,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -8144,12 +8144,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -8653,7 +8653,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -8680,12 +8680,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -9189,7 +9189,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -9216,12 +9216,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -9727,7 +9727,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -9754,12 +9754,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -10263,7 +10263,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -10290,12 +10290,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -10799,7 +10799,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -10826,12 +10826,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -11338,7 +11338,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -11365,12 +11365,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -11874,7 +11874,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -11901,12 +11901,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -12415,7 +12415,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -12442,12 +12442,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -12951,7 +12951,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -12978,12 +12978,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -13488,7 +13488,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -13515,12 +13515,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -14024,7 +14024,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -14051,12 +14051,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -14578,7 +14578,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -14605,12 +14605,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -15116,7 +15116,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -15143,12 +15143,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -15653,7 +15653,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -15680,12 +15680,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -16199,7 +16199,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -16226,12 +16226,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -16736,7 +16736,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -16763,12 +16763,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -17273,7 +17273,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -17300,12 +17300,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -17811,7 +17811,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -17838,12 +17838,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -18353,7 +18353,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -18380,12 +18380,12 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -18890,7 +18890,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -18917,12 +18917,12 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -19427,7 +19427,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -19454,12 +19454,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -19962,7 +19962,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -19973,10 +19973,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -20309,7 +20309,7 @@ func newWebAppStaticAssetsHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -20336,12 +20336,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -20845,7 +20845,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -20872,12 +20872,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -21626,10 +21626,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oAuthConfig := appConfig.OAuth
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	tenantHandle := appProvider.Database
-	sqlExecutor := tenant.NewSQLExecutor(context, tenantHandle)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -21935,7 +21935,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,
 		Users:                      queries,
-		Database:                   tenantHandle,
+		Database:                   appdbHandle,
 	}
 	return sessionMiddleware
 }

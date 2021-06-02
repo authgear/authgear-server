@@ -6,7 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -79,7 +79,7 @@ type JSONResponseWriter interface {
 			@JSONSchema {OAuthChallengeResponse}
 */
 type ChallengeHandler struct {
-	Database   *tenantdb.Handle
+	Database   *appdb.Handle
 	Challenges ChallengeProvider
 	JSON       JSONResponseWriter
 }

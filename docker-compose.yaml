@@ -1,7 +1,9 @@
 version: "3"
 services:
   db:
-    image: postgres:12.3
+    image: postgres-pg-partman:latest
+    build:
+      context: ./postgres
     volumes:
       - db_data:/var/lib/postgresql/data
     environment:

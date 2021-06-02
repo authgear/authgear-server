@@ -21,7 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -128,10 +128,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oAuthConfig := appConfig.OAuth
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	context := deps.ProvideRequestContext(request)
-	tenantHandle := appProvider.Database
-	sqlExecutor := tenant.NewSQLExecutor(context, tenantHandle)
+	appdbHandle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -433,7 +433,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,
 		Users:                      queries,
-		Database:                   tenantHandle,
+		Database:                   appdbHandle,
 	}
 	return sessionMiddleware
 }
@@ -445,7 +445,7 @@ var (
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	handle := appProvider.Database
+	handle := appProvider.AppDatabase
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	authenticationConfig := appConfig.Authentication
@@ -453,10 +453,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
-	sqlBuilder := tenant.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
-	sqlExecutor := tenant.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,

@@ -2,7 +2,7 @@ package elasticsearch
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
-	globaldb "github.com/authgear/authgear-server/pkg/lib/infra/db/global"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 )
 
 type AppLister struct {

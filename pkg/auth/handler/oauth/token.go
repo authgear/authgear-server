@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -29,7 +29,7 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 
 type TokenHandler struct {
 	Logger       TokenHandlerLogger
-	Database     *tenantdb.Handle
+	Database     *appdb.Handle
 	TokenHandler ProtocolTokenHandler
 }
 

@@ -13,37 +13,57 @@ import (
 )
 
 func init() {
-	cmdDatabase.AddCommand(cmdMigrate)
+	cmdAudit.AddCommand(cmdAuditDatabase)
+	cmdAuditDatabase.AddCommand(cmdAuditDatabaseMigrate)
+	cmdAuditDatabase.AddCommand(cmdAuditDatabaseMaintain)
 
-	cmdMigrate.AddCommand(cmdMigrateNew)
-	cmdMigrate.AddCommand(cmdMigrateUp)
-	cmdMigrate.AddCommand(cmdMigrateDown)
-	cmdMigrate.AddCommand(cmdMigrateStatus)
+	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateNew)
+	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateUp)
+	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateDown)
+	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateStatus)
 
-	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown, cmdMigrateStatus} {
+	for _, cmd := range []*cobra.Command{cmdAuditDatabaseMigrateUp, cmdAuditDatabaseMigrateDown, cmdAuditDatabaseMigrateStatus, cmdAuditDatabaseMaintain} {
 		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
 		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
 	}
 }
 
-var MainMigrationSet = sqlmigrate.NewMigrateSet("_auth_migration", "migrations/authgear")
+var AuditMigrationSet = sqlmigrate.NewMigrateSet("_audit_migration", "migrations/audit")
 
-var cmdDatabase = &cobra.Command{
-	Use:   "database migrate",
-	Short: "Database commands",
+var cmdAudit = &cobra.Command{
+	Use:   "audit database",
+	Short: "Audit log commands",
 }
 
-var cmdMigrate = &cobra.Command{
+var cmdAuditDatabase = &cobra.Command{
+	Use:   "database [migrate|maintain]",
+	Short: "Audit log database commands",
+}
+
+var cmdAuditDatabaseMigrate = &cobra.Command{
 	Use:   "migrate [new|status|up|down]",
 	Short: "Migrate database schema",
 }
 
-var cmdMigrateNew = &cobra.Command{
-	Use:    "new",
-	Hidden: true,
+var cmdAuditDatabaseMaintain = &cobra.Command{
+	Use:   "maintain",
+	Short: "Run pg_partman maintain procedure",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		name := strings.Join(args, "_")
-		_, err = MainMigrationSet.Create(name)
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			return
+		}
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			return
+		}
+
+		maintainer := sqlmigrate.PartmanMaintainer{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+			TableName:      "_audit_log",
+		}
+		err = maintainer.RunMaintenance()
 		if err != nil {
 			return
 		}
@@ -52,7 +72,21 @@ var cmdMigrateNew = &cobra.Command{
 	},
 }
 
-var cmdMigrateUp = &cobra.Command{
+var cmdAuditDatabaseMigrateNew = &cobra.Command{
+	Use:    "new",
+	Hidden: true,
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		name := strings.Join(args, "_")
+		_, err = AuditMigrationSet.Create(name)
+		if err != nil {
+			return
+		}
+
+		return
+	},
+}
+
+var cmdAuditDatabaseMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -65,7 +99,7 @@ var cmdMigrateUp = &cobra.Command{
 			return
 		}
 
-		_, err = MainMigrationSet.Up(sqlmigrate.ConnectionOptions{
+		_, err = AuditMigrationSet.Up(sqlmigrate.ConnectionOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 		}, 0)
@@ -77,7 +111,7 @@ var cmdMigrateUp = &cobra.Command{
 	},
 }
 
-var cmdMigrateDown = &cobra.Command{
+var cmdAuditDatabaseMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -109,7 +143,7 @@ var cmdMigrateDown = &cobra.Command{
 			}
 		}
 
-		_, err = MainMigrationSet.Down(sqlmigrate.ConnectionOptions{
+		_, err = AuditMigrationSet.Down(sqlmigrate.ConnectionOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 		}, numMigrations)
@@ -121,7 +155,7 @@ var cmdMigrateDown = &cobra.Command{
 	},
 }
 
-var cmdMigrateStatus = &cobra.Command{
+var cmdAuditDatabaseMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -134,7 +168,7 @@ var cmdMigrateStatus = &cobra.Command{
 			return
 		}
 
-		plans, err := MainMigrationSet.Status(sqlmigrate.ConnectionOptions{
+		plans, err := AuditMigrationSet.Status(sqlmigrate.ConnectionOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 		})

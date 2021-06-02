@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	tenantdb "github.com/authgear/authgear-server/pkg/lib/infra/db/tenant"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -26,7 +26,7 @@ type Middleware struct {
 	AccessTokenSessionResolver AccessTokenSessionResolver
 	AccessEvents               *access.EventProvider
 	Users                      UserQuery
-	Database                   *tenantdb.Handle
+	Database                   *appdb.Handle
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
