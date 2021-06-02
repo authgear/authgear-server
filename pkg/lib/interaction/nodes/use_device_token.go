@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -36,6 +37,6 @@ func (e *EdgeUseDeviceToken) Instantiate(ctx *interaction.Context, graph *intera
 
 	return &NodeAuthenticationEnd{
 		Stage:              interaction.AuthenticationStageSecondary,
-		AuthenticationType: AuthenticationTypeDeviceToken,
+		AuthenticationType: authn.AuthenticationTypeDeviceToken,
 	}, nil
 }

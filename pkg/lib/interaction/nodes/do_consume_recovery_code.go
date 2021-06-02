@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -30,12 +31,12 @@ func (e *EdgeConsumeRecoveryCode) Instantiate(ctx *interaction.Context, graph *i
 	if errors.Is(err, mfa.ErrRecoveryCodeNotFound) {
 		return &NodeAuthenticationEnd{
 			Stage:              interaction.AuthenticationStageSecondary,
-			AuthenticationType: AuthenticationTypeRecoveryCode,
+			AuthenticationType: authn.AuthenticationTypeRecoveryCode,
 		}, nil
 	} else if errors.Is(err, mfa.ErrRecoveryCodeConsumed) {
 		return &NodeAuthenticationEnd{
 			Stage:              interaction.AuthenticationStageSecondary,
-			AuthenticationType: AuthenticationTypeRecoveryCode,
+			AuthenticationType: authn.AuthenticationTypeRecoveryCode,
 		}, nil
 	} else if err != nil {
 		return nil, err
@@ -63,7 +64,7 @@ func (n *NodeDoConsumeRecoveryCode) GetEffects() ([]interaction.Effect, error) {
 func (n *NodeDoConsumeRecoveryCode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{&EdgeAuthenticationEnd{
 		Stage:              interaction.AuthenticationStageSecondary,
-		AuthenticationType: AuthenticationTypeRecoveryCode,
+		AuthenticationType: authn.AuthenticationTypeRecoveryCode,
 		RecoveryCode:       n.RecoveryCode,
 	}}, nil
 }

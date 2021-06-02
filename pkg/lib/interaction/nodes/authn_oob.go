@@ -1,6 +1,9 @@
 package nodes
 
 import (
+	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -31,12 +34,13 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 		info = nil
 	}
 
-	return &NodeAuthenticationOOB{Stage: e.Stage, Authenticator: info}, nil
+	return &NodeAuthenticationOOB{Stage: e.Stage, Authenticator: info, AuthenticatorType: e.Authenticator.Type}, nil
 }
 
 type NodeAuthenticationOOB struct {
-	Stage         interaction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info             `json:"authenticator"`
+	Stage             interaction.AuthenticationStage `json:"stage"`
+	AuthenticatorType authn.AuthenticatorType         `json:"authenticator_type"`
+	Authenticator     *authenticator.Info             `json:"authenticator"`
 }
 
 func (n *NodeAuthenticationOOB) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -48,10 +52,20 @@ func (n *NodeAuthenticationOOB) GetEffects() ([]interaction.Effect, error) {
 }
 
 func (n *NodeAuthenticationOOB) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+	var typ authn.AuthenticationType
+	switch n.AuthenticatorType {
+	case authn.AuthenticatorTypeOOBEmail:
+		typ = authn.AuthenticationTypeOOBOTPEmail
+	case authn.AuthenticatorTypeOOBSMS:
+		typ = authn.AuthenticationTypeOOBOTPSMS
+	default:
+		panic(fmt.Errorf("interaction: unexpected authenticator type: %v", n.AuthenticatorType))
+	}
+
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,
-			AuthenticationType:    AuthenticationTypeOTP,
+			AuthenticationType:    typ,
 			VerifiedAuthenticator: n.Authenticator,
 		},
 	}, nil

@@ -3,6 +3,7 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -13,19 +14,9 @@ func init() {
 	interaction.RegisterNode(&NodeAuthenticationEnd{})
 }
 
-type AuthenticationType string
-
-const (
-	AuthenticationTypeNone         AuthenticationType = "none"
-	AuthenticationTypePassword     AuthenticationType = "password"
-	AuthenticationTypeOTP          AuthenticationType = "otp"
-	AuthenticationTypeRecoveryCode AuthenticationType = "recovery_code"
-	AuthenticationTypeDeviceToken  AuthenticationType = "device_token"
-)
-
 type EdgeAuthenticationEnd struct {
 	Stage                 interaction.AuthenticationStage
-	AuthenticationType    AuthenticationType
+	AuthenticationType    authn.AuthenticationType
 	VerifiedAuthenticator *authenticator.Info
 	RecoveryCode          *mfa.RecoveryCode
 }
@@ -57,7 +48,7 @@ func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *int
 
 type NodeAuthenticationEnd struct {
 	Stage                 interaction.AuthenticationStage `json:"stage"`
-	AuthenticationType    AuthenticationType              `json:"authentication_type"`
+	AuthenticationType    authn.AuthenticationType        `json:"authentication_type"`
 	VerifiedAuthenticator *authenticator.Info             `json:"verified_authenticator"`
 	RecoveryCode          *mfa.RecoveryCode               `json:"recovery_code"`
 }
@@ -87,24 +78,22 @@ func (n *NodeAuthenticationEnd) FillDetails(err error) error {
 
 func (n *NodeAuthenticationEnd) IsFailure() (err error) {
 	switch n.AuthenticationType {
-	case AuthenticationTypeNone:
+	case authn.AuthenticationTypeNone:
 		break
-	case AuthenticationTypePassword:
+	case authn.AuthenticationTypePassword,
+		authn.AuthenticationTypeTOTP,
+		authn.AuthenticationTypeOOBOTPEmail,
+		authn.AuthenticationTypeOOBOTPSMS:
 		if n.VerifiedAuthenticator == nil {
 			err = n.FillDetails(interaction.ErrInvalidCredentials)
 			return
 		}
-	case AuthenticationTypeOTP:
-		if n.VerifiedAuthenticator == nil {
-			err = n.FillDetails(interaction.ErrInvalidCredentials)
-			return
-		}
-	case AuthenticationTypeRecoveryCode:
+	case authn.AuthenticationTypeRecoveryCode:
 		if n.RecoveryCode == nil {
 			err = n.FillDetails(interaction.ErrInvalidCredentials)
 			return
 		}
-	case AuthenticationTypeDeviceToken:
+	case authn.AuthenticationTypeDeviceToken:
 		break
 	default:
 		panic("interaction: unknown authentication type: " + n.AuthenticationType)
