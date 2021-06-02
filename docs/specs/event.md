@@ -11,9 +11,7 @@
       - [user.authenticated](#userauthenticated)
       - [user.signed_out](#usersigned-out)
       - [user.anonymous.promoted](#useranonymouspromoted)
-      - [authentication.identity.email.failed](#authenticationidentityemailfailed)
-      - [authentication.identity.phone.failed](#authenticationidentityphonefailed)
-      - [authentication.identity.username.failed](#authenticationidentityusernamefailed)
+      - [authentication.identity.login_id.failed](#authenticationidentitylogin-idfailed)
       - [authentication.identity.anonymous.failed](#authenticationidentityanonymousfailed)
       - [authentication.identity.biometric.failed](#authenticationidentitybiometricfailed)
       - [authentication.primary.password.failed](#authenticationprimarypasswordfailed)
@@ -116,9 +114,7 @@ Occurs right before the user creation. User can be created by user signup, user 
 - [user.authenticated](#userauthenticated)
 - [user.signed_out](#usersigned-out)
 - [user.anonymous.promoted](#useranonymouspromoted)
-- [authentication.identity.email.failed](#authenticationidentityemailfailed)
-- [authentication.identity.phone.failed](#authenticationidentityphonefailed)
-- [authentication.identity.username.failed](#authenticationidentityusernamefailed)
+- [authentication.identity.login_id.failed](#authenticationidentitylogin-idfailed)
 - [authentication.identity.anonymous.failed](#authenticationidentityanonymousfailed)
 - [authentication.identity.biometric.failed](#authenticationidentitybiometricfailed)
 - [authentication.primary.password.failed](#authenticationprimarypasswordfailed)
@@ -195,33 +191,9 @@ Occurs whenever an anonymous user is promoted to normal user.
 }
 ```
 
-#### authentication.identity.email.failed
+#### authentication.identity.login_id.failed
 
-Occurs after a Email Login ID was attempted to log in but it does not exist.
-
-```json5
-{
-  "payload": {
-    "login_id": "..."
-  }
-}
-```
-
-#### authentication.identity.phone.failed
-
-Occurs after a Phone Login ID was attempted to log in but it does not exist.
-
-```json5
-{
-  "payload": {
-    "login_id": "..."
-  }
-}
-```
-
-#### authentication.identity.username.failed
-
-Occurs after a Phone Login ID was attempted to log in but it does not exist.
+Occurs after a Email / Phone / Username Login ID was attempted to log in but it does not exist.
 
 ```json5
 {
