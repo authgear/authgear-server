@@ -2,9 +2,7 @@ package audit
 
 import (
 	"encoding/json"
-	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 )
 
@@ -13,8 +11,8 @@ type Store struct {
 	SQLExecutor *auditdb.SQLExecutor
 }
 
-func (s *Store) PersistEvent(e *event.Event) (err error) {
-	data, err := json.Marshal(e)
+func (s *Store) PersistLog(logEntry *Log) (err error) {
+	data, err := json.Marshal(logEntry.Data)
 	if err != nil {
 		return
 	}
@@ -32,13 +30,13 @@ func (s *Store) PersistEvent(e *event.Event) (err error) {
 			"data",
 		).
 		Values(
-			e.ID,
-			time.Unix(e.Context.Timestamp, 0).UTC(),
-			e.Context.UserID,
-			string(e.Type),
-			e.Context.IPAddress,
-			e.Context.UserAgent,
-			e.Context.ClientID,
+			logEntry.ID,
+			logEntry.CreatedAt,
+			logEntry.UserID,
+			logEntry.ActivityType,
+			logEntry.IPAddress,
+			logEntry.UserAgent,
+			logEntry.ClientID,
 			data,
 		)
 

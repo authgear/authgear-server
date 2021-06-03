@@ -40,7 +40,11 @@ func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) (err error) {
 	}).Debug("persisting event")
 
 	err = s.Database.WithTx(func() error {
-		return s.Store.PersistEvent(e)
+		logEntry, err := NewLog(e)
+		if err != nil {
+			return err
+		}
+		return s.Store.PersistLog(logEntry)
 	})
 	if err != nil {
 		return
