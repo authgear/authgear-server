@@ -1179,14 +1179,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .settings-security-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: auto;
   gap: 16px;
 }
 
 .settings-security-item {
-  /* gap value * 2 = 32px */
-  width: calc((100% - 32px) / 3 );
   min-height: 146px;
   border: 1px solid var(--color-separator);
   border-radius: 6px;
@@ -1194,9 +1193,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 640px) {
-  .settings-security-item {
-    /* gap value = 16px */
-    width: calc((100% - 16px) / 2 );
+  .settings-security-list {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
