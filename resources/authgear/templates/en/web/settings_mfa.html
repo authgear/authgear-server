@@ -38,7 +38,8 @@
 
   <!-- Secondary TOTP -->
   {{ if $show_secondary_totp }}
-  <section class="padding-20 row-sep gap-4 grid grid-title-desc-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-mobile-alt grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
     <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-secondary-totp-title" }}
     </p>
@@ -65,7 +66,8 @@
 
   <!-- Secondary OOB OTP Email -->
   {{ if $show_secondary_oob_otp_email }}
-  <section class="padding-20 row-sep gap-4 grid grid-title-desc-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="far fa-envelope grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
     <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-secondary-oob-otp-email-title" }}
     </p>
@@ -91,7 +93,8 @@
   {{ end }}
 
   {{ if $show_secondary_oob_otp_sms }}
-  <section class="padding-20 row-sep gap-4 grid grid-title-desc-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-mobile-alt grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
     <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-secondary-oob-otp-sms-title" }}
     </p>
@@ -119,7 +122,8 @@
 
   <!-- Secondary Password -->
   {{ if $show_secondary_password }}
-  <section class="padding-20 row-sep gap-4 grid grid-title-desc-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-lock grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
     <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-secondary-password-title" }}
     </p>
@@ -151,7 +155,8 @@
 
   <!-- Recovery code -->
   {{ if (and $has_mfa $.ListRecoveryCodesAllowed) }}
-  <section class="padding-20 row-sep gap-4 grid grid-title-desc-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-user-shield grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
     <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-recovery-code-title" }}
     </p>
@@ -166,7 +171,8 @@
 
   <!-- Revoke all device tokens -->
   {{ if $has_mfa }}
-  <section class="padding-20 row-sep gap-4 grid grid-title-desc-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-user-shield grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
     <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-trusted-devices-title" }}
     </p>

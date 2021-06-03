@@ -1030,6 +1030,12 @@ h1, h2, h3, h4, h5, h6 {
       /  1fr       auto;
 }
 
+.grid-icon-title-desc-action1-action2 {
+  grid: "icon title    action1" auto
+        "desc desc     action2" auto
+      /  22px 1fr      auto;
+}
+
 .grid-title-info-desc-action {
   grid: "title    action" auto
         "info     ......" auto
