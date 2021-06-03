@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -23,6 +24,14 @@ type IdentityLoader interface {
 
 type AuthenticatorLoader interface {
 	graphqlutil.DataLoaderInterface
+}
+
+type AuditLogLoader interface {
+	graphqlutil.DataLoaderInterface
+}
+
+type AuditLogFacade interface {
+	QueryPage(opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 }
 
 type UserFacade interface {
@@ -69,8 +78,10 @@ type Context struct {
 	Users          UserLoader
 	Identities     IdentityLoader
 	Authenticators AuthenticatorLoader
+	AuditLogs      AuditLogLoader
 
 	UserFacade          UserFacade
+	AuditLogFacade      AuditLogFacade
 	IdentityFacade      IdentityFacade
 	AuthenticatorFacade AuthenticatorFacade
 	VerificationFacade  VerificationFacade

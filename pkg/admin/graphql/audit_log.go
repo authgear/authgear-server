@@ -1,8 +1,6 @@
 package graphql
 
 import (
-	"fmt"
-
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
@@ -113,6 +111,11 @@ var nodeAuditLog = node(
 			},
 			"user": &graphql.Field{
 				Type: nodeUser,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*audit.Log)
+					gqlCtx := GQLContext(p.Context)
+					return gqlCtx.Users.Load(source.UserID).Value, nil
+				},
 			},
 			"ipAddress": &graphql.Field{
 				Type: graphql.String,
@@ -130,8 +133,7 @@ var nodeAuditLog = node(
 	}),
 	&audit.Log{},
 	func(ctx *Context, id string) (interface{}, error) {
-		// FIXME
-		return nil, fmt.Errorf("not yet implemented")
+		return ctx.AuditLogs.Load(id).Value, nil
 	},
 )
 
