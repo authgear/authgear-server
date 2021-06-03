@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"fmt"
+
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
@@ -88,6 +90,25 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				return graphqlutil.NewConnectionFromResult(lazyItems, result)
+			},
+		},
+		"auditLogs": &graphql.Field{
+			Description: "Audit logs",
+			Type:        connAuditLog.ConnectionType,
+			Args: relay.NewConnectionArgs(graphql.FieldConfigArgument{
+				"rangeFrom": &graphql.ArgumentConfig{
+					Type: graphql.DateTime,
+				},
+				"rangeTo": &graphql.ArgumentConfig{
+					Type: graphql.DateTime,
+				},
+				"activityTypes": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(auditLogActivityType)),
+				},
+			}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				// FIXME
+				return nil, fmt.Errorf("not yet implemented")
 			},
 		},
 	},

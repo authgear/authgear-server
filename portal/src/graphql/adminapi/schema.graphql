@@ -1,3 +1,135 @@
+"""Audit log"""
+type AuditLog implements Node {
+  """"""
+  activityType: AuditLogActivityType!
+
+  """"""
+  clientID: String
+
+  """"""
+  createdAt: DateTime!
+
+  """"""
+  data: AuditLogData
+
+  """The ID of an object"""
+  id: ID!
+
+  """"""
+  ipAddress: String
+
+  """"""
+  user: User
+
+  """"""
+  userAgent: String
+}
+
+""""""
+enum AuditLogActivityType {
+  """"""
+  AUTHENTICATION_IDENTITY_ANONYMOUS_FAILED
+
+  """"""
+  AUTHENTICATION_IDENTITY_BIOMETRIC_FAILED
+
+  """"""
+  AUTHENTICATION_IDENTITY_LOGIN_ID_FAILED
+
+  """"""
+  AUTHENTICATION_PRIMARY_OOB_OTP_EMAIL_FAILED
+
+  """"""
+  AUTHENTICATION_PRIMARY_OOB_OTP_SMS_FAILED
+
+  """"""
+  AUTHENTICATION_PRIMARY_PASSWORD_FAILED
+
+  """"""
+  AUTHENTICATION_SECONDARY_OOB_OTP_EMAIL_FAILED
+
+  """"""
+  AUTHENTICATION_SECONDARY_OOB_OTP_SMS_FAILED
+
+  """"""
+  AUTHENTICATION_SECONDARY_PASSWORD_FAILED
+
+  """"""
+  AUTHENTICATION_SECONDARY_RECOVERY_CODE_FAILED
+
+  """"""
+  AUTHENTICATION_SECONDARY_TOTP_FAILED
+
+  """"""
+  IDENTITY_EMAIL_ADDED
+
+  """"""
+  IDENTITY_EMAIL_REMOVED
+
+  """"""
+  IDENTITY_EMAIL_UPDATED
+
+  """"""
+  IDENTITY_OAUTH_CONNECTED
+
+  """"""
+  IDENTITY_OAUTH_DISCONNECTED
+
+  """"""
+  IDENTITY_PHONE_ADDED
+
+  """"""
+  IDENTITY_PHONE_REMOVED
+
+  """"""
+  IDENTITY_PHONE_UPDATED
+
+  """"""
+  IDENTITY_USERNAME_ADDED
+
+  """"""
+  IDENTITY_USERNAME_REMOVED
+
+  """"""
+  IDENTITY_USERNAME_UPDATED
+
+  """"""
+  USER_ANONYMOUS_PROMOTED
+
+  """"""
+  USER_AUTHENTICATED
+
+  """"""
+  USER_CREATED
+
+  """"""
+  USER_SIGNED_OUT
+}
+
+"""A connection to a list of items."""
+type AuditLogConnection {
+  """Information to aid in pagination."""
+  edges: [AuditLogEdge]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Total number of nodes in the connection."""
+  totalCount: Int
+}
+
+"""The `AuditLogData` scalar type represents the data of the audit log"""
+scalar AuditLogData
+
+"""An edge in a connection"""
+type AuditLogEdge {
+  """ cursor for use in pagination"""
+  cursor: String!
+
+  """The item at the end of the edge"""
+  node: AuditLog
+}
+
 """"""
 type Authenticator implements Entity & Node {
   """"""
@@ -302,6 +434,9 @@ type PageInfo {
 
 """"""
 type Query {
+  """Audit logs"""
+  auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime): AuditLogConnection
+
   """Fetches an object given its ID"""
   node(
     """The ID of an object"""
