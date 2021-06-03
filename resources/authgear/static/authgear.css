@@ -432,6 +432,11 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 4px;
 }
 
+.padding-v-6 {
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
 .padding-v-8 {
   padding-top: 8px;
   padding-bottom: 8px;
@@ -530,6 +535,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .justify-content-space-between {
   justify-content: space-between;
+}
+
+.justify-end {
+  justify-content: flex-end;
 }
 
 .messages-bar-wrapper {
@@ -709,40 +718,24 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .remove-btn {
+  font-size: 18px;
   width: 22px;
   height: 22px;
-  border-radius: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: var(--color-status-dark);
 }
+
 .remove-btn::before {
-  content: "";
-  width: 10px;
-  height: 1px;
-  display: block;
-  background-color: var(--color-status-dark);
+  content: "\00D7";
 }
-.remove-btn {
-  border: 1px solid var(--color-status-dark);
+
+.remove-btn:hover {
+  opacity: 0.7;
 }
-.remove-btn::before {
-  background-color: var(--color-status-dark);
-}
-.remove-btn:hover, .remove-btn:focus, .remove-btn:active {
-  border: 0;
-  background-color: var(--color-error-unshaded);
-}
-.remove-btn:hover::before, .remove-btn:focus::before, .remove-btn:active::before {
-  background-color: var(--color-white-unshaded);
-}
+
 .remove-btn:active {
-  border: 0;
-  background-color: var(--color-error-shaded-4);
+  opacity: 0.7;
 }
-.remove-btn:hover::before, .remove-btn:focus::before, .remove-btn:active::before {
-  background-color: var(--color-white-unshaded);
-}
+
 .remove-btn:disabled {
   opacity: 0.4;
 }
@@ -1006,9 +999,9 @@ h1, h2, h3, h4, h5, h6 {
   align-self: center;
 }
 
-.grid-icon-title-action {
-  grid: "icon title action" auto
-      /  auto 1fr   auto;
+.grid-icon-title {
+  grid: "icon title" auto
+      /  auto 1fr;
 }
 
 .grid-title-action {
@@ -1052,8 +1045,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .grid-icon-name-desc-action {
   grid: "icon  name  action" auto
-        "icon  desc  ......" auto
-      /  36px  1fr   auto    auto;
+        "desc  desc  ......" auto
+      /  28px  1fr   auto    auto;
 }
 
 .grid-name-desc-action {
