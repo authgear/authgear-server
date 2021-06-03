@@ -9,8 +9,8 @@ import { AuthenticatorType, AuthenticatorKind, IdentityType, SessionType } from 
 // GraphQL query operation: UserQuery
 // ====================================================
 
-export interface UserQuery_node_Authenticator {
-  __typename: "Authenticator" | "Identity" | "Session";
+export interface UserQuery_node_AuditLog {
+  __typename: "AuditLog" | "Authenticator" | "Identity" | "Session";
 }
 
 export interface UserQuery_node_User_authenticators_edges_node {
@@ -142,7 +142,7 @@ export interface UserQuery_node_User {
   updatedAt: GQL_DateTime;
 }
 
-export type UserQuery_node = UserQuery_node_Authenticator | UserQuery_node_User;
+export type UserQuery_node = UserQuery_node_AuditLog | UserQuery_node_User;
 
 export interface UserQuery {
   /**
