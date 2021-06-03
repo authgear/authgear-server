@@ -651,6 +651,7 @@
 
   "ThemePreviewWidget.page-switch.login": "Log in",
   "ThemePreviewWidget.page-switch.signup": "Sign up",
+  "ThemePreviewWidget.login-to-continue": "Log in to continue to Authgear",
   "ThemePreviewWidget.input-placeholder.email": "Email",
   "ThemePreviewWidget.use-phone-instead": "Use phone instead",
   "ThemePreviewWidget.next-button-label": "Next",

@@ -213,24 +213,26 @@ function Banner(props: BannerProps) {
     return undefined;
   }, [appLogoValue]);
   return (
-    <div
-      className={styles.bannerFrame}
-      style={{
-        backgroundColor: bannerConfiguration.backgroundColor,
-        paddingTop: bannerConfiguration.paddingTop,
-        paddingRight: bannerConfiguration.paddingRight,
-        paddingBottom: bannerConfiguration.paddingBottom,
-        paddingLeft: bannerConfiguration.paddingLeft,
-      }}
-    >
-      <img
-        className={styles.banner}
-        src={src ?? (isDarkMode ? appLogoDark : appLogo)}
+    <div className={cn(styles.marginV20)}>
+      <div
+        className={styles.bannerFrame}
         style={{
-          width: bannerConfiguration.width,
-          height: bannerConfiguration.height,
+          backgroundColor: bannerConfiguration.backgroundColor,
+          paddingTop: bannerConfiguration.paddingTop,
+          paddingRight: bannerConfiguration.paddingRight,
+          paddingBottom: bannerConfiguration.paddingBottom,
+          paddingLeft: bannerConfiguration.paddingLeft,
         }}
-      />
+      >
+        <img
+          className={styles.banner}
+          src={src ?? (isDarkMode ? appLogoDark : appLogo)}
+          style={{
+            width: bannerConfiguration.width,
+            height: bannerConfiguration.height,
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -263,6 +265,24 @@ function PageSwitch() {
   );
 }
 
+function LoginToContinueLabel() {
+  return (
+    <p
+      className={cn(
+        styles.primaryTxt,
+        styles.frontInherit,
+        styles.fontSemibold,
+        styles.textCenter,
+        styles.marginT40,
+        styles.marginB20,
+        styles.widthFull
+      )}
+    >
+      <FormattedMessage id="ThemePreviewWidget.login-to-continue" />
+    </p>
+  );
+}
+
 function LoginIDForm() {
   const { renderToString } = useContext(Context);
   return (
@@ -270,13 +290,13 @@ function LoginIDForm() {
       className={cn(
         styles.flex,
         styles.flexDirectionColumn,
-        styles.margin6,
+        styles.marginB20,
         styles.widthFull
       )}
     >
       <input
         className={cn(
-          styles.margin6,
+          styles.marginB20,
           styles.input,
           styles.textInput,
           styles.primaryTxt
@@ -285,22 +305,19 @@ function LoginIDForm() {
           "ThemePreviewWidget.input-placeholder.email"
         )}
       />
+
       <a
         className={cn(
           styles.link,
           styles.fontSmaller,
           styles.alignSelfFlexStart,
           styles.block,
-          styles.marginV12,
-          styles.marginH6
+          styles.marginB20
         )}
       >
         <FormattedMessage id="ThemePreviewWidget.use-phone-instead" />
       </a>
-      <button
-        type="button"
-        className={cn(styles.btn, styles.primaryBtn, styles.margin6)}
-      >
+      <button type="button" className={cn(styles.btn, styles.primaryBtn)}>
         <FormattedMessage id="ThemePreviewWidget.next-button-label" />
       </button>
     </div>
@@ -315,11 +332,11 @@ function Separator() {
         styles.flex,
         styles.flexDirectionRow,
         styles.alignItemsCenter,
-        styles.margin6,
+        styles.marginB20,
         styles.widthFull
       )}
     >
-      <span className={cn(styles.primaryTxt, styles.marginH6)}>
+      <span className={cn(styles.primaryTxt)}>
         <FormattedMessage id="ThemePreviewWidget.separator-label" />
       </span>
     </div>
@@ -340,8 +357,7 @@ function SimpleOAuthButton(props: SimpleOAuthButtonProps) {
       className={cn(
         styles.btn,
         styles.ssoBtn,
-        styles.marginV4,
-        styles.marginH6,
+        styles.marginB20,
         styles[providerType]
       )}
     >
@@ -359,13 +375,7 @@ function GoogleButton() {
   return (
     <button
       type="button"
-      className={cn(
-        styles.btn,
-        styles.ssoBtn,
-        styles.marginV4,
-        styles.marginH6,
-        styles.google
-      )}
+      className={cn(styles.btn, styles.ssoBtn, styles.marginB20, styles.google)}
     >
       <span className={styles.ssoBtnContent}>
         <div className={cn(styles.ssoBtnIcon, styles.googleIcon)} />
@@ -380,12 +390,7 @@ function GoogleButton() {
 function OAuthForm() {
   return (
     <div
-      className={cn(
-        styles.flex,
-        styles.flexDirectionColumn,
-        styles.margin6,
-        styles.widthFull
-      )}
+      className={cn(styles.flex, styles.flexDirectionColumn, styles.widthFull)}
     >
       <SimpleOAuthButton
         providerType="apple"
@@ -434,8 +439,7 @@ function Disclaimer() {
       className={cn(
         styles.fontSmaller,
         styles.primaryTxt,
-        styles.margin6,
-        styles.padding6,
+        styles.marginB20,
         styles.widthFull
       )}
     >
@@ -452,7 +456,7 @@ function Disclaimer() {
 function Footer() {
   return (
     <div
-      className={cn(styles.footerWatermark, styles.margin12, styles.widthFull)}
+      className={cn(styles.footerWatermark, styles.marginV20, styles.widthFull)}
     />
   );
 }
@@ -493,6 +497,11 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
       >
         <div className={styles.page}>
           <div className={styles.content}>
+            <Banner
+              appLogoValue={appLogoValue}
+              isDarkMode={isDarkMode}
+              bannerConfiguration={bannerConfiguration}
+            />
             <div
               className={cn(
                 styles.pane,
@@ -500,23 +509,15 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
                 styles.flexDirectionColumn
               )}
             >
-              <Banner
-                appLogoValue={appLogoValue}
-                isDarkMode={isDarkMode}
-                bannerConfiguration={bannerConfiguration}
-              />
-              <div
-                className={cn(
-                  styles.flex,
-                  styles.flexDirectionColumn,
-                  styles.padding6
-                )}
-              >
+              <div className={cn(styles.flex, styles.flexDirectionColumn)}>
                 <PageSwitch />
-                <LoginIDForm />
-                <Separator />
-                <OAuthForm />
-                <Disclaimer />
+                <div className={cn(styles.paddingH20)}>
+                  <LoginToContinueLabel />
+                  <LoginIDForm />
+                  <Separator />
+                  <OAuthForm />
+                  <Disclaimer />
+                </div>
                 <Footer />
               </div>
             </div>
