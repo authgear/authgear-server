@@ -31,7 +31,7 @@ var identityType = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
-var nodeIdentity = entity(
+var nodeIdentity = node(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name: typeIdentity,
 		Interfaces: []*graphql.Interface{

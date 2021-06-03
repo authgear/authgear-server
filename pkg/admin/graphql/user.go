@@ -10,7 +10,7 @@ import (
 
 const typeUser = "User"
 
-var nodeUser = entity(
+var nodeUser = node(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name:        typeUser,
 		Description: "Authgear user",
