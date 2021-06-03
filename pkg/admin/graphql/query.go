@@ -1,12 +1,13 @@
 package graphql
 
 import (
-	"fmt"
+	"time"
 
 	"github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/audit"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -107,8 +108,49 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				// FIXME
-				return nil, fmt.Errorf("not yet implemented")
+				gqlCtx := GQLContext(p.Context)
+
+				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
+
+				var rangeFrom *time.Time
+				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
+					rangeFrom = &t
+				}
+
+				var rangeTo *time.Time
+				if t, ok := p.Args["rangeTo"].(time.Time); ok {
+					rangeTo = &t
+				}
+
+				var activityTypes []string
+				if arr, ok := p.Args["activityTypes"].([]interface{}); ok {
+					for _, v := range arr {
+						if s, ok := v.(string); ok {
+							activityTypes = append(activityTypes, s)
+						}
+					}
+				}
+
+				queryOptions := audit.QueryPageOptions{
+					RangeFrom:     rangeFrom,
+					RangeTo:       rangeTo,
+					ActivityTypes: activityTypes,
+				}
+
+				refs, result, err := gqlCtx.AuditLogFacade.QueryPage(queryOptions, pageArgs)
+				if err != nil {
+					return nil, err
+				}
+
+				var lazyItems []graphqlutil.LazyItem
+				for _, ref := range refs {
+					lazyItems = append(lazyItems, graphqlutil.LazyItem{
+						Lazy:   gqlCtx.AuditLogs.Load(ref.ID),
+						Cursor: graphqlutil.Cursor(ref.Cursor),
+					})
+				}
+
+				return graphqlutil.NewConnectionFromResult(lazyItems, result)
 			},
 		},
 	},
