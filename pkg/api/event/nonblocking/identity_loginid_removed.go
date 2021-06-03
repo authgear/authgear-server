@@ -50,4 +50,12 @@ func (e *IdentityLoginIDRemovedEventPayload) IsAdminAPI() bool {
 func (e *IdentityLoginIDRemovedEventPayload) FillContext(ctx *event.Context) {
 }
 
+func (e *IdentityLoginIDRemovedEventPayload) ForWebHook() bool {
+	return true
+}
+
+func (e *IdentityLoginIDRemovedEventPayload) ForAudit() bool {
+	return true
+}
+
 var _ event.NonBlockingPayload = &IdentityLoginIDRemovedEventPayload{}

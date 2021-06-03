@@ -10,6 +10,7 @@ var DependencySet = wire.NewSet(
 
 	NewCSRFCookieDef,
 	NewSessionCookieDef,
+	NewClientIDCookieDef,
 	NewErrorCookieDef,
 	NewSignedUpCookieDef,
 	wire.Struct(new(ErrorCookie), "*"),

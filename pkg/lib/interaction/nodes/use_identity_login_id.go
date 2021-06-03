@@ -27,8 +27,9 @@ const (
 )
 
 type EdgeUseIdentityLoginID struct {
-	Mode    UseIdentityLoginIDMode
-	Configs []config.LoginIDKeyConfig
+	IsAuthentication bool
+	Mode             UseIdentityLoginIDMode
+	Configs          []config.LoginIDKeyConfig
 }
 
 // GetIdentityCandidates implements IdentityCandidatesGetter.
@@ -85,14 +86,16 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *in
 	}
 
 	return &NodeUseIdentityLoginID{
-		Mode:         e.Mode,
-		IdentitySpec: spec,
+		IsAuthentication: e.IsAuthentication,
+		Mode:             e.Mode,
+		IdentitySpec:     spec,
 	}, nil
 }
 
 type NodeUseIdentityLoginID struct {
-	Mode         UseIdentityLoginIDMode `json:"mode"`
-	IdentitySpec *identity.Spec         `json:"identity_spec"`
+	IsAuthentication bool                   `json:"is_authentication"`
+	Mode             UseIdentityLoginIDMode `json:"mode"`
+	IdentitySpec     *identity.Spec         `json:"identity_spec"`
 }
 
 func (n *NodeUseIdentityLoginID) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -108,7 +111,7 @@ func (n *NodeUseIdentityLoginID) DeriveEdges(graph *interaction.Graph) ([]intera
 	case UseIdentityLoginIDModeCreate:
 		return []interaction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	case UseIdentityLoginIDModeSelect:
-		return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+		return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec, IsAuthentication: n.IsAuthentication}}, nil
 	case UseIdentityLoginIDModeUpdate:
 		return []interaction.Edge{&EdgeUpdateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	default:

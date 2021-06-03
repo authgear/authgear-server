@@ -18,7 +18,7 @@ func init() {
 }
 
 type EdgeChangePasswordBegin struct {
-	Stage interaction.AuthenticationStage `json:"stage"`
+	Stage authn.AuthenticationStage `json:"stage"`
 }
 
 func (e *EdgeChangePasswordBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -28,7 +28,7 @@ func (e *EdgeChangePasswordBegin) Instantiate(ctx *interaction.Context, graph *i
 }
 
 type NodeChangePasswordBegin struct {
-	Stage interaction.AuthenticationStage `json:"stage"`
+	Stage authn.AuthenticationStage `json:"stage"`
 }
 
 func (n *NodeChangePasswordBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -51,7 +51,7 @@ type InputChangePassword interface {
 }
 
 type EdgeChangePassword struct {
-	Stage interaction.AuthenticationStage
+	Stage authn.AuthenticationStage
 }
 
 func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (node interaction.Node, err error) {
@@ -108,9 +108,9 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 }
 
 type NodeChangePasswordEnd struct {
-	Stage            interaction.AuthenticationStage `json:"stage"`
-	OldAuthenticator *authenticator.Info             `json:"old_authenticator"`
-	NewAuthenticator *authenticator.Info             `json:"new_authenticator,omitempty"`
+	Stage            authn.AuthenticationStage `json:"stage"`
+	OldAuthenticator *authenticator.Info       `json:"old_authenticator"`
+	NewAuthenticator *authenticator.Info       `json:"new_authenticator,omitempty"`
 }
 
 func (n *NodeChangePasswordEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

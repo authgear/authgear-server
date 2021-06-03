@@ -20,6 +20,10 @@ type SQLBuilder struct {
 }
 
 func NewSQLBuilder(c *config.AuditDatabaseCredentials, id config.AppID) *SQLBuilder {
+	if c == nil {
+		return nil
+	}
+
 	return &SQLBuilder{
 		db.NewSQLBuilder(c.DatabaseSchema, string(id)),
 	}
@@ -30,6 +34,10 @@ type SQLExecutor struct {
 }
 
 func NewSQLExecutor(c context.Context, handle *Handle) *SQLExecutor {
+	if handle == nil {
+		return nil
+	}
+
 	return &SQLExecutor{
 		db.SQLExecutor{
 			Context:  c,
@@ -50,7 +58,7 @@ func NewHandle(
 	lf *log.Factory,
 ) *Handle {
 	if credentials == nil {
-		return &Handle{}
+		return nil
 	}
 
 	opts := db.ConnectionOptions{
@@ -66,15 +74,9 @@ func NewHandle(
 }
 
 func (h *Handle) WithTx(do func() error) (err error) {
-	if h.HookHandle == nil {
-		return
-	}
 	return h.HookHandle.WithTx(do)
 }
 
 func (h *Handle) ReadOnly(do func() error) (err error) {
-	if h.HookHandle == nil {
-		return
-	}
 	return h.HookHandle.ReadOnly(do)
 }

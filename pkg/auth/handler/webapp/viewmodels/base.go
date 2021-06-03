@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -97,7 +98,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		Path:     r.URL.Path,
 		RawQuery: r.URL.RawQuery,
 	}
-	clientID := webapp.GetClientID(r.Context())
+	clientID := clientid.GetClientID(r.Context())
 	client, _ := m.OAuth.GetClient(clientID)
 	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
 	model := BaseViewModel{

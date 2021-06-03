@@ -16,7 +16,7 @@ type InputAuthenticationOOBTrigger interface {
 }
 
 type EdgeAuthenticationOOBTrigger struct {
-	Stage                interaction.AuthenticationStage
+	Stage                authn.AuthenticationStage
 	OOBAuthenticatorType authn.AuthenticatorType
 	Authenticators       []*authenticator.Info
 }
@@ -112,11 +112,11 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 }
 
 type NodeAuthenticationOOBTrigger struct {
-	Stage         interaction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info             `json:"authenticator"`
-	Target        string                          `json:"target"`
-	Channel       string                          `json:"channel"`
-	CodeLength    int                             `json:"code_length"`
+	Stage         authn.AuthenticationStage `json:"stage"`
+	Authenticator *authenticator.Info       `json:"authenticator"`
+	Target        string                    `json:"target"`
+	Channel       string                    `json:"channel"`
+	CodeLength    int                       `json:"code_length"`
 }
 
 // GetOOBOTPTarget implements OOBOTPNode.
@@ -132,9 +132,9 @@ func (n *NodeAuthenticationOOBTrigger) GetOOBOTPChannel() string {
 // GetOOBOTPOOBType implements OOBOTPNode.
 func (n *NodeAuthenticationOOBTrigger) GetOOBOTPOOBType() interaction.OOBType {
 	switch n.Stage {
-	case interaction.AuthenticationStagePrimary:
+	case authn.AuthenticationStagePrimary:
 		return interaction.OOBTypeAuthenticatePrimary
-	case interaction.AuthenticationStageSecondary:
+	case authn.AuthenticationStageSecondary:
 		return interaction.OOBTypeAuthenticateSecondary
 	default:
 		panic("interaction: unknown authentication stage: " + n.Stage)

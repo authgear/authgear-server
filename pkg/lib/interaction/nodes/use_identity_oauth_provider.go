@@ -19,8 +19,9 @@ type InputUseIdentityOAuthProvider interface {
 }
 
 type EdgeUseIdentityOAuthProvider struct {
-	IsCreating bool
-	Configs    []config.OAuthSSOProviderConfig
+	IsAuthentication bool
+	IsCreating       bool
+	Configs          []config.OAuthSSOProviderConfig
 }
 
 func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candidate {
@@ -74,6 +75,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	}
 
 	return &NodeUseIdentityOAuthProvider{
+		IsAuthentication: e.IsAuthentication,
 		IsCreating:       e.IsCreating,
 		Config:           *oauthConfig,
 		HashedNonce:      nonce,
@@ -83,6 +85,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 }
 
 type NodeUseIdentityOAuthProvider struct {
+	IsAuthentication bool                          `json:"is_authentication"`
 	IsCreating       bool                          `json:"is_creating"`
 	Config           config.OAuthSSOProviderConfig `json:"provider_config"`
 	HashedNonce      string                        `json:"hashed_nonce"`
@@ -111,6 +114,7 @@ func (n *NodeUseIdentityOAuthProvider) GetEffects() ([]interaction.Effect, error
 func (n *NodeUseIdentityOAuthProvider) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeUseIdentityOAuthUserInfo{
+			IsAuthentication: n.IsAuthentication,
 			IsCreating:       n.IsCreating,
 			Config:           n.Config,
 			HashedNonce:      n.HashedNonce,

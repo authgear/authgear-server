@@ -13,12 +13,12 @@ func init() {
 }
 
 type IntentAddAuthenticator struct {
-	UserID            string                          `json:"user_id"`
-	Stage             interaction.AuthenticationStage `json:"stage"`
-	AuthenticatorType authn.AuthenticatorType         `json:"authenticator_type"`
+	UserID            string                    `json:"user_id"`
+	Stage             authn.AuthenticationStage `json:"stage"`
+	AuthenticatorType authn.AuthenticatorType   `json:"authenticator_type"`
 }
 
-func NewIntentAddAuthenticator(userID string, stage interaction.AuthenticationStage, t authn.AuthenticatorType) *IntentAddAuthenticator {
+func NewIntentAddAuthenticator(userID string, stage authn.AuthenticationStage, t authn.AuthenticatorType) *IntentAddAuthenticator {
 	return &IntentAddAuthenticator{
 		UserID:            userID,
 		Stage:             stage,
@@ -51,10 +51,10 @@ func (i *IntentAddAuthenticator) DeriveEdgesForNode(graph *interaction.Graph, no
 
 	case *nodes.NodeDoCreateAuthenticator:
 		switch node.Stage {
-		case interaction.AuthenticationStagePrimary:
+		case authn.AuthenticationStagePrimary:
 			return nil, nil
 
-		case interaction.AuthenticationStageSecondary:
+		case authn.AuthenticationStageSecondary:
 			return []interaction.Edge{
 				&nodes.EdgeGenerateRecoveryCode{},
 			}, nil

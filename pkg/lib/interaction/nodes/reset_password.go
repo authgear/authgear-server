@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -96,7 +97,7 @@ func (n *NodeResetPasswordEnd) DeriveEdges(graph *interaction.Graph) ([]interact
 	if n.NewAuthenticator != nil {
 		return []interaction.Edge{
 			&EdgeDoUpdateAuthenticator{
-				Stage:                     interaction.AuthenticationStagePrimary,
+				Stage:                     authn.AuthenticationStagePrimary,
 				AuthenticatorBeforeUpdate: n.OldAuthenticator,
 				AuthenticatorAfterUpdate:  n.NewAuthenticator,
 			},

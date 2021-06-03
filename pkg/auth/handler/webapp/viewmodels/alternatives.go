@@ -14,12 +14,12 @@ import (
 
 type AuthenticationBeginNode interface {
 	GetAuthenticationEdges() ([]interaction.Edge, error)
-	GetAuthenticationStage() interaction.AuthenticationStage
+	GetAuthenticationStage() authn.AuthenticationStage
 }
 
 type CreateAuthenticatorBeginNode interface {
 	GetCreateAuthenticatorEdges() ([]interaction.Edge, error)
-	GetCreateAuthenticatorStage() interaction.AuthenticationStage
+	GetCreateAuthenticatorStage() authn.AuthenticationStage
 }
 
 type OOBOTPTriggerNode interface {
@@ -33,7 +33,7 @@ type AlternativeStep struct {
 }
 
 type AlternativeStepsViewModel struct {
-	AuthenticationStage   interaction.AuthenticationStage
+	AuthenticationStage   authn.AuthenticationStage
 	AlternativeSteps      []AlternativeStep
 	CanRequestDeviceToken bool
 }

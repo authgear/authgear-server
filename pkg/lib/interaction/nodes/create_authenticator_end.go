@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -10,7 +11,7 @@ func init() {
 }
 
 type EdgeCreateAuthenticatorEnd struct {
-	Stage          interaction.AuthenticationStage
+	Stage          authn.AuthenticationStage
 	Authenticators []*authenticator.Info
 }
 
@@ -22,8 +23,8 @@ func (e *EdgeCreateAuthenticatorEnd) Instantiate(ctx *interaction.Context, graph
 }
 
 type NodeCreateAuthenticatorEnd struct {
-	Stage          interaction.AuthenticationStage `json:"stage"`
-	Authenticators []*authenticator.Info           `json:"authenticators"`
+	Stage          authn.AuthenticationStage `json:"stage"`
+	Authenticators []*authenticator.Info     `json:"authenticators"`
 }
 
 func (n *NodeCreateAuthenticatorEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

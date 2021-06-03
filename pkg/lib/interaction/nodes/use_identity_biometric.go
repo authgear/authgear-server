@@ -3,6 +3,7 @@ package nodes
 import (
 	"encoding/json"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -20,7 +21,8 @@ type InputUseIdentityBiometric interface {
 }
 
 type EdgeUseIdentityBiometric struct {
-	IsCreating bool
+	IsAuthentication bool
+	IsCreating       bool
 }
 
 func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
@@ -74,6 +76,24 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 		}
 		request, err = ctx.BiometricIdentities.ParseRequest(jwt, iden)
 		if err != nil {
+			dispatchEvent := func() error {
+				userID := iden.UserID
+				user, err := ctx.Users.Get(userID)
+				if err != nil {
+					return err
+				}
+				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
+					User:         *user,
+					IdentityType: string(authn.IdentityTypeBiometric),
+				})
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}
+			_ = dispatchEvent()
+
 			return nil, interaction.ErrInvalidCredentials
 		}
 	}
@@ -93,14 +113,16 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	return &NodeUseIdentityBiometric{
-		IsCreating:   e.IsCreating,
-		IdentitySpec: spec,
+		IsAuthentication: e.IsAuthentication,
+		IsCreating:       e.IsCreating,
+		IdentitySpec:     spec,
 	}, nil
 }
 
 type NodeUseIdentityBiometric struct {
-	IsCreating   bool           `json:"is_creating"`
-	IdentitySpec *identity.Spec `json:"identity_spec"`
+	IsAuthentication bool           `json:"is_authentication"`
+	IsCreating       bool           `json:"is_creating"`
+	IdentitySpec     *identity.Spec `json:"identity_spec"`
 }
 
 func (n *NodeUseIdentityBiometric) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -115,5 +137,5 @@ func (n *NodeUseIdentityBiometric) DeriveEdges(graph *interaction.Graph) ([]inte
 	if n.IsCreating {
 		return []interaction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	}
-	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec, IsAuthentication: n.IsAuthentication}}, nil
 }

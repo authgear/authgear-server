@@ -15,7 +15,7 @@ type InputCreateAuthenticatorPassword interface {
 }
 
 type EdgeCreateAuthenticatorPassword struct {
-	Stage     interaction.AuthenticationStage
+	Stage     authn.AuthenticationStage
 	IsDefault bool
 }
 
@@ -60,8 +60,8 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, 
 }
 
 type NodeCreateAuthenticatorPassword struct {
-	Stage         interaction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info             `json:"authenticator"`
+	Stage         authn.AuthenticationStage `json:"stage"`
+	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
 func (n *NodeCreateAuthenticatorPassword) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

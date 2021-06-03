@@ -108,8 +108,8 @@ func (i *addPasswordInput) Input() interface{} {
 	return i.inner
 }
 
-func (i *addPasswordInput) GetAuthenticationStage() interaction.AuthenticationStage {
-	return interaction.AuthenticationStagePrimary
+func (i *addPasswordInput) GetAuthenticationStage() authn.AuthenticationStage {
+	return authn.AuthenticationStagePrimary
 }
 
 type resetPasswordInput struct {
@@ -142,6 +142,6 @@ func (i *createUserInput) GetPassword() string {
 func (i *createUserInput) Input() interface{} {
 	return i.identityDef
 }
-func (i *createUserInput) GetAuthenticationStage() interaction.AuthenticationStage {
-	return interaction.AuthenticationStagePrimary
+func (i *createUserInput) GetAuthenticationStage() authn.AuthenticationStage {
+	return authn.AuthenticationStagePrimary
 }

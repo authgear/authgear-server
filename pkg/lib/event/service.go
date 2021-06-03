@@ -3,13 +3,16 @@ package event
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -39,6 +42,8 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("event")} }
 
 type Service struct {
 	Context      context.Context
+	Request      *http.Request
+	TrustProxy   config.TrustProxy
 	Logger       Logger
 	Database     Database
 	Clock        clock.Clock
@@ -114,6 +119,13 @@ func (s *Service) DidCommitTx() {
 
 func (s *Service) makeContext(payload event.Payload) event.Context {
 	userID := session.GetUserID(s.Context)
+	if userID == nil {
+		uid := payload.UserID()
+		if uid != "" {
+			userID = &uid
+		}
+	}
+
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
 	resolvedLanguageIdx, _ := intl.Resolve(
 		preferredLanguageTags,
@@ -131,12 +143,19 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		triggeredBy = event.TriggeredByTypeAdminAPI
 	}
 
+	ipAddress := httputil.GetIP(s.Request, bool(s.TrustProxy))
+	userAgent := s.Request.UserAgent()
+	clientID := clientid.GetClientID(s.Context)
+
 	ctx := &event.Context{
 		Timestamp:          s.Clock.NowUTC().Unix(),
 		UserID:             userID,
 		PreferredLanguages: preferredLanguageTags,
 		Language:           resolvedLanguage,
 		TriggeredBy:        triggeredBy,
+		IPAddress:          ipAddress,
+		UserAgent:          userAgent,
+		ClientID:           clientID,
 	}
 
 	payload.FillContext(ctx)

@@ -3,6 +3,7 @@ package deps
 import (
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/audit"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -25,6 +26,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -46,6 +48,7 @@ var CommonDependencySet = wire.NewSet(
 	utilsDeps,
 
 	appdb.DependencySet,
+	auditdb.DependencySet,
 	template.DependencySet,
 
 	wire.NewSet(
@@ -62,10 +65,15 @@ var CommonDependencySet = wire.NewSet(
 		event.DependencySet,
 		wire.Bind(new(interaction.EventService), new(*event.Service)),
 		wire.Bind(new(user.EventService), new(*event.Service)),
+		wire.Bind(new(session.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(
 		hook.DependencySet,
+	),
+
+	wire.NewSet(
+		audit.DependencySet,
 	),
 
 	wire.NewSet(
@@ -86,6 +94,7 @@ var CommonDependencySet = wire.NewSet(
 		session.DependencySet,
 		wire.Bind(new(idpsession.AccessEventProvider), new(*access.EventProvider)),
 		wire.Bind(new(oidchandler.LogoutSessionManager), new(*session.Manager)),
+		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
 	),
 
 	wire.NewSet(

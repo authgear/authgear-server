@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -12,7 +13,7 @@ func init() {
 }
 
 type EdgeDoCreateAuthenticator struct {
-	Stage          interaction.AuthenticationStage
+	Stage          authn.AuthenticationStage
 	Authenticators []*authenticator.Info
 }
 
@@ -24,8 +25,8 @@ func (e *EdgeDoCreateAuthenticator) Instantiate(ctx *interaction.Context, graph 
 }
 
 type NodeDoCreateAuthenticator struct {
-	Stage          interaction.AuthenticationStage `json:"stage"`
-	Authenticators []*authenticator.Info           `json:"authenticators"`
+	Stage          authn.AuthenticationStage `json:"stage"`
+	Authenticators []*authenticator.Info     `json:"authenticators"`
 }
 
 func (n *NodeDoCreateAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -53,7 +54,7 @@ func (n *NodeDoCreateAuthenticator) DeriveEdges(graph *interaction.Graph) ([]int
 	return graph.Intent.DeriveEdgesForNode(graph, n)
 }
 
-func (n *NodeDoCreateAuthenticator) UserAuthenticator(stage interaction.AuthenticationStage) (*authenticator.Info, bool) {
+func (n *NodeDoCreateAuthenticator) UserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {
 	if len(n.Authenticators) > 1 {
 		panic("interaction: expect at most one primary/secondary authenticator")
 	}

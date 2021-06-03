@@ -15,7 +15,7 @@ type InputCreateAuthenticatorTOTPSetup interface {
 }
 
 type EdgeCreateAuthenticatorTOTPSetup struct {
-	Stage     interaction.AuthenticationStage
+	Stage     authn.AuthenticationStage
 	IsDefault bool
 }
 
@@ -54,8 +54,8 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *interaction.Context,
 }
 
 type NodeCreateAuthenticatorTOTPSetup struct {
-	Stage         interaction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info             `json:"authenticator"`
+	Stage         authn.AuthenticationStage `json:"stage"`
+	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
 func (n *NodeCreateAuthenticatorTOTPSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

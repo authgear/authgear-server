@@ -17,7 +17,7 @@ type InputAuthenticationTOTP interface {
 }
 
 type EdgeAuthenticationTOTP struct {
-	Stage          interaction.AuthenticationStage
+	Stage          authn.AuthenticationStage
 	Authenticators []*authenticator.Info
 }
 
@@ -55,8 +55,8 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *in
 }
 
 type NodeAuthenticationTOTP struct {
-	Stage         interaction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info             `json:"authenticator"`
+	Stage         authn.AuthenticationStage `json:"stage"`
+	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
 func (n *NodeAuthenticationTOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -71,7 +71,7 @@ func (n *NodeAuthenticationTOTP) DeriveEdges(graph *interaction.Graph) ([]intera
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,
-			AuthenticationType:    AuthenticationTypeOTP,
+			AuthenticationType:    authn.AuthenticationTypeTOTP,
 			VerifiedAuthenticator: n.Authenticator,
 		},
 	}, nil

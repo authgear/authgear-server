@@ -39,6 +39,12 @@ func (s *Sink) ReceiveBlockingEvent(e *event.Event) (err error) {
 }
 
 func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) (err error) {
+	// Skip events that are not for webhook.
+	payload := e.Payload.(event.NonBlockingPayload)
+	if !payload.ForWebHook() {
+		return
+	}
+
 	if s.Deliverer.WillDeliverNonBlockingEvent(e.Type) {
 		if err := s.Deliverer.DeliverNonBlockingEvent(e); err != nil {
 			s.Logger.WithError(err).Error("failed to dispatch non blocking event")

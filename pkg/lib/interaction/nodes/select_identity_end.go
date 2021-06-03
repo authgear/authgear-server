@@ -2,7 +2,10 @@ package nodes
 
 import (
 	"errors"
+	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -13,7 +16,8 @@ func init() {
 }
 
 type EdgeSelectIdentityEnd struct {
-	IdentitySpec *identity.Spec
+	IdentitySpec     *identity.Spec
+	IsAuthentication bool
 }
 
 func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
@@ -36,6 +40,27 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	if errors.Is(err, identity.ErrIdentityNotFound) {
 		// nolint: ineffassign
 		err = nil
+
+		if e.IsAuthentication {
+			switch e.IdentitySpec.Type {
+			case authn.IdentityTypeOAuth:
+				// This branch should be unreachable.
+				break
+			case authn.IdentityTypeAnonymous, authn.IdentityTypeBiometric:
+				// Anonymous and biometric are handled in their own node.
+				break
+			case authn.IdentityTypeLoginID:
+				loginIDValue := e.IdentitySpec.Claims[identity.IdentityClaimLoginIDValue].(string)
+				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedLoginIDEventPayload{
+					LoginID: loginIDValue,
+				})
+				if err != nil {
+					return nil, err
+				}
+			default:
+				panic(fmt.Errorf("interaction: unknown identity type: %v", e.IdentitySpec.Type))
+			}
+		}
 	} else if err != nil {
 		return nil, err
 	}

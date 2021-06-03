@@ -17,7 +17,7 @@ type InputAuthenticationPassword interface {
 }
 
 type EdgeAuthenticationPassword struct {
-	Stage          interaction.AuthenticationStage
+	Stage          authn.AuthenticationStage
 	Authenticators []*authenticator.Info
 }
 
@@ -67,8 +67,8 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 }
 
 type NodeAuthenticationPassword struct {
-	Stage         interaction.AuthenticationStage `json:"stage"`
-	Authenticator *authenticator.Info             `json:"authenticator"`
+	Stage         authn.AuthenticationStage `json:"stage"`
+	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
 func (n *NodeAuthenticationPassword) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -83,7 +83,7 @@ func (n *NodeAuthenticationPassword) DeriveEdges(graph *interaction.Graph) ([]in
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,
-			AuthenticationType:    AuthenticationTypePassword,
+			AuthenticationType:    authn.AuthenticationTypePassword,
 			VerifiedAuthenticator: n.Authenticator,
 		},
 	}, nil

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -18,7 +19,9 @@ type InputUseIdentityAnonymous interface {
 	GetAnonymousRequestToken() string
 }
 
-type EdgeUseIdentityAnonymous struct{}
+type EdgeUseIdentityAnonymous struct {
+	IsAuthentication bool
+}
 
 func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityAnonymous
@@ -66,6 +69,23 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		// verify the JWT signature before proceeding to use the key ID.
 		request, err = ctx.AnonymousIdentities.ParseRequest(jwt, anonIdentity)
 		if err != nil {
+			dispatchEvent := func() error {
+				userID := anonIdentity.UserID
+				user, err := ctx.Users.Get(userID)
+				if err != nil {
+					return err
+				}
+				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
+					User:         *user,
+					IdentityType: string(authn.IdentityTypeAnonymous),
+				})
+				if err != nil {
+					return err
+				}
+
+				return nil
+			}
+			_ = dispatchEvent()
 			return nil, interaction.ErrInvalidCredentials
 		}
 	} else if request.Key == nil {
@@ -87,12 +107,14 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	return &NodeUseIdentityAnonymous{
-		IdentitySpec: spec,
+		IsAuthentication: e.IsAuthentication,
+		IdentitySpec:     spec,
 	}, nil
 }
 
 type NodeUseIdentityAnonymous struct {
-	IdentitySpec *identity.Spec `json:"identity_spec"`
+	IsAuthentication bool           `json:"is_authentication"`
+	IdentitySpec     *identity.Spec `json:"identity_spec"`
 }
 
 func (n *NodeUseIdentityAnonymous) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -104,5 +126,5 @@ func (n *NodeUseIdentityAnonymous) GetEffects() ([]interaction.Effect, error) {
 }
 
 func (n *NodeUseIdentityAnonymous) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
+	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec, IsAuthentication: n.IsAuthentication}}, nil
 }

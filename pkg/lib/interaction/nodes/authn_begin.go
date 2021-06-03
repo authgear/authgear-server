@@ -15,7 +15,7 @@ func init() {
 }
 
 type EdgeAuthenticationBegin struct {
-	Stage interaction.AuthenticationStage
+	Stage authn.AuthenticationStage
 }
 
 func (e *EdgeAuthenticationBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
@@ -25,10 +25,10 @@ func (e *EdgeAuthenticationBegin) Instantiate(ctx *interaction.Context, graph *i
 }
 
 type NodeAuthenticationBegin struct {
-	Stage                interaction.AuthenticationStage `json:"stage"`
-	Identity             *identity.Info                  `json:"-"`
-	AuthenticationConfig *config.AuthenticationConfig    `json:"-"`
-	Authenticators       []*authenticator.Info           `json:"-"`
+	Stage                authn.AuthenticationStage    `json:"stage"`
+	Identity             *identity.Info               `json:"-"`
+	AuthenticationConfig *config.AuthenticationConfig `json:"-"`
+	Authenticators       []*authenticator.Info        `json:"-"`
 }
 
 func (n *NodeAuthenticationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -52,7 +52,7 @@ func (n *NodeAuthenticationBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 }
 
 // GetAuthenticationStage implements AuthenticationBeginNode.
-func (n *NodeAuthenticationBegin) GetAuthenticationStage() interaction.AuthenticationStage {
+func (n *NodeAuthenticationBegin) GetAuthenticationStage() authn.AuthenticationStage {
 	return n.Stage
 }
 
@@ -64,7 +64,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 	var required []authn.AuthenticatorType
 
 	switch n.Stage {
-	case interaction.AuthenticationStagePrimary:
+	case authn.AuthenticationStagePrimary:
 		preferred = n.AuthenticationConfig.PrimaryAuthenticators
 		availableAuthenticators = authenticator.ApplyFilters(
 			n.Authenticators,
@@ -72,7 +72,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		)
 		required = n.Identity.PrimaryAuthenticatorTypes()
 
-	case interaction.AuthenticationStageSecondary:
+	case authn.AuthenticationStageSecondary:
 		preferred = n.AuthenticationConfig.SecondaryAuthenticators
 		availableAuthenticators = authenticator.ApplyFilters(
 			n.Authenticators,
@@ -199,7 +199,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		return []interaction.Edge{
 			&EdgeAuthenticationEnd{
 				Stage:              n.Stage,
-				AuthenticationType: AuthenticationTypeNone,
+				AuthenticationType: authn.AuthenticationTypeNone,
 			},
 		}, nil
 	}
@@ -217,7 +217,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		},
 	)
 
-	if n.Stage == interaction.AuthenticationStageSecondary {
+	if n.Stage == authn.AuthenticationStageSecondary {
 		// If we reach here, there are at least one secondary authenticator
 		// so we have to allow the use of recovery code.
 		// We have to add after the sorting because

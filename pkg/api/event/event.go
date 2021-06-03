@@ -18,6 +18,8 @@ type BlockingPayload interface {
 type NonBlockingPayload interface {
 	Payload
 	NonBlockingEventType() Type
+	ForWebHook() bool
+	ForAudit() bool
 }
 
 type Event struct {

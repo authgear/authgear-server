@@ -22,7 +22,7 @@ func cloneAuthenticator(info *authenticator.Info) *authenticator.Info {
 
 type SendOOBCode struct {
 	Context              *interaction.Context
-	Stage                interaction.AuthenticationStage
+	Stage                authn.AuthenticationStage
 	IsAuthenticating     bool
 	AuthenticatorInfo    *authenticator.Info
 	IgnoreRatelimitError bool
@@ -32,7 +32,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 	var messageType otp.MessageType
 	var oobType interaction.OOBType
 	switch p.Stage {
-	case interaction.AuthenticationStagePrimary:
+	case authn.AuthenticationStagePrimary:
 		if p.IsAuthenticating {
 			messageType = otp.MessageTypeAuthenticatePrimaryOOB
 			oobType = interaction.OOBTypeAuthenticatePrimary
@@ -40,7 +40,7 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 			messageType = otp.MessageTypeSetupPrimaryOOB
 			oobType = interaction.OOBTypeSetupPrimary
 		}
-	case interaction.AuthenticationStageSecondary:
+	case authn.AuthenticationStageSecondary:
 		if p.IsAuthenticating {
 			messageType = otp.MessageTypeAuthenticateSecondaryOOB
 			oobType = interaction.OOBTypeAuthenticateSecondary
@@ -101,11 +101,11 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 	return result, nil
 }
 
-func stageToAuthenticatorKind(stage interaction.AuthenticationStage) authenticator.Kind {
+func stageToAuthenticatorKind(stage authn.AuthenticationStage) authenticator.Kind {
 	switch stage {
-	case interaction.AuthenticationStagePrimary:
+	case authn.AuthenticationStagePrimary:
 		return authenticator.KindPrimary
-	case interaction.AuthenticationStageSecondary:
+	case authn.AuthenticationStageSecondary:
 		return authenticator.KindSecondary
 	default:
 		panic("interaction: unknown stage: " + stage)
