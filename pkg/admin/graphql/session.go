@@ -21,7 +21,7 @@ var sessionType = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
-var nodeSession = entity(
+var nodeSession = node(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name: typeSession,
 		Interfaces: []*graphql.Interface{

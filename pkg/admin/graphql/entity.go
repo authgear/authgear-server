@@ -12,29 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
-	IDFetcher: func(id string, info graphql.ResolveInfo, ctx context.Context) (interface{}, error) {
-		// If the ID is invalid, we should return null instead of returning an error.
-		// This behavior conforms the schema.
-		resolvedID := relay.FromGlobalID(id)
-		if resolvedID == nil {
-			return nil, nil
-		}
-		resolver, ok := resolvers[resolvedID.Type]
-		if !ok {
-			return nil, nil
-		}
-		return resolver(GQLContext(ctx), resolvedID.ID)
-	},
-	TypeResolve: func(params graphql.ResolveTypeParams) *graphql.Object {
-		objType, ok := entityTypes[reflect.TypeOf(params.Value)]
-		if !ok {
-			panic(fmt.Sprintf("graphql: unknown value type: %T", params.Value))
-		}
-		return objType
-	},
-})
-
 var entityInterface = graphql.NewInterface(graphql.InterfaceConfig{
 	Name: "Entity",
 	Fields: graphql.Fields{
@@ -52,24 +29,13 @@ var entityInterface = graphql.NewInterface(graphql.InterfaceConfig{
 		},
 	},
 	ResolveType: func(params graphql.ResolveTypeParams) *graphql.Object {
-		objType, ok := entityTypes[reflect.TypeOf(params.Value)]
+		objType, ok := typeMapping[reflect.TypeOf(params.Value)]
 		if !ok {
 			panic(fmt.Sprintf("graphql: unknown value type: %T", params.Value))
 		}
 		return objType
 	},
 })
-
-type EntityResolver func(ctx *Context, id string) (interface{}, error)
-
-var resolvers = map[string]EntityResolver{}
-var entityTypes = map[reflect.Type]*graphql.Object{}
-
-func entity(schema *graphql.Object, modelType interface{}, resolver EntityResolver) *graphql.Object {
-	resolvers[schema.Name()] = resolver
-	entityTypes[reflect.TypeOf(modelType)] = schema
-	return schema
-}
 
 type EntityRef interface {
 	GetMeta() model.Meta
