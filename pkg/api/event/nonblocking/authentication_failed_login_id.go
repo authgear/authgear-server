@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	AuthenticationFailedLoginID event.Type = "authentication.failed.identity.login_id"
+	AuthenticationFailedLoginID event.Type = "authentication.identity.login_id.failed"
 )
 
 type AuthenticationFailedLoginIDEventPayload struct {

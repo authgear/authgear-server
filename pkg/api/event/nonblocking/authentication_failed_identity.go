@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	AuthenticationFailedIdentityFormat string = "authentication.failed.identity.%s"
+	AuthenticationFailedIdentityFormat string = "authentication.identity.%s.failed"
 )
 
 type AuthenticationFailedIdentityEventPayload struct {
