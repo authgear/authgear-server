@@ -17,6 +17,15 @@
 			<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
 
+				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center">
+					{{ if $.ClientName }}
+					{{ template "log-in-to-continue" (dict "AppOrClientName" $.ClientName) }}
+					{{ else }}
+					{{ $appName := ($.Translations.RenderText "app.name" nil) }}
+					{{ template "log-in-to-continue" (dict "AppOrClientName" $appName) }}
+					{{ end }}
+				</h1>
+
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
 				<div class="margin-b-20 phone-input">
 					<select class="select primary-txt" name="x_calling_code">

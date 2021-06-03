@@ -29,6 +29,16 @@
 		<div class="width-full margin-t-40 margin-b-20">
 			<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
+
+				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center">
+					{{ if $.ClientName }}
+					{{ template "sign-up-to-continue" (dict "AppOrClientName" $.ClientName) }}
+					{{ else }}
+					{{ $appName := ($.Translations.RenderText "app.name" nil) }}
+					{{ template "sign-up-to-continue" (dict "AppOrClientName" $appName) }}
+					{{ end }}
+				</h1>
+
 				<input type="hidden" name="x_login_id_key" value="{{ $.x_login_id_key }}">
 
 				{{ range $.IdentityCandidates }}
