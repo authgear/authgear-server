@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
-{{ template "__message_bar.html" . }}
-<main class="content">
-	{{ template "__nav_bar.html" }}
+{{ template "__page_frame.html" . }}
 
-	<div class="pane margin-6 flex flex-direction-column">
-	{{ template "__header.html" . }}
-	<div class="padding-6 flex flex-direction-column">
-		<h1 class="font-inherit margin-10 primary-txt">
+{{ define "page-content" }}
+<main class="content">
+	<div class="pane flex flex-direction-column">
+	{{ template "__nav_bar.html" }}
+	<div class="flex flex-direction-column width-full margin-v-20">
+		<h1 class="font-inherit primary-txt text-center margin-t-0 margin-b-20">
 			{{ template "recovery-code-title" }}
 		</h1>
 
-		<section class="margin-10 recovery-code-list-section">
-			<p class="margin-v-10 primary-txt">{{ template "recovery-code-storage-description" }}</p>
-			<div class="margin-10 code-list-container">
+		<section class="recovery-code-list-section">
+			<p class="font-smaller primary-txt text-center margin-t-0 margin-b-20">{{ template "recovery-code-storage-description" }}</p>
+			<div class="margin-b-20 code-list-container">
 				<ol class="margin-0 padding-0 code-list">
 					{{ range $.RecoveryCodes }}
 						<li class="code-item">{{ . }}</li>
@@ -23,25 +19,25 @@
 				</ol>
 			</div>
 
-			<p class="margin-v-10 primary-txt">{{ template "recovery-code-consumption-description" }}</p>
+			<p class="font-smaller primary-txt text-center margin-t-0 margin-b-20">{{ template "recovery-code-consumption-description" }}</p>
 		</section>
 
-		<section class="margin-10 recovery-code-action-section">
-			<form method="post" novalidate target="_blank">
+		<section class="margin-b-20 recovery-code-action-section">
+			<form method="post" class="action" novalidate target="_blank">
 				{{ $.CSRFField }}
-				<button class="action btn primary-btn" type="submit" name="x_action" value="download" data-form-xhr="false">
+				<button class="btn primary-btn" type="submit" name="x_action" value="download" data-form-xhr="false">
 					{{ template "download-button-label" }}
 				</button>
 			</form>
-			<form method="post" novalidate>
+			<form method="post" class="action" novalidate>
 				{{ $.CSRFField }}
-				<button class="action btn primary-btn" type="submit" name="x_action" value="proceed">
+				<button class="btn primary-btn" type="submit" name="x_action" value="proceed">
 					{{ template "next-button-label" }}
 				</button>
 			</form>
 		</section>
 	</div>
+	<div class="footer-watermark margin-v-20"></div>
 	</div>
 </main>
-</body>
-</html>
+{{ end }}

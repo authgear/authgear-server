@@ -1,32 +1,29 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
-<main class="content">
-{{ template "__nav_bar.html" }}
+{{ template "__page_frame.html" . }}
 
-<div class="pane margin-6 flex flex-direction-column">
-{{ template "__header.html" . }}
-<div class="padding-6 flex flex-direction-column">
+{{ define "page-content" }}
+<main class="content">
+<div class="pane flex flex-direction-column">
+{{ template "__nav_bar.html" }}
+<div class="flex flex-direction-column width-full margin-v-20">
 
 {{ if .Error }}
     {{ if eq .Error.reason "DisabledUser" }}
-        <p class="margin-10">{{ template "error-disabled-user" }}</p>
+        <p class="primary-txt margin-b-20 text-center">{{ template "error-disabled-user" }}</p>
         {{ if .Error.info.reason }}
-            <p class="margin-10">{{ template "error-disabled-user-reason" (dict "reason" .Error.info.reason) }}</p>
+            <p class="primary-txt margin-b-20 text-center">{{ template "error-disabled-user-reason" (dict "reason" .Error.info.reason) }}</p>
         {{ else }}
-            <p class="margin-10">{{ template "error-disabled-user-no-reason" }}</p>
+            <p class="primary-txt margin-b-20 text-center">{{ template "error-disabled-user-no-reason" }}</p>
         {{ end }}
     {{ else }}
-        <p class="margin-10">{{ template "error-blocked-user" }}</p>
+        <p class="primary-txt margin-b-20 text-center">{{ template "error-blocked-user" }}</p>
     {{ end }}
 {{ else }}
-    <p class="margin-10">{{ template "error-blocked-user" }}</p>
+    <p class="primary-txt margin-b-20 text-center">{{ template "error-blocked-user" }}</p>
 {{ end }}
 
 </div>
+<div class="footer-watermark margin-v-20"></div>
 </div>
 
 </main>
-</body>
-</html>
+{{ end }}

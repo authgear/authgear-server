@@ -11,6 +11,7 @@ var TemplateWebErrorHTML = template.RegisterHTML("web/__error.html")
 var TemplateWebMessageBarHTML = template.RegisterHTML("web/__message_bar.html")
 var TemplateWebAlternativeStepsHTML = template.RegisterHTML("web/__alternatives.html")
 var TemplateWebPasswordPolicyHTML = template.RegisterHTML("web/__password_policy.html")
+var TemplateWebPageFrameHTML = template.RegisterHTML("web/__page_frame.html")
 
 var components = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -20,4 +21,5 @@ var components = []*template.HTML{
 	TemplateWebMessageBarHTML,
 	TemplateWebAlternativeStepsHTML,
 	TemplateWebPasswordPolicyHTML,
+	TemplateWebPageFrameHTML,
 }

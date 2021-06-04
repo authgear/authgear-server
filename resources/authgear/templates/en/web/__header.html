@@ -16,7 +16,7 @@
 {{ end }}
 
 
-{{ define "__header.html" }}
+{{ define "__banner_link.html" }}
 {{ if $.ClientURI }}
 <a class="not-a banner-frame" href="{{ $.ClientURI }}">
     {{ template "__banner.html" . }}
@@ -26,4 +26,13 @@
     {{ template "__banner.html" . }}
 </div>
 {{ end }}
+{{ end }}
+
+
+{{ define "__header.html" }}
+<div class="banner-wrapper">
+    <div class="banner-frame-wrapper">
+        {{ template "__banner_link.html" . }}
+    </div>
+</div>
 {{ end }}

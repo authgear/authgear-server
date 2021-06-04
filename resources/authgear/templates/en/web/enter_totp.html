@@ -1,18 +1,14 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
-{{ template "__message_bar.html" . }}
+{{ template "__page_frame.html" . }}
+
+{{ define "page-content" }}
 <div class="content">
+<div class="pane flex flex-direction-column">
 {{ template "__nav_bar.html" }}
+<div class="flex flex-direction-column width-full margin-v-20">
 
-<div class="pane margin-6 flex flex-direction-column">
-{{ template "__header.html" . }}
-<div class="padding-6 flex flex-direction-column">
+<h1 class="font-inherit text-center margin-t-0 margin-b-20">{{ template "enter-totp-title" }}</h1>
 
-<h1 class="font-inherit margin-10 primary-txt">{{ template "enter-totp-title" }}</h1>
-
-<p class="font-smaller overflow-wrap-break-word primary-txt margin-10">{{ template "enter-totp-description" }}</p>
+<p class="font-smaller overflow-wrap-break-word primary-txt text-center margin-t-0 margin-b-20">{{ template "enter-totp-description" }}</p>
 
 <form class="flex flex-direction-column" method="post" novalidate>
 {{ $.CSRFField }}
@@ -20,7 +16,7 @@
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-10"
+	class="input text-input primary-txt margin-b-20"
 	type="text"
 	inputmode="numeric"
 	pattern="[0-9]*"
@@ -31,23 +27,22 @@
 >
 
 {{ if $.CanRequestDeviceToken }}
-<div class="flex flex-direction-row align-items-center align-self-flex-start margin-10">
+<div class="flex flex-direction-row align-items-center align-self-flex-start margin-b-20">
 <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
 <label class="padding-4 font-smaller primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
 </div>
 {{ end }}
 
-<button class="btn primary-btn align-self-flex-end margin-10" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn margin-b-20" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
 </form>
 
-<div class="margin-10">
+<div>
 {{ template "__alternatives.html" . }}
 </div>
 
 </div>
+<div class="footer-watermark margin-v-20"></div>
 </div>
-
 </div>
-</body>
-</html>
+{{ end }}

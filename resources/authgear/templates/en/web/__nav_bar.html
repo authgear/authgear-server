@@ -2,12 +2,12 @@
 <div class="nav-bar">
 	{{ if not . }}
 	<button
-		class="btn back-btn secondary-btn"
+		class="btn back-btn icon-btn"
 		type="button"
 		title="{{ template "back-button-title" }}"
 	>
-		<i class="fas fa-chevron-left" aria-hidden="true"></i>
-		{{ template "back-button-title" }}
+		<i class="fas fa-arrow-left" aria-hidden="true"></i>
+		<span class="margin-h-4">{{ template "back-button-title" }}</span>
 	</button>
 	{{ end }}
 </div>

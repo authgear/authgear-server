@@ -19,15 +19,15 @@
   --color-text-shaded-7: #151515;
   --color-text-shaded-8: #0b0b0b;
 
-  --color-background-unshaded: #ffffff;
-  --color-background-shaded-1: #767676;
-  --color-background-shaded-2: #a6a6a6;
-  --color-background-shaded-3: #c8c8c8;
-  --color-background-shaded-4: #d0d0d0;
-  --color-background-shaded-5: #dadada;
-  --color-background-shaded-6: #eaeaea;
-  --color-background-shaded-7: #f4f4f4;
-  --color-background-shaded-8: #f8f8f8;
+  --color-background-unshaded: #f8f8f8;
+  --color-background-shaded-1: #dcdcdc;
+  --color-background-shaded-2: #c1c1c1;
+  --color-background-shaded-3: #a6a6a6;
+  --color-background-shaded-4: #8b8b8b;
+  --color-background-shaded-5: #6f6f6f;
+  --color-background-shaded-6: #545454;
+  --color-background-shaded-7: #393939;
+  --color-background-shaded-8: #1e1e1e;
 
   --color-error-unshaded: #e23d3d;
   --color-error-shaded-1: #fef6f6;
@@ -144,7 +144,8 @@
   --color-status-dark: #8a8886;
 
   --color-pane-background: #ffffff;
-  --color-pane-shadow: rgba(0, 0, 0, 0.25);
+  --color-pane-shadow: rgba(0, 0, 0, 0.05);
+  --color-pane-border: #e5e5e5;
 
   --color-separator: #e5e5e5;
 
@@ -154,6 +155,8 @@
   --color-password-strength-meter-3: var(--color-warn);
   --color-password-strength-meter-4: #baca58;
   --color-password-strength-meter-5: var(--color-good);
+
+  --color-recovery-code-list-background: #eaeaea;
 }
 
 .banner-frame {
@@ -206,6 +209,20 @@
 }
 .secondary-btn:disabled {
   color: var(--color-white-shaded-2);
+}
+
+.icon-btn {
+  color: var(--color-text-unshaded);
+  background-color: transparent;
+}
+.icon-btn:hover, .icon-btn:focus {
+  color: var(--color-text-shaded-4);
+}
+.icon-btn:active {
+  color: var(--color-text-shaded-7);
+}
+.icon-btn:disabled {
+  color: var(--color-text-shaded-2);
 }
 
 /* <a> does not have disabled attribute */

@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
-{{ template "__message_bar.html" . }}
-<main class="content">
-{{ template "__nav_bar.html" }}
+{{ template "__page_frame.html" . }}
 
-<div class="pane margin-6 flex flex-direction-column">
-{{ template "__header.html" . }}
-<div class="padding-6 flex flex-direction-column">
-  <section class="margin-h-14 padding-v-10 gap-8 row-sep grid grid-title-desc">
+{{ define "page-content" }}
+<main class="content settings-content">
+<div class="pane flex flex-direction-column">
+<div class="flex flex-direction-column">
+  {{ template "__nav_bar.html" }}
+  <section class="padding-20 gap-4 row-sep grid grid-title-desc">
     <h1 class="grid-area-title margin-0 font-inherit primary-txt">
       {{ template "settings-identity-title" }}
     </h1>
@@ -36,7 +32,7 @@
   {{ end }}
 
   {{- if not $skip -}}
-  <section class="margin-h-14 padding-v-10 row-sep grid grid-icon-name-claim-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2">
     {{ $fa := "" }}
 
     {{ if eq .type "oauth" }}
@@ -56,8 +52,8 @@
 
     {{ end }}
 
-    <i class="grid-area-icon align-self-start justify-self-center margin-2 primary-txt {{ $fa }}" aria-hidden="true"></i>
-    <h2 class="grid-area-name align-self-center font-inherit margin-0 primary-txt">
+    <i class="grid-area-icon align-self-start justify-self-start margin-0 primary-txt leading-normal {{ $fa }}" aria-hidden="true"></i>
+    <p class="grid-area-name align-self-center font-smaller margin-0 primary-txt leading-normal">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
         {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
@@ -73,10 +69,10 @@
         {{ if eq .login_id_type "username" }}{{ template "settings-identity-login-id-username" }}{{ end }}
         {{ if eq .login_id_type "raw" }}{{ template "settings-identity-login-id-raw" }}{{ end }}
       {{ end }}
-    </h2>
+    </p>
 
     {{ if .display_id }}
-    <h3 class="grid-area-claim align-self-center font-smaller margin-0 secondary-txt text-ellipsis">
+    <p class="grid-area-claim align-self-center font-smaller margin-0 secondary-txt text-ellipsis leading-normal">
       {{ .display_id }}
 
       <!-- TODO(verification): show verification for all identity types -->
@@ -94,7 +90,7 @@
       {{ end }}
       {{ end }}
       {{ end }}
-    </h3>
+    </p>
     {{ end }}
 
     {{ if eq .type "oauth" }}
@@ -103,18 +99,18 @@
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
+    <button class="btn destructive-btn font-smaller" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
     {{ else }}
-    <button class="btn secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
+    <button class="btn secondary-btn font-smaller" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
     {{ end }}{{ end }}
     </form>
     {{ end }}
 
     {{ if eq .type "login_id" }}
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
+    <a class="link grid-area-action1 align-self-center justify-self-end font-smaller" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
     {{ else }}
-    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+    <a class="link grid-area-action1 align-self-center justify-self-end font-smaller" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
       {{ if eq .login_id_type "username" }}
       {{ template "setup-button-label" }}
       {{ else }}
@@ -147,5 +143,4 @@
 </div>
 
 </main>
-</body>
-</html>
+{{ end }}

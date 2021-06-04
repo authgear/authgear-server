@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
-{{ template "__message_bar.html" . }}
+{{ template "__page_frame.html" . }}
+
+{{ define "page-content" }}
 <div class="content">
+<div class="pane flex flex-direction-column">
 {{ template "__nav_bar.html" }}
+<div class="flex flex-direction-column width-full margin-v-20">
 
-<div class="pane margin-6 flex flex-direction-column">
-{{ template "__header.html" . }}
-<div class="padding-6 flex flex-direction-column">
-
-<h1 class="font-inherit margin-10 primary-txt">
+<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center">
 	{{ if $.IdentityID }}
 	{{ template "enter-login-id-page-title--change" (dict "key" $.LoginIDKey) }}
 	{{ else }}
@@ -19,7 +15,7 @@
 </h1>
 
 {{ if $.IdentityID }}
-<p class="font-smaller margin-10 overflow-wrap-break-word secondary-txt">
+<p class="font-smaller margin-t-0 margin-b-20 overflow-wrap-break-word secondary-txt text-center">
 	{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
 </p>
 {{ end }}
@@ -29,7 +25,7 @@
 {{ $.CSRFField }}
 
 {{ if eq .LoginIDInputType "phone" }}
-<div class="phone-input margin-10">
+<div class="phone-input margin-b-20">
 	<select class="select primary-txt" name="x_calling_code">
 		{{ range $.CountryCallingCodes }}
 		<option
@@ -59,7 +55,7 @@
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-10"
+	class="input text-input primary-txt margin-b-20"
 	type="{{ .LoginIDInputType }}"
 	autocomplete="username"
 	autocapitalize="none"
@@ -68,19 +64,18 @@
 >
 {{ end }}
 
-<div class="flex flex-direction-row-reverse justify-content-space-between margin-10">
-	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
-	{{ if .IdentityID }}
-	<button form="remove-form" class="btn secondary-btn" type="submit" name="x_action" value="remove">
-		{{ if eq .LoginIDType "username" }}
-		{{ template "remove-button-label" }}
-		{{ else }}
-		{{ template "disconnect-button-label" }}
-		{{ end }}
-	</button>
+<button form="main-form" class="btn primary-btn margin-b-20" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
+
+{{ if .IdentityID }}
+<button form="remove-form" class="btn secondary-btn margin-b-20 text-left" type="submit" name="x_action" value="remove">
+	{{ if eq .LoginIDType "username" }}
+	{{ template "remove-button-label" }}
+	{{ else }}
+	{{ template "disconnect-button-label" }}
 	{{ end }}
-</div>
+</button>
+{{ end }}
 
 </form>
 
@@ -89,8 +84,8 @@
 </form>
 
 </div>
-</div>
 
+<div class="footer-watermark margin-v-20"></div>
 </div>
-</body>
-</html>
+</div>
+{{ end }}

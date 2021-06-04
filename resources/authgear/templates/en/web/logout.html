@@ -1,29 +1,21 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
+{{ template "__page_frame.html" . }}
+
+{{ define "page-content" }}
 <main class="content">
-
-
+<div class="pane flex flex-direction-column">
 {{ template "__nav_bar.html" }}
-
-<div class="pane margin-6 flex flex-direction-column">
-{{ template "__header.html" . }}
-<div class="padding-6 flex flex-direction-column">
-  <section class="margin-h-14 padding-v-10 gap-8 row-sep grid grid-title-action">
-    <h2 class="grid-area-title font-inherit primary-txt">
-      {{ template "logout-button-hint" }}
-    </h2>
-    <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
-    <form class="grid-area-action flex align-items-center" method="post" novalidate>
-      {{ $.CSRFField }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
-    </form>
-  </section>
-
+<div class="flex flex-direction-column width-full margin-v-20">
+  <h2 class="font-inherit primary-txt text-center margin-b-20">
+    {{ template "logout-button-hint" }}
+  </h2>
+  <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
+  <form class="flex flex-direction-column margin-b-20" method="post" novalidate>
+    {{ $.CSRFField }}
+    <button class="btn primary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
+  </form>
+  <div class="footer-watermark margin-v-20"></div>
 </div>
 </div>
 
 </main>
-</body>
-</html>
+{{ end }}

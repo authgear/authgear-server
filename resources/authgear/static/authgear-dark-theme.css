@@ -20,15 +20,15 @@
     --color-text-shaded-7: #f4f4f4;
     --color-text-shaded-8: #f8f8f8;
 
-    --color-background-unshaded: #000000;
-    --color-background-shaded-1: #898989;
-    --color-background-shaded-2: #737373;
-    --color-background-shaded-3: #595959;
-    --color-background-shaded-4: #373737;
-    --color-background-shaded-5: #2f2f2f;
-    --color-background-shaded-6: #252525;
-    --color-background-shaded-7: #151515;
-    --color-background-shaded-8: #0b0b0b;
+    --color-background-unshaded: #f8f8f8;
+    --color-background-shaded-1: #dcdcdc;
+    --color-background-shaded-2: #c1c1c1;
+    --color-background-shaded-3: #a6a6a6;
+    --color-background-shaded-4: #8b8b8b;
+    --color-background-shaded-5: #6f6f6f;
+    --color-background-shaded-6: #545454;
+    --color-background-shaded-7: #393939;
+    --color-background-shaded-8: #1e1e1e;
 
     --color-google-unshaded: #4285f4;
     --color-google-shaded-1: #f7faff;
@@ -41,10 +41,13 @@
     --color-google-shaded-8: #254b89;
 
     --color-pane-background: #252525;
+    --color-pane-border: #252525;
 
     --color-separator: #3e3e3e;
 
     --color-password-strength-meter-0: #8a8886;
+
+    --color-signin-signup-link-current: #ffffff;
   }
 }
 
@@ -173,7 +176,24 @@
 
 @media (prefers-color-scheme: dark) {
   .signin-signup-link.current {
-    border-bottom: 2px solid var(--color-primary-shaded-5);
-    color: var(--color-primary-shaded-5);
+    border-bottom: 2px solid var(--color-signin-signup-link-current);
+    color: var(--color-signin-signup-link-current);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .wechat {
+    /* The class is used in both WeChat login button and login proceed button */
+    color: var(--color-white-unshaded);
+    background-color: var(--color-wechat-unshaded);
+  }
+  .wechat:hover, .wechat:focus {
+    background-color: var(--color-wechat-shaded-4);
+  }
+  .wechat:active {
+    background-color: var(--color-wechat-shaded-7);
+  }
+  .wechat:disabled {
+    background-color: var(--color-wechat-shaded-2);
   }
 }

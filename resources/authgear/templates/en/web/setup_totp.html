@@ -1,37 +1,31 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
-{{ template "__message_bar.html" . }}
+{{ template "__page_frame.html" . }}
+
+{{ define "page-content" }}
 <div class="content">
+<div class="setup-totp pane flex flex-direction-column">
 {{ template "__nav_bar.html" }}
+<div class="flex flex-direction-column width-full margin-v-20">
 
-<div class="setup-totp pane margin-6 flex flex-direction-column">
-{{ template "__header.html" . }}
-<div class="padding-6 flex flex-direction-column">
-
-<h1 class="font-inherit margin-10 primary-txt">
+<h1 class="font-inherit primary-txt text-center margin-t-0 margin-b-20">
 	{{ template "setup-totp-title" }}
 </h1>
+
+<p class="font-smaller primary-txt text-center margin-t-0 margin-b-20">{{ template "setup-totp-description" }}</p>
+
+<p class="font-smaller overflow-wrap-break-word primary-txt white-space-pre text-center margin-t-0 margin-b-20 leading-normal">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
 
 <form class="flex flex-direction-column" method="post" novalidate>
 
 {{ $.CSRFField }}
 
-<img class="qr-code-image" src="{{ $.ImageURI }}">
+<img class="qr-code-image margin-b-20" src="{{ $.ImageURI }}">
 
-<p class="font-smaller overflow-wrap-break-word primary-txt margin-10">{{ template "setup-totp-get-google-authenticator-description" }}</p>
-
-<p class="font-smaller overflow-wrap-break-word primary-txt white-space-pre margin-10">{{ template "setup-totp-use-google-authenticator-description" }}</p>
-
-<p class="font-smaller overflow-wrap-break-word primary-txt white-space-pre margin-10">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
-
-<p class="font-smaller overflow-wrap-break-word primary-txt white-space-pre margin-10">{{ template "setup-totp-code-description" }}</p>
+<p class="font-smaller overflow-wrap-break-word primary-txt text-center white-space-pre margin-t-0 margin-b-20">{{ template "setup-totp-code-description" }}</p>
 
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-10"
+	class="input text-input primary-txt margin-b-20"
 	type="text"
 	inputmode="numeric"
 	pattern="[0-9]*"
@@ -41,17 +35,20 @@
 	placeholder="{{ template "setup-totp-code-placeholder" }}"
 >
 
-<button class="btn primary-btn align-self-flex-end margin-10" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn margin-b-20" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
+
+<p class="font-smaller overflow-wrap-break-word primary-txt margin-t-0 margin-b-20">{{ template "setup-totp-get-google-authenticator-description" }}</p>
+
+<p class="font-smaller overflow-wrap-break-word primary-txt white-space-pre margin-t-0 margin-b-20">{{ template "setup-totp-use-google-authenticator-description" }}</p>
 
 </form>
 
-<div class="margin-10">
+<div>
 {{ template "__alternatives.html" . }}
 </div>
-
-</div>
 </div>
 
+<div class="footer-watermark margin-v-20"></div>
 </div>
-</body>
-</html>
+</div>
+{{ end }}

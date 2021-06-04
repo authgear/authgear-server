@@ -1,11 +1,7 @@
-<!DOCTYPE html>
-<html>
-{{ template "__html_head.html" . }}
-<body class="page">
-{{ template "__message_bar.html" . }}
-<main class="content">
-{{ template "__nav_bar.html" }}
+{{ template "__page_frame.html" . }}
 
+{{ define "page-content" }}
+<main class="content settings-content">
 {{ $has_secondary_totp := false }}
 {{ $has_secondary_oob_otp_email := false }}
 {{ $has_secondary_oob_otp_sms := false }}
@@ -29,11 +25,11 @@
 {{ $show_secondary_oob_otp_sms := (or $has_secondary_oob_otp_sms $.SecondaryOOBOTPSMSAllowed) }}
 {{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
 
-<div class="pane margin-6 flex flex-direction-column">
-{{ template "__header.html" . }}
-<div class="padding-6 flex flex-direction-column">
+<div class="pane flex flex-direction-column">
+<div class="flex flex-direction-column">
+  {{ template "__nav_bar.html" }}
   <!-- Title -->
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title">
+  <section class="padding-20 row-sep gap-4 grid grid-title">
     <h3 class="grid-area-title margin-0 font-inherit primary-txt">
       {{ template "settings-page-mfa-section-title" }}
     </h3>
@@ -41,24 +37,25 @@
 
   <!-- Secondary TOTP -->
   {{ if $show_secondary_totp }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <p class="grid-area-title margin-0 font-inherit primary-txt">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-mobile-alt grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-secondary-totp-title" }}
     </p>
     {{ if $has_secondary_totp }}
-    <p class="grid-area-desc margin-0 font-smaller good-txt">
+    <p class="grid-area-desc margin-0 good-txt font-smaller leading-normal">
       {{ template "activated-label" }}
     </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/totp">
+    <a class="link grid-area-action1 justify-self-end font-smaller leading-normal" href="/settings/mfa/totp">
       {{ template "details-button-label" }}
     </a>
     {{ else }}
-    <p class="grid-area-desc margin-0 font-smaller warn-txt">
+    <p class="grid-area-desc margin-0 warn-txt font-smaller leading-normal">
       {{ template "inactive-label" }}
     </p>
     <form class="grid-area-action1 justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="add_secondary_totp">
+      <button class="btn secondary-btn font-smaller leading-normal" type="submit" name="x_action" value="add_secondary_totp">
         {{ template "configure-button-label" }}
       </button>
     </form>
@@ -68,24 +65,25 @@
 
   <!-- Secondary OOB OTP Email -->
   {{ if $show_secondary_oob_otp_email }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <p class="grid-area-title margin-0 font-inherit primary-txt">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="far fa-envelope grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-secondary-oob-otp-email-title" }}
     </p>
     {{ if $has_secondary_oob_otp_email }}
-    <p class="grid-area-desc margin-0 font-smaller good-txt">
+    <p class="grid-area-desc margin-0 font-smaller leading-normal good-txt">
       {{ template "activated-label" }}
     </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp_email">
+    <a class="link grid-area-action1 justify-self-end font-smaller leading-normal" href="/settings/mfa/oob_otp_email">
       {{ template "details-button-label" }}
     </a>
     {{ else }}
-    <p class="grid-area-desc margin-0 font-smaller warn-txt">
+    <p class="grid-area-desc margin-0 font-smaller leading-normal warn-txt">
       {{ template "inactive-label" }}
     </p>
     <form class="grid-area-action1 justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="add_secondary_oob_otp_email">
+      <button class="btn secondary-btn font-smaller leading-normal" type="submit" name="x_action" value="add_secondary_oob_otp_email">
         {{ template "configure-button-label" }}
       </button>
     </form>
@@ -94,24 +92,25 @@
   {{ end }}
 
   {{ if $show_secondary_oob_otp_sms }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <p class="grid-area-title margin-0 font-inherit primary-txt">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-mobile-alt grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-secondary-oob-otp-sms-title" }}
     </p>
     {{ if $has_secondary_oob_otp_sms }}
-    <p class="grid-area-desc margin-0 font-smaller good-txt">
+    <p class="grid-area-desc margin-0 good-txt font-smaller leading-normal">
       {{ template "activated-label" }}
     </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/oob_otp_sms">
+    <a class="link grid-area-action1 justify-self-end font-smaller leading-normal" href="/settings/mfa/oob_otp_sms">
       {{ template "details-button-label" }}
     </a>
     {{ else }}
-    <p class="grid-area-desc margin-0 font-smaller warn-txt">
+    <p class="grid-area-desc margin-0 warn-txt font-smaller leading-normal">
       {{ template "inactive-label" }}
     </p>
     <form class="grid-area-action1 justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="add_secondary_oob_otp_sms">
+      <button class="btn secondary-btn font-smaller leading-normal" type="submit" name="x_action" value="add_secondary_oob_otp_sms">
         {{ template "configure-button-label" }}
       </button>
     </form>
@@ -122,29 +121,30 @@
 
   <!-- Secondary Password -->
   {{ if $show_secondary_password }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <p class="grid-area-title margin-0 font-inherit primary-txt">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-lock grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-secondary-password-title" }}
     </p>
     {{ if $secondary_password }}
-    <p class="grid-area-desc margin-0 font-smaller good-txt">
+    <p class="grid-area-desc margin-0 good-txt font-smaller leading-normal">
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt) }}
     </p>
-    <a class="grid-area-action1 justify-self-end btn secondary-btn" href="/settings/mfa/change_secondary_password">
+    <a class="grid-area-action1 justify-self-end btn secondary-btn font-smaller leading-normal" href="/settings/mfa/change_secondary_password">
       {{ template "change-password-button-label" }}
     </a>
     <form class="grid-area-action2 justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ $secondary_password.ID }}">
-      <button class="btn destructive-btn" type="submit" name="x_action" value="remove_secondary_password">
+      <button class="btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="remove_secondary_password">
         {{ template "remove-button-label" }}
       </button>
     </form>
     {{ else }}
     <form class="link grid-area-action1 justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
+      <button class="btn secondary-btn font-smaller leading-normal" type="submit" name="x_action" value="setup_secondary_password">
         {{ template "setup-password-button-label" }}
       </button>
     </form>
@@ -154,14 +154,15 @@
 
   <!-- Recovery code -->
   {{ if (and $has_mfa $.ListRecoveryCodesAllowed) }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <h3 class="grid-area-title margin-0 font-inherit primary-txt">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-user-shield grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-recovery-code-title" }}
-    </h3>
-    <p class="grid-area-desc margin-0 font-smaller secondary-txt">
+    </p>
+    <p class="grid-area-desc margin-0 secondary-txt font-smaller leading-normal">
       {{ template "settings-page-recovery-code-description" }}
     </p>
-    <a class="link grid-area-action1 justify-self-end" href="/settings/mfa/recovery_code">
+    <a class="link grid-area-action1 justify-self-end font-smaller leading-normal" href="/settings/mfa/recovery_code">
       {{ template "show-recovery-code-button-label" }}
     </a>
   </section>
@@ -169,19 +170,20 @@
 
   <!-- Revoke all device tokens -->
   {{ if $has_mfa }}
-  <section class="margin-h-14 padding-v-10 row-sep gap-8 grid grid-title-desc-action1-action2">
-    <h3 class="grid-area-title margin-0 font-inherit primary-txt">
+  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
+    <i class="fas fa-user-shield grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
       {{ template "settings-page-trusted-devices-title" }}
-    </h3>
+    </p>
   {{ if $.HasDeviceTokens }}
   <form class="grid-area-desc margin-0" method="post" novalidate>
     {{ $.CSRFField }}
-    <button class="justify-self-start btn destructive-btn" type="submit" name="x_action" value="revoke_devices">
+    <button class="justify-self-start btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="revoke_devices">
       {{ template "revoke-all-device-tokens-button-label" }}
     </button>
   </form>
   {{ else }}
-  <p class="grid-area-desc margin-0 font-smaller secondary-txt">
+  <p class="grid-area-desc margin-0 font-smaller leading-normal secondary-txt">
     {{ template "no-device-tokens-description" }}
   </p>
   {{ end }}
@@ -192,5 +194,4 @@
 </div>
 
 </main>
-</body>
-</html>
+{{ end }}

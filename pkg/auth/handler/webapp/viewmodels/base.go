@@ -36,6 +36,7 @@ type BaseViewModel struct {
 	CountryCallingCodes []string
 	// ClientURI is the home page of the client.
 	ClientURI             string
+	ClientName            string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
 	MakeCurrentStepURL    func(pairs ...string) string
@@ -101,6 +102,10 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	clientID := clientid.GetClientID(r.Context())
 	client, _ := m.OAuth.GetClient(clientID)
 	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
+	clientName := ""
+	if client != nil {
+		clientName = client.Name
+	}
 	model := BaseViewModel{
 		RequestURL:   r.URL.String(),
 		RequestURI:   requestURI.String(),
@@ -118,6 +123,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		DarkThemeEnabled:    !m.AuthUI.DarkThemeDisabled,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
 		ClientURI:           clientURI,
+		ClientName:          clientName,
 		SliceContains:       sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL
