@@ -289,14 +289,16 @@
 </div>
 
 {{ if $.ClientURI }}
-<form class="flex flex-direction-row-reverse margin-b-20" method="post">
-{{ $.CSRFField }}
-<a class="link margin-6" href="{{ $.ClientURI }}">
-  <i class="fas fa-home"></i>
-  {{ template "back-to-app-label" }}
-</a>
-</form>
+<div class="pane margin-b-20">
+  <section class="padding-20 flex justify-center">
+    <a class="link" href="{{ $.ClientURI }}">
+      <i class="fas fa-home"></i>
+      {{ template "back-to-app-label" }}
+    </a>
+  </section>
+</div>
 {{ end }}
+
 
 </main>
 {{ end }}

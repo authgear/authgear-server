@@ -544,6 +544,10 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
 }
 
+.justify-center {
+  justify-content: center;
+}
+
 .justify-end {
   justify-content: flex-end;
 }
