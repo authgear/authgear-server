@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import React, { useContext, useMemo, useCallback } from "react";
 import cn from "classnames";
 import {
   IColumn,
@@ -6,8 +6,10 @@ import {
   SelectionMode,
   DetailsListLayoutMode,
   ShimmeredDetailsList,
+  Link as FluentLink,
 } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
+import ReactRouterLink from "../../ReactRouterLink";
 import PaginationWidget from "../../PaginationWidget";
 import { AuditLogListQuery_auditLogs } from "./__generated__/AuditLogListQuery";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -15,6 +17,8 @@ import { extractRawID } from "../../util/graphql";
 import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./AuditLogList.module.scss";
+
+const PLACEHOLDER = "-";
 
 export interface AuditLogListProps {
   className?: string;
@@ -96,6 +100,24 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
     return items;
   }, [edges, locale]);
 
+  const onRenderItemColumn = useCallback(
+    (item: AuditLogListItem, _index?: number, column?: IColumn) => {
+      const href = `../users/${item.userID}/details/`;
+      const text = item[column?.key as keyof AuditLogListItem] ?? PLACEHOLDER;
+      switch (column?.key) {
+        case "rawUserID":
+          return (
+            <ReactRouterLink to={href} component={FluentLink}>
+              {text}
+            </ReactRouterLink>
+          );
+        default:
+          return <span>{text}</span>;
+      }
+    },
+    []
+  );
+
   return (
     <>
       <div className={cn(styles.root, className)}>
@@ -106,6 +128,7 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
             enableUpdateAnimations={false}
             selectionMode={SelectionMode.none}
             layoutMode={DetailsListLayoutMode.justified}
+            onRenderItemColumn={onRenderItemColumn}
             columns={columns}
             items={items}
           />
