@@ -11,6 +11,7 @@ import { Context } from "@oursky/react-messageformat";
 import PaginationWidget from "../../PaginationWidget";
 import { AuditLogListQuery_auditLogs } from "./__generated__/AuditLogListQuery";
 import { formatDatetime } from "../../util/formatDatetime";
+import { extractRawID } from "../../util/graphql";
 import useDelayedValue from "../../hook/useDelayedValue";
 
 import styles from "./AuditLogList.module.scss";
@@ -30,6 +31,7 @@ interface AuditLogListItem {
   activityType: string;
   createdAt: string;
   userID: string | null;
+  rawUserID: string | null;
 }
 
 const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
@@ -65,8 +67,8 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
       columnActionsMode: ColumnActionsMode.disabled,
     },
     {
-      key: "userID",
-      fieldName: "userID",
+      key: "rawUserID",
+      fieldName: "rawUserID",
       name: renderToString("AuditLogList.column.user-id"),
       minWidth: 430,
       columnActionsMode: ColumnActionsMode.disabled,
@@ -79,11 +81,14 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
       for (const edge of edges) {
         const node = edge?.node;
         if (node != null) {
+          const userID = node.user?.id ?? null;
+          const rawUserID = userID ? extractRawID(userID) : null;
           items.push({
             id: node.id,
+            userID,
+            rawUserID,
             createdAt: formatDatetime(locale, node.createdAt)!,
             activityType: node.activityType,
-            userID: node.user?.id ?? null,
           });
         }
       }
