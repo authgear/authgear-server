@@ -1,8 +1,12 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import React, { useState, useMemo, useCallback, useContext } from "react";
+import { ICommandBarItemProps, IDropdownOption } from "@fluentui/react";
+import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { gql, useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import AuditLogList from "./AuditLogList";
+import CommandBarDropdown, {
+  CommandBarDropdownProps,
+} from "../../CommandBarDropdown";
 import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
 import { encodeOffsetToCursor } from "../../util/pagination";
@@ -10,14 +14,19 @@ import {
   AuditLogListQuery,
   AuditLogListQueryVariables,
 } from "./__generated__/AuditLogListQuery";
+import { AuditLogActivityType } from "./__generated__/globalTypes";
 
 import styles from "./AuditLogScreen.module.scss";
 
 const pageSize = 10;
 
 const QUERY = gql`
-  query AuditLogListQuery($pageSize: Int!, $cursor: String) {
-    auditLogs(first: $pageSize, after: $cursor) {
+  query AuditLogListQuery(
+    $pageSize: Int!
+    $cursor: String
+    $activityTypes: [AuditLogActivityType!]
+  ) {
+    auditLogs(first: $pageSize, after: $cursor, activityTypes: $activityTypes) {
       edges {
         node {
           id
@@ -33,8 +42,39 @@ const QUERY = gql`
   }
 `;
 
+function CommandBarDropdownWrapper(props: ICommandBarItemProps) {
+  const { dropdownProps } = props;
+  return <CommandBarDropdown {...dropdownProps} />;
+}
+
 const AuditLogScreen: React.FC = function AuditLogScreen() {
   const [offset, setOffset] = useState(0);
+  const [selectedKey, setSelectedKey] = useState("ALL");
+
+  const { renderToString } = useContext(Context);
+
+  const activityTypeOptions = useMemo(() => {
+    const options = [
+      {
+        key: "ALL",
+        text: renderToString("AuditLogActivityType.ALL"),
+      },
+    ];
+    for (const key of Object.keys(AuditLogActivityType)) {
+      options.push({
+        key: key,
+        text: renderToString("AuditLogActivityType." + key),
+      });
+    }
+    return options;
+  }, [renderToString]);
+
+  const activityTypes: AuditLogActivityType[] | null = useMemo(() => {
+    if (selectedKey === "ALL") {
+      return null;
+    }
+    return [selectedKey] as AuditLogActivityType[];
+  }, [selectedKey]);
 
   const items = useMemo(() => {
     return [{ to: ".", label: <FormattedMessage id="AuditLogScreen.title" /> }];
@@ -58,6 +98,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     variables: {
       pageSize,
       cursor,
+      activityTypes,
     },
     fetchPolicy: "network-only",
   });
@@ -69,11 +110,45 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     return null;
   }, [error, refetch]);
 
+  const onChangeSelectedKey = useCallback(
+    (_e: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
+      if (item != null && typeof item.key === "string") {
+        setOffset(0);
+        setSelectedKey(item.key);
+      }
+    },
+    []
+  );
+
+  const dropdownProps: CommandBarDropdownProps = useMemo(() => {
+    return {
+      selectedKey,
+      placeholder: "",
+      label: "",
+      options: activityTypeOptions,
+      iconProps: {
+        iconName: "PC1",
+      },
+      onChange: onChangeSelectedKey,
+    };
+  }, [selectedKey, onChangeSelectedKey, activityTypeOptions]);
+
+  const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
+    return [
+      {
+        key: "activityTypes",
+        commandBarButtonAs: CommandBarDropdownWrapper,
+        dropdownProps,
+      },
+    ];
+  }, [dropdownProps]);
+
   return (
     <CommandBarContainer
       isLoading={loading}
       className={styles.root}
       messageBar={messageBar}
+      farItems={commandBarFarItems}
     >
       <main className={styles.content}>
         <NavBreadcrumb items={items} />

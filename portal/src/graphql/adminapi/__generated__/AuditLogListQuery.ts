@@ -58,4 +58,5 @@ export interface AuditLogListQuery {
 export interface AuditLogListQueryVariables {
   pageSize: number;
   cursor?: string | null;
+  activityTypes?: AuditLogActivityType[] | null;
 }

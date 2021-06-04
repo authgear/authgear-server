@@ -92,13 +92,15 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
             userID,
             rawUserID,
             createdAt: formatDatetime(locale, node.createdAt)!,
-            activityType: node.activityType,
+            activityType: renderToString(
+              "AuditLogActivityType." + node.activityType
+            ),
           });
         }
       }
     }
     return items;
-  }, [edges, locale]);
+  }, [edges, locale, renderToString]);
 
   const onRenderItemColumn = useCallback(
     (item: AuditLogListItem, _index?: number, column?: IColumn) => {
