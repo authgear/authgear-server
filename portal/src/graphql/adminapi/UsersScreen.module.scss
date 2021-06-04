@@ -1,11 +1,12 @@
 .root {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  height: 100%;
 }
 
 .content {
   flex: 1 0 0%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   margin: 0 32px;
@@ -13,6 +14,7 @@
 
 .usersList {
   flex: 1 0 0%;
+  min-height: 0;
 }
 
 .searchBox {

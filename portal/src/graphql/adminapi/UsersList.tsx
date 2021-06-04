@@ -255,18 +255,19 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <ShimmeredDetailsList
-          className={styles.list}
-          enableShimmer={loading}
-          enableUpdateAnimations={false}
-          onRenderRow={onRenderUserRow}
-          onRenderItemColumn={onRenderUserItemColumn}
-          onColumnHeaderClick={onColumnHeaderClick}
-          selectionMode={SelectionMode.none}
-          layoutMode={DetailsListLayoutMode.justified}
-          columns={columns}
-          items={items}
-        />
+        <div className={styles.listWrapper}>
+          <ShimmeredDetailsList
+            enableShimmer={loading}
+            enableUpdateAnimations={false}
+            onRenderRow={onRenderUserRow}
+            onRenderItemColumn={onRenderUserItemColumn}
+            onColumnHeaderClick={onColumnHeaderClick}
+            selectionMode={SelectionMode.none}
+            layoutMode={DetailsListLayoutMode.justified}
+            columns={columns}
+            items={items}
+          />
+        </div>
         <PaginationWidget
           className={styles.pagination}
           offset={offset}

@@ -1,13 +1,12 @@
 .root {
   display: flex;
   flex-direction: column;
-  > :global(.ms-Viewport) {
-    display: contents;
-  }
 }
 
-.list {
-  flex: 1 0 0;
+.listWrapper {
+  flex: 1 0 0%;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .pagination {
