@@ -112,12 +112,17 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 20px;
 }
 
+.nav-bar .back-btn {
+  margin-top: 32px;
+  margin-bottom: 12px;
+}
+
 .settings-content .nav-bar {
-  margin: 0 20px;
+  margin: 0 16px;
 }
 
 .settings-content .nav-bar .back-btn {
-  margin: 20px 0;
+  margin: 18px 0;
 }
 
 @media (min-width: 641px) {
@@ -149,6 +154,8 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .nav-bar {
+    display: flex;
+    flex-direction: row;
     margin: 0 32px;
   }
 }

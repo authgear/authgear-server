@@ -2,8 +2,6 @@
 
 {{ define "page-content" }}
 <main class="content settings-content">
-{{ template "__nav_bar.html" }}
-
 {{ $has_secondary_totp := false }}
 {{ $has_secondary_oob_otp_email := false }}
 {{ $has_secondary_oob_otp_sms := false }}
@@ -29,6 +27,7 @@
 
 <div class="pane flex flex-direction-column">
 <div class="flex flex-direction-column">
+  {{ template "__nav_bar.html" }}
   <!-- Title -->
   <section class="padding-20 row-sep gap-4 grid grid-title">
     <h3 class="grid-area-title margin-0 font-inherit primary-txt">

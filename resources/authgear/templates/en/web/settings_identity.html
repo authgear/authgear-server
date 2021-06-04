@@ -2,10 +2,9 @@
 
 {{ define "page-content" }}
 <main class="content settings-content">
-{{ template "__nav_bar.html" }}
-
 <div class="pane flex flex-direction-column">
 <div class="flex flex-direction-column">
+  {{ template "__nav_bar.html" }}
   <section class="padding-20 gap-4 row-sep grid grid-title-desc">
     <h1 class="grid-area-title margin-0 font-inherit primary-txt">
       {{ template "settings-identity-title" }}

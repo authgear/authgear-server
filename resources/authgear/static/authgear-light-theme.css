@@ -211,6 +211,20 @@
   color: var(--color-white-shaded-2);
 }
 
+.icon-btn {
+  color: var(--color-text-unshaded);
+  background-color: transparent;
+}
+.icon-btn:hover, .icon-btn:focus {
+  color: var(--color-text-shaded-4);
+}
+.icon-btn:active {
+  color: var(--color-text-shaded-7);
+}
+.icon-btn:disabled {
+  color: var(--color-text-shaded-2);
+}
+
 /* <a> does not have disabled attribute */
 a:not(.not-a), a:not(.not-a):visited, .link, .link:visited {
   color: var(--color-primary-unshaded);
