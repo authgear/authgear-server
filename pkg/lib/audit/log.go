@@ -7,6 +7,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 )
 
+// Log represents an audit log entry.
+// The keys in JSON struct tags are in camel case
+// because this struct is directly returned in the GraphQL endpoint.
+// Making the keys in camel case saves us from writing boilerplate resolver code.
 type Log struct {
 	ID           string                 `json:"id"`
 	CreatedAt    time.Time              `json:"createdAt"`
