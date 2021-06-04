@@ -90,6 +90,7 @@
   "ScreenNav.sessions": "Sessions",
   "ScreenNav.webhooks": "Webhooks",
   "ScreenNav.settings": "Settings",
+  "ScreenNav.audit-log": "Audit Log",
 
   "NavBreadcrumb.label": "Nested navigation",
 

@@ -121,6 +121,10 @@ const links: NavLinkProps[] = [
       },
     ],
   },
+  {
+    textKey: "ScreenNav.audit-log",
+    url: "audit-log",
+  },
 ];
 
 const ScreenNav: React.FC = function ScreenNav() {
