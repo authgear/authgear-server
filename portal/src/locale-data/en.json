@@ -666,6 +666,12 @@
   "ThemePreviewWidget.wechat-button-label": "Login with WeChat",
   "ThemePreviewWidget.disclaimer": "By registering, you agree to our {a, react, className{{className}} children{Terms of Service}} and {a, react, className{{className}} children{Privacy Policy}}",
 
+  "AuditLogScreen.title": "Audit Log",
+
+  "AuditLogList.column.activity-type": "Activity Type",
+  "AuditLogList.column.created-at": "Timestamp",
+  "AuditLogList.column.user-id": "User ID",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",

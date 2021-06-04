@@ -1,0 +1,15 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.listWrapper {
+  flex: 1 0 0%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.pagination {
+  align-self: flex-end;
+  margin: 12px 16px;
+}
