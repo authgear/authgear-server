@@ -16,3 +16,9 @@
   flex: 1 0 0%;
   min-height: 0;
 }
+
+.hidden {
+  width: 0;
+  height: 0;
+  visibility: hidden;
+}

@@ -668,6 +668,10 @@
   "ThemePreviewWidget.disclaimer": "By registering, you agree to our {a, react, className{{className}} children{Terms of Service}} and {a, react, className{{className}} children{Privacy Policy}}",
 
   "AuditLogScreen.title": "Audit Log",
+  "AuditLogScreen.date-range.all": "Full Date Range",
+  "AuditLogScreen.date-range.custom": "Custom Date Range",
+  "AuditLogScreen.date-range.start-date": "Start Date",
+  "AuditLogScreen.date-range.end-date": "End Date",
 
   "AuditLogList.column.activity-type": "Activity Type",
   "AuditLogList.column.created-at": "Timestamp",
