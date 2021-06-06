@@ -11,6 +11,7 @@ import {
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { gql, useQuery } from "@apollo/client";
+import { DateTime } from "luxon";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import AuditLogList from "./AuditLogList";
 import CommandBarDropdown, {
@@ -35,8 +36,16 @@ const QUERY = gql`
     $pageSize: Int!
     $cursor: String
     $activityTypes: [AuditLogActivityType!]
+    $rangeFrom: DateTime
+    $rangeTo: DateTime
   ) {
-    auditLogs(first: $pageSize, after: $cursor, activityTypes: $activityTypes) {
+    auditLogs(
+      first: $pageSize
+      after: $cursor
+      activityTypes: $activityTypes
+      rangeFrom: $rangeFrom
+      rangeTo: $rangeTo
+    ) {
       edges {
         node {
           id
@@ -79,6 +88,23 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     commit: commitRangeTo,
     rollback: rollbackRangeTo,
   } = useTranactionalState<Date | null>(null);
+
+  const queryRangeFrom = useMemo(() => {
+    if (rangeFrom != null) {
+      return rangeFrom.toISOString();
+    }
+    return null;
+  }, [rangeFrom]);
+
+  const queryRangeTo = useMemo(() => {
+    if (rangeTo != null) {
+      return DateTime.fromJSDate(rangeTo)
+        .plus({ days: 1 })
+        .toJSDate()
+        .toISOString();
+    }
+    return null;
+  }, [rangeTo]);
 
   const isCustomDateRange = rangeFrom != null || rangeTo != null;
 
@@ -130,6 +156,8 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       pageSize,
       cursor,
       activityTypes,
+      rangeFrom: queryRangeFrom,
+      rangeTo: queryRangeTo,
     },
     fetchPolicy: "network-only",
   });

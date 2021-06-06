@@ -59,4 +59,6 @@ export interface AuditLogListQueryVariables {
   pageSize: number;
   cursor?: string | null;
   activityTypes?: AuditLogActivityType[] | null;
+  rangeFrom?: GQL_DateTime | null;
+  rangeTo?: GQL_DateTime | null;
 }
