@@ -2,6 +2,16 @@
 
 {{ define "page-content" }}
 <div class="content">
+	{{ $has_oauth := false }}
+	{{ $has_login_id := false }}
+	{{ range $.IdentityCandidates }}
+		{{ if eq .type "oauth" }}
+		{{ $has_oauth = true }}
+		{{ end }}
+		{{ if eq .type "login_id" }}
+		{{ $has_login_id = true }}
+		{{ end }}
+	{{ end }}
 	{{ if $.PublicSignupDisabled }}
 	<div class="pane margin-6 flex flex-direction-column">
 	<div class="padding-6 flex flex-direction-column">
@@ -16,11 +26,11 @@
 	{{ else }}
 	<div class="pane flex flex-direction-column">
 	<div class="flex flex-direction-column">
-		<div class="width-full margin-t-40 margin-b-20">
+		<div class="width-full margin-v-20">
 			<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
 
-				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center">
+				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center leading-loose">
 					{{ if $.ClientName }}
 					{{ template "sign-up-to-continue" (dict "AppOrClientName" $.ClientName) }}
 					{{ else }}
@@ -85,30 +95,16 @@
 				{{ end }}{{ end }}
 				{{ end }}
 
+				{{ if $has_login_id }}
 				<button class="btn primary-btn margin-b-20" type="submit" name="x_action" value="login_id">
 					{{ template "next-button-label" }}
 				</button>
+				{{ end }}
 			</form>
 
-			{{ $has_oauth := false }}
-			{{ $has_login_id := false }}
-			{{ range $.IdentityCandidates }}
-				{{ if eq .type "oauth" }}
-				{{ $has_oauth = true }}
-				{{ end }}
-				{{ if eq .type "login_id" }}
-				{{ $has_login_id = true }}
-				{{ end }}
-			{{ end }}
 			{{ if $has_oauth }}{{ if $has_login_id }}
 			<div class="sso-loginid-separator flex flex-direction-row align-items-center margin-b-20">
 				<span class="primary-txt margin-h-6">{{ template "sso-login-id-separator-both-present" }}</span>
-			</div>
-			{{ end }}{{ end }}
-
-			{{ if $has_oauth }}{{ if not $has_login_id }}
-			<div class="text-center margin-b-20">
-				{{ template "sso-login-id-separator-oauth-present" }}
 			</div>
 			{{ end }}{{ end }}
 

@@ -2,22 +2,32 @@
 
 {{ define "page-content" }}
 <div class="content">
+	{{ $has_oauth := false }}
+	{{ $has_login_id := false }}
+	{{ range $.IdentityCandidates }}
+		{{ if eq .type "oauth" }}
+		{{ $has_oauth = true }}
+		{{ end }}
+		{{ if eq .type "login_id" }}
+		{{ $has_login_id = true }}
+		{{ end }}
+	{{ end }}
 	<div class="pane flex flex-direction-column">
 	<div class="flex flex-direction-column">
-		{{ if not $.PublicSignupDisabled }}
-		<div class="signin-signup-switch flex flex-direction-row">
+		{{ if not $.PublicSignupDisabled }}{{ if $has_login_id }}
+		<div class="signin-signup-switch flex flex-direction-row margin-b-20">
 			<a class="not-a signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
 			<a class="not-a signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 		</div>
-		{{ end }}
+		{{ end }}{{ end }}
 
 		{{ template "__nav_bar.html" true }}
 
-		<div class="width-full margin-t-40 margin-b-20">
+		<div class="width-full margin-v-20">
 			<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
 
-				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center">
+				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center leading-loose">
 					{{ if $.ClientName }}
 					{{ template "log-in-to-continue" (dict "AppOrClientName" $.ClientName) }}
 					{{ else }}
@@ -86,26 +96,10 @@
 			</form>
 
 			{{/* Separator */}}
-			{{ $has_oauth := false }}
-			{{ $has_login_id := false }}
-			{{ range $.IdentityCandidates }}
-				{{ if eq .type "oauth" }}
-				{{ $has_oauth = true }}
-				{{ end }}
-				{{ if eq .type "login_id" }}
-				{{ $has_login_id = true }}
-				{{ end }}
-			{{ end }}
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
 			<div class="sso-loginid-separator flex flex-direction-row align-items-center margin-b-20">
 				<span class="primary-txt margin-h-6">{{ template "sso-login-id-separator-both-present" }}</span>
-			</div>
-			{{ end }}{{ end }}
-
-			{{ if $has_oauth }}{{ if not $has_login_id }}
-			<div class="text-center margin-b-20">
-				{{ template "sso-login-id-separator-oauth-present" }}
 			</div>
 			{{ end }}{{ end }}
 
