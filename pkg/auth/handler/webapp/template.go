@@ -12,6 +12,7 @@ var TemplateWebMessageBarHTML = template.RegisterHTML("web/__message_bar.html")
 var TemplateWebAlternativeStepsHTML = template.RegisterHTML("web/__alternatives.html")
 var TemplateWebPasswordPolicyHTML = template.RegisterHTML("web/__password_policy.html")
 var TemplateWebPageFrameHTML = template.RegisterHTML("web/__page_frame.html")
+var TemplateWebModalHTML = template.RegisterHTML("web/__modal.html")
 
 var components = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -22,4 +23,5 @@ var components = []*template.HTML{
 	TemplateWebAlternativeStepsHTML,
 	TemplateWebPasswordPolicyHTML,
 	TemplateWebPageFrameHTML,
+	TemplateWebModalHTML,
 }
