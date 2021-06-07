@@ -1,8 +1,9 @@
 import React, { useMemo, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { Text, TextField, Label } from "@fluentui/react";
+import { Text, Label } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { gql, useQuery } from "@apollo/client";
+import { CopyBlock, dracula } from "react-code-blocks";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
@@ -176,7 +177,16 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
         <Label>
           <FormattedMessage id="AuditLogEntryScreen.raw-event-log" />
         </Label>
-        <TextField value={code} readOnly={true} multiline={true} rows={15} />
+        {code != null && (
+          <div className={styles.codeBlock}>
+            <CopyBlock
+              text={code}
+              language="json"
+              codeBlock={true}
+              theme={dracula}
+            />
+          </div>
+        )}
       </main>
     </CommandBarContainer>
   );
