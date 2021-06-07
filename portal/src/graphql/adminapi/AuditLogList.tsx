@@ -104,18 +104,30 @@ const AuditLogList: React.FC<AuditLogListProps> = function AuditLogList(props) {
 
   const onRenderItemColumn = useCallback(
     (item: AuditLogListItem, _index?: number, column?: IColumn) => {
-      const href = `../users/${item.userID}/details/`;
       const text = item[column?.key as keyof AuditLogListItem] ?? PLACEHOLDER;
+
+      let href: string | null = null;
       switch (column?.key) {
+        case "activityType":
+          href = `./${item.id}/details/`;
+          break;
         case "rawUserID":
-          return (
-            <ReactRouterLink to={href} component={FluentLink}>
-              {text}
-            </ReactRouterLink>
-          );
+          if (item.userID != null) {
+            href = `../users/${item.userID}/details/`;
+          }
+          break;
         default:
-          return <span>{text}</span>;
+          break;
       }
+
+      if (href != null) {
+        return (
+          <ReactRouterLink to={href} component={FluentLink}>
+            {text}
+          </ReactRouterLink>
+        );
+      }
+      return <span>{text}</span>;
     },
     []
   );
