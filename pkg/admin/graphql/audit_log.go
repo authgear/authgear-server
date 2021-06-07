@@ -102,7 +102,7 @@ var nodeAuditLog = node(
 			nodeDefs.NodeInterface,
 		},
 		Fields: graphql.Fields{
-			"id": relay.GlobalIDField(typeUser, nil),
+			"id": relay.GlobalIDField(typeAuditLog, nil),
 			"createdAt": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.DateTime),
 			},
