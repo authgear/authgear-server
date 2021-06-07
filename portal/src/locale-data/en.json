@@ -677,6 +677,15 @@
   "AuditLogList.column.created-at": "Timestamp",
   "AuditLogList.column.user-id": "User ID",
 
+  "AuditLogEntryScreen.title": "Log Details",
+  "AuditLogEntryScreen.activity-type": "Activity Type: {type}",
+  "AuditLogEntryScreen.user-id": "User ID: {id}",
+  "AuditLogEntryScreen.logged-at": "Logged at: {datetime}",
+  "AuditLogEntryScreen.ip-address": "IP Address: {ip}",
+  "AuditLogEntryScreen.user-agent": "User Agent: {userAgent}",
+  "AuditLogEntryScreen.client-id": "Client ID: {clientID}",
+  "AuditLogEntryScreen.raw-event-log": "Raw Event Log",
+
   "AuditLogActivityType.ALL": "All activity types",
 
   "AuditLogActivityType.AUTHENTICATION_IDENTITY_ANONYMOUS_FAILED": "Anonymous user login failed",
