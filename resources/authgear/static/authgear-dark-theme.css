@@ -144,8 +144,8 @@
   .apple:disabled {
     background-color: var(--color-white-shaded-2);
   }
-  .apple .sso-btn-icon {
-    color: var(--color-apple-unshaded);
+  .apple .sso-btn-icon.apple-icon {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAjCAYAAABo4wHSAAAACXBIWXMAABYlAAAWJQFJUiTwAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAG2SURBVHgBvZc9LENRGIZfImJjsYggYWFhYfDbAYPNRMTQQU1GqygTm6SJSAw1ioHF3kEiEjUgMaoEkSCoQRDU++XcysntuW0T/fokT5qcntv3/N9ToPR00xDKQAWdoSc0Q7fzVa7C/6mj+7TPKruFItLoC5je2Y5CkRVHYApmuFVopK+O0F4oEnYELkCZDSvskUaKfbDQ6m2m1TBzdEPfrO+u6R5N0nX6Tltok1f/gV565QWRLbAI03p76L69kAlf/X4ao8/IHe4PGvcaE8h4wMN+pY4cBHdF1BV/vI7kMAszFBlFoxKUndMWmIWhtr9IGmae/ziCbg9lOgbtwBHlQHHa3+1V5cAzf2AlHYAua3CEtkOXczhCa6HLPRyh2tTAEZqGLoNwhKpeLcgUHKGH0CVEh/yhSeizRdvsgi7on0hiio7ZwQdlChaXsltmE+WjPvsqk88nmFuDJvIyb7UL5qE/tHF/K2SoNd+rVwi4K/XQF6XQMPIQUQiMoQiWSxgof7CKvntFA34kQefoMMydV87WHfrlqLsLx44o1IIOOkkbYBbZMT0NqNsMsyY66SfMgZNwVfwFgVRzhx92KF0AAAAASUVORK5CYII=');
   }
 }
 
