@@ -355,16 +355,19 @@ window.api.onLoad(() => {
   for (let i = 0; i < buttons.length; i++) {
     const button = buttons[i] as HTMLElement;
 
+    const closeModal = () => {
+      confirmed = false;
+      disposeModal();
+      modal.classList.add("closed");
+    };
+
     const onClickModalAction = (e: Event) => {
       confirmed = true;
       button.click();
     };
 
     const onClickModalCancel = (e: Event) => {
-      if (!confirmed) {
-        disposeModal();
-        modal.classList.add("closed");
-      }
+      closeModal();
     };
 
     const disposeModal = () => {
@@ -375,6 +378,8 @@ window.api.onLoad(() => {
 
     const confirmFormSubmit = (e: Event) => {
       if (confirmed) {
+        // close the modal and perform the default behaviour
+        closeModal();
         return;
       }
       e.preventDefault();
