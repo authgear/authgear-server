@@ -35,8 +35,8 @@
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
-      <button class="grid-area-action align-self-center justify-self-end btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="remove">
-        {{ template "remove-button-label" }}
+      <button class="grid-area-action align-self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
+        <i class="ti ti-circle-minus margin-l-8 padding-v-16"></i>
       </button>
     </form>
   {{ end }}

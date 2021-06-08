@@ -99,23 +99,25 @@
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <button class="btn destructive-btn font-smaller" type="submit" name="x_action" value="unlink_oauth">{{ template "disconnect-button-label" }}</button>
+    <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">
+      <i class="ti ti-unlink margin-l-8 padding-v-16"></i>
+    </button>
     {{ else }}
-    <button class="btn secondary-btn font-smaller" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">{{ template "connect-button-label" }}</button>
+    <button class="btn secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">
+      <i class="ti ti-circle-plus margin-l-8 padding-v-16"></i>
+    </button>
     {{ end }}{{ end }}
     </form>
     {{ end }}
 
     {{ if eq .type "login_id" }}
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <a class="link grid-area-action1 align-self-center justify-self-end font-smaller" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">{{ template "change-button-label" }}</a>
+    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">
+      <i class="ti ti-edit margin-l-8 padding-v-16"></i>
+    </a>
     {{ else }}
-    <a class="link grid-area-action1 align-self-center justify-self-end font-smaller" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
-      {{ if eq .login_id_type "username" }}
-      {{ template "setup-button-label" }}
-      {{ else }}
-      {{ template "connect-button-label" }}
-      {{ end }}
+    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+      <i class="ti ti-circle-plus margin-l-8 padding-v-16"></i>
     </a>
     {{ end }}{{ end }}
     {{ end }}
@@ -127,7 +129,8 @@
     {{ $.CSRFField }}
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     <button class="btn secondary-btn" type="submit" name="x_action" value="verify_login_id">
-      {{ template "resend-verification-code-button-label" }}
+      <!-- FIXME: icon not confirmed -->
+      <i class="ti ti-zoom-check margin-l-8 padding-v-16"></i>
     </button>
     </form>
     {{ end }}

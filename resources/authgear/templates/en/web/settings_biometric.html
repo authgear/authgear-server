@@ -30,8 +30,8 @@
     <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_identity_id" value="{{ .ID }}">
-      <button class="btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="remove">
-	{{ template "remove-button-label" }}
+      <button class="btn destructive-btn" type="submit" name="x_action" value="remove">
+        <i class="ti ti-unlink margin-l-8 padding-v-16"></i>
       </button>
     </form>
   </section>
