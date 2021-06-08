@@ -157,6 +157,8 @@
   --color-password-strength-meter-5: var(--color-good);
 
   --color-recovery-code-list-background: #eaeaea;
+
+  --color-settings-security-item-active-background: rgba(0, 0, 0, 0.03);
 }
 
 .banner-frame {
