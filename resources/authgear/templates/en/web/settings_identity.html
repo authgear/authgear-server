@@ -33,26 +33,26 @@
 
   {{- if not $skip -}}
   <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2">
-    {{ $fa := "" }}
+    {{ $ti := "" }}
 
     {{ if eq .type "oauth" }}
-    {{ if eq .provider_type "google" }}   {{ $fa = "fab fa-google" }}     {{ end }}
-    {{ if eq .provider_type "apple" }}    {{ $fa = "fab fa-apple"  }}     {{ end }}
-    {{ if eq .provider_type "facebook" }} {{ $fa = "fab fa-facebook-f" }} {{ end }}
-    {{ if eq .provider_type "linkedin" }} {{ $fa = "fab fa-linkedin-in" }}{{ end }}
-    {{ if eq .provider_type "azureadv2" }}{{ $fa = "fab fa-microsoft" }}  {{ end }}
-    {{ if eq .provider_type "adfs" }}     {{ $fa = "fab fa-microsoft" }}  {{ end }}
-    {{ if eq .provider_type "wechat" }}   {{ $fa = "fab fa-weixin" }}     {{ end }}
+    {{ if eq .provider_type "google" }}   {{ $ti = "ti ti-brand-google" }}     {{ end }}
+    {{ if eq .provider_type "apple" }}    {{ $ti = "ti ti-brand-apple" }}     {{ end }}
+    {{ if eq .provider_type "facebook" }} {{ $ti = "ti ti-brand-facebook" }} {{ end }}
+    {{ if eq .provider_type "linkedin" }} {{ $ti = "ti ti-brand-linkedin" }}{{ end }}
+    {{ if eq .provider_type "azureadv2" }}{{ $ti = "ti ti-brand-windows" }}  {{ end }}
+    {{ if eq .provider_type "adfs" }}     {{ $ti = "ti ti-brand-windows" }}  {{ end }}
+    {{ if eq .provider_type "wechat" }}   {{ $ti = "ti ti-social" }}     {{ end }}
     {{ end }}
 
     {{ if eq .type "login_id" }}
-    {{ if eq .login_id_type "email" }}   {{ $fa = "fas fa-envelope" }}{{ end }}
-    {{ if eq .login_id_type "username" }}{{ $fa = "fas fa-at" }}      {{ end }}
-    {{ if eq .login_id_type "phone" }}   {{ $fa = "fas fa-phone" }}   {{ end }}
+    {{ if eq .login_id_type "email" }}   {{ $ti = "ti ti-mail" }}{{ end }}
+    {{ if eq .login_id_type "username" }}{{ $ti = "ti ti-at" }}      {{ end }}
+    {{ if eq .login_id_type "phone" }}   {{ $ti = "ti ti-device-mobile" }}   {{ end }}
 
     {{ end }}
 
-    <i class="grid-area-icon align-self-start justify-self-start margin-0 primary-txt leading-normal {{ $fa }}" aria-hidden="true"></i>
+    <i class="grid-area-icon align-self-start justify-self-start font-smaller margin-0 primary-txt leading-normal {{ $ti }}" aria-hidden="true"></i>
     <p class="grid-area-name align-self-center font-smaller margin-0 primary-txt leading-normal">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
