@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin/service"
 	"github.com/authgear/authgear-server/pkg/admin/transport"
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
+	"github.com/authgear/authgear-server/pkg/lib/audit"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -38,6 +39,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(loader.UserLoaderUserService), new(*user.Queries)),
 	wire.Bind(new(loader.IdentityLoaderIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(loader.AuthenticatorLoaderAuthenticatorService), new(*authenticatorservice.Service)),
+	wire.Bind(new(loader.AuditLogQuery), new(*audit.Query)),
 
 	facade.DependencySet,
 	wire.Bind(new(facade.UserService), new(*libfacade.UserFacade)),
@@ -47,16 +49,19 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
 	wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 	wire.Bind(new(facade.SessionManager), new(*session.Manager)),
+	wire.Bind(new(facade.AuditLogQuery), new(*audit.Query)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
 	wire.Bind(new(graphql.IdentityLoader), new(*loader.IdentityLoader)),
 	wire.Bind(new(graphql.AuthenticatorLoader), new(*loader.AuthenticatorLoader)),
+	wire.Bind(new(graphql.AuditLogLoader), new(*loader.AuditLogLoader)),
 	wire.Bind(new(graphql.UserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(graphql.IdentityFacade), new(*facade.IdentityFacade)),
 	wire.Bind(new(graphql.AuthenticatorFacade), new(*facade.AuthenticatorFacade)),
 	wire.Bind(new(graphql.VerificationFacade), new(*facade.VerificationFacade)),
 	wire.Bind(new(graphql.SessionFacade), new(*facade.SessionFacade)),
+	wire.Bind(new(graphql.AuditLogFacade), new(*facade.AuditLogFacade)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),

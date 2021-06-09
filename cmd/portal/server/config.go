@@ -47,6 +47,9 @@ type Config struct {
 	// Search sets search related config.
 	Search portalconfig.SearchConfig `envconfig:"SEARCH"`
 
+	// AuditLog sets audit log related config.
+	AuditLog portalconfig.AuditLogConfig `envconfig:"AUDIT_LOG"`
+
 	*config.EnvironmentConfig
 }
 

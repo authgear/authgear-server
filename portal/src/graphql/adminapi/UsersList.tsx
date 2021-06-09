@@ -18,6 +18,7 @@ import { UserSortBy, SortDirection } from "./__generated__/globalTypes";
 import PaginationWidget from "../../PaginationWidget";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 
+import { extractRawID } from "../../util/graphql";
 import { formatDatetime } from "../../util/formatDatetime";
 import { extractUserInfoFromIdentities } from "../../util/user";
 import { nonNullable } from "../../util/types";
@@ -41,6 +42,7 @@ interface UsersListProps {
 
 interface UserListItem {
   id: string;
+  rawID: string;
   isDisabled: boolean;
   createdAt: string | null;
   username: string | null;
@@ -87,6 +89,13 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
 
   const columns: IColumn[] = [
     {
+      key: "rawID",
+      fieldName: "rawID",
+      name: renderToString("UsersList.column.raw-id"),
+      minWidth: 250,
+      columnActionsMode: ColumnActionsMode.disabled,
+    },
+    {
       key: "username",
       fieldName: "username",
       name: renderToString("UsersList.column.username"),
@@ -111,7 +120,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       key: "createdAt",
       fieldName: "createdAt",
       name: renderToString("UsersList.column.signed-up"),
-      minWidth: 200,
+      minWidth: 150,
       isSorted: sortBy === "CREATED_AT",
       isSortedDescending: sortDirection === SortDirection.DESC,
       iconName: "SortLines",
@@ -121,7 +130,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       key: "lastLoginAt",
       fieldName: "lastLoginAt",
       name: renderToString("UsersList.column.last-login-at"),
-      minWidth: 200,
+      minWidth: 150,
       isSorted: sortBy === "LAST_LOGIN_AT",
       isSortedDescending: sortDirection === SortDirection.DESC,
       iconName: "SortLines",
@@ -155,6 +164,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
           const userInfo = extractUserInfoFromIdentities(identities);
           items.push({
             id: node.id,
+            rawID: extractRawID(node.id),
             isDisabled: node.isDisabled,
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
@@ -255,18 +265,19 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   return (
     <>
       <div className={cn(styles.root, className)}>
-        <ShimmeredDetailsList
-          className={styles.list}
-          enableShimmer={loading}
-          enableUpdateAnimations={false}
-          onRenderRow={onRenderUserRow}
-          onRenderItemColumn={onRenderUserItemColumn}
-          onColumnHeaderClick={onColumnHeaderClick}
-          selectionMode={SelectionMode.none}
-          layoutMode={DetailsListLayoutMode.justified}
-          columns={columns}
-          items={items}
-        />
+        <div className={styles.listWrapper}>
+          <ShimmeredDetailsList
+            enableShimmer={loading}
+            enableUpdateAnimations={false}
+            onRenderRow={onRenderUserRow}
+            onRenderItemColumn={onRenderUserItemColumn}
+            onColumnHeaderClick={onColumnHeaderClick}
+            selectionMode={SelectionMode.none}
+            layoutMode={DetailsListLayoutMode.justified}
+            columns={columns}
+            items={items}
+          />
+        </div>
         <PaginationWidget
           className={styles.pagination}
           offset={offset}

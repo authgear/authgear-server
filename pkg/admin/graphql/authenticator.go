@@ -43,7 +43,7 @@ var authenticatorKind = graphql.NewEnum(graphql.EnumConfig{
 	},
 })
 
-var nodeAuthenticator = entity(
+var nodeAuthenticator = node(
 	graphql.NewObject(graphql.ObjectConfig{
 		Name: typeAuthenticator,
 		Interfaces: []*graphql.Interface{

@@ -12,12 +12,13 @@
   margin: 0 32px;
 }
 
-.usersList {
+.list {
   flex: 1 0 0%;
   min-height: 0;
 }
 
-.searchBox {
-  align-self: center;
-  width: 300px;
+.hidden {
+  width: 0;
+  height: 0;
+  visibility: hidden;
 }

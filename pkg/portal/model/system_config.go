@@ -8,4 +8,5 @@ type SystemConfig struct {
 	Themes                   interface{} `json:"themes,omitempty"`
 	Translations             interface{} `json:"translations,omitempty"`
 	SearchEnabled            bool        `json:"searchEnabled"`
+	AuditLogEnabled          bool        `json:"auditLogEnabled"`
 }

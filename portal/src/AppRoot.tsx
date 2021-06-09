@@ -14,6 +14,8 @@ import AddEmailScreen from "./graphql/adminapi/AddEmailScreen";
 import AddPhoneScreen from "./graphql/adminapi/AddPhoneScreen";
 import AddUsernameScreen from "./graphql/adminapi/AddUsernameScreen";
 import ResetPasswordScreen from "./graphql/adminapi/ResetPasswordScreen";
+import AuditLogScreen from "./graphql/adminapi/AuditLogScreen";
+import AuditLogEntryScreen from "./graphql/adminapi/AuditLogEntryScreen";
 
 import AnonymousUsersConfigurationScreen from "./graphql/portal/AnonymousUsersConfigurationScreen";
 import SingleSignOnConfigurationScreen from "./graphql/portal/SingleSignOnConfigurationScreen";
@@ -162,6 +164,15 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/settings/web-hooks"
             element={<WebhookConfigurationScreen />}
+          />
+          <Route path="/audit-log/" element={<AuditLogScreen />} />
+          <Route
+            path="/audit-log/:logID/"
+            element={<Navigate to="details/" replace={true} />}
+          />
+          <Route
+            path="/audit-log/:logID/details/"
+            element={<AuditLogEntryScreen />}
           />
         </Routes>
       </ScreenLayout>

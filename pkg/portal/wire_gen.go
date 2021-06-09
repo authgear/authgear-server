@@ -240,11 +240,13 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	authgearConfig := rootProvider.AuthgearConfig
 	appConfig := rootProvider.AppConfig
 	searchConfig := rootProvider.SearchConfig
+	auditLogConfig := rootProvider.AuditLogConfig
 	manager := rootProvider.Resources
 	systemConfigProvider := &service.SystemConfigProvider{
 		AuthgearConfig: authgearConfig,
 		AppConfig:      appConfig,
 		SearchConfig:   searchConfig,
+		AuditLogConfig: auditLogConfig,
 		Resources:      manager,
 	}
 	systemConfigHandler := &transport.SystemConfigHandler{

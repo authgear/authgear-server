@@ -417,6 +417,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
+	auditdbHandle := appProvider.AuditDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
+	auditStore := &audit.Store{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: auditdbSQLExecutor,
+	}
+	query := &audit.Query{
+		Database: auditdbHandle,
+		Store:    auditStore,
+	}
+	auditLogLoader := loader.NewAuditLogLoader(query)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
@@ -453,14 +466,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
-	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
 		Database: auditdbHandle,
@@ -605,6 +610,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:             userFacade,
 		Interaction:       serviceInteractionService,
 	}
+	auditLogFacade := &facade2.AuditLogFacade{
+		AuditLogQuery: query,
+	}
 	facadeIdentityFacade := &facade2.IdentityFacade{
 		Identities:  serviceService,
 		Interaction: serviceInteractionService,
@@ -630,7 +638,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:               userLoader,
 		Identities:          identityLoader,
 		Authenticators:      authenticatorLoader,
+		AuditLogs:           auditLogLoader,
 		UserFacade:          facadeUserFacade,
+		AuditLogFacade:      auditLogFacade,
 		IdentityFacade:      facadeIdentityFacade,
 		AuthenticatorFacade: facadeAuthenticatorFacade,
 		VerificationFacade:  verificationFacade,
@@ -638,7 +648,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
-		Database:       handle,
+		AppDatabase:    handle,
+		AuditDatabase:  auditdbHandle,
 	}
 	return graphQLHandler
 }
