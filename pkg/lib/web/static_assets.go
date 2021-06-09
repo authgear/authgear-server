@@ -32,6 +32,15 @@ var AuthgearCSS = resource.RegisterResource(CSSDescriptor{
 	Path: StaticAssetResourcePrefix + "authgear.css",
 })
 
+// NormalizeCSS - normalize.css v8.0.1
+var NormalizeCSS = resource.RegisterResource(CSSDescriptor{
+	Path: StaticAssetResourcePrefix + "normalize.min.css",
+})
+
+var NormalizeCSSMap = resource.RegisterResource(resource.SimpleDescriptor{
+	Path: StaticAssetResourcePrefix + "normalize.min.css.map",
+})
+
 // IconsCSS - Tabler Icons 1.41.1 by tabler - https://tabler.io
 var IconsCSS = resource.RegisterResource(CSSDescriptor{
 	Path: StaticAssetResourcePrefix + "tabler-icons.min.css",
