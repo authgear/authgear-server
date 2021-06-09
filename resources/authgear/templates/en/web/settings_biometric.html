@@ -16,7 +16,7 @@
 
   {{ range $.BiometricIdentities }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="fas fa-mobile-alt grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
+    <i class="ti ti-devices grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
     <h2 class="grid-area-title align-self-center font-smaller leading-normal margin-0 primary-txt">
       {{ if .DisplayName }}
       {{ .DisplayName }}
@@ -30,8 +30,8 @@
     <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_identity_id" value="{{ .ID }}">
-      <button class="btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="remove">
-	{{ template "remove-button-label" }}
+      <button class="btn destructive-btn" type="submit" name="x_action" value="remove">
+        <i class="ti ti-unlink margin-l-8 padding-v-16"></i>
       </button>
     </form>
   </section>

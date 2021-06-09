@@ -5,13 +5,13 @@
 
 {{ if .FlashMessageType }}
 <div class="messages-bar success">
-    <div class="icon"><i class="far fa-check-circle"></i></div>
+    <div class="icon"><i class="ti ti-circle-check"></i></div>
     <ul class="messages-txt">
         {{ if (eq .FlashMessageType "resend_code_success") }}
             <li>{{ template "success-resend-code" }}</li>
         {{ end }}
     </ul>
-    <div class="close"><i class="fas fa-times"></i></div>
+    <div class="close"><i class="ti ti-x"></i></div>
 </div>
 </div>
 {{ end }}

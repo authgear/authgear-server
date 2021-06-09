@@ -402,6 +402,10 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 40px;
 }
 
+.margin-l-8 {
+  margin-left: 8px;
+}
+
 .padding-0 {
   padding: 0;
 }
@@ -459,6 +463,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .padding-v-12 {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.padding-v-16 {
   padding-top: 12px;
   padding-bottom: 12px;
 }
@@ -732,6 +741,12 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0 24px;
 }
 
+.btn.action-btn {
+  height: 28px;
+  border-radius: 2px;
+  padding: 0 24px;
+}
+
 .destructive-btn {
   color: var(--color-error-unshaded);
   background-color: transparent;
@@ -744,29 +759,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 .description-btn:disabled {
   color: var(--color-error-shaded-1);
-}
-
-.remove-btn {
-  font-size: 18px;
-  width: 22px;
-  height: 22px;
-  color: var(--color-text-unshaded);
-}
-
-.remove-btn::before {
-  content: "\00D7";
-}
-
-.remove-btn:hover {
-  opacity: 0.7;
-}
-
-.remove-btn:active {
-  opacity: 0.7;
-}
-
-.remove-btn:disabled {
-  opacity: 0.4;
 }
 
 .page {
@@ -1077,15 +1069,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .grid-title-desc-action1-action2 {
-  grid: "title    action1" auto
-        "desc     action2" auto
-      /  1fr       auto;
+  grid: "title    action1 action2" auto
+        "desc     action1 action2" auto
+      /  1fr      auto auto;
 }
 
 .grid-icon-title-desc-action1-action2 {
-  grid: "icon title    action1" auto
-        "desc desc     action2" auto
-      /  22px 1fr      auto;
+  grid: "icon title    action1 action2" auto
+        "desc desc     action1 action2" auto
+      /  22px 1fr      auto auto;
 }
 
 .grid-title-info-desc-action {
@@ -1096,15 +1088,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .grid-icon-name-claim-action1-action2 {
-  grid: "icon  name   action1" auto
-        "claim  claim  action2" auto
-      /  28px   1fr    auto;
+  grid: "icon  name   action1 action2" auto
+        "claim  claim  action1 action2" auto
+      /  24px   1fr    auto auto;
 }
 
 .grid-icon-name-desc-action {
   grid: "icon  name  action" auto
-        "desc  desc  ......" auto
-      /  28px  1fr   auto    auto;
+        "desc  desc  action" auto
+      /  24px  1fr   auto    auto;
 }
 
 .grid-name-desc-action {
@@ -1249,10 +1241,6 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--color-primary-unshaded);
 }
 
-.settings-security-item:active {
-  background-color: var(--color-settings-security-item-active-background);
-}
-
 @media (max-width: 640px) {
   .settings-security-list {
     grid-template-columns: repeat(2, 1fr);
@@ -1261,6 +1249,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .settings-security-item .icon {
   font-size: 32px;
+  display: block;
 }
 
 .modal {

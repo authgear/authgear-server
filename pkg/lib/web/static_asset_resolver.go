@@ -21,6 +21,14 @@ var StaticAssetResources = map[string]resource.Descriptor{
 	"authgear.css":             AuthgearCSS,
 	"authgear-light-theme.css": AuthgearLightThemeCSS,
 	"authgear-dark-theme.css":  AuthgearDarkThemeCSS,
+	"normalize.min.css":        NormalizeCSS,
+	"normalize.min.css.map":    NormalizeCSSMap,
+	"tabler-icons.min.css":     IconsCSS,
+	"fonts/tabler-icons.eot":   IconsFontEOT,
+	"fonts/tabler-icons.svg":   IconsFontSVG,
+	"fonts/tabler-icons.ttf":   IconsFontTTF,
+	"fonts/tabler-icons.woff":  IconsFontWOFF,
+	"fonts/tabler-icons.woff2": IconsFontWOFF2,
 }
 
 type ResourceManager interface {

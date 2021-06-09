@@ -14,7 +14,7 @@
     {{ end }}
 {{ end }}
 <div class="messages-bar errors-messages-bar errors {{ if not $display_error }}display-none{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
-    <div class="icon"><i class="far fa-times-circle"></i></div>
+    <div class="icon"><i class="ti ti-alert-circle"></i></div>
     <ul class="messages-txt error-txt">
         {{ if $display_error }}
             {{ $info := .Error.info }}
@@ -105,6 +105,6 @@
             {{ end }}
         {{ end }}
     </ul>
-    <div class="close"><i class="fas fa-times"></i></div>
+    <div class="close"><i class="ti ti-x"></i></div>
 </div>
 {{ end }}

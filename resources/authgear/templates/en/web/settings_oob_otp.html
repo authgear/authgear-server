@@ -18,13 +18,13 @@
   {{ range $.Authenticators }}
     <form class="padding-20 row-sep grid grid-icon-name-desc-action" method="post" novalidate>
       {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
-        <i class="grid-area-icon align-self-start justify-self-center margin-2 fas fa-envelope font-smaller leading-normal" aria-hidden="true"></i>
+        <i class="grid-area-icon align-self-start justify-self-center margin-2 ti ti-mail font-smaller leading-normal" aria-hidden="true"></i>
         <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt font-smaller leading-normal">
           {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
         </p>
       {{ end }}
       {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-        <i class="grid-area-icon align-self-start justify-self-center margin-2 fas fa-phone font-smaller leading-normal" aria-hidden="true"></i>
+        <i class="grid-area-icon align-self-start justify-self-center margin-2 ti ti-device-mobile font-smaller leading-normal" aria-hidden="true"></i>
         <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt font-smaller leading-normal">
           {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
         </p>
@@ -35,8 +35,8 @@
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
-      <button class="grid-area-action align-self-center justify-self-end btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="remove">
-        {{ template "remove-button-label" }}
+      <button class="grid-area-action align-self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
+        <i class="ti ti-circle-minus margin-l-8 padding-v-16"></i>
       </button>
     </form>
   {{ end }}

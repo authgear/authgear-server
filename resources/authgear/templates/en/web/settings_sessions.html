@@ -19,8 +19,8 @@
 <div class="padding-20 flex flex-direction-column divide-y">
   <div class="grid grid-icon-title padding-v-12">
     {{ $icon := "" }}
-    {{ if eq .Type "grouped" }}{{ $icon = "mobile-alt" }}{{ else }}{{ $icon = "laptop" }}{{ end }}
-    <i class="grid-area-icon fas fa-{{ $icon }} primary-txt" aria-hidden="true"></i>
+    {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
+    <i class="grid-area-icon ti ti-{{ $icon }} primary-txt" aria-hidden="true"></i>
 
     <h2 class="grid-area-title primary-txt font-inherit margin-0 margin-h-10 text-ellipsis">{{ .DisplayName }}</h2>
   </div>
@@ -45,7 +45,7 @@
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">
       <button
-        class="btn remove-btn flex justify-end"
+        class="btn flex justify-end"
         type="submit"
         name="x_action"
         value="revoke"
@@ -56,6 +56,7 @@
         data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
         data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
       >
+        <i class="ti ti-x margin-l-8 padding-v-16"></i>
       </button>
     </form>
     {{ end }}
