@@ -40,8 +40,8 @@
     --color-google-shaded-7: #3266ba;
     --color-google-shaded-8: #254b89;
 
-    --color-pane-background: #252525;
-    --color-pane-border: #252525;
+    --color-pane-background: #0b0b0b;
+    --color-pane-border: #0b0b0b;
 
     --color-separator: #3e3e3e;
 
@@ -115,6 +115,16 @@
   }
   .secondary-btn:disabled {
     color: var(--color-black-shaded-2);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .action-btn:active {
+    background-color: var(--color-black-shaded-6);
+  }
+
+  .settings-security-item:active {
+    background-color: var(--color-black-shaded-6);
   }
 }
 

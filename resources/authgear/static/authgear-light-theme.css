@@ -157,8 +157,6 @@
   --color-password-strength-meter-5: var(--color-good);
 
   --color-recovery-code-list-background: #eaeaea;
-
-  --color-action-btn-active-background: rgba(0, 0, 0, 0.03);
 }
 
 .banner-frame {
@@ -257,10 +255,14 @@
 .action-btn:active {
   color: var(--color-text-shaded-7);
   border-color: var(--color-primary-unshaded);
-  background-color: var(--color-action-btn-active-background);
+  background-color: var(--color-white-shaded-8);
 }
 .action-btn:disabled {
   color: var(--color-text-shaded-2);
+}
+
+.settings-security-item:active {
+  background-color: var(--color-white-shaded-8);
 }
 
 /* <a> does not have disabled attribute */

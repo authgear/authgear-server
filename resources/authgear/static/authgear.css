@@ -1241,10 +1241,6 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--color-primary-unshaded);
 }
 
-.settings-security-item:active {
-  background-color: var(--color-action-btn-active-background);
-}
-
 @media (max-width: 640px) {
   .settings-security-list {
     grid-template-columns: repeat(2, 1fr);
