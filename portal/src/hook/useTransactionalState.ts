@@ -9,7 +9,7 @@ export interface TransactionalState<T> {
   rollback: () => void;
 }
 
-export default function useTranactionalState<T>(
+export default function useTransactionalState<T>(
   value: T
 ): TransactionalState<T> {
   const [committedValue, setCommittedValue] = useState(value);

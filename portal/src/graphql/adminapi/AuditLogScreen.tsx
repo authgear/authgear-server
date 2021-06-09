@@ -20,7 +20,7 @@ import CommandBarDropdown, {
 import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
 import { encodeOffsetToCursor } from "../../util/pagination";
-import useTranactionalState from "../../hook/useTranactionalState";
+import useTransactionalState from "../../hook/useTransactionalState";
 import {
   AuditLogListQuery,
   AuditLogListQueryVariables,
@@ -78,7 +78,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     setCommittedValue: setRangeFromImmediately,
     commit: commitRangeFrom,
     rollback: rollbackRangeFrom,
-  } = useTranactionalState<Date | null>(null);
+  } = useTransactionalState<Date | null>(null);
 
   const {
     committedValue: rangeTo,
@@ -87,7 +87,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     setCommittedValue: setRangeToImmediately,
     commit: commitRangeTo,
     rollback: rollbackRangeTo,
-  } = useTranactionalState<Date | null>(null);
+  } = useTransactionalState<Date | null>(null);
 
   const queryRangeFrom = useMemo(() => {
     if (rangeFrom != null) {
