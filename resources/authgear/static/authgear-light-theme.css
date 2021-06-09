@@ -202,7 +202,7 @@
   background-color: transparent;
 }
 .secondary-btn:hover, .secondary-btn:focus {
-  color: var(--color-primary-shaded-4);
+  color: var(--color-text-shaded-3);
 }
 .secondary-btn:active {
   color: var(--color-primary-shaded-7);
@@ -216,7 +216,7 @@
   background-color: transparent;
 }
 .icon-btn:hover, .icon-btn:focus {
-  color: var(--color-text-shaded-4);
+  color: var(--color-text-shaded-3);
 }
 .icon-btn:active {
   color: var(--color-text-shaded-7);
@@ -224,6 +224,25 @@
 .icon-btn:disabled {
   color: var(--color-text-shaded-2);
 }
+
+.light-btn {
+  color: var(--color-text-unshaded);
+  background-color: transparent;
+  border: 1px solid var(--color-text-unshaded);
+}
+.light-btn:hover, .light-btn:focus {
+  color: var(--color-text-shaded-4);
+  border: 1px solid var(--color-text-shaded-4);
+}
+.light-btn:active {
+  color: var(--color-text-shaded-7);
+  border: 1px solid var(--color-text-shaded-7);
+}
+.light-btn:disabled {
+  color: var(--color-text-shaded-2);
+  border: 1px solid var(--color-text-shaded-2);
+}
+
 
 /* <a> does not have disabled attribute */
 a:not(.not-a), a:not(.not-a):visited, .link, .link:visited {

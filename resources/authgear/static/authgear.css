@@ -496,6 +496,16 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.5rem;
 }
 
+.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
 .leading-none {
   line-height: 1;
 }
@@ -708,7 +718,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
 }
 
-.btn.primary-btn {
+.btn.primary-btn, .btn.light-btn {
   height: 36px;
   border-radius: 2px;
   padding: 0 24px;
@@ -732,7 +742,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 18px;
   width: 22px;
   height: 22px;
-  color: var(--color-status-dark);
+  color: var(--color-text-unshaded);
 }
 
 .remove-btn::before {
@@ -1211,4 +1221,45 @@ h1, h2, h3, h4, h5, h6 {
 
 .settings-security-item .icon {
   font-size: 32px;
+}
+
+.modal {
+  position: fixed;
+  display: flex;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.25s ease;
+}
+
+.modal.closed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal-overlay {
+  position: absolute;
+  background-color: rgb(17, 24, 39);
+  width: 100%;
+  height: 100%;
+  opacity: .5;
+}
+
+.modal-container {
+  max-width: 480px;
+  width: 95%;
+  z-index: 50;
+  margin-left: auto;
+  margin-right: auto;
+  overflow-y: auto;
+  background-color: var(--color-pane-background);
+  box-shadow: 0px 4px 16px var(--color-pane-shadow);
+  border-radius: 2px;
+}
+
+.modal-content {
+  padding: 20px;
 }

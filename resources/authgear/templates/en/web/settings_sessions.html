@@ -44,7 +44,19 @@
     <form class="grid-area-action align-self-center" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">
-      <button class="btn remove-btn flex justify-end" type="submit" name="x_action" value="revoke" aria-label="{{ template "settings-sessions-revoke-label" }}"></button>
+      <button
+        class="btn remove-btn flex justify-end"
+        type="submit"
+        name="x_action"
+        value="revoke"
+        aria-label="{{ template "settings-sessions-revoke-label" }}"
+        data-modal="confirmation"
+        data-modal-title="{{ template "settings-sessions-confirmation-title" }}"
+        data-modal-body="{{ template "settings-sessions-confirmation-desc" }}"
+        data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
+        data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
+      >
+      </button>
     </form>
     {{ end }}
   </div>
@@ -54,7 +66,17 @@
     <form method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ index .OfflineGrantIDs 0 }}">
-      <button class="btn destructive-btn" type="submit" name="x_action" value="revoke_group">
+      <button
+        class="btn destructive-btn"
+        type="submit"
+        name="x_action"
+        value="revoke_group"
+        data-modal="confirmation"
+        data-modal-title="{{ template "settings-sessions-confirmation-title" }}"
+        data-modal-body="{{ template "settings-sessions-confirmation-group-desc" }}"
+        data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
+        data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
+      >
         {{ template "settings-sessions-revoke-group-label" }}
       </button>
     </form>
@@ -67,7 +89,17 @@
 <div class="padding-20 row-sep">
   <form class="grid-area-action primary-action" method="post" novalidate>
     {{ $.CSRFField }}
-    <button class="btn destructive-btn" type="submit" name="x_action" value="revoke_all">
+    <button
+      class="btn destructive-btn"
+      type="submit"
+      name="x_action"
+      value="revoke_all"
+      data-modal="confirmation"
+      data-modal-title="{{ template "settings-sessions-confirmation-title" }}"
+      data-modal-body="{{ template "settings-sessions-confirmation-all-desc" }}"
+      data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
+      data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
+    >
       {{ template "settings-sessions-revoke-all-label" }}
     </button>
   </form>

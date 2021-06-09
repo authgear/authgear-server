@@ -233,6 +233,12 @@
   "settings-sessions-revoke-label": "Terminate",
   "settings-sessions-revoke-group-label": "Terminate group",
   "settings-sessions-revoke-all-label": "Terminate all sessions",
+  "settings-sessions-confirmation-title": "Terminate Sessions",
+  "settings-sessions-confirmation-desc": "Are you sure to terminate the session?",
+  "settings-sessions-confirmation-group-desc": "Are you sure to terminate all sessions in the group?",
+  "settings-sessions-confirmation-all-desc": "Are you sure to terminate all sessions?",
+  "settings-sessions-confirmation-action-label": "Terminate",
+  "settings-sessions-confirmation-cancel-label": "Cancel",
 
   "settings-oob-otp-email-title": "Channels for receiving verification code via Email",
   "settings-oob-otp-sms-title": "Channels for receiving verification code via SMS",
