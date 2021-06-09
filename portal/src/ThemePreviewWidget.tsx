@@ -121,25 +121,25 @@ function getLightModeStyle(options: GetStyleOptions) {
     "--color-linkedin-shaded-7": "#12618c",
     "--color-linkedin-shaded-8": "#0d4867",
 
-    "--color-azureadv2-unshaded": "#00a2ed",
-    "--color-azureadv2-shaded-1": "#f4fbfe",
-    "--color-azureadv2-shaded-2": "#d4effc",
-    "--color-azureadv2-shaded-3": "#afe2fa",
-    "--color-azureadv2-shaded-4": "#62c6f4",
-    "--color-azureadv2-shaded-5": "#1dadef",
-    "--color-azureadv2-shaded-6": "#0092d5",
-    "--color-azureadv2-shaded-7": "#007bb4",
-    "--color-azureadv2-shaded-8": "#005b85",
+    "--color-azureadv2-unshaded": "#ffffff",
+    "--color-azureadv2-shaded-1": "#767676",
+    "--color-azureadv2-shaded-2": "#a6a6a6",
+    "--color-azureadv2-shaded-3": "#c8c8c8",
+    "--color-azureadv2-shaded-4": "#d0d0d0",
+    "--color-azureadv2-shaded-5": "#dadada",
+    "--color-azureadv2-shaded-6": "#eaeaea",
+    "--color-azureadv2-shaded-7": "#f4f4f4",
+    "--color-azureadv2-shaded-8": "#f8f8f8",
 
-    "--color-adfs-unshaded": "#00a2ed",
-    "--color-adfs-shaded-1": "#f4fbfe",
-    "--color-adfs-shaded-2": "#d4effc",
-    "--color-adfs-shaded-3": "#afe2fa",
-    "--color-adfs-shaded-4": "#62c6f4",
-    "--color-adfs-shaded-5": "#1dadef",
-    "--color-adfs-shaded-6": "#0092d5",
-    "--color-adfs-shaded-7": "#007bb4",
-    "--color-adfs-shaded-8": "#005b85",
+    "--color-adfs-unshaded": "#ffffff",
+    "--color-adfs-shaded-1": "#767676",
+    "--color-adfs-shaded-2": "#a6a6a6",
+    "--color-adfs-shaded-3": "#c8c8c8",
+    "--color-adfs-shaded-4": "#d0d0d0",
+    "--color-adfs-shaded-5": "#dadada",
+    "--color-adfs-shaded-6": "#eaeaea",
+    "--color-adfs-shaded-7": "#f4f4f4",
+    "--color-adfs-shaded-8": "#f8f8f8",
 
     "--color-wechat-unshaded": "#07c160",
     "--color-wechat-shaded-1": "#f3fdf8",
@@ -357,31 +357,13 @@ function SimpleOAuthButton(props: SimpleOAuthButtonProps) {
       className={cn(
         styles.btn,
         styles.ssoBtn,
-        styles.marginB20,
+        styles.marginB8,
         styles[providerType]
       )}
     >
       <span className={styles.ssoBtnContent}>
-        <div className={styles.ssoBtnIcon}>
-          <i className={cn("fab", iconClassName)} aria-hidden="true" />
-        </div>
-        <span className={styles.title}>{title}</span>
-      </span>
-    </button>
-  );
-}
-
-function GoogleButton() {
-  return (
-    <button
-      type="button"
-      className={cn(styles.btn, styles.ssoBtn, styles.marginB20, styles.google)}
-    >
-      <span className={styles.ssoBtnContent}>
-        <div className={cn(styles.ssoBtnIcon, styles.googleIcon)} />
-        <span className={styles.title}>
-          <FormattedMessage id="ThemePreviewWidget.google-button-label" />
-        </span>
+        <div className={cn(styles.ssoBtnIcon, styles[iconClassName])}></div>
+        <span className={cn(styles.title, styles.textSM)}>{title}</span>
       </span>
     </button>
   );
@@ -390,43 +372,52 @@ function GoogleButton() {
 function OAuthForm() {
   return (
     <div
-      className={cn(styles.flex, styles.flexDirectionColumn, styles.widthFull)}
+      className={cn(
+        styles.flex,
+        styles.flexDirectionColumn,
+        styles.widthFull,
+        styles.marginB12
+      )}
     >
       <SimpleOAuthButton
         providerType="apple"
-        iconClassName="fa-apple"
+        iconClassName="appleIcon"
         title={<FormattedMessage id="ThemePreviewWidget.apple-button-label" />}
       />
-      <GoogleButton />
+      <SimpleOAuthButton
+        providerType="google"
+        iconClassName="googleIcon"
+        title={<FormattedMessage id="ThemePreviewWidget.google-button-label" />}
+      />
       <SimpleOAuthButton
         providerType="facebook"
-        iconClassName="fa-facebook-f"
+        iconClassName="facebookIcon"
         title={
           <FormattedMessage id="ThemePreviewWidget.facebook-button-label" />
         }
       />
       <SimpleOAuthButton
         providerType="linkedin"
-        iconClassName="fa-linkedin-in"
+        iconClassName="linkedinIcon"
         title={
           <FormattedMessage id="ThemePreviewWidget.linkedin-button-label" />
         }
       />
       <SimpleOAuthButton
         providerType="azureadv2"
-        iconClassName="fa-microsoft"
+        iconClassName="microsoftIcon"
         title={
           <FormattedMessage id="ThemePreviewWidget.azureadv2-button-label" />
         }
       />
       <SimpleOAuthButton
         providerType="adfs"
-        iconClassName="fa-microsoft"
+        iconClassName="microsoftIcon"
         title={<FormattedMessage id="ThemePreviewWidget.adfs-button-label" />}
       />
       <SimpleOAuthButton
         providerType="wechat"
-        iconClassName="fa-weixin"
+        iconClassName="wechatIcon"
         title={<FormattedMessage id="ThemePreviewWidget.wechat-button-label" />}
       />
     </div>
