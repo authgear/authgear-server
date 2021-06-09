@@ -417,16 +417,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
+	auditdbHandle := appProvider.AuditDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbHandle := appProvider.AuditDatabase
 	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
 	auditStore := &audit.Store{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: auditdbSQLExecutor,
 	}
 	query := &audit.Query{
-		Store: auditStore,
+		Database: auditdbHandle,
+		Store:    auditStore,
 	}
 	auditLogLoader := loader.NewAuditLogLoader(query)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)

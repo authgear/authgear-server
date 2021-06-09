@@ -31,7 +31,14 @@ type GraphQLHandler struct {
 }
 
 func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	err := h.AuditDatabase.ReadOnly(func() error {
+	invoke := func(f func() error) error {
+		return f()
+	}
+	if h.AuditDatabase != nil {
+		invoke = h.AuditDatabase.ReadOnly
+	}
+
+	err := invoke(func() error {
 		return h.AppDatabase.WithTx(func() error {
 			doRollback := false
 			graphqlHandler := handler.New(&handler.Config{
