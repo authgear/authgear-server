@@ -2,22 +2,32 @@
 
 {{ define "page-content" }}
 <div class="content">
+	{{ $has_oauth := false }}
+	{{ $has_login_id := false }}
+	{{ range $.IdentityCandidates }}
+		{{ if eq .type "oauth" }}
+		{{ $has_oauth = true }}
+		{{ end }}
+		{{ if eq .type "login_id" }}
+		{{ $has_login_id = true }}
+		{{ end }}
+	{{ end }}
 	<div class="pane flex flex-direction-column">
 	<div class="flex flex-direction-column">
-		{{ if not $.PublicSignupDisabled }}
-		<div class="signin-signup-switch flex flex-direction-row">
+		{{ if not $.PublicSignupDisabled }}{{ if $has_login_id }}
+		<div class="signin-signup-switch flex flex-direction-row margin-b-20">
 			<a class="not-a signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
 			<a class="not-a signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 		</div>
-		{{ end }}
+		{{ end }}{{ end }}
 
 		{{ template "__nav_bar.html" true }}
 
-		<div class="width-full margin-t-40 margin-b-20">
+		<div class="width-full margin-v-20">
 			<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
 
-				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center">
+				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center leading-loose">
 					{{ if $.ClientName }}
 					{{ template "log-in-to-continue" (dict "AppOrClientName" $.ClientName) }}
 					{{ else }}
@@ -86,16 +96,6 @@
 			</form>
 
 			{{/* Separator */}}
-			{{ $has_oauth := false }}
-			{{ $has_login_id := false }}
-			{{ range $.IdentityCandidates }}
-				{{ if eq .type "oauth" }}
-				{{ $has_oauth = true }}
-				{{ end }}
-				{{ if eq .type "login_id" }}
-				{{ $has_login_id = true }}
-				{{ end }}
-			{{ end }}
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
 			<div class="sso-loginid-separator flex flex-direction-row align-items-center margin-b-20">
@@ -103,13 +103,8 @@
 			</div>
 			{{ end }}{{ end }}
 
-			{{ if $has_oauth }}{{ if not $has_login_id }}
-			<div class="text-center margin-b-20">
-				{{ template "sso-login-id-separator-oauth-present" }}
-			</div>
-			{{ end }}{{ end }}
-
-			<div class="flex flex-direction-column">
+			{{ if $has_oauth }}
+			<div class="flex flex-direction-column margin-b-12">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				<form class="flex flex-direction-column" method="post" novalidate>
@@ -122,36 +117,36 @@
 				{{ $skip = true }}
 				{{ end }}
 				{{- if not $skip -}}
-				<button class="btn sso-btn margin-b-20 {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
+				<button class="btn sso-btn margin-b-8 {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
-					<div class="sso-btn-icon"><i class="fab fa-apple" aria-hidden="true"></i></div>
-					<span class="title">{{ template "oauth-branding-apple" }}</span>
+					<div class="sso-btn-icon image-icon apple-icon"></div>
+					<span class="title text-sm">{{ template "oauth-branding-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
-					<div class="sso-btn-icon google-icon"></div>
-					<span class="title">{{ template "oauth-branding-google" }}</span>
+					<div class="sso-btn-icon image-icon google-icon"></div>
+					<span class="title text-sm">{{ template "oauth-branding-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
-					<div class="sso-btn-icon"><i class="fab fa-facebook-f" aria-hidden="true"></i></div>
-					<span class="title">{{ template "oauth-branding-facebook" }}</span>
+					<div class="sso-btn-icon image-icon facebook-icon"></div>
+					<span class="title text-sm">{{ template "oauth-branding-facebook" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
-					<div class="sso-btn-icon"><i class="fab fa-linkedin-in" aria-hidden="true"></i></div>
-					<span class="title">{{ template "oauth-branding-linkedin" }}</span>
+					<div class="sso-btn-icon image-icon linkedin-icon"></div>
+					<span class="title text-sm">{{ template "oauth-branding-linkedin" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
-					<div class="sso-btn-icon"><i class="fab fa-microsoft" aria-hidden="true"></i></div>
-					<span class="title">{{ template "oauth-branding-azureadv2" }}</span>
+					<div class="sso-btn-icon image-icon microsoft-icon"></div>
+					<span class="title text-sm">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "adfs" -}}
-					<div class="sso-btn-icon"><i class="fab fa-microsoft" aria-hidden="true"></i></div>
-					<span class="title">{{ template "oauth-branding-adfs" }}</span>
+					<div class="sso-btn-icon image-icon microsoft-icon"></div>
+					<span class="title text-sm">{{ template "oauth-branding-adfs" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "wechat" -}}
-					<div class="sso-btn-icon"><i class="fab fa-weixin" aria-hidden="true"></i></div>
-					<span class="title">{{ template "oauth-branding-wechat" }}</span>
+					<div class="sso-btn-icon image-icon wechat-icon"></div>
+					<span class="title text-sm">{{ template "oauth-branding-wechat" }}</span>
 					{{- end -}}
 					</span>
 				</button>
@@ -160,6 +155,7 @@
 				{{ end }}
 				{{ end }}
 			</div>
+			{{ end }}
 
 			{{ if ($.Translations.HasKey "toc-pp-footer") }}
 			<p class="font-smaller primary-txt margin-t-0 margin-b-20">

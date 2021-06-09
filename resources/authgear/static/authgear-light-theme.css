@@ -109,25 +109,25 @@
   --color-linkedin-shaded-7: #12618c;
   --color-linkedin-shaded-8: #0d4867;
 
-  --color-azureadv2-unshaded: #00a2ed;
-  --color-azureadv2-shaded-1: #f4fbfe;
-  --color-azureadv2-shaded-2: #d4effc;
-  --color-azureadv2-shaded-3: #afe2fa;
-  --color-azureadv2-shaded-4: #62c6f4;
-  --color-azureadv2-shaded-5: #1dadef;
-  --color-azureadv2-shaded-6: #0092d5;
-  --color-azureadv2-shaded-7: #007bb4;
-  --color-azureadv2-shaded-8: #005b85;
+  --color-azureadv2-unshaded: #ffffff;
+  --color-azureadv2-shaded-1: #767676;
+  --color-azureadv2-shaded-2: #a6a6a6;
+  --color-azureadv2-shaded-3: #c8c8c8;
+  --color-azureadv2-shaded-4: #d0d0d0;
+  --color-azureadv2-shaded-5: #dadada;
+  --color-azureadv2-shaded-6: #eaeaea;
+  --color-azureadv2-shaded-7: #f4f4f4;
+  --color-azureadv2-shaded-8: #f8f8f8;
 
-  --color-adfs-unshaded: #00a2ed;
-  --color-adfs-shaded-1: #f4fbfe;
-  --color-adfs-shaded-2: #d4effc;
-  --color-adfs-shaded-3: #afe2fa;
-  --color-adfs-shaded-4: #62c6f4;
-  --color-adfs-shaded-5: #1dadef;
-  --color-adfs-shaded-6: #0092d5;
-  --color-adfs-shaded-7: #007bb4;
-  --color-adfs-shaded-8: #005b85;
+  --color-adfs-unshaded:  #ffffff;
+  --color-adfs-shaded-1:  #767676;
+  --color-adfs-shaded-2:  #a6a6a6;
+  --color-adfs-shaded-3:  #c8c8c8;
+  --color-adfs-shaded-4:  #d0d0d0;
+  --color-adfs-shaded-5:  #dadada;
+  --color-adfs-shaded-6:  #eaeaea;
+  --color-adfs-shaded-7:  #f4f4f4;
+  --color-adfs-shaded-8:  #f8f8f8;
 
   --color-wechat-unshaded: #07c160;
   --color-wechat-shaded-1: #f3fdf8;
@@ -157,6 +157,8 @@
   --color-password-strength-meter-5: var(--color-good);
 
   --color-recovery-code-list-background: #eaeaea;
+
+  --color-settings-security-item-active-background: rgba(0, 0, 0, 0.03);
 }
 
 .banner-frame {
@@ -315,8 +317,11 @@ a:not(.not-a):active, .link:active {
   background-color: var(--color-linkedin-shaded-2);
 }
 
+.sso-btn.azureadv2 {
+  border: 1px solid var(--color-separator);
+}
 .azureadv2 {
-  color: var(--color-white-unshaded);
+  color: var(--color-black-unshaded);
   background-color: var(--color-azureadv2-unshaded);
 }
 .azureadv2:hover, .azureadv2:focus {
@@ -329,8 +334,11 @@ a:not(.not-a):active, .link:active {
   background-color: var(--color-azureadv2-shaded-2);
 }
 
+.sso-btn.adfs {
+  border: 1px solid var(--color-separator);
+}
 .adfs {
-  color: var(--color-white-unshaded);
+  color: var(--color-black-unshaded);
   background-color: var(--color-adfs-unshaded);
 }
 .adfs:hover, .adfs:focus {

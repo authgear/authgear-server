@@ -98,7 +98,6 @@
   "oauth-branding-wechat": "Login with WeChat",
 
   "sso-login-id-separator-both-present": "or",
-  "sso-login-id-separator-oauth-present": "Choose an option below to continue",
 
   "phone-number-placeholder": "phone",
   "login-id-placeholder": "{variant, select, email {email} username {username} other {email or username}}",
