@@ -8,6 +8,7 @@ import React, {
 import { useLocation, useNavigate } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import { INavLink, INavLinkGroup, Nav } from "@fluentui/react";
+import { useSystemConfig } from "./context/SystemConfigContext";
 import { Location } from "history";
 
 function getAppRouterPath(location: Location) {
@@ -41,100 +42,109 @@ interface NavLinkProps {
   }>;
 }
 
-const links: NavLinkProps[] = [
-  { textKey: "ScreenNav.users", url: "users" },
-  {
-    textKey: "ScreenNav.authentication",
-    url: "configuration/authentication",
-    children: [
-      {
-        textKey: "ScreenNav.login-id",
-        url: "configuration/authentication/login-id",
-      },
-      {
-        textKey: "ScreenNav.authenticators",
-        url: "configuration/authentication/authenticators",
-      },
-      {
-        textKey: "VerificationConfigurationScreen.title.nav",
-        url: "configuration/authentication/verification",
-      },
-    ],
-  },
-  {
-    textKey: "ScreenNav.anonymous-users",
-    url: "configuration/anonymous-users",
-  },
-  {
-    textKey: "ScreenNav.biometric",
-    url: "configuration/biometric",
-  },
-  {
-    textKey: "ScreenNav.single-sign-on",
-    url: "configuration/single-sign-on",
-  },
-  {
-    textKey: "ScreenNav.passwords",
-    url: "configuration/passwords",
-    children: [
-      {
-        textKey: "ScreenNav.password-policy",
-        url: "configuration/passwords/policy",
-      },
-      {
-        textKey: "ScreenNav.forgot-password",
-        url: "configuration/passwords/forgot-password",
-      },
-    ],
-  },
-  {
-    textKey: "ScreenNav.client-applications",
-    url: "configuration/apps",
-  },
-  {
-    textKey: "CustomDomainListScreen.title",
-    url: "configuration/dns/custom-domains",
-  },
-  {
-    textKey: "ScreenNav.ui-settings",
-    url: "configuration/ui-settings",
-  },
-  {
-    textKey: "ScreenNav.localization",
-    url: "configuration/localization",
-  },
-  {
-    textKey: "ScreenNav.settings",
-    url: "configuration/settings",
-    children: [
-      {
-        textKey: "PortalAdminSettings.title",
-        url: "configuration/settings/portal-admins",
-      },
-      {
-        textKey: "ScreenNav.sessions",
-        url: "configuration/settings/sessions",
-      },
-      {
-        textKey: "ScreenNav.webhooks",
-        url: "configuration/settings/web-hooks",
-      },
-    ],
-  },
-  {
-    textKey: "ScreenNav.audit-log",
-    url: "audit-log",
-  },
-];
-
 const ScreenNav: React.FC = function ScreenNav() {
   const navigate = useNavigate();
   const { renderToString } = useContext(Context);
   const location = useLocation();
   const path = getAppRouterPath(location);
 
+  const { auditLogEnabled } = useSystemConfig();
+
   const label = renderToString("ScreenNav.label");
   const [expandState, setExpandState] = useState<Record<string, boolean>>({});
+
+  const links: NavLinkProps[] = useMemo(() => {
+    const links = [
+      { textKey: "ScreenNav.users", url: "users" },
+      {
+        textKey: "ScreenNav.authentication",
+        url: "configuration/authentication",
+        children: [
+          {
+            textKey: "ScreenNav.login-id",
+            url: "configuration/authentication/login-id",
+          },
+          {
+            textKey: "ScreenNav.authenticators",
+            url: "configuration/authentication/authenticators",
+          },
+          {
+            textKey: "VerificationConfigurationScreen.title.nav",
+            url: "configuration/authentication/verification",
+          },
+        ],
+      },
+      {
+        textKey: "ScreenNav.anonymous-users",
+        url: "configuration/anonymous-users",
+      },
+      {
+        textKey: "ScreenNav.biometric",
+        url: "configuration/biometric",
+      },
+      {
+        textKey: "ScreenNav.single-sign-on",
+        url: "configuration/single-sign-on",
+      },
+      {
+        textKey: "ScreenNav.passwords",
+        url: "configuration/passwords",
+        children: [
+          {
+            textKey: "ScreenNav.password-policy",
+            url: "configuration/passwords/policy",
+          },
+          {
+            textKey: "ScreenNav.forgot-password",
+            url: "configuration/passwords/forgot-password",
+          },
+        ],
+      },
+      {
+        textKey: "ScreenNav.client-applications",
+        url: "configuration/apps",
+      },
+      {
+        textKey: "CustomDomainListScreen.title",
+        url: "configuration/dns/custom-domains",
+      },
+      {
+        textKey: "ScreenNav.ui-settings",
+        url: "configuration/ui-settings",
+      },
+      {
+        textKey: "ScreenNav.localization",
+        url: "configuration/localization",
+      },
+      {
+        textKey: "ScreenNav.settings",
+        url: "configuration/settings",
+        children: [
+          {
+            textKey: "PortalAdminSettings.title",
+            url: "configuration/settings/portal-admins",
+          },
+          {
+            textKey: "ScreenNav.sessions",
+            url: "configuration/settings/sessions",
+          },
+          {
+            textKey: "ScreenNav.webhooks",
+            url: "configuration/settings/web-hooks",
+          },
+        ],
+      },
+    ];
+
+    if (auditLogEnabled) {
+      links.push({
+        textKey: "ScreenNav.audit-log",
+        url: "audit-log",
+      });
+    }
+
+    return links;
+  }, [auditLogEnabled]);
 
   const [selectedKeys, selectedKey] = useMemo(() => {
     const matchedKeys: string[] = [];
@@ -154,7 +164,7 @@ const ScreenNav: React.FC = function ScreenNav() {
       }
     }
     return [matchedKeys, matchedKey];
-  }, [path]);
+  }, [path, links]);
 
   useEffect(() => {
     for (const key of selectedKeys) {
@@ -188,7 +198,7 @@ const ScreenNav: React.FC = function ScreenNav() {
         links: links.map(navItem),
       },
     ],
-    [navItem]
+    [navItem, links]
   );
 
   const onLinkClick = useCallback(

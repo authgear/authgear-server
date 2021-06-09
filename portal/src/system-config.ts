@@ -10,6 +10,7 @@ export interface SystemConfig {
   themes: SystemConfigThemes;
   translations: SystemConfigTranslations;
   searchEnabled: boolean;
+  auditLogEnabled: boolean;
 }
 
 export interface SystemConfigThemes {
@@ -254,5 +255,6 @@ export function instantiateSystemConfig(
       en: config.translations?.en ?? {},
     },
     searchEnabled: config.searchEnabled ?? false,
+    auditLogEnabled: config.auditLogEnabled ?? false,
   };
 }

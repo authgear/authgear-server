@@ -28,6 +28,7 @@ type RootProvider struct {
 	KubernetesConfig     *portalconfig.KubernetesConfig
 	DomainImplementation portalconfig.DomainImplementationType
 	SearchConfig         *portalconfig.SearchConfig
+	AuditLogConfig       *portalconfig.AuditLogConfig
 	LoggerFactory        *log.Factory
 	SentryHub            *getsentry.Hub
 
@@ -55,6 +56,7 @@ func NewRootProvider(
 	kubernetesConfig *portalconfig.KubernetesConfig,
 	domainImplementation portalconfig.DomainImplementationType,
 	searchConfig *portalconfig.SearchConfig,
+	auditLogConfig *portalconfig.AuditLogConfig,
 	secretKeyAllowlist portalconfig.SecretKeyAllowlist,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
@@ -85,6 +87,7 @@ func NewRootProvider(
 		KubernetesConfig:     kubernetesConfig,
 		DomainImplementation: domainImplementation,
 		SearchConfig:         searchConfig,
+		AuditLogConfig:       auditLogConfig,
 		LoggerFactory:        loggerFactory,
 		SentryHub:            sentryHub,
 		Database:             db.NewPool(),

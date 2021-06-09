@@ -19,6 +19,7 @@ type SystemConfigProvider struct {
 	AuthgearConfig *config.AuthgearConfig
 	AppConfig      *config.AppConfig
 	SearchConfig   *config.SearchConfig
+	AuditLogConfig *config.AuditLogConfig
 	Resources      ResourceManager
 }
 
@@ -41,6 +42,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		Themes:                   themes,
 		Translations:             translations,
 		SearchEnabled:            p.SearchConfig.Enabled,
+		AuditLogEnabled:          p.AuditLogConfig.Enabled,
 	}, nil
 }
 
