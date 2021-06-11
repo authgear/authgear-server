@@ -30,6 +30,7 @@ type EnterLoginIDViewModel struct {
 
 type EnterLoginIDService interface {
 	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
+	ListCandidates(userID string) ([]identity.Candidate, error)
 }
 
 func NewEnterLoginIDViewModel(r *http.Request, displayID string) EnterLoginIDViewModel {
@@ -124,6 +125,13 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 	} else {
 		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, "")
 	}
+
+	candidates, err := h.Identities.ListCandidates(userID)
+	if err != nil {
+		return nil, err
+	}
+	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
+	viewmodels.Embed(data, authenticationViewModel)
 
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, enterLoginIDViewModel)

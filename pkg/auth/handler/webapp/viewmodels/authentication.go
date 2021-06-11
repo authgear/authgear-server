@@ -28,6 +28,7 @@ type IdentityCandidatesGetter interface {
 
 type AuthenticationViewModel struct {
 	IdentityCandidates            []identity.Candidate
+	IdentityCount                 int
 	LoginPageLoginIDHasPhone      bool
 	LoginPageTextLoginIDVariant   string
 	LoginPageTextLoginIDInputType string
@@ -46,6 +47,7 @@ func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) A
 	hasEmail := false
 	hasUsername := false
 	hasPhone := false
+	identityCount := 0
 
 	for _, c := range candidates {
 		typ, _ := c[identity.CandidateKeyType].(string)
@@ -62,6 +64,11 @@ func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) A
 				c["login_id_input_type"] = "text"
 				hasUsername = true
 			}
+		}
+
+		identityID := c[identity.CandidateKeyIdentityID].(string)
+		if identityID != "" {
+			identityCount++
 		}
 	}
 
@@ -87,6 +94,7 @@ func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) A
 
 	return AuthenticationViewModel{
 		IdentityCandidates:            candidates,
+		IdentityCount:                 identityCount,
 		LoginPageLoginIDHasPhone:      hasPhone,
 		LoginPageTextLoginIDVariant:   loginPageTextLoginIDVariant,
 		LoginPageTextLoginIDInputType: loginPageTextLoginIDInputType,

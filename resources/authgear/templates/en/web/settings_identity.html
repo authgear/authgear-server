@@ -99,9 +99,11 @@
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">
-      <i class="ti ti-unlink margin-l-8 padding-v-16"></i>
-    </button>
+      {{ if gt $.IdentityCount 1 }}
+      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">
+        <i class="ti ti-unlink margin-l-8 padding-v-16"></i>
+      </button>
+      {{ end }}
     {{ else }}
     <button class="btn secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">
       <i class="ti ti-circle-plus margin-l-8 padding-v-16"></i>
