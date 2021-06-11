@@ -2,6 +2,8 @@ package web
 
 import (
 	"context"
+	// nolint:gosec
+	"crypto/md5"
 	"fmt"
 	"net/url"
 	"path"
@@ -61,8 +63,12 @@ func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
 
 	asset := result.(*StaticAsset)
 	assetPath := strings.TrimPrefix(asset.Path, StaticAssetResourcePrefix)
+	// md5 is used to compute the hash in the filename for caching purpose only
+	// nolint:gosec
+	hash := md5.Sum(asset.Data)
 
-	return staticAssetURL(r.Config.PublicOrigin, string(r.StaticAssetsPrefix), assetPath)
+	hashPath := PathWithHash(assetPath, fmt.Sprintf("%x", hash))
+	return staticAssetURL(r.Config.PublicOrigin, string(r.StaticAssetsPrefix), hashPath)
 }
 
 func staticAssetURL(origin string, prefix string, assetPath string) (string, error) {
@@ -76,4 +82,34 @@ func staticAssetURL(origin string, prefix string, assetPath string) (string, err
 	}
 	u.Path = path.Join(u.Path, assetPath)
 	return u.String(), nil
+}
+
+func PathWithHash(filePath string, hash string) string {
+	extension := path.Ext(filePath)
+	nameOnly := strings.TrimSuffix(filePath, extension)
+	return fmt.Sprintf("%s.%s%s", nameOnly, hash, extension)
+}
+
+func ParsePathWithHash(hashedPath string) (filePath string, hash string) {
+	extension := path.Ext(hashedPath)
+	if extension == "" {
+		return "", ""
+	}
+
+	nameWithHash := strings.TrimSuffix(hashedPath, extension)
+	dotIdx := strings.LastIndex(nameWithHash, ".")
+	if dotIdx == -1 {
+		// hashedPath doesn't have extension, e.g. filename.hash
+		// so the extension is the hashed
+		filePath = nameWithHash
+		hash = strings.TrimPrefix(extension, ".")
+		return
+	}
+
+	nameOnly := nameWithHash[:dotIdx]
+
+	hash = nameWithHash[dotIdx+1:]
+	filePath = fmt.Sprintf("%s%s", nameOnly, extension)
+
+	return
 }

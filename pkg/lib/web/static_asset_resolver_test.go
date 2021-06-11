@@ -29,3 +29,47 @@ func TestStaticAssetURL(t *testing.T) {
 		So(url, ShouldEqual, "https://cdn.example.com/main.css")
 	})
 }
+
+func TestHasedPath(t *testing.T) {
+	Convey("PathWithHash", t, func() {
+		So(
+			PathWithHash("logo.png", "hash1"),
+			ShouldEqual,
+			"logo.hash1.png",
+		)
+
+		So(
+			PathWithHash("/img/logo.png", "hash2"),
+			ShouldEqual,
+			"/img/logo.hash2.png",
+		)
+
+		So(
+			PathWithHash("/img/logo", "hash"),
+			ShouldEqual,
+			"/img/logo.hash",
+		)
+	})
+
+	Convey("parsePathWithHash", t, func() {
+		filePath, hash := ParsePathWithHash("logo.hash1.png")
+		So(filePath, ShouldEqual, "logo.png")
+		So(hash, ShouldEqual, "hash1")
+
+		filePath, hash = ParsePathWithHash("/img/logo.hash2.png")
+		So(filePath, ShouldEqual, "/img/logo.png")
+		So(hash, ShouldEqual, "hash2")
+
+		filePath, hash = ParsePathWithHash("/img/logo.hash")
+		So(filePath, ShouldEqual, "/img/logo")
+		So(hash, ShouldEqual, "hash")
+
+		filePath, hash = ParsePathWithHash("logo.hash")
+		So(filePath, ShouldEqual, "logo")
+		So(hash, ShouldEqual, "hash")
+
+		filePath, hash = ParsePathWithHash("logo")
+		So(filePath, ShouldEqual, "")
+		So(hash, ShouldEqual, "")
+	})
+}
