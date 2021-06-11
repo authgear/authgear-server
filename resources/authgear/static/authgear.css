@@ -1250,19 +1250,20 @@ h1, h2, h3, h4, h5, h6 {
 
 .settings-security-item {
   min-height: 146px;
-  border: 1px solid var(--color-separator);
+  border-width: 1px;
+  border-style: solid;
   border-radius: 6px;
   padding: 16px;
   overflow: hidden;
 }
 
-.settings-security-item:hover, .settings-security-item:focus {
-  border-color: var(--color-primary-unshaded);
-}
-
 @media (max-width: 640px) {
   .settings-security-list {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .settings-security-item {
+    padding: 12px;
   }
 }
 

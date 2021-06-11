@@ -206,7 +206,7 @@
     {{ range $.Authenticators }}
     <!-- Primary Password -->
     {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item" href="/settings/change_password">
+    <a class="settings-security-item not-a" href="/settings/change_password">
       <i class="ti ti-key icon margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-xs">
         {{ template "settings-page-primary-password-title" }}
@@ -220,7 +220,7 @@
 
     <!-- Primary OOB OTP Email -->
     {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item" href="/settings/identity">
+    <a class="settings-security-item not-a" href="/settings/identity">
       <i class="ti ti-mail icon margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-xs">
         {{ template "settings-page-primary-oob-otp-title--email" }}
@@ -237,7 +237,7 @@
 
     <!-- Primary OOB OTP SMS -->
     {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item" href="/settings/identity">
+    <a class="settings-security-item not-a" href="/settings/identity">
       <i class="ti ti-message-dots icon margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-xs">
         {{ template "settings-page-primary-oob-otp-title--sms" }}
@@ -255,7 +255,7 @@
 
     <!-- MFA -->
     {{ if $show_mfa }}
-    <a class="settings-security-item" href="/settings/mfa">
+    <a class="settings-security-item not-a" href="/settings/mfa">
       <i class="ti ti-shield-lock icon margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-xs">
         {{ template "settings-page-mfa-section-title" }}
@@ -268,7 +268,7 @@
 
     {{ if $.ShowBiometric }}
     <!-- Biometric -->
-    <a class="settings-security-item" href="/settings/biometric">
+    <a class="settings-security-item not-a" href="/settings/biometric">
       <i class="ti ti-fingerprint icon margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-xs">
         {{ template "settings-page-biometric-section-title" }}
@@ -279,7 +279,7 @@
     </a>
     {{ end }}
 
-    <a class="settings-security-item" href="/settings/sessions">
+    <a class="settings-security-item not-a" href="/settings/sessions">
       <i class="ti ti-shield-check icon margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-xs">
         {{ template "settings-page-session-section-title" }}

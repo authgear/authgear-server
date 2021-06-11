@@ -261,8 +261,17 @@
   color: var(--color-text-shaded-2);
 }
 
-.settings-security-item:active {
+.settings-security-item {
+  border-color: var(--color-white-shaded-8);
   background-color: var(--color-white-shaded-8);
+}
+
+.settings-security-item:hover, .settings-security-item:focus {
+  border-color: var(--color-primary-unshaded);
+}
+
+.settings-security-item:active {
+  background-color: var(--color-white-shaded-6);
 }
 
 /* <a> does not have disabled attribute */
