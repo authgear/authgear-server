@@ -1,7 +1,10 @@
 package webapp
 
 import (
+	// nolint:gosec
+	"crypto/md5"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -36,7 +39,12 @@ func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 	p := path.Join(web.StaticAssetResourcePrefix, name)
 
-	desc, ok := h.Resources.Resolve(p)
+	filePath, hashInPath := web.ParsePathWithHash(p)
+	if filePath == "" || hashInPath == "" {
+		return nil, os.ErrNotExist
+	}
+
+	desc, ok := h.Resources.Resolve(filePath)
 	if !ok {
 		return nil, os.ErrNotExist
 	}
@@ -44,7 +52,7 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 	// We use EffectiveFile here because we want to return an exact match.
 	// The static asset URLs in the templates are computed by the resolver using EffectiveResource, which has handled localization.
 	result, err := h.Resources.Read(desc, resource.EffectiveFile{
-		Path: p,
+		Path: filePath,
 	})
 	if errors.Is(err, resource.ErrResourceNotFound) {
 		return nil, os.ErrNotExist
@@ -53,6 +61,14 @@ func (h *StaticAssetsHandler) Open(name string) (http.File, error) {
 	}
 
 	bytes := result.([]byte)
+	// check the hash
+	// md5 is used to compute the hash in the filename for caching purpose only
+	// nolint:gosec
+	dataHash := md5.Sum(bytes)
+	if fmt.Sprintf("%x", dataHash) != hashInPath {
+		return nil, os.ErrNotExist
+	}
+
 	data := aferomem.CreateFile(p)
 	file := aferomem.NewFileHandle(data)
 	_, _ = file.Write(bytes)
