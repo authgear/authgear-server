@@ -33,11 +33,11 @@
     {{ if eq .type "oauth" }}
     {{ if eq .provider_type "google" }}   {{ $ti = "ti ti-brand-google" }}     {{ end }}
     {{ if eq .provider_type "apple" }}    {{ $ti = "ti ti-brand-apple"  }}     {{ end }}
-    {{ if eq .provider_type "facebook" }} {{ $ti = "ti ti-brand-facebook" }} {{ end }}
-    {{ if eq .provider_type "linkedin" }} {{ $ti = "ti ti-brand-linkedin" }}{{ end }}
-    {{ if eq .provider_type "azureadv2" }}{{ $ti = "ti ti-brand-windows" }}  {{ end }}
-    {{ if eq .provider_type "adfs" }}     {{ $ti = "ti ti-brand-windows" }}  {{ end }}
-    {{ if eq .provider_type "wechat" }}   {{ $ti = "ti ti-social" }}     {{ end }}
+    {{ if eq .provider_type "facebook" }} {{ $ti = "ti ti-brand-facebook" }}   {{ end }}
+    {{ if eq .provider_type "linkedin" }} {{ $ti = "ti ti-brand-linkedin" }}   {{ end }}
+    {{ if eq .provider_type "azureadv2" }}{{ $ti = "ti ti-brand-windows" }}    {{ end }}
+    {{ if eq .provider_type "adfs" }}     {{ $ti = "ti ti-brand-windows" }}    {{ end }}
+    {{ if eq .provider_type "wechat" }}   {{ $ti = "ti ti-message-circle" }}   {{ end }}
     {{ end }}
 
     {{ if eq .type "login_id" }}
