@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 
 	aferomem "github.com/spf13/afero/mem"
 
@@ -33,6 +34,15 @@ type StaticAssetsHandler struct {
 
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	fileServer := http.StripPrefix("/static/", http.FileServer(h))
+
+	filePath := strings.TrimPrefix(r.URL.Path, "/static/")
+	_, err := h.Open(filePath)
+	if err == nil {
+		// set cache control header if the file is found
+		// 604800 seconds is a week
+		w.Header().Set("Cache-Control", "public, max-age=604800")
+	}
+
 	fileServer.ServeHTTP(w, r)
 }
 
