@@ -275,3 +275,15 @@ git tag -a YYYY-MM-DD.0
 # Show the logs summary
 make logs-summary A=<previous tag> B=<current tag>
 ```
+
+## Updating Auth UI tabler-icons and normalize.css version
+
+The static asset handler requires the file path to have the hash. e.g. authgear.0ab41e6d21d590d0f06589f06a82d876.css.
+
+For URLs rendered in the HTML, the hash will be inserted into the path automatically by using the template function `StaticAssetURL`.
+
+When we update libraries that reference to other static asset files, we should update the file paths with hash.
+
+- In `tabler-icons.min.css`, update all fonts file names with hashes
+- In `normalize.min.css`, update `normalize.min.css.map` with hash
+
