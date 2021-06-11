@@ -32,7 +32,7 @@
   {{ end }}
 
   {{- if not $skip -}}
-  <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2-action3">
     {{ $ti := "" }}
 
     {{ if eq .type "oauth" }}
@@ -79,13 +79,13 @@
       {{ if eq .type "login_id" }}
       {{ if .identity_id }}
       {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-      <span class="warn-txt">
-        ({{ template "verification-status-label--unverified" }})
+      <span class="error-txt">
+        {{ template "verification-status-label--unverified" }}
       </span>
       {{ end }}
       {{ if eq $verification_status "verified" }}
       <span class="good-txt">
-        ({{ template "verification-status-label--verified" }})
+        {{ template "verification-status-label--verified" }}
       </span>
       {{ end }}
       {{ end }}
@@ -127,12 +127,11 @@
     {{ if eq .type "login_id" }}
     {{ if .identity_id }}
     {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-    <form class="grid-area-action2 align-self-center justify-self-end" method="post" novalidate>
+    <form class="grid-area-action3 align-self-center align-self-start margin-t-4" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-    <button class="btn secondary-btn" type="submit" name="x_action" value="verify_login_id">
-      <!-- FIXME: icon not confirmed -->
-      <i class="ti ti-zoom-check margin-l-8 padding-v-16"></i>
+    <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
+      {{ template "resend-verification-code-button-label" }}
     </button>
     </form>
     {{ end }}

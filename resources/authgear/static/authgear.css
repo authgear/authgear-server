@@ -362,6 +362,10 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 0px;
 }
 
+.margin-t-4 {
+  margin-top: 4px;
+}
+
 .margin-t-20 {
   margin-top: 20px;
 }
@@ -656,6 +660,10 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-warn);
 }
 
+.error-txt {
+  color: var(--color-error-unshaded);
+}
+
 .input {
   border: none;
   border-radius: 0;
@@ -744,7 +752,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn.action-btn {
   height: 28px;
   border-radius: 2px;
-  padding: 0 24px;
+  padding: 0 12px;
 }
 
 .destructive-btn {
@@ -1093,6 +1101,13 @@ h1, h2, h3, h4, h5, h6 {
       /  24px   1fr    auto auto;
 }
 
+.grid-icon-name-claim-action1-action2-action3 {
+  grid: "icon     name    action1 action2" auto
+        "claim    claim   action1 action2" auto
+        "action3  action3 action1 action2" auto
+      /  24px   1fr    auto auto;
+}
+
 .grid-icon-name-desc-action {
   grid: "icon  name  action" auto
         "desc  desc  action" auto
@@ -1123,6 +1138,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .grid-area-action2 {
   grid-area: action2;
+}
+
+.grid-area-action3 {
+  grid-area: action3;
 }
 
 .grid-area-action {
