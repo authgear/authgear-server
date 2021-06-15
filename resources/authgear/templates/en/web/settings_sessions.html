@@ -5,11 +5,11 @@
 <div class="pane flex flex-direction-column">
 <div class="flex flex-direction-column">
 {{ template "__nav_bar.html" }}
-<div class="padding-20 row-sep grid grid-name-desc-action">
-  <h1 class="grid-area-name font-inherit margin-0 primary-txt">
+<div class="padding-20 gap-4 row-sep grid grid-title-desc">
+  <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
     {{ template "settings-sessions-title" }}
   </h1>
-  <p class="grid-area-desc font-smaller margin-0 padding-v-8 secondary-txt">
+  <p class="grid-area-desc margin-0 secondary-txt text-sm">
     {{ template "settings-sessions-description" }}
   </p>
 </div>
@@ -17,23 +17,22 @@
 <div class="row-sep">
 {{ range $.SessionGroups }}
 <div class="padding-20 flex flex-direction-column divide-y">
-  <div class="grid grid-icon-title padding-v-12">
+  <div class="grid grid-icon-title padding-v-6">
     {{ $icon := "" }}
     {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
-    <i class="grid-area-icon ti ti-{{ $icon }} primary-txt" aria-hidden="true"></i>
-
-    <h2 class="grid-area-title primary-txt font-inherit margin-0 margin-h-10 text-ellipsis">{{ .DisplayName }}</h2>
+    <i class="grid-area-icon ti ti-{{ $icon }} primary-txt text-sm" aria-hidden="true"></i>
+    <h2 class="grid-area-title primary-txt text-base margin-0 margin-h-4 text-ellipsis text-sm font-normal">{{ .DisplayName }}</h2>
   </div>
   {{ range .Sessions }}
   <div class="grid grid-name-desc-action padding-v-6">
-    <p class="grid-area-name font-smaller leading-normal margin-0 secondary-txt">
+    <p class="grid-area-name text-sm leading-normal margin-0 secondary-txt">
       {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
       {{ template "settings-sessions-item-title" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
       {{ else }}
       {{ .LastAccessedByIP }}
       {{ end }}
     </p>
-    <p class="grid-area-desc font-smaller leading-normal margin-0 secondary-txt">
+    <p class="grid-area-desc text-sm leading-normal margin-0 secondary-txt">
       {{ $desc := .DisplayName }}
       {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
@@ -68,7 +67,7 @@
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ index .OfflineGrantIDs 0 }}">
       <button
-        class="btn destructive-btn"
+        class="btn destructive-btn text-sm"
         type="submit"
         name="x_action"
         value="revoke_group"
@@ -91,7 +90,7 @@
   <form class="grid-area-action primary-action" method="post" novalidate>
     {{ $.CSRFField }}
     <button
-      class="btn destructive-btn"
+      class="btn destructive-btn text-sm"
       type="submit"
       name="x_action"
       value="revoke_all"

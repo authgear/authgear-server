@@ -5,12 +5,12 @@
 	<div class="pane flex flex-direction-column">
 	{{ template "__nav_bar.html" }}
 	<div class="flex flex-direction-column width-full margin-v-20">
-		<h1 class="font-inherit primary-txt text-center margin-t-0 margin-b-20">
+		<h1 class="primary-txt text-center margin-t-0 margin-b-10 text-xl font-bold">
 			{{ template "recovery-code-title" }}
 		</h1>
 
 		<section class="recovery-code-list-section">
-			<p class="font-smaller primary-txt text-center margin-t-0 margin-b-20">{{ template "recovery-code-storage-description" }}</p>
+			<p class="primary-txt text-center margin-t-0 margin-b-20 text-sm">{{ template "recovery-code-storage-description" }}</p>
 			<div class="margin-b-20 code-list-container">
 				<ol class="margin-0 padding-0 code-list">
 					{{ range $.RecoveryCodes }}
@@ -19,7 +19,7 @@
 				</ol>
 			</div>
 
-			<p class="font-smaller primary-txt text-center margin-t-0 margin-b-20">{{ template "recovery-code-consumption-description" }}</p>
+			<p class="text-sm primary-txt text-center margin-t-0 margin-b-20">{{ template "recovery-code-consumption-description" }}</p>
 		</section>
 
 		<section class="margin-b-20 recovery-code-action-section">

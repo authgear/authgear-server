@@ -196,6 +196,7 @@
   "revoke-all-device-tokens-button-label": "Forget all trusted devices that could skip MFA",
   "no-device-tokens-description": "No trusted devices that could skip MFA",
 
+  "settings-my-account-title": "My Account",
   "settings-identity-title": "Login Info",
   "settings-identity-description": "There are the methods to sign in your account",
   "settings-identity-oauth-google": "Google",

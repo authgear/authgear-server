@@ -298,6 +298,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 14px;
 }
 
+.margin-v-16 {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
 .margin-v-20 {
   margin-top: 20px;
   margin-bottom: 20px;
@@ -366,6 +371,10 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 4px;
 }
 
+.margin-t-16 {
+  margin-top: 16px;
+}
+
 .margin-t-20 {
   margin-top: 20px;
 }
@@ -384,6 +393,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .margin-b-0 {
   margin-bottom: 0px;
+}
+
+.margin-b-4 {
+  margin-bottom: 4px;
 }
 
 .margin-b-8 {
@@ -408,6 +421,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .margin-l-8 {
   margin-left: 8px;
+}
+
+.margin-r-10 {
+  margin-right: 8px;
 }
 
 .padding-0 {
@@ -472,8 +489,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .padding-v-16 {
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+.padding-v-18 {
+  padding-top: 18px;
+  padding-bottom: 18px;
 }
 
 .padding-bottom-8 {
@@ -488,14 +510,6 @@ h1, h2, h3, h4, h5, h6 {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-}
-
-.font-smaller {
-  font-size: smaller;
-}
-
-.font-inherit {
-  font-size: inherit;
 }
 
 .text-xs {
@@ -521,6 +535,18 @@ h1, h2, h3, h4, h5, h6 {
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem;
+}
+
+.font-normal {
+  font-weight: 400;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.font-bold {
+  font-weight: 700;
 }
 
 .leading-none {

@@ -6,27 +6,27 @@
 <div class="flex flex-direction-column">
   {{ template "__nav_bar.html" }}
   <section class="padding-20 gap-4 row-sep grid grid-title-desc">
-    <h1 class="grid-area-title margin-0 font-inherit primary-txt">
+    <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
       {{ template "settings-biometric-title" }}
     </h1>
-    <p class="grid-area-desc margin-0 font-smaller secondary-txt">
+    <p class="grid-area-desc margin-0 secondary-txt text-sm">
       {{ template "settings-biometric-description" }}
     </p>
   </section>
 
   {{ range $.BiometricIdentities }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="ti ti-devices grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
-    <h2 class="grid-area-title align-self-center font-smaller leading-normal margin-0 primary-txt">
+    <i class="ti ti-devices grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
+    <h2 class="grid-area-title align-self-center margin-0 primary-txt text-base">
       {{ if .DisplayName }}
       {{ .DisplayName }}
       {{ else }}
       {{ template "settings-biometric-identity-unknown-name" }}
       {{ end }}
     </h2>
-    <h3 class="grid-area-desc align-self-center font-smaller leading-normal margin-0 secondary-txt text-ellipsis">
+    <p class="grid-area-desc margin-t-4 align-self-center margin-0 secondary-txt text-ellipsis text-sm">
       {{ template "settings-biometric-identity-description" (dict "time" .CreatedAt) }}
-    </h3>
+    </p>
     <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_identity_id" value="{{ .ID }}">
