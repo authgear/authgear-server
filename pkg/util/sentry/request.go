@@ -9,6 +9,7 @@ import (
 var HeaderWhiteList = []string{
 	"Referer",
 	"User-Agent",
+	"X-Original-For",
 	"X-Forwarded-For",
 	"X-Real-IP",
 	"Forwarded",
