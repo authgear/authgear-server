@@ -6,7 +6,7 @@
 <div class="flex flex-direction-column">
   {{ template "__nav_bar.html" }}
   <section class="padding-20 row-sep">
-    <h1 class="font-inherit margin-0 primary-txt">
+    <h1 class="text-base margin-0 primary-txt text-xl font-bold">
       {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
       {{ template "settings-oob-otp-email-title" }}
       {{ else if eq $.OOBAuthenticatorType "oob_otp_sms" }}
@@ -18,18 +18,18 @@
   {{ range $.Authenticators }}
     <form class="padding-20 row-sep grid grid-icon-name-desc-action" method="post" novalidate>
       {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
-        <i class="grid-area-icon align-self-start justify-self-center margin-2 ti ti-mail font-smaller leading-normal" aria-hidden="true"></i>
-        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt font-smaller leading-normal">
+        <i class="grid-area-icon align-self-start justify-self-center margin-2 ti ti-mail text-base" aria-hidden="true"></i>
+        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt text-base">
           {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
         </p>
       {{ end }}
       {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-        <i class="grid-area-icon align-self-start justify-self-center margin-2 ti ti-device-mobile font-smaller leading-normal" aria-hidden="true"></i>
-        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt font-smaller leading-normal">
+        <i class="grid-area-icon align-self-start justify-self-center margin-2 ti ti-device-mobile text-base" aria-hidden="true"></i>
+        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt text-base">
           {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
         </p>
       {{ end }}
-      <p class="grid-area-desc align-self-center font-smaller leading-normal margin-0 secondary-txt">
+      <p class="grid-area-desc margin-t-4 align-self-center margin-0 secondary-txt text-sm">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
       </p>
@@ -43,7 +43,7 @@
   <section class="padding-20 row-sep">
     <form class="primary-action" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn font-smaller leading-normal" type="submit" name="x_action" value="add">
+      <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="add">
         {{ template "add-button-label" }}
       </button>
     </form>

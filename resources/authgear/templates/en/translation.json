@@ -68,6 +68,7 @@
   "add-button-label": "Add",
   "remove-button-label": "Remove",
   "more-button-label": "More",
+  "resend-verification-code-button-label": "Resend code",
   "verification-status-label--unverified": "Not verified",
   "verification-status-label--verified": "Verified",
   "activated-label": "Activated",
@@ -195,6 +196,7 @@
   "revoke-all-device-tokens-button-label": "Forget all trusted devices that could skip MFA",
   "no-device-tokens-description": "No trusted devices that could skip MFA",
 
+  "settings-my-account-title": "My Account",
   "settings-identity-title": "Login Info",
   "settings-identity-description": "There are the methods to sign in your account",
   "settings-identity-oauth-google": "Google",

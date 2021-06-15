@@ -30,7 +30,7 @@
 			<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
 
-				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center leading-loose">
+				<h1 class="margin-t-0 margin-b-20 primary-txt text-center text-xl font-bold">
 					{{ if $.ClientName }}
 					{{ template "sign-up-to-continue" (dict "AppOrClientName" $.ClientName) }}
 					{{ else }}
@@ -88,7 +88,7 @@
 
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
-					<a class="link font-smaller align-self-flex-start block margin-b-20" data-turbolinks-action="replace"
+					<a class="link text-xs align-self-flex-start block margin-b-10" data-turbolinks-action="replace"
 						href="{{ call $.MakeCurrentStepURL "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
@@ -96,7 +96,7 @@
 				{{ end }}
 
 				{{ if $has_login_id }}
-				<button class="btn primary-btn margin-b-20" type="submit" name="x_action" value="login_id">
+				<button class="btn primary-btn margin-t-10 margin-b-20" type="submit" name="x_action" value="login_id">
 					{{ template "next-button-label" }}
 				</button>
 				{{ end }}
@@ -127,31 +127,31 @@
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
 					<div class="sso-btn-icon image-icon apple-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-apple" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
 					<div class="sso-btn-icon image-icon google-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-google" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
 					<div class="sso-btn-icon image-icon facebook-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-facebook" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-facebook" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
 					<div class="sso-btn-icon image-icon linkedin-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-linkedin" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-linkedin" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
 					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-azureadv2" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "adfs" -}}
 					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-adfs" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-adfs" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "wechat" -}}
 					<div class="sso-btn-icon image-icon wechat-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-wechat" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-wechat" }}</span>
 					{{- end -}}
 					</span>
 				</button>
@@ -163,7 +163,7 @@
 			{{ end }}
 
 			{{ if ($.Translations.HasKey "toc-pp-footer") }}
-			<p class="font-smaller primary-txt margin-t-0 margin-b-20">
+			<p class="text-xs primary-txt margin-t-0 margin-b-20">
 			{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
 			</p>
 			{{ end }}

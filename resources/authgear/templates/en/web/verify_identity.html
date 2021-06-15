@@ -15,15 +15,15 @@
 
 {{ if $.IdentityDisplayID }}
 {{ if eq $.VerificationCodeChannel "sms" }}
-<h1 class="font-inherit primary-txt margin-t-0 margin-b-20 text-center">{{ template "verify-user-page-title--sms" }}</h1>
+<h1 class="primary-txt margin-t-0 margin-b-10 text-center text-xl font-bold">{{ template "verify-user-page-title--sms" }}</h1>
 {{ end }}
 {{ if eq $.VerificationCodeChannel "email" }}
-<h1 class="font-inherit primary-txt margin-t-0 margin-b-20 text-center">{{ template "verify-user-page-title--email" }}</h1>
+<h1 class="primary-txt margin-t-0 margin-b-10 text-center text-xl font-bold">{{ template "verify-user-page-title--email" }}</h1>
 {{ end }}
 {{ end }}
 
 {{ if $.IdentityDisplayID }}
-<div class="font-smaller overflow-wrap-break-word primary-txt margin-b-20 text-center">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
+<div class="text-sm overflow-wrap-break-word primary-txt margin-b-20 text-center">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
 
 <form class="flex flex-direction-column" method="post" novalidate>
 {{ $.CSRFField }}
@@ -57,8 +57,8 @@
 {{ $.CSRFField }}
 
 {{ if not (eq $.Action "update_session_step") }}
-<span class="primary-txt font-smaller">{{ template "verify-user-resend-button-hint" }}</span>
-<button id="resend-button" class="btn secondary-btn font-smaller" type="submit" name="x_action" value="resend"
+<span class="primary-txt text-sm">{{ template "verify-user-resend-button-hint" }}</span>
+<button id="resend-button" class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
 	data-cooldown="{{ $.VerificationCodeSendCooldown }}"
 	data-label="{{ template "verify-user-resend-button-label" }}"
 	data-label-unit="{{ template "verify-user-resend-button-label--unit" }}"

@@ -29,28 +29,31 @@
 <div class="flex flex-direction-column">
   {{ template "__nav_bar.html" }}
   <!-- Title -->
-  <section class="padding-20 row-sep gap-4 grid grid-title">
-    <h3 class="grid-area-title margin-0 font-inherit primary-txt">
+  <section class="padding-20 row-sep gap-4 grid grid-title-desc">
+    <h3 class="grid-area-title margin-0 primary-txt text-xl font-bold">
       {{ template "settings-page-mfa-section-title" }}
     </h3>
+    <p class="grid-area-desc margin-0 secondary-txt text-sm">
+      {{ template "settings-page-mfa-section-description" }}
+    </p>
   </section>
 
   <!-- Secondary TOTP -->
   {{ if $show_secondary_totp }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="ti ti-device-mobile grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
-    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
+    <i class="ti ti-device-mobile grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt text-base">
       {{ template "settings-page-secondary-totp-title" }}
     </p>
     {{ if $has_secondary_totp }}
-    <p class="grid-area-desc margin-0 good-txt font-smaller leading-normal">
+    <p class="grid-area-desc margin-t-4 margin-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
     <a class="link grid-area-action1 align-self-center justify-self-end" href="/settings/mfa/totp">
       <i class="ti ti-edit margin-l-8 padding-v-16"></i>
     </a>
     {{ else }}
-    <p class="grid-area-desc margin-0 warn-txt font-smaller leading-normal">
+    <p class="grid-area-desc margin-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
     <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
@@ -66,19 +69,19 @@
   <!-- Secondary OOB OTP Email -->
   {{ if $show_secondary_oob_otp_email }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="ti ti-mail grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
-    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
+    <i class="ti ti-mail grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt text-base">
       {{ template "settings-page-secondary-oob-otp-email-title" }}
     </p>
     {{ if $has_secondary_oob_otp_email }}
-    <p class="grid-area-desc margin-0 font-smaller leading-normal good-txt">
+    <p class="grid-area-desc margin-t-4 margin-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
     <a class="link grid-area-action1 align-self-center justify-self-end" href="/settings/mfa/oob_otp_email">
       <i class="ti ti-edit margin-l-8 padding-v-16"></i>
     </a>
     {{ else }}
-    <p class="grid-area-desc margin-0 font-smaller leading-normal warn-txt">
+    <p class="grid-area-desc margin-t-4 margin-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
     <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
@@ -93,19 +96,19 @@
 
   {{ if $show_secondary_oob_otp_sms }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="ti ti-device-mobile grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
-    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
+    <i class="ti ti-device-mobile grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt text-base">
       {{ template "settings-page-secondary-oob-otp-sms-title" }}
     </p>
     {{ if $has_secondary_oob_otp_sms }}
-    <p class="grid-area-desc margin-0 good-txt font-smaller leading-normal">
+    <p class="grid-area-desc margin-t-4 margin-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
     <a class="link grid-area-action1 align-self-center justify-self-end" href="/settings/mfa/oob_otp_sms">
       <i class="ti ti-edit margin-l-8 padding-v-16"></i>
     </a>
     {{ else }}
-    <p class="grid-area-desc margin-0 warn-txt font-smaller leading-normal">
+    <p class="grid-area-desc margin-t-4 margin-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
     <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
@@ -122,12 +125,12 @@
   <!-- Secondary Password -->
   {{ if $show_secondary_password }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="ti ti-lock grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
-    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
+    <i class="ti ti-lock grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt text-base">
       {{ template "settings-page-secondary-password-title" }}
     </p>
     {{ if $secondary_password }}
-    <p class="grid-area-desc margin-0 secondary-txt font-smaller leading-normal">
+    <p class="grid-area-desc margin-t-4 margin-0 secondary-txt text-sm">
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt) }}
     </p>
@@ -155,14 +158,14 @@
   <!-- Recovery code -->
   {{ if (and $has_mfa $.ListRecoveryCodesAllowed) }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="ti ti-file-text grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
-    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
+    <i class="ti ti-file-text grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt text-base">
       {{ template "settings-page-recovery-code-title" }}
     </p>
-    <p class="grid-area-desc margin-0 secondary-txt font-smaller leading-normal">
+    <p class="grid-area-desc margin-t-4 margin-0 secondary-txt text-sm">
       {{ template "settings-page-recovery-code-description" }}
     </p>
-    <a class="grid-area-action1 align-self-center justify-self-end font-smaller as-btn not-a btn action-btn" href="/settings/mfa/recovery_code">
+    <a class="grid-area-action1 align-self-center justify-self-end text-sm as-btn not-a btn action-btn" href="/settings/mfa/recovery_code">
       {{ template "show-recovery-code-button-label" }}
     </a>
   </section>
@@ -171,19 +174,19 @@
   <!-- Revoke all device tokens -->
   {{ if $has_mfa }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="ti ti-user-check grid-area-icon margin-0 primary-txt font-smaller leading-normal" aria-hidden="true"></i>
-    <p class="grid-area-title margin-0 primary-txt font-smaller leading-normal">
+    <i class="ti ti-user-check grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
+    <p class="grid-area-title margin-0 primary-txt text-sm text-base">
       {{ template "settings-page-trusted-devices-title" }}
     </p>
   {{ if $.HasDeviceTokens }}
-  <form class="grid-area-desc margin-0" method="post" novalidate>
+  <form class="grid-area-desc margin-t-4 margin-0" method="post" novalidate>
     {{ $.CSRFField }}
-    <button class="justify-self-start btn destructive-btn font-smaller leading-normal" type="submit" name="x_action" value="revoke_devices">
+    <button class="justify-self-start btn destructive-btn text-sm" type="submit" name="x_action" value="revoke_devices">
       {{ template "revoke-all-device-tokens-button-label" }}
     </button>
   </form>
   {{ else }}
-  <p class="grid-area-desc margin-0 font-smaller leading-normal secondary-txt">
+  <p class="grid-area-desc margin-t-4 margin-0 secondary-txt text-sm">
     {{ template "no-device-tokens-description" }}
   </p>
   {{ end }}

@@ -6,17 +6,17 @@
 <div class="flex flex-direction-column">
   {{ template "__nav_bar.html" }}
   <section class="padding-20 row-sep">
-    <h1 class="font-inherit margin-0 primary-txt">
+    <h1 class="margin-0 primary-txt text-xl font-bold">
       {{ template "settings-totp-title" }}
     </h1>
   </section>
 
   {{ range $.Authenticators }}
     <form class="padding-20 row-sep grid grid-title-desc-action1-action2" method="post" novalidate>
-      <p class="grid-area-title align-self-center margin-0 primary-txt font-smaller leading-normal">
+      <p class="grid-area-title align-self-center margin-0 primary-txt text-base">
         {{ index .Claims "https://authgear.com/claims/totp/display_name" }}
       </p>
-      <p class="grid-area-desc align-self-center margin-0 secondary-txt font-smaller leading-normal">
+      <p class="grid-area-desc margin-t-4 align-self-center margin-0 secondary-txt text-sm">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
       </p>
@@ -30,7 +30,7 @@
   <section class="padding-20 row-sep">
     <form class="primary-action" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="btn secondary-btn font-smaller leading-normal" type="submit" name="x_action" value="add">
+      <button class="btn secondary-btn text-sm" type="submit" name="x_action" value="add">
         {{ template "add-button-label" }}
       </button>
     </form>

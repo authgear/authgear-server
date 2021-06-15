@@ -7,11 +7,16 @@
 {{/* Identity */}}
 <div class="pane flex flex-direction-column margin-b-20">
 <div class="flex flex-direction-column">
-  <section class="padding-20 gap-4 row-sep grid grid-title-desc">
-    <h1 class="grid-area-title margin-0 font-inherit primary-txt">
-      {{ template "settings-identity-title" }}
+  <section class="padding-h-20 margin-t-16 margin-b-4">
+    <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
+      {{ template "settings-my-account-title" }}
     </h1>
-    <p class="grid-area-desc margin-0 font-smaller secondary-txt">
+  </section>
+  <section class="padding-20 row-sep grid grid-title-desc">
+    <h2 class="grid-area-title margin-0 primary-txt text-base font-semibold">
+      {{ template "settings-identity-title" }}
+    </h2>
+    <p class="grid-area-desc margin-0 text-sm secondary-txt">
       {{ template "settings-identity-description" }}
     </p>
   </section>
@@ -27,17 +32,17 @@
   {{ $is_oauth_candidate := (and (eq .type "oauth") (not .identity_id)) }}
 
   {{ if not $is_oauth_candidate }}
-  <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2">
+  <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2-action3">
     {{ $ti := "" }}
 
     {{ if eq .type "oauth" }}
     {{ if eq .provider_type "google" }}   {{ $ti = "ti ti-brand-google" }}     {{ end }}
     {{ if eq .provider_type "apple" }}    {{ $ti = "ti ti-brand-apple"  }}     {{ end }}
-    {{ if eq .provider_type "facebook" }} {{ $ti = "ti ti-brand-facebook" }} {{ end }}
-    {{ if eq .provider_type "linkedin" }} {{ $ti = "ti ti-brand-linkedin" }}{{ end }}
-    {{ if eq .provider_type "azureadv2" }}{{ $ti = "ti ti-brand-windows" }}  {{ end }}
-    {{ if eq .provider_type "adfs" }}     {{ $ti = "ti ti-brand-windows" }}  {{ end }}
-    {{ if eq .provider_type "wechat" }}   {{ $ti = "ti ti-social" }}     {{ end }}
+    {{ if eq .provider_type "facebook" }} {{ $ti = "ti ti-brand-facebook" }}   {{ end }}
+    {{ if eq .provider_type "linkedin" }} {{ $ti = "ti ti-brand-linkedin" }}   {{ end }}
+    {{ if eq .provider_type "azureadv2" }}{{ $ti = "ti ti-brand-windows" }}    {{ end }}
+    {{ if eq .provider_type "adfs" }}     {{ $ti = "ti ti-brand-windows" }}    {{ end }}
+    {{ if eq .provider_type "wechat" }}   {{ $ti = "ti ti-message-circle" }}   {{ end }}
     {{ end }}
 
     {{ if eq .type "login_id" }}
@@ -47,8 +52,8 @@
 
     {{ end }}
 
-    <i class="grid-area-icon align-self-start justify-self-start font-smaller margin-0 primary-txt leading-normal {{ $ti }}" aria-hidden="true"></i>
-    <p class="grid-area-name align-self-center font-smaller margin-0 primary-txt leading-normal">
+    <i class="grid-area-icon align-self-start justify-self-start margin-0 primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
+    <p class="grid-area-name align-self-center margin-0 primary-txt text-base">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
         {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
@@ -67,20 +72,20 @@
     </p>
 
     {{ if .display_id }}
-    <p class="grid-area-claim align-self-center font-smaller margin-0 secondary-txt leading-normal">
+    <p class="grid-area-claim margin-t-4 align-self-center text-sm margin-0 secondary-txt leading-normal">
       {{ .display_id }}
 
       <!-- TODO(verification): show verification for all identity types -->
       {{ if eq .type "login_id" }}
       {{ if .identity_id }}
       {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-      <span class="warn-txt">
-        ({{ template "verification-status-label--unverified" }})
+      <span class="error-txt">
+        {{ template "verification-status-label--unverified" }}
       </span>
       {{ end }}
       {{ if eq $verification_status "verified" }}
       <span class="good-txt">
-        ({{ template "verification-status-label--verified" }})
+        {{ template "verification-status-label--verified" }}
       </span>
       {{ end }}
       {{ end }}
@@ -122,12 +127,11 @@
     {{ if eq .type "login_id" }}
     {{ if .identity_id }}
     {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-    <form class="grid-area-action2 align-self-center justify-self-end" method="post" novalidate>
+    <form class="grid-area-action3 align-self-center align-self-start margin-t-4" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-    <button class="btn secondary-btn" type="submit" name="x_action" value="verify_login_id">
-      <!-- FIXME: icon not confirmed -->
-      <i class="ti ti-zoom-check margin-l-8 padding-v-16"></i>
+    <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
+      {{ template "resend-verification-code-button-label" }}
     </button>
     </form>
     {{ end }}
@@ -139,7 +143,8 @@
   {{ end }}
 
   <section class="padding-20 row-sep">
-    <a class="link action font-smaller" href="/settings/identity">
+    <a class="link action text-sm" href="/settings/identity">
+      <i class="ti ti-chevrons-right"></i>
       {{ template "more-button-label" }}
     </a>
   </section>
@@ -194,11 +199,11 @@
 
 <div class="pane margin-b-20">
 <!-- The title and the description -->
-<section class="padding-20 gap-4 grid grid-title-desc-action1-action2">
-  <h2 class="grid-area-title font-inherit margin-0 primary-txt">
+<section class="padding-h-20 margin-v-16 gap-4 grid grid-title-desc-action1-action2">
+  <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
     {{ template "settings-page-security-section-title" }}
-  </h2>
-  <p class="grid-area-desc font-smaller margin-0 secondary-txt">
+  </h1>
+  <p class="grid-area-desc text-sm margin-0 secondary-txt">
     {{ template "settings-page-security-section-description" }}
   </p>
 </section>
@@ -207,9 +212,9 @@
     {{ range $.Authenticators }}
     <!-- Primary Password -->
     {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item" href="/settings/change_password">
+    <a class="settings-security-item not-a" href="/settings/change_password">
       <i class="ti ti-key icon margin-b-10 primary-txt" aria-hidden="true"></i>
-      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+      <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-primary-password-title" }}
       </p>
       <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
@@ -221,15 +226,15 @@
 
     <!-- Primary OOB OTP Email -->
     {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item" href="/settings/identity">
+    <a class="settings-security-item not-a" href="/settings/identity">
       <i class="ti ti-mail icon margin-b-10 primary-txt" aria-hidden="true"></i>
-      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+      <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-primary-oob-otp-title--email" }}
       </p>
-      <p class="margin-0 font-smaller secondary-txt text-xs text-ellipsis">
+      <p class="margin-0 text-sm secondary-txt text-xs text-ellipsis">
         {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
       </p>
-      <p class="margin-t-0 margin-b-10 font-smaller secondary-txt text-xs">
+      <p class="margin-t-0 margin-b-10 text-sm secondary-txt text-xs">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt) }}
       </p>
@@ -238,9 +243,9 @@
 
     <!-- Primary OOB OTP SMS -->
     {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item" href="/settings/identity">
+    <a class="settings-security-item not-a" href="/settings/identity">
       <i class="ti ti-message-dots icon margin-b-10 primary-txt" aria-hidden="true"></i>
-      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+      <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-primary-oob-otp-title--sms" }}
       </p>
       <p class="margin-0 secondary-txt text-xs">
@@ -256,9 +261,9 @@
 
     <!-- MFA -->
     {{ if $show_mfa }}
-    <a class="settings-security-item" href="/settings/mfa">
+    <a class="settings-security-item not-a" href="/settings/mfa">
       <i class="ti ti-shield-lock icon margin-b-10 primary-txt" aria-hidden="true"></i>
-      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+      <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-mfa-section-title" }}
       </p>
       <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
@@ -269,9 +274,9 @@
 
     {{ if $.ShowBiometric }}
     <!-- Biometric -->
-    <a class="settings-security-item" href="/settings/biometric">
+    <a class="settings-security-item not-a" href="/settings/biometric">
       <i class="ti ti-fingerprint icon margin-b-10 primary-txt" aria-hidden="true"></i>
-      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+      <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-biometric-section-title" }}
       </p>
       <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
@@ -280,9 +285,9 @@
     </a>
     {{ end }}
 
-    <a class="settings-security-item" href="/settings/sessions">
+    <a class="settings-security-item not-a" href="/settings/sessions">
       <i class="ti ti-shield-check icon margin-b-10 primary-txt" aria-hidden="true"></i>
-      <p class="margin-t-0 margin-b-10 primary-txt text-xs">
+      <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-session-section-title" }}
       </p>
       <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
@@ -295,9 +300,9 @@
 
 {{ if $.ClientURI }}
 <div class="pane margin-b-20">
-  <section class="padding-20 flex justify-center">
-    <a class="link" href="{{ $.ClientURI }}">
-      <i class="ti ti-logout"></i>
+  <section class="padding-v-16 padding-h-20 flex justify-center">
+    <a class="link text-sm" href="{{ $.ClientURI }}">
+      <i class="ti ti-logout margin-r-10"></i>
       {{ template "back-to-app-label" }}
     </a>
   </section>
