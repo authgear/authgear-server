@@ -2,8 +2,8 @@
 
 {{ define "page-content" }}
 <main class="content settings-content">
-<div class="pane flex flex-direction-column">
-<div class="flex flex-direction-column">
+<div class="pane flex flex-col">
+<div class="flex flex-col">
   {{ template "__nav_bar.html" }}
   <section class="padding-20 row-sep">
     <h1 class="margin-0 primary-txt text-xl font-bold">
@@ -13,16 +13,16 @@
 
   {{ range $.Authenticators }}
     <form class="padding-20 row-sep grid grid-title-desc-action1-action2" method="post" novalidate>
-      <p class="grid-area-title align-self-center margin-0 primary-txt text-base">
+      <p class="grid-area-title self-center margin-0 primary-txt text-base">
         {{ index .Claims "https://authgear.com/claims/totp/display_name" }}
       </p>
-      <p class="grid-area-desc margin-t-4 align-self-center margin-0 secondary-txt text-sm">
+      <p class="grid-area-desc margin-t-4 self-center margin-0 secondary-txt text-sm">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
-      <button class="grid-area-action1 align-self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
+      <button class="grid-area-action1 self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
         <i class="ti ti-circle-minus margin-l-8 padding-v-16"></i>
       </button>
     </form>

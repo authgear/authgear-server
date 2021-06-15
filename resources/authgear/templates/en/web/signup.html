@@ -13,8 +13,8 @@
 		{{ end }}
 	{{ end }}
 	{{ if $.PublicSignupDisabled }}
-	<div class="pane flex flex-direction-column">
-	<div class="flex flex-direction-column">
+	<div class="pane flex flex-col">
+	<div class="flex flex-col">
 		{{ template "__nav_bar.html" true }}
 		<div class="width-full margin-t-40 margin-b-20">
 			<p class="primary-txt margin-t-0 margin-b-20 text-base">{{ template "public-signup-disabled-notice" }}</p>
@@ -25,10 +25,10 @@
 	</div>
 	{{ else }}
 
-	<div class="pane flex flex-direction-column">
-	<div class="flex flex-direction-column">
+	<div class="pane flex flex-col">
+	<div class="flex flex-col">
 		{{ if not $.PublicSignupDisabled }}{{ if $has_login_id }}
-		<div class="signin-signup-switch flex flex-direction-row margin-b-12">
+		<div class="signin-signup-switch flex flex-row margin-b-12">
 			<a class="not-a signin-signup-link primary-txt" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
 			<a class="not-a signin-signup-link primary-txt current" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 		</div>
@@ -37,7 +37,7 @@
 		{{ template "__nav_bar.html" true }}
 
 		<div class="width-full margin-v-20">
-			<form class="flex flex-direction-column" method="post" novalidate>
+			<form class="flex flex-col" method="post" novalidate>
 				{{ $.CSRFField }}
 
 				<h1 class="margin-t-0 margin-b-20 primary-txt text-center text-xl font-bold">
@@ -98,7 +98,7 @@
 
 				{{ range .IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
-					<a class="link text-xs align-self-flex-start block margin-b-10" data-turbolinks-action="replace"
+					<a class="link text-xs self-start block margin-b-10" data-turbolinks-action="replace"
 						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
@@ -113,16 +113,16 @@
 			</form>
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
-			<div class="sso-loginid-separator flex flex-direction-row align-items-center margin-b-20">
+			<div class="sso-loginid-separator flex flex-row items-center margin-b-20">
 				<span class="primary-txt margin-h-6">{{ template "sso-login-id-separator-both-present" }}</span>
 			</div>
 			{{ end }}{{ end }}
 
 			{{ if $has_oauth }}
-			<div class="flex flex-direction-column margin-b-12">
+			<div class="flex flex-col margin-b-12">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
-				<form class="flex flex-direction-column" method="post" novalidate>
+				<form class="flex flex-col" method="post" novalidate>
 				{{ $.CSRFField }}
 				{{ $skip := false }}
 				{{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}

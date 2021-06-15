@@ -2,8 +2,8 @@
 
 {{ define "page-content" }}
 <main class="content settings-content">
-<div class="pane flex flex-direction-column">
-<div class="flex flex-direction-column">
+<div class="pane flex flex-col">
+<div class="flex flex-col">
   {{ template "__nav_bar.html" }}
   <section class="padding-20 gap-4 row-sep grid grid-title-desc">
     <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
@@ -17,17 +17,17 @@
   {{ range $.BiometricIdentities }}
   <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
     <i class="ti ti-devices grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
-    <h2 class="grid-area-title align-self-center margin-0 primary-txt text-base">
+    <h2 class="grid-area-title self-center margin-0 primary-txt text-base">
       {{ if .DisplayName }}
       {{ .DisplayName }}
       {{ else }}
       {{ template "settings-biometric-identity-unknown-name" }}
       {{ end }}
     </h2>
-    <p class="grid-area-desc margin-t-4 align-self-center margin-0 secondary-txt text-ellipsis text-sm">
+    <p class="grid-area-desc margin-t-4 self-center margin-0 secondary-txt truncate text-sm">
       {{ template "settings-biometric-identity-description" (dict "time" .CreatedAt) }}
     </p>
-    <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
+    <form class="grid-area-action1 self-center justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_identity_id" value="{{ .ID }}">
       <button class="btn destructive-btn" type="submit" name="x_action" value="remove">

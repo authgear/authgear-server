@@ -5,8 +5,8 @@
 {{ template "__nav_bar.html" true }}
 
 {{/* Identity */}}
-<div class="pane flex flex-direction-column margin-b-20">
-<div class="flex flex-direction-column">
+<div class="pane flex flex-col margin-b-20">
+<div class="flex flex-col">
   <section class="padding-h-20 margin-t-16 margin-b-4">
     <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
       {{ template "settings-my-account-title" }}
@@ -52,8 +52,8 @@
 
     {{ end }}
 
-    <i class="grid-area-icon align-self-start justify-self-start margin-0 primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
-    <p class="grid-area-name align-self-center margin-0 primary-txt text-base">
+    <i class="grid-area-icon justify-self-start margin-0 primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
+    <p class="grid-area-name self-center margin-0 primary-txt text-base">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
         {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
@@ -72,7 +72,7 @@
     </p>
 
     {{ if .display_id }}
-    <p class="grid-area-claim margin-t-4 align-self-center text-sm margin-0 secondary-txt leading-normal">
+    <p class="grid-area-claim margin-t-4 self-center text-sm margin-0 secondary-txt leading-normal">
       {{ .display_id }}
 
       <!-- TODO(verification): show verification for all identity types -->
@@ -94,7 +94,7 @@
     {{ end }}
 
     {{ if eq .type "oauth" }}
-    <form class="grid-area-action1 align-self-center justify-self-end" method="post" novalidate>
+    <form class="grid-area-action1 self-center justify-self-end" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
@@ -114,11 +114,11 @@
 
     {{ if eq .type "login_id" }}
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">
+    <a class="link grid-area-action1 self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">
       <i class="ti ti-edit margin-l-8 padding-v-16"></i>
     </a>
     {{ else }}
-    <a class="link grid-area-action1 align-self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+    <a class="link grid-area-action1 self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
       <i class="ti ti-circle-plus margin-l-8 padding-v-16"></i>
     </a>
     {{ end }}{{ end }}
@@ -127,7 +127,7 @@
     {{ if eq .type "login_id" }}
     {{ if .identity_id }}
     {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-    <form class="grid-area-action3 align-self-center align-self-start margin-t-4" method="post" novalidate>
+    <form class="grid-area-action3 self-center margin-t-4" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
@@ -231,7 +231,7 @@
       <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-primary-oob-otp-title--email" }}
       </p>
-      <p class="margin-0 text-sm secondary-txt text-xs text-ellipsis">
+      <p class="margin-0 text-sm secondary-txt text-xs truncate">
         {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
       </p>
       <p class="margin-t-0 margin-b-10 text-sm secondary-txt text-xs">

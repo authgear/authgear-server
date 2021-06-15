@@ -20,7 +20,7 @@ window.api.onLoad(() => {
       continue;
     }
     const onCloseButtonClick = (e: Event) => {
-      wrapper.classList.add("display-none");
+      wrapper.classList.add("hidden");
     };
     close.addEventListener("click", onCloseButtonClick);
     disposers.push(() => {
@@ -46,7 +46,7 @@ function setNetworkError() {
       document.createTextNode(errorBar.getAttribute("data-network-error") || "")
     );
     if (list) list.innerHTML = li.outerHTML;
-    errorBar.classList.remove("display-none");
+    errorBar.classList.remove("hidden");
   }
 }
 
@@ -59,7 +59,7 @@ function setServerError() {
       document.createTextNode(errorBar.getAttribute("data-server-error") || "")
     );
     if (list) list.innerHTML = li.outerHTML;
-    errorBar.classList.remove("display-none");
+    errorBar.classList.remove("hidden");
   }
 }
 

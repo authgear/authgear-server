@@ -2,9 +2,9 @@
 
 {{ define "page-content" }}
 <main class="content">
-<div class="pane flex flex-direction-column">
+<div class="pane flex flex-col">
 {{ template "__nav_bar.html" true }}
-<div class="flex flex-direction-column width-full margin-v-20 primary-txt">
+<div class="flex flex-col width-full margin-v-20 primary-txt">
 {{ if .Error }}
 {{ if eq .Error.reason "WebUIInvalidSession" }}
     {{ if len .SessionStepURLs }}
@@ -36,7 +36,7 @@
     {{ end }}
 {{ end }}
 </h1>
-<p class="text-sm overflow-wrap-break-word primary-txt margin-b-20 text-center">{{ $error_reason.reason }}</p>
+<p class="text-sm break-words primary-txt margin-b-20 text-center">{{ $error_reason.reason }}</p>
 <a class="as-btn not-a btn primary-btn margin-b-20" href="/" data-turbolinks="false">
     {{ template "error-webhook-disallowed-action" }}
 </a>

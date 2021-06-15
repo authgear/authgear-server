@@ -3,7 +3,7 @@
 {{ define "page-content" }}
 <div class="content">
 
-<div class="pane flex flex-direction-column">
+<div class="pane flex flex-col">
 {{ if eq $.Action "update_session_step" }}
 {{ template "__nav_bar.html" true }}
 {{ else if $.IdentityDisplayID }}
@@ -11,7 +11,7 @@
 {{ else }}
 {{ template "__nav_bar.html" true }}
 {{ end }}
-<div class="flex flex-direction-column width-full margin-v-20">
+<div class="flex flex-col width-full margin-v-20">
 
 {{ if $.IdentityDisplayID }}
 {{ if eq $.VerificationCodeChannel "sms" }}
@@ -23,9 +23,9 @@
 {{ end }}
 
 {{ if $.IdentityDisplayID }}
-<div class="text-sm overflow-wrap-break-word primary-txt margin-b-20 text-center">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
+<div class="text-sm break-words primary-txt margin-b-20 text-center">{{ template "verify-user-description" (dict "length" $.VerificationCodeLength "target" $.IdentityDisplayID) }}</div>
 
-<form class="flex flex-direction-column" method="post" novalidate>
+<form class="flex flex-col" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input
