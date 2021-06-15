@@ -371,6 +371,10 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 4px;
 }
 
+.margin-t-10 {
+  margin-top: 10px;
+}
+
 .margin-t-16 {
   margin-top: 16px;
 }

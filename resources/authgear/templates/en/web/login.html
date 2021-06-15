@@ -15,7 +15,7 @@
 	<div class="pane flex flex-direction-column">
 	<div class="flex flex-direction-column">
 		{{ if not $.PublicSignupDisabled }}{{ if $has_login_id }}
-		<div class="signin-signup-switch flex flex-direction-row margin-b-20">
+		<div class="signin-signup-switch flex flex-direction-row margin-b-12">
 			<a class="not-a signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
 			<a class="not-a signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 		</div>
@@ -27,7 +27,7 @@
 			<form class="flex flex-direction-column" method="post" novalidate>
 				{{ $.CSRFField }}
 
-				<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center leading-loose">
+				<h1 class="margin-t-0 margin-b-20 primary-txt text-center text-xl font-bold">
 					{{ if $.ClientName }}
 					{{ template "log-in-to-continue" (dict "AppOrClientName" $.ClientName) }}
 					{{ else }}
@@ -81,15 +81,15 @@
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<a class="link font-smaller align-self-flex-start block margin-b-20" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
+				<a class="link text-xs align-self-flex-start block margin-b-10" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
-				<a class="link font-smaller align-self-flex-start block margin-b-20" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
+				<a class="link text-xs align-self-flex-start block margin-b-10" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<button class="btn primary-btn margin-b-20" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
+				<button class="btn primary-btn margin-t-10 margin-b-20" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
 				{{ end }}
 
 				{{/* Forgot password link is deliberately omitted here. */}}
@@ -99,7 +99,7 @@
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
 			<div class="sso-loginid-separator flex flex-direction-row align-items-center margin-b-20">
-				<span class="primary-txt margin-h-6">{{ template "sso-login-id-separator-both-present" }}</span>
+				<span class="primary-txt margin-h-6 text-xs">{{ template "sso-login-id-separator-both-present" }}</span>
 			</div>
 			{{ end }}{{ end }}
 
@@ -122,31 +122,31 @@
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
 					<div class="sso-btn-icon image-icon apple-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-apple" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
 					<div class="sso-btn-icon image-icon google-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-google" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
 					<div class="sso-btn-icon image-icon facebook-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-facebook" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-facebook" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
 					<div class="sso-btn-icon image-icon linkedin-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-linkedin" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-linkedin" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
 					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-azureadv2" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "adfs" -}}
 					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-adfs" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-adfs" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "wechat" -}}
 					<div class="sso-btn-icon image-icon wechat-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-wechat" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-wechat" }}</span>
 					{{- end -}}
 					</span>
 				</button>
@@ -158,7 +158,7 @@
 			{{ end }}
 
 			{{ if ($.Translations.HasKey "toc-pp-footer") }}
-			<p class="font-smaller primary-txt margin-t-0 margin-b-20">
+			<p class="text-xs primary-txt margin-t-0 margin-b-20">
 			{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
 			</p>
 			{{ end }}

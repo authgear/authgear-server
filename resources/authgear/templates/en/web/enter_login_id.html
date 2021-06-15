@@ -6,7 +6,7 @@
 {{ template "__nav_bar.html" }}
 <div class="flex flex-direction-column width-full margin-v-20">
 
-<h1 class="font-inherit margin-t-0 margin-b-20 primary-txt text-center">
+<h1 class="margin-t-0 margin-b-10 primary-txt text-center text-xl font-bold">
 	{{ if $.IdentityID }}
 	{{ template "enter-login-id-page-title--change" (dict "key" $.LoginIDKey) }}
 	{{ else }}
@@ -15,12 +15,12 @@
 </h1>
 
 {{ if $.IdentityID }}
-<p class="font-smaller margin-t-0 margin-b-20 overflow-wrap-break-word secondary-txt text-center">
+<p class="text-sm margin-t-0 margin-b-10 overflow-wrap-break-word secondary-txt text-center">
 	{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
 </p>
 {{ end }}
 
-<form id="main-form" class="flex flex-direction-column" method="post" novalidate>
+<form id="main-form" class="flex flex-direction-column margin-t-10" method="post" novalidate>
 
 {{ $.CSRFField }}
 
@@ -68,7 +68,7 @@
 <button form="main-form" class="btn primary-btn margin-b-20" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
 {{ if .IdentityID }}{{ if gt $.IdentityCount 1 }}
-<button form="remove-form" class="btn secondary-btn margin-b-20 text-left font-smaller" type="submit" name="x_action" value="remove">
+<button form="remove-form" class="btn secondary-btn margin-b-20 text-left text-sm" type="submit" name="x_action" value="remove">
 	{{ if eq .LoginIDType "username" }}
 	{{ template "remove-button-label" }}
 	{{ else }}

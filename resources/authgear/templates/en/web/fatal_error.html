@@ -8,19 +8,23 @@
 {{ if .Error }}
 {{ if eq .Error.reason "WebUIInvalidSession" }}
     {{ if len .SessionStepURLs }}
-        {{ template "error-web-ui-invalid-session-return" }}
+        <div class="text-center text-sm">
+            {{ template "error-web-ui-invalid-session-return" }}
+        </div>
         <a class="as-btn not-a btn primary-btn" href="{{ last .SessionStepURLs }}" data-turbolinks="false">
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ else }}
-        {{ template "error-web-ui-invalid-session-retry" }}
+        <div class="text-center text-sm">
+            {{ template "error-web-ui-invalid-session-retry" }}
+        </div>
         <a class="as-btn not-a btn primary-btn" href="/" data-turbolinks="false">
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ end }}
 {{ else if eq .Error.reason "WebHookDisallowed" }}
 {{ $error_reason := index .Error.info.reasons 0 }}
-<h1 class="font-inherit primary-txt margin-b-20">
+<h1 class="primary-txt margin-v-20 text-center text-xl font-bold">
 {{ if $error_reason.title }}
     {{ $error_reason.title }}
 {{ else }}
@@ -32,12 +36,12 @@
     {{ end }}
 {{ end }}
 </h1>
-<p class="font-smaller overflow-wrap-break-word primary-txt margin-b-20">{{ $error_reason.reason }}</p>
+<p class="text-sm overflow-wrap-break-word primary-txt margin-b-20 text-center">{{ $error_reason.reason }}</p>
 <a class="as-btn not-a btn primary-btn margin-b-20" href="/" data-turbolinks="false">
     {{ template "error-webhook-disallowed-action" }}
 </a>
 {{ else }}
-<h1 class="font-inherit primary-txt margin-b-20">{{ template "error-server" }}</h1>
+<h1 class="primary-txt margin-b-20 text-center text-xl font-bold">{{ template "error-server" }}</h1>
 {{ end }}
 {{ end }}
 </div>

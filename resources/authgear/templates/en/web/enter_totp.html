@@ -6,9 +6,9 @@
 {{ template "__nav_bar.html" }}
 <div class="flex flex-direction-column width-full margin-v-20">
 
-<h1 class="font-inherit text-center margin-t-0 margin-b-20">{{ template "enter-totp-title" }}</h1>
+<h1 class="text-center margin-t-0 margin-b-10 text-xl font-bold">{{ template "enter-totp-title" }}</h1>
 
-<p class="font-smaller overflow-wrap-break-word primary-txt text-center margin-t-0 margin-b-20">{{ template "enter-totp-description" }}</p>
+<p class="text-sm overflow-wrap-break-word primary-txt text-center margin-t-0 margin-b-20">{{ template "enter-totp-description" }}</p>
 
 <form class="flex flex-direction-column" method="post" novalidate>
 {{ $.CSRFField }}
@@ -29,7 +29,7 @@
 {{ if $.CanRequestDeviceToken }}
 <div class="flex flex-direction-row align-items-center align-self-flex-start margin-b-20">
 <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
-<label class="padding-4 font-smaller primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
+<label class="padding-4 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
 </div>
 {{ end }}
 
