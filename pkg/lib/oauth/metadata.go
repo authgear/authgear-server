@@ -12,5 +12,7 @@ func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
 	meta["grant_types_supported"] = []string{"authorization_code", "refresh_token"}
 	meta["code_challenge_methods_supported"] = []string{"S256"}
 	meta["revocation_endpoint"] = p.Endpoints.RevokeEndpointURL().String()
-
+	// We do not support confidential client (i.e. client_secret) at the moment,
+	// so we do not perform authentication at all at the token endpoint.
+	meta["token_endpoint_auth_methods_supported"] = []string{}
 }
