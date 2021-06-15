@@ -13,6 +13,9 @@ import (
 func CreateIndex(es *elasticsearch.Client) error {
 	// index_prefixes is only available on text.
 	// Therefore we have to store both keyword and text.
+
+	// If we even need to adjust index_prefixes.min_chars,
+	// we have to make sure that PrefixMinChars in pkg/lib/elasticsearch is also updated.
 	bodyStr := `
 	{
 		"mappings": {
