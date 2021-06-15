@@ -21,6 +21,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			"request.url":                     r.URL.String(),
 			"request.header.host":             r.Header.Get("Host"),
 			"request.header.x-forwarded-host": r.Header.Get("X-Forwarded-Host"),
+			"request.header.x-original-host":  r.Header.Get("X-Original-Host"),
 		}).Debug("serving request")
 		appCtx, err := m.ConfigSource.ProvideContext(r)
 		if err != nil {

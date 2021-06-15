@@ -12,6 +12,7 @@ var ipRegex = regexp.MustCompile(`^(?:(\d+\.\d+\.\d+\.\d+)|\[(.*)\])(?::\d+)?$`)
 func GetIP(r *http.Request, trustProxy bool) (ip string) {
 	remoteAddr := r.RemoteAddr
 	forwardedFor := r.Header.Get("X-Forwarded-For")
+	originalFor := r.Header.Get("X-Original-For")
 	realIP := r.Header.Get("X-Real-IP")
 	forwarded := r.Header.Get("Forwarded")
 
@@ -32,15 +33,24 @@ func GetIP(r *http.Request, trustProxy bool) (ip string) {
 			return
 		}
 	}
+
 	if trustProxy && forwardedFor != "" {
-		parts := strings.SplitN(forwardedFor, ",", 2)
+		parts := strings.Split(forwardedFor, ",")
 		ip = parts[0]
 		return
 	}
+
+	if trustProxy && originalFor != "" {
+		parts := strings.Split(originalFor, ",")
+		ip = parts[0]
+		return
+	}
+
 	if trustProxy && realIP != "" {
 		ip = realIP
 		return
 	}
+
 	ip = remoteAddr
 	return
 }

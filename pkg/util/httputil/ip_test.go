@@ -20,6 +20,10 @@ func TestGetIP(t *testing.T) {
 			r.Header.Set("X-Forwarded-For", "[::1]:20595, 169.254.198.67")
 			So(httputil.GetIP(r, true), ShouldEqual, "::1")
 		})
+		Convey("should resolve X-Original-For", func() {
+			r.Header.Set("X-Original-For", "[::1]:20595, 169.254.198.67")
+			So(httputil.GetIP(r, true), ShouldEqual, "::1")
+		})
 		Convey("should resolve Forwarded", func() {
 			r.Header.Set("Forwarded", "for=127.0.0.1:313;by=169.254.198.67, for=169.254.198.67")
 			So(httputil.GetIP(r, true), ShouldEqual, "127.0.0.1")
@@ -33,12 +37,17 @@ func TestGetIP(t *testing.T) {
 			r.Header.Set("X-Forwarded-For", "b")
 			r.Header.Set("Forwarded", "for=c")
 			r.RemoteAddr = "d"
+			r.Header.Set("X-Original-For", "e")
+
 			So(httputil.GetIP(r, true), ShouldEqual, "c")
 
 			r.Header.Del("Forwarded")
 			So(httputil.GetIP(r, true), ShouldEqual, "b")
 
 			r.Header.Del("X-Forwarded-For")
+			So(httputil.GetIP(r, true), ShouldEqual, "e")
+
+			r.Header.Del("X-Original-For")
 			So(httputil.GetIP(r, true), ShouldEqual, "a")
 
 			r.Header.Del("X-Real-IP")
@@ -49,12 +58,17 @@ func TestGetIP(t *testing.T) {
 			r.Header.Set("X-Forwarded-For", "b")
 			r.Header.Set("Forwarded", "for=c")
 			r.RemoteAddr = "d"
+			r.Header.Set("X-Original-For", "e")
+
 			So(httputil.GetIP(r, false), ShouldEqual, "d")
 
 			r.Header.Del("Forwarded")
 			So(httputil.GetIP(r, false), ShouldEqual, "d")
 
 			r.Header.Del("X-Forwarded-For")
+			So(httputil.GetIP(r, false), ShouldEqual, "d")
+
+			r.Header.Del("X-Original-For")
 			So(httputil.GetIP(r, false), ShouldEqual, "d")
 
 			r.Header.Del("X-Real-IP")
