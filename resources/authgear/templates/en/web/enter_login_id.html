@@ -67,7 +67,7 @@
 
 <button form="main-form" class="btn primary-btn margin-b-20" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
-{{ if .IdentityID }}
+{{ if .IdentityID }}{{ if gt $.IdentityCount 1 }}
 <button form="remove-form" class="btn secondary-btn margin-b-20 text-left font-smaller" type="submit" name="x_action" value="remove">
 	{{ if eq .LoginIDType "username" }}
 	{{ template "remove-button-label" }}
@@ -75,7 +75,7 @@
 	{{ template "disconnect-button-label" }}
 	{{ end }}
 </button>
-{{ end }}
+{{ end }}{{ end }}
 
 </form>
 
