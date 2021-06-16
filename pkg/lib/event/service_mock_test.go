@@ -5,37 +5,38 @@
 package event
 
 import (
+	reflect "reflect"
+
 	event "github.com/authgear/authgear-server/pkg/api/event"
 	model "github.com/authgear/authgear-server/pkg/api/model"
 	db "github.com/authgear/authgear-server/pkg/lib/infra/db"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockUserService is a mock of UserService interface
+// MockUserService is a mock of UserService interface.
 type MockUserService struct {
 	ctrl     *gomock.Controller
 	recorder *MockUserServiceMockRecorder
 }
 
-// MockUserServiceMockRecorder is the mock recorder for MockUserService
+// MockUserServiceMockRecorder is the mock recorder for MockUserService.
 type MockUserServiceMockRecorder struct {
 	mock *MockUserService
 }
 
-// NewMockUserService creates a new mock instance
+// NewMockUserService creates a new mock instance.
 func NewMockUserService(ctrl *gomock.Controller) *MockUserService {
 	mock := &MockUserService{ctrl: ctrl}
 	mock.recorder = &MockUserServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockUserService) EXPECT() *MockUserServiceMockRecorder {
 	return m.recorder
 }
 
-// Get mocks base method
+// Get mocks base method.
 func (m *MockUserService) Get(id string) (*model.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", id)
@@ -44,71 +45,71 @@ func (m *MockUserService) Get(id string) (*model.User, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockUserServiceMockRecorder) Get(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserService)(nil).Get), id)
 }
 
-// MockDatabase is a mock of Database interface
+// MockDatabase is a mock of Database interface.
 type MockDatabase struct {
 	ctrl     *gomock.Controller
 	recorder *MockDatabaseMockRecorder
 }
 
-// MockDatabaseMockRecorder is the mock recorder for MockDatabase
+// MockDatabaseMockRecorder is the mock recorder for MockDatabase.
 type MockDatabaseMockRecorder struct {
 	mock *MockDatabase
 }
 
-// NewMockDatabase creates a new mock instance
+// NewMockDatabase creates a new mock instance.
 func NewMockDatabase(ctrl *gomock.Controller) *MockDatabase {
 	mock := &MockDatabase{ctrl: ctrl}
 	mock.recorder = &MockDatabaseMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 	return m.recorder
 }
 
-// UseHook mocks base method
+// UseHook mocks base method.
 func (m *MockDatabase) UseHook(hook db.TransactionHook) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UseHook", hook)
 }
 
-// UseHook indicates an expected call of UseHook
+// UseHook indicates an expected call of UseHook.
 func (mr *MockDatabaseMockRecorder) UseHook(hook interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseHook", reflect.TypeOf((*MockDatabase)(nil).UseHook), hook)
 }
 
-// MockSink is a mock of Sink interface
+// MockSink is a mock of Sink interface.
 type MockSink struct {
 	ctrl     *gomock.Controller
 	recorder *MockSinkMockRecorder
 }
 
-// MockSinkMockRecorder is the mock recorder for MockSink
+// MockSinkMockRecorder is the mock recorder for MockSink.
 type MockSinkMockRecorder struct {
 	mock *MockSink
 }
 
-// NewMockSink creates a new mock instance
+// NewMockSink creates a new mock instance.
 func NewMockSink(ctrl *gomock.Controller) *MockSink {
 	mock := &MockSink{ctrl: ctrl}
 	mock.recorder = &MockSinkMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSink) EXPECT() *MockSinkMockRecorder {
 	return m.recorder
 }
 
-// ReceiveBlockingEvent mocks base method
+// ReceiveBlockingEvent mocks base method.
 func (m *MockSink) ReceiveBlockingEvent(e *event.Event) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReceiveBlockingEvent", e)
@@ -116,13 +117,13 @@ func (m *MockSink) ReceiveBlockingEvent(e *event.Event) error {
 	return ret0
 }
 
-// ReceiveBlockingEvent indicates an expected call of ReceiveBlockingEvent
+// ReceiveBlockingEvent indicates an expected call of ReceiveBlockingEvent.
 func (mr *MockSinkMockRecorder) ReceiveBlockingEvent(e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveBlockingEvent", reflect.TypeOf((*MockSink)(nil).ReceiveBlockingEvent), e)
 }
 
-// ReceiveNonBlockingEvent mocks base method
+// ReceiveNonBlockingEvent mocks base method.
 func (m *MockSink) ReceiveNonBlockingEvent(e *event.Event) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReceiveNonBlockingEvent", e)
@@ -130,36 +131,36 @@ func (m *MockSink) ReceiveNonBlockingEvent(e *event.Event) error {
 	return ret0
 }
 
-// ReceiveNonBlockingEvent indicates an expected call of ReceiveNonBlockingEvent
+// ReceiveNonBlockingEvent indicates an expected call of ReceiveNonBlockingEvent.
 func (mr *MockSinkMockRecorder) ReceiveNonBlockingEvent(e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveNonBlockingEvent", reflect.TypeOf((*MockSink)(nil).ReceiveNonBlockingEvent), e)
 }
 
-// MockStore is a mock of Store interface
+// MockStore is a mock of Store interface.
 type MockStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockStoreMockRecorder
 }
 
-// MockStoreMockRecorder is the mock recorder for MockStore
+// MockStoreMockRecorder is the mock recorder for MockStore.
 type MockStoreMockRecorder struct {
 	mock *MockStore
 }
 
-// NewMockStore creates a new mock instance
+// NewMockStore creates a new mock instance.
 func NewMockStore(ctrl *gomock.Controller) *MockStore {
 	mock := &MockStore{ctrl: ctrl}
 	mock.recorder = &MockStoreMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 	return m.recorder
 }
 
-// NextSequenceNumber mocks base method
+// NextSequenceNumber mocks base method.
 func (m *MockStore) NextSequenceNumber() (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "NextSequenceNumber")
@@ -168,7 +169,7 @@ func (m *MockStore) NextSequenceNumber() (int64, error) {
 	return ret0, ret1
 }
 
-// NextSequenceNumber indicates an expected call of NextSequenceNumber
+// NextSequenceNumber indicates an expected call of NextSequenceNumber.
 func (mr *MockStoreMockRecorder) NextSequenceNumber() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NextSequenceNumber", reflect.TypeOf((*MockStore)(nil).NextSequenceNumber))
