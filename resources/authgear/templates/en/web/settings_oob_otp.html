@@ -2,8 +2,8 @@
 
 {{ define "page-content" }}
 <main class="content settings-content">
-<div class="pane flex flex-direction-column">
-<div class="flex flex-direction-column">
+<div class="pane flex flex-col">
+<div class="flex flex-col">
   {{ template "__nav_bar.html" }}
   <section class="padding-20 row-sep">
     <h1 class="text-base margin-0 primary-txt text-xl font-bold">
@@ -18,24 +18,24 @@
   {{ range $.Authenticators }}
     <form class="padding-20 row-sep grid grid-icon-name-desc-action" method="post" novalidate>
       {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
-        <i class="grid-area-icon align-self-start justify-self-center margin-2 ti ti-mail text-base" aria-hidden="true"></i>
-        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt text-base">
+        <i class="grid-area-icon justify-self-center margin-2 ti ti-mail text-base" aria-hidden="true"></i>
+        <p class="grid-area-name self-center font-size-inherit margin-0 primary-txt text-base">
           {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
         </p>
       {{ end }}
       {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-        <i class="grid-area-icon align-self-start justify-self-center margin-2 ti ti-device-mobile text-base" aria-hidden="true"></i>
-        <p class="grid-area-name align-self-center font-size-inherit margin-0 primary-txt text-base">
+        <i class="grid-area-icon justify-self-center margin-2 ti ti-device-mobile text-base" aria-hidden="true"></i>
+        <p class="grid-area-name self-center font-size-inherit margin-0 primary-txt text-base">
           {{ index .Claims "https://authgear.com/claims/oob_otp/phone" }}
         </p>
       {{ end }}
-      <p class="grid-area-desc margin-t-4 align-self-center margin-0 secondary-txt text-sm">
+      <p class="grid-area-desc margin-t-4 self-center margin-0 secondary-txt text-sm">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
-      <button class="grid-area-action align-self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
+      <button class="grid-area-action self-center justify-self-end btn destructive-btn" type="submit" name="x_action" value="remove">
         <i class="ti ti-circle-minus margin-l-8 padding-v-16"></i>
       </button>
     </form>

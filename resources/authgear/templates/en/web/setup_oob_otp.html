@@ -2,9 +2,9 @@
 
 {{ define "page-content" }}
 <div class="content">
-<div class="pane flex flex-direction-column">
+<div class="pane flex flex-col">
 {{ template "__nav_bar.html" }}
-<div class="flex flex-direction-column width-full margin-v-20">
+<div class="flex flex-col width-full margin-v-20">
 
 <h1 class="margin-t-0 margin-b-20 primary-txt text-center text-xl font-bold">
 	{{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
@@ -15,7 +15,7 @@
 	{{ end }}
 </h1>
 
-<form class="flex flex-direction-column" method="post" novalidate>
+<form class="flex flex-col" method="post" novalidate>
 
 {{ $.CSRFField }}
 

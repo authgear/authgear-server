@@ -2,9 +2,9 @@
 
 {{ define "page-content" }}
 <div class="content">
-<div class="setup-totp pane flex flex-direction-column">
+<div class="setup-totp pane flex flex-col">
 {{ template "__nav_bar.html" }}
-<div class="flex flex-direction-column width-full margin-v-20">
+<div class="flex flex-col width-full margin-v-20">
 
 <h1 class="primary-txt text-center margin-t-0 margin-b-10 text-xl font-bold">
 	{{ template "setup-totp-title" }}
@@ -12,15 +12,15 @@
 
 <p class="text-sm primary-txt text-center margin-t-0 margin-b-20">{{ template "setup-totp-description" }}</p>
 
-<p class="text-sm overflow-wrap-break-word primary-txt white-space-pre text-center margin-t-0 margin-b-20 leading-normal">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
+<p class="text-sm break-words primary-txt whitespace-pre text-center margin-t-0 margin-b-20 leading-normal">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
 
-<form class="flex flex-direction-column" method="post" novalidate>
+<form class="flex flex-col" method="post" novalidate>
 
 {{ $.CSRFField }}
 
 <img class="qr-code-image margin-b-20" src="{{ $.ImageURI }}">
 
-<p class="text-sm overflow-wrap-break-word primary-txt text-center white-space-pre margin-t-0 margin-b-20">{{ template "setup-totp-code-description" }}</p>
+<p class="text-sm break-words primary-txt text-center whitespace-pre margin-t-0 margin-b-20">{{ template "setup-totp-code-description" }}</p>
 
 <input
 	tabindex="0"
@@ -37,9 +37,9 @@
 
 <button class="btn primary-btn margin-b-20" type="submit" name="submit" value="">{{ template "next-button-label" }}</button>
 
-<p class="text-sm overflow-wrap-break-word primary-txt margin-t-0 margin-b-20">{{ template "setup-totp-get-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt margin-t-0 margin-b-20">{{ template "setup-totp-get-google-authenticator-description" }}</p>
 
-<p class="text-sm overflow-wrap-break-word primary-txt white-space-pre margin-t-0 margin-b-20">{{ template "setup-totp-use-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt whitespace-pre margin-t-0 margin-b-20">{{ template "setup-totp-use-google-authenticator-description" }}</p>
 
 </form>
 

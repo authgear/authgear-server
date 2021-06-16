@@ -2,8 +2,8 @@
 
 {{ define "page-content" }}
 <main class="content settings-content">
-<div class="pane flex flex-direction-column">
-<div class="flex flex-direction-column">
+<div class="pane flex flex-col">
+<div class="flex flex-col">
 {{ template "__nav_bar.html" }}
 <div class="padding-20 gap-4 row-sep grid grid-title-desc">
   <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
@@ -16,12 +16,12 @@
 
 <div class="row-sep">
 {{ range $.SessionGroups }}
-<div class="padding-20 flex flex-direction-column divide-y">
+<div class="padding-20 flex flex-col divide-y">
   <div class="grid grid-icon-title padding-v-6">
     {{ $icon := "" }}
     {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
     <i class="grid-area-icon ti ti-{{ $icon }} primary-txt text-sm" aria-hidden="true"></i>
-    <h2 class="grid-area-title primary-txt text-base margin-0 margin-h-4 text-ellipsis text-sm font-normal">{{ .DisplayName }}</h2>
+    <h2 class="grid-area-title primary-txt text-base margin-0 margin-h-4 truncate text-sm font-normal">{{ .DisplayName }}</h2>
   </div>
   {{ range .Sessions }}
   <div class="grid grid-name-desc-action padding-v-6">
@@ -40,7 +40,7 @@
       {{ template "settings-sessions-item-description" (dict "desc" $desc "time" .LastAccessedAt "isCurrent" (eq .ID $.CurrentSessionID)) }}
     </p>
     {{ if not (eq .ID $.CurrentSessionID) }}
-    <form class="grid-area-action align-self-center" method="post" novalidate>
+    <form class="grid-area-action self-center" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">
       <button

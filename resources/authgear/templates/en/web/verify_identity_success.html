@@ -2,13 +2,13 @@
 
 {{ define "page-content" }}
 <div class="content">
-<div class="pane flex flex-direction-column">
+<div class="pane flex flex-col">
 {{ template "__nav_bar.html" true }}
-<div class="flex flex-direction-column width-full margin-v-20">
+<div class="flex flex-col width-full margin-v-20">
 
 <h1 class="primary-txt text-center margin-v-20 text-xl font-bold">{{ template "verify-user-success-page-title" }}</h1>
 
-<div class="text-sm overflow-wrap-break-word primary-txt text-center margin-t-0 margin-b-20">{{ template "verify-user-success-description" }}</div>
+<div class="text-sm break-words primary-txt text-center margin-t-0 margin-b-20">{{ template "verify-user-success-description" }}</div>
 
 </div>
 <div class="footer-watermark margin-v-20"></div>

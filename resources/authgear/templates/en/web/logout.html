@@ -2,14 +2,14 @@
 
 {{ define "page-content" }}
 <main class="content">
-<div class="pane flex flex-direction-column">
+<div class="pane flex flex-col">
 {{ template "__nav_bar.html" }}
-<div class="flex flex-direction-column width-full margin-v-20">
+<div class="flex flex-col width-full margin-v-20">
   <h2 class="primary-txt text-center margin-b-20 text-xl font-bold">
     {{ template "logout-button-hint" }}
   </h2>
   <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
-  <form class="flex flex-direction-column margin-b-20" method="post" novalidate>
+  <form class="flex flex-col margin-b-20" method="post" novalidate>
     {{ $.CSRFField }}
     <button class="btn primary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
   </form>

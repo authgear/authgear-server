@@ -2,9 +2,9 @@
 
 {{ define "page-content" }}
 <div class="content">
-<div class="pane flex flex-direction-column">
+<div class="pane flex flex-col">
 {{ template "__nav_bar.html" }}
-<div class="flex flex-direction-column width-full margin-v-20">
+<div class="flex flex-col width-full margin-v-20">
 
 {{ if $.OOBOTPChannel }}
 {{ if eq $.OOBOTPChannel "sms" }}
@@ -16,10 +16,10 @@
 {{ end }}
 
 {{ if $.OOBOTPTarget }}
-<div class="text-sm overflow-wrap-break-word primary-txt margin-b-20 text-center">{{ template "oob-otp-description" (dict "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
+<div class="text-sm break-words primary-txt margin-b-20 text-center">{{ template "oob-otp-description" (dict "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
 {{ end }}
 
-<form class="flex flex-direction-column" method="post" novalidate>
+<form class="flex flex-col" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input
@@ -36,7 +36,7 @@
 >
 
 {{ if $.CanRequestDeviceToken }}
-<div class="flex flex-direction-row align-items-center align-self-flex-start margin-b-20">
+<div class="flex flex-row items-center self-start margin-b-20">
 <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
 <label class="padding-4 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
 </div>
