@@ -4,7 +4,7 @@
 {{ template "__error.html" . }}
 
 {{ if .FlashMessageType }}
-<div class="messages-bar success">
+<div class="messages-bar flex flex-row success">
     <div class="icon"><i class="ti ti-circle-check"></i></div>
     <ul class="messages-txt">
         {{ if (eq .FlashMessageType "resend_code_success") }}

@@ -610,15 +610,6 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
-.messages-bar {
-  display: flex;
-  flex-direction: row;
-}
-
-.messages-bar.hidden {
-  display: none;
-}
-
 .messages-bar .icon {
   font-size: 16px;
   min-width: 16px;

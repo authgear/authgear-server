@@ -13,7 +13,7 @@
         {{ $display_error = false }}
     {{ end }}
 {{ end }}
-<div class="messages-bar errors-messages-bar errors {{ if not $display_error }}hidden{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
+<div class="messages-bar flew-row errors-messages-bar errors {{ if not $display_error }}hidden{{ else }}flex{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
     <div class="icon"><i class="ti ti-alert-circle"></i></div>
     <ul class="messages-txt error-txt">
         {{ if $display_error }}
