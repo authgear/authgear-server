@@ -3644,15 +3644,17 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -4199,15 +4201,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -4754,15 +4758,17 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -5309,15 +5315,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -5857,15 +5865,17 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6408,15 +6418,17 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -6962,15 +6974,17 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -7513,15 +7527,17 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8063,15 +8079,17 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -8614,15 +8632,17 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -9166,15 +9186,17 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -9716,15 +9738,17 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10266,15 +10290,17 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -10818,15 +10844,17 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -11368,15 +11396,17 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -11918,15 +11948,17 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -12471,15 +12503,17 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -13021,15 +13055,17 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -13576,15 +13612,17 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -14126,15 +14164,17 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -14677,15 +14717,17 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -15227,15 +15269,17 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -15796,15 +15840,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -16348,15 +16394,17 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -16899,15 +16947,17 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -17459,15 +17509,17 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -18010,15 +18062,17 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -18561,15 +18615,17 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -19113,15 +19169,17 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -19670,15 +19728,17 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -20221,15 +20281,17 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -20772,15 +20834,17 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -21163,15 +21227,17 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -21709,15 +21775,17 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -22259,15 +22327,17 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
@@ -22410,15 +22480,17 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
-		OAuth:          oAuthConfig,
-		AuthUI:         uiConfig,
-		StaticAssets:   staticAssetResolver,
-		ForgotPassword: forgotPasswordConfig,
-		Authentication: authenticationConfig,
-		ErrorCookie:    errorCookie,
-		Translations:   translationService,
-		Clock:          clockClock,
-		FlashMessage:   flashMessage,
+		OAuth:                 oAuthConfig,
+		AuthUI:                uiConfig,
+		StaticAssets:          staticAssetResolver,
+		ForgotPassword:        forgotPasswordConfig,
+		Authentication:        authenticationConfig,
+		ErrorCookie:           errorCookie,
+		Translations:          translationService,
+		Clock:                 clockClock,
+		FlashMessage:          flashMessage,
+		DefaultLanguageTag:    defaultLanguageTag,
+		SupportedLanguageTags: supportedLanguageTags,
 	}
 	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)

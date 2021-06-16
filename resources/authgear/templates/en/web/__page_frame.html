@@ -1,6 +1,6 @@
 {{ define "__page_frame.html" }}
 <!DOCTYPE html>
-<html>
+<html lang="{{ .ResolvedLanguageTag }}">
 {{ template "__html_head.html" . }}
 <body class="page">
     {{ template "__message_bar.html" . }}
