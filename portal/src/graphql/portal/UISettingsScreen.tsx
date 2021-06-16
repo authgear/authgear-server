@@ -745,8 +745,9 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
 
 const UISettingsScreen: React.FC = function UISettingsScreen() {
   const { appID } = useParams();
-  const [selectedLanguage, setSelectedLanguage] =
-    useState<LanguageTag | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageTag | null>(
+    null
+  );
 
   const config = useAppConfigForm(
     appID,
