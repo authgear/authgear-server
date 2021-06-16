@@ -23,7 +23,7 @@ require (
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5
 	github.com/iawaknahc/jsonschema v0.0.0-20201115095512-87990d0baba1
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
-	github.com/jetstack/cert-manager v1.1.0
+	github.com/jetstack/cert-manager v1.4.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/joho/godotenv v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
@@ -60,9 +60,9 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gopkg.in/h2non/gock.v1 v1.1.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.19.4
-	k8s.io/apimachinery v0.19.4
-	k8s.io/client-go v0.19.4
+	k8s.io/api v0.21.1
+	k8s.io/apimachinery v0.21.1
+	k8s.io/client-go v0.21.1
 	nhooyr.io/websocket v1.8.7
 	sigs.k8s.io/yaml v1.2.0
 )
