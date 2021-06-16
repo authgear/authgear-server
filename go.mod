@@ -38,7 +38,8 @@ require (
 	github.com/pquerna/otp v1.3.0
 	// The changes are compatible. See https://github.com/rubenv/sql-migrate/compare/8d140a17f351..55d5740dbbcc
 	github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
-	github.com/sfreiberg/gotwilio v0.0.0-20200916182813-169c4cd5c691
+	// The changes are compatible. See https://github.com/sfreiberg/gotwilio/compare/169c4cd5c691..c426a3710ab5
+	github.com/sfreiberg/gotwilio v0.0.0-20201211181435-c426a3710ab5
 	github.com/sirupsen/logrus v1.8.1
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
 	github.com/smartystreets/goconvey v1.6.4
