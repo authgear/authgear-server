@@ -31,7 +31,8 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/lestrrat-go/jwx v1.1.5
+	// jwx >= 1.2.1 fix the bug that `alg` and `use` are NOT required.
+	github.com/lestrrat-go/jwx v1.2.1
 	github.com/lib/pq v1.10.2
 	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
 	github.com/njern/gonexmo v2.0.0+incompatible
