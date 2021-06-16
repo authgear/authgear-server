@@ -25,7 +25,7 @@
       {{ end }}
     </h2>
     <p class="grid-area-desc margin-t-4 self-center margin-0 secondary-txt truncate text-sm">
-      {{ template "settings-biometric-identity-description" (dict "time" .CreatedAt) }}
+      {{ template "settings-biometric-identity-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
     </p>
     <form class="grid-area-action1 self-center justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}

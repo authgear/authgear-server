@@ -132,7 +132,7 @@
     {{ if $secondary_password }}
     <p class="grid-area-desc margin-t-4 margin-0 secondary-txt text-sm">
       <!-- FIXME(ui): Use user preferred timezone -->
-      {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt) }}
+      {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt "rfc3339" (rfc3339 $secondary_password.UpdatedAt)) }}
     </p>
     <a class="grid-area-action1 self-center justify-self-end btn secondary-btn" href="/settings/mfa/change_secondary_password">
       <i class="ti ti-edit margin-l-8 padding-v-16"></i>

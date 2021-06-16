@@ -31,7 +31,7 @@
       {{ end }}
       <p class="grid-area-desc margin-t-4 self-center margin-0 secondary-txt text-sm">
         <!-- FIXME(ui): Use user preferred timezone -->
-        {{ template "settings-totp-item-description" (dict "time" .CreatedAt) }}
+        {{ template "settings-totp-item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
       </p>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ .ID }}">
