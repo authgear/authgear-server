@@ -49,7 +49,8 @@ require (
 	github.com/spf13/viper v1.8.0
 	github.com/test-go/testify v1.1.4 // indirect
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/ua-parser/uap-go v0.0.0-20200325213135-e1c09f13e2fe
+	// The changes are compatible. See https://github.com/ua-parser/uap-go/compare/e1c09f13e2fe..347a3497cc39
+	github.com/ua-parser/uap-go v0.0.0-20210121150957-347a3497cc39
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
