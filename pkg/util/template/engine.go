@@ -56,7 +56,7 @@ func (e *Engine) Render(resource Resource, preferredLanguages []string, data int
 
 func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interface{}) (string, error) {
 	t := htmltemplate.New("")
-	t.Funcs(templateFuncMap)
+	t.Funcs(DefaultFuncMap)
 
 	var loadTemplate func(desc *HTML) error
 	loadTemplate = func(desc *HTML) error {
@@ -120,7 +120,7 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 
 func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, data interface{}) (string, error) {
 	t := texttemplate.New("")
-	t.Funcs(templateFuncMap)
+	t.Funcs(DefaultFuncMap)
 
 	var loadTemplate func(desc *PlainText) error
 	loadTemplate = func(desc *PlainText) error {

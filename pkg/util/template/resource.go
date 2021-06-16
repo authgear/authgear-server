@@ -287,7 +287,7 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 			return nil, err
 		}
 		tpl := htmltemplate.New(name)
-		tpl.Funcs(templateFuncMap)
+		tpl.Funcs(DefaultFuncMap)
 		_, err = tpl.Parse(string(bytes.([]byte)))
 		if err != nil {
 			return nil, fmt.Errorf("invalid HTML template: %w", err)
@@ -296,7 +296,7 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 	case resource.ValidateResourceView:
 		for _, resrc := range resources {
 			tpl := htmltemplate.New(name)
-			tpl.Funcs(templateFuncMap)
+			tpl.Funcs(DefaultFuncMap)
 			_, err := tpl.Parse(string(resrc.Data))
 			if err != nil {
 				return nil, fmt.Errorf("invalid HTML template: %w", err)
@@ -330,7 +330,7 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, view reso
 			return nil, err
 		}
 		tpl := texttemplate.New(name)
-		tpl.Funcs(templateFuncMap)
+		tpl.Funcs(DefaultFuncMap)
 		_, err = tpl.Parse(string(bytes.([]byte)))
 		if err != nil {
 			return nil, fmt.Errorf("invalid text template: %w", err)
@@ -339,7 +339,7 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, view reso
 	case resource.ValidateResourceView:
 		for _, resrc := range resources {
 			tpl := texttemplate.New(name)
-			tpl.Funcs(templateFuncMap)
+			tpl.Funcs(DefaultFuncMap)
 			_, err := tpl.Parse(string(resrc.Data))
 			if err != nil {
 				return nil, fmt.Errorf("invalid text template: %w", err)
