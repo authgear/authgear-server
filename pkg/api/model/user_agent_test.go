@@ -16,7 +16,7 @@ func TestParseUserAgent(t *testing.T) {
 				Version:     "75.0.3770",
 				OS:          "Mac OS X",
 				OSVersion:   "10.14.5",
-				DeviceModel: "",
+				DeviceModel: "Apple Mac",
 			})
 		})
 		Convey("should parse Authgear SDK UA correctly", func() {

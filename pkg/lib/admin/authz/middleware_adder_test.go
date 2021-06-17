@@ -45,7 +45,9 @@ func TestMiddleware(t *testing.T) {
 
 			jwkKey, err := jwk.New(privKey)
 			So(err, ShouldBeNil)
-			_ = jwkKey.Set("kid", "mykey")
+			_ = jwkKey.Set(jwk.KeyIDKey, "mykey")
+			_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
+			_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
 
 			set := jwk.NewSet()
 			_ = set.Add(jwkKey)
@@ -85,7 +87,9 @@ func TestMiddleware(t *testing.T) {
 
 			jwkKey, err := jwk.New(privKey)
 			So(err, ShouldBeNil)
-			_ = jwkKey.Set("kid", "mykey")
+			_ = jwkKey.Set(jwk.KeyIDKey, "mykey")
+			_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
+			_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
 
 			set := jwk.NewSet()
 			_ = set.Add(jwkKey)

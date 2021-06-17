@@ -18,6 +18,11 @@ vendor:
 	(cd authui && npm ci)
 	$(MAKE) authui
 
+.PHONY: go-mod-outdated
+go-mod-outdated:
+	# https://stackoverflow.com/questions/55866604/whats-the-go-mod-equivalent-of-npm-outdated
+	go list -u -m -f '{{if .Update}}{{if not .Indirect}}{{.}}{{end}}{{end}}' all
+
 .PHONY: generate
 generate:
 	go generate ./pkg/... ./cmd/...

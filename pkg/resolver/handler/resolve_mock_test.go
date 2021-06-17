@@ -5,35 +5,36 @@
 package handler
 
 import (
+	reflect "reflect"
+
 	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockIdentityService is a mock of IdentityService interface
+// MockIdentityService is a mock of IdentityService interface.
 type MockIdentityService struct {
 	ctrl     *gomock.Controller
 	recorder *MockIdentityServiceMockRecorder
 }
 
-// MockIdentityServiceMockRecorder is the mock recorder for MockIdentityService
+// MockIdentityServiceMockRecorder is the mock recorder for MockIdentityService.
 type MockIdentityServiceMockRecorder struct {
 	mock *MockIdentityService
 }
 
-// NewMockIdentityService creates a new mock instance
+// NewMockIdentityService creates a new mock instance.
 func NewMockIdentityService(ctrl *gomock.Controller) *MockIdentityService {
 	mock := &MockIdentityService{ctrl: ctrl}
 	mock.recorder = &MockIdentityServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockIdentityService) EXPECT() *MockIdentityServiceMockRecorder {
 	return m.recorder
 }
 
-// ListByUser mocks base method
+// ListByUser mocks base method.
 func (m *MockIdentityService) ListByUser(userID string) ([]*identity.Info, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListByUser", userID)
@@ -42,36 +43,36 @@ func (m *MockIdentityService) ListByUser(userID string) ([]*identity.Info, error
 	return ret0, ret1
 }
 
-// ListByUser indicates an expected call of ListByUser
+// ListByUser indicates an expected call of ListByUser.
 func (mr *MockIdentityServiceMockRecorder) ListByUser(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockIdentityService)(nil).ListByUser), userID)
 }
 
-// MockVerificationService is a mock of VerificationService interface
+// MockVerificationService is a mock of VerificationService interface.
 type MockVerificationService struct {
 	ctrl     *gomock.Controller
 	recorder *MockVerificationServiceMockRecorder
 }
 
-// MockVerificationServiceMockRecorder is the mock recorder for MockVerificationService
+// MockVerificationServiceMockRecorder is the mock recorder for MockVerificationService.
 type MockVerificationServiceMockRecorder struct {
 	mock *MockVerificationService
 }
 
-// NewMockVerificationService creates a new mock instance
+// NewMockVerificationService creates a new mock instance.
 func NewMockVerificationService(ctrl *gomock.Controller) *MockVerificationService {
 	mock := &MockVerificationService{ctrl: ctrl}
 	mock.recorder = &MockVerificationServiceMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockVerificationService) EXPECT() *MockVerificationServiceMockRecorder {
 	return m.recorder
 }
 
-// IsUserVerified mocks base method
+// IsUserVerified mocks base method.
 func (m *MockVerificationService) IsUserVerified(identities []*identity.Info) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsUserVerified", identities)
@@ -80,36 +81,36 @@ func (m *MockVerificationService) IsUserVerified(identities []*identity.Info) (b
 	return ret0, ret1
 }
 
-// IsUserVerified indicates an expected call of IsUserVerified
+// IsUserVerified indicates an expected call of IsUserVerified.
 func (mr *MockVerificationServiceMockRecorder) IsUserVerified(identities interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserVerified", reflect.TypeOf((*MockVerificationService)(nil).IsUserVerified), identities)
 }
 
-// MockDatabase is a mock of Database interface
+// MockDatabase is a mock of Database interface.
 type MockDatabase struct {
 	ctrl     *gomock.Controller
 	recorder *MockDatabaseMockRecorder
 }
 
-// MockDatabaseMockRecorder is the mock recorder for MockDatabase
+// MockDatabaseMockRecorder is the mock recorder for MockDatabase.
 type MockDatabaseMockRecorder struct {
 	mock *MockDatabase
 }
 
-// NewMockDatabase creates a new mock instance
+// NewMockDatabase creates a new mock instance.
 func NewMockDatabase(ctrl *gomock.Controller) *MockDatabase {
 	mock := &MockDatabase{ctrl: ctrl}
 	mock.recorder = &MockDatabaseMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 	return m.recorder
 }
 
-// ReadOnly mocks base method
+// ReadOnly mocks base method.
 func (m *MockDatabase) ReadOnly(arg0 func() error) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ReadOnly", arg0)
@@ -117,7 +118,7 @@ func (m *MockDatabase) ReadOnly(arg0 func() error) error {
 	return ret0
 }
 
-// ReadOnly indicates an expected call of ReadOnly
+// ReadOnly indicates an expected call of ReadOnly.
 func (mr *MockDatabaseMockRecorder) ReadOnly(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockDatabase)(nil).ReadOnly), arg0)

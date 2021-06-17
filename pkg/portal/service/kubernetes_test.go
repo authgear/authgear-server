@@ -56,7 +56,19 @@ func newKubernetesWithDynamicClient(ingressTemplatePath string) (*service.Kubern
 		return nil, fmt.Errorf("unexpected error while constructing resource list from fake discovery client: %v", err)
 	}
 	restMapper := restmapper.NewDiscoveryRESTMapper(restMapperRes)
-	fakeDynamicClient := fakeddynamic.NewSimpleDynamicClient(runtime.NewScheme())
+	scheme := runtime.NewScheme()
+	fakeDynamicClient := fakeddynamic.NewSimpleDynamicClientWithCustomListKinds(scheme, map[schema.GroupVersionResource]string{
+		schema.GroupVersionResource{
+			Group:    "networking.k8s.io",
+			Version:  "v1",
+			Resource: "ingresses",
+		}: "IngressList",
+		schema.GroupVersionResource{
+			Group:    "cert-manager.io",
+			Version:  "v1",
+			Resource: "certificates",
+		}: "CertificateList",
+	})
 
 	return &service.Kubernetes{
 		AppConfig: &portalconfig.AppConfig{

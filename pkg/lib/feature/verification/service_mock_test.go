@@ -5,35 +5,36 @@
 package verification
 
 import (
+	reflect "reflect"
+
 	ratelimit "github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	gomock "github.com/golang/mock/gomock"
-	reflect "reflect"
 )
 
-// MockCodeStore is a mock of CodeStore interface
+// MockCodeStore is a mock of CodeStore interface.
 type MockCodeStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockCodeStoreMockRecorder
 }
 
-// MockCodeStoreMockRecorder is the mock recorder for MockCodeStore
+// MockCodeStoreMockRecorder is the mock recorder for MockCodeStore.
 type MockCodeStoreMockRecorder struct {
 	mock *MockCodeStore
 }
 
-// NewMockCodeStore creates a new mock instance
+// NewMockCodeStore creates a new mock instance.
 func NewMockCodeStore(ctrl *gomock.Controller) *MockCodeStore {
 	mock := &MockCodeStore{ctrl: ctrl}
 	mock.recorder = &MockCodeStoreMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockCodeStore) EXPECT() *MockCodeStoreMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method
+// Create mocks base method.
 func (m *MockCodeStore) Create(code *Code) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", code)
@@ -41,13 +42,27 @@ func (m *MockCodeStore) Create(code *Code) error {
 	return ret0
 }
 
-// Create indicates an expected call of Create
+// Create indicates an expected call of Create.
 func (mr *MockCodeStoreMockRecorder) Create(code interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCodeStore)(nil).Create), code)
 }
 
-// Get mocks base method
+// Delete mocks base method.
+func (m *MockCodeStore) Delete(id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockCodeStoreMockRecorder) Delete(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCodeStore)(nil).Delete), id)
+}
+
+// Get mocks base method.
 func (m *MockCodeStore) Get(id string) (*Code, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", id)
@@ -56,80 +71,78 @@ func (m *MockCodeStore) Get(id string) (*Code, error) {
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockCodeStoreMockRecorder) Get(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCodeStore)(nil).Get), id)
 }
 
-// Delete mocks base method
-func (m *MockCodeStore) Delete(id string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Delete indicates an expected call of Delete
-func (mr *MockCodeStoreMockRecorder) Delete(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCodeStore)(nil).Delete), id)
-}
-
-// MockClaimStore is a mock of ClaimStore interface
+// MockClaimStore is a mock of ClaimStore interface.
 type MockClaimStore struct {
 	ctrl     *gomock.Controller
 	recorder *MockClaimStoreMockRecorder
 }
 
-// MockClaimStoreMockRecorder is the mock recorder for MockClaimStore
+// MockClaimStoreMockRecorder is the mock recorder for MockClaimStore.
 type MockClaimStoreMockRecorder struct {
 	mock *MockClaimStore
 }
 
-// NewMockClaimStore creates a new mock instance
+// NewMockClaimStore creates a new mock instance.
 func NewMockClaimStore(ctrl *gomock.Controller) *MockClaimStore {
 	mock := &MockClaimStore{ctrl: ctrl}
 	mock.recorder = &MockClaimStoreMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockClaimStore) EXPECT() *MockClaimStoreMockRecorder {
 	return m.recorder
 }
 
-// ListByUser mocks base method
-func (m *MockClaimStore) ListByUser(userID string) ([]*Claim, error) {
+// Create mocks base method.
+func (m *MockClaimStore) Create(claim *Claim) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByUser", userID)
-	ret0, _ := ret[0].([]*Claim)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Create", claim)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// ListByUser indicates an expected call of ListByUser
-func (mr *MockClaimStoreMockRecorder) ListByUser(userID interface{}) *gomock.Call {
+// Create indicates an expected call of Create.
+func (mr *MockClaimStoreMockRecorder) Create(claim interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockClaimStore)(nil).ListByUser), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClaimStore)(nil).Create), claim)
 }
 
-// ListByClaimName mocks base method
-func (m *MockClaimStore) ListByClaimName(userID, claimName string) ([]*Claim, error) {
+// Delete mocks base method.
+func (m *MockClaimStore) Delete(id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaimName", userID, claimName)
-	ret0, _ := ret[0].([]*Claim)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// ListByClaimName indicates an expected call of ListByClaimName
-func (mr *MockClaimStoreMockRecorder) ListByClaimName(userID, claimName interface{}) *gomock.Call {
+// Delete indicates an expected call of Delete.
+func (mr *MockClaimStoreMockRecorder) Delete(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaimName", reflect.TypeOf((*MockClaimStore)(nil).ListByClaimName), userID, claimName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockClaimStore)(nil).Delete), id)
 }
 
-// Get mocks base method
+// DeleteAll mocks base method.
+func (m *MockClaimStore) DeleteAll(userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAll", userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAll indicates an expected call of DeleteAll.
+func (mr *MockClaimStoreMockRecorder) DeleteAll(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockClaimStore)(nil).DeleteAll), userID)
+}
+
+// Get mocks base method.
 func (m *MockClaimStore) Get(userID, claimName, claimValue string) (*Claim, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", userID, claimName, claimValue)
@@ -138,78 +151,66 @@ func (m *MockClaimStore) Get(userID, claimName, claimValue string) (*Claim, erro
 	return ret0, ret1
 }
 
-// Get indicates an expected call of Get
+// Get indicates an expected call of Get.
 func (mr *MockClaimStoreMockRecorder) Get(userID, claimName, claimValue interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClaimStore)(nil).Get), userID, claimName, claimValue)
 }
 
-// Create mocks base method
-func (m *MockClaimStore) Create(claim *Claim) error {
+// ListByClaimName mocks base method.
+func (m *MockClaimStore) ListByClaimName(userID, claimName string) ([]*Claim, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", claim)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "ListByClaimName", userID, claimName)
+	ret0, _ := ret[0].([]*Claim)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Create indicates an expected call of Create
-func (mr *MockClaimStoreMockRecorder) Create(claim interface{}) *gomock.Call {
+// ListByClaimName indicates an expected call of ListByClaimName.
+func (mr *MockClaimStoreMockRecorder) ListByClaimName(userID, claimName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClaimStore)(nil).Create), claim)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaimName", reflect.TypeOf((*MockClaimStore)(nil).ListByClaimName), userID, claimName)
 }
 
-// Delete mocks base method
-func (m *MockClaimStore) Delete(id string) error {
+// ListByUser mocks base method.
+func (m *MockClaimStore) ListByUser(userID string) ([]*Claim, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", id)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "ListByUser", userID)
+	ret0, _ := ret[0].([]*Claim)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Delete indicates an expected call of Delete
-func (mr *MockClaimStoreMockRecorder) Delete(id interface{}) *gomock.Call {
+// ListByUser indicates an expected call of ListByUser.
+func (mr *MockClaimStoreMockRecorder) ListByUser(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockClaimStore)(nil).Delete), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockClaimStore)(nil).ListByUser), userID)
 }
 
-// DeleteAll mocks base method
-func (m *MockClaimStore) DeleteAll(userID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAll", userID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteAll indicates an expected call of DeleteAll
-func (mr *MockClaimStoreMockRecorder) DeleteAll(userID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockClaimStore)(nil).DeleteAll), userID)
-}
-
-// MockRateLimiter is a mock of RateLimiter interface
+// MockRateLimiter is a mock of RateLimiter interface.
 type MockRateLimiter struct {
 	ctrl     *gomock.Controller
 	recorder *MockRateLimiterMockRecorder
 }
 
-// MockRateLimiterMockRecorder is the mock recorder for MockRateLimiter
+// MockRateLimiterMockRecorder is the mock recorder for MockRateLimiter.
 type MockRateLimiterMockRecorder struct {
 	mock *MockRateLimiter
 }
 
-// NewMockRateLimiter creates a new mock instance
+// NewMockRateLimiter creates a new mock instance.
 func NewMockRateLimiter(ctrl *gomock.Controller) *MockRateLimiter {
 	mock := &MockRateLimiter{ctrl: ctrl}
 	mock.recorder = &MockRateLimiterMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRateLimiter) EXPECT() *MockRateLimiterMockRecorder {
 	return m.recorder
 }
 
-// TakeToken mocks base method
+// TakeToken mocks base method.
 func (m *MockRateLimiter) TakeToken(bucket ratelimit.Bucket) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "TakeToken", bucket)
@@ -217,7 +218,7 @@ func (m *MockRateLimiter) TakeToken(bucket ratelimit.Bucket) error {
 	return ret0
 }
 
-// TakeToken indicates an expected call of TakeToken
+// TakeToken indicates an expected call of TakeToken.
 func (mr *MockRateLimiterMockRecorder) TakeToken(bucket interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TakeToken", reflect.TypeOf((*MockRateLimiter)(nil).TakeToken), bucket)
