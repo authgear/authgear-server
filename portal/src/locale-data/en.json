@@ -318,6 +318,7 @@
   "AuthenticatorConfigurationScreen.policy.require-mfa.if-requested": "Required if user enabled Multi-factor Authenticator",
   "AuthenticatorConfigurationScreen.policy.recovery-code-number": "Number of Recovery Code",
   "AuthenticatorConfigurationScreen.policy.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
+  "AuthenticatorConfigurationScreen.policy.disable-device-token": "Disable \"Do not ask again on this device\" for the Multi-factor Auth",
 
   "VerificationConfigurationScreen.title": "User Verification",
   "VerificationConfigurationScreen.description": "Configure if the email or phone number of your users could be verified and if it is required",
