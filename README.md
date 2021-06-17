@@ -161,7 +161,7 @@ To setup multi-tenant mode:
    ```
 
 4. Enable multi-tenant mode in Authgear & portal server:
-   refer to `.env.example.k8s` for example environment variables to set
+   refer to `.env.example` for example environment variables to set
 
 ## Portal
 
