@@ -157,7 +157,7 @@ function constructResourcesFormState(
     const id = specifierId(r.specifier);
     // Multiple resources may use same specifier ID (images),
     // use the first resource with non-empty values.
-    if ((resourceMap[id]?.value ?? "") === "") {
+    if ((resourceMap[id]?.nullableValue ?? "") === "") {
       resourceMap[specifierId(r.specifier)] = r;
     }
   }
@@ -215,28 +215,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             selectedLanguage = fallbackLanguage;
           }
 
-          // Populate initial values for added languages from fallback language.
-          const addedLanguages = supportedLanguages.filter(
-            (l) => !prev.supportedLanguages.includes(l)
-          );
-          for (const language of addedLanguages) {
-            for (const def of ALL_LANGUAGES_TEMPLATES) {
-              const defaultResource =
-                prev.resources[
-                  specifierId({ def, locale: prev.fallbackLanguage })
-                ];
-              const newResource: Resource = {
-                specifier: {
-                  def,
-                  locale: language,
-                },
-                path: renderPath(def.resourcePath, { locale: language }),
-                value: defaultResource?.value ?? "",
-              };
-              resources[specifierId(newResource.specifier)] = newResource;
-            }
-          }
-
           // Remove resources of removed languges
           const removedLanguages = prev.supportedLanguages.filter(
             (l) => !supportedLanguages.includes(l)
@@ -248,7 +226,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               language != null &&
               removedLanguages.includes(language)
             ) {
-              resources[id] = { ...resource, value: "" };
+              resources[id] = { ...resource, nullableValue: "" };
             }
           }
 
@@ -270,11 +248,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           def,
           locale: state.selectedLanguage,
         };
-        const resource = state.resources[specifierId(specifier)];
-        if (resource == null || resource.value === "") {
+        const value = state.resources[specifierId(specifier)]?.nullableValue;
+        if (value == null || value === "") {
           return undefined;
         }
-        return resource.value;
+        return value;
       },
       [state.resources, state.selectedLanguage]
     );
@@ -294,7 +272,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             if (oldResource != null) {
               updatedResources[specifierId(specifier)] = {
                 ...oldResource,
-                value: "",
+                nullableValue: "",
               };
             }
 
@@ -306,7 +284,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
                   locale: specifier.locale,
                   extension,
                 }),
-                value: base64EncodedData,
+                nullableValue: base64EncodedData,
               };
               updatedResources[specifierId(specifier)] = resource;
             }
@@ -324,21 +302,37 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           def: RESOURCE_TRANSLATION_JSON,
           locale: state.selectedLanguage,
         };
-        const resource = state.resources[specifierId(specifier)];
-        if (resource == null) {
-          return "";
+
+        const value = state.resources[specifierId(specifier)]?.nullableValue;
+
+        if (value == null || value === "") {
+          const specifier: ResourceSpecifier = {
+            def: RESOURCE_TRANSLATION_JSON,
+            locale: state.fallbackLanguage,
+          };
+          const value = state.resources[specifierId(specifier)]?.nullableValue;
+          if (value == null || value === "") {
+            return "";
+          }
+          const jsonValue = JSON.parse(value);
+          return jsonValue[key] ?? "";
         }
-        const jsonValue = JSON.parse(resource.value);
+
+        const jsonValue = JSON.parse(value);
         return jsonValue[key] ?? "";
       },
-      [state.selectedLanguage, state.resources]
+      [state.fallbackLanguage, state.selectedLanguage, state.resources]
     );
 
     const onChangeForTranslationJSON = useCallback(
       (key: string) => {
-        const specifier: ResourceSpecifier = {
+        const selectedSpecifier: ResourceSpecifier = {
           def: RESOURCE_TRANSLATION_JSON,
           locale: state.selectedLanguage,
+        };
+        const fallbackSpecifier: ResourceSpecifier = {
+          def: RESOURCE_TRANSLATION_JSON,
+          locale: state.fallbackLanguage,
         };
         return (
           _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -349,21 +343,31 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           }
           setState((prev) => {
             const updatedResources = { ...prev.resources };
-            const oldResource = prev.resources[specifierId(specifier)];
-            if (oldResource == null) {
-              return prev;
+
+            let oldValue =
+              prev.resources[specifierId(selectedSpecifier)]?.nullableValue;
+            if (oldValue == null || oldValue === "") {
+              oldValue =
+                prev.resources[specifierId(fallbackSpecifier)]?.nullableValue;
+              if (oldValue == null || oldValue === "") {
+                return prev;
+              }
             }
-            const jsonValue = JSON.parse(oldResource.value);
+
+            const jsonValue = JSON.parse(oldValue);
             jsonValue[key] = value;
-            updatedResources[specifierId(specifier)] = {
-              ...oldResource,
-              value: JSON.stringify(jsonValue, null, 2),
+            updatedResources[specifierId(selectedSpecifier)] = {
+              specifier: selectedSpecifier,
+              path: renderPath(selectedSpecifier.def.resourcePath, {
+                locale: selectedSpecifier.locale,
+              }),
+              nullableValue: JSON.stringify(jsonValue, null, 2),
             };
             return { ...prev, resources: updatedResources };
           });
         };
       },
-      [state.selectedLanguage, setState]
+      [state.selectedLanguage, state.fallbackLanguage, setState]
     );
 
     const valueForState = useCallback(
@@ -397,10 +401,10 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       let lightTheme = null;
       for (const r of Object.values(state.resources)) {
         if (
-          r != null &&
+          r?.nullableValue != null &&
           r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS
         ) {
-          const root = parse(r.value);
+          const root = parse(r.nullableValue);
           lightTheme = getLightTheme(root.nodes);
         }
       }
@@ -411,8 +415,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     const darkTheme = useMemo(() => {
       let darkTheme = null;
       for (const r of Object.values(state.resources)) {
-        if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
-          const root = parse(r.value);
+        if (
+          r?.nullableValue != null &&
+          r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS
+        ) {
+          const root = parse(r.nullableValue);
           darkTheme = getDarkTheme(root.nodes);
         }
       }
@@ -423,10 +430,10 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       let bannerConfiguration = null;
       for (const r of Object.values(state.resources)) {
         if (
-          r != null &&
+          r?.nullableValue != null &&
           r.specifier.def === RESOURCE_AUTHGEAR_LIGHT_THEME_CSS
         ) {
-          const root = parse(r.value);
+          const root = parse(r.nullableValue);
           bannerConfiguration = getLightBannerConfiguration(root.nodes);
         }
       }
@@ -436,8 +443,11 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     const darkBannerConfiguration = useMemo(() => {
       let bannerConfiguration = null;
       for (const r of Object.values(state.resources)) {
-        if (r != null && r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS) {
-          const root = parse(r.value);
+        if (
+          r?.nullableValue != null &&
+          r.specifier.def === RESOURCE_AUTHGEAR_DARK_THEME_CSS
+        ) {
+          const root = parse(r.nullableValue);
           bannerConfiguration = getDarkBannerConfiguration(root.nodes);
         }
       }
@@ -468,7 +478,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             path: renderPath(specifier.def.resourcePath, {
               locale: specifier.locale,
             }),
-            value: css,
+            nullableValue: css,
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
           return {
@@ -504,7 +514,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             path: renderPath(specifier.def.resourcePath, {
               locale: specifier.locale,
             }),
-            value: css,
+            nullableValue: css,
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
           return {

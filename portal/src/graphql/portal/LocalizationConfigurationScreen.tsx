@@ -94,7 +94,7 @@ function constructResourcesFormState(
     const id = specifierId(r.specifier);
     // Multiple resources may use same specifier ID (images),
     // use the first resource with non-empty values.
-    if ((resourceMap[id]?.value ?? "") === "") {
+    if ((resourceMap[id]?.nullableValue ?? "") === "") {
       resourceMap[specifierId(r.specifier)] = r;
     }
   }
@@ -163,28 +163,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             selectedLanguage = fallbackLanguage;
           }
 
-          // Populate initial values for added languages from fallback language.
-          const addedLanguages = supportedLanguages.filter(
-            (l) => !prev.supportedLanguages.includes(l)
-          );
-          for (const language of addedLanguages) {
-            for (const def of ALL_LANGUAGES_TEMPLATES) {
-              const defaultResource =
-                prev.resources[
-                  specifierId({ def, locale: prev.fallbackLanguage })
-                ];
-              const newResource: Resource = {
-                specifier: {
-                  def,
-                  locale: language,
-                },
-                path: renderPath(def.resourcePath, { locale: language }),
-                value: defaultResource?.value ?? "",
-              };
-              resources[specifierId(newResource.specifier)] = newResource;
-            }
-          }
-
           // Remove resources of removed languges
           const removedLanguages = prev.supportedLanguages.filter(
             (l) => !supportedLanguages.includes(l)
@@ -196,7 +174,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               language != null &&
               removedLanguages.includes(language)
             ) {
-              resources[id] = { ...resource, value: "" };
+              resources[id] = { ...resource, nullableValue: "" };
             }
           }
 
@@ -229,9 +207,19 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           def,
           locale: state.selectedLanguage,
         };
-        return state.resources[specifierId(specifier)]?.value ?? "";
+        const value = state.resources[specifierId(specifier)]?.nullableValue;
+
+        if (value == null) {
+          const specifier: ResourceSpecifier = {
+            def,
+            locale: state.fallbackLanguage,
+          };
+          return state.resources[specifierId(specifier)]?.nullableValue ?? "";
+        }
+
+        return value;
       },
-      [state.resources, state.selectedLanguage]
+      [state.resources, state.selectedLanguage, state.fallbackLanguage]
     );
 
     const getOnChange = useCallback(
@@ -248,7 +236,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               path: renderPath(specifier.def.resourcePath, {
                 locale: specifier.locale,
               }),
-              value: value ?? "",
+              nullableValue: value ?? "",
             };
             updatedResources[specifierId(resource.specifier)] = resource;
             return { ...prev, resources: updatedResources };

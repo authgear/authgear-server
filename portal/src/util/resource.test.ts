@@ -43,14 +43,14 @@ describe("diff resources update", () => {
         {
           specifier: { def: ResourceA, locale: "en" },
           path: "templates/en/a.html",
-          value: "resource A",
+          nullableValue: "resource A",
         },
       ],
       [
         {
           specifier: { def: ResourceA, locale: "en" },
           path: "templates/en/a.html",
-          value: "resource A",
+          nullableValue: "resource A",
         },
       ]
     );
@@ -68,7 +68,7 @@ describe("diff resources update", () => {
         {
           specifier: { def: ResourceA, locale: "en" },
           path: "templates/en/a.html",
-          value: "resource A",
+          nullableValue: "resource A",
         },
       ]
     );
@@ -91,7 +91,7 @@ describe("diff resources update", () => {
         {
           specifier: { def: ResourceA, locale: "en" },
           path: "templates/en/a.html",
-          value: "resource A",
+          nullableValue: "resource A",
         },
       ],
       []
@@ -115,14 +115,14 @@ describe("diff resources update", () => {
         {
           specifier: { def: ResourceA, locale: "en" },
           path: "templates/en/a.html",
-          value: "resource A",
+          nullableValue: "resource A",
         },
       ],
       [
         {
           specifier: { def: ResourceA, locale: "en" },
           path: "templates/en/a.html",
-          value: "resource A!!",
+          nullableValue: "resource A!!",
         },
       ]
     );
@@ -145,24 +145,24 @@ describe("diff resources update", () => {
         {
           specifier: { def: ResourceA, locale: "en" },
           path: "templates/en/a.html",
-          value: "resource A",
+          nullableValue: "resource A",
         },
         {
           specifier: { def: ResourceB, locale: "en" },
           path: "templates/en/b.html",
-          value: "resource B",
+          nullableValue: "resource B",
         },
       ],
       [
         {
           specifier: { def: ResourceA, locale: "en" },
           path: "templates/en/a.html",
-          value: "resource A!!",
+          nullableValue: "resource A!!",
         },
         {
           specifier: { def: ResourceB, locale: "zh" },
           path: "templates/zh/b.html",
-          value: "resource B",
+          nullableValue: "resource B",
         },
       ]
     );

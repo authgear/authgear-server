@@ -12,7 +12,7 @@ export interface ResourceUpdate {
 
 export interface Resource {
   path: string;
-  value: string;
+  nullableValue?: string | null;
   specifier: ResourceSpecifier;
 }
 
@@ -120,12 +120,12 @@ export function diffResourceUpdates(
 ): ResourcesDiffResult {
   const initialResourceMap = new Map<string, Resource>(
     initialResources
-      .filter((r) => r.value !== "")
+      .filter((r) => r.nullableValue != null && r.nullableValue !== "")
       .map((r) => [specifierId(r.specifier), r])
   );
   const currentResourceMap = new Map<string, Resource>(
     currentResources
-      .filter((r) => r.value !== "")
+      .filter((r) => r.nullableValue != null && r.nullableValue !== "")
       .map((r) => [specifierId(r.specifier), r])
   );
 
@@ -142,13 +142,13 @@ export function diffResourceUpdates(
       result.newResources.push({
         specifier: r.specifier,
         path: r.path,
-        value: r.value,
+        value: r.nullableValue,
       });
-    } else if (initialResource.value !== r.value) {
+    } else if (initialResource.nullableValue !== r.nullableValue) {
       result.editedResources.push({
         specifier: r.specifier,
         path: r.path,
-        value: r.value,
+        value: r.nullableValue,
       });
     }
   }

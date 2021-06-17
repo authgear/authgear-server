@@ -104,7 +104,7 @@ export function useAppTemplatesQuery(
           );
       }
 
-      let value = "";
+      let value;
       const resource = (appNode?.resources ?? []).find((r) => r.path === path);
       if (resource?.data != null) {
         value = transform(resource.data);
@@ -118,7 +118,7 @@ export function useAppTemplatesQuery(
       resources.push({
         specifier,
         path,
-        value,
+        nullableValue: value,
       });
     }
 

@@ -207,6 +207,12 @@ func (t *translationJSON) viewEffectiveFile(resources []resource.ResourceFile, v
 		}
 	}
 
+	// As a special case, if the merged object is empty,
+	// we report not found.
+	if len(translationObj) <= 0 {
+		return nil, resource.ErrResourceNotFound
+	}
+
 	// The effective file view is intended to be displayed to human for editing.
 	// Therefore, we should disable HTML escape and add indentation.
 	var buf bytes.Buffer
