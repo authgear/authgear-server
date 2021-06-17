@@ -58,8 +58,10 @@ interface FormState {
   mfaMode: SecondaryAuthenticationMode;
   numRecoveryCode: number;
   allowListRecoveryCode: boolean;
+  disableDeviceToken: boolean;
 }
 
+// eslint-disable-next-line complexity
 function constructFormState(config: PortalAPIAppConfig): FormState {
   const primary: AuthenticatorTypeFormState<PrimaryAuthenticatorType>[] = (
     config.authentication?.primary_authenticators ?? []
@@ -92,6 +94,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     numRecoveryCode: config.authentication?.recovery_code?.count ?? 16,
     allowListRecoveryCode:
       config.authentication?.recovery_code?.list_enabled ?? false,
+    disableDeviceToken: config.authentication?.device_token?.disabled ?? false,
   };
 }
 
@@ -104,6 +107,7 @@ function constructConfig(
   return produce(config, (config) => {
     config.authentication ??= {};
     config.authentication.recovery_code ??= {};
+    config.authentication.device_token ??= {};
 
     function filterEnabled<T extends string>(
       s: AuthenticatorTypeFormState<T>[]
@@ -146,6 +150,11 @@ function constructConfig(
     ) {
       config.authentication.recovery_code.list_enabled =
         currentState.allowListRecoveryCode;
+    }
+
+    if (initialState.disableDeviceToken !== currentState.disableDeviceToken) {
+      config.authentication.device_token.disabled =
+        currentState.disableDeviceToken;
     }
 
     clearEmptyObject(config);
@@ -270,6 +279,15 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
         setState((prev) => ({
           ...prev,
           allowListRecoveryCode: checked,
+        }));
+      }
+    );
+
+    const { onChange: onDisableDeviceTokenChange } = useCheckbox(
+      (checked: boolean) => {
+        setState((prev) => ({
+          ...prev,
+          disableDeviceToken: checked,
         }));
       }
     );
@@ -453,6 +471,15 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             }
             checked={state.allowListRecoveryCode}
             onChange={onAllowRetrieveRecoveryCodeChange}
+          />
+          <Toggle
+            className={styles.control}
+            inlineLabel={true}
+            label={
+              <FormattedMessage id="AuthenticatorConfigurationScreen.policy.disable-device-token" />
+            }
+            checked={state.disableDeviceToken}
+            onChange={onDisableDeviceTokenChange}
           />
         </Widget>
       </ScreenContent>

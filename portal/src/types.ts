@@ -227,12 +227,17 @@ export interface RecoveryCodeConfig {
   list_enabled?: boolean;
 }
 
+export interface DeviceTokenConfig {
+  disabled?: boolean;
+}
+
 export interface AuthenticationConfig {
   identities?: IdentityType[];
   primary_authenticators?: PrimaryAuthenticatorType[];
   secondary_authenticators?: SecondaryAuthenticatorType[];
   secondary_authentication_mode?: SecondaryAuthenticationMode;
   recovery_code?: RecoveryCodeConfig;
+  device_token?: DeviceTokenConfig;
 }
 
 export interface VerificationClaimConfig {
