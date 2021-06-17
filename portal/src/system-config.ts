@@ -6,7 +6,8 @@ export interface SystemConfig {
   authgearClientID: string;
   authgearEndpoint: string;
   appHostSuffix: string;
-  supportedResourceLocales: string[];
+  availableLanguages: string[];
+  builtinLanguages: string[];
   themes: SystemConfigThemes;
   translations: SystemConfigTranslations;
   searchEnabled: boolean;
@@ -240,9 +241,8 @@ export function instantiateSystemConfig(
     authgearClientID: config.authgearClientID ?? "",
     authgearEndpoint: config.authgearEndpoint ?? "",
     appHostSuffix: config.appHostSuffix ?? "",
-    supportedResourceLocales: config.supportedResourceLocales ?? [
-      DEFAULT_TEMPLATE_LOCALE,
-    ],
+    availableLanguages: config.availableLanguages ?? [DEFAULT_TEMPLATE_LOCALE],
+    builtinLanguages: config.builtinLanguages ?? [DEFAULT_TEMPLATE_LOCALE],
     themes: {
       main: createTheme(config.themes?.main ?? {}),
       inverted: createTheme(config.themes?.inverted ?? {}),

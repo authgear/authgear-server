@@ -35,14 +35,15 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 	}
 
 	return &model.SystemConfig{
-		AuthgearClientID:         p.AuthgearConfig.ClientID,
-		AuthgearEndpoint:         p.AuthgearConfig.Endpoint,
-		AppHostSuffix:            p.AppConfig.HostSuffix,
-		SupportedResourceLocales: intl.SupportedResourceLocales,
-		Themes:                   themes,
-		Translations:             translations,
-		SearchEnabled:            p.SearchConfig.Enabled,
-		AuditLogEnabled:          p.AuditLogConfig.Enabled,
+		AuthgearClientID:   p.AuthgearConfig.ClientID,
+		AuthgearEndpoint:   p.AuthgearConfig.Endpoint,
+		AppHostSuffix:      p.AppConfig.HostSuffix,
+		AvailableLanguages: intl.AvailableLanguages,
+		BuiltinLanguages:   intl.BuiltinLanguages,
+		Themes:             themes,
+		Translations:       translations,
+		SearchEnabled:      p.SearchConfig.Enabled,
+		AuditLogEnabled:    p.AuditLogConfig.Enabled,
 	}, nil
 }
 

@@ -1,6 +1,18 @@
 package intl
 
-var SupportedResourceLocales = []string{
+// DefaultLanguage is the default language. It is english.
+// Default templates and translation are written in english.
+const DefaultLanguage = "en"
+
+// BuiltinLanguages are the languages we have localization.
+var BuiltinLanguages = []string{
+	"en",
+	"zh-HK",
+	"zh-TW",
+}
+
+// AvailableLanguages are the languages we recognize.
+var AvailableLanguages = []string{
 	"en",
 	"af",
 	"am",
