@@ -231,10 +231,10 @@
       <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-primary-oob-otp-title--email" }}
       </p>
-      <p class="margin-0 text-sm secondary-txt text-xs truncate">
+      <p class="margin-0 secondary-txt text-xs truncate">
         {{ index .Claims "https://authgear.com/claims/oob_otp/email" }}
       </p>
-      <p class="margin-t-0 margin-b-10 text-sm secondary-txt text-xs">
+      <p class="margin-t-0 margin-b-10 secondary-txt text-xs">
         <!-- FIXME(ui): Use user preferred timezone -->
         {{ template "settings-page-primary-oob-otp-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
       </p>
