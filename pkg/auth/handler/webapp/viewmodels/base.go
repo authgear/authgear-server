@@ -14,6 +14,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/intl"
+	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/wechat"
 )
 
@@ -48,6 +50,7 @@ type BaseViewModel struct {
 	PageLoadedAt          int
 	IsNativePlatform      bool
 	FlashMessageType      string
+	ResolvedLanguageTag   string
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -82,15 +85,17 @@ type FlashMessage interface {
 }
 
 type BaseViewModeler struct {
-	OAuth          *config.OAuthConfig
-	AuthUI         *config.UIConfig
-	StaticAssets   StaticAssetResolver
-	ForgotPassword *config.ForgotPasswordConfig
-	Authentication *config.AuthenticationConfig
-	ErrorCookie    ErrorCookie
-	Translations   TranslationService
-	Clock          clock.Clock
-	FlashMessage   FlashMessage
+	OAuth                 *config.OAuthConfig
+	AuthUI                *config.UIConfig
+	StaticAssets          StaticAssetResolver
+	ForgotPassword        *config.ForgotPasswordConfig
+	Authentication        *config.AuthenticationConfig
+	ErrorCookie           ErrorCookie
+	Translations          TranslationService
+	Clock                 clock.Clock
+	FlashMessage          FlashMessage
+	DefaultLanguageTag    template.DefaultLanguageTag
+	SupportedLanguageTags template.SupportedLanguageTags
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
@@ -106,6 +111,11 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	if client != nil {
 		clientName = client.Name
 	}
+
+	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context())
+	_, resolvedLanguageTagTag := intl.Resolve(preferredLanguageTags, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
+	resolvedLanguageTag := resolvedLanguageTagTag.String()
+
 	model := BaseViewModel{
 		RequestURL:   r.URL.String(),
 		RequestURI:   requestURI.String(),
@@ -149,6 +159,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		PublicSignupDisabled:  m.Authentication.PublicSignupDisabled,
 		PageLoadedAt:          int(now),
 		FlashMessageType:      m.FlashMessage.Pop(r, rw),
+		ResolvedLanguageTag:   resolvedLanguageTag,
 	}
 
 	if apiError, ok := m.ErrorCookie.GetError(r); ok {

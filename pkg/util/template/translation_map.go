@@ -27,7 +27,7 @@ func (t *TranslationMap) RenderText(key string, args interface{}) (string, error
 	}
 
 	tpl := texttemplate.New("")
-	tpl.Funcs(templateFuncMap)
+	tpl.Funcs(DefaultFuncMap)
 	_, err := tpl.AddParseTree("translation", tree)
 	if err != nil {
 		return "", fmt.Errorf("template: failed to construct template: %w", err)
@@ -55,7 +55,7 @@ func (t *TranslationMap) RenderHTML(key string, args interface{}) (string, error
 	}
 
 	tpl := htmltemplate.New("")
-	tpl.Funcs(templateFuncMap)
+	tpl.Funcs(DefaultFuncMap)
 	_, err := tpl.AddParseTree("translation", tree)
 	if err != nil {
 		return "", fmt.Errorf("template: failed to construct template: %w", err)

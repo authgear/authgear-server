@@ -37,7 +37,7 @@
       {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
       {{ end }}
-      {{ template "settings-sessions-item-description" (dict "desc" $desc "time" .LastAccessedAt "isCurrent" (eq .ID $.CurrentSessionID)) }}
+      {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" (eq .ID $.CurrentSessionID)) }}
     </p>
     {{ if not (eq .ID $.CurrentSessionID) }}
     <form class="grid-area-action self-center" method="post" novalidate>
