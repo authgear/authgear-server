@@ -16,7 +16,6 @@ Session has the following attributes:
 - ID
 - User ID
 - AMR
-- ACR
 - Creation Time
 - Last Access Time
 - Creation IP

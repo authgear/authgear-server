@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const GraphLifetime = duration.UserInteraction
@@ -235,14 +234,6 @@ func (g *Graph) GetAMR() []string {
 	sort.Strings(amr)
 
 	return amr
-}
-
-func (g *Graph) GetACR(amrValues []string) string {
-	if slice.ContainsString(amrValues, authn.AMRMFA) {
-		return authn.ACRMFA
-	}
-
-	return ""
 }
 
 func (g *Graph) FillDetails(err error) error {

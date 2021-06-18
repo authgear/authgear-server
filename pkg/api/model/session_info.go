@@ -13,7 +13,6 @@ type SessionInfo struct {
 	UserAnonymous bool
 	UserVerified  bool
 
-	SessionACR string
 	SessionAMR []string
 }
 
@@ -22,7 +21,6 @@ const (
 	headerUserID        = "X-Authgear-User-Id"
 	headerUserVerified  = "X-Authgear-User-Verified"
 	headerUserAnonymous = "X-Authgear-User-Anonymous"
-	headerSessionAcr    = "X-Authgear-Session-Acr"
 	headerSessionAmr    = "X-Authgear-Session-Amr"
 )
 
@@ -40,7 +38,6 @@ func (i *SessionInfo) PopulateHeaders(rw http.ResponseWriter) {
 	rw.Header().Set(headerUserAnonymous, strconv.FormatBool(i.UserAnonymous))
 	rw.Header().Set(headerUserVerified, strconv.FormatBool(i.UserVerified))
 
-	rw.Header().Set(headerSessionAcr, i.SessionACR)
 	rw.Header().Set(headerSessionAmr, strings.Join(i.SessionAMR, " "))
 }
 
@@ -87,18 +84,12 @@ func NewSessionInfoFromHeaders(hdr http.Header) (info *SessionInfo, err error) {
 		return
 	}
 
-	acr := hdr.Get(headerSessionAcr)
-	if err != nil {
-		return
-	}
-
 	amr := headerParseSpaceSeparated(hdr.Get(headerSessionAmr))
 
 	info.IsValid = sessionValid
 	info.UserID = userID
 	info.UserAnonymous = anonymous
 	info.UserVerified = verified
-	info.SessionACR = acr
 	info.SessionAMR = amr
 	return
 }

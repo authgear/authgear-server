@@ -4,7 +4,6 @@ type ClaimName string
 
 // ref: https://www.iana.org/assignments/jwt/jwt.xhtml
 const (
-	ClaimACR               ClaimName = "acr"
 	ClaimAMR               ClaimName = "amr"
 	ClaimEmail             ClaimName = "email"
 	ClaimPhoneNumber       ClaimName = "phone_number"
