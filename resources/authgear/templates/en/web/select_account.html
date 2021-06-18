@@ -1,0 +1,36 @@
+{{ template "__page_frame.html" . }}
+
+{{ define "page-content" }}
+<div class="content">
+<div class="pane flex flex-col">
+{{ template "__nav_bar.html" true }}
+<div class="flex flex-col width-full margin-v-20">
+
+<h1 class="primary-txt margin-v-20 text-center text-xl font-bold">{{ template "select-account-confirm-login" }}</h1>
+
+<p class="text-sm break-words primary-txt margin-t-0 margin-b-20 text-center">
+    {{ if $.ClientName }}
+    {{ template "select-account-previously-logged-in-description" (dict "AppOrClientName" $.ClientName) }}
+    {{ else }}
+    {{ $appName := ($.Translations.RenderText "app.name" nil) }}
+    {{ template "select-account-previously-logged-in-description" (dict "AppOrClientName" $appName) }}
+    {{ end }}
+</p>
+
+<p class="text-sm break-words primary-txt margin-t-0 margin-b-20 text-center">{{ template "select-account-continue-description" }}</p>
+
+<form class="flex flex-col width-full margin-b-20" method="post" novalidate>
+    {{ $.CSRFField }}
+    <button class="btn primary-btn submit-btn" type="submit" name="x_action" value="continue" data-form-xhr="false">{{ template "select-account-continue-label" }}</button>
+</form>
+
+<form class="flex flex-col width-full margin-b-20" method="post" novalidate>
+    {{ $.CSRFField }}
+    <button class="btn light-btn submit-btn" type="submit" name="x_action" value="login" data-form-xhr="false">{{ template "select-account-use-another-account-label" }}</button>
+</form>
+
+</div>
+<div class="footer-watermark margin-v-20"></div>
+</div>
+</div>
+{{ end }}
