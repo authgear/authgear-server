@@ -14,8 +14,12 @@ type IDPSession struct {
 	Labels map[string]interface{} `json:"labels"`
 	AppID  string                 `json:"app_id"`
 
-	CreatedAt time.Time     `json:"created_at"`
-	Attrs     session.Attrs `json:"attrs"`
+	// CreatedAt is the timestamp that the user was initially authenticated at.
+	CreatedAt time.Time `json:"created_at"`
+	// Authenticated is the timestamp that the user was authenticated at.
+	// It is equal to CreatedAt if the user has not reauthenticated at all.
+	AuthenticatedAt time.Time     `json:"authenticated_at"`
+	Attrs           session.Attrs `json:"attrs"`
 
 	AccessInfo access.Info `json:"access_info"`
 

@@ -110,11 +110,25 @@ func (s *StoreRedis) Update(sess *IDPSession, expireAt time.Time) (err error) {
 	return
 }
 
-func (s *StoreRedis) Get(id string) (sess *IDPSession, err error) {
+func (s *StoreRedis) Unmarshal(data []byte) (*IDPSession, error) {
+	var sess IDPSession
+	err := json.Unmarshal(data, &sess)
+	if err != nil {
+		return nil, err
+	}
+	if sess.AuthenticatedAt.IsZero() {
+		sess.AuthenticatedAt = sess.CreatedAt
+	}
+
+	return &sess, nil
+}
+
+func (s *StoreRedis) Get(id string) (*IDPSession, error) {
 	ctx := context.Background()
 	key := sessionKey(s.AppID, id)
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	var sess *IDPSession
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrSessionNotFound
@@ -122,10 +136,14 @@ func (s *StoreRedis) Get(id string) (sess *IDPSession, err error) {
 			return err
 		}
 
-		err = json.Unmarshal(data, &sess)
+		sess, err = s.Unmarshal(data)
 		return err
 	})
-	return
+	if err != nil {
+		return nil, err
+	}
+
+	return sess, nil
 }
 
 func (s *StoreRedis) Delete(session *IDPSession) (err error) {
@@ -178,25 +196,23 @@ func (s *StoreRedis) List(userID string) (sessions []*IDPSession, err error) {
 				expired = now.After(expireAt)
 			}
 
-			session := &IDPSession{}
+			var session *IDPSession
 			var sessionJSON []byte
 			sessionJSON, err = conn.Get(ctx, key).Bytes()
 			// key not found / invalid session JSON -> session not found
 			if errors.Is(err, goredis.Nil) {
 				err = nil
-				session = nil
 			} else if err != nil {
 				// unexpected error
 				return err
 			} else {
-				err = json.Unmarshal(sessionJSON, session)
+				session, err = s.Unmarshal(sessionJSON)
 				if err != nil {
 					s.Logger.
 						WithError(err).
 						WithFields(logrus.Fields{"key": key}).
 						Error("invalid JSON value")
 					err = nil
-					session = nil
 				}
 			}
 

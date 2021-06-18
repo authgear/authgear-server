@@ -73,8 +73,9 @@ func TestProvider(t *testing.T) {
 						InitialAccess: accessEvent,
 						LastAccess:    accessEvent,
 					},
-					CreatedAt: initialTime,
-					TokenHash: s.TokenHash,
+					CreatedAt:       initialTime,
+					AuthenticatedAt: initialTime,
+					TokenHash:       s.TokenHash,
 				})
 			})
 		})
@@ -85,8 +86,9 @@ func TestProvider(t *testing.T) {
 				Attrs: session.Attrs{
 					UserID: "user-id",
 				},
-				CreatedAt: initialTime,
-				TokenHash: "15be5b9c05673532b445d3295a86afd6b2615775e0233e9798cbe3c846a08d05",
+				CreatedAt:       initialTime,
+				AuthenticatedAt: initialTime,
+				TokenHash:       "15be5b9c05673532b445d3295a86afd6b2615775e0233e9798cbe3c846a08d05",
 			}
 			store.EXPECT().Get(gomock.Any()).DoAndReturn(func(id string) (*IDPSession, error) {
 				if id == fixtureSession.ID {
