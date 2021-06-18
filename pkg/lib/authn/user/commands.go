@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
@@ -27,6 +28,7 @@ func (c *Commands) Create(userID string) (*User, error) {
 func (c *Commands) AfterCreate(
 	user *User,
 	identities []*identity.Info,
+	authenticators []*authenticator.Info,
 	isAdminAPI bool,
 	webhookState string,
 ) error {
@@ -35,7 +37,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	userModel := newUserModel(user, identities, isVerified)
+	userModel := newUserModel(user, identities, authenticators, isVerified)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())

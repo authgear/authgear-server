@@ -141,6 +141,7 @@ func (ti *IDTokenIssuer) LoadUserClaims(userID string) (jwt.Token, error) {
 	_ = claims.Set(jwt.SubjectKey, userID)
 	_ = claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
 	_ = claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
+	_ = claims.Set(string(authn.ClaimUserCanReauthenticate), user.CanReauthenticate)
 
 	return claims, nil
 }

@@ -451,9 +451,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -1009,9 +1010,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -1436,10 +1438,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
-		Store:        store,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          store,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	eventLogger := event.NewLogger(factory)
 	rawProvider := &user.RawProvider{
@@ -1841,10 +1847,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		IDPSessions:   provider,
@@ -2176,10 +2186,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		IDPSessions:   provider,
@@ -2497,10 +2511,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
-		Store:        store,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          store,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	eventLogger := event.NewLogger(factory)
 	rawProvider := &user.RawProvider{
@@ -2983,9 +3001,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -3510,9 +3529,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -4067,9 +4087,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -4624,9 +4645,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -5736,9 +5758,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -6286,9 +6309,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -6839,9 +6863,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -7395,9 +7420,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -7948,9 +7974,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -8500,9 +8527,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -9053,9 +9081,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -9607,9 +9636,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -10159,9 +10189,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -10711,9 +10742,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -11265,9 +11297,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -11817,9 +11850,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -12369,9 +12403,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -12924,9 +12959,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -13476,9 +13512,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -14033,9 +14070,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -14585,9 +14623,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -15138,9 +15177,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -15690,9 +15730,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -16261,9 +16302,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -16815,9 +16857,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -17368,9 +17411,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -17930,9 +17974,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -18483,9 +18528,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -19036,9 +19082,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -19590,9 +19637,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -20149,9 +20197,10 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -20702,9 +20751,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -21255,9 +21305,10 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -21712,10 +21763,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
-		Store:        store,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          store,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	eventLogger := event.NewLogger(factory)
 	rawProvider := &user.RawProvider{
@@ -22196,9 +22251,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -22748,9 +22804,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
@@ -23442,10 +23499,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		IDPSessions:   provider,

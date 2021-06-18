@@ -409,10 +409,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
-		Store:        store,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          store,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
@@ -486,9 +490,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator:  coordinator,
 	}
 	interactionLogger := interaction.NewLogger(factory)
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
 	webEndpoints := &WebEndpoints{}
 	messageSender := &otp.MessageSender{
 		Translation: translationService,

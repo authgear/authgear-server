@@ -6,11 +6,12 @@ import (
 
 type User struct {
 	Meta
-	LastLoginAt   *time.Time `json:"last_login_at,omitempty"`
-	IsAnonymous   bool       `json:"is_anonymous"`
-	IsVerified    bool       `json:"is_verified"`
-	IsDisabled    bool       `json:"is_disabled"`
-	DisableReason *string    `json:"disable_reason"`
+	LastLoginAt       *time.Time `json:"last_login_at,omitempty"`
+	IsAnonymous       bool       `json:"is_anonymous"`
+	IsVerified        bool       `json:"is_verified"`
+	IsDisabled        bool       `json:"is_disabled"`
+	CanReauthenticate bool       `json:"can_reauthenticate"`
+	DisableReason     *string    `json:"disable_reason"`
 }
 
 type ElasticsearchUserRaw struct {

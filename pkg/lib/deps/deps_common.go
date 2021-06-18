@@ -148,6 +148,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(user.IdentityService), new(facade.IdentityFacade)),
+		wire.Bind(new(user.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.IdentityService), new(facade.IdentityFacade)),
 	),
 
