@@ -111,20 +111,18 @@ func (h *AuthorizationHandler) doHandle(
 	s := session.GetSession(h.Context)
 	authnOptions := webapp.AuthenticateURLOptions{}
 	authnOptions.Prompt = r.Prompt()
-	if slice.ContainsString(r.Prompt(), "login") {
-		// Request login prompt => force re-authentication and retry
+
+	// start web app authentication
+	if !slice.ContainsString(r.Prompt(), "none") {
+		// reset prompt to none for webapp to redirect back to authz endpoint
+		// after authentication
 		r2 := protocol.AuthorizationRequest{}
 		for k, v := range r {
 			r2[k] = v
 		}
-		prompt := slice.ExceptStrings(r.Prompt(), []string{"login"})
-		r2.SetPrompt(prompt)
-
+		r2.SetPrompt([]string{"none"})
 		r = r2
-		// Treat as not authenticated
-		s = nil
-	}
-	if s == nil || s.SessionType() != session.TypeIdentityProvider {
+
 		// Not authenticated as IdP session => request authentication and retry
 		authnOptions.ClientID = r.ClientID()
 		authnOptions.UILocales = strings.Join(r.UILocales(), " ")
@@ -149,6 +147,11 @@ func (h *AuthorizationHandler) doHandle(
 		}
 
 		return resp, nil
+	}
+
+	// start handle prompt == none
+	if s == nil || s.SessionType() != session.TypeIdentityProvider {
+		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
 	authz, err := checkAuthorization(

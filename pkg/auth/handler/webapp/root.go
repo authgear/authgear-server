@@ -5,7 +5,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 func ConfigureRootRoute(route httproute.Route) httproute.Route {
@@ -20,10 +22,34 @@ type RootHandler struct {
 }
 
 func (h *RootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	signedUp, err := r.Cookie(h.SignedUpCookie.Def.Name)
+	userID := session.GetUserID(r.Context())
+	webSession := webapp.GetSession(r.Context())
+
+	loginPrompt := false
+	fromAuthzEndpoint := false
+	if webSession != nil {
+		// stay in the auth entry point if prompt = login
+		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
+		fromAuthzEndpoint = webSession.ClientID != ""
+	}
+
+	path := ""
+	if fromAuthzEndpoint && userID != nil && !loginPrompt {
+		path = "/select_account"
+	} else {
+		signedUpCookie, err := r.Cookie(h.SignedUpCookie.Def.Name)
+		signedUp := (err == nil && signedUpCookie.Value == "true")
+		path = GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
+	}
+
+	http.Redirect(w, r, path, http.StatusFound)
+}
+
+func GetAuthenticationEndpoint(signedUp bool, publicSignupDisabled bool) string {
 	path := "/signup"
-	if h.AuthenticationConfig.PublicSignupDisabled || (err == nil && signedUp.Value == "true") {
+	if publicSignupDisabled || signedUp {
 		path = "/login"
 	}
-	http.Redirect(w, r, path, http.StatusFound)
+
+	return path
 }
