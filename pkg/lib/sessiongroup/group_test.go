@@ -45,8 +45,9 @@ func makeOfflineGrant(id string, lastAccessAt time.Time, deviceInfo map[string]i
 
 func makeIDPSession(id string, lastAccessAt time.Time) *idpsession.IDPSession {
 	return &idpsession.IDPSession{
-		ID:        id,
-		CreatedAt: lastAccessAt,
+		ID:              id,
+		CreatedAt:       lastAccessAt,
+		AuthenticatedAt: lastAccessAt,
 		AccessInfo: access.Info{
 			InitialAccess: access.Event{
 				Timestamp: lastAccessAt,
