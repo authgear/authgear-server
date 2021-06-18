@@ -33,7 +33,6 @@ func (s *IDPSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil
 
 func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
-	acr, _ := s.Attrs.GetACR()
 	amr, _ := s.Attrs.GetAMR()
 	apiModel := &model.Session{
 		Meta: model.Meta{
@@ -44,7 +43,6 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		},
 		Type: model.SessionTypeIDP,
 
-		ACR: acr,
 		AMR: amr,
 
 		LastAccessedAt:   s.AccessInfo.LastAccess.Timestamp,

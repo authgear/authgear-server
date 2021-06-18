@@ -16,7 +16,6 @@ type Session struct {
 
 	Type SessionType `json:"type"`
 
-	ACR string   `json:"acr,omitempty"`
 	AMR []string `json:"amr,omitempty"`
 
 	LastAccessedAt                     time.Time `json:"lastAccessedAt"`

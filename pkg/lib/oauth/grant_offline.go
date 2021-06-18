@@ -58,7 +58,6 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 	}
 
 	amr, _ := g.Attrs.GetAMR()
-	acr, _ := g.Attrs.GetACR()
 
 	apiModel := &model.Session{
 		Meta: model.Meta{
@@ -70,7 +69,6 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 		Type: model.SessionTypeOfflineGrant,
 
 		AMR: amr,
-		ACR: acr,
 
 		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,
