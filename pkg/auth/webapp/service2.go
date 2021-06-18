@@ -72,6 +72,10 @@ func (s *Service2) UpdateSession(session *Session) error {
 	return s.Sessions.Update(session)
 }
 
+func (s *Service2) DeleteSession(sessionID string) error {
+	return s.Sessions.Delete(sessionID)
+}
+
 func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 	graph, err := s.Graph.Get(session.CurrentStep().GraphID)
 	if err != nil {

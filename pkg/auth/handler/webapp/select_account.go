@@ -42,11 +42,6 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 	defer ctrl.Serve()
 
-	redirectURI := "/settings"
-	if s := webapp.GetSession(r.Context()); s != nil {
-		redirectURI = s.RedirectURI
-	}
-
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
@@ -57,6 +52,16 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	})
 
 	ctrl.PostAction("continue", func() error {
+		redirectURI := "/settings"
+		// continue to use the previous session
+		// complete the web session and redirect to web session's RedirectURI
+		if s := webapp.GetSession(r.Context()); s != nil {
+			redirectURI = s.RedirectURI
+			if err := ctrl.DeleteSession(s.ID); err != nil {
+				return err
+			}
+		}
+
 		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 	})
