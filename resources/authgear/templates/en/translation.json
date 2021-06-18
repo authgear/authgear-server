@@ -289,5 +289,11 @@
 
   "toc-pp-footer": "By registering, you agree to our <a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>",
   "terms-of-service-link": "https://www.authgear.com/terms",
-  "privacy-policy-link": "https://www.authgear.com/data-privacy"
+  "privacy-policy-link": "https://www.authgear.com/data-privacy",
+
+  "select-account-confirm-login": "Confirm Login",
+  "select-account-previously-logged-in-description": "You previously logged in to {AppOrClientName}",
+  "select-account-continue-description": "Would like to continue?",
+  "select-account-continue-label": "Continue",
+  "select-account-use-another-account-label": "Use another account"
 }
