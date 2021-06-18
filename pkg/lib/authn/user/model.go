@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
@@ -65,6 +66,7 @@ func (u *User) CheckStatus() error {
 func newUserModel(
 	user *User,
 	identities []*identity.Info,
+	authenticators []*authenticator.Info,
 	isVerified bool,
 ) *model.User {
 	isAnonymous := false
@@ -75,16 +77,27 @@ func newUserModel(
 		}
 	}
 
+	canReauthenticate := false
+	for _, i := range authenticators {
+		if i.Kind == authenticator.KindPrimary {
+			canReauthenticate = true
+		}
+		if i.Kind == authenticator.KindSecondary {
+			canReauthenticate = true
+		}
+	}
+
 	return &model.User{
 		Meta: model.Meta{
 			ID:        user.ID,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 		},
-		LastLoginAt:   user.LastLoginAt,
-		IsAnonymous:   isAnonymous,
-		IsVerified:    isVerified,
-		IsDisabled:    user.IsDisabled,
-		DisableReason: user.DisableReason,
+		LastLoginAt:       user.LastLoginAt,
+		IsAnonymous:       isAnonymous,
+		IsVerified:        isVerified,
+		IsDisabled:        user.IsDisabled,
+		CanReauthenticate: canReauthenticate,
+		DisableReason:     user.DisableReason,
 	}
 }

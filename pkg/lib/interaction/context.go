@@ -98,7 +98,7 @@ type UserService interface {
 	Get(id string) (*model.User, error)
 	GetRaw(id string) (*user.User, error)
 	Create(userID string) (*user.User, error)
-	AfterCreate(user *user.User, identities []*identity.Info, isAdminAPI bool, webhookState string) error
+	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info, isAdminAPI bool, webhookState string) error
 	UpdateLoginTime(userID string, lastLoginAt time.Time) error
 }
 
