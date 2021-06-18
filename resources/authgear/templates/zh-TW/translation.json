@@ -100,6 +100,7 @@
   "forgot-password-button-label": "無法登入你的帳戶?",
 
   "enter-password-page-title": "請輸入密碼",
+  "enter-additional-password-page-title": "請輸入輔助密碼",
   "password-placeholder": "目前密碼",
   "new-password-placeholder": "新密碼",
   "confirm-password-placeholder": "再次輸入密碼",

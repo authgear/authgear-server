@@ -99,7 +99,8 @@
   "use-phone-login-id-description": "Use phone instead",
   "forgot-password-button-label": "Can''t access your account?",
 
-  "enter-password-page-title": "Enter password",
+  "enter-password-page-title": "Enter Password",
+  "enter-additional-password-page-title": "Enter Additional Password",
   "password-placeholder": "Current password",
   "new-password-placeholder": "New password",
   "confirm-password-placeholder": "Re-type your new password",
