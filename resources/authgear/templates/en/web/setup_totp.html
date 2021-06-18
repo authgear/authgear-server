@@ -12,7 +12,7 @@
 
 <p class="text-sm primary-txt text-center margin-t-0 margin-b-20">{{ template "setup-totp-description" }}</p>
 
-<p class="text-sm break-words primary-txt whitespace-pre text-center margin-t-0 margin-b-20 leading-normal">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
+<p class="text-sm break-words primary-txt whitespace-pre-wrap text-center margin-t-0 margin-b-20 leading-normal">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
 
 <form class="flex flex-col" method="post" novalidate>
 
@@ -20,7 +20,7 @@
 
 <img class="qr-code-image margin-b-20" src="{{ $.ImageURI }}">
 
-<p class="text-sm break-words primary-txt text-center whitespace-pre margin-t-0 margin-b-20">{{ template "setup-totp-code-description" }}</p>
+<p class="text-sm break-words primary-txt text-center whitespace-pre-wrap margin-t-0 margin-b-20">{{ template "setup-totp-code-description" }}</p>
 
 <input
 	tabindex="0"
@@ -39,7 +39,7 @@
 
 <p class="text-sm break-words primary-txt margin-t-0 margin-b-20">{{ template "setup-totp-get-google-authenticator-description" }}</p>
 
-<p class="text-sm break-words primary-txt whitespace-pre margin-t-0 margin-b-20">{{ template "setup-totp-use-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt whitespace-pre-wrap margin-t-0 margin-b-20">{{ template "setup-totp-use-google-authenticator-description" }}</p>
 
 </form>
 
