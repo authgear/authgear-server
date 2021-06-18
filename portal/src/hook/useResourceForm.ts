@@ -82,6 +82,11 @@ export function useResourceForm<State>(
     if (!diff) {
       return;
     } else if (!diff.needUpdate) {
+      // In the case that a builtin language is added,
+      // and no changes have been made to the existing resources,
+      // we need to reset current state to null to make
+      // state consistent.
+      setCurrentState(null);
       return;
     } else if (isUpdating) {
       return;

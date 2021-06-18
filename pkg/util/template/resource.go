@@ -102,7 +102,7 @@ func matchTemplatePath(path string, templateName string) (*resource.Match, bool)
 	languageTag := matches[1]
 
 	isLanguageTagValid := false
-	for _, localeKey := range intl.SupportedResourceLocales {
+	for _, localeKey := range intl.AvailableLanguages {
 		if languageTag == localeKey {
 			isLanguageTagValid = true
 			break

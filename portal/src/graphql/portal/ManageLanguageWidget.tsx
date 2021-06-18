@@ -138,16 +138,16 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> =
 
     const { renderToString } = useContext(Context);
 
-    const { supportedResourceLocales } = useSystemConfig();
+    const { availableLanguages } = useSystemConfig();
 
     const originalItems = useMemo(() => {
-      return supportedResourceLocales.map((a) => {
+      return availableLanguages.map((a) => {
         return {
           language: a,
           text: renderToString(getLanguageLocaleKey(a)),
         };
       });
-    }, [supportedResourceLocales, renderToString]);
+    }, [availableLanguages, renderToString]);
 
     const [newSupportedLanguages, setNewSupportedLanguages] =
       useState<LanguageTag[]>(supportedLanguages);

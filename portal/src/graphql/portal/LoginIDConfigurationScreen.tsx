@@ -337,7 +337,7 @@ function constructResourcesFormState(
     const id = specifierId(r.specifier);
     // Multiple resources may use same specifier ID (images),
     // use the first resource with non-empty values.
-    if ((resourceMap[id]?.value ?? "") === "") {
+    if ((resourceMap[id]?.nullableValue ?? "") === "") {
       resourceMap[specifierId(r.specifier)] = r;
     }
   }
@@ -556,21 +556,23 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     );
 
     const valueForDomainBlocklist = useMemo(() => {
-      const resource =
-        state.resources[specifierId(emailDomainBlocklistSpecifier)];
-      if (resource == null) {
+      const value =
+        state.resources[specifierId(emailDomainBlocklistSpecifier)]
+          ?.nullableValue;
+      if (value == null) {
         return [];
       }
-      return splitByNewline(resource.value);
+      return splitByNewline(value);
     }, [state.resources]);
 
     const valueForDomainAllowlist = useMemo(() => {
-      const resource =
-        state.resources[specifierId(emailDomainAllowlistSpecifier)];
-      if (resource == null) {
+      const value =
+        state.resources[specifierId(emailDomainAllowlistSpecifier)]
+          ?.nullableValue;
+      if (value == null) {
         return [];
       }
-      return splitByNewline(resource.value);
+      return splitByNewline(value);
     }, [state.resources]);
 
     const updateEmailDomainBlocklist = useCallback(
@@ -581,7 +583,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           const newResource: Resource = {
             specifier,
             path: renderPath(specifier.def.resourcePath, {}),
-            value: joinByNewline(value),
+            nullableValue: joinByNewline(value),
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
           return {
@@ -608,7 +610,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           const newResource: Resource = {
             specifier,
             path: renderPath(specifier.def.resourcePath, {}),
-            value: joinByNewline(value),
+            nullableValue: joinByNewline(value),
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
           return {
@@ -777,12 +779,13 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     );
 
     const valueForUsernameExcludedKeywords = useMemo(() => {
-      const resource =
-        state.resources[specifierId(usernameExcludeKeywordsTXTSpecifier)];
-      if (resource == null) {
+      const value =
+        state.resources[specifierId(usernameExcludeKeywordsTXTSpecifier)]
+          ?.nullableValue;
+      if (value == null) {
         return [];
       }
-      return splitByNewline(resource.value);
+      return splitByNewline(value);
     }, [state.resources]);
 
     const updateUsernameExcludeKeywords = useCallback(
@@ -793,7 +796,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           const newResource: Resource = {
             specifier,
             path: renderPath(specifier.def.resourcePath, {}),
-            value: joinByNewline(value),
+            nullableValue: joinByNewline(value),
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
           return {
