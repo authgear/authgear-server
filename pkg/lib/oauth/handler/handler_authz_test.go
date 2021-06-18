@@ -174,6 +174,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 						"nonce":                 "my-nonce",
 						"state":                 "my-state",
+						"prompt":                "none",
 					})
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 
@@ -220,6 +221,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"scope":                 "openid offline_access",
 						"code_challenge_method": "S256",
 						"code_challenge":        "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+						"prompt":                "none",
 					})
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 
@@ -303,6 +305,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						"response_type": "none",
 						"scope":         "openid",
 						"state":         "my-state",
+						"prompt":        "none",
 					})
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 
