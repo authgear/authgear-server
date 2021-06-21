@@ -106,14 +106,12 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	now := ti.Clock.NowUTC()
 
 	_ = claims.Set(jwt.AudienceKey, client.ClientID)
-
 	_ = claims.Set("sid", EncodeSID(s))
-
 	_ = claims.Set(jwt.IssuedAtKey, now.Unix())
 	_ = claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
 
-	for key, value := range s.SessionAttrs().Claims {
-		_ = claims.Set(string(key), value)
+	if amr, ok := s.SessionAttrs().GetAMR(); ok && len(amr) > 0 {
+		_ = claims.Set(string(authn.ClaimAMR), amr)
 	}
 
 	if nonce != "" {
