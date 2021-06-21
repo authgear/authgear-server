@@ -6,10 +6,18 @@ import (
 	"github.com/iawaknahc/originmatcher"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
+
+type CORSMiddlewareLogger struct{ *log.Logger }
+
+func NewCORSMiddlewareLogger(lf *log.Factory) CORSMiddlewareLogger {
+	return CORSMiddlewareLogger{lf.New("cors-middleware")}
+}
 
 type CORSMiddleware struct {
 	Config *config.HTTPConfig
+	Logger CORSMiddlewareLogger
 }
 
 func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
@@ -42,6 +50,9 @@ func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 
 		requestMethod := r.Method
 		if requestMethod == "OPTIONS" {
+			// FIXME(logging): the log below may cause too many logs to server
+			// should remove the log after diagnostic
+			m.Logger.Info("return 200 for options request")
 			w.WriteHeader(http.StatusOK)
 		} else {
 			next.ServeHTTP(w, r)

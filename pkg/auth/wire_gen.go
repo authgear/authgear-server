@@ -22513,9 +22513,12 @@ func newPublicOriginMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
+	factory := appProvider.LoggerFactory
+	publicOriginMiddlewareLogger := webapp.NewPublicOriginMiddlewareLogger(factory)
 	publicOriginMiddleware := &webapp.PublicOriginMiddleware{
 		Config:     httpConfig,
 		TrustProxy: trustProxy,
+		Logger:     publicOriginMiddlewareLogger,
 	}
 	return publicOriginMiddleware
 }
@@ -22525,8 +22528,11 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
+	factory := appProvider.LoggerFactory
+	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
 	corsMiddleware := &middleware.CORSMiddleware{
 		Config: httpConfig,
+		Logger: corsMiddlewareLogger,
 	}
 	return corsMiddleware
 }
@@ -22921,6 +22927,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SessionCookie:      cookieDef,
 		Clock:              clockClock,
 	}
+	middlewareLogger := session.NewMiddlewareLogger(factory)
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		CookieFactory:              cookieFactory,
@@ -22929,6 +22936,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessEvents:               eventProvider,
 		Users:                      queries,
 		Database:                   appdbHandle,
+		Logger:                     middlewareLogger,
 	}
 	return sessionMiddleware
 }

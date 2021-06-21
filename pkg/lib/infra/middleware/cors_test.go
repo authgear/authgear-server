@@ -8,6 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var testBody = []byte{1, 2, 3}
@@ -24,6 +25,7 @@ func TestCORSMiddleware(t *testing.T) {
 			Config: &config.HTTPConfig{
 				AllowedOrigins: specs,
 			},
+			Logger: CORSMiddlewareLogger{log.Null},
 		}
 		h = m.Handle(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, _ = w.Write(testBody)
