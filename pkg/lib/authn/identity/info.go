@@ -45,6 +45,21 @@ func (i *Info) GetMeta() model.Meta {
 	}
 }
 
+func (i *Info) AMR() []string {
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		return nil
+	case authn.IdentityTypeOAuth:
+		return nil
+	case authn.IdentityTypeAnonymous:
+		return nil
+	case authn.IdentityTypeBiometric:
+		return []string{authn.AMRXBiometric}
+	default:
+		panic("identity: unknown identity type: " + i.Type)
+	}
+}
+
 func (i *Info) ToModel() model.Identity {
 	claims := make(map[string]interface{})
 	for key, value := range i.Claims {

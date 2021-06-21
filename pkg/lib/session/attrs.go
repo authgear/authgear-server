@@ -21,8 +21,10 @@ func NewAttrs(userID string) *Attrs {
 // From RFC8176, the AMR values "swk" and "user" may apply.
 //
 // See https://developer.android.com/reference/androidx/biometric/BiometricPrompt#AUTHENTICATION_RESULT_TYPE_BIOMETRIC
-func NewBiometricAttrs(userID string) *Attrs {
-	return NewAttrs(userID)
+func NewBiometricAttrs(userID string, amr []string) *Attrs {
+	attrs := NewAttrs(userID)
+	attrs.SetAMR(amr)
+	return attrs
 }
 
 // NewAnonymousAttrs is the same as NewAttrs.
