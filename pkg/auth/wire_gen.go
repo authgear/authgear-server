@@ -3121,16 +3121,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
-	appProvider := p.AppProvider
-	config := appProvider.Config
-	appConfig := config.AppConfig
-	authenticationConfig := appConfig.Authentication
-	httpConfig := appConfig.HTTP
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
-	rootHandler := &webapp2.RootHandler{
-		AuthenticationConfig: authenticationConfig,
-		SignedUpCookie:       signedUpCookieDef,
-	}
+	rootHandler := &webapp2.RootHandler{}
 	return rootHandler
 }
 
@@ -5350,9 +5341,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	selectAccountHandler := &webapp2.SelectAccountHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:    controllerFactory,
+		BaseViewModel:        baseViewModeler,
+		Renderer:             responseRenderer,
+		AuthenticationConfig: authenticationConfig,
+		SignedUpCookie:       signedUpCookieDef,
 	}
 	return selectAccountHandler
 }

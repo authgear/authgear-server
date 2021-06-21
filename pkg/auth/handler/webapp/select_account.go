@@ -5,7 +5,10 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -21,9 +24,11 @@ func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {
 }
 
 type SelectAccountHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory    ControllerFactory
+	BaseViewModel        *viewmodels.BaseViewModeler
+	Renderer             Renderer
+	AuthenticationConfig *config.AuthenticationConfig
+	SignedUpCookie       webapp.SignedUpCookieDef
 }
 
 func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -42,6 +47,24 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 	defer ctrl.Serve()
 
+	userID := session.GetUserID(r.Context())
+	webSession := webapp.GetSession(r.Context())
+
+	loginPrompt := false
+	fromAuthzEndpoint := false
+	if webSession != nil {
+		// stay in the auth entry point if prompt = login
+		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
+		fromAuthzEndpoint = webSession.ClientID != ""
+	}
+
+	if !fromAuthzEndpoint || userID == nil || loginPrompt {
+		signedUpCookie, err := r.Cookie(h.SignedUpCookie.Def.Name)
+		signedUp := (err == nil && signedUpCookie.Value == "true")
+		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
+		http.Redirect(w, r, path, http.StatusFound)
+	}
+
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
@@ -55,9 +78,9 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		redirectURI := "/settings"
 		// continue to use the previous session
 		// complete the web session and redirect to web session's RedirectURI
-		if s := webapp.GetSession(r.Context()); s != nil {
-			redirectURI = s.RedirectURI
-			if err := ctrl.DeleteSession(s.ID); err != nil {
+		if webSession != nil {
+			redirectURI = webSession.RedirectURI
+			if err := ctrl.DeleteSession(webSession.ID); err != nil {
 				return err
 			}
 		}
@@ -71,4 +94,13 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
+}
+
+func GetAuthenticationEndpoint(signedUp bool, publicSignupDisabled bool) string {
+	path := "/signup"
+	if publicSignupDisabled || signedUp {
+		path = "/login"
+	}
+
+	return path
 }
