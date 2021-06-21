@@ -22513,9 +22513,12 @@ func newPublicOriginMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
+	factory := appProvider.LoggerFactory
+	publicOriginMiddlewareLogger := webapp.NewPublicOriginMiddlewareLogger(factory)
 	publicOriginMiddleware := &webapp.PublicOriginMiddleware{
 		Config:     httpConfig,
 		TrustProxy: trustProxy,
+		Logger:     publicOriginMiddlewareLogger,
 	}
 	return publicOriginMiddleware
 }
