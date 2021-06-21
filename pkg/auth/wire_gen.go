@@ -22528,8 +22528,11 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	httpConfig := appConfig.HTTP
+	factory := appProvider.LoggerFactory
+	corsMiddlewareLogger := middleware.NewCORSMiddlewareLogger(factory)
 	corsMiddleware := &middleware.CORSMiddleware{
 		Config: httpConfig,
+		Logger: corsMiddlewareLogger,
 	}
 	return corsMiddleware
 }

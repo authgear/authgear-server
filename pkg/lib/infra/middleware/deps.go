@@ -5,6 +5,7 @@ import (
 )
 
 var DependencySet = wire.NewSet(
+	NewCORSMiddlewareLogger,
 	wire.Struct(new(CORSMiddleware), "*"),
 
 	NewPanicLogMiddlewareLogger,
