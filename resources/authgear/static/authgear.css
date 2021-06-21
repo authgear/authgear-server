@@ -424,7 +424,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .margin-r-10 {
-  margin-right: 8px;
+  margin-right: 10px;
 }
 
 .padding-0 {
@@ -537,6 +537,11 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.75rem;
 }
 
+.text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+
 .font-normal {
   font-weight: 400;
 }
@@ -547,6 +552,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .font-bold {
   font-weight: 700;
+}
+
+.leading-10 {
+  line-height: 2.5rem;
 }
 
 .leading-none {

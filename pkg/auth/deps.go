@@ -107,4 +107,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.RateLimiter), new(*ratelimit.Limiter)),
 	wire.Bind(new(handlerwebapp.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handlerwebapp.FlashMessage), new(*httputil.FlashMessage)),
+	wire.Bind(new(handlerwebapp.IdentityService), new(*identityservice.Service)),
 )

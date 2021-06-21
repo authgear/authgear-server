@@ -293,9 +293,8 @@
   "terms-of-service-link": "https://www.authgear.com/terms-of-services",
   "privacy-policy-link": "https://www.authgear.com/data-privacy",
 
-  "select-account-confirm-login": "確認登錄",
-  "select-account-previously-logged-in-description": "您之前登入過 {AppOrClientName}",
-  "select-account-continue-description": "使用相同帳戶登入?",
+  "select-account-title": "繼續至 {AppOrClientName}",
+  "select-account-you-are-using-description": "您正在使用",
   "select-account-continue-label": "繼續",
   "select-account-use-another-account-label": "使用另一個帳戶"
 }

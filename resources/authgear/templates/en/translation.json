@@ -293,9 +293,8 @@
   "terms-of-service-link": "https://www.authgear.com/terms",
   "privacy-policy-link": "https://www.authgear.com/data-privacy",
 
-  "select-account-confirm-login": "Confirm Login",
-  "select-account-previously-logged-in-description": "You previously logged in to {AppOrClientName}",
-  "select-account-continue-description": "Would like to continue?",
+  "select-account-title": "Continue to {AppOrClientName}",
+  "select-account-you-are-using-description": "You are using",
   "select-account-continue-label": "Continue",
   "select-account-use-another-account-label": "Use another account"
 }

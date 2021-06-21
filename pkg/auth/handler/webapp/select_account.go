@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -23,19 +24,41 @@ func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/select_account")
 }
 
+type IdentityService interface {
+	ListByUser(userID string) ([]*identity.Info, error)
+}
+
+type SelectAccountViewModel struct {
+	IdentityDisplayName string
+}
+
 type SelectAccountHandler struct {
 	ControllerFactory    ControllerFactory
 	BaseViewModel        *viewmodels.BaseViewModeler
 	Renderer             Renderer
 	AuthenticationConfig *config.AuthenticationConfig
 	SignedUpCookie       webapp.SignedUpCookieDef
+	Identities           IdentityService
 }
 
-func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
+
+	identities, err := h.Identities.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	displayID := IdentitiesDisplayName(identities)
+
+	selectAccountViewModel := SelectAccountViewModel{
+		IdentityDisplayName: displayID,
+	}
+	viewmodels.Embed(data, selectAccountViewModel)
+
 	return data, nil
 }
 
@@ -63,10 +86,11 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		signedUp := (err == nil && signedUpCookie.Value == "true")
 		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
 		http.Redirect(w, r, path, http.StatusFound)
+		return
 	}
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		data, err := h.GetData(r, w, *userID)
 		if err != nil {
 			return err
 		}
