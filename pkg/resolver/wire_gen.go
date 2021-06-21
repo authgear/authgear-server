@@ -426,6 +426,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SessionCookie:      cookieDef,
 		Clock:              clock,
 	}
+	middlewareLogger := session.NewMiddlewareLogger(factory)
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		CookieFactory:              cookieFactory,
@@ -434,6 +435,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessEvents:               eventProvider,
 		Users:                      queries,
 		Database:                   appdbHandle,
+		Logger:                     middlewareLogger,
 	}
 	return sessionMiddleware
 }

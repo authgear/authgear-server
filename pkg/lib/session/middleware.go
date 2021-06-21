@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var ErrInvalidSession = errors.New("provided session is invalid")
@@ -19,6 +20,12 @@ type Resolver interface {
 type IDPSessionResolver Resolver
 type AccessTokenSessionResolver Resolver
 
+type MiddlewareLogger struct{ *log.Logger }
+
+func NewMiddlewareLogger(lf *log.Factory) MiddlewareLogger {
+	return MiddlewareLogger{lf.New("session-middleware")}
+}
+
 type Middleware struct {
 	SessionCookie              CookieDef
 	CookieFactory              CookieFactory
@@ -27,6 +34,7 @@ type Middleware struct {
 	AccessEvents               *access.EventProvider
 	Users                      UserQuery
 	Database                   *appdb.Handle
+	Logger                     MiddlewareLogger
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -42,6 +50,7 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 
 			r = r.WithContext(WithInvalidSession(r.Context()))
 		} else if err != nil {
+			m.Logger.WithError(err).Error("failed to resolve session")
 			panic(err)
 		} else if s != nil {
 			r = r.WithContext(WithSession(r.Context(), s))
