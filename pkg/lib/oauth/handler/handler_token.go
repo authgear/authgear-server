@@ -544,7 +544,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	attrs := session.NewBiometricAttrs(graph.MustGetUserID())
+	attrs := session.NewBiometricAttrs(graph.MustGetUserID(), graph.GetAMR())
 	biometricIdentity := graph.MustGetUserLastIdentity()
 
 	err = h.Graphs.Run("", graph)
@@ -595,6 +595,15 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	if err != nil {
 		return nil, err
 	}
+
+	if h.IDTokenIssuer == nil {
+		return nil, errors.New("id token issuer is not provided")
+	}
+	idToken, err := h.IDTokenIssuer.IssueIDToken(client, offlineGrant, "")
+	if err != nil {
+		return nil, err
+	}
+	resp.IDToken(idToken)
 
 	return tokenResultOK{Response: resp}, nil
 }

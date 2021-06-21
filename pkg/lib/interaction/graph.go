@@ -154,12 +154,23 @@ func (g *Graph) GetNewUserID() (string, bool) {
 }
 
 func (g *Graph) MustGetUserLastIdentity() *identity.Info {
+	iden, ok := g.GetUserLastIdentity()
+	if !ok {
+		panic("interaction: expect user identity presents")
+	}
+	return iden
+}
+
+func (g *Graph) GetUserLastIdentity() (*identity.Info, bool) {
 	for i := len(g.Nodes) - 1; i >= 0; i-- {
 		if n, ok := g.Nodes[i].(interface{ UserIdentity() *identity.Info }); ok {
-			return n.UserIdentity()
+			iden := n.UserIdentity()
+			if iden != nil {
+				return iden, true
+			}
 		}
 	}
-	panic("interaction: expect user identity presents")
+	return nil, false
 }
 
 func (g *Graph) MustGetUpdateIdentityID() string {
@@ -212,6 +223,17 @@ func (g *Graph) GetAMR() []string {
 	stages := []authn.AuthenticationStage{
 		authn.AuthenticationStagePrimary,
 		authn.AuthenticationStageSecondary,
+	}
+
+	// Some AMR values are from identity, for example, biometric identity.
+	if iden, ok := g.GetUserLastIdentity(); ok {
+		for _, value := range iden.AMR() {
+			_, ok := seen[value]
+			if !ok {
+				seen[value] = struct{}{}
+				amr = append(amr, value)
+			}
+		}
 	}
 
 	for _, stage := range stages {

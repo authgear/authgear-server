@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 func TestGraph(t *testing.T) {
@@ -144,6 +145,7 @@ func TestGraph(t *testing.T) {
 
 type testGraphGetAMRnode struct {
 	Stage         authn.AuthenticationStage
+	Identity      *identity.Info
 	Authenticator *authenticator.Info
 }
 
@@ -164,6 +166,10 @@ func (n *testGraphGetAMRnode) UserAuthenticator(stage authn.AuthenticationStage)
 		return n.Authenticator, true
 	}
 	return nil, false
+}
+
+func (n *testGraphGetAMRnode) UserIdentity() *identity.Info {
+	return n.Identity
 }
 
 func TestGraphGetAMR(t *testing.T) {
@@ -258,6 +264,19 @@ func TestGraphGetAMR(t *testing.T) {
 		}
 		amr = graph.GetAMR()
 		So(amr, ShouldResemble, []string{"mfa", "otp"})
+
+		// biometric
+		graph = &Graph{
+			Nodes: []Node{
+				&testGraphGetAMRnode{
+					Identity: &identity.Info{
+						Type: authn.IdentityTypeBiometric,
+					},
+				},
+			},
+		}
+		amr = graph.GetAMR()
+		So(amr, ShouldResemble, []string{"x_biometric"})
 	})
 }
 
