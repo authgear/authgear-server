@@ -272,7 +272,7 @@
   "enter-recovery-code-placeholder": "10-letter recovery code",
 
   "recovery-code-title": "Recovery Code",
-  "recovery-code-storage-description": "Keep these recovery codes somewhere safe but accessible",
+  "recovery-code-storage-description": "If you lost access to your authentication device, use these recovery codes to recover your account. \nKeep them somewhere safe but accessible.",
   "recovery-code-consumption-description": "You can only use each code once",
 
   "show-password-label": "Show password",

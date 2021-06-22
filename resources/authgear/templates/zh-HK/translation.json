@@ -272,7 +272,7 @@
   "enter-recovery-code-placeholder": "十位的備用碼",
 
   "recovery-code-title": "備用碼",
-  "recovery-code-storage-description": "當無法使用你的裝置／電郵／電話／應用程式時，你可以這些備用碼登入你的帳號，請保存至安全的地方",
+  "recovery-code-storage-description": "當無法使用你的認證裝置時，你可以這些備用碼登入你的帳號，請保存至安全的地方",
   "recovery-code-consumption-description": "每個備用碼只可使用一次",
 
   "show-password-label": "顯示密碼",
