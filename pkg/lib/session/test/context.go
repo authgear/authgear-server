@@ -34,6 +34,8 @@ func (m MockSession) GetClientID() string { return "" }
 
 func (m MockSession) GetCreatedAt() time.Time { return time.Time{} }
 
+func (m MockSession) GetAuthenticatedAt() time.Time { return time.Time{} }
+
 func (m MockSession) GetAccessInfo() *access.Info { return nil }
 
 func (m MockSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }

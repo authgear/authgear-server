@@ -5,6 +5,8 @@ type ClaimName string
 // ref: https://www.iana.org/assignments/jwt/jwt.xhtml
 const (
 	ClaimAMR                   ClaimName = "amr"
+	ClaimSID                   ClaimName = "sid"
+	ClaimAuthTime              ClaimName = "auth_time"
 	ClaimEmail                 ClaimName = "email"
 	ClaimPhoneNumber           ClaimName = "phone_number"
 	ClaimPreferredUsername     ClaimName = "preferred_username"

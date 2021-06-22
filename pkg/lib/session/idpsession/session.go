@@ -30,6 +30,7 @@ func (s *IDPSession) SessionID() string         { return s.ID }
 func (s *IDPSession) SessionType() session.Type { return session.TypeIdentityProvider }
 
 func (s *IDPSession) GetCreatedAt() time.Time                       { return s.CreatedAt }
+func (s *IDPSession) GetAuthenticatedAt() time.Time                 { return s.AuthenticatedAt }
 func (s *IDPSession) GetClientID() string                           { return "" }
 func (s *IDPSession) GetAccessInfo() *access.Info                   { return &s.AccessInfo }
 func (s *IDPSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }

@@ -137,8 +137,10 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	ti.updateTimeClaims(claims)
 
 	// Populate session specific claims
-	// FIXME: populate auth_time
-	_ = claims.Set("sid", EncodeSID(s))
+	// Note that we MUST NOT include any personal identifiable information (PII) here.
+	// The ID token may be included in the GET request in form of `id_token_hint`.
+	_ = claims.Set(string(authn.ClaimSID), EncodeSID(s))
+	_ = claims.Set(string(authn.ClaimAuthTime), s.GetAuthenticatedAt().Unix())
 	if amr, ok := s.GetOIDCAMR(); ok && len(amr) > 0 {
 		_ = claims.Set(string(authn.ClaimAMR), amr)
 	}

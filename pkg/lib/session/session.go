@@ -20,6 +20,7 @@ type Session interface {
 
 	GetClientID() string
 	GetCreatedAt() time.Time
+	GetAuthenticatedAt() time.Time
 	GetAccessInfo() *access.Info
 	GetDeviceInfo() (map[string]interface{}, bool)
 
