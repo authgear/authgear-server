@@ -405,12 +405,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		IDPSessions:   provider,
-		OfflineGrants: store,
-		Secrets:       oAuthKeyMaterials,
-		BaseURL:       endpointsProvider,
-		Users:         queries,
-		Clock:         clock,
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,
