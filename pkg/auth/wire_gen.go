@@ -5161,9 +5161,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	eventLogger := event.NewLogger(factory)
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	rawProvider := &user.RawProvider{
 		RawCommands: rawCommands,
