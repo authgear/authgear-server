@@ -17,6 +17,7 @@ import (
 
 type PageService interface {
 	UpdateSession(session *webapp.Session) error
+	DeleteSession(id string) error
 	Get(session *webapp.Session) (*interaction.Graph, error)
 	GetSession(id string) (*webapp.Session, error)
 	GetWithIntent(session *webapp.Session, intent interaction.Intent) (*interaction.Graph, error)
@@ -128,6 +129,10 @@ func (c *Controller) UpdateSession(s *webapp.Session) error {
 	}
 
 	return nil
+}
+
+func (c *Controller) DeleteSession(id string) error {
+	return c.Page.DeleteSession(id)
 }
 
 func (c *Controller) Serve() {

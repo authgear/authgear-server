@@ -291,5 +291,10 @@
 
   "toc-pp-footer": "註冊即表示我已同意 <a target=\"_blank\" href=\"{termsOfService}\">條款和細則</a> 及 <a target=\"_blank\" href=\"{privacyPolicy}\">隱私政策</a>.",
   "terms-of-service-link": "https://www.authgear.com/terms-of-services",
-  "privacy-policy-link": "https://www.authgear.com/data-privacy"
+  "privacy-policy-link": "https://www.authgear.com/data-privacy",
+
+  "select-account-title": "繼續至 {AppOrClientName}",
+  "select-account-you-are-using-description": "您正在使用",
+  "select-account-continue-label": "繼續",
+  "select-account-use-another-account-label": "使用另一個帳戶"
 }

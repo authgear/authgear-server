@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type AuthEntryPointMiddleware struct {
@@ -17,13 +16,13 @@ func (m AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 		userID := session.GetUserID(r.Context())
 		webSession := GetSession(r.Context())
 
-		hasPrompt := false
+		fromAuthzEndpoint := false
 		if webSession != nil {
-			// stay in the auth entry point if prompt = login
-			hasPrompt = slice.ContainsString(webSession.Prompt, "login")
+			// stay in the auth entry point if login is triggered by authz endpoint
+			fromAuthzEndpoint = webSession.ClientID != ""
 		}
 
-		if userID != nil && !hasPrompt {
+		if userID != nil && !fromAuthzEndpoint {
 			defaultRedirectURI := "/settings"
 			redirectURI := GetRedirectURI(r, bool(m.TrustProxy), defaultRedirectURI)
 
