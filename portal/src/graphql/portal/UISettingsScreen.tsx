@@ -675,6 +675,17 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           />
           <TextField
             className={styles.textField}
+            label={renderToString(
+              "UISettingsScreen.customer-support-link-label"
+            )}
+            description={renderToString(
+              "UISettingsScreen.customer-support-link-description"
+            )}
+            value={valueForTranslationJSON("customer-support-link")}
+            onChange={onChangeForTranslationJSON("customer-support-link")}
+          />
+          <TextField
+            className={styles.textField}
             label={renderToString("UISettingsScreen.default-client-uri-label")}
             description={renderToString(
               "UISettingsScreen.default-client-uri-description"
