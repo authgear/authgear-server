@@ -6,7 +6,16 @@
             {{ range $name, $value := .Input }}
                 <input type="hidden" name="{{ $name }}" value="{{ $value }}">
             {{ end }}
-            <button class="btn secondary-btn self-end text-sm margin-b-20" type="submit" name="x_action" value="choose_step">
+            <input type="hidden" name="x_action" value="choose_step"/>
+            <div class="text-sm margin-b-20">
+            {{ if eq .Step "enter-recovery-code" }}
+            {{ if ($.Translations.HasKey "customer-support-link") }}
+                {{ template "enter-recovery-code-instead-with-customer-support-v1" (dict "customerSupportLink" ($.Translations.RenderText "customer-support-link" nil)) }}
+            {{ else }}
+                {{ template "enter-recovery-code-instead-v1" }}
+            {{ end }}
+            {{ else }}
+            <button class="btn secondary-btn" type="submit">
                 {{ if eq .Step "setup-totp" }}
                     {{ template "setup-totp-instead" .Data }}
                 {{ end }}
@@ -31,10 +40,9 @@
                 {{ if eq .Step "enter-oob-otp-authn-sms" }}
                     {{ template "enter-oob-otp-sms-instead" .Data }}
                 {{ end }}
-                {{ if eq .Step "enter-recovery-code" }}
-                    {{ template "enter-recovery-code-instead" .Data }}
-                {{ end }}
             </button>
+            {{ end }}
+            </div>
         </form>
     {{ end }}
 {{ end }}

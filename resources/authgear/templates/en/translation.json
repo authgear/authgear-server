@@ -248,9 +248,11 @@
   "setup-password-instead": "Setup password instead",
   "enter-totp-instead": "Enter 6-digit authenticator code instead",
   "enter-password-instead": "Enter password instead",
-  "enter-recovery-code-instead": "Enter recovery code instead",
   "enter-oob-otp-email-instead": "Send code to {target} instead via Email",
   "enter-oob-otp-sms-instead": "Send code to {target} instead via SMS",
+
+  "enter-recovery-code-instead-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button>",
+  "enter-recovery-code-instead-with-customer-support-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button> or <a class=\"link\" target=\"_blank\" href={customerSupportLink}>contact customer support</a>",
 
   "setup-oob-otp-title--sms": "Setup SMS 2-step verification",
   "setup-oob-otp-title--email": "Setup email 2-step verification",

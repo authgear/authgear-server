@@ -248,9 +248,11 @@
   "setup-password-instead": "改為設置密碼",
   "enter-totp-instead": "改為輸入六位驗證器碼",
   "enter-password-instead": "改為輸入密碼",
-  "enter-recovery-code-instead": "改為輸入備用碼",
   "enter-oob-otp-email-instead": "以電郵發送驗證碼至 {target}",
   "enter-oob-otp-sms-instead": "以短訊發送驗證碼至 {target}",
+
+  "enter-recovery-code-instead-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button>",
+  "enter-recovery-code-instead-with-customer-support-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button> 或 <a class=\"link\" target=\"_blank\" href={customerSupportLink}>聯繫客戶服務</a>",
 
   "setup-oob-otp-title--sms": "設置短訊雙重認證",
   "setup-oob-otp-title--email": "設置電郵雙重認證",
