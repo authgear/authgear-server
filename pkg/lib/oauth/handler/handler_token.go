@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/lestrrat-go/jwx/jwt"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -30,6 +32,9 @@ import (
 const AnonymousRequestGrantType = "urn:authgear:params:oauth:grant-type:anonymous-request"
 const BiometricRequestGrantType = "urn:authgear:params:oauth:grant-type:biometric-request"
 
+// nolint: gosec
+const IDTokenGrantType = "urn:authgear:params:oauth:grant-type:id-token"
+
 const AppSessionTokenDuration = duration.Short
 
 // whitelistedGrantTypes is a list of grant types that would be always allowed
@@ -37,10 +42,13 @@ const AppSessionTokenDuration = duration.Short
 var whitelistedGrantTypes = []string{
 	AnonymousRequestGrantType,
 	BiometricRequestGrantType,
+	IDTokenGrantType,
 }
 
 type IDTokenIssuer interface {
 	IssueIDToken(client *config.OAuthClientConfig, session session.Session, nonce string) (token string, err error)
+	VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (token jwt.Token, err error)
+	UpdateIDToken(token jwt.Token) (idToken string, err error)
 }
 
 type AccessTokenIssuer interface {
@@ -149,6 +157,8 @@ func (h *TokenHandler) doHandle(
 		return h.handleAnonymousRequest(client, r)
 	case BiometricRequestGrantType:
 		return h.handleBiometricRequest(rw, req, client, r)
+	case IDTokenGrantType:
+		return h.handleIDToken(rw, req, client, r)
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -174,6 +184,10 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
 	case BiometricRequestGrantType:
 		if r.JWT() == "" {
 			return protocol.NewError("invalid_request", "jwt is required")
+		}
+	case IDTokenGrantType:
+		if r.IDTokenHint() == "" {
+			return protocol.NewError("invalid_request", "id_token_hint is required")
 		}
 	default:
 		return protocol.NewError("unsupported_grant_type", "grant type is not supported")
@@ -605,6 +619,26 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 	resp.IDToken(idToken)
 
+	return tokenResultOK{Response: resp}, nil
+}
+
+func (h *TokenHandler) handleIDToken(
+	w http.ResponseWriter,
+	req *http.Request,
+	client *config.OAuthClientConfig,
+	r protocol.TokenRequest,
+) (httputil.Result, error) {
+	idTokenHint := r.IDTokenHint()
+	token, err := h.IDTokenIssuer.VerifyIDTokenHint(client, idTokenHint)
+	if err != nil {
+		return nil, err
+	}
+	idToken, err := h.IDTokenIssuer.UpdateIDToken(token)
+	if err != nil {
+		return nil, err
+	}
+	resp := protocol.TokenResponse{}
+	resp.IDToken(idToken)
 	return tokenResultOK{Response: resp}, nil
 }
 
