@@ -46,10 +46,6 @@
 
 </form>
 
-<div>
-{{ template "__alternatives.html" . }}
-</div>
-
 <form class="link margin-b-20" method="post" novalidate>
 {{ $.CSRFField }}
 
@@ -59,6 +55,11 @@
 	data-label="{{ template "oob-otp-resend-button-label" }}"
 	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>
 </form>
+
+<div>
+	{{ template "__alternatives.html" . }}
+</div>
+	
 
 </div>
 
