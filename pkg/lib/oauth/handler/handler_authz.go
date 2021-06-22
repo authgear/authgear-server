@@ -159,7 +159,7 @@ func (h *AuthorizationHandler) doHandle(
 		h.Clock.NowUTC(),
 		h.AppID,
 		r.ClientID(),
-		s.SessionAttrs().UserID,
+		s.GetUserID(),
 		scopes,
 	)
 	if err != nil {

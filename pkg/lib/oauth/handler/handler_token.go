@@ -479,7 +479,7 @@ func (h *TokenHandler) handleBiometricSetup(
 	var graph *interaction.Graph
 	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
-		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentAddIdentity(s.SessionAttrs().UserID))
+		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentAddIdentity(s.GetUserID()))
 		if err != nil {
 			return nil, err
 		}
@@ -680,7 +680,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var sessionKind oauth.GrantSessionKind
 	var atSession session.Session
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, s.SessionAttrs(), s.ID, deviceInfo, "", resp)
+		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, &s.Attrs, s.ID, deviceInfo, "", resp)
 		if err != nil {
 			return nil, err
 		}

@@ -125,7 +125,7 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	claims := jwt.New()
 
 	// Populate user specific claims
-	err := ti.updateUserClaims(claims, s.SessionAttrs().UserID)
+	err := ti.updateUserClaims(claims, s.GetUserID())
 	if err != nil {
 		return "", err
 	}
@@ -139,7 +139,7 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	// Populate session specific claims
 	// FIXME: populate auth_time
 	_ = claims.Set("sid", EncodeSID(s))
-	if amr, ok := s.SessionAttrs().GetAMR(); ok && len(amr) > 0 {
+	if amr, ok := s.GetOIDCAMR(); ok && len(amr) > 0 {
 		_ = claims.Set(string(authn.ClaimAMR), amr)
 	}
 

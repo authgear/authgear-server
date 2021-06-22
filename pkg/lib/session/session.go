@@ -15,7 +15,6 @@ const (
 )
 
 type Session interface {
-	SessionAttrs() *Attrs
 	SessionID() string
 	SessionType() Type
 
@@ -23,6 +22,11 @@ type Session interface {
 	GetCreatedAt() time.Time
 	GetAccessInfo() *access.Info
 	GetDeviceInfo() (map[string]interface{}, bool)
+
+	GetUserID() string
+
+	GetOIDCAMR() ([]string, bool)
+
 	ToAPIModel() *model.Session
 }
 

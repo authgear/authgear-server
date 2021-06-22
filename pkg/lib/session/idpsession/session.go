@@ -26,14 +26,15 @@ type IDPSession struct {
 	TokenHash string `json:"token_hash"`
 }
 
-func (s *IDPSession) SessionID() string            { return s.ID }
-func (s *IDPSession) SessionType() session.Type    { return session.TypeIdentityProvider }
-func (s *IDPSession) SessionAttrs() *session.Attrs { return &s.Attrs }
+func (s *IDPSession) SessionID() string         { return s.ID }
+func (s *IDPSession) SessionType() session.Type { return session.TypeIdentityProvider }
 
 func (s *IDPSession) GetCreatedAt() time.Time                       { return s.CreatedAt }
 func (s *IDPSession) GetClientID() string                           { return "" }
 func (s *IDPSession) GetAccessInfo() *access.Info                   { return &s.AccessInfo }
 func (s *IDPSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }
+func (s *IDPSession) GetUserID() string                             { return s.Attrs.UserID }
+func (s *IDPSession) GetOIDCAMR() ([]string, bool)                  { return s.Attrs.GetAMR() }
 
 func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
