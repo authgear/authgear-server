@@ -11,3 +11,8 @@ var SecretConfig = graphqlutil.NewJSONObjectScalar(
 	"SecretConfig",
 	"The `SecretConfig` scalar type represents a secret config JSON object",
 )
+
+var FeatureConfig = graphqlutil.NewJSONObjectScalar(
+	"FeatureConfig",
+	"The `FeatureConfig` scalar type represents an feature config JSON object",
+)
