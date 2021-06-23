@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -165,63 +163,4 @@ func (ti *IDTokenIssuer) LoadUserClaims(userID string) (jwt.Token, error) {
 		return nil, err
 	}
 	return claims, nil
-}
-
-func (ti *IDTokenIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (token jwt.Token, err error) {
-	// Verify the signature.
-	jwkSet, err := ti.GetPublicKeySet()
-	if err != nil {
-		return
-	}
-
-	_, err = jws.VerifySet([]byte(idTokenHint), jwkSet)
-	if err != nil {
-		return
-	}
-
-	// Parse the JWT.
-	_, token, err = jwtutil.SplitWithoutVerify([]byte(idTokenHint))
-	if err != nil {
-		return
-	}
-
-	// Validate the claims in the JWT.
-	// Here we do not use the library function jwt.Validate because
-	// we do not want to validate the exp of the token.
-
-	// We want to validate `aud` only.
-	foundAud := false
-	aud := client.ClientID
-	for _, v := range token.Audience() {
-		if v == aud {
-			foundAud = true
-			break
-		}
-	}
-	if !foundAud {
-		err = errors.New(`aud not satisfied`)
-		return
-	}
-
-	// Normally we should also validate `iss`.
-	// But `iss` can change if public_origin was changed.
-	// We should still accept ID token referencing an old public_origin.
-
-	return
-}
-
-func (ti *IDTokenIssuer) UpdateIDToken(token jwt.Token) (idToken string, err error) {
-	err = ti.updateUserClaims(token, token.Subject())
-	if err != nil {
-		return
-	}
-
-	ti.updateTimeClaims(token)
-
-	idToken, err = ti.sign(token)
-	if err != nil {
-		return
-	}
-
-	return
 }

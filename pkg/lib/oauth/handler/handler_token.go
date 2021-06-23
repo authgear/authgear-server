@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/lestrrat-go/jwx/jwt"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -47,8 +45,6 @@ var whitelistedGrantTypes = []string{
 
 type IDTokenIssuer interface {
 	IssueIDToken(client *config.OAuthClientConfig, session session.Session, nonce string) (token string, err error)
-	VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (token jwt.Token, err error)
-	UpdateIDToken(token jwt.Token) (idToken string, err error)
 }
 
 type AccessTokenIssuer interface {
@@ -186,9 +182,7 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest) error {
 			return protocol.NewError("invalid_request", "jwt is required")
 		}
 	case IDTokenGrantType:
-		if r.IDTokenHint() == "" {
-			return protocol.NewError("invalid_request", "id_token_hint is required")
-		}
+		break
 	default:
 		return protocol.NewError("unsupported_grant_type", "grant type is not supported")
 	}
@@ -628,12 +622,12 @@ func (h *TokenHandler) handleIDToken(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	idTokenHint := r.IDTokenHint()
-	token, err := h.IDTokenIssuer.VerifyIDTokenHint(client, idTokenHint)
-	if err != nil {
-		return nil, err
+	s := session.GetSession(req.Context())
+	if s == nil {
+		return nil, protocol.NewErrorStatusCode("invalid_request", "valid session is required", http.StatusUnauthorized)
 	}
-	idToken, err := h.IDTokenIssuer.UpdateIDToken(token)
+	nonce := ""
+	idToken, err := h.IDTokenIssuer.IssueIDToken(client, s, nonce)
 	if err != nil {
 		return nil, err
 	}

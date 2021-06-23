@@ -19,7 +19,6 @@ func (r TokenRequest) RedirectURI() string  { return r["redirect_uri"] }
 func (r TokenRequest) ClientID() string     { return r["client_id"] }
 func (r TokenRequest) RefreshToken() string { return r["refresh_token"] }
 func (r TokenRequest) JWT() string          { return r["jwt"] }
-func (r TokenRequest) IDTokenHint() string  { return r["id_token_hint"] }
 
 func (r TokenResponse) AccessToken(v string)  { r["access_token"] = v }
 func (r TokenResponse) TokenType(v string)    { r["token_type"] = v }
