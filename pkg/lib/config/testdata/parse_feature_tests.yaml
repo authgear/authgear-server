@@ -1,0 +1,22 @@
+name: empty-config
+error: null
+config: {}
+---
+name: unknown-key
+error: |-
+  invalid feature config:
+  /authentication/unknown-key: 
+config:
+  authentication:
+    unknown-key: {}
+---
+name: disabled-oob-otp-sms
+error: null
+config:
+  authentication:
+    primary_authenticators:
+      oob_otp_sms:
+        disabled: true
+    secondary_authenticators:
+      oob_otp_sms:
+        disabled: true

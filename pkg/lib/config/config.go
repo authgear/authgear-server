@@ -12,8 +12,9 @@ import (
 )
 
 type Config struct {
-	AppConfig    *AppConfig
-	SecretConfig *SecretConfig
+	AppConfig     *AppConfig
+	SecretConfig  *SecretConfig
+	FeatureConfig *FeatureConfig
 }
 
 type AppID string
