@@ -23,6 +23,7 @@ func (s *Store) selectConfigSourceQuery() db.SelectBuilder {
 			"created_at",
 			"updated_at",
 			"data",
+			"plan_name",
 		).
 		From(s.SQLBuilder.TableName("_portal_config_source"))
 }
@@ -37,6 +38,7 @@ func (s *Store) scanConfigSource(scn db.Scanner) (*DatabaseSource, error) {
 		&d.CreatedAt,
 		&d.UpdatedAt,
 		&dataByte,
+		&d.PlanName,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrAppNotFound

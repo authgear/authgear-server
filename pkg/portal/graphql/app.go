@@ -90,6 +90,12 @@ var nodeApp = node(
 					return p.Source.(*model.App).Context.Config.FeatureConfig, nil
 				},
 			},
+			"planName": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.String),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return p.Source.(*model.App).Context.PlanName, nil
+				},
+			},
 			"domains": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(domain))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {

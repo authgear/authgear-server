@@ -15,6 +15,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+const LocalFSPlanName = "local-fs"
+
 type LocalFSLogger struct{ *log.Logger }
 
 func NewLocalFSLogger(lf *log.Factory) LocalFSLogger {
@@ -51,6 +53,7 @@ func (s *LocalFS) Open() error {
 		AppFs:     appFs,
 		Resources: resources,
 		Config:    cfg,
+		PlanName:  LocalFSPlanName,
 	})
 
 	if s.Config.Watch {
@@ -137,6 +140,7 @@ func (s *LocalFS) reload() error {
 		AppFs:     appCtx.AppFs,
 		Resources: appCtx.Resources,
 		Config:    newConfig,
+		PlanName:  LocalFSPlanName,
 	}
 	s.config.Store(appCtx)
 	return nil
