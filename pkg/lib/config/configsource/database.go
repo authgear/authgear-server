@@ -134,7 +134,7 @@ func (d *Database) ReloadApp(appID string) {
 	d.invalidateApp(appID)
 }
 
-func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byte) error {
+func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byte, planName string) error {
 	return d.Database.WithTx(func() error {
 		_, err := d.Store.GetDatabaseSourceByAppID(appID)
 		if err != nil && !errors.Is(err, ErrAppNotFound) {
@@ -152,6 +152,7 @@ func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byt
 			ID:        uuid.New(),
 			AppID:     appID,
 			Data:      dbData,
+			PlanName:  planName,
 			CreatedAt: d.Clock.NowUTC(),
 			UpdatedAt: d.Clock.NowUTC(),
 		}

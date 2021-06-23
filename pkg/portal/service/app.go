@@ -179,7 +179,12 @@ func (s *AppService) Create(userID string, id string) error {
 		return err
 	}
 
-	createAppOpts, err := s.generateConfig(appHost, id)
+	defaultAppPlan, err := s.Plan.GetDefaultPlan()
+	if err != nil {
+		return err
+	}
+
+	createAppOpts, err := s.generateConfig(appHost, id, defaultAppPlan)
 	if err != nil {
 		return err
 	}
@@ -247,7 +252,7 @@ func (s *AppService) UpdateResources(app *model.App, updates []resources.Update)
 	return err
 }
 
-func (s *AppService) generateResources(appHost string, appID string) (map[string][]byte, error) {
+func (s *AppService) generateResources(appHost string, appID string, featureConfig *config.FeatureConfig) (map[string][]byte, error) {
 	appResources := make(map[string][]byte)
 
 	// Generate app config
@@ -271,6 +276,15 @@ func (s *AppService) generateResources(appHost string, appID string) (map[string
 	}
 	appResources[configsource.AuthgearSecretYAML] = secretConfigYAML
 
+	// Assign feature config if any
+	if featureConfig != nil {
+		featureConfigYAML, err := yaml.Marshal(featureConfig)
+		if err != nil {
+			return nil, err
+		}
+		appResources[configsource.AuthgearFeatureYAML] = featureConfigYAML
+	}
+
 	return appResources, nil
 }
 
@@ -281,7 +295,7 @@ func (s *AppService) generateAppHost(appID string) (string, error) {
 	return appID + s.AppConfig.HostSuffix, nil
 }
 
-func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateAppOptions, err error) {
+func (s *AppService) generateConfig(appHost string, appID string, appPlan *model.Plan) (opts *CreateAppOptions, err error) {
 	appIDRegex, err := regexp.Compile(s.AppConfig.IDPattern)
 	if err != nil {
 		err = fmt.Errorf("invalid app ID validation pattern: %w", err)
@@ -292,7 +306,13 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 		return
 	}
 
-	files, err := s.generateResources(appHost, appID)
+	var featureConfig *config.FeatureConfig
+	planName := ""
+	if appPlan != nil {
+		featureConfig = appPlan.FeatureConfig
+		planName = appPlan.Name
+	}
+	files, err := s.generateResources(appHost, appID, featureConfig)
 	if err != nil {
 		return
 	}
@@ -313,6 +333,7 @@ func (s *AppService) generateConfig(appHost string, appID string) (opts *CreateA
 	opts = &CreateAppOptions{
 		AppID:     appID,
 		Resources: files,
+		PlanName:  planName,
 	}
 
 	return

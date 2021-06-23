@@ -17,6 +17,8 @@ type AppConfig struct {
 	// If it is empty, then all keys are allowed.
 	// Otherwise only allowed keys in the list are visible in API response.
 	SecretKeyAllowlist SecretKeyAllowlist `envconfig:"SECRET_KEY_ALLOWLIST"`
+	// DefaultPlan defines the default plan for apps during app creation
+	DefaultPlan string `envconfig:"DEFAULT_PLAN"`
 }
 
 type AppKubernetesConfig struct {
