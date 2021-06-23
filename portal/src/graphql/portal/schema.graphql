@@ -31,6 +31,9 @@ type App implements Node {
   id: ID!
 
   """"""
+  planName: String!
+
+  """"""
   rawAppConfig: AppConfig!
 
   """"""

@@ -28,6 +28,7 @@ type DatabaseSource struct {
 	ID        string
 	AppID     string
 	Data      map[string][]byte
+	PlanName  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -293,6 +294,7 @@ func (a *dbApp) doLoad(d *Database) (*config.AppContext, error) {
 			AppFs:     appFs,
 			Resources: resources,
 			Config:    appConfig,
+			PlanName:  data.PlanName,
 		}
 		return nil
 	})
