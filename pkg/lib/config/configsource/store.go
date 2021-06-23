@@ -109,6 +109,7 @@ func (s *Store) CreateDatabaseSource(dbs *DatabaseSource) error {
 			"id",
 			"app_id",
 			"data",
+			"plan_name",
 			"created_at",
 			"updated_at",
 		).
@@ -116,6 +117,7 @@ func (s *Store) CreateDatabaseSource(dbs *DatabaseSource) error {
 			dbs.ID,
 			dbs.AppID,
 			data,
+			dbs.PlanName,
 			dbs.CreatedAt,
 			dbs.UpdatedAt,
 		)
