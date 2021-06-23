@@ -2,6 +2,7 @@ package configsource
 
 import (
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"sync/atomic"
@@ -55,6 +56,7 @@ func (s *LocalFS) Open() error {
 	if s.Config.Watch {
 		appConfigPath := path.Join(dir, AuthgearYAML)
 		secretConfigPath := path.Join(dir, AuthgearSecretYAML)
+		featureConfigPath := path.Join(dir, AuthgearFeatureYAML)
 
 		s.watcher, err = fsnotify.NewWatcher()
 		if err != nil {
@@ -70,6 +72,13 @@ func (s *LocalFS) Open() error {
 		}
 		if err = s.watcher.Add(secretConfigPath); err != nil {
 			return err
+		}
+		if err = s.watcher.Add(featureConfigPath); err != nil {
+			// watching feature config only works
+			// when the authgear.features.yaml exists before the server starts
+			if !os.IsNotExist(err) {
+				return err
+			}
 		}
 	}
 	return nil
