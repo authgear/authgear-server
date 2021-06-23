@@ -25,9 +25,20 @@ func LoadConfig(res *resource.Manager) (*config.Config, error) {
 	}
 	secretConfig := result.(*config.SecretConfig)
 
+	var featureConfig *config.FeatureConfig
+	result, err = res.Read(FeatureConfig, resource.EffectiveResource{})
+	if errors.Is(err, resource.ErrResourceNotFound) {
+		featureConfig = config.NewEffectiveDefaultFeatureConfig()
+	} else if err != nil {
+		return nil, err
+	} else {
+		featureConfig = result.(*config.FeatureConfig)
+	}
+
 	cfg := &config.Config{
-		AppConfig:    appConfig,
-		SecretConfig: secretConfig,
+		AppConfig:     appConfig,
+		SecretConfig:  secretConfig,
+		FeatureConfig: featureConfig,
 	}
 	if err = cfg.SecretConfig.Validate(cfg.AppConfig); err != nil {
 		return nil, fmt.Errorf("invalid secret config: %w", err)
