@@ -40,6 +40,7 @@ func NewConfigServiceLogger(lf *log.Factory) ConfigServiceLogger {
 type CreateAppOptions struct {
 	AppID     string
 	Resources map[string][]byte
+	PlanName  string
 }
 
 type ConfigService struct {
@@ -153,7 +154,7 @@ func (s *ConfigService) updateDatabase(d *configsource.Database, appID string, u
 }
 
 func (s *ConfigService) createDatabase(d *configsource.Database, opts *CreateAppOptions) error {
-	err := d.CreateDatabaseSource(opts.AppID, opts.Resources)
+	err := d.CreateDatabaseSource(opts.AppID, opts.Resources, opts.PlanName)
 	if err != nil {
 		if errors.Is(err, configsource.ErrDuplicatedAppID) {
 			return ErrDuplicatedAppID
