@@ -108,20 +108,43 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
+	// Authorization endpoint ignores non-IDP session.
 	s := session.GetSession(h.Context)
+	if s != nil && s.SessionType() != session.TypeIdentityProvider {
+		s = nil
+	}
+
 	authnOptions := webapp.AuthenticateURLOptions{}
-	authnOptions.Prompt = r.Prompt()
+
+	// Handle max_age and prompt=login
+	prompt := r.Prompt()
+	if maxAge, ok := r.MaxAge(); ok {
+		impliesPromptLogin := false
+		// When there is no session, the presence of max_age implies prompt=login.
+		if s == nil {
+			impliesPromptLogin = true
+		} else {
+			// max_age=0 implies prompt=login
+			if maxAge == 0 {
+				impliesPromptLogin = true
+			} else {
+				// max_age=n implies prompt=login if elapsed time is greater than max_age.
+				// In extreme rare case, elapsed time can be negative.
+				elapsedTime := h.Clock.NowUTC().Sub(s.GetAuthenticatedAt())
+				if elapsedTime < 0 || elapsedTime > maxAge {
+					impliesPromptLogin = true
+				}
+			}
+		}
+		if impliesPromptLogin {
+			prompt = slice.AppendIfUniqueStrings(prompt, "login")
+		}
+	}
+	authnOptions.Prompt = prompt
 
 	// start web app authentication
-	if !slice.ContainsString(r.Prompt(), "none") {
-		// reset prompt to none for webapp to redirect back to authz endpoint
-		// after authentication
-		r2 := protocol.AuthorizationRequest{}
-		for k, v := range r {
-			r2[k] = v
-		}
-		r2.SetPrompt([]string{"none"})
-		r = r2
+	if !slice.ContainsString(prompt, "none") {
+		r = r.CopyForSelfRedirection()
 
 		// Not authenticated as IdP session => request authentication and retry
 		authnOptions.ClientID = r.ClientID()
@@ -150,7 +173,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// start handle prompt == none
-	if s == nil || s.SessionType() != session.TypeIdentityProvider {
+	if s == nil {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
@@ -217,8 +240,13 @@ func (h *AuthorizationHandler) validateRequest(
 		return protocol.NewError("invalid_request", "scope is required")
 	}
 
-	if slice.ContainsString(r.Prompt(), "none") && len(r.Prompt()) != 1 {
-		return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
+	if slice.ContainsString(r.Prompt(), "none") {
+		if len(r.Prompt()) != 1 {
+			return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
+		}
+		if r.HasMaxAge() {
+			return protocol.NewError("invalid_request", "max_age could imply prompt=login so max_age cannot be present when prompt=none")
+		}
 	}
 
 	switch r.ResponseType() {
