@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
+	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
@@ -191,6 +192,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor:  sqlExecutor,
 	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
+	store := &plan.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	planService := &plan.Service{
+		PlanStore: store,
+		AppConfig: appConfig,
+	}
 	appService := &service.AppService{
 		Logger:             appServiceLogger,
 		SQLBuilder:         sqlBuilder,
@@ -203,6 +212,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppDomains:         domainService,
 		Resources:          manager,
 		AppBaseResources:   appBaseResources,
+		Plan:               planService,
 	}
 	appLoader := loader.NewAppLoader(appService, authzService)
 	domainLoader := loader.NewDomainLoader(domainService, authzService)

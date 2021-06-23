@@ -52,6 +52,10 @@ type AppDomainService interface {
 	CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*model.Domain, error)
 }
 
+type AppPlanService interface {
+	GetDefaultPlan() (*model.Plan, error)
+}
+
 type AppServiceLogger struct{ *log.Logger }
 
 func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
@@ -71,6 +75,7 @@ type AppService struct {
 	AppDomains         AppDomainService
 	Resources          ResourceManager
 	AppBaseResources   deps.AppBaseResources
+	Plan               AppPlanService
 }
 
 func (s *AppService) Get(id string) (*model.App, error) {
