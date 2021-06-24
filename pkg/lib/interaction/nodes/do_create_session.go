@@ -21,13 +21,9 @@ type EdgeDoCreateSession struct {
 
 func (e *EdgeDoCreateSession) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	amr := graph.GetAMR()
-	userIdentity := graph.MustGetUserLastIdentity()
 
 	attrs := session.NewAttrs(graph.MustGetUserID())
 	attrs.SetAMR(amr)
-	if claimName, ok := userIdentity.DisplayIDClaimName(); ok {
-		attrs.Claims[claimName] = userIdentity.DisplayID()
-	}
 
 	sess, token := ctx.Sessions.MakeSession(attrs)
 	cookie := ctx.CookieFactory.ValueCookie(ctx.SessionCookie.Def, token)
