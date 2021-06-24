@@ -63,32 +63,85 @@ func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 }
 
 func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	userID := session.GetUserID(r.Context())
-	webSession := webapp.GetSession(r.Context())
-
-	loginPrompt := false
-	fromAuthzEndpoint := false
-	if webSession != nil {
-		// stay in the auth entry point if prompt = login
-		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
-		fromAuthzEndpoint = webSession.ClientID != ""
-	}
-
-	if !fromAuthzEndpoint || userID == nil || loginPrompt {
-		signedUpCookie, err := r.Cookie(h.SignedUpCookie.Def.Name)
-		signedUp := (err == nil && signedUpCookie.Value == "true")
-		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
-		http.Redirect(w, r, path, http.StatusFound)
-		return
-	}
-
-	// ctrl.Serve() always write response.
-	// So we have to put http.Redirect before it.
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	userID := session.GetUserID(r.Context())
+	webSession := webapp.GetSession(r.Context())
+	loginPrompt := false
+	fromAuthzEndpoint := false
+	userIDHint := ""
+
+	gotoLogin := func() {
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}
+
+	gotoSignupOrLogin := func() {
+		signedUpCookie, err := r.Cookie(h.SignedUpCookie.Def.Name)
+		signedUp := (err == nil && signedUpCookie.Value == "true")
+		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
+		http.Redirect(w, r, path, http.StatusFound)
+	}
+
+	continueWithCurrentAccount := func() error {
+		redirectURI := "/settings"
+		// continue to use the previous session
+		// complete the web session and redirect to web session's RedirectURI
+		if webSession != nil {
+			redirectURI = webSession.RedirectURI
+			if err := ctrl.DeleteSession(webSession.ID); err != nil {
+				return err
+			}
+		}
+		http.Redirect(w, r, redirectURI, http.StatusFound)
+		return nil
+	}
+
+	if webSession != nil {
+		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
+		fromAuthzEndpoint = webSession.ClientID != ""
+		userIDHint = webSession.UserIDHint
+	}
+
+	// When UserIDHint is present, the end-user should never need to select anything in /select_account,
+	// so this if block always ends with a return statement, and each branch must write response.
+	if userIDHint != "" {
+		// The current session is the same user, reauthenticate the user if needed.
+		if userID != nil && *userID == userIDHint {
+			if loginPrompt {
+				// FIXME(reauthenticate): start reauthentication intent.
+				http.Error(w, "reauthentication not yet implemented", http.StatusNotImplemented)
+			} else {
+				// Otherwise, select the current account because this is the only
+				// consequence that should happen.
+				err := continueWithCurrentAccount()
+				if err != nil {
+					panic(err)
+				}
+			}
+		} else {
+			// There is no session or the session is another user,
+			// redirect to /login so that the end-user could reauthenticate as UserIDHint.
+			gotoLogin()
+		}
+		return
+	}
+
+	// If anything of the following condition holds,
+	// the end-user does not need to select anything.
+	// 1. The request is not from the authorization endpoint, e.g. /
+	// 2. There is no session, so nothing to select.
+	// 3. prompt=login, in this case, the end-user cannot select existing account.
+	if !fromAuthzEndpoint || userID == nil || loginPrompt {
+		gotoSignupOrLogin()
+		return
+	}
+
+	// ctrl.Serve() always write response.
+	// So we have to put http.Redirect before it.
 	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
@@ -101,22 +154,11 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	})
 
 	ctrl.PostAction("continue", func() error {
-		redirectURI := "/settings"
-		// continue to use the previous session
-		// complete the web session and redirect to web session's RedirectURI
-		if webSession != nil {
-			redirectURI = webSession.RedirectURI
-			if err := ctrl.DeleteSession(webSession.ID); err != nil {
-				return err
-			}
-		}
-
-		http.Redirect(w, r, redirectURI, http.StatusFound)
-		return nil
+		return continueWithCurrentAccount()
 	})
 
 	ctrl.PostAction("login", func() error {
-		http.Redirect(w, r, "/login", http.StatusFound)
+		gotoSignupOrLogin()
 		return nil
 	})
 
