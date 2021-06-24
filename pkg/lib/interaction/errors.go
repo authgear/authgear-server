@@ -29,6 +29,7 @@ var ErrDuplicatedIdentity = NewInvariantViolated("DuplicatedIdentity", "identity
 var ErrDuplicatedAuthenticator = NewInvariantViolated("DuplicatedAuthenticator", "authenticator already exists", nil)
 var ErrOAuthProviderNotFound = apierrors.NotFound.WithReason("OAuthProviderNotFound").New("oauth provider not found")
 var ErrIdentityModifyDisabled = NewInvariantViolated("IdentityModifyDisabled", "identity modification disabled", nil)
+var ErrMismatchedUser = NewInvariantViolated("MismatchedUser", "mismatched user", nil)
 
 var ErrIncompatibleInput = errors.New("incompatible input type for this node")
 var ErrSameNode = errors.New("the edge points to the same current node")

@@ -88,6 +88,8 @@
                     <li>{{ template "error-duplicated-identity" (dict "IntentKind" $info.IntentKind "IdentityType" $info.IdentityType "LoginIDType" $info.LoginIDType) }}</li>
                 {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
                     <li>{{ template "error-duplicated-authenticator" }}</li>
+                {{ else if (eq $cause.kind "MismatchedUser") }}
+                    <li>{{ template "error-mismatched-user" }}</li>
                 {{ else }}
                     <li>{{ . }}</li>
                 {{ end }}

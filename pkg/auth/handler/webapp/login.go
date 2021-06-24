@@ -96,6 +96,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	prompt := []string{}
 	if s := webapp.GetSession(r.Context()); s != nil {
 		prompt = s.Prompt
+		intent.UserIDHint = s.UserIDHint
 	}
 
 	ctrl.Get(func() error {
