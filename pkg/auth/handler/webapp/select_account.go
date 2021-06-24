@@ -63,13 +63,6 @@ func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 }
 
 func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctrl, err := h.ControllerFactory.New(r, w)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer ctrl.Serve()
-
 	userID := session.GetUserID(r.Context())
 	webSession := webapp.GetSession(r.Context())
 
@@ -88,6 +81,15 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		http.Redirect(w, r, path, http.StatusFound)
 		return
 	}
+
+	// ctrl.Serve() always write response.
+	// So we have to put http.Redirect before it.
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w, *userID)
