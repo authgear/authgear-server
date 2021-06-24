@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/lestrrat-go/jwx/jwt"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -21,6 +23,10 @@ import (
 )
 
 const CodeGrantValidDuration = duration.Short
+
+type IDTokenVerifier interface {
+	VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (jwt.Token, error)
+}
 
 type OAuthURLProvider interface {
 	AuthorizeURL(r protocol.AuthorizationRequest) *url.URL
@@ -50,6 +56,7 @@ type AuthorizationHandler struct {
 	ValidateScopes  ScopesValidator
 	CodeGenerator   TokenGenerator
 	LoginHintParser *LoginHintResolver
+	IDTokens        IDTokenVerifier
 	Clock           clock.Clock
 }
 
@@ -141,6 +148,15 @@ func (h *AuthorizationHandler) doHandle(
 		}
 	}
 	authnOptions.Prompt = prompt
+
+	// Handle id_token_hint
+	if idTokenHint, ok := r.IDTokenHint(); ok {
+		idToken, err := h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
+		if err != nil {
+			return nil, err
+		}
+		authnOptions.UserIDHint = idToken.Subject()
+	}
 
 	// start web app authentication
 	if !slice.ContainsString(prompt, "none") {

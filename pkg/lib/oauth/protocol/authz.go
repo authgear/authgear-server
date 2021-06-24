@@ -23,6 +23,10 @@ func (r AuthorizationRequest) Nonce() string                 { return r["nonce"]
 func (r AuthorizationRequest) UILocales() []string           { return parseSpaceDelimitedString(r["ui_locales"]) }
 func (r AuthorizationRequest) LoginHint() string             { return r["login_hint"] }
 func (r AuthorizationRequest) SetLoginHint(loginHint string) { r["login_hint"] = loginHint }
+func (r AuthorizationRequest) IDTokenHint() (string, bool) {
+	idTokenHint, ok := r["id_token_hint"]
+	return idTokenHint, ok
+}
 func (r AuthorizationRequest) HasMaxAge() bool {
 	_, ok := r["max_age"]
 	return ok

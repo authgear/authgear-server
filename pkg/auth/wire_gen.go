@@ -589,6 +589,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppSessions:      store,
 		Clock:            clock,
 	}
+	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
+	idTokenIssuer := &oidc.IDTokenIssuer{
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clock,
+	}
 	authorizationHandler := &handler.AuthorizationHandler{
 		Context:         context,
 		AppID:           appID,
@@ -602,6 +609,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		ValidateScopes:  scopesValidator,
 		CodeGenerator:   tokenGenerator,
 		LoginHintParser: loginHintResolver,
+		IDTokens:        idTokenIssuer,
 		Clock:           clock,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
