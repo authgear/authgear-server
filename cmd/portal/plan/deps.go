@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -38,5 +39,6 @@ var DependencySet = wire.NewSet(
 	globaldb.DependencySet,
 	clock.DependencySet,
 	plan.DependencySet,
+	wire.Struct(new(configsource.Store), "*"),
 	wire.Struct(new(Service), "*"),
 )

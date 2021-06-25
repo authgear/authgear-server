@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"io/ioutil"
+	"log"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -109,13 +110,12 @@ var cmdPricingPlanUpdate = &cobra.Command{
 
 		// update feature config in plan record
 		planName := args[0]
-		err = planService.UpdatePlan(planName, featureConfig)
+		appCount, err := planService.UpdatePlan(planName, featureConfig)
 		if err != nil {
 			return err
 		}
 
-		// FIXME: update app's feature config
-
+		log.Printf("number of apps have been updated: %d", appCount)
 		return
 	},
 }

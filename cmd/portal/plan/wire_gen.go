@@ -8,6 +8,7 @@ package plan
 import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
@@ -29,9 +30,15 @@ func NewService(ctx context.Context, pool *db.Pool, databaseCredentials *config.
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	configsourceStore := &configsource.Store{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
 	service := &Service{
-		Handle: handle,
-		Store:  store,
+		Handle:            handle,
+		Store:             store,
+		ConfigSourceStore: configsourceStore,
+		Clock:             clock,
 	}
 	return service
 }
