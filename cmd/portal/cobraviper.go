@@ -53,3 +53,8 @@ var ArgFeatureConfigFilePath = &cobraviper.StringArgument{
 	ArgumentName: "file",
 	Usage:        "Feature config file path",
 }
+
+var ArgPlanName = &cobraviper.StringArgument{
+	ArgumentName: "plan-name",
+	Usage:        "Plan name",
+}

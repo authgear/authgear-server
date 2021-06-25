@@ -15,18 +15,22 @@ import (
 
 func init() {
 	cmdPricing.AddCommand(cmdPricingPlan)
+	cmdPricing.AddCommand(cmdPricingApp)
 	cmdPricingPlan.AddCommand(cmdPricingPlanCreate)
 	cmdPricingPlan.AddCommand(cmdPricingPlanUpdate)
+	cmdPricingApp.AddCommand(cmdPricingAppSetPlan)
 
 	for _, cmd := range []*cobra.Command{
 		cmdPricingPlanCreate,
 		cmdPricingPlanUpdate,
+		cmdPricingAppSetPlan,
 	} {
 		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
 		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
 	}
 
 	ArgFeatureConfigFilePath.Bind(cmdPricingPlanUpdate.Flags(), viper.GetViper())
+	ArgPlanName.Bind(cmdPricingAppSetPlan.Flags(), viper.GetViper())
 }
 
 var cmdPricing = &cobra.Command{
@@ -38,6 +42,11 @@ var cmdPricing = &cobra.Command{
 var cmdPricingPlan = &cobra.Command{
 	Use:   "plan",
 	Short: "Plan management",
+}
+
+var cmdPricingApp = &cobra.Command{
+	Use:   "app",
+	Short: "App's plan management",
 }
 
 var cmdPricingPlanCreate = &cobra.Command{
@@ -116,6 +125,47 @@ var cmdPricingPlanUpdate = &cobra.Command{
 		}
 
 		log.Printf("number of apps have been updated: %d", appCount)
+		return
+	},
+}
+
+// Example: go run ./cmd/portal pricing app set-plan appID --plan-name=free
+var cmdPricingAppSetPlan = &cobra.Command{
+	Use:   "set-plan [app id]",
+	Short: "Set the app to the plan",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		dbCredentials := &config.DatabaseCredentials{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+		}
+
+		dbPool := db.NewPool()
+		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
+
+		appID := args[0]
+		planName, err := ArgPlanName.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		err = planService.UpdateAppPlan(appID, planName)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("updated app plan, app: %s, plan: %s\n", appID, planName)
+
 		return
 	},
 }
