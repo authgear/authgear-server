@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,13 +15,17 @@ import (
 func init() {
 	cmdPricing.AddCommand(cmdPricingPlan)
 	cmdPricingPlan.AddCommand(cmdPricingPlanCreate)
+	cmdPricingPlan.AddCommand(cmdPricingPlanUpdate)
 
 	for _, cmd := range []*cobra.Command{
 		cmdPricingPlanCreate,
+		cmdPricingPlanUpdate,
 	} {
 		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
 		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
 	}
+
+	ArgFeatureConfigFilePath.Bind(cmdPricingPlanUpdate.Flags(), viper.GetViper())
 }
 
 var cmdPricing = &cobra.Command{
@@ -58,6 +63,59 @@ var cmdPricingPlanCreate = &cobra.Command{
 		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
 		planName := args[0]
 		err = planService.CreatePlan(planName)
+		return
+	},
+}
+
+// Example: go run ./cmd/portal pricing plan update free --file=./var/authgear.features.yaml
+var cmdPricingPlanUpdate = &cobra.Command{
+	Use:   "update [plan name]",
+	Short: "Update plan's feature config",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) (err error) {
+		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		dbCredentials := &config.DatabaseCredentials{
+			DatabaseURL:    dbURL,
+			DatabaseSchema: dbSchema,
+		}
+
+		dbPool := db.NewPool()
+		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
+
+		// read the feature config file
+		featureConfigPath, err := ArgFeatureConfigFilePath.GetRequired(viper.GetViper())
+		if err != nil {
+			return err
+		}
+
+		featureConfigYAML, err := ioutil.ReadFile(featureConfigPath)
+		if err != nil {
+			return err
+		}
+
+		featureConfig, err := config.ParseFeatureConfig(featureConfigYAML)
+		if err != nil {
+			return err
+		}
+
+		// update feature config in plan record
+		planName := args[0]
+		err = planService.UpdatePlan(planName, featureConfig)
+		if err != nil {
+			return err
+		}
+
+		// FIXME: update app's feature config
+
 		return
 	},
 }

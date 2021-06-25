@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -51,6 +52,36 @@ func (s *Store) Create(plan *model.Plan) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (s *Store) Update(plan *model.Plan) error {
+	configData, err := json.Marshal(plan.RawFeatureConfig)
+	if err != nil {
+		return err
+	}
+	q := s.SQLBuilder.Global().
+		Update(s.SQLBuilder.TableName("_portal_plan")).
+		Set("feature_config", configData).
+		Set("updated_at", s.Clock.NowUTC()).
+		Where("id = ?", plan.ID)
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrPlanNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Sprintf("plan: want 1 row updated, got %v", rowsAffected))
+	}
+
 	return nil
 }
 
