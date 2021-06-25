@@ -34,6 +34,7 @@
   "error-duplicated-identity": "身份資料已被使用於另一帳號",
   "error-duplicated-authenticator": "這個驗證器已被使用於另一帳號",
   "error-mismatched-user": "你需要登入你正在使用的帳號",
+  "error-no-authenticator": "你的帳號沒有驗證器",
   "error-verification-code-invalid": "驗證碼無效、已用或失效，請重新請求驗證碼。",
   "error-verification-code-invalid-click-to-resend": "點擊以重發",
   "error-remove-last-identity": "無法移除：你需要保留最少一個可用的登入方式",

@@ -90,6 +90,8 @@
                     <li>{{ template "error-duplicated-authenticator" }}</li>
                 {{ else if (eq $cause.kind "MismatchedUser") }}
                     <li>{{ template "error-mismatched-user" }}</li>
+                {{ else if (eq $cause.kind "NoAuthenticator") }}
+                    <li>{{ template "error-no-authenticator" }}</li>
                 {{ else }}
                     <li>{{ . }}</li>
                 {{ end }}

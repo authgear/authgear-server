@@ -7,6 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -33,6 +35,7 @@ type SelectAccountViewModel struct {
 }
 
 type SelectAccountHandler struct {
+	Database             *appdb.Handle
 	ControllerFactory    ControllerFactory
 	BaseViewModel        *viewmodels.BaseViewModeler
 	Renderer             Renderer
@@ -69,7 +72,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	userID := session.GetUserID(r.Context())
+	sess := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
 	loginPrompt := false
 	fromAuthzEndpoint := false
@@ -106,26 +109,46 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		userIDHint = webSession.UserIDHint
 	}
 
+	opts := webapp.SessionOptions{
+		RedirectURI: ctrl.RedirectURI(),
+	}
+
 	// When UserIDHint is present, the end-user should never need to select anything in /select_account,
 	// so this if block always ends with a return statement, and each branch must write response.
 	if userIDHint != "" {
-		// The current session is the same user, reauthenticate the user if needed.
-		if userID != nil && *userID == userIDHint {
-			if loginPrompt {
-				// FIXME(reauthenticate): start reauthentication intent.
-				http.Error(w, "reauthentication not yet implemented", http.StatusNotImplemented)
-			} else {
-				// Otherwise, select the current account because this is the only
-				// consequence that should happen.
-				err := continueWithCurrentAccount()
-				if err != nil {
-					panic(err)
+		err := h.Database.WithTx(func() error {
+			// The current session is the same user, reauthenticate the user if needed.
+			if sess != nil && sess.GetUserID() == userIDHint {
+				if loginPrompt {
+					intent := &intents.IntentReauthenticate{
+						WebhookState: webSession.WebhookState,
+						UserIDHint:   userIDHint,
+						IDPSessionID: sess.SessionID(),
+					}
+					result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+						return nil, nil
+					})
+					if err != nil {
+						return err
+					}
+					result.WriteResponse(w, r)
+				} else {
+					// Otherwise, select the current account because this is the only
+					// consequence that should happen.
+					err := continueWithCurrentAccount()
+					if err != nil {
+						return err
+					}
 				}
+			} else {
+				// There is no session or the session is another user,
+				// redirect to /login so that the end-user could reauthenticate as UserIDHint.
+				gotoLogin()
 			}
-		} else {
-			// There is no session or the session is another user,
-			// redirect to /login so that the end-user could reauthenticate as UserIDHint.
-			gotoLogin()
+			return nil
+		})
+		if err != nil {
+			panic(err)
 		}
 		return
 	}
@@ -135,7 +158,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	// 1. The request is not from the authorization endpoint, e.g. /
 	// 2. There is no session, so nothing to select.
 	// 3. prompt=login, in this case, the end-user cannot select existing account.
-	if !fromAuthzEndpoint || userID == nil || loginPrompt {
+	if !fromAuthzEndpoint || sess == nil || loginPrompt {
 		gotoSignupOrLogin()
 		return
 	}
@@ -145,7 +168,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w, *userID)
+		data, err := h.GetData(r, w, sess.GetUserID())
 		if err != nil {
 			return err
 		}

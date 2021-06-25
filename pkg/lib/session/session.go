@@ -41,7 +41,8 @@ const (
 type CreateReason string
 
 const (
-	CreateReasonSignup  CreateReason = "signup"
-	CreateReasonLogin   CreateReason = "login"
-	CreateReasonPromote CreateReason = "promote"
+	CreateReasonSignup         CreateReason = "signup"
+	CreateReasonLogin          CreateReason = "login"
+	CreateReasonPromote        CreateReason = "promote"
+	CreateReasonReauthenticate CreateReason = "reauthenticate"
 )

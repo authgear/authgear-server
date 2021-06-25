@@ -4786,8 +4786,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 
 func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
+	factory := appProvider.LoggerFactory
 	redisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
@@ -5330,6 +5330,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		ControllerDeps: controllerDeps,
 	}
 	selectAccountHandler := &webapp2.SelectAccountHandler{
+		Database:             handle,
 		ControllerFactory:    controllerFactory,
 		BaseViewModel:        baseViewModeler,
 		Renderer:             responseRenderer,

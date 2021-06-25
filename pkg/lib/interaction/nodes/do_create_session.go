@@ -15,8 +15,9 @@ func init() {
 }
 
 type EdgeDoCreateSession struct {
-	Reason            session.CreateReason
-	SkipCreateSession bool
+	Reason             session.CreateReason
+	SkipCreateSession  bool
+	UpdateIDPSessionID string
 }
 
 func (e *EdgeDoCreateSession) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
@@ -25,6 +26,7 @@ func (e *EdgeDoCreateSession) Instantiate(ctx *interaction.Context, graph *inter
 	attrs := session.NewAttrs(graph.MustGetUserID())
 	attrs.SetAMR(amr)
 
+	// FIXME(reauthentication): Update session with UpdateIDPSessionID
 	sess, token := ctx.Sessions.MakeSession(attrs)
 	cookie := ctx.CookieFactory.ValueCookie(ctx.SessionCookie.Def, token)
 	sameSiteStrictCookie := ctx.CookieFactory.ValueCookie(

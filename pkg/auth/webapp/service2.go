@@ -429,6 +429,8 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		}
 	case *nodes.NodeAuthenticationBegin:
 		return SessionStepAuthenticate
+	case *nodes.NodeReauthenticationBegin:
+		return SessionStepAuthenticate
 	case *nodes.NodeCreateAuthenticatorBegin:
 		return SessionStepCreateAuthenticator
 	case *nodes.NodeAuthenticationOOBTrigger:
