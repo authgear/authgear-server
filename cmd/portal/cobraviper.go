@@ -58,3 +58,9 @@ var ArgPlanName = &cobraviper.StringArgument{
 	ArgumentName: "plan-name",
 	Usage:        "Plan name",
 }
+
+var ArgPlanNameForAppUpdate = &cobraviper.StringArgument{
+	ArgumentName: "plan-name",
+	Usage:        "Plan name",
+	DefaultValue: "custom",
+}
