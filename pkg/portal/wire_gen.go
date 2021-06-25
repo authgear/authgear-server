@@ -193,6 +193,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
 	store := &plan.Store{
+		Clock:       clock,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}

@@ -21,6 +21,7 @@ func init() {
 	cmdRoot.AddCommand(cmdStart)
 	cmdRoot.AddCommand(cmdDatabase)
 	cmdRoot.AddCommand(cmdInternal)
+	cmdRoot.AddCommand(cmdPricing)
 }
 
 func main() {
