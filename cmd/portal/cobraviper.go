@@ -48,3 +48,8 @@ var ArgCustomAuthgearDomain = &cobraviper.StringArgument{
 	EnvName:      "CUSTOM_AUTHGEAR_DOMAIN",
 	Usage:        "App custom domain",
 }
+
+var ArgFeatureConfigFilePath = &cobraviper.StringArgument{
+	ArgumentName: "file",
+	Usage:        "Feature config file path",
+}
