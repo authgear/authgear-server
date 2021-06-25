@@ -140,6 +140,7 @@ func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
 		Update(s.SQLBuilder.TableName("_portal_config_source")).
 		Set("updated_at", dbs.UpdatedAt).
 		Set("data", data).
+		Set("plan_name", dbs.PlanName).
 		Where("id = ?", dbs.ID)
 
 	result, err := s.SQLExecutor.ExecWith(q)
@@ -164,6 +165,28 @@ func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
 // ListAll is introduced by the need of authgear internal elasticsearch reindex --all.
 func (s *Store) ListAll() ([]*DatabaseSource, error) {
 	builder := s.selectConfigSourceQuery()
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []*DatabaseSource
+	for rows.Next() {
+		item, err := s.scanConfigSource(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
+func (s *Store) ListByPlan(planName string) ([]*DatabaseSource, error) {
+	builder := s.selectConfigSourceQuery().
+		Where("plan_name = ?", planName)
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {
