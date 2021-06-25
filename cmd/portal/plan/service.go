@@ -70,3 +70,34 @@ func (s Service) UpdatePlan(name string, featureConfig *config.FeatureConfig) (a
 	})
 	return
 }
+
+func (s Service) UpdateAppPlan(appID string, planName string) error {
+	return s.Handle.WithTx(func() (err error) {
+		consrc, err := s.ConfigSourceStore.GetDatabaseSourceByAppID(appID)
+		if err != nil {
+			return err
+		}
+
+		p, err := s.Store.GetPlan(planName)
+		if err != nil {
+			return err
+		}
+
+		featureConfigYAML, e := yaml.Marshal(p.RawFeatureConfig)
+		if e != nil {
+			err = e
+			return
+		}
+
+		consrc.PlanName = p.Name
+		// json.Marshal handled base64 encoded of the YAML file
+		consrc.Data[configsource.AuthgearFeatureYAML] = featureConfigYAML
+		consrc.UpdatedAt = s.Clock.NowUTC()
+		err = s.ConfigSourceStore.UpdateDatabaseSource(consrc)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
