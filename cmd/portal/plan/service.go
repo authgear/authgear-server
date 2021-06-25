@@ -101,3 +101,29 @@ func (s Service) UpdateAppPlan(appID string, planName string) error {
 		return nil
 	})
 }
+
+func (s Service) UpdateAppFeatureConfig(appID string, featureConfig *config.FeatureConfig, planName string) error {
+	return s.Handle.WithTx(func() (err error) {
+		consrc, err := s.ConfigSourceStore.GetDatabaseSourceByAppID(appID)
+		if err != nil {
+			return err
+		}
+
+		featureConfigYAML, e := yaml.Marshal(featureConfig)
+		if e != nil {
+			err = e
+			return
+		}
+
+		consrc.PlanName = planName
+		// json.Marshal handled base64 encoded of the YAML file
+		consrc.Data[configsource.AuthgearFeatureYAML] = featureConfigYAML
+		consrc.UpdatedAt = s.Clock.NowUTC()
+		err = s.ConfigSourceStore.UpdateDatabaseSource(consrc)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
