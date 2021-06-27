@@ -61,6 +61,10 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/login")
 }
 
+type LoginViewModel struct {
+	AllowLoginOnly bool
+}
+
 type LoginHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -68,13 +72,17 @@ type LoginHandler struct {
 	Renderer          Renderer
 }
 
-func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph, allowLoginOnly bool) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	viewModel := LoginViewModel{
+		AllowLoginOnly: allowLoginOnly,
+	}
 	viewmodels.EmbedForm(data, r.Form)
 	viewmodels.Embed(data, baseViewModel)
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithGraph(graph)
 	viewmodels.Embed(data, authenticationViewModel)
+	viewmodels.Embed(data, viewModel)
 	return data, nil
 }
 
@@ -99,13 +107,15 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		intent.UserIDHint = s.UserIDHint
 	}
 
+	allowLoginOnly := intent.UserIDHint != ""
+
 	ctrl.Get(func() error {
 		graph, err := ctrl.EntryPointGet(opts, intent)
 		if err != nil {
 			return err
 		}
 
-		data, err := h.GetData(r, w, graph)
+		data, err := h.GetData(r, w, graph, allowLoginOnly)
 		if err != nil {
 			return err
 		}
