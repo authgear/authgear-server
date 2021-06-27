@@ -157,7 +157,7 @@ Refresh token is not used.
 ### max_age
 
 - `0`: It is equivalent to prompt=login.
-- Any positive integer: It is equivalent to prompt=login if the elapsed time of the last authentication is greater than n. Otherwise, it has no effect.
+- `n`, where n is Any positive integer: It is equivalent to prompt=login if the elapsed time in seconds of the last authentication is greater than `n`. Otherwise, it has no effect.
 
 ### id_token_hint
 
@@ -323,7 +323,7 @@ If no authentication method is included in `amr` claim, `amr` claim would be omi
 
 ### `auth_time`
 
-The time when the authentication was performed.
+The time in Unix epoch when the authentication was performed.
 This claim is only present if the ID token is obtained via the authorization code flow or the implicit flow.
 
 This is the authenticated at of the IdP session.
