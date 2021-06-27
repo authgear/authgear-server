@@ -42,7 +42,7 @@ type LoginIDConfig struct {
 }
 
 func (c *LoginIDConfig) SetDefaults() {
-	if len(c.Keys) == 0 {
+	if c.Keys == nil {
 		c.Keys = []LoginIDKeyConfig{
 			{Type: LoginIDKeyTypeEmail},
 		}
