@@ -5336,6 +5336,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:             responseRenderer,
 		AuthenticationConfig: authenticationConfig,
 		SignedUpCookie:       signedUpCookieDef,
+		Users:                queries,
 		Identities:           serviceService,
 	}
 	return selectAccountHandler

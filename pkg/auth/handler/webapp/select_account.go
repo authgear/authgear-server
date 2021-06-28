@@ -3,11 +3,13 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -26,7 +28,11 @@ func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/select_account")
 }
 
-type IdentityService interface {
+type SelectAccountUserService interface {
+	Get(userID string) (*model.User, error)
+}
+
+type SelectAccountIdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
 }
 
@@ -41,7 +47,8 @@ type SelectAccountHandler struct {
 	Renderer             Renderer
 	AuthenticationConfig *config.AuthenticationConfig
 	SignedUpCookie       webapp.SignedUpCookieDef
-	Identities           IdentityService
+	Users                SelectAccountUserService
+	Identities           SelectAccountIdentityService
 }
 
 func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
@@ -117,6 +124,17 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	// so this if block always ends with a return statement, and each branch must write response.
 	if userIDHint != "" {
 		err := h.Database.WithTx(func() error {
+			// When id_token_hint is present, we have a limitation that is not specified in the OIDC spec.
+			// The limitation is that, when id_token_hint is present, an intention of reauthentication is assumed.
+			// Therefore, the user indicated by the id_token_hint must be able to reauthenticate.
+			user, err := h.Users.Get(userIDHint)
+			if err != nil {
+				return err
+			}
+			if !user.CanReauthenticate {
+				return interaction.ErrNoAuthenticator
+			}
+
 			// The current session is the same user, reauthenticate the user if needed.
 			if sess != nil && sess.GetUserID() == userIDHint {
 				if loginPrompt {
