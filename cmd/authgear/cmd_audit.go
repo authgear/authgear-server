@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
 func init() {
+	binder := getBinder()
 	cmdAudit.AddCommand(cmdAuditDatabase)
 	cmdAuditDatabase.AddCommand(cmdAuditDatabaseMigrate)
 	cmdAuditDatabase.AddCommand(cmdAuditDatabaseMaintain)
@@ -23,8 +23,8 @@ func init() {
 	cmdAuditDatabaseMigrate.AddCommand(cmdAuditDatabaseMigrateStatus)
 
 	for _, cmd := range []*cobra.Command{cmdAuditDatabaseMigrateUp, cmdAuditDatabaseMigrateDown, cmdAuditDatabaseMigrateStatus, cmdAuditDatabaseMaintain} {
-		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
-		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
+		binder.BindString(cmd.Flags(), ArgDatabaseURL)
+		binder.BindString(cmd.Flags(), ArgDatabaseSchema)
 	}
 }
 
@@ -49,11 +49,12 @@ var cmdAuditDatabaseMaintain = &cobra.Command{
 	Use:   "maintain",
 	Short: "Run pg_partman maintain procedure",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -90,11 +91,12 @@ var cmdAuditDatabaseMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -115,11 +117,12 @@ var cmdAuditDatabaseMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -159,11 +162,12 @@ var cmdAuditDatabaseMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return
 		}

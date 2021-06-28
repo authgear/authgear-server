@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/authgear/authgear-server/cmd/authgear/config"
 	libconfig "github.com/authgear/authgear-server/pkg/lib/config"
@@ -20,7 +19,8 @@ var cmdInitConfig = &cobra.Command{
 	Use:   "authgear.yaml",
 	Short: "Initialize app configuration",
 	Run: func(cmd *cobra.Command, args []string) {
-		outputPath := ArgOutput.Get(viper.GetViper())
+		binder := getBinder()
+		outputPath := binder.GetString(cmd, ArgOutput)
 		if outputPath == "" {
 			outputPath = cmd.Use
 		}
@@ -38,7 +38,8 @@ var cmdInitSecrets = &cobra.Command{
 	Use:   "authgear.secrets.yaml",
 	Short: "Initialize app secrets",
 	Run: func(cmd *cobra.Command, args []string) {
-		outputPath := ArgOutput.Get(viper.GetViper())
+		binder := getBinder()
+		outputPath := binder.GetString(cmd, ArgOutput)
 		if outputPath == "" {
 			outputPath = cmd.Use
 		}
@@ -53,7 +54,8 @@ var cmdInitSecrets = &cobra.Command{
 }
 
 func init() {
-	ArgOutput.Bind(cmdInit.PersistentFlags(), viper.GetViper())
+	binder := getBinder()
+	binder.BindString(cmdInit.PersistentFlags(), ArgOutput)
 
 	cmdInit.AddCommand(cmdInitConfig)
 	cmdInit.AddCommand(cmdInitSecrets)

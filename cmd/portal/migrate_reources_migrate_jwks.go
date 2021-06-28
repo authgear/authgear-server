@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 
 	"github.com/authgear/authgear-server/cmd/portal/internal"
@@ -16,11 +15,12 @@ var cmdInternalMigrateJWKs = &cobra.Command{
 	Use:   "migrate-jwks",
 	Short: "Migrate jwks with use and algo",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}

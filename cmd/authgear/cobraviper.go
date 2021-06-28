@@ -4,6 +4,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/cobraviper"
 )
 
+var cvbinder *cobraviper.Binder
+
+func getBinder() *cobraviper.Binder {
+	if cvbinder == nil {
+		cvbinder = cobraviper.NewBinder()
+	}
+	return cvbinder
+}
+
 var ArgDatabaseURL = &cobraviper.StringArgument{
 	ArgumentName: "database-url",
 	EnvName:      "DATABASE_URL",

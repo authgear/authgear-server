@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var MigrateResourcesDryRun bool
@@ -13,7 +12,8 @@ var cmdInternalBreakingChangeMigrateResources = &cobra.Command{
 }
 
 func init() {
-	ArgDatabaseURL.Bind(cmdInternalBreakingChangeMigrateResources.PersistentFlags(), viper.GetViper())
-	ArgDatabaseSchema.Bind(cmdInternalBreakingChangeMigrateResources.PersistentFlags(), viper.GetViper())
+	binder := getBinder()
+	binder.BindString(cmdInternalBreakingChangeMigrateResources.PersistentFlags(), ArgDatabaseURL)
+	binder.BindString(cmdInternalBreakingChangeMigrateResources.PersistentFlags(), ArgDatabaseSchema)
 	cmdInternalBreakingChangeMigrateResources.PersistentFlags().BoolVar(&MigrateResourcesDryRun, "dry-run", true, "Is dry run?")
 }
