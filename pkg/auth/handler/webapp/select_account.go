@@ -123,7 +123,6 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 					intent := &intents.IntentReauthenticate{
 						WebhookState: webSession.WebhookState,
 						UserIDHint:   userIDHint,
-						IDPSessionID: sess.SessionID(),
 					}
 					result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 						return nil, nil

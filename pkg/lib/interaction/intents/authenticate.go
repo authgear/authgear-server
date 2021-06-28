@@ -325,15 +325,19 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		default:
 			reason = session.CreateReasonLogin
 		}
+		mode := nodes.EnsureSessionModeCreate
+		if i.SkipCreateSession {
+			mode = nodes.EnsureSessionModeNoop
+		}
 
 		return []interaction.Edge{
-			&nodes.EdgeDoCreateSession{
-				Reason:            reason,
-				SkipCreateSession: i.SkipCreateSession,
+			&nodes.EdgeDoEnsureSession{
+				CreateReason: reason,
+				Mode:         mode,
 			},
 		}, nil
 
-	case *nodes.NodeDoCreateSession:
+	case *nodes.NodeDoEnsureSession:
 		// Intent is finished
 		return nil, nil
 
