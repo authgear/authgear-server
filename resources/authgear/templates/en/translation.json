@@ -79,8 +79,8 @@
   "signup-label": "Sign up",
   "login-label": "Log in",
 
-  "log-in-to-continue": "Log in to continue to {AppOrClientName}",
-  "sign-up-to-continue": "Sign up to continue to {AppOrClientName}",
+  "log-in-to-continue": "Log in to {AppOrClientName}",
+  "sign-up-to-continue": "Sign up to {AppOrClientName}",
 
   "oauth-branding-apple": "Sign in with Apple",
   "oauth-branding-google": "Sign in with Google",

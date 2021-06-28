@@ -79,8 +79,8 @@
   "signup-label": "註冊",
   "login-label": "登入",
 
-  "log-in-to-continue": "登入以繼續至{AppOrClientName}",
-  "sign-up-to-continue": "註冊以繼續至{AppOrClientName}",
+  "log-in-to-continue": "登入至{AppOrClientName}",
+  "sign-up-to-continue": "註冊至{AppOrClientName}",
 
   "oauth-branding-apple": "使用 Apple 帳戶登入",
   "oauth-branding-google": "使用 Google 帳戶登入",
