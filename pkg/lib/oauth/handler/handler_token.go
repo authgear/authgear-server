@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -410,7 +411,13 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, "", deviceInfo, "", resp)
+	opts := IssueOfflineGrantOptions{
+		Scopes:          scopes,
+		AuthorizationID: authz.ID,
+		SessionAttrs:    attrs,
+		DeviceInfo:      deviceInfo,
+	}
+	offlineGrant, err := h.issueOfflineGrant(client, opts, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -593,7 +600,14 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 
 	resp := protocol.TokenResponse{}
 
-	offlineGrant, err := h.issueOfflineGrant(client, scopes, authz.ID, attrs, "", deviceInfo, biometricIdentity.ID, resp)
+	opts := IssueOfflineGrantOptions{
+		Scopes:          scopes,
+		AuthorizationID: authz.ID,
+		SessionAttrs:    attrs,
+		DeviceInfo:      deviceInfo,
+		IdentityID:      biometricIdentity.ID,
+	}
+	offlineGrant, err := h.issueOfflineGrant(client, opts, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -674,7 +688,15 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	var sessionKind oauth.GrantSessionKind
 	var atSession session.Session
 	if issueRefreshToken {
-		offlineGrant, err := h.issueOfflineGrant(client, code.Scopes, authz.ID, &s.Attrs, s.ID, deviceInfo, "", resp)
+		opts := IssueOfflineGrantOptions{
+			Scopes:          code.Scopes,
+			AuthorizationID: authz.ID,
+			SessionAttrs:    &s.Attrs,
+			IDPSessionID:    s.ID,
+			AuthenticatedAt: &s.AuthenticatedAt,
+			DeviceInfo:      deviceInfo,
+		}
+		offlineGrant, err := h.issueOfflineGrant(client, opts, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -742,14 +764,19 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	return resp, nil
 }
 
+type IssueOfflineGrantOptions struct {
+	Scopes          []string
+	AuthorizationID string
+	SessionAttrs    *session.Attrs
+	IDPSessionID    string
+	AuthenticatedAt *time.Time
+	DeviceInfo      map[string]interface{}
+	IdentityID      string
+}
+
 func (h *TokenHandler) issueOfflineGrant(
 	client *config.OAuthClientConfig,
-	scopes []string,
-	authzID string,
-	attrs *session.Attrs,
-	idpSessionID string,
-	deviceInfo map[string]interface{},
-	identityID string,
+	opts IssueOfflineGrantOptions,
 	resp protocol.TokenResponse,
 ) (*oauth.OfflineGrant, error) {
 	token := h.GenerateToken()
@@ -759,22 +786,22 @@ func (h *TokenHandler) issueOfflineGrant(
 		AppID:           string(h.AppID),
 		ID:              uuid.New(),
 		Labels:          make(map[string]interface{}),
-		AuthorizationID: authzID,
+		AuthorizationID: opts.AuthorizationID,
 		ClientID:        client.ClientID,
-		IDPSessionID:    idpSessionID,
-		IdentityID:      identityID,
+		IDPSessionID:    opts.IDPSessionID,
+		IdentityID:      opts.IdentityID,
 
 		CreatedAt: now,
-		Scopes:    scopes,
+		Scopes:    opts.Scopes,
 		TokenHash: oauth.HashToken(token),
 
-		Attrs: *attrs,
+		Attrs: *opts.SessionAttrs,
 		AccessInfo: access.Info{
 			InitialAccess: accessEvent,
 			LastAccess:    accessEvent,
 		},
 
-		DeviceInfo: deviceInfo,
+		DeviceInfo: opts.DeviceInfo,
 	}
 
 	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
