@@ -782,6 +782,12 @@ func (h *TokenHandler) issueOfflineGrant(
 	token := h.GenerateToken()
 	now := h.Clock.NowUTC()
 	accessEvent := access.NewEvent(now, h.Request, bool(h.TrustProxy))
+
+	authenticatedAt := now
+	if opts.AuthenticatedAt != nil {
+		authenticatedAt = *opts.AuthenticatedAt
+	}
+
 	offlineGrant := &oauth.OfflineGrant{
 		AppID:           string(h.AppID),
 		ID:              uuid.New(),
@@ -791,9 +797,10 @@ func (h *TokenHandler) issueOfflineGrant(
 		IDPSessionID:    opts.IDPSessionID,
 		IdentityID:      opts.IdentityID,
 
-		CreatedAt: now,
-		Scopes:    opts.Scopes,
-		TokenHash: oauth.HashToken(token),
+		CreatedAt:       now,
+		AuthenticatedAt: authenticatedAt,
+		Scopes:          opts.Scopes,
+		TokenHash:       oauth.HashToken(token),
 
 		Attrs: *opts.SessionAttrs,
 		AccessInfo: access.Info{
