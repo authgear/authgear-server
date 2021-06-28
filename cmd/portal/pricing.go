@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/authgear/authgear-server/cmd/portal/plan"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -14,6 +13,7 @@ import (
 )
 
 func init() {
+	binder := getBinder()
 	cmdPricing.AddCommand(cmdPricingPlan)
 	cmdPricing.AddCommand(cmdPricingApp)
 	cmdPricingPlan.AddCommand(cmdPricingPlanCreate)
@@ -27,15 +27,16 @@ func init() {
 		cmdPricingAppSetPlan,
 		cmdPricingAppUpdate,
 	} {
-		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
-		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
+		binder.BindString(cmd.Flags(), ArgDatabaseURL)
+		binder.BindString(cmd.Flags(), ArgDatabaseSchema)
 	}
 
-	ArgFeatureConfigFilePath.Bind(cmdPricingPlanUpdate.Flags(), viper.GetViper())
-	ArgPlanName.Bind(cmdPricingAppSetPlan.Flags(), viper.GetViper())
+	binder.BindString(cmdPricingPlanUpdate.Flags(), ArgFeatureConfigFilePath)
 
-	ArgFeatureConfigFilePath.Bind(cmdPricingAppUpdate.Flags(), viper.GetViper())
-	ArgPlanNameForAppUpdate.Bind(cmdPricingAppUpdate.Flags(), viper.GetViper())
+	binder.BindString(cmdPricingAppSetPlan.Flags(), ArgPlanName)
+
+	binder.BindString(cmdPricingAppUpdate.Flags(), ArgFeatureConfigFilePath)
+	binder.BindString(cmdPricingAppUpdate.Flags(), ArgPlanNameForAppUpdate)
 }
 
 var cmdPricing = &cobra.Command{
@@ -59,12 +60,13 @@ var cmdPricingPlanCreate = &cobra.Command{
 	Short: "Create plan",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -88,12 +90,13 @@ var cmdPricingPlanUpdate = &cobra.Command{
 	Short: "Update plan's feature config",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -107,7 +110,7 @@ var cmdPricingPlanUpdate = &cobra.Command{
 		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
 
 		// read the feature config file
-		featureConfigPath, err := ArgFeatureConfigFilePath.GetRequired(viper.GetViper())
+		featureConfigPath, err := binder.GetRequiredString(cmd, ArgFeatureConfigFilePath)
 		if err != nil {
 			return err
 		}
@@ -140,12 +143,13 @@ var cmdPricingAppSetPlan = &cobra.Command{
 	Short: "Set the app to the plan",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -159,7 +163,7 @@ var cmdPricingAppSetPlan = &cobra.Command{
 		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
 
 		appID := args[0]
-		planName, err := ArgPlanName.GetRequired(viper.GetViper())
+		planName, err := binder.GetRequiredString(cmd, ArgPlanName)
 		if err != nil {
 			return err
 		}
@@ -181,12 +185,13 @@ var cmdPricingAppUpdate = &cobra.Command{
 	Short: "Update app's feature config and plan name",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
@@ -200,13 +205,13 @@ var cmdPricingAppUpdate = &cobra.Command{
 		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
 
 		appID := args[0]
-		planName, err := ArgPlanName.GetRequired(viper.GetViper())
+		planName, err := binder.GetRequiredString(cmd, ArgPlanNameForAppUpdate)
 		if err != nil {
 			return err
 		}
 
 		// read the feature config file
-		featureConfigPath, err := ArgFeatureConfigFilePath.GetRequired(viper.GetViper())
+		featureConfigPath, err := binder.GetRequiredString(cmd, ArgFeatureConfigFilePath)
 		if err != nil {
 			return err
 		}
