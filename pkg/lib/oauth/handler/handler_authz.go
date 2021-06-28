@@ -149,9 +149,10 @@ func (h *AuthorizationHandler) doHandle(
 	}
 	authnOptions.Prompt = prompt
 
+	var idToken jwt.Token
 	// Handle id_token_hint
 	if idTokenHint, ok := r.IDTokenHint(); ok {
-		idToken, err := h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
+		idToken, err = h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
 		if err != nil {
 			return nil, err
 		}
@@ -189,7 +190,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// start handle prompt == none
-	if s == nil {
+	if s == nil || (idToken != nil && s.GetUserID() != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
