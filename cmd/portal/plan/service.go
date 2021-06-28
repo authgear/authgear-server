@@ -25,6 +25,14 @@ func (s *Service) CreatePlan(name string) error {
 	})
 }
 
+func (s *Service) GetPlan(name string) (p *model.Plan, err error) {
+	err = s.Handle.WithTx(func() (e error) {
+		p, e = s.Store.GetPlan(name)
+		return
+	})
+	return
+}
+
 // UpdatePlan update the plan feature config and also the app which
 // have tha same plan name, returns the number of updated app
 func (s Service) UpdatePlan(name string, featureConfig *config.FeatureConfig) (appCount int, err error) {
@@ -100,6 +108,14 @@ func (s Service) UpdateAppPlan(appID string, planName string) error {
 
 		return nil
 	})
+}
+
+func (s Service) GetDatabaseSourceByAppID(appID string) (consrc *configsource.DatabaseSource, err error) {
+	err = s.Handle.WithTx(func() (e error) {
+		consrc, e = s.ConfigSourceStore.GetDatabaseSourceByAppID(appID)
+		return
+	})
+	return
 }
 
 func (s Service) UpdateAppFeatureConfig(appID string, featureConfig *config.FeatureConfig, planName string) error {
