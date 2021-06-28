@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 )
@@ -18,19 +17,20 @@ var cmdInternalSetupPortal = &cobra.Command{
 	Use:   "setup-portal",
 	Short: "Initialize app configuration",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		defaultAuthgearDomain, err := ArgDefaultAuthgearDomain.GetRequired(viper.GetViper())
+		defaultAuthgearDomain, err := binder.GetRequiredString(cmd, ArgDefaultAuthgearDomain)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-		customAuthgearDomain, err := ArgCustomAuthgearDomain.GetRequired(viper.GetViper())
+		customAuthgearDomain, err := binder.GetRequiredString(cmd, ArgCustomAuthgearDomain)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
@@ -59,18 +59,19 @@ var cmdInternalBreakingChangeMigrateK8SToDB = &cobra.Command{
 	Use:   "migrate-k8s-to-db",
 	Short: "Migrate config source from Kubernetes to database",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
 
-		kubeConfigPath := ArgKubeconfig.Get(viper.GetViper())
+		kubeConfigPath := binder.GetString(cmd, ArgKubeconfig)
 
-		namespace, err := ArgNamespace.GetRequired(viper.GetViper())
+		namespace, err := binder.GetRequiredString(cmd, ArgNamespace)
 		if err != nil {
 			return err
 		}
@@ -87,18 +88,19 @@ var cmdInternalBreakingChangeMigrateK8SToDB = &cobra.Command{
 }
 
 func init() {
+	binder := getBinder()
 	cmdInternal.AddCommand(cmdInternalSetupPortal)
 	cmdInternal.AddCommand(cmdInternalBreakingChange)
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateK8SToDB)
 	cmdInternalBreakingChange.AddCommand(cmdInternalBreakingChangeMigrateResources)
 
-	ArgDatabaseURL.Bind(cmdInternalSetupPortal.Flags(), viper.GetViper())
-	ArgDatabaseSchema.Bind(cmdInternalSetupPortal.Flags(), viper.GetViper())
-	ArgDefaultAuthgearDomain.Bind(cmdInternalSetupPortal.Flags(), viper.GetViper())
-	ArgCustomAuthgearDomain.Bind(cmdInternalSetupPortal.Flags(), viper.GetViper())
+	binder.BindString(cmdInternalSetupPortal.Flags(), ArgDatabaseURL)
+	binder.BindString(cmdInternalSetupPortal.Flags(), ArgDatabaseSchema)
+	binder.BindString(cmdInternalSetupPortal.Flags(), ArgDefaultAuthgearDomain)
+	binder.BindString(cmdInternalSetupPortal.Flags(), ArgCustomAuthgearDomain)
 
-	ArgDatabaseURL.Bind(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), viper.GetViper())
-	ArgDatabaseSchema.Bind(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), viper.GetViper())
-	ArgKubeconfig.Bind(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), viper.GetViper())
-	ArgNamespace.Bind(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), viper.GetViper())
+	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), ArgDatabaseURL)
+	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), ArgDatabaseSchema)
+	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), ArgKubeconfig)
+	binder.BindString(cmdInternalBreakingChangeMigrateK8SToDB.Flags(), ArgNamespace)
 }

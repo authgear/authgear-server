@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	cmdes "github.com/authgear/authgear-server/cmd/authgear/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -26,7 +25,8 @@ var cmdInternalElasticsearchCreateIndex = &cobra.Command{
 	Use:   "create-index",
 	Short: "Create the search index of all apps",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		esURL, err := ArgElasticsearchURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		esURL, err := binder.GetRequiredString(cmd, ArgElasticsearchURL)
 		if err != nil {
 			return err
 		}
@@ -49,7 +49,9 @@ var cmdInternalElasticsearchDeleteIndex = &cobra.Command{
 	Use:   "delete-index",
 	Short: "Delete the search index of all apps",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		esURL, err := ArgElasticsearchURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+
+		esURL, err := binder.GetRequiredString(cmd, ArgElasticsearchURL)
 		if err != nil {
 			return err
 		}
@@ -85,17 +87,19 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return err
 		}
 
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return err
 		}
 
-		esURL, err := ArgElasticsearchURL.GetRequired(viper.GetViper())
+		esURL, err := binder.GetRequiredString(cmd, ArgElasticsearchURL)
 		if err != nil {
 			return err
 		}
@@ -145,14 +149,15 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 }
 
 func init() {
+	binder := getBinder()
+
 	cmdInternal.AddCommand(cmdInternalElasticsearch)
-	ArgElasticsearchURL.Bind(cmdInternalElasticsearch.PersistentFlags(), viper.GetViper())
+	binder.BindString(cmdInternalElasticsearch.PersistentFlags(), ArgElasticsearchURL)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchCreateIndex)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchDeleteIndex)
 	cmdInternalElasticsearch.AddCommand(cmdInternalElasticsearchReindex)
 
-	ArgDatabaseURL.Bind(cmdInternalElasticsearchReindex.PersistentFlags(), viper.GetViper())
-	ArgDatabaseSchema.Bind(cmdInternalElasticsearchReindex.PersistentFlags(), viper.GetViper())
+	binder.BindString(cmdInternalElasticsearchReindex.PersistentFlags(), ArgDatabaseURL)
+	binder.BindString(cmdInternalElasticsearchReindex.PersistentFlags(), ArgDatabaseSchema)
 	_ = cmdInternalElasticsearchReindex.Flags().Bool("all", false, "All apps")
-
 }

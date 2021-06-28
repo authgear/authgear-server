@@ -7,12 +7,12 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
 	"github.com/authgear/authgear-server/pkg/util/sqlmigrate"
 )
 
 func init() {
+	binder := getBinder()
 	cmdDatabase.AddCommand(cmdMigrate)
 
 	cmdMigrate.AddCommand(cmdMigrateNew)
@@ -21,8 +21,8 @@ func init() {
 	cmdMigrate.AddCommand(cmdMigrateStatus)
 
 	for _, cmd := range []*cobra.Command{cmdMigrateUp, cmdMigrateDown, cmdMigrateStatus} {
-		ArgDatabaseURL.Bind(cmd.Flags(), viper.GetViper())
-		ArgDatabaseSchema.Bind(cmd.Flags(), viper.GetViper())
+		binder.BindString(cmd.Flags(), ArgDatabaseURL)
+		binder.BindString(cmd.Flags(), ArgDatabaseSchema)
 	}
 }
 
@@ -56,11 +56,12 @@ var cmdMigrateUp = &cobra.Command{
 	Use:   "up",
 	Short: "Migrate database schema to latest version",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -81,11 +82,12 @@ var cmdMigrateDown = &cobra.Command{
 	Use:    "down",
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -125,11 +127,12 @@ var cmdMigrateStatus = &cobra.Command{
 	Use:   "status",
 	Short: "Get database schema migration status",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		dbURL, err := ArgDatabaseURL.GetRequired(viper.GetViper())
+		binder := getBinder()
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := ArgDatabaseSchema.GetRequired(viper.GetViper())
+		dbSchema, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
 		if err != nil {
 			return
 		}
