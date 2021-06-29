@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 )
