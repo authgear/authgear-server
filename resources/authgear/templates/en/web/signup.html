@@ -98,7 +98,7 @@
 
 				{{ range .IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
-					<a class="link text-xs self-start block margin-b-10" data-turbolinks-action="replace"
+					<a class="link text-sm self-start block margin-b-10" data-turbolinks-action="replace"
 						href="{{ call $.MakeURL "" "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
@@ -114,7 +114,7 @@
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
 			<div class="sso-loginid-separator flex flex-row items-center margin-b-20">
-				<span class="primary-txt margin-h-6">{{ template "sso-login-id-separator-both-present" }}</span>
+				<span class="primary-txt margin-h-6 text-sm">{{ template "sso-login-id-separator-both-present" }}</span>
 			</div>
 			{{ end }}{{ end }}
 
@@ -137,31 +137,31 @@
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
 					<div class="sso-btn-icon image-icon apple-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-apple" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-apple" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "google" -}}
 					<div class="sso-btn-icon image-icon google-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-google" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-google" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "facebook" -}}
 					<div class="sso-btn-icon image-icon facebook-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-facebook" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-facebook" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "linkedin" -}}
 					<div class="sso-btn-icon image-icon linkedin-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-linkedin" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-linkedin" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "azureadv2" -}}
 					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-azureadv2" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-azureadv2" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "adfs" -}}
 					<div class="sso-btn-icon image-icon microsoft-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-adfs" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-adfs" }}</span>
 					{{- end -}}
 					{{- if eq .provider_type "wechat" -}}
 					<div class="sso-btn-icon image-icon wechat-icon"></div>
-					<span class="title text-sm">{{ template "oauth-branding-wechat" }}</span>
+					<span class="title text-base">{{ template "oauth-branding-wechat" }}</span>
 					{{- end -}}
 					</span>
 				</button>

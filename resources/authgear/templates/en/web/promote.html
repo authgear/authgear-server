@@ -88,7 +88,7 @@
 
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
-					<a class="link text-xs self-start block margin-b-10" data-turbolinks-action="replace"
+					<a class="link text-sm self-start block margin-b-10" data-turbolinks-action="replace"
 						href="{{ call $.MakeCurrentStepURL "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
@@ -104,7 +104,7 @@
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
 			<div class="sso-loginid-separator flex flex-row items-center margin-b-20">
-				<span class="primary-txt margin-h-6">{{ template "sso-login-id-separator-both-present" }}</span>
+				<span class="primary-txt margin-h-6 text-sm">{{ template "sso-login-id-separator-both-present" }}</span>
 			</div>
 			{{ end }}{{ end }}
 
@@ -163,7 +163,7 @@
 			{{ end }}
 
 			{{ if ($.Translations.HasKey "toc-pp-footer") }}
-			<p class="text-xs primary-txt margin-t-0 margin-b-20">
+			<p class="text-sm primary-txt margin-t-0 margin-b-20">
 			{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
 			</p>
 			{{ end }}
