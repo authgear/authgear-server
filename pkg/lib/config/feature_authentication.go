@@ -5,14 +5,12 @@ var _ = FeatureConfigSchema.Add("AuthenticationFeatureConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"primary_authenticators": { "$ref": "#/$defs/AuthenticatorsFeatureConfig" },
 		"secondary_authenticators": { "$ref": "#/$defs/AuthenticatorsFeatureConfig" }
 	}
 }
 `)
 
 type AuthenticationFeatureConfig struct {
-	PrimaryAuthenticators   *AuthenticatorsFeatureConfig `json:"primary_authenticators,omitempty"`
 	SecondaryAuthenticators *AuthenticatorsFeatureConfig `json:"secondary_authenticators,omitempty"`
 }
 
