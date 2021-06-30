@@ -17,3 +17,6 @@ declare type GQL_AppConfig = import("./types").PortalAPIAppConfig;
 
 // eslint-disable-next-line no-undef
 declare type GQL_SecretConfig = import("./types").PortalAPISecretConfig;
+
+// eslint-disable-next-line no-undef
+declare type GQL_FeatureConfig = import("./types").PortalAPIFeatureConfig;
