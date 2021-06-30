@@ -10,13 +10,32 @@ config:
   authentication:
     unknown-key: {}
 ---
-name: disabled-oob-otp-sms
+name: disable-mfa-oob-otp-sms
 error: null
 config:
   authentication:
-    primary_authenticators:
+    secondary_authenticators:
       oob_otp_sms:
         disabled: true
+---
+name: disable-phone-login-id
+error: null
+config:
+  identity:
+    login_id:
+      types:
+        phone:
+          disabled: true
+---
+name: free-plan-config
+error: null
+config:
+  identity:
+    login_id:
+      types:
+        phone:
+          disabled: true
+  authentication:
     secondary_authenticators:
       oob_otp_sms:
         disabled: true
