@@ -12,12 +12,14 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"identity": { "$ref": "#/$defs/IdentityFeatureConfig" },
 		"authentication": { "$ref": "#/$defs/AuthenticationFeatureConfig" }
 	}
 }
 `)
 
 type FeatureConfig struct {
+	Identity       *IdentityFeatureConfig       `json:"identity,omitempty"`
 	Authentication *AuthenticationFeatureConfig `json:"authentication,omitempty"`
 }
 
