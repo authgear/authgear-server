@@ -16,3 +16,8 @@
 .control {
   margin: 10px;
 }
+
+.readOnly {
+  pointer-events: none;
+  opacity: 0.5;
+}
