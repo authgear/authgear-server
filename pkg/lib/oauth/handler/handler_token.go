@@ -684,9 +684,14 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 
 	resp := protocol.TokenResponse{}
 
+	// The ID token has the claim `sid`.
+	// The `sid` is important for reauthentication.
+	// If `sid` refers to a offline grant,
+	// then the auth_time of the offline grant can be updated correctly.
+	var sessionToBeUsedInIDToken session.Session
+
 	var sessionID string
 	var sessionKind oauth.GrantSessionKind
-	var atSession session.Session
 	if issueRefreshToken {
 		opts := IssueOfflineGrantOptions{
 			Scopes:          code.Scopes,
@@ -700,11 +705,11 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		if err != nil {
 			return nil, err
 		}
-		atSession = offlineGrant
+		sessionToBeUsedInIDToken = offlineGrant
 		sessionID = offlineGrant.ID
 		sessionKind = oauth.GrantSessionKindOffline
 	} else {
-		atSession = s
+		sessionToBeUsedInIDToken = s
 		sessionID = s.ID
 		sessionKind = oauth.GrantSessionKindSession
 	}
@@ -719,7 +724,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		if h.IDTokenIssuer == nil {
 			return nil, errors.New("id token issuer is not provided")
 		}
-		idToken, err := h.IDTokenIssuer.IssueIDToken(client, atSession, code.OIDCNonce)
+		idToken, err := h.IDTokenIssuer.IssueIDToken(client, sessionToBeUsedInIDToken, code.OIDCNonce)
 		if err != nil {
 			return nil, err
 		}
