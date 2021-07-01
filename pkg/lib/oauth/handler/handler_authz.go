@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -116,9 +118,9 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// Authorization endpoint ignores non-IDP session.
-	s := session.GetSession(h.Context)
-	if s != nil && s.SessionType() != session.TypeIdentityProvider {
-		s = nil
+	var s session.Session
+	if idp := session.GetSession(h.Context); idp != nil && idp.SessionType() == session.TypeIdentityProvider {
+		s = idp
 	}
 
 	authnOptions := webapp.AuthenticateURLOptions{}
@@ -190,6 +192,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// start handle prompt == none
+	fmt.Printf("louis#what: %v\n", idToken)
 	if s == nil || (idToken != nil && s.GetUserID() != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
@@ -209,7 +212,7 @@ func (h *AuthorizationHandler) doHandle(
 	resp := protocol.AuthorizationResponse{}
 	switch r.ResponseType() {
 	case "code":
-		err = h.generateCodeResponse(redirectURI.String(), s, r, authz, scopes, resp)
+		err = h.generateCodeResponse(redirectURI.String(), s, idToken, r, authz, scopes, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -285,7 +288,8 @@ func (h *AuthorizationHandler) validateRequest(
 
 func (h *AuthorizationHandler) generateCodeResponse(
 	redirectURI string,
-	session session.Session,
+	idpSession session.Session,
+	idTokenHint jwt.Token,
 	r protocol.AuthorizationRequest,
 	authz *oauth.Authorization,
 	scopes []string,
@@ -297,7 +301,7 @@ func (h *AuthorizationHandler) generateCodeResponse(
 	codeGrant := &oauth.CodeGrant{
 		AppID:           string(h.AppID),
 		AuthorizationID: authz.ID,
-		SessionID:       session.SessionID(),
+		IDPSessionID:    idpSession.SessionID(),
 
 		CreatedAt: h.Clock.NowUTC(),
 		ExpireAt:  h.Clock.NowUTC().Add(CodeGrantValidDuration),
@@ -307,6 +311,14 @@ func (h *AuthorizationHandler) generateCodeResponse(
 		RedirectURI:   redirectURI,
 		OIDCNonce:     r.Nonce(),
 		PKCEChallenge: r.CodeChallenge(),
+	}
+
+	if idTokenHint != nil {
+		if sid, ok := idTokenHint.Get(string(authn.ClaimSID)); ok {
+			if sid, ok := sid.(string); ok {
+				codeGrant.IDTokenHintSID = sid
+			}
+		}
 	}
 
 	err := h.CodeGrants.CreateCodeGrant(codeGrant)

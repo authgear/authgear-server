@@ -229,7 +229,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 		return nil, err
 	}
 
-	sess, err := h.Sessions.Get(codeGrant.SessionID)
+	sess, err := h.Sessions.Get(codeGrant.IDPSessionID)
 	if errors.Is(err, idpsession.ErrSessionNotFound) {
 		return nil, errInvalidAuthzCode
 	} else if err != nil {
