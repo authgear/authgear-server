@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -41,7 +40,6 @@ type SelectAccountViewModel struct {
 }
 
 type SelectAccountHandler struct {
-	Database             *appdb.Handle
 	ControllerFactory    ControllerFactory
 	BaseViewModel        *viewmodels.BaseViewModeler
 	Renderer             Renderer
@@ -79,23 +77,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	sess := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
-	loginPrompt := false
-	fromAuthzEndpoint := false
-	userIDHint := ""
-
-	gotoLogin := func() {
-		http.Redirect(w, r, "/login", http.StatusFound)
-	}
-
-	gotoSignupOrLogin := func() {
-		signedUpCookie, err := r.Cookie(h.SignedUpCookie.Def.Name)
-		signedUp := (err == nil && signedUpCookie.Value == "true")
-		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
-		http.Redirect(w, r, path, http.StatusFound)
-	}
-
 	continueWithCurrentAccount := func() error {
 		redirectURI := "/settings"
 		// continue to use the previous session
@@ -109,21 +91,40 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 	}
-
-	if webSession != nil {
-		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
-		fromAuthzEndpoint = webSession.ClientID != ""
-		userIDHint = webSession.UserIDHint
+	gotoSignupOrLogin := func() {
+		signedUpCookie, err := r.Cookie(h.SignedUpCookie.Def.Name)
+		signedUp := (err == nil && signedUpCookie.Value == "true")
+		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
+		http.Redirect(w, r, path, http.StatusFound)
 	}
 
-	opts := webapp.SessionOptions{
-		RedirectURI: ctrl.RedirectURI(),
-	}
+	// ctrl.Serve() always write response.
+	// So we have to put http.Redirect before it.
+	defer ctrl.Serve()
 
-	// When UserIDHint is present, the end-user should never need to select anything in /select_account,
-	// so this if block always ends with a return statement, and each branch must write response.
-	if userIDHint != "" {
-		err := h.Database.WithTx(func() error {
+	ctrl.Get(func() error {
+		sess := session.GetSession(r.Context())
+		loginPrompt := false
+		fromAuthzEndpoint := false
+		userIDHint := ""
+
+		gotoLogin := func() {
+			http.Redirect(w, r, "/login", http.StatusFound)
+		}
+
+		if webSession != nil {
+			loginPrompt = slice.ContainsString(webSession.Prompt, "login")
+			fromAuthzEndpoint = webSession.ClientID != ""
+			userIDHint = webSession.UserIDHint
+		}
+
+		opts := webapp.SessionOptions{
+			RedirectURI: ctrl.RedirectURI(),
+		}
+
+		// When UserIDHint is present, the end-user should never need to select anything in /select_account,
+		// so this if block always ends with a return statement, and each branch must write response.
+		if userIDHint != "" {
 			// When id_token_hint is present, we have a limitation that is not specified in the OIDC spec.
 			// The limitation is that, when id_token_hint is present, an intention of reauthentication is assumed.
 			// Therefore, the user indicated by the id_token_hint must be able to reauthenticate.
@@ -163,32 +164,23 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				gotoLogin()
 			}
 			return nil
-		})
-		if err != nil {
-			panic(err)
 		}
-		return
-	}
 
-	// If anything of the following condition holds,
-	// the end-user does not need to select anything.
-	// 1. The request is not from the authorization endpoint, e.g. /
-	// 2. There is no session, so nothing to select.
-	// 3. prompt=login, in this case, the end-user cannot select existing account.
-	if !fromAuthzEndpoint || sess == nil || loginPrompt {
-		gotoSignupOrLogin()
-		return
-	}
+		// If anything of the following condition holds,
+		// the end-user does not need to select anything.
+		// 1. The request is not from the authorization endpoint, e.g. /
+		// 2. There is no session, so nothing to select.
+		// 3. prompt=login, in this case, the end-user cannot select existing account.
+		if !fromAuthzEndpoint || sess == nil || loginPrompt {
+			gotoSignupOrLogin()
+			return nil
+		}
 
-	// ctrl.Serve() always write response.
-	// So we have to put http.Redirect before it.
-	defer ctrl.Serve()
-
-	ctrl.Get(func() error {
 		data, err := h.GetData(r, w, sess.GetUserID())
 		if err != nil {
 			return err
 		}
+
 		h.Renderer.RenderHTML(w, r, TemplateWebSelectAccountHTML, data)
 		return nil
 	})
