@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -682,6 +683,23 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		}
 	}
 
+	// Update auth_time of the offline grant if possible.
+	if sid := code.IDTokenHintSID; sid != "" {
+		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
+			offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
+			if err == nil {
+				if s.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
+					offlineGrant.AuthenticatedAt = s.AuthenticatedAt
+					expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
+					err = h.OfflineGrants.UpdateOfflineGrant(offlineGrant, expiry)
+					if err != nil {
+						return nil, err
+					}
+				}
+			}
+		}
+	}
+
 	resp := protocol.TokenResponse{}
 
 	// The ID token has the claim `sid`.
@@ -712,6 +730,7 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 		sessionToBeUsedInIDToken = s
 		sessionID = s.ID
 		sessionKind = oauth.GrantSessionKindSession
+
 	}
 
 	err := h.issueAccessGrant(client, code.Scopes,
