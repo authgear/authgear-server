@@ -115,6 +115,8 @@
   "oob-otp-resend-button-hint": "未收到認證碼? ",
   "oob-otp-resend-button-label": "重發",
   "oob-otp-resend-button-label--unit": "重發 (%ds)",
+  "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
+  "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請<a class=\"link\" target=\"_blank\" href={customerSupportLink}>聯繫客戶服務</a>",
 
   "verify-user-page-title--sms": "短訊認證",
   "verify-user-page-title--email": "認證你的電郵地址",

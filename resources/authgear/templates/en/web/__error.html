@@ -104,6 +104,14 @@
                 </li>
             {{ else if eq .Error.reason "RateLimited" }}
                 <li>{{ template "error-rate-limited" }}</li>
+            {{ else if eq .Error.reason "SMSNotSupported" }}
+                <li>
+                {{ if ($.Translations.HasKey "customer-support-link") }}
+                    {{ template "oob-otp-sms-is-not-supported-with-customer-support" (dict "customerSupportLink" ($.Translations.RenderText "customer-support-link" nil)) }}
+                {{ else }}
+                    {{ template "oob-otp-sms-is-not-supported" }}
+                {{ end }}
+                </li>
             {{ else }}
                 <li>{{ .Error.message }}</li>
             {{ end }}
