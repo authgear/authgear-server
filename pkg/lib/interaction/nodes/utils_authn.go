@@ -65,6 +65,21 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		panic("interaction: incompatible authenticator type for sending oob code: " + p.AuthenticatorInfo.Type)
 	}
 
+	// check for feature disabled
+	if p.AuthenticatorInfo.Type == authn.AuthenticatorTypeOOBSMS {
+		fc := p.Context.FeatureConfig
+		switch p.Stage {
+		case authn.AuthenticationStagePrimary:
+			if fc.Identity.LoginID.Types.Phone.Disabled {
+				return nil, oob.ErrFeatureDisabledSendingSMS
+			}
+		case authn.AuthenticationStageSecondary:
+			if fc.Authentication.SecondaryAuthenticators.OOBOTPSMS.Disabled {
+				return nil, oob.ErrFeatureDisabledSendingSMS
+			}
+		}
+	}
+
 	code, err := p.Context.OOBAuthenticators.GetCode(p.AuthenticatorInfo.ID)
 	if errors.Is(err, oob.ErrCodeNotFound) {
 		code = nil

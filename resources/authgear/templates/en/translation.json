@@ -115,6 +115,8 @@
   "oob-otp-resend-button-hint": "Didn''t receive the code? ",
   "oob-otp-resend-button-label": "Resend",
   "oob-otp-resend-button-label--unit": "Resend (%ds)",
+  "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
+  "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please <a class=\"link\" target=\"_blank\" href={customerSupportLink}>contact customer support</a>.",
 
   "verify-user-page-title--sms": "SMS Verification",
   "verify-user-page-title--email": "Email Verification",
