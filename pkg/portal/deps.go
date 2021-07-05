@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
+	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/task"
@@ -28,6 +29,7 @@ var DependencySet = wire.NewSet(
 	adminauthz.DependencySet,
 	clock.DependencySet,
 
+	plan.DependencySet,
 	globaldb.DependencySet,
 
 	template.DependencySet,
@@ -38,6 +40,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.CollaboratorServiceEndpointsProvider), new(*endpoint.EndpointsProvider)),
 	wire.Bind(new(service.CollaboratorServiceAdminAPIService), new(*service.AdminAPIService)),
 	wire.Bind(new(service.ResourceManager), new(*resource.Manager)),
+	wire.Bind(new(service.AppPlanService), new(*plan.Service)),
 
 	loader.DependencySet,
 	wire.Bind(new(loader.UserLoaderAdminAPIService), new(*service.AdminAPIService)),

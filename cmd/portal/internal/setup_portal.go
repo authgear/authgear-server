@@ -134,6 +134,7 @@ func createConfigSource(ctx context.Context, tx *sql.Tx, appID string, data map[
 			"id",
 			"app_id",
 			"data",
+			"plan_name",
 			"created_at",
 			"updated_at",
 		).
@@ -141,6 +142,7 @@ func createConfigSource(ctx context.Context, tx *sql.Tx, appID string, data map[
 			uuid.New(),
 			appID,
 			dataJSON,
+			"",
 			time.Now().UTC(),
 			time.Now().UTC(),
 		)

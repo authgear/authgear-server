@@ -3,7 +3,7 @@ package graphql
 import (
 	"context"
 
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -82,6 +82,18 @@ var nodeApp = node(
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					return p.Source.(*model.App).Context.Config.AppConfig, nil
+				},
+			},
+			"effectiveFeatureConfig": &graphql.Field{
+				Type: graphql.NewNonNull(FeatureConfig),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return p.Source.(*model.App).Context.Config.FeatureConfig, nil
+				},
+			},
+			"planName": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.String),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return p.Source.(*model.App).Context.PlanName, nil
 				},
 			},
 			"domains": &graphql.Field{
