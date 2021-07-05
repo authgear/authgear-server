@@ -115,16 +115,11 @@ var cmdPricingPlanUpdate = &cobra.Command{
 		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
 
 		planName := args[0]
-		var featureConfig *config.FeatureConfig
+		var featureConfigYAML []byte
 		featureConfigPath := binder.GetString(cmd, ArgFeatureConfigFilePath)
 		if featureConfigPath != "" {
 			// update feature config from file
-			featureConfigYAML, err := ioutil.ReadFile(featureConfigPath)
-			if err != nil {
-				return err
-			}
-
-			featureConfig, err = config.ParseFeatureConfig(featureConfigYAML)
+			featureConfigYAML, err = ioutil.ReadFile(featureConfigPath)
 			if err != nil {
 				return err
 			}
@@ -150,18 +145,19 @@ var cmdPricingPlanUpdate = &cobra.Command{
 					return nil
 				}
 
-				featureConfig, err = config.ParseFeatureConfig(edited)
+				_, err = config.ParseFeatureConfig(edited)
 				if err != nil {
 					editError = err
 					continue
 				}
 
+				featureConfigYAML = edited
 				break
 			}
 		}
 
 		// update feature config in plan record
-		appIDs, err := planService.UpdatePlan(planName, featureConfig)
+		appIDs, err := planService.UpdatePlan(planName, featureConfigYAML)
 		if err != nil {
 			return err
 		}
@@ -245,17 +241,11 @@ var cmdPricingAppUpdate = &cobra.Command{
 			return err
 		}
 
-		var featureConfig *config.FeatureConfig
-
+		var featureConfigYAML []byte
 		featureConfigPath := binder.GetString(cmd, ArgFeatureConfigFilePath)
 		if featureConfigPath != "" {
 			// update feature config from file
-			featureConfigYAML, err := ioutil.ReadFile(featureConfigPath)
-			if err != nil {
-				return err
-			}
-
-			featureConfig, err = config.ParseFeatureConfig(featureConfigYAML)
+			featureConfigYAML, err = ioutil.ReadFile(featureConfigPath)
 			if err != nil {
 				return err
 			}
@@ -277,17 +267,19 @@ var cmdPricingAppUpdate = &cobra.Command{
 					return nil
 				}
 
-				featureConfig, err = config.ParseFeatureConfig(edited)
+				_, err = config.ParseFeatureConfig(edited)
 				if err != nil {
 					editError = err
 					continue
 				}
 
+				// finish editing
+				featureConfigYAML = edited
 				break
 			}
 		}
 
-		err = planService.UpdateAppFeatureConfig(appID, featureConfig, planName)
+		err = planService.UpdateAppFeatureConfig(appID, featureConfigYAML, planName)
 		if err != nil {
 			return err
 		}
