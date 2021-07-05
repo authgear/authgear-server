@@ -1,6 +1,9 @@
 package plan
 
 import (
+	"bytes"
+	"encoding/json"
+
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -35,13 +38,31 @@ func (s *Service) GetPlan(name string) (p *model.Plan, err error) {
 
 // UpdatePlan update the plan feature config and also the app which
 // have tha same plan name, returns the updated app IDs
-func (s Service) UpdatePlan(name string, featureConfig *config.FeatureConfig) (appIDs []string, err error) {
+func (s Service) UpdatePlan(name string, featureConfigYAML []byte) (appIDs []string, err error) {
+	// validation
+	_, err = config.ParseFeatureConfig(featureConfigYAML)
+	if err != nil {
+		return
+	}
+
+	rawFeatureConfig, err := parseRawFeatureConfig(featureConfigYAML)
+	if err != nil {
+		return
+	}
+
+	rawFeatureConfigYAML, e := yaml.Marshal(rawFeatureConfig)
+	if e != nil {
+		err = e
+		return
+	}
+
 	err = s.Handle.WithTx(func() (err error) {
 		p, err := s.Store.GetPlan(name)
 		if err != nil {
 			return err
 		}
-		p.RawFeatureConfig = featureConfig
+
+		p.RawFeatureConfig = rawFeatureConfig
 		return s.Store.Update(p)
 	})
 	if err != nil {
@@ -49,12 +70,6 @@ func (s Service) UpdatePlan(name string, featureConfig *config.FeatureConfig) (a
 	}
 
 	// update apps feature config
-	featureConfigYAML, e := yaml.Marshal(featureConfig)
-	if e != nil {
-		err = e
-		return
-	}
-
 	err = s.Handle.WithTx(func() (err error) {
 		consrcs, err := s.ConfigSourceStore.ListByPlan(name)
 		if err != nil {
@@ -66,7 +81,7 @@ func (s Service) UpdatePlan(name string, featureConfig *config.FeatureConfig) (a
 			// Array and slice values encode as JSON arrays,
 			// except that []byte encodes as a base64-encoded string,
 			// and a nil slice encodes as the null JSON value.
-			consrc.Data[configsource.AuthgearFeatureYAML] = featureConfigYAML
+			consrc.Data[configsource.AuthgearFeatureYAML] = rawFeatureConfigYAML
 			consrc.UpdatedAt = s.Clock.NowUTC()
 			err = s.ConfigSourceStore.UpdateDatabaseSource(consrc)
 			if err != nil {
@@ -118,22 +133,33 @@ func (s Service) GetDatabaseSourceByAppID(appID string) (consrc *configsource.Da
 	return
 }
 
-func (s Service) UpdateAppFeatureConfig(appID string, featureConfig *config.FeatureConfig, planName string) error {
+func (s Service) UpdateAppFeatureConfig(appID string, featureConfigYAML []byte, planName string) (err error) {
+	// validation
+	_, err = config.ParseFeatureConfig(featureConfigYAML)
+	if err != nil {
+		return
+	}
+
+	rawFeatureConfig, err := parseRawFeatureConfig(featureConfigYAML)
+	if err != nil {
+		return
+	}
+
+	rawFeatureConfigYAML, e := yaml.Marshal(rawFeatureConfig)
+	if e != nil {
+		err = e
+		return
+	}
+
 	return s.Handle.WithTx(func() (err error) {
 		consrc, err := s.ConfigSourceStore.GetDatabaseSourceByAppID(appID)
 		if err != nil {
 			return err
 		}
 
-		featureConfigYAML, e := yaml.Marshal(featureConfig)
-		if e != nil {
-			err = e
-			return
-		}
-
 		consrc.PlanName = planName
 		// json.Marshal handled base64 encoded of the YAML file
-		consrc.Data[configsource.AuthgearFeatureYAML] = featureConfigYAML
+		consrc.Data[configsource.AuthgearFeatureYAML] = rawFeatureConfigYAML
 		consrc.UpdatedAt = s.Clock.NowUTC()
 		err = s.ConfigSourceStore.UpdateDatabaseSource(consrc)
 		if err != nil {
@@ -142,4 +168,17 @@ func (s Service) UpdateAppFeatureConfig(appID string, featureConfig *config.Feat
 
 		return nil
 	})
+}
+
+func parseRawFeatureConfig(inputYAML []byte) (*config.FeatureConfig, error) {
+	jsonData, err := yaml.YAMLToJSON(inputYAML)
+	if err != nil {
+		return nil, err
+	}
+	var config config.FeatureConfig
+	err = json.NewDecoder(bytes.NewReader(jsonData)).Decode(&config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
 }
