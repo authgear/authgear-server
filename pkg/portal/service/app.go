@@ -309,7 +309,7 @@ func (s *AppService) generateConfig(appHost string, appID string, appPlan *model
 	var featureConfig *config.FeatureConfig
 	planName := ""
 	if appPlan != nil {
-		featureConfig = appPlan.FeatureConfig
+		featureConfig = appPlan.RawFeatureConfig
 		planName = appPlan.Name
 	}
 	files, err := s.generateResources(appHost, appID, featureConfig)

@@ -5,7 +5,7 @@ import (
 )
 
 type Plan struct {
-	ID            string
-	Name          string
-	FeatureConfig *config.FeatureConfig
+	ID               string
+	Name             string
+	RawFeatureConfig *config.FeatureConfig
 }
