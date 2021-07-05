@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -160,13 +161,13 @@ var cmdPricingPlanUpdate = &cobra.Command{
 		}
 
 		// update feature config in plan record
-		appCount, err := planService.UpdatePlan(planName, featureConfig)
+		appIDs, err := planService.UpdatePlan(planName, featureConfig)
 		if err != nil {
 			return err
 		}
 
 		log.Printf("updated plan, plan: %s", planName)
-		log.Printf("number of apps have been updated: %d", appCount)
+		log.Printf("apps have been updated: %s", strings.Join(appIDs, ", "))
 		return nil
 	},
 }

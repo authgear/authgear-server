@@ -34,8 +34,8 @@ func (s *Service) GetPlan(name string) (p *model.Plan, err error) {
 }
 
 // UpdatePlan update the plan feature config and also the app which
-// have tha same plan name, returns the number of updated app
-func (s Service) UpdatePlan(name string, featureConfig *config.FeatureConfig) (appCount int, err error) {
+// have tha same plan name, returns the updated app IDs
+func (s Service) UpdatePlan(name string, featureConfig *config.FeatureConfig) (appIDs []string, err error) {
 	err = s.Handle.WithTx(func() (err error) {
 		p, err := s.Store.GetPlan(name)
 		if err != nil {
@@ -72,8 +72,8 @@ func (s Service) UpdatePlan(name string, featureConfig *config.FeatureConfig) (a
 			if err != nil {
 				return err
 			}
+			appIDs = append(appIDs, consrc.AppID)
 		}
-		appCount = len(consrcs)
 		return nil
 	})
 	return
