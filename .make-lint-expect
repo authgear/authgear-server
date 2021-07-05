@@ -14,3 +14,10 @@ pkg/portal/deps.go cannot import github.com/authgear/authgear-server/pkg/auth
 pkg/portal/wire_gen.go cannot import github.com/authgear/authgear-server/pkg/auth
 
 exit status 1
+pkg/lib/config/config_test.go cannot import gopkg.in/yaml.v2
+pkg/lib/config/feature_test.go cannot import gopkg.in/yaml.v2
+pkg/lib/config/schema_test.go cannot import gopkg.in/yaml.v2
+pkg/lib/config/secret_test.go cannot import gopkg.in/yaml.v2
+pkg/portal/service/kubernetes.go cannot import gopkg.in/yaml.v2
+
+exit status 1

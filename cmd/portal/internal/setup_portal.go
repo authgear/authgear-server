@@ -14,7 +14,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/spf13/afero"
 	"golang.org/x/net/publicsuffix"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
