@@ -207,7 +207,7 @@ const AuthenticatorCheckbox: React.FC<AuthenticatorCheckboxProps> =
       <Checkbox
         checked={item.isEnabled}
         onChange={onCheckboxChange}
-        disabled={disabled}
+        disabled={disabled && !item.isEnabled}
       />
     );
   };
@@ -382,7 +382,13 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     );
 
     const onRenderColumnClassName = useCallback(
-      (item: AuthenticatorColumnItem, _index?: number, _?: IColumn) => {
+      (item: AuthenticatorColumnItem, _index?: number, column?: IColumn) => {
+        if (column?.key === "activated") {
+          return "";
+        }
+        // added readOnly class for disabled item
+        // only except the activated column
+        // disabled of the activated column is controlled by AuthenticatorCheckbox
         const disabled = featureDisabled[item.kind][item.type];
         return cn({ [styles.readOnly]: disabled });
       },
