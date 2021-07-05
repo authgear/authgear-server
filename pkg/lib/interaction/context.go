@@ -176,11 +176,12 @@ type Context struct {
 	IsCommitting bool   `wire:"-"`
 	WebSessionID string `wire:"-"`
 
-	Request    *http.Request
-	Database   *appdb.SQLExecutor
-	Clock      clock.Clock
-	Config     *config.AppConfig
-	TrustProxy config.TrustProxy
+	Request       *http.Request
+	Database      *appdb.SQLExecutor
+	Clock         clock.Clock
+	Config        *config.AppConfig
+	FeatureConfig *config.FeatureConfig
+	TrustProxy    config.TrustProxy
 
 	Identities               IdentityService
 	Authenticators           AuthenticatorService

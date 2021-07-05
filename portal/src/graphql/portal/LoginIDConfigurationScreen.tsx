@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import produce from "immer";
-import { Checkbox, Toggle } from "@fluentui/react";
+import { Checkbox, Toggle, MessageBar } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Widget from "../../Widget";
@@ -43,6 +43,7 @@ import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import { Resource, ResourceSpecifier, specifierId } from "../../util/resource";
 import { useResourceForm } from "../../hook/useResourceForm";
 import CustomTagPicker from "../../CustomTagPicker";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 // email domain lists are not language specific
 // so the locale in ResourceSpecifier is not important
@@ -89,6 +90,10 @@ interface ConfigFormState {
   email: Required<EmailConfig>;
   username: Required<UsernameConfig>;
   phone: Required<PhoneConfig>;
+}
+
+interface FeatureConfigFormState {
+  loginIDPhoneDisabled: boolean;
 }
 
 function splitByNewline(text: string): string[] {
@@ -349,7 +354,10 @@ function constructResources(state: ResourcesFormState): Resource[] {
   return Object.values(state.resources).filter(Boolean) as Resource[];
 }
 
-interface FormState extends ConfigFormState, ResourcesFormState {}
+interface FormState
+  extends ConfigFormState,
+    ResourcesFormState,
+    FeatureConfigFormState {}
 
 interface FormModel {
   isLoading: boolean;
@@ -388,12 +396,19 @@ interface LoginIDTypeEditProps {
   loginIDType: LoginIDKeyType;
   toggleLoginIDType: (type: LoginIDKeyType, isEnabled: boolean) => void;
   swapPosition: (index1: number, index2: number) => void;
+  featureDisabled: boolean;
 }
 
 const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
   function LoginIDTypeEdit(props) {
-    const { index, loginIDType, toggleLoginIDType, swapPosition, state } =
-      props;
+    const {
+      index,
+      loginIDType,
+      toggleLoginIDType,
+      swapPosition,
+      state,
+      featureDisabled,
+    } = props;
     const { renderToString } = useContext(Context);
 
     const isEnabled =
@@ -423,9 +438,25 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
           styles={switchStyle}
           checked={isEnabled}
           onChange={onToggleIsEnabled}
+          disabled={!isEnabled && featureDisabled}
         />
       ),
-      [titleId, isEnabled, onToggleIsEnabled]
+      [titleId, isEnabled, onToggleIsEnabled, featureDisabled]
+    );
+
+    const widgetMessageHeader = useMemo(
+      () =>
+        featureDisabled && (
+          <MessageBar>
+            <FormattedMessage
+              id="FeatureConfig.disabled"
+              values={{
+                HREF: "../settings/subscription",
+              }}
+            />
+          </MessageBar>
+        ),
+      [featureDisabled]
     );
 
     return (
@@ -434,9 +465,10 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
         index={index}
         itemCount={loginIDKeyTypes.length}
         onSwapClicked={swapPosition}
-        readOnly={!isEnabled}
+        readOnly={!isEnabled || featureDisabled}
         renderAriaLabel={renderAriaLabel}
         HeaderComponent={widgetHeader}
+        HeaderMessageComponent={widgetMessageHeader}
       >
         {props.children}
       </WidgetWithOrdering>
@@ -945,6 +977,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             loginIDType={type}
             toggleLoginIDType={toggleLoginIDType}
             swapPosition={swapPosition}
+            featureDisabled={type === "phone" && state.loginIDPhoneDisabled}
           >
             {sections[type]}
           </LoginIDTypeEdit>
@@ -972,6 +1005,8 @@ const LoginIDConfigurationScreen: React.FC =
       constructResources
     );
 
+    const featureConfig = useAppFeatureConfigQuery(appID);
+
     const state = useMemo<FormState>(
       () => ({
         resources: resources.state.resources,
@@ -979,6 +1014,9 @@ const LoginIDConfigurationScreen: React.FC =
         email: config.state.email,
         username: config.state.username,
         phone: config.state.phone,
+        loginIDPhoneDisabled:
+          featureConfig.effectiveFeatureConfig?.identity?.login_id?.types?.phone
+            ?.disabled ?? false,
       }),
       [
         resources.state.resources,
@@ -986,14 +1024,17 @@ const LoginIDConfigurationScreen: React.FC =
         config.state.email,
         config.state.username,
         config.state.phone,
+        featureConfig.effectiveFeatureConfig?.identity?.login_id?.types?.phone
+          ?.disabled,
       ]
     );
 
     const form: FormModel = {
-      isLoading: config.isLoading || resources.isLoading,
+      isLoading:
+        config.isLoading || resources.isLoading || featureConfig.loading,
       isUpdating: config.isUpdating || resources.isUpdating,
       isDirty: config.isDirty || resources.isDirty,
-      loadError: config.loadError ?? resources.loadError,
+      loadError: config.loadError ?? resources.loadError ?? featureConfig.error,
       updateError: config.updateError ?? resources.updateError,
       state,
       setState: (fn) => {
@@ -1009,6 +1050,7 @@ const LoginIDConfigurationScreen: React.FC =
       reload: () => {
         config.reload();
         resources.reload();
+        featureConfig.refetch().finally(() => {});
       },
       reset: () => {
         config.reset();

@@ -36,6 +36,7 @@ import LoginIDConfigurationScreen from "./graphql/portal/LoginIDConfigurationScr
 import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConfigurationScreen";
 import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
 import BiometricConfigurationScreen from "./graphql/portal/BiometricConfigurationScreen";
+import SubscriptionScreen from "./graphql/portal/SubscriptionScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -164,6 +165,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/settings/web-hooks"
             element={<WebhookConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/settings/subscription"
+            element={<SubscriptionScreen />}
           />
           <Route path="/audit-log/" element={<AuditLogScreen />} />
           <Route

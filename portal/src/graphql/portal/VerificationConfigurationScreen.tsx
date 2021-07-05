@@ -9,8 +9,10 @@ import {
   IDropdownOption,
   TextField,
   Toggle,
+  MessageBar,
 } from "@fluentui/react";
 import {
+  IdentityFeatureConfig,
   PortalAPIAppConfig,
   VerificationClaimConfig,
   VerificationCriteria,
@@ -31,6 +33,7 @@ import {
 import FormContainer from "../../FormContainer";
 
 import styles from "./VerificationConfigurationScreen.module.scss";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface FormState {
   codeExpirySeconds: number;
@@ -97,11 +100,14 @@ const criteriaMessageIds: Record<VerificationCriteria, string> = {
 
 interface VerificationConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
+  identityFeatureConfig?: IdentityFeatureConfig;
 }
 
 const VerificationConfigurationContent: React.FC<VerificationConfigurationContentProps> =
   function VerificationConfigurationContent(props) {
     const { state, setState } = props.form;
+
+    const { identityFeatureConfig } = props;
 
     const { renderToString } = useContext(Context);
 
@@ -180,6 +186,10 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
       [setState]
     );
 
+    const loginIDPhoneDisabled = useMemo(() => {
+      return identityFeatureConfig?.login_id?.types?.phone?.disabled ?? false;
+    }, [identityFeatureConfig]);
+
     return (
       <ScreenContent className={styles.root}>
         <ScreenTitle>
@@ -233,25 +243,42 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             )}
           />
         </Widget>
-        <Widget className={cn(styles.controlGroup, styles.widget)}>
-          <Toggle
-            className={styles.control}
-            checked={state.phone.enabled}
-            onChange={onPhoneEnabledChange}
-            label={renderToString(
-              "VerificationConfigurationScreen.verification.claims.phoneNumber"
-            )}
-            inlineLabel={true}
-          />
-          <Checkbox
-            className={styles.control}
-            disabled={!state.phone.enabled}
-            checked={state.phone.required}
-            onChange={onPhoneRequiredChange}
-            label={renderToString(
-              "VerificationConfigurationScreen.verification.required.label"
-            )}
-          />
+        <Widget className={cn(styles.widget)}>
+          {loginIDPhoneDisabled && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.disabled"
+                values={{
+                  HREF: "../settings/subscription",
+                }}
+              />
+            </MessageBar>
+          )}
+          <div
+            className={cn(styles.controlGroup, {
+              [styles.readOnly]: loginIDPhoneDisabled,
+            })}
+          >
+            <Toggle
+              className={styles.control}
+              checked={state.phone.enabled}
+              disabled={loginIDPhoneDisabled}
+              onChange={onPhoneEnabledChange}
+              label={renderToString(
+                "VerificationConfigurationScreen.verification.claims.phoneNumber"
+              )}
+              inlineLabel={true}
+            />
+            <Checkbox
+              className={styles.control}
+              disabled={!state.phone.enabled || loginIDPhoneDisabled}
+              checked={state.phone.required}
+              onChange={onPhoneRequiredChange}
+              label={renderToString(
+                "VerificationConfigurationScreen.verification.required.label"
+              )}
+            />
+          </div>
         </Widget>
       </ScreenContent>
     );
@@ -262,17 +289,30 @@ const VerificationConfigurationScreen: React.FC =
     const { appID } = useParams();
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
-    if (form.isLoading) {
+    const featureConfig = useAppFeatureConfigQuery(appID);
+
+    if (form.isLoading || featureConfig.loading) {
       return <ShowLoading />;
     }
 
-    if (form.loadError) {
-      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    if (form.loadError ?? featureConfig.error) {
+      return (
+        <ShowError
+          error={form.loadError ?? featureConfig.error}
+          onRetry={() => {
+            form.reload();
+            featureConfig.refetch().finally(() => {});
+          }}
+        />
+      );
     }
 
     return (
       <FormContainer form={form}>
-        <VerificationConfigurationContent form={form} />
+        <VerificationConfigurationContent
+          form={form}
+          identityFeatureConfig={featureConfig.effectiveFeatureConfig?.identity}
+        />
       </FormContainer>
     );
   };

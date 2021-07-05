@@ -7,6 +7,7 @@ import styles from "./WidgetWithOrdering.module.scss";
 interface WidgetWithOrderingProps {
   index: number;
   itemCount: number;
+  HeaderMessageComponent?: React.ReactNode;
   HeaderComponent: React.ReactNode;
   onSwapClicked: (index1: number, index2: number) => void;
   renderAriaLabel: (index?: number) => string;
@@ -20,6 +21,7 @@ const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> =
     const {
       index,
       itemCount,
+      HeaderMessageComponent,
       HeaderComponent,
       onSwapClicked,
       readOnly,
@@ -30,14 +32,17 @@ const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> =
 
     return (
       <Widget className={className}>
+        {HeaderMessageComponent && <div>{HeaderMessageComponent}</div>}
         <div className={styles.header}>
           {HeaderComponent}
-          <OrderButtons
-            index={index}
-            itemCount={itemCount}
-            onSwapClicked={onSwapClicked}
-            renderAriaLabel={renderAriaLabel}
-          />
+          <div className={cn({ [styles.readOnly]: readOnly })}>
+            <OrderButtons
+              index={index}
+              itemCount={itemCount}
+              onSwapClicked={onSwapClicked}
+              renderAriaLabel={renderAriaLabel}
+            />
+          </div>
         </div>
         <div className={cn({ [styles.readOnly]: readOnly })}>{children}</div>
       </Widget>

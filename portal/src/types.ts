@@ -451,3 +451,36 @@ export interface PortalAPIApp {
   effectiveAppConfig?: PortalAPIAppConfig;
   secretConfig?: PortalAPISecretConfig;
 }
+
+export interface PortalAPIFeatureConfig {
+  identity?: IdentityFeatureConfig;
+  authentication?: AuthenticationFeatureConfig;
+}
+
+export interface AuthenticationFeatureConfig {
+  secondary_authenticators?: AuthenticatorsFeatureConfig;
+}
+
+export interface AuthenticatorsFeatureConfig {
+  oob_otp_sms?: AuthenticatorOOBOTBSMSFeatureConfig;
+}
+
+export interface AuthenticatorOOBOTBSMSFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface IdentityFeatureConfig {
+  login_id?: LoginIDFeatureConfig;
+}
+
+export interface LoginIDFeatureConfig {
+  types?: LoginIDTypesFeatureConfig;
+}
+
+export interface LoginIDTypesFeatureConfig {
+  phone?: LoginIDPhoneFeatureConfig;
+}
+
+export interface LoginIDPhoneFeatureConfig {
+  disabled?: boolean;
+}
