@@ -49,7 +49,7 @@ func (s *Store) scan(scn db.Scanner) (*model.Plan, error) {
 		return nil, err
 	}
 
-	err = json.Unmarshal(data, &p.FeatureConfig)
+	err = json.Unmarshal(data, &p.RawFeatureConfig)
 	if err != nil {
 		return nil, err
 	}
