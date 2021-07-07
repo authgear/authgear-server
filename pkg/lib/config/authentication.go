@@ -80,7 +80,6 @@ func (c *AuthenticationConfig) SetDefaults() {
 	if c.SecondaryAuthenticators == nil {
 		c.SecondaryAuthenticators = []authn.AuthenticatorType{
 			authn.AuthenticatorTypeTOTP,
-			authn.AuthenticatorTypeOOBSMS,
 		}
 	}
 	if c.SecondaryAuthenticationMode == "" {
