@@ -1,10 +1,12 @@
 import Turbolinks from "turbolinks";
+import { DateTime } from "luxon";
+
+import { attachPopStateListener, attachBackButtonListener } from "./history";
 import { init } from "./core";
 import {
   intlDateTimeFormatIsSupported,
   intlRelativeTimeFormatIsSupported,
 } from "./feature";
-import { DateTime } from "luxon";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -469,50 +471,8 @@ window.api.onLoad(() => {
 });
 
 // Handle back button click.
-
-function handleBack(pathname: string): boolean {
-  const pathComponents = pathname.split("/").filter(c => c !== "");
-  if (pathComponents.length > 1 && pathComponents[0] === "settings") {
-    const newPathname = "/" + pathComponents.slice(0, pathComponents.length - 1).join("/");
-    Turbolinks.visit(newPathname, { action: "replace" });
-    return true;
-  }
-  return false;
-}
-
-let pathnameBeforeOnPopState = window.location.pathname;
-function onPopState(_e: Event) {
-  // When this event handler runs, location reflects the latest change.
-  // So window.location is useless to us here.
-  handleBack(pathnameBeforeOnPopState);
-}
-window.api.onLoad(() => {
-  pathnameBeforeOnPopState = window.location.pathname;
-  window.addEventListener("popstate", onPopState);
-  return () => {
-    window.removeEventListener("popstate", onPopState);
-  };
-});
-function onClickBackButton(e: Event) {
-  e.preventDefault();
-  e.stopPropagation();
-  const handled = handleBack(window.location.pathname);
-  if (handled) {
-    return;
-  }
-  window.history.back();
-}
-window.api.onLoad(() => {
-  const elems = document.querySelectorAll(".back-btn");
-  for (let i = 0; i < elems.length; i++) {
-    elems[i].addEventListener("click", onClickBackButton);
-  }
-  return () => {
-    for (let i = 0; i < elems.length; i++) {
-      elems[i].removeEventListener("click", onClickBackButton);
-    }
-  };
-});
+window.api.onLoad(attachPopStateListener);
+window.api.onLoad(attachBackButtonListener);
 
 // Websocket runtime
 window.api.onLoad(() => {
