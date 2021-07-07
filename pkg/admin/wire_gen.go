@@ -490,6 +490,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator:  coordinator,
 	}
 	interactionLogger := interaction.NewLogger(factory)
+	featureConfig := configConfig.FeatureConfig
 	webEndpoints := &WebEndpoints{}
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
@@ -568,6 +569,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,

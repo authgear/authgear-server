@@ -122,6 +122,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	interactionLogger := interaction.NewLogger(factory)
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
@@ -526,6 +527,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -687,6 +689,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Random:       idpsessionRand,
 	}
 	interactionLogger := interaction.NewLogger(factory)
+	featureConfig := config.FeatureConfig
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	serviceStore := &service.Store{
@@ -1077,6 +1080,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -2638,6 +2642,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Random:       idpsessionRand,
 	}
 	interactionLogger := interaction.NewLogger(factory)
+	featureConfig := config.FeatureConfig
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	serviceStore := &service.Store{
@@ -3028,6 +3033,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -3142,6 +3148,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -3570,6 +3577,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -3700,6 +3708,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4128,6 +4137,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -4258,6 +4268,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -4686,6 +4697,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -4816,6 +4828,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -5244,6 +5257,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -5373,6 +5387,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -5801,6 +5816,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -5924,6 +5940,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6352,6 +6369,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -6478,6 +6496,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -6906,6 +6925,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -7035,6 +7055,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -7463,6 +7484,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -7589,6 +7611,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -8017,6 +8040,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -8142,6 +8166,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -8570,6 +8595,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -8696,6 +8722,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -9124,6 +9151,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -9251,6 +9279,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -9679,6 +9708,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -9804,6 +9834,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -10232,6 +10263,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -10357,6 +10389,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -10785,6 +10818,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -10912,6 +10946,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -11340,6 +11375,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -11465,6 +11501,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -11893,6 +11930,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -12018,6 +12056,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -12446,6 +12485,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -12574,6 +12614,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -13002,6 +13043,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -13127,6 +13169,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -13555,6 +13598,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -13685,6 +13729,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -14113,6 +14158,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -14238,6 +14284,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -14666,6 +14713,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -14792,6 +14840,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -15220,6 +15269,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -15345,6 +15395,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -15773,6 +15824,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -15917,6 +15969,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -16345,6 +16398,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -16472,6 +16526,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -16900,6 +16955,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -17026,6 +17082,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -17454,6 +17511,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -17589,6 +17647,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -18017,6 +18076,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -18143,6 +18203,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -18571,6 +18632,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -18697,6 +18759,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -19125,6 +19188,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -19252,6 +19316,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -19680,6 +19745,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -19812,6 +19878,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -20240,6 +20307,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -20366,6 +20434,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -20794,6 +20863,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -20920,6 +20990,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -21348,6 +21419,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -21866,6 +21938,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -22294,6 +22367,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
@@ -22419,6 +22493,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	context := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(context, handle)
 	clockClock := _wireSystemClockValue
+	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
@@ -22847,6 +22922,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Database:                 sqlExecutor,
 		Clock:                    clockClock,
 		Config:                   appConfig,
+		FeatureConfig:            featureConfig,
 		TrustProxy:               trustProxy,
 		Identities:               identityFacade,
 		Authenticators:           authenticatorFacade,
