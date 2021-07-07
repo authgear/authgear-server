@@ -242,7 +242,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: authzStore.authzs[0].ID,
-						SessionID:       "session-id",
+						IDPSessionID:    "session-id",
 						CreatedAt:       time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
 						ExpireAt:        time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
 						Scopes:          []string{"openid"},
@@ -291,7 +291,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: "authz-id",
-						SessionID:       "session-id",
+						IDPSessionID:    "session-id",
 						CreatedAt:       time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
 						ExpireAt:        time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
 						Scopes:          []string{"openid", "offline_access"},

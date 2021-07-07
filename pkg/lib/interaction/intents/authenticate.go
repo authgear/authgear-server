@@ -27,6 +27,7 @@ type IntentAuthenticate struct {
 	Kind              IntentAuthenticateKind `json:"kind"`
 	SkipCreateSession bool                   `json:"skip_create_session"`
 	WebhookState      string                 `json:"webhook_state"`
+	UserIDHint        string                 `json:"user_id_hint,omitempty"`
 }
 
 func NewIntentLogin(skipCreateSession bool) *IntentAuthenticate {
@@ -89,7 +90,10 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 				// Special case: signup with existing OAuth identity means login.
 				case authn.IdentityTypeOAuth:
 					return []interaction.Edge{
-						&nodes.EdgeDoUseIdentity{Identity: node.IdentityInfo},
+						&nodes.EdgeDoUseIdentity{
+							Identity:   node.IdentityInfo,
+							UserIDHint: i.UserIDHint,
+						},
 					}, nil
 				default:
 					return nil, node.IdentityInfo.FillDetails(interaction.ErrDuplicatedIdentity)
@@ -148,7 +152,8 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 				// Authenticate using duplicated identity
 				return []interaction.Edge{
 					&nodes.EdgeDoUseIdentity{
-						Identity: node.DuplicatedIdentity,
+						Identity:   node.DuplicatedIdentity,
+						UserIDHint: i.UserIDHint,
 					},
 				}, nil
 			default:
@@ -177,7 +182,10 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 
 	case *nodes.NodeDoVerifyIdentity:
 		return []interaction.Edge{
-			&nodes.EdgeDoUseIdentity{Identity: node.Identity},
+			&nodes.EdgeDoUseIdentity{
+				Identity:   node.Identity,
+				UserIDHint: i.UserIDHint,
+			},
 		}, nil
 
 	case *nodes.NodeDoUseIdentity:
@@ -317,15 +325,19 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		default:
 			reason = session.CreateReasonLogin
 		}
+		mode := nodes.EnsureSessionModeCreate
+		if i.SkipCreateSession {
+			mode = nodes.EnsureSessionModeNoop
+		}
 
 		return []interaction.Edge{
-			&nodes.EdgeDoCreateSession{
-				Reason:            reason,
-				SkipCreateSession: i.SkipCreateSession,
+			&nodes.EdgeDoEnsureSession{
+				CreateReason: reason,
+				Mode:         mode,
 			},
 		}, nil
 
-	case *nodes.NodeDoCreateSession:
+	case *nodes.NodeDoEnsureSession:
 		// Intent is finished
 		return nil, nil
 

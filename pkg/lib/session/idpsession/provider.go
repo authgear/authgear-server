@@ -57,6 +57,12 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	return session, token
 }
 
+func (p *Provider) Reauthenticate(session *IDPSession, amr []string) {
+	now := p.Clock.NowUTC()
+	session.AuthenticatedAt = now
+	session.Attrs.SetAMR(amr)
+}
+
 func (p *Provider) Create(session *IDPSession) error {
 	expiry := computeSessionStorageExpiry(session, p.Config)
 	err := p.Store.Create(session, expiry)

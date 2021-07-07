@@ -3,11 +3,15 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
 
+	"github.com/lestrrat-go/jwx/jwt"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -21,6 +25,10 @@ import (
 )
 
 const CodeGrantValidDuration = duration.Short
+
+type IDTokenVerifier interface {
+	VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (jwt.Token, error)
+}
 
 type OAuthURLProvider interface {
 	AuthorizeURL(r protocol.AuthorizationRequest) *url.URL
@@ -50,6 +58,7 @@ type AuthorizationHandler struct {
 	ValidateScopes  ScopesValidator
 	CodeGenerator   TokenGenerator
 	LoginHintParser *LoginHintResolver
+	IDTokens        IDTokenVerifier
 	Clock           clock.Clock
 }
 
@@ -108,20 +117,53 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, err
 	}
 
-	s := session.GetSession(h.Context)
+	// Authorization endpoint ignores non-IDP session.
+	var s session.Session
+	if idp := session.GetSession(h.Context); idp != nil && idp.SessionType() == session.TypeIdentityProvider {
+		s = idp
+	}
+
 	authnOptions := webapp.AuthenticateURLOptions{}
-	authnOptions.Prompt = r.Prompt()
+
+	// Handle max_age and prompt=login
+	prompt := r.Prompt()
+	if maxAge, ok := r.MaxAge(); ok {
+		impliesPromptLogin := false
+		// When there is no session, the presence of max_age implies prompt=login.
+		if s == nil {
+			impliesPromptLogin = true
+		} else {
+			// max_age=0 implies prompt=login
+			if maxAge == 0 {
+				impliesPromptLogin = true
+			} else {
+				// max_age=n implies prompt=login if elapsed time is greater than max_age.
+				// In extreme rare case, elapsed time can be negative.
+				elapsedTime := h.Clock.NowUTC().Sub(s.GetAuthenticatedAt())
+				if elapsedTime < 0 || elapsedTime > maxAge {
+					impliesPromptLogin = true
+				}
+			}
+		}
+		if impliesPromptLogin {
+			prompt = slice.AppendIfUniqueStrings(prompt, "login")
+		}
+	}
+	authnOptions.Prompt = prompt
+
+	var idToken jwt.Token
+	// Handle id_token_hint
+	if idTokenHint, ok := r.IDTokenHint(); ok {
+		idToken, err = h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
+		if err != nil {
+			return nil, err
+		}
+		authnOptions.UserIDHint = idToken.Subject()
+	}
 
 	// start web app authentication
-	if !slice.ContainsString(r.Prompt(), "none") {
-		// reset prompt to none for webapp to redirect back to authz endpoint
-		// after authentication
-		r2 := protocol.AuthorizationRequest{}
-		for k, v := range r {
-			r2[k] = v
-		}
-		r2.SetPrompt([]string{"none"})
-		r = r2
+	if !slice.ContainsString(prompt, "none") {
+		r = r.CopyForSelfRedirection()
 
 		// Not authenticated as IdP session => request authentication and retry
 		authnOptions.ClientID = r.ClientID()
@@ -150,7 +192,8 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// start handle prompt == none
-	if s == nil || s.SessionType() != session.TypeIdentityProvider {
+	fmt.Printf("louis#what: %v\n", idToken)
+	if s == nil || (idToken != nil && s.GetUserID() != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
@@ -169,7 +212,7 @@ func (h *AuthorizationHandler) doHandle(
 	resp := protocol.AuthorizationResponse{}
 	switch r.ResponseType() {
 	case "code":
-		err = h.generateCodeResponse(redirectURI.String(), s, r, authz, scopes, resp)
+		err = h.generateCodeResponse(redirectURI.String(), s, idToken, r, authz, scopes, resp)
 		if err != nil {
 			return nil, err
 		}
@@ -217,8 +260,13 @@ func (h *AuthorizationHandler) validateRequest(
 		return protocol.NewError("invalid_request", "scope is required")
 	}
 
-	if slice.ContainsString(r.Prompt(), "none") && len(r.Prompt()) != 1 {
-		return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
+	if slice.ContainsString(r.Prompt(), "none") {
+		if len(r.Prompt()) != 1 {
+			return protocol.NewError("invalid_request", "prompt cannot have other values when none is set")
+		}
+		if r.HasMaxAge() {
+			return protocol.NewError("invalid_request", "max_age could imply prompt=login so max_age cannot be present when prompt=none")
+		}
 	}
 
 	switch r.ResponseType() {
@@ -240,7 +288,8 @@ func (h *AuthorizationHandler) validateRequest(
 
 func (h *AuthorizationHandler) generateCodeResponse(
 	redirectURI string,
-	session session.Session,
+	idpSession session.Session,
+	idTokenHint jwt.Token,
 	r protocol.AuthorizationRequest,
 	authz *oauth.Authorization,
 	scopes []string,
@@ -252,7 +301,7 @@ func (h *AuthorizationHandler) generateCodeResponse(
 	codeGrant := &oauth.CodeGrant{
 		AppID:           string(h.AppID),
 		AuthorizationID: authz.ID,
-		SessionID:       session.SessionID(),
+		IDPSessionID:    idpSession.SessionID(),
 
 		CreatedAt: h.Clock.NowUTC(),
 		ExpireAt:  h.Clock.NowUTC().Add(CodeGrantValidDuration),
@@ -262,6 +311,14 @@ func (h *AuthorizationHandler) generateCodeResponse(
 		RedirectURI:   redirectURI,
 		OIDCNonce:     r.Nonce(),
 		PKCEChallenge: r.CodeChallenge(),
+	}
+
+	if idTokenHint != nil {
+		if sid, ok := idTokenHint.Get(string(authn.ClaimSID)); ok {
+			if sid, ok := sid.(string); ok {
+				codeGrant.IDTokenHintSID = sid
+			}
+		}
 	}
 
 	err := h.CodeGrants.CreateCodeGrant(codeGrant)

@@ -109,6 +109,8 @@ type EventService interface {
 type SessionProvider interface {
 	MakeSession(*session.Attrs) (*idpsession.IDPSession, string)
 	Create(*idpsession.IDPSession) error
+	Update(*idpsession.IDPSession) error
+	Reauthenticate(sess *idpsession.IDPSession, amr []string)
 }
 
 type SessionManager interface {

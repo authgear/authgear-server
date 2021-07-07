@@ -22,9 +22,10 @@ type OfflineGrant struct {
 	// It is only set for biometric authentication.
 	IdentityID string `json:"identity_id,omitempty"`
 
-	CreatedAt time.Time `json:"created_at"`
-	Scopes    []string  `json:"scopes"`
-	TokenHash string    `json:"token_hash"`
+	CreatedAt       time.Time `json:"created_at"`
+	AuthenticatedAt time.Time `json:"authenticated_at"`
+	Scopes          []string  `json:"scopes"`
+	TokenHash       string    `json:"token_hash"`
 
 	Attrs      session.Attrs `json:"attrs"`
 	AccessInfo access.Info   `json:"access_info"`
@@ -42,7 +43,7 @@ func (g *OfflineGrant) SessionID() string         { return g.ID }
 func (g *OfflineGrant) SessionType() session.Type { return session.TypeOfflineGrant }
 
 func (g *OfflineGrant) GetCreatedAt() time.Time                       { return g.CreatedAt }
-func (g *OfflineGrant) GetAuthenticatedAt() time.Time                 { return g.CreatedAt }
+func (g *OfflineGrant) GetAuthenticatedAt() time.Time                 { return g.AuthenticatedAt }
 func (g *OfflineGrant) GetClientID() string                           { return g.ClientID }
 func (g *OfflineGrant) GetAccessInfo() *access.Info                   { return &g.AccessInfo }
 func (g *OfflineGrant) GetDeviceInfo() (map[string]interface{}, bool) { return g.DeviceInfo, true }
