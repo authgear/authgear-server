@@ -15,7 +15,7 @@
 	{{ if $.PublicSignupDisabled }}
 	<div class="pane margin-6 flex flex-col">
 	<div class="padding-6 flex flex-col">
-		{{ template "__nav_bar.html" true }}
+		{{ template "__nav_bar.html" . }}
 		<div class="width-full margin-t-40 margin-b-20">
 			<p class="primary-txt margin-t-0 margin-b-20">{{ template "public-signup-disabled-notice" }}</p>
 			<a class="as-btn not-a btn primary-btn margin-b-20" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>

@@ -15,7 +15,7 @@
 	{{ if $.PublicSignupDisabled }}
 	<div class="pane flex flex-col">
 	<div class="flex flex-col">
-		{{ template "__nav_bar.html" true }}
+		{{ template "__nav_bar.html" . }}
 		<div class="width-full margin-t-40 margin-b-20">
 			<p class="primary-txt margin-t-0 margin-b-20 text-base">{{ template "public-signup-disabled-notice" }}</p>
 			<a class="as-btn not-a btn primary-btn margin-b-20" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
@@ -34,7 +34,7 @@
 		</div>
 		{{ end }}{{ end }}
 
-		{{ template "__nav_bar.html" true }}
+		{{ template "__nav_bar.html" . }}
 
 		<div class="width-full margin-v-20">
 			<form class="flex flex-col" method="post" novalidate>
