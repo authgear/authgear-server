@@ -103,6 +103,12 @@
 
 .checkboxGroup {
   padding-bottom: 10px;
+  display: flex;
+  flex-direction: row;
+
+  .checkbox {
+    padding-right: 10px;
+  }
 }
 
 .readOnly {

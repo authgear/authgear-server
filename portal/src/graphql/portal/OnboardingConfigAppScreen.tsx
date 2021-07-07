@@ -17,6 +17,7 @@ import {
   TooltipHost,
 } from "@fluentui/react";
 import {
+  AuthenticatorsFeatureConfig,
   IdentityFeatureConfig,
   IdentityType,
   LoginIDKeyType,
@@ -137,10 +138,7 @@ const defaultPendingFormState: PendingFormState = {
   loginIDKeys: new Set<LoginIDKeyType>(["email"]),
   primaryAuthenticator: "password",
   secondaryAuthenticationMode: "if_exists",
-  secondaryAuthenticators: new Set<SecondaryAuthenticatorType>([
-    "totp",
-    "oob_otp_sms",
-  ]),
+  secondaryAuthenticators: new Set<SecondaryAuthenticatorType>(["totp"]),
   verificationClaims: {
     email: { enabled: true, required: true },
     phone_number: { enabled: true, required: true },
@@ -610,6 +608,7 @@ interface SecondaryAuthenticatorOption {
 
 interface SecondaryAuthenticatorCheckboxProps {
   form: AppConfigFormModel<FormState>;
+  authenticatorsFeatureConfig?: AuthenticatorsFeatureConfig;
   option: SecondaryAuthenticatorOption;
 }
 
@@ -618,6 +617,7 @@ const SecondaryAuthenticatorCheckbox: React.FC<SecondaryAuthenticatorCheckboxPro
     const { renderToString } = useContext(Context);
     const {
       form: { state, setState },
+      authenticatorsFeatureConfig,
       option,
     } = props;
 
@@ -649,23 +649,45 @@ const SecondaryAuthenticatorCheckbox: React.FC<SecondaryAuthenticatorCheckboxPro
       [state, setState, option]
     );
 
+    const disabled = useMemo(() => {
+      return (
+        (option.authenticatorType === "oob_otp_sms" &&
+          authenticatorsFeatureConfig?.oob_otp_sms?.disabled) ??
+        false
+      );
+    }, [
+      option.authenticatorType,
+      authenticatorsFeatureConfig?.oob_otp_sms?.disabled,
+    ]);
+
     return (
-      <Checkbox
-        className={styles.checkboxGroup}
-        checked={getCheckedState(option.authenticatorType)}
-        label={renderToString(option.labelId)}
-        onChange={onChange}
-      />
+      <div className={styles.checkboxGroup}>
+        <Checkbox
+          className={styles.checkbox}
+          checked={getCheckedState(option.authenticatorType)}
+          label={renderToString(option.labelId)}
+          onChange={onChange}
+          disabled={disabled}
+        />
+        {disabled && (
+          <UpgradeButton
+            labelMessageID="Onboarding.upgrade.label"
+            headerMessageID="Onboarding.upgrade.support-sms.title"
+            bodyMessageID="Onboarding.upgrade.support-sms.desc"
+          />
+        )}
+      </div>
     );
   };
 
 interface SecondaryAuthenticatorsContentProps {
   form: AppConfigFormModel<FormState>;
+  authenticatorsFeatureConfig?: AuthenticatorsFeatureConfig;
 }
 
 const SecondaryAuthenticatorsContent: React.FC<SecondaryAuthenticatorsContentProps> =
   function SecondaryAuthenticatorsContent(props) {
-    const { form } = props;
+    const { form, authenticatorsFeatureConfig } = props;
 
     return (
       <section className={styles.sections}>
@@ -675,6 +697,7 @@ const SecondaryAuthenticatorsContent: React.FC<SecondaryAuthenticatorsContentPro
         </Label>
         {secondaryAuthenticatorOptions.map((o, idx) => (
           <SecondaryAuthenticatorCheckbox
+            authenticatorsFeatureConfig={authenticatorsFeatureConfig}
             key={`secondary-authenticator-${idx}`}
             form={form}
             option={o}
@@ -845,7 +868,12 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
           <SecondaryAuthenticationModeContent form={form} />
         )}
         {showSecondaryAuthenticators && (
-          <SecondaryAuthenticatorsContent form={form} />
+          <SecondaryAuthenticatorsContent
+            form={form}
+            authenticatorsFeatureConfig={
+              featureConfig?.authentication?.secondary_authenticators
+            }
+          />
         )}
         {showEmailVerification && (
           <VerificationContent
