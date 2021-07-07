@@ -51,17 +51,22 @@ interface ReauthenticateOptions {
 
   // The default value is 0.
   maxAge?: number;
+}
 
-  // If this is true, then biometric is not used for reauthentication.
-  skipUsingBiometric?: boolean;
+interface BiometricOptions {
+  // fields omitted for brevity.
 }
 
 function authorize(options: AuthorizeOptions): Promise<{ userInfo: UserInfo, state?: string }>;
 
 // Reauthenticate the current user.
-// If biometric is enabled, biometric is used to reauthenticate the user, unless skipUsingBiometric is true.
+// If biometricOptions is given AND biometric is enabled, biometric is used to reauthenticate the user
 // Otherwise, it behaves like authorize().
-function reauthenticate(options: ReauthenticateOptions): Promise<{ userInfo: UserInfo, state?: string }>;
+function reauthenticate(options: ReauthenticateOptions, biometricOptions?: BiometricOptions): Promise<{ userInfo: UserInfo, state?: string }>;
+
+// Refresh the ID token so that it is newly issued and contains up-to-date claims.
+// You need to pass recent ID token to your server so that the `iat` is recent enough.
+function refreshIDToken(): Promise<void>;
 
 // canReauthenticate returns true if the user has logged in and they have authenticator to reauthenticate themselves.
 // Note that there are users who CANNOT reauthenticate themselves.
@@ -85,7 +90,7 @@ const options: AuthorizeOptions = {
 // Always reauthenticate the current user.
 // You MUST first decode the ID token and check if the claim `https://authgear.com/user/can_reauthenticate` is true,
 // otherwise your user WILL see an error.
-const options: AuthorizeOptions = {
+const options: ReauthenticateOptions = {
   redirectURI: "myapp://host/path",
   prompt: "login",
   maxAge: 0,
@@ -94,7 +99,7 @@ const options: AuthorizeOptions = {
 // Reauthenticate the current user if last authentication is not within 5 minutes.
 // You MUST first decode the ID token and check if the claim `https://authgear.com/user/can_reauthenticate` is true,
 // otherwise your user WILL see an error.
-const options: AuthorizeOptions = {
+const options: ReauthenticateOptions = {
   redirectURI: "myapp://host/path",
   prompt: "login",
   maxAge: 60 * 5,
@@ -115,6 +120,10 @@ authgear.fetch("https://api.myserver.com/v1/edit-profile", {
 
 // Example of how to trigger reauthentication before performing sensitive operation.
 async function onClickSave() {
+  // Refresh the ID token first.
+  await authgear.refreshIDToken();
+
+  // canReauthenticate() and getIDTokenHint() now reflect the latest state.
   const canReauthenticate = authgear.canReauthenticate();
 
   // The user cannot be reauthenticated.
