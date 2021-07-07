@@ -14,26 +14,31 @@ type IDPSession struct {
 	Labels map[string]interface{} `json:"labels"`
 	AppID  string                 `json:"app_id"`
 
-	CreatedAt time.Time     `json:"created_at"`
-	Attrs     session.Attrs `json:"attrs"`
+	// CreatedAt is the timestamp that the user was initially authenticated at.
+	CreatedAt time.Time `json:"created_at"`
+	// Authenticated is the timestamp that the user was authenticated at.
+	// It is equal to CreatedAt if the user has not reauthenticated at all.
+	AuthenticatedAt time.Time     `json:"authenticated_at"`
+	Attrs           session.Attrs `json:"attrs"`
 
 	AccessInfo access.Info `json:"access_info"`
 
 	TokenHash string `json:"token_hash"`
 }
 
-func (s *IDPSession) SessionID() string            { return s.ID }
-func (s *IDPSession) SessionType() session.Type    { return session.TypeIdentityProvider }
-func (s *IDPSession) SessionAttrs() *session.Attrs { return &s.Attrs }
+func (s *IDPSession) SessionID() string         { return s.ID }
+func (s *IDPSession) SessionType() session.Type { return session.TypeIdentityProvider }
 
 func (s *IDPSession) GetCreatedAt() time.Time                       { return s.CreatedAt }
+func (s *IDPSession) GetAuthenticatedAt() time.Time                 { return s.AuthenticatedAt }
 func (s *IDPSession) GetClientID() string                           { return "" }
 func (s *IDPSession) GetAccessInfo() *access.Info                   { return &s.AccessInfo }
 func (s *IDPSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }
+func (s *IDPSession) GetUserID() string                             { return s.Attrs.UserID }
+func (s *IDPSession) GetOIDCAMR() ([]string, bool)                  { return s.Attrs.GetAMR() }
 
 func (s *IDPSession) ToAPIModel() *model.Session {
 	ua := model.ParseUserAgent(s.AccessInfo.LastAccess.UserAgent)
-	acr, _ := s.Attrs.GetACR()
 	amr, _ := s.Attrs.GetAMR()
 	apiModel := &model.Session{
 		Meta: model.Meta{
@@ -44,7 +49,6 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 		},
 		Type: model.SessionTypeIDP,
 
-		ACR: acr,
 		AMR: amr,
 
 		LastAccessedAt:   s.AccessInfo.LastAccess.Timestamp,

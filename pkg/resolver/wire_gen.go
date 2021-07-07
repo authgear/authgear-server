@@ -395,18 +395,20 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
+	authenticatorFacade := facade.AuthenticatorFacade{
+		Coordinator: coordinator,
+	}
 	queries := &user.Queries{
-		Store:        userStore,
-		Identities:   identityFacade,
-		Verification: verificationService,
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
-		IDPSessions:   provider,
-		OfflineGrants: store,
-		Secrets:       oAuthKeyMaterials,
-		BaseURL:       endpointsProvider,
-		Users:         queries,
-		Clock:         clock,
+		Secrets: oAuthKeyMaterials,
+		BaseURL: endpointsProvider,
+		Users:   queries,
+		Clock:   clock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
 		Secrets:    oAuthKeyMaterials,

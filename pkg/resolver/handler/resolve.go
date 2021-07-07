@@ -92,7 +92,7 @@ func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
 			return nil, err
 		}
 
-		info = session.NewInfo(s.SessionAttrs(), isAnonymous, isVerified)
+		info = session.NewInfo(s, isAnonymous, isVerified)
 	} else if !valid {
 		info = &model.SessionInfo{IsValid: false}
 	}

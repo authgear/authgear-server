@@ -52,7 +52,7 @@ var _ = registerMutationField(
 			if err != nil {
 				return nil, err
 			}
-			userID := s.SessionAttrs().UserID
+			userID := s.GetUserID()
 
 			err = gqlCtx.SessionFacade.Revoke(s.SessionID())
 			if err != nil {

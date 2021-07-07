@@ -22,9 +22,10 @@ type OfflineGrant struct {
 	// It is only set for biometric authentication.
 	IdentityID string `json:"identity_id,omitempty"`
 
-	CreatedAt time.Time `json:"created_at"`
-	Scopes    []string  `json:"scopes"`
-	TokenHash string    `json:"token_hash"`
+	CreatedAt       time.Time `json:"created_at"`
+	AuthenticatedAt time.Time `json:"authenticated_at"`
+	Scopes          []string  `json:"scopes"`
+	TokenHash       string    `json:"token_hash"`
 
 	Attrs      session.Attrs `json:"attrs"`
 	AccessInfo access.Info   `json:"access_info"`
@@ -38,14 +39,16 @@ func (g *OfflineGrant) Session() (kind GrantSessionKind, id string) {
 	return GrantSessionKindOffline, g.ID
 }
 
-func (g *OfflineGrant) SessionID() string            { return g.ID }
-func (g *OfflineGrant) SessionType() session.Type    { return session.TypeOfflineGrant }
-func (g *OfflineGrant) SessionAttrs() *session.Attrs { return &g.Attrs }
+func (g *OfflineGrant) SessionID() string         { return g.ID }
+func (g *OfflineGrant) SessionType() session.Type { return session.TypeOfflineGrant }
 
 func (g *OfflineGrant) GetCreatedAt() time.Time                       { return g.CreatedAt }
+func (g *OfflineGrant) GetAuthenticatedAt() time.Time                 { return g.AuthenticatedAt }
 func (g *OfflineGrant) GetClientID() string                           { return g.ClientID }
 func (g *OfflineGrant) GetAccessInfo() *access.Info                   { return &g.AccessInfo }
 func (g *OfflineGrant) GetDeviceInfo() (map[string]interface{}, bool) { return g.DeviceInfo, true }
+func (g *OfflineGrant) GetUserID() string                             { return g.Attrs.UserID }
+func (g *OfflineGrant) GetOIDCAMR() ([]string, bool)                  { return g.Attrs.GetAMR() }
 
 func (g *OfflineGrant) ToAPIModel() *model.Session {
 	var displayName string
@@ -58,7 +61,6 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 	}
 
 	amr, _ := g.Attrs.GetAMR()
-	acr, _ := g.Attrs.GetACR()
 
 	apiModel := &model.Session{
 		Meta: model.Meta{
@@ -70,7 +72,6 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 		Type: model.SessionTypeOfflineGrant,
 
 		AMR: amr,
-		ACR: acr,
 
 		LastAccessedAt:   g.AccessInfo.LastAccess.Timestamp,
 		CreatedByIP:      g.AccessInfo.InitialAccess.RemoteIP,

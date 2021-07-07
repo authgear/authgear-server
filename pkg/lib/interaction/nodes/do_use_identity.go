@@ -10,10 +10,17 @@ func init() {
 }
 
 type EdgeDoUseIdentity struct {
-	Identity *identity.Info
+	Identity   *identity.Info
+	UserIDHint string
 }
 
 func (e *EdgeDoUseIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	if e.UserIDHint != "" {
+		if e.UserIDHint != e.Identity.UserID {
+			return nil, interaction.ErrMismatchedUser
+		}
+	}
+
 	return &NodeDoUseIdentity{
 		Identity: e.Identity,
 	}, nil

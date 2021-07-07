@@ -88,6 +88,7 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 			err = ctx.Users.AfterCreate(
 				u,
 				graph.GetUserNewIdentities(),
+				graph.GetUserNewAuthenticators(),
 				n.IsAdminAPI,
 				webhookState,
 			)

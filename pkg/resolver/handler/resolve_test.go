@@ -55,7 +55,6 @@ func TestResolveHandler(t *testing.T) {
 					"X-Authgear-User-Id":        []string{"user-id"},
 					"X-Authgear-User-Verified":  []string{"true"},
 					"X-Authgear-User-Anonymous": []string{"false"},
-					"X-Authgear-Session-Acr":    []string{""},
 					"X-Authgear-Session-Amr":    []string{""},
 				})
 			})
@@ -77,7 +76,6 @@ func TestResolveHandler(t *testing.T) {
 					"X-Authgear-User-Id":        []string{"user-id"},
 					"X-Authgear-User-Anonymous": []string{"true"},
 					"X-Authgear-User-Verified":  []string{"false"},
-					"X-Authgear-Session-Acr":    []string{""},
 					"X-Authgear-Session-Amr":    []string{""},
 				})
 			})

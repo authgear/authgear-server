@@ -33,6 +33,8 @@
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {Email} phone {Phone} username {Username} other {Identity}} already exists, maybe you want to login?} other {The email has been claimed by an existing account, maybe you want to login?}}} other {This identity has been claimed by another user.}}",
   "error-duplicated-authenticator": "This authenticator already has been added.",
+  "error-mismatched-user": "You need to authenticate with the same account that you are using.",
+  "error-no-authenticator": "Your account does not have authenticator.",
   "error-verification-code-invalid": "Verification code is invalid, used or expired. Please request a new one.",
   "error-verification-code-invalid-click-to-resend": "Click to resend.",
   "error-remove-last-identity": "Cannot disconnect. You need to keep at least 1 identity.",
@@ -291,5 +293,10 @@
 
   "toc-pp-footer": "By registering, you agree to our <a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terms of Service</a> and <a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacy Policy</a>",
   "terms-of-service-link": "https://www.authgear.com/terms",
-  "privacy-policy-link": "https://www.authgear.com/data-privacy"
+  "privacy-policy-link": "https://www.authgear.com/data-privacy",
+
+  "select-account-title": "Continue to {AppOrClientName}",
+  "select-account-you-are-using-description": "You are using",
+  "select-account-continue-label": "Continue",
+  "select-account-use-another-account-label": "Use another account"
 }

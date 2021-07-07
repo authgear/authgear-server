@@ -16,13 +16,15 @@ func NewAttrs(userID string) *Attrs {
 
 // NewBiometricAttrs is the same as NewAttrs.
 // On Android, we cannot tell the exact biometric means used in the authentication.
-// Therefore, we cannot reliably populate AMR and ACR.
+// Therefore, we cannot reliably populate AMR.
 //
 // From RFC8176, the AMR values "swk" and "user" may apply.
 //
 // See https://developer.android.com/reference/androidx/biometric/BiometricPrompt#AUTHENTICATION_RESULT_TYPE_BIOMETRIC
-func NewBiometricAttrs(userID string) *Attrs {
-	return NewAttrs(userID)
+func NewBiometricAttrs(userID string, amr []string) *Attrs {
+	attrs := NewAttrs(userID)
+	attrs.SetAMR(amr)
+	return attrs
 }
 
 // NewAnonymousAttrs is the same as NewAttrs.
@@ -30,19 +32,6 @@ func NewBiometricAttrs(userID string) *Attrs {
 // From RFC8176, the AMR value "swk" may apply.
 func NewAnonymousAttrs(userID string) *Attrs {
 	return NewAttrs(userID)
-}
-
-func (a *Attrs) GetACR() (string, bool) {
-	acr, ok := a.Claims[authn.ClaimACR].(string)
-	return acr, ok
-}
-
-func (a *Attrs) SetACR(value string) {
-	if len(value) > 0 {
-		a.Claims[authn.ClaimACR] = value
-	} else {
-		delete(a.Claims, authn.ClaimACR)
-	}
 }
 
 func (a *Attrs) GetAMR() ([]string, bool) {

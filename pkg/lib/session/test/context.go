@@ -26,8 +26,6 @@ func NewMockSession() *MockSession {
 	}
 }
 
-func (m MockSession) SessionAttrs() *session.Attrs { return m.Attrs }
-
 func (m MockSession) SessionID() string { return m.ID }
 
 func (m MockSession) SessionType() session.Type { return m.Type }
@@ -36,9 +34,15 @@ func (m MockSession) GetClientID() string { return "" }
 
 func (m MockSession) GetCreatedAt() time.Time { return time.Time{} }
 
+func (m MockSession) GetAuthenticatedAt() time.Time { return time.Time{} }
+
 func (m MockSession) GetAccessInfo() *access.Info { return nil }
 
 func (m MockSession) GetDeviceInfo() (map[string]interface{}, bool) { return nil, false }
+
+func (m *MockSession) GetUserID() string { return m.Attrs.UserID }
+
+func (m *MockSession) GetOIDCAMR() ([]string, bool) { return m.Attrs.GetAMR() }
 
 func (m MockSession) ToAPIModel() *model.Session { return nil }
 

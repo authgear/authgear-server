@@ -42,10 +42,11 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	now := p.Clock.NowUTC()
 	accessEvent := access.NewEvent(now, p.Request, bool(p.TrustProxy))
 	session := &IDPSession{
-		ID:        uuid.New(),
-		Labels:    make(map[string]interface{}),
-		CreatedAt: now,
-		Attrs:     *attrs,
+		ID:              uuid.New(),
+		Labels:          make(map[string]interface{}),
+		CreatedAt:       now,
+		AuthenticatedAt: now,
+		Attrs:           *attrs,
 		AccessInfo: access.Info{
 			InitialAccess: accessEvent,
 			LastAccess:    accessEvent,
@@ -54,6 +55,12 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	token := p.generateToken(session)
 
 	return session, token
+}
+
+func (p *Provider) Reauthenticate(session *IDPSession, amr []string) {
+	now := p.Clock.NowUTC()
+	session.AuthenticatedAt = now
+	session.Attrs.SetAMR(amr)
 }
 
 func (p *Provider) Create(session *IDPSession) error {

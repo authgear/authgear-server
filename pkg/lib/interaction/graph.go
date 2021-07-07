@@ -12,7 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const GraphLifetime = duration.UserInteraction
@@ -155,12 +154,23 @@ func (g *Graph) GetNewUserID() (string, bool) {
 }
 
 func (g *Graph) MustGetUserLastIdentity() *identity.Info {
+	iden, ok := g.GetUserLastIdentity()
+	if !ok {
+		panic("interaction: expect user identity presents")
+	}
+	return iden
+}
+
+func (g *Graph) GetUserLastIdentity() (*identity.Info, bool) {
 	for i := len(g.Nodes) - 1; i >= 0; i-- {
 		if n, ok := g.Nodes[i].(interface{ UserIdentity() *identity.Info }); ok {
-			return n.UserIdentity()
+			iden := n.UserIdentity()
+			if iden != nil {
+				return iden, true
+			}
 		}
 	}
-	panic("interaction: expect user identity presents")
+	return nil, false
 }
 
 func (g *Graph) MustGetUpdateIdentityID() string {
@@ -215,6 +225,17 @@ func (g *Graph) GetAMR() []string {
 		authn.AuthenticationStageSecondary,
 	}
 
+	// Some AMR values are from identity, for example, biometric identity.
+	if iden, ok := g.GetUserLastIdentity(); ok {
+		for _, value := range iden.AMR() {
+			_, ok := seen[value]
+			if !ok {
+				seen[value] = struct{}{}
+				amr = append(amr, value)
+			}
+		}
+	}
+
 	for _, stage := range stages {
 		ai, ok := g.GetUserAuthenticator(stage)
 		if ok {
@@ -235,14 +256,6 @@ func (g *Graph) GetAMR() []string {
 	sort.Strings(amr)
 
 	return amr
-}
-
-func (g *Graph) GetACR(amrValues []string) string {
-	if slice.ContainsString(amrValues, authn.AMRMFA) {
-		return authn.ACRMFA
-	}
-
-	return ""
 }
 
 func (g *Graph) FillDetails(err error) error {

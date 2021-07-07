@@ -52,7 +52,6 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	identityInfo := graph.MustGetUserLastIdentity()
 
 	alternatives := viewmodels.AlternativeStepsViewModel{}
 	err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterPassword)
@@ -60,25 +59,29 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 		return nil, err
 	}
 
-	identityDisplayID := identityInfo.DisplayID()
-	phoneFormat := validation.FormatPhone{}
-	emailFormat := validation.FormatEmail{AllowName: false}
-
+	identityDisplayID := ""
 	forgotPasswordInputType := ""
 	forgotPasswordLoginID := ""
 	forgotPasswordCallingCode := ""
 	forgotPasswordNational := ""
-	// Instead of using the login id type, we parse the login id value for the type
-	// So user cannot use this flow to check the identity type
-	if err := phoneFormat.CheckFormat(identityDisplayID); err == nil {
-		forgotPasswordInputType = "phone"
-		forgotPasswordNational, forgotPasswordCallingCode, err = phone.ParseE164ToCallingCodeAndNumber(identityDisplayID)
-		if err != nil {
-			panic("enter_password: cannot parse number: " + err.Error())
+
+	if identityInfo, ok := graph.GetUserLastIdentity(); ok {
+		identityDisplayID = identityInfo.DisplayID()
+		phoneFormat := validation.FormatPhone{}
+		emailFormat := validation.FormatEmail{AllowName: false}
+
+		// Instead of using the login id type, we parse the login id value for the type
+		// So user cannot use this flow to check the identity type
+		if err := phoneFormat.CheckFormat(identityDisplayID); err == nil {
+			forgotPasswordInputType = "phone"
+			forgotPasswordNational, forgotPasswordCallingCode, err = phone.ParseE164ToCallingCodeAndNumber(identityDisplayID)
+			if err != nil {
+				panic("enter_password: cannot parse number: " + err.Error())
+			}
+		} else if err := emailFormat.CheckFormat(identityDisplayID); err == nil {
+			forgotPasswordInputType = "email"
+			forgotPasswordLoginID = identityDisplayID
 		}
-	} else if err := emailFormat.CheckFormat(identityDisplayID); err == nil {
-		forgotPasswordInputType = "email"
-		forgotPasswordLoginID = identityDisplayID
 	}
 
 	enterPasswordViewModel := EnterPasswordViewModel{

@@ -45,6 +45,21 @@ func (i *Info) GetMeta() model.Meta {
 	}
 }
 
+func (i *Info) AMR() []string {
+	switch i.Type {
+	case authn.IdentityTypeLoginID:
+		return nil
+	case authn.IdentityTypeOAuth:
+		return nil
+	case authn.IdentityTypeAnonymous:
+		return nil
+	case authn.IdentityTypeBiometric:
+		return []string{authn.AMRXBiometric}
+	default:
+		panic("identity: unknown identity type: " + i.Type)
+	}
+}
+
 func (i *Info) ToModel() model.Identity {
 	claims := make(map[string]interface{})
 	for key, value := range i.Claims {
@@ -107,46 +122,6 @@ func (i *Info) DisplayID() string {
 	case authn.IdentityTypeBiometric:
 		displayID, _ := i.Claims[IdentityClaimBiometricKeyID].(string)
 		return displayID
-	default:
-		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
-	}
-}
-
-func (i *Info) DisplayIDClaimName() (authn.ClaimName, bool) {
-	switch i.Type {
-	case authn.IdentityTypeLoginID:
-		loginIDType, _ := i.Claims[IdentityClaimLoginIDType].(string)
-		switch config.LoginIDKeyType(loginIDType) {
-		case config.LoginIDKeyTypeEmail:
-			return authn.ClaimEmail, true
-		case config.LoginIDKeyTypePhone:
-			return authn.ClaimPhoneNumber, true
-		case config.LoginIDKeyTypeUsername:
-			return authn.ClaimPreferredUsername, true
-		default:
-			return "", false
-		}
-	case authn.IdentityTypeOAuth:
-		if _, ok := i.Claims[StandardClaimEmail].(string); ok {
-			return authn.ClaimEmail, true
-		}
-		if _, ok := i.Claims[StandardClaimPhoneNumber].(string); ok {
-			return authn.ClaimPhoneNumber, true
-		}
-		if _, ok := i.Claims[StandardClaimPreferredUsername].(string); ok {
-			return authn.ClaimPreferredUsername, true
-		}
-		return "", false
-	case authn.IdentityTypeAnonymous:
-		if _, ok := i.Claims[IdentityClaimAnonymousKeyID].(string); ok {
-			return authn.ClaimKeyID, true
-		}
-		return "", false
-	case authn.IdentityTypeBiometric:
-		if _, ok := i.Claims[IdentityClaimBiometricKeyID].(string); ok {
-			return authn.ClaimKeyID, true
-		}
-		return "", false
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}

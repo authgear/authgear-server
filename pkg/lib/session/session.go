@@ -15,14 +15,19 @@ const (
 )
 
 type Session interface {
-	SessionAttrs() *Attrs
 	SessionID() string
 	SessionType() Type
 
 	GetClientID() string
 	GetCreatedAt() time.Time
+	GetAuthenticatedAt() time.Time
 	GetAccessInfo() *access.Info
 	GetDeviceInfo() (map[string]interface{}, bool)
+
+	GetUserID() string
+
+	GetOIDCAMR() ([]string, bool)
+
 	ToAPIModel() *model.Session
 }
 
@@ -36,7 +41,8 @@ const (
 type CreateReason string
 
 const (
-	CreateReasonSignup  CreateReason = "signup"
-	CreateReasonLogin   CreateReason = "login"
-	CreateReasonPromote CreateReason = "promote"
+	CreateReasonSignup         CreateReason = "signup"
+	CreateReasonLogin          CreateReason = "login"
+	CreateReasonPromote        CreateReason = "promote"
+	CreateReasonReauthenticate CreateReason = "reauthenticate"
 )

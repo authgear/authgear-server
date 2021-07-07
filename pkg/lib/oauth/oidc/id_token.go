@@ -2,6 +2,7 @@ package oidc
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -9,22 +10,17 @@ import (
 
 	"github.com/lestrrat-go/jwx/jwa"
 	"github.com/lestrrat-go/jwx/jwk"
+	"github.com/lestrrat-go/jwx/jws"
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
-
-type IDPSessionService interface {
-	Get(id string) (*idpsession.IDPSession, error)
-}
 
 type UserProvider interface {
 	Get(id string) (*model.User, error)
@@ -35,12 +31,10 @@ type BaseURLProvider interface {
 }
 
 type IDTokenIssuer struct {
-	IDPSessions   IDPSessionService
-	OfflineGrants oauth.OfflineGrantStore
-	Secrets       *config.OAuthKeyMaterials
-	BaseURL       BaseURLProvider
-	Users         UserProvider
-	Clock         clock.Clock
+	Secrets *config.OAuthKeyMaterials
+	BaseURL BaseURLProvider
+	Users   UserProvider
+	Clock   clock.Clock
 }
 
 // IDTokenValidDuration is the valid period of ID token.
@@ -97,50 +91,120 @@ func (ti *IDTokenIssuer) Iss() string {
 	return ti.BaseURL.BaseURL().String()
 }
 
+func (ti *IDTokenIssuer) updateUserClaims(token jwt.Token, userID string) error {
+	user, err := ti.Users.Get(userID)
+	if err != nil {
+		return err
+	}
+
+	_ = token.Set(jwt.IssuerKey, ti.Iss())
+	_ = token.Set(jwt.SubjectKey, userID)
+	_ = token.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
+	_ = token.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
+	_ = token.Set(string(authn.ClaimUserCanReauthenticate), user.CanReauthenticate)
+
+	return nil
+}
+
+func (ti *IDTokenIssuer) updateTimeClaims(token jwt.Token) {
+	now := ti.Clock.NowUTC()
+	_ = token.Set(jwt.IssuedAtKey, now.Unix())
+	_ = token.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
+}
+
+func (ti *IDTokenIssuer) sign(token jwt.Token) (string, error) {
+	jwk, _ := ti.Secrets.Set.Get(0)
+	signed, err := jwtutil.Sign(token, jwa.RS256, jwk)
+	if err != nil {
+		return "", err
+	}
+	return string(signed), nil
+}
+
 func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s session.Session, nonce string) (string, error) {
-	claims, err := ti.LoadUserClaims(s.SessionAttrs().UserID)
+	claims := jwt.New()
+
+	// Populate user specific claims
+	err := ti.updateUserClaims(claims, s.GetUserID())
 	if err != nil {
 		return "", err
 	}
 
-	now := ti.Clock.NowUTC()
-
+	// Populate client specific claims
 	_ = claims.Set(jwt.AudienceKey, client.ClientID)
 
-	_ = claims.Set("sid", EncodeSID(s))
+	// Populate Time specific claims
+	ti.updateTimeClaims(claims)
 
-	_ = claims.Set(jwt.IssuedAtKey, now.Unix())
-	_ = claims.Set(jwt.ExpirationKey, now.Add(IDTokenValidDuration).Unix())
-
-	for key, value := range s.SessionAttrs().Claims {
-		_ = claims.Set(string(key), value)
+	// Populate session specific claims
+	// Note that we MUST NOT include any personal identifiable information (PII) here.
+	// The ID token may be included in the GET request in form of `id_token_hint`.
+	_ = claims.Set(string(authn.ClaimSID), EncodeSID(s))
+	_ = claims.Set(string(authn.ClaimAuthTime), s.GetAuthenticatedAt().Unix())
+	if amr, ok := s.GetOIDCAMR(); ok && len(amr) > 0 {
+		_ = claims.Set(string(authn.ClaimAMR), amr)
 	}
 
+	// Populate authorization flow specific claims
 	if nonce != "" {
 		_ = claims.Set("nonce", nonce)
 	}
 
-	jwk, _ := ti.Secrets.Set.Get(0)
-
-	signed, err := jwtutil.Sign(claims, jwa.RS256, jwk)
+	// Sign the token.
+	signed, err := ti.sign(claims)
 	if err != nil {
 		return "", err
 	}
+	return signed, nil
+}
 
-	return string(signed), nil
+func (ti *IDTokenIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (token jwt.Token, err error) {
+	// Verify the signature.
+	jwkSet, err := ti.GetPublicKeySet()
+	if err != nil {
+		return
+	}
+
+	_, err = jws.VerifySet([]byte(idTokenHint), jwkSet)
+	if err != nil {
+		return
+	}
+	// Parse the JWT.
+	_, token, err = jwtutil.SplitWithoutVerify([]byte(idTokenHint))
+	if err != nil {
+		return
+	}
+
+	// Validate the claims in the JWT.
+	// Here we do not use the library function jwt.Validate because
+	// we do not want to validate the exp of the token.
+
+	// We want to validate `aud` only.
+	foundAud := false
+	aud := client.ClientID
+	for _, v := range token.Audience() {
+		if v == aud {
+			foundAud = true
+			break
+		}
+	}
+	if !foundAud {
+		err = errors.New(`aud not satisfied`)
+		return
+	}
+
+	// Normally we should also validate `iss`.
+	// But `iss` can change if public_origin was changed.
+	// We should still accept ID token referencing an old public_origin.
+
+	return
 }
 
 func (ti *IDTokenIssuer) LoadUserClaims(userID string) (jwt.Token, error) {
-	user, err := ti.Users.Get(userID)
+	claims := jwt.New()
+	err := ti.updateUserClaims(claims, userID)
 	if err != nil {
 		return nil, err
 	}
-
-	claims := jwt.New()
-	_ = claims.Set(jwt.IssuerKey, ti.Iss())
-	_ = claims.Set(jwt.SubjectKey, userID)
-	_ = claims.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
-	_ = claims.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
-
 	return claims, nil
 }

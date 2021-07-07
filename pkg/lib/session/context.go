@@ -53,5 +53,6 @@ func GetUserID(ctx context.Context) *string {
 	if actx == nil || actx.Session == nil {
 		return nil
 	}
-	return &actx.Session.SessionAttrs().UserID
+	userID := actx.Session.GetUserID()
+	return &userID
 }

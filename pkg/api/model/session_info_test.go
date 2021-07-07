@@ -32,7 +32,6 @@ func TestSessionInfo(t *testing.T) {
 					UserID:        "user-id",
 					UserAnonymous: true,
 					UserVerified:  true,
-					SessionACR:    "http://schemas.openid.net/pape/policies/2007/06/multi-factor",
 					SessionAMR:    []string{"pwd", "mfa", "otp"},
 				}
 
@@ -42,7 +41,6 @@ func TestSessionInfo(t *testing.T) {
 					"X-Authgear-User-Id":        []string{"user-id"},
 					"X-Authgear-User-Anonymous": []string{"true"},
 					"X-Authgear-User-Verified":  []string{"true"},
-					"X-Authgear-Session-Acr":    []string{"http://schemas.openid.net/pape/policies/2007/06/multi-factor"},
 					"X-Authgear-Session-Amr":    []string{"pwd mfa otp"},
 				})
 			})
@@ -68,7 +66,6 @@ func TestSessionInfo(t *testing.T) {
 				UserID:        "user-id",
 				UserAnonymous: true,
 				UserVerified:  true,
-				SessionACR:    "http://schemas.openid.net/pape/policies/2007/06/multi-factor",
 				SessionAMR:    []string{"pwd", "mfa", "otp"},
 			})
 		})

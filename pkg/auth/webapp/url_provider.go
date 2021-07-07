@@ -81,8 +81,10 @@ type AuthenticateURLOptions struct {
 	Prompt           []string
 	Page             string
 	WebhookState     string
+	UserIDHint       string
 	AuthenticateHint interface{}
 }
+
 type PageService interface {
 	CreateSession(session *Session, redirectURI string) (*Result, error)
 	PostWithIntent(session *Session, intent interaction.Intent, inputFn func() (interface{}, error)) (*Result, error)
@@ -107,6 +109,7 @@ func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions
 		ClientID:     options.ClientID,
 		Prompt:       options.Prompt,
 		WebhookState: options.WebhookState,
+		UserIDHint:   options.UserIDHint,
 		UpdatedAt:    now,
 	})
 

@@ -103,6 +103,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SelectAccountHandler)),
+	))
+}
+
 func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

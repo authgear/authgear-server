@@ -33,15 +33,63 @@ type Store struct {
 	Clock       clock.Clock
 }
 
-func (s *Store) load(conn *goredis.Conn, key string, ptr interface{}) error {
+func (s *Store) loadData(conn *goredis.Conn, key string) ([]byte, error) {
 	ctx := context.Background()
 	data, err := conn.Get(ctx, key).Bytes()
 	if errors.Is(err, goredis.Nil) {
-		return oauth.ErrGrantNotFound
+		return nil, oauth.ErrGrantNotFound
 	} else if err != nil {
-		return err
+		return nil, err
 	}
-	return json.Unmarshal(data, &ptr)
+	return data, nil
+}
+
+func (s *Store) unmarshalCodeGrant(data []byte) (*oauth.CodeGrant, error) {
+	var g oauth.CodeGrant
+	err := json.Unmarshal(data, &g)
+	if err != nil {
+		return nil, err
+	}
+	return &g, nil
+}
+
+func (s *Store) unmarshalAccessGrant(data []byte) (*oauth.AccessGrant, error) {
+	var g oauth.AccessGrant
+	err := json.Unmarshal(data, &g)
+	if err != nil {
+		return nil, err
+	}
+	return &g, nil
+}
+
+func (s *Store) unmarshalAppSession(data []byte) (*oauth.AppSession, error) {
+	var t oauth.AppSession
+	err := json.Unmarshal(data, &t)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
+func (s *Store) unmarshalOfflineGrant(data []byte) (*oauth.OfflineGrant, error) {
+	var g oauth.OfflineGrant
+	err := json.Unmarshal(data, &g)
+	if err != nil {
+		return nil, err
+	}
+	if g.AuthenticatedAt.IsZero() {
+		g.AuthenticatedAt = g.CreatedAt
+	}
+	return &g, nil
+}
+
+func (s *Store) unmarshalAppSessionToken(data []byte) (*oauth.AppSessionToken, error) {
+	var t oauth.AppSessionToken
+	err := json.Unmarshal(data, &t)
+	if err != nil {
+		return nil, err
+	}
+	return &t, nil
 }
 
 func (s *Store) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
@@ -76,10 +124,17 @@ func (s *Store) del(conn *goredis.Conn, key string) error {
 }
 
 func (s *Store) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
-	g := &oauth.CodeGrant{}
-
+	var g *oauth.CodeGrant
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		return s.load(conn, codeGrantKey(string(s.AppID), codeHash), g)
+		data, err := s.loadData(conn, codeGrantKey(string(s.AppID), codeHash))
+		if err != nil {
+			return err
+		}
+		g, err = s.unmarshalCodeGrant(data)
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -101,9 +156,19 @@ func (s *Store) DeleteCodeGrant(grant *oauth.CodeGrant) error {
 }
 
 func (s *Store) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
-	g := &oauth.AccessGrant{}
+	var g *oauth.AccessGrant
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		return s.load(conn, accessGrantKey(string(s.AppID), tokenHash), g)
+		data, err := s.loadData(conn, accessGrantKey(string(s.AppID), tokenHash))
+		if err != nil {
+			return err
+		}
+
+		g, err = s.unmarshalAccessGrant(data)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -125,9 +190,19 @@ func (s *Store) DeleteAccessGrant(grant *oauth.AccessGrant) error {
 }
 
 func (s *Store) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
-	g := &oauth.OfflineGrant{}
+	var g *oauth.OfflineGrant
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		return s.load(conn, offlineGrantKey(string(s.AppID), id), g)
+		data, err := s.loadData(conn, offlineGrantKey(string(s.AppID), id))
+		if err != nil {
+			return err
+		}
+
+		g, err = s.unmarshalOfflineGrant(data)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -223,8 +298,8 @@ func (s *Store) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) 
 		}
 
 		for id := range sessionList {
-			grant := &oauth.OfflineGrant{}
-			err = s.load(conn, offlineGrantKey(string(s.AppID), id), grant)
+			var data []byte
+			data, err = s.loadData(conn, offlineGrantKey(string(s.AppID), id))
 			if errors.Is(err, oauth.ErrGrantNotFound) {
 				_, err = conn.HDel(ctx, listKey, id).Result()
 				if err != nil {
@@ -233,6 +308,11 @@ func (s *Store) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) 
 			} else if err != nil {
 				return err
 			} else {
+				var grant *oauth.OfflineGrant
+				grant, err = s.unmarshalOfflineGrant(data)
+				if err != nil {
+					return err
+				}
 				grants = append(grants, grant)
 			}
 		}
@@ -253,7 +333,17 @@ func (s *Store) GetAppSessionToken(tokenHash string) (*oauth.AppSessionToken, er
 	t := &oauth.AppSessionToken{}
 
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		return s.load(conn, appSessionTokenKey(string(s.AppID), tokenHash), t)
+		data, err := s.loadData(conn, appSessionTokenKey(string(s.AppID), tokenHash))
+		if err != nil {
+			return err
+		}
+
+		t, err = s.unmarshalAppSessionToken(data)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -275,10 +365,20 @@ func (s *Store) DeleteAppSessionToken(token *oauth.AppSessionToken) error {
 }
 
 func (s *Store) GetAppSession(tokenHash string) (*oauth.AppSession, error) {
-	t := &oauth.AppSession{}
+	var t *oauth.AppSession
 
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		return s.load(conn, appSessionKey(string(s.AppID), tokenHash), t)
+		data, err := s.loadData(conn, appSessionKey(string(s.AppID), tokenHash))
+		if err != nil {
+			return err
+		}
+
+		t, err = s.unmarshalAppSession(data)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, err
