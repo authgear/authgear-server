@@ -49,15 +49,22 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  margin: 10px 0;
+  margin-top: 10px;
 }
 
 .identityListItem {
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.identityListItemContent {
   background-color: $neutral-lighter-color;
   position: relative;
   width: 96px;
   height: 106px;
   cursor: pointer;
+  margin-bottom: 10px;
 
   .checkbox {
     position: absolute;
@@ -79,6 +86,26 @@
   }
 }
 
+.upgradeLink {
+  font-size: 14px;
+}
+
+.upgradeTooltip {
+  max-width: 420px;
+  padding: 10px 15px;
+
+  .upgradeTooltipHeader {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+}
+
 .checkboxGroup {
   padding-bottom: 10px;
+}
+
+.readOnly {
+  pointer-events: none;
+  opacity: 0.5;
 }
