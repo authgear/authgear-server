@@ -141,6 +141,10 @@
   "Onboarding.verification.optional" :"Optional",
   "Onboarding.verification.disabled" :"Disabled",
 
+  "Onboarding.upgrade.label": "Upgrade",
+  "Onboarding.upgrade.support-sms.title": "Upgrade plan to use SMS",
+  "Onboarding.upgrade.support-sms.desc": "Add passwordless login and one-time-password via SMS for your app users by upgrading your plan later.",
+  
   "OnboardingCompletion.title": "Done",
   "OnboardingCompletion.desc": "You can always change these configuration in the portal, or configure an even more complicated authentication system.",
   "OnboardingCompletion.completion-message": "You just setup a full feature login, signup and setting page for your next app!",

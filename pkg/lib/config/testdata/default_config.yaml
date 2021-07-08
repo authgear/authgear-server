@@ -250,7 +250,6 @@ authentication:
     - password
   secondary_authenticators:
     - totp
-    - oob_otp_sms
   secondary_authentication_mode: if_exists
   device_token:
     expire_in_days: 30
