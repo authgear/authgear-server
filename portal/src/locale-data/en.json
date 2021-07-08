@@ -494,6 +494,9 @@
   "UISettingsScreen.default-post-logout-redirect-uri-label": "Post Logout Link",
   "UISettingsScreen.default-post-logout-redirect-uri-description": "If this link is provided, the user will be redirected after logout with non-OAuth flow.",
 
+  "UISettingsScreen.branding.title": "Authgear branding",
+  "UISettingsScreen.branding.disable-authgear-logo.label": "Display Authgear logo in Login and Signup page",
+
   "LocalizationConfigurationScreen.title": "Localization",
   "LocalizationConfigurationScreen.description": "Manage languages and template contents.",
   "LocalizationConfigurationScreen.template-content-title": "Manage Template Contents",
