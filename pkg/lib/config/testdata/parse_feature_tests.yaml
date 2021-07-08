@@ -48,6 +48,12 @@ config:
         wechat:
           disabled: true
 ---
+name: disable-custom-domain
+error: null
+config:
+  custom_domain:
+    disabled: true
+---
 name: free-plan-config
 error: null
 config:
@@ -66,3 +72,5 @@ config:
     secondary_authenticators:
       oob_otp_sms:
         disabled: true
+  custom_domain:
+    disabled: true
