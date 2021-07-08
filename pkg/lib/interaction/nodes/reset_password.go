@@ -40,7 +40,7 @@ type EdgeResetPassword struct{}
 func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var resetInput InputResetPassword
 	var codeInput InputResetPasswordByCode
-	if interaction.Input(rawInput, &resetInput) {
+	if interaction.AsInput(rawInput, &resetInput) {
 		userID := resetInput.GetResetPasswordUserID()
 		newPassword := resetInput.GetNewPassword()
 
@@ -54,7 +54,7 @@ func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interac
 			NewAuthenticator: newInfo,
 		}, nil
 
-	} else if interaction.Input(rawInput, &codeInput) {
+	} else if interaction.AsInput(rawInput, &codeInput) {
 		code := codeInput.GetCode()
 		newPassword := codeInput.GetNewPassword()
 

@@ -25,7 +25,7 @@ type EdgeUseIdentityAnonymous struct {
 
 func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityAnonymous
-	if !interaction.Input(rawInput, &input) {
+	if !interaction.AsInput(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

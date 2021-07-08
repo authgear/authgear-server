@@ -47,7 +47,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 		target = e.Target
 	} else {
 		var input InputCreateAuthenticatorOOBSetup
-		if !interaction.Input(rawInput, &input) {
+		if !interaction.AsInput(rawInput, &input) {
 			return nil, interaction.ErrIncompatibleInput
 		}
 		channel = input.GetOOBChannel()
@@ -161,7 +161,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	}
 
 	var skipInput interface{ SkipVerification() bool }
-	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
+	if interaction.AsInput(rawInput, &skipInput) && skipInput.SkipVerification() {
 		// Skip verification of OOB target
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}

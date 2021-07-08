@@ -16,7 +16,7 @@ type EdgeCreateIdentityEnd struct {
 func (e *EdgeCreateIdentityEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	byPassBlocklistAllowlist := false
 	var bypassInput interface{ BypassLoginIDEmailBlocklistAllowlist() bool }
-	if interaction.Input(rawInput, &bypassInput) {
+	if interaction.AsInput(rawInput, &bypassInput) {
 		byPassBlocklistAllowlist = bypassInput.BypassLoginIDEmailBlocklistAllowlist()
 	}
 

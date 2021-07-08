@@ -19,7 +19,7 @@ type EdgeEnsureVerificationBegin struct {
 func (e *EdgeEnsureVerificationBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	skipVerification := false
 	var skipInput interface{ SkipVerification() bool }
-	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
+	if interaction.AsInput(rawInput, &skipInput) && skipInput.SkipVerification() {
 		skipVerification = true
 	}
 

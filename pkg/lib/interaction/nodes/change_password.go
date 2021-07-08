@@ -56,7 +56,7 @@ type EdgeChangePassword struct {
 
 func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (node interaction.Node, err error) {
 	var input InputChangePassword
-	if !interaction.Input(rawInput, &input) {
+	if !interaction.AsInput(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

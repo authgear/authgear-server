@@ -23,7 +23,7 @@ type EdgeSelectIdentityEnd struct {
 func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	bypassRateLimit := false
 	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
-	if interaction.Input(input, &bypassInput) {
+	if interaction.AsInput(input, &bypassInput) {
 		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
 	}
 

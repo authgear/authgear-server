@@ -23,26 +23,26 @@ func TestInput(t *testing.T) {
 		var y interface{ Y() string }
 
 		a := inputA{}
-		So(interaction.Input(a, &x), ShouldBeTrue)
+		So(interaction.AsInput(a, &x), ShouldBeTrue)
 		So(x.X(), ShouldEqual, "X")
-		So(interaction.Input(a, &y), ShouldBeFalse)
+		So(interaction.AsInput(a, &y), ShouldBeFalse)
 
 		b := inputB{}
-		So(interaction.Input(b, &x), ShouldBeTrue)
+		So(interaction.AsInput(b, &x), ShouldBeTrue)
 		So(x.X(), ShouldEqual, "X")
-		So(interaction.Input(b, &y), ShouldBeTrue)
+		So(interaction.AsInput(b, &y), ShouldBeTrue)
 		So(y.Y(), ShouldEqual, "Y")
 	})
 
 	Convey("Input incompatible nil", t, func() {
 		var x interface{ X() string }
 		var a interface{} = nil
-		So(interaction.Input(a, &x), ShouldBeFalse)
+		So(interaction.AsInput(a, &x), ShouldBeFalse)
 	})
 
 	Convey("Input compatible nil", t, func() {
 		var x interface{ X() string }
 		var a interface{ X() string } = nil
-		So(interaction.Input(a, &x), ShouldBeFalse)
+		So(interaction.AsInput(a, &x), ShouldBeFalse)
 	})
 }

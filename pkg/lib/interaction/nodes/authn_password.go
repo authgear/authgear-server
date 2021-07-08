@@ -35,7 +35,7 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 	// we do not advance too far.
 	// That is, we do not check the given primary password against secondary password and report error.
 	var stageInput InputAuthenticationStage
-	if !interaction.Input(rawInput, &stageInput) {
+	if !interaction.AsInput(rawInput, &stageInput) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 	stage := stageInput.GetAuthenticationStage()
@@ -44,7 +44,7 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 	}
 
 	var passwordInput InputAuthenticationPassword
-	if !interaction.Input(rawInput, &passwordInput) {
+	if !interaction.AsInput(rawInput, &passwordInput) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

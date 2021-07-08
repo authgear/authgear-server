@@ -44,7 +44,7 @@ func (e *EdgeUseIdentityLoginID) GetIdentityCandidates() []identity.Candidate {
 
 func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityLoginID
-	if !interaction.Input(rawInput, &input) {
+	if !interaction.AsInput(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

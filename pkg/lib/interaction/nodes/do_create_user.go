@@ -22,7 +22,7 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 
 	bypassPublicSignupDisabled := false
 	var bypassPublicSignupDisabledInput interface{ BypassPublicSignupDisabled() bool }
-	if interaction.Input(rawInput, &bypassPublicSignupDisabledInput) && bypassPublicSignupDisabledInput.BypassPublicSignupDisabled() {
+	if interaction.AsInput(rawInput, &bypassPublicSignupDisabledInput) && bypassPublicSignupDisabledInput.BypassPublicSignupDisabled() {
 		bypassPublicSignupDisabled = true
 	}
 
@@ -33,7 +33,7 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 
 	bypassRateLimit := false
 	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
-	if interaction.Input(rawInput, &bypassInput) {
+	if interaction.AsInput(rawInput, &bypassInput) {
 		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
 	}
 

@@ -32,7 +32,7 @@ func (e *EdgeAuthenticationTOTP) IsDefaultAuthenticator() bool {
 
 func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationTOTP
-	if !interaction.Input(rawInput, &input) {
+	if !interaction.AsInput(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

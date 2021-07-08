@@ -22,13 +22,13 @@ type EdgeCreateAuthenticatorBegin struct {
 func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	skipMFASetup := false
 	var skipMFASetupInput interface{ SkipMFASetup() bool }
-	if interaction.Input(input, &skipMFASetupInput) {
+	if interaction.AsInput(input, &skipMFASetupInput) {
 		skipMFASetup = skipMFASetupInput.SkipMFASetup()
 	}
 
 	requestedByUser := false
 	var requestedByUserInput interface{ RequestedByUser() bool }
-	if interaction.Input(input, &requestedByUserInput) {
+	if interaction.AsInput(input, &requestedByUserInput) {
 		requestedByUser = requestedByUserInput.RequestedByUser()
 	}
 

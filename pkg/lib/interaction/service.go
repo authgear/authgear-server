@@ -148,7 +148,7 @@ func (s *Service) Run(webSessionID string, graph *Graph) (err error) {
 func (s *Service) Accept(ctx *Context, graph *Graph, input interface{}) (*Graph, []Edge, error) {
 	bypassRateLimit := false
 	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
-	if Input(input, &bypassInput) {
+	if AsInput(input, &bypassInput) {
 		bypassRateLimit = bypassInput.BypassInteractionIPRateLimit()
 	}
 

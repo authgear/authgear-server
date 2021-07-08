@@ -73,7 +73,7 @@ func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPChannel(idx int) authn.Authentic
 
 func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationOOBTrigger
-	if !interaction.Input(rawInput, &input) {
+	if !interaction.AsInput(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

@@ -27,7 +27,7 @@ type EdgeUseIdentityBiometric struct {
 
 func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityBiometric
-	if !interaction.Input(rawInput, &input) {
+	if !interaction.AsInput(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

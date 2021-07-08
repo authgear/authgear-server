@@ -19,7 +19,7 @@ type EdgeRemoveAuthenticator struct{}
 
 func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputRemoveAuthenticator
-	if !interaction.Input(rawInput, &input) {
+	if !interaction.AsInput(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
@@ -28,7 +28,7 @@ func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *i
 	authenticatorID := input.GetAuthenticatorID()
 	bypassMFARequirement := false
 	var bypassInput interface{ BypassMFARequirement() bool }
-	if interaction.Input(rawInput, &bypassInput) {
+	if interaction.AsInput(rawInput, &bypassInput) {
 		bypassMFARequirement = bypassInput.BypassMFARequirement()
 	}
 

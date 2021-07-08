@@ -24,7 +24,7 @@ type EdgeCreateAuthenticatorTOTP struct {
 
 func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputCreateAuthenticatorTOTP
-	if !interaction.Input(rawInput, &input) {
+	if !interaction.AsInput(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
