@@ -456,6 +456,7 @@ export interface PortalAPIApp {
 export interface PortalAPIFeatureConfig {
   identity?: IdentityFeatureConfig;
   authentication?: AuthenticationFeatureConfig;
+  custom_domain?: CustomDomainFeatureConfig;
 }
 
 export interface AuthenticationFeatureConfig {
@@ -502,5 +503,9 @@ export interface OAuthSSOProvidersFeatureConfig {
 }
 
 export interface OAuthSSOProviderFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface CustomDomainFeatureConfig {
   disabled?: boolean;
 }
