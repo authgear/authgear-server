@@ -9,6 +9,7 @@ var _ = Schema.Add("UIConfig", `
 	"properties": {
 		"country_calling_code": { "$ref": "#/$defs/UICountryCallingCodeConfig" },
 		"dark_theme_disabled": { "type": "boolean" },
+		"watermark_disabled": { "type": "boolean" },
 		"default_client_uri": { "type": "string", "format": "uri" },
 		"default_redirect_uri": { "type": "string", "format": "uri" },
 		"default_post_logout_redirect_uri": { "type": "string", "format": "uri" }
@@ -19,6 +20,7 @@ var _ = Schema.Add("UIConfig", `
 type UIConfig struct {
 	CountryCallingCode *UICountryCallingCodeConfig `json:"country_calling_code,omitempty"`
 	DarkThemeDisabled  bool                        `json:"dark_theme_disabled,omitempty"`
+	WatermarkDisabled  bool                        `json:"watermark_disabled,omitempty"`
 	// client_uri to use when client_id is absent.
 	DefaultClientURI string `json:"default_client_uri,omitempty"`
 	// redirect_uri to use when client_id is absent.
