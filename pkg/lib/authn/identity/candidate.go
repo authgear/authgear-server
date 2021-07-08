@@ -1,6 +1,8 @@
 package identity
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -47,5 +49,26 @@ func NewLoginIDCandidate(c *config.LoginIDKeyConfig) Candidate {
 		CandidateKeyLoginIDValue:   "",
 		CandidateKeyDisplayID:      "",
 		CandidateKeyModifyDisabled: *c.ModifyDisabled,
+	}
+}
+
+func IsOAuthSSOProviderTypeDisabled(typ config.OAuthSSOProviderType, featureConfig *config.OAuthSSOProvidersFeatureConfig) bool {
+	switch typ {
+	case config.OAuthSSOProviderTypeGoogle:
+		return featureConfig.Google.Disabled
+	case config.OAuthSSOProviderTypeFacebook:
+		return featureConfig.Facebook.Disabled
+	case config.OAuthSSOProviderTypeLinkedIn:
+		return featureConfig.LinkedIn.Disabled
+	case config.OAuthSSOProviderTypeAzureADv2:
+		return featureConfig.Azureadv2.Disabled
+	case config.OAuthSSOProviderTypeADFS:
+		return featureConfig.ADFS.Disabled
+	case config.OAuthSSOProviderTypeApple:
+		return featureConfig.Apple.Disabled
+	case config.OAuthSSOProviderTypeWechat:
+		return featureConfig.Wechat.Disabled
+	default:
+		panic(fmt.Sprintf("node: unknown oauth sso type: %T", typ))
 	}
 }
