@@ -139,6 +139,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := configConfig.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -193,13 +195,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -490,7 +493,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator:  coordinator,
 	}
 	interactionLogger := interaction.NewLogger(factory)
-	featureConfig := configConfig.FeatureConfig
 	webEndpoints := &WebEndpoints{}
 	messageSender := &otp.MessageSender{
 		Translation: translationService,

@@ -72,13 +72,14 @@ type BiometricIdentityProvider interface {
 }
 
 type Service struct {
-	Authentication *config.AuthenticationConfig
-	Identity       *config.IdentityConfig
-	Store          *Store
-	LoginID        LoginIDIdentityProvider
-	OAuth          OAuthIdentityProvider
-	Anonymous      AnonymousIdentityProvider
-	Biometric      BiometricIdentityProvider
+	Authentication        *config.AuthenticationConfig
+	Identity              *config.IdentityConfig
+	IdentityFeatureConfig *config.IdentityFeatureConfig
+	Store                 *Store
+	LoginID               LoginIDIdentityProvider
+	OAuth                 OAuthIdentityProvider
+	Anonymous             AnonymousIdentityProvider
+	Biometric             BiometricIdentityProvider
 }
 
 func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -495,6 +496,9 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 		case authn.IdentityTypeOAuth:
 			for _, providerConfig := range s.Identity.OAuth.Providers {
 				pc := providerConfig
+				if identity.IsOAuthSSOProviderTypeDisabled(pc.Type, s.IdentityFeatureConfig.OAuth.Providers) {
+					continue
+				}
 				configProviderID := pc.ProviderID()
 				candidate := identity.NewOAuthCandidate(&pc)
 				matched := false
