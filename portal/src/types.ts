@@ -472,6 +472,7 @@ export interface AuthenticatorOOBOTBSMSFeatureConfig {
 
 export interface IdentityFeatureConfig {
   login_id?: LoginIDFeatureConfig;
+  oauth?: OAuthSSOFeatureConfig;
 }
 
 export interface LoginIDFeatureConfig {
@@ -483,5 +484,23 @@ export interface LoginIDTypesFeatureConfig {
 }
 
 export interface LoginIDPhoneFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface OAuthSSOFeatureConfig {
+  providers?: OAuthSSOProvidersFeatureConfig;
+}
+
+export interface OAuthSSOProvidersFeatureConfig {
+  google?: OAuthSSOProviderConfig;
+  facebook?: OAuthSSOProviderConfig;
+  linkedin?: OAuthSSOProviderConfig;
+  azureadv2?: OAuthSSOProviderConfig;
+  adfs?: OAuthSSOProviderConfig;
+  apple?: OAuthSSOProviderConfig;
+  wechat?: OAuthSSOProviderConfig;
+}
+
+export interface OAuthSSOProviderFeatureConfig {
   disabled?: boolean;
 }
