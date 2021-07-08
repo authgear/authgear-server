@@ -44,12 +44,13 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./CustomDomainListScreen.module.scss";
-import { PortalAPIAppConfig } from "../../types";
+import { CustomDomainFeatureConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme
@@ -470,6 +471,7 @@ const UpdatePublicOriginDialog: React.FC<UpdatePublicOriginDialogProps> =
 interface CustomDomainListContentProps {
   domains: Domain[];
   appConfigForm: AppConfigFormModel<FormState>;
+  featureConfig?: CustomDomainFeatureConfig;
 }
 
 const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
@@ -485,6 +487,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
         reset,
         updateError,
       },
+      featureConfig,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -627,17 +630,24 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
       [onDeleteClick, onSetPublicOriginClick]
     );
 
+    const customDomainDisabled = useMemo(() => {
+      return featureConfig?.disabled ?? false;
+    }, [featureConfig]);
+
     const renderDomainListHeader = useCallback<
       Required<IDetailsListProps>["onRenderDetailsHeader"]
-    >((props, defaultRenderer) => {
-      const defaultHeaderNode = defaultRenderer?.(props) ?? null;
-      return (
-        <>
-          {defaultHeaderNode}
-          <AddDomainSection />
-        </>
-      );
-    }, []);
+    >(
+      (props, defaultRenderer) => {
+        const defaultHeaderNode = defaultRenderer?.(props) ?? null;
+        return (
+          <>
+            {defaultHeaderNode}
+            {!customDomainDisabled && <AddDomainSection />}
+          </>
+        );
+      },
+      [customDomainDisabled]
+    );
 
     return (
       <div className={styles.content}>
@@ -645,6 +655,16 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
         <Text className={styles.description}>
           <FormattedMessage id="CustomDomainListScreen.desc" />
         </Text>
+        {customDomainDisabled && (
+          <MessageBar>
+            <FormattedMessage
+              id="FeatureConfig.custom-domain.disabled"
+              values={{
+                HREF: "../settings/subscription",
+              }}
+            />
+          </MessageBar>
+        )}
         <DetailsList
           columns={domainListColumns}
           items={domainListItems}
@@ -686,6 +706,8 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
 
   const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
+  const featureConfig = useAppFeatureConfigQuery(appID);
+
   const isVerifySuccessMessageVisible = useMemo(() => {
     const verify = searchParams.get("verify");
     return verify === "success";
@@ -695,7 +717,7 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
     navigate(".", { replace: true });
   }, [navigate]);
 
-  if (fetchingDomains || form.isLoading) {
+  if (fetchingDomains || form.isLoading || featureConfig.loading) {
     return <ShowLoading />;
   }
 
@@ -705,6 +727,17 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
 
   if (form.loadError) {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
+  }
+
+  if (featureConfig.error) {
+    return (
+      <ShowError
+        error={featureConfig.error}
+        onRetry={() => {
+          featureConfig.refetch().finally(() => {});
+        }}
+      />
+    );
   }
 
   return (
@@ -719,7 +752,11 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
       >
         <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
       </MessageBar>
-      <CustomDomainListContent domains={domains ?? []} appConfigForm={form} />
+      <CustomDomainListContent
+        domains={domains ?? []}
+        appConfigForm={form}
+        featureConfig={featureConfig.effectiveFeatureConfig?.custom_domain}
+      />
     </main>
   );
 };
