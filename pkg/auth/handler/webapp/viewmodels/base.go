@@ -35,6 +35,7 @@ type BaseViewModel struct {
 	Translations        TranslationService
 	StaticAssetURL      func(id string) (url string)
 	DarkThemeEnabled    bool
+	WatermarkEnabled    bool
 	CountryCallingCodes []string
 	// ClientURI is the home page of the client.
 	ClientURI             string
@@ -131,6 +132,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			return
 		},
 		DarkThemeEnabled:    !m.AuthUI.DarkThemeDisabled,
+		WatermarkEnabled:    !m.AuthUI.WatermarkDisabled,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
 		ClientURI:           clientURI,
 		ClientName:          clientName,
