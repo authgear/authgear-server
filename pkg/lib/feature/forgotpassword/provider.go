@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -71,6 +72,7 @@ type Provider struct {
 	Identities     IdentityService
 	Authenticators AuthenticatorService
 	RateLimiter    RateLimiter
+	FeatureConfig  *config.FeatureConfig
 }
 
 // SendCode checks if loginID is an existing login ID.
@@ -191,6 +193,11 @@ func (p *Provider) sendEmail(email string, code string) error {
 }
 
 func (p *Provider) sendSMS(phone string, code string) (err error) {
+	fc := p.FeatureConfig
+	if fc.Identity.LoginID.Types.Phone.Disabled {
+		return feature.ErrFeatureDisabledSendingSMS
+	}
+
 	u := p.URLs.ResetPasswordURL(code)
 
 	data := TemplateData{

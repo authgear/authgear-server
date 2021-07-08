@@ -532,6 +532,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
