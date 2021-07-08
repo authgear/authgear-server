@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 )
@@ -71,11 +72,11 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		switch p.Stage {
 		case authn.AuthenticationStagePrimary:
 			if fc.Identity.LoginID.Types.Phone.Disabled {
-				return nil, oob.ErrFeatureDisabledSendingSMS
+				return nil, feature.ErrFeatureDisabledSendingSMS
 			}
 		case authn.AuthenticationStageSecondary:
 			if fc.Authentication.SecondaryAuthenticators.OOBOTPSMS.Disabled {
-				return nil, oob.ErrFeatureDisabledSendingSMS
+				return nil, feature.ErrFeatureDisabledSendingSMS
 			}
 		}
 	}
