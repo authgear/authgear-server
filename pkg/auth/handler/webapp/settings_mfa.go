@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -85,7 +86,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			authn.AuthenticatorTypePassword,
 		)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interaction.Input, err error) {
 			return &InputCreateAuthenticator{}, nil
 		})
 		if err != nil {
@@ -102,7 +103,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		intent := intents.NewIntentRemoveAuthenticator(userID)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interaction.Input, err error) {
 			return &InputRemoveAuthenticator{
 				Type: authn.AuthenticatorTypePassword,
 				ID:   authenticatorID,
@@ -126,7 +127,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			authn.AuthenticatorTypeTOTP,
 		)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interaction.Input, err error) {
 			input = &InputCreateAuthenticator{}
 			return
 		})
@@ -148,7 +149,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			authn.AuthenticatorTypeOOBEmail,
 		)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interaction.Input, err error) {
 			input = &InputCreateAuthenticator{}
 			return
 		})
@@ -170,7 +171,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			authn.AuthenticatorTypeOOBSMS,
 		)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interaction.Input, err error) {
 			input = &InputCreateAuthenticator{}
 			return
 		})

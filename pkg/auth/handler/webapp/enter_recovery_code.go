@@ -92,7 +92,7 @@ func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	})
 
 	ctrl.PostAction("", func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(func() (input interaction.Input, err error) {
 			err = EnterRecoveryCodeSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return

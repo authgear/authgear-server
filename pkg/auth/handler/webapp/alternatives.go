@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
 func handleAlternativeSteps(ctrl *Controller) {
@@ -15,7 +16,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 
 		stepKind := webapp.SessionStepKind(ctrl.request.Form.Get("x_step_kind"))
 		var choiceStep webapp.SessionStepKind
-		var inputFn func() (interface{}, error)
+		var inputFn func() (interaction.Input, error)
 		switch stepKind {
 		case webapp.SessionStepEnterTOTP,
 			webapp.SessionStepEnterPassword,
@@ -34,7 +35,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 		case webapp.SessionStepSetupTOTP:
 			// Generate TOTP secret.
 			choiceStep = webapp.SessionStepCreateAuthenticator
-			inputFn = func() (interface{}, error) {
+			inputFn = func() (interaction.Input, error) {
 				return &InputSelectTOTP{}, nil
 			}
 
@@ -53,7 +54,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 			if err != nil {
 				index = 0
 			}
-			inputFn = func() (interface{}, error) {
+			inputFn = func() (interaction.Input, error) {
 				return &InputTriggerOOB{
 					AuthenticatorType:  ctrl.request.Form.Get("x_authenticator_type"),
 					AuthenticatorIndex: index,

@@ -84,7 +84,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("", func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(func() (input interaction.Input, err error) {
 			err = EnterTOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return

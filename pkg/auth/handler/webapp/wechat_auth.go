@@ -126,7 +126,7 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					ErrorDescription: step.FormData["x_error_description"].(string),
 				}
 
-				result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+				result, err := ctrl.InteractionPost(func() (input interaction.Input, err error) {
 					input = &data
 					return
 				})

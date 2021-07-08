@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -35,7 +36,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	handler := func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(func() (input interaction.Input, err error) {
 			input = &data
 			return
 		})

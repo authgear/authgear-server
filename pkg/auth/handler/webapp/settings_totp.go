@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -84,7 +85,7 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}
 		intent := intents.NewIntentRemoveAuthenticator(userID)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interaction.Input, err error) {
 			input = &InputRemoveAuthenticator{
 				Type: authn.AuthenticatorTypeTOTP,
 				ID:   authenticatorID,
@@ -109,7 +110,7 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			authn.AuthenticatorTypeTOTP,
 		)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interaction.Input, err error) {
 			input = &InputCreateAuthenticator{}
 			return
 		})

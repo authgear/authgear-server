@@ -143,7 +143,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 						WebhookState: webSession.WebhookState,
 						UserIDHint:   userIDHint,
 					}
-					result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+					result, err := ctrl.EntryPointPost(opts, intent, func() (input interaction.Input, err error) {
 						return nil, nil
 					})
 					if err != nil {

@@ -165,7 +165,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	verificationCodeID := r.Form.Get("id")
 	intent := intents.NewIntentVerifyIdentityResume(verificationCodeID)
 
-	inputFn := func() (input interface{}, err error) {
+	inputFn := func() (input interaction.Input, err error) {
 		err = VerifyIdentitySchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return
@@ -253,7 +253,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	})
 
 	ctrl.PostAction("resend", func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(func() (input interaction.Input, err error) {
 			input = &InputResendCode{}
 			return
 		})

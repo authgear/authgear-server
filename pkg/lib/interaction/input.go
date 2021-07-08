@@ -4,6 +4,10 @@ import (
 	"reflect"
 )
 
+type Input interface {
+	IsInteractive() bool
+}
+
 func AsInput(i interface{}, input interface{}) bool {
 	if i == nil {
 		return false

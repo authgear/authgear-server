@@ -6,14 +6,14 @@ type InteractionGraphService interface {
 	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
 	DryRun(webStateID string, fn func(*interaction.Context) (*interaction.Graph, error)) error
 	Run(webStateID string, graph *interaction.Graph) error
-	Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
+	Accept(ctx *interaction.Context, graph *interaction.Graph, input interaction.Input) (*interaction.Graph, []interaction.Edge, error)
 }
 
 type InteractionService struct {
 	Graph InteractionGraphService
 }
 
-func (s *InteractionService) Perform(intent interaction.Intent, input interface{}) (*interaction.Graph, error) {
+func (s *InteractionService) Perform(intent interaction.Intent, input interaction.Input) (*interaction.Graph, error) {
 	// TODO(admin): how to assign a state ID?
 	stateID := ""
 	var graph *interaction.Graph

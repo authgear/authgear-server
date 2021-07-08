@@ -10,7 +10,7 @@ import (
 )
 
 type InteractionService interface {
-	Perform(intent interaction.Intent, input interface{}) (*interaction.Graph, error)
+	Perform(intent interaction.Intent, input interaction.Input) (*interaction.Graph, error)
 }
 
 // adminAPIOp represents common characteristics applicable to Admin API operations.
@@ -60,6 +60,7 @@ type removeIdentityInput struct {
 	identityInfo *identity.Info
 }
 
+var _ interaction.Input = &removeIdentityInput{}
 var _ nodes.InputRemoveIdentity = &removeIdentityInput{}
 
 func (i *removeIdentityInput) GetIdentityType() authn.IdentityType {
@@ -68,21 +69,26 @@ func (i *removeIdentityInput) GetIdentityType() authn.IdentityType {
 func (i *removeIdentityInput) GetIdentityID() string {
 	return i.identityInfo.ID
 }
+func (*removeIdentityInput) IsInteractive() bool { return false }
 
 type addIdentityInput struct {
 	adminAPIOp
 	identityDef model.IdentityDef
 }
 
+var _ interaction.Input = &addIdentityInput{}
+
 func (i *addIdentityInput) Input() interface{} {
 	return i.identityDef
 }
+func (*addIdentityInput) IsInteractive() bool { return false }
 
 type removeAuthenticatorInput struct {
 	adminAPIOp
 	authenticatorInfo *authenticator.Info
 }
 
+var _ interaction.Input = &removeAuthenticatorInput{}
 var _ nodes.InputRemoveAuthenticator = &removeAuthenticatorInput{}
 
 func (i *removeAuthenticatorInput) GetAuthenticatorType() authn.AuthenticatorType {
@@ -91,6 +97,7 @@ func (i *removeAuthenticatorInput) GetAuthenticatorType() authn.AuthenticatorTyp
 func (i *removeAuthenticatorInput) GetAuthenticatorID() string {
 	return i.authenticatorInfo.ID
 }
+func (*removeAuthenticatorInput) IsInteractive() bool { return false }
 
 type addPasswordInput struct {
 	adminAPIOp
@@ -98,8 +105,11 @@ type addPasswordInput struct {
 	password string
 }
 
+var _ interaction.Input = &addPasswordInput{}
 var _ nodes.InputCreateAuthenticatorPassword = &addPasswordInput{}
 var _ nodes.InputAuthenticationStage = &addPasswordInput{}
+
+func (*addPasswordInput) IsInteractive() bool { return false }
 
 func (i *addPasswordInput) GetPassword() string {
 	return i.password
@@ -118,7 +128,10 @@ type resetPasswordInput struct {
 	password string
 }
 
+var _ interaction.Input = &resetPasswordInput{}
 var _ nodes.InputResetPassword = &resetPasswordInput{}
+
+func (*resetPasswordInput) IsInteractive() bool { return false }
 
 func (i *resetPasswordInput) GetResetPasswordUserID() string {
 	return i.userID
@@ -133,9 +146,11 @@ type createUserInput struct {
 	password    string
 }
 
+var _ interaction.Input = &createUserInput{}
 var _ nodes.InputCreateAuthenticatorPassword = &createUserInput{}
 var _ nodes.InputAuthenticationStage = &createUserInput{}
 
+func (*createUserInput) IsInteractive() bool { return false }
 func (i *createUserInput) GetPassword() string {
 	return i.password
 }

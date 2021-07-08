@@ -24,11 +24,11 @@ type PageService interface {
 	PostWithIntent(
 		session *webapp.Session,
 		intent interaction.Intent,
-		inputFn func() (interface{}, error),
+		inputFn func() (interaction.Input, error),
 	) (result *webapp.Result, err error)
 	PostWithInput(
 		session *webapp.Session,
-		inputFn func() (interface{}, error),
+		inputFn func() (interaction.Input, error),
 	) (result *webapp.Result, err error)
 }
 
@@ -208,7 +208,7 @@ func (c *Controller) EntryPointGet(
 func (c *Controller) EntryPointPost(
 	opts webapp.SessionOptions,
 	intent interaction.Intent,
-	inputFn func() (interface{}, error),
+	inputFn func() (interaction.Input, error),
 ) (*webapp.Result, error) {
 	return c.Page.PostWithIntent(c.EntryPointSession(opts), intent, inputFn)
 }
@@ -270,7 +270,7 @@ func (c *Controller) InteractionGetWithSession(s *webapp.Session) (*interaction.
 	return c.Page.Get(s)
 }
 
-func (c *Controller) InteractionPost(inputFn func() (interface{}, error)) (*webapp.Result, error) {
+func (c *Controller) InteractionPost(inputFn func() (interaction.Input, error)) (*webapp.Result, error) {
 	s, err := c.InteractionSession()
 	if err != nil {
 		return nil, err

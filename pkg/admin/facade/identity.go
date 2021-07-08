@@ -54,7 +54,7 @@ func (f *IdentityFacade) Remove(identityInfo *identity.Info) error {
 }
 
 func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*identity.Ref, error) {
-	var input interface{} = &addIdentityInput{identityDef: identityDef}
+	var input interaction.Input = &addIdentityInput{identityDef: identityDef}
 	if password != "" {
 		input = &addPasswordInput{inner: input, password: password}
 	}

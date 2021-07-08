@@ -105,7 +105,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	})
 
 	ctrl.PostAction("proceed", func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(func() (input interaction.Input, err error) {
 			input = &InputSetupRecoveryCode{}
 			return
 		})

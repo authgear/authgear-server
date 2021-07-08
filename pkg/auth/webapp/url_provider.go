@@ -87,11 +87,14 @@ type AuthenticateURLOptions struct {
 
 type PageService interface {
 	CreateSession(session *Session, redirectURI string) (*Result, error)
-	PostWithIntent(session *Session, intent interaction.Intent, inputFn func() (interface{}, error)) (*Result, error)
+	PostWithIntent(session *Session, intent interaction.Intent, inputFn func() (interaction.Input, error)) (*Result, error)
 }
 
 type anonymousTokenInput struct{ JWT string }
 
+var _ interaction.Input = &anonymousTokenInput{}
+
+func (*anonymousTokenInput) IsInteractive() bool                { return false }
 func (i *anonymousTokenInput) GetAnonymousRequestToken() string { return i.JWT }
 
 type AuthenticateURLProvider struct {
@@ -143,7 +146,7 @@ func (p *AuthenticateURLProvider) handleHint(
 		switch hint.Request.Action {
 		case anonymous.RequestActionPromote:
 			intent := interactionintents.NewIntentPromote()
-			inputer := func() (interface{}, error) {
+			inputer := func() (interaction.Input, error) {
 				return &anonymousTokenInput{JWT: hint.JWT}, nil
 			}
 			return p.Pages.PostWithIntent(session, intent, inputer)

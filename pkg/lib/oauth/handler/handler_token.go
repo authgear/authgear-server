@@ -336,6 +336,9 @@ type anonymousTokenInput struct {
 	JWT string
 }
 
+var _ interaction.Input = &anonymousTokenInput{}
+
+func (*anonymousTokenInput) IsInteractive() bool { return false }
 func (i *anonymousTokenInput) GetAnonymousRequestToken() string {
 	return i.JWT
 }
@@ -464,6 +467,9 @@ type biometricInput struct {
 	JWT string
 }
 
+var _ interaction.Input = &biometricInput{}
+
+func (*biometricInput) IsInteractive() bool { return false }
 func (i *biometricInput) GetBiometricRequestToken() string {
 	return i.JWT
 }
