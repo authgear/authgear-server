@@ -27,6 +27,27 @@ config:
         phone:
           disabled: true
 ---
+name: disable-identity-sso-providers
+error: null
+config:
+  identity:
+    oauth:
+      providers:
+        google:
+          disabled: true
+        facebook:
+          disabled: true
+        linkedin:
+          disabled: true
+        azureadv2:
+          disabled: true
+        adfs:
+          disabled: true
+        apple:
+          disabled: true
+        wechat:
+          disabled: true
+---
 name: free-plan-config
 error: null
 config:
@@ -34,6 +55,12 @@ config:
     login_id:
       types:
         phone:
+          disabled: true
+    oauth:
+      providers:
+        azureadv2:
+          disabled: true
+        adfs:
           disabled: true
   authentication:
     secondary_authenticators:
