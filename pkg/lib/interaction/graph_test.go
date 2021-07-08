@@ -1,6 +1,7 @@
 package interaction
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -12,16 +13,27 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
+type input1 struct{}
+
+func (input1) IsInteractive() bool { return false }
+
+type input2 struct{}
+
+func (input2) IsInteractive() bool { return false }
+
+type input3 struct{}
+
+func (input3) IsInteractive() bool { return false }
+
+type input4 struct{}
+
+func (input4) IsInteractive() bool { return false }
+
 func TestGraph(t *testing.T) {
 	Convey("Graph.accept", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 		any := gomock.Any()
-
-		type input1 struct{}
-		type input2 struct{}
-		type input3 struct{}
-		type input4 struct{}
 
 		// A --> B --> D
 		//  |    ^
@@ -38,7 +50,7 @@ func TestGraph(t *testing.T) {
 		edgeE := NewMockEdge(ctrl)
 
 		ctx := &Context{}
-		g := &Graph{Nodes: []Node{nodeA}}
+		g := &Graph{AnnotatedNodes: []AnnotatedNode{AnnotatedNode{Node: nodeA}}}
 
 		nodeA.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
 		nodeA.EXPECT().DeriveEdges(any).AnyTimes().Return(
@@ -95,27 +107,27 @@ func TestGraph(t *testing.T) {
 			nodeB.EXPECT().GetEffects()
 			graph, edges, err := g.accept(ctx, input1{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
-			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeB})
+			So(graph.AnnotatedNodes, ShouldResemble, []AnnotatedNode{AnnotatedNode{Node: nodeA}, AnnotatedNode{Node: nodeB}})
 			So(edges, ShouldResemble, []Edge{edgeD})
 
 			nodeB.EXPECT().GetEffects()
 			nodeD.EXPECT().GetEffects()
 			graph, edges, err = g.accept(ctx, input2{})
 			So(err, ShouldBeNil)
-			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeB, nodeD})
+			So(graph.AnnotatedNodes, ShouldResemble, []AnnotatedNode{AnnotatedNode{Node: nodeA}, AnnotatedNode{Node: nodeB}, AnnotatedNode{Node: nodeD}})
 			So(edges, ShouldResemble, []Edge{})
 
 			nodeC.EXPECT().GetEffects()
 			graph, edges, err = g.accept(ctx, input3{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
-			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
+			So(graph.AnnotatedNodes, ShouldResemble, []AnnotatedNode{AnnotatedNode{Node: nodeA}, AnnotatedNode{Node: nodeC}})
 			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
 			nodeB.EXPECT().GetEffects()
 			nodeD.EXPECT().GetEffects()
 			graph, edges, err = graph.accept(ctx, input2{})
 			So(err, ShouldBeNil)
-			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC, nodeB, nodeD})
+			So(graph.AnnotatedNodes, ShouldResemble, []AnnotatedNode{AnnotatedNode{Node: nodeA}, AnnotatedNode{Node: nodeC}, AnnotatedNode{Node: nodeB}, AnnotatedNode{Node: nodeD}})
 			So(edges, ShouldResemble, []Edge{})
 		})
 
@@ -125,19 +137,19 @@ func TestGraph(t *testing.T) {
 			nodeC.EXPECT().GetEffects()
 			graph, edges, err := g.accept(ctx, input3{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
-			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
+			So(graph.AnnotatedNodes, ShouldResemble, []AnnotatedNode{AnnotatedNode{Node: nodeA}, AnnotatedNode{Node: nodeC}})
 			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
 			graph, edges, err = graph.accept(ctx, input4{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
-			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
+			So(graph.AnnotatedNodes, ShouldResemble, []AnnotatedNode{AnnotatedNode{Node: nodeA}, AnnotatedNode{Node: nodeC}})
 			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
 			nodeB.EXPECT().GetEffects()
 			nodeD.EXPECT().GetEffects()
 			graph, edges, err = graph.accept(ctx, input2{})
 			So(err, ShouldBeNil)
-			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC, nodeB, nodeD})
+			So(graph.AnnotatedNodes, ShouldResemble, []AnnotatedNode{AnnotatedNode{Node: nodeA}, AnnotatedNode{Node: nodeC}, AnnotatedNode{Node: nodeB}, AnnotatedNode{Node: nodeD}})
 			So(edges, ShouldResemble, []Edge{})
 		})
 	})
@@ -182,11 +194,13 @@ func TestGraphGetAMR(t *testing.T) {
 
 		// password
 		graph = &Graph{
-			Nodes: []Node{
-				&testGraphGetAMRnode{
-					Stage: authn.AuthenticationStagePrimary,
-					Authenticator: &authenticator.Info{
-						Type: authn.AuthenticatorTypePassword,
+			AnnotatedNodes: []AnnotatedNode{
+				AnnotatedNode{
+					Node: &testGraphGetAMRnode{
+						Stage: authn.AuthenticationStagePrimary,
+						Authenticator: &authenticator.Info{
+							Type: authn.AuthenticatorTypePassword,
+						},
 					},
 				},
 			},
@@ -196,12 +210,14 @@ func TestGraphGetAMR(t *testing.T) {
 
 		// oob
 		graph = &Graph{
-			Nodes: []Node{
-				&testGraphGetAMRnode{
-					Stage: authn.AuthenticationStagePrimary,
-					Authenticator: &authenticator.Info{
-						Type:   authn.AuthenticatorTypeOOBSMS,
-						Claims: map[string]interface{}{},
+			AnnotatedNodes: []AnnotatedNode{
+				AnnotatedNode{
+					Node: &testGraphGetAMRnode{
+						Stage: authn.AuthenticationStagePrimary,
+						Authenticator: &authenticator.Info{
+							Type:   authn.AuthenticatorTypeOOBSMS,
+							Claims: map[string]interface{}{},
+						},
 					},
 				},
 			},
@@ -211,18 +227,22 @@ func TestGraphGetAMR(t *testing.T) {
 
 		// password + email oob
 		graph = &Graph{
-			Nodes: []Node{
-				&testGraphGetAMRnode{
-					Stage: authn.AuthenticationStagePrimary,
-					Authenticator: &authenticator.Info{
-						Type: authn.AuthenticatorTypePassword,
+			AnnotatedNodes: []AnnotatedNode{
+				AnnotatedNode{
+					Node: &testGraphGetAMRnode{
+						Stage: authn.AuthenticationStagePrimary,
+						Authenticator: &authenticator.Info{
+							Type: authn.AuthenticatorTypePassword,
+						},
 					},
 				},
-				&testGraphGetAMRnode{
-					Stage: authn.AuthenticationStageSecondary,
-					Authenticator: &authenticator.Info{
-						Type:   authn.AuthenticatorTypeOOBEmail,
-						Claims: map[string]interface{}{},
+				AnnotatedNode{
+					Node: &testGraphGetAMRnode{
+						Stage: authn.AuthenticationStageSecondary,
+						Authenticator: &authenticator.Info{
+							Type:   authn.AuthenticatorTypeOOBEmail,
+							Claims: map[string]interface{}{},
+						},
 					},
 				},
 			},
@@ -232,18 +252,22 @@ func TestGraphGetAMR(t *testing.T) {
 
 		// password + SMS oob
 		graph = &Graph{
-			Nodes: []Node{
-				&testGraphGetAMRnode{
-					Stage: authn.AuthenticationStagePrimary,
-					Authenticator: &authenticator.Info{
-						Type: authn.AuthenticatorTypePassword,
+			AnnotatedNodes: []AnnotatedNode{
+				AnnotatedNode{
+					Node: &testGraphGetAMRnode{
+						Stage: authn.AuthenticationStagePrimary,
+						Authenticator: &authenticator.Info{
+							Type: authn.AuthenticatorTypePassword,
+						},
 					},
 				},
-				&testGraphGetAMRnode{
-					Stage: authn.AuthenticationStageSecondary,
-					Authenticator: &authenticator.Info{
-						Type:   authn.AuthenticatorTypeOOBSMS,
-						Claims: map[string]interface{}{},
+				AnnotatedNode{
+					Node: &testGraphGetAMRnode{
+						Stage: authn.AuthenticationStageSecondary,
+						Authenticator: &authenticator.Info{
+							Type:   authn.AuthenticatorTypeOOBSMS,
+							Claims: map[string]interface{}{},
+						},
 					},
 				},
 			},
@@ -253,11 +277,13 @@ func TestGraphGetAMR(t *testing.T) {
 
 		// oauth + totp
 		graph = &Graph{
-			Nodes: []Node{
-				&testGraphGetAMRnode{
-					Stage: authn.AuthenticationStageSecondary,
-					Authenticator: &authenticator.Info{
-						Type: authn.AuthenticatorTypeTOTP,
+			AnnotatedNodes: []AnnotatedNode{
+				AnnotatedNode{
+					Node: &testGraphGetAMRnode{
+						Stage: authn.AuthenticationStageSecondary,
+						Authenticator: &authenticator.Info{
+							Type: authn.AuthenticatorTypeTOTP,
+						},
 					},
 				},
 			},
@@ -267,10 +293,12 @@ func TestGraphGetAMR(t *testing.T) {
 
 		// biometric
 		graph = &Graph{
-			Nodes: []Node{
-				&testGraphGetAMRnode{
-					Identity: &identity.Info{
-						Type: authn.IdentityTypeBiometric,
+			AnnotatedNodes: []AnnotatedNode{
+				AnnotatedNode{
+					Node: &testGraphGetAMRnode{
+						Identity: &identity.Info{
+							Type: authn.IdentityTypeBiometric,
+						},
 					},
 				},
 			},
@@ -299,7 +327,17 @@ func TestGraphFindLastNode(t *testing.T) {
 		nodeB := &findNodeB{}
 		nodeC := &findNodeC{}
 		graph := &Graph{
-			Nodes: []Node{nodeA, nodeB, nodeC},
+			AnnotatedNodes: []AnnotatedNode{
+				AnnotatedNode{
+					Node: nodeA,
+				},
+				AnnotatedNode{
+					Node: nodeB,
+				},
+				AnnotatedNode{
+					Node: nodeC,
+				},
+			},
 		}
 
 		var a interface{ A() }
@@ -316,5 +354,111 @@ func TestGraphFindLastNode(t *testing.T) {
 
 		var d interface{ D() }
 		So(graph.FindLastNode(&d), ShouldBeFalse)
+	})
+}
+
+type testNodeJSONEncoding struct {
+	Str string
+}
+
+func (n *testNodeJSONEncoding) Prepare(ctx *Context, graph *Graph) error {
+	return nil
+}
+func (n *testNodeJSONEncoding) GetEffects() ([]Effect, error) {
+	return nil, nil
+}
+func (n *testNodeJSONEncoding) DeriveEdges(graph *Graph) ([]Edge, error) {
+	return nil, nil
+}
+
+type testIntentJSONEncoding struct {
+	Str string
+}
+
+func (i *testIntentJSONEncoding) InstantiateRootNode(ctx *Context, graph *Graph) (Node, error) {
+	return nil, nil
+}
+
+func (i *testIntentJSONEncoding) DeriveEdgesForNode(graph *Graph, node Node) ([]Edge, error) {
+	return nil, nil
+}
+
+func TestGraphJSONEncoding(t *testing.T) {
+	RegisterNode(&testNodeJSONEncoding{})
+	RegisterIntent(&testIntentJSONEncoding{})
+
+	Convey("Graph JSON encoding", t, func() {
+
+		Convey("graph with annotated nodes", func() {
+			g := &Graph{
+				GraphID:    "a",
+				InstanceID: "b",
+				Intent: &testIntentJSONEncoding{
+					Str: "intent",
+				},
+				AnnotatedNodes: []AnnotatedNode{
+					AnnotatedNode{
+						Interactive: true,
+						Node: &testNodeJSONEncoding{
+							Str: "node1",
+						},
+					},
+				},
+			}
+
+			b, err := json.Marshal(g)
+			So(err, ShouldBeNil)
+
+			var gg Graph
+			err = json.Unmarshal(b, &gg)
+			So(err, ShouldBeNil)
+
+			So(&gg, ShouldResemble, g)
+		})
+
+		Convey("graph with legacy nodes", func() {
+			g := &Graph{
+				GraphID:    "a",
+				InstanceID: "b",
+				Intent: &testIntentJSONEncoding{
+					Str: "intent",
+				},
+				AnnotatedNodes: []AnnotatedNode{
+					AnnotatedNode{
+						Interactive: false,
+						Node: &testNodeJSONEncoding{
+							Str: "node1",
+						},
+					},
+				},
+			}
+
+			j := `
+			{
+				"graph_id": "a",
+				"instance_id": "b",
+				"intent": {
+					"Kind": "testIntentJSONEncoding",
+					"Data": {
+						"Str": "intent"
+					}
+				},
+				"nodes": [
+					{
+						"Kind": "testNodeJSONEncoding",
+						"Data": {
+							"Str": "node1"
+						}
+					}
+				]
+			}
+			`
+
+			var gg Graph
+			err := json.Unmarshal([]byte(j), &gg)
+			So(err, ShouldBeNil)
+
+			So(&gg, ShouldResemble, g)
+		})
 	})
 }

@@ -6,8 +6,8 @@ import (
 )
 
 func getIdentityConflictNode(graph *interaction.Graph) (*NodeCheckIdentityConflict, bool) {
-	for _, node := range graph.Nodes {
-		if node, ok := node.(*NodeCheckIdentityConflict); ok {
+	for _, annotatedNode := range graph.AnnotatedNodes {
+		if node, ok := annotatedNode.Node.(*NodeCheckIdentityConflict); ok {
 			return node, true
 		}
 	}

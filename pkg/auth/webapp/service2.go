@@ -338,8 +338,8 @@ func (s *Service2) afterPost(
 	} else if isFinished {
 		// Loop from start to end to collect cookies.
 		// This iteration order allows newer node to overwrite cookies.
-		for _, node := range graph.Nodes {
-			if a, ok := node.(CookiesGetter); ok {
+		for _, annotatedNode := range graph.AnnotatedNodes {
+			if a, ok := annotatedNode.Node.(CookiesGetter); ok {
 				result.Cookies = append(result.Cookies, a.GetCookies()...)
 			}
 		}

@@ -12,7 +12,7 @@ func (e EffectRun) apply(ctx *Context, graph *Graph, nodeIndex int) error {
 		return nil
 	}
 	slicedGraph := *graph
-	slicedGraph.Nodes = slicedGraph.Nodes[:nodeIndex+1]
+	slicedGraph.AnnotatedNodes = slicedGraph.AnnotatedNodes[:nodeIndex+1]
 	return e(ctx, &slicedGraph, nodeIndex)
 }
 

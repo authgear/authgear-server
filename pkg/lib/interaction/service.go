@@ -47,7 +47,10 @@ func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
 		return nil, err
 	}
 
-	graph = graph.appendingNode(node)
+	graph = graph.appendingNode(AnnotatedNode{
+		Interactive: false,
+		Node:        node,
+	})
 	err = node.Prepare(ctx, graph)
 	if err != nil {
 		return nil, err

@@ -16,6 +16,11 @@ import (
 
 const GraphLifetime = duration.UserInteraction
 
+type AnnotatedNode struct {
+	Node        Node
+	Interactive bool
+}
+
 type Graph struct {
 	// GraphID is the unique ID for a graph.
 	// It is a constant value through out a graph.
@@ -29,16 +34,16 @@ type Graph struct {
 	// Intent is the intent (i.e. flow type) of the graph
 	Intent Intent
 
-	// Nodes are nodes in a specific path from intent of the interaction graph.
-	Nodes []Node
+	// AnnotatedNodes are nodes in a specific path from intent of the interaction graph.
+	AnnotatedNodes []AnnotatedNode
 }
 
 func newGraph(intent Intent) *Graph {
 	return &Graph{
-		GraphID:    "",
-		InstanceID: "",
-		Intent:     intent,
-		Nodes:      nil,
+		GraphID:        "",
+		InstanceID:     "",
+		Intent:         intent,
+		AnnotatedNodes: nil,
 	}
 }
 
@@ -52,8 +57,8 @@ func (g *Graph) FindLastNode(node interface{}) bool {
 		panic("interaction: *node must be interface")
 	}
 	targetType := typ.Elem()
-	for i := len(g.Nodes) - 1; i >= 0; i-- {
-		n := g.Nodes[i]
+	for i := len(g.AnnotatedNodes) - 1; i >= 0; i-- {
+		n := g.AnnotatedNodes[i].Node
 		if reflect.TypeOf(n).AssignableTo(targetType) {
 			val.Elem().Set(reflect.ValueOf(n))
 			return true
@@ -63,24 +68,25 @@ func (g *Graph) FindLastNode(node interface{}) bool {
 }
 
 func (g *Graph) CurrentNode() Node {
-	return g.Nodes[len(g.Nodes)-1]
+	idx := len(g.AnnotatedNodes) - 1
+	return g.AnnotatedNodes[idx].Node
 }
 
 func (g *Graph) clone() *Graph {
-	nodes := make([]Node, len(g.Nodes))
-	copy(nodes, g.Nodes)
+	annotatedNodes := make([]AnnotatedNode, len(g.AnnotatedNodes))
+	copy(annotatedNodes, g.AnnotatedNodes)
 
 	return &Graph{
-		GraphID:    g.GraphID,
-		InstanceID: "",
-		Intent:     g.Intent,
-		Nodes:      nodes,
+		GraphID:        g.GraphID,
+		InstanceID:     "",
+		Intent:         g.Intent,
+		AnnotatedNodes: annotatedNodes,
 	}
 }
 
-func (g *Graph) appendingNode(n Node) *Graph {
+func (g *Graph) appendingNode(n AnnotatedNode) *Graph {
 	graph := g.clone()
-	graph.Nodes = append(graph.Nodes, n)
+	graph.AnnotatedNodes = append(graph.AnnotatedNodes, n)
 	return graph
 }
 
@@ -92,19 +98,21 @@ func (g *Graph) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	nodes := make([]ifaceJSON, len(g.Nodes))
-	for i, node := range g.Nodes {
-		nodes[i].Kind = NodeKind(node)
-		if nodes[i].Data, err = json.Marshal(node); err != nil {
+	annotatedNodes := make([]annotatedNodeJSON, len(g.AnnotatedNodes))
+	for i, annotatedNode := range g.AnnotatedNodes {
+		annotatedNodes[i].Interactive = annotatedNode.Interactive
+		annotatedNodes[i].Node.Kind = NodeKind(annotatedNode.Node)
+
+		if annotatedNodes[i].Node.Data, err = json.Marshal(annotatedNode.Node); err != nil {
 			return nil, err
 		}
 	}
 
 	graph := &graphJSON{
-		GraphID:    g.GraphID,
-		InstanceID: g.InstanceID,
-		Intent:     intent,
-		Nodes:      nodes,
+		GraphID:        g.GraphID,
+		InstanceID:     g.InstanceID,
+		Intent:         intent,
+		AnnotatedNodes: annotatedNodes,
 	}
 	return json.Marshal(graph)
 }
@@ -120,24 +128,45 @@ func (g *Graph) UnmarshalJSON(d []byte) error {
 		return err
 	}
 
-	nodes := make([]Node, len(graph.Nodes))
-	for i, node := range graph.Nodes {
-		nodes[i] = InstantiateNode(node.Kind)
-		if err := json.Unmarshal(node.Data, nodes[i]); err != nil {
-			return err
+	// Handle legacy Nodes
+	if len(graph.Nodes) > 0 && len(graph.AnnotatedNodes) == 0 {
+		nodes := make([]Node, len(graph.Nodes))
+		for i, node := range graph.Nodes {
+			nodes[i] = InstantiateNode(node.Kind)
+			if err := json.Unmarshal(node.Data, nodes[i]); err != nil {
+				return err
+			}
 		}
+		for _, node := range nodes {
+			g.AnnotatedNodes = append(g.AnnotatedNodes, AnnotatedNode{
+				// Assume non-interactive, the downside is that,
+				// some end-user may not see back button for a short period of time.
+				Interactive: false,
+				Node:        node,
+			})
+		}
+	} else {
+		annotatedNodes := make([]AnnotatedNode, len(graph.AnnotatedNodes))
+		for i, annotatedNode := range graph.AnnotatedNodes {
+			annotatedNodes[i].Interactive = annotatedNode.Interactive
+			annotatedNodes[i].Node = InstantiateNode(annotatedNode.Node.Kind)
+			if err := json.Unmarshal(annotatedNode.Node.Data, annotatedNodes[i].Node); err != nil {
+				return err
+			}
+		}
+		g.AnnotatedNodes = annotatedNodes
 	}
 
 	g.GraphID = graph.GraphID
 	g.InstanceID = graph.InstanceID
 	g.Intent = intent
-	g.Nodes = nodes
+
 	return nil
 }
 
 func (g *Graph) MustGetUserID() string {
-	for i := len(g.Nodes) - 1; i >= 0; i-- {
-		if n, ok := g.Nodes[i].(interface{ UserID() string }); ok {
+	for i := len(g.AnnotatedNodes) - 1; i >= 0; i-- {
+		if n, ok := g.AnnotatedNodes[i].Node.(interface{ UserID() string }); ok {
 			return n.UserID()
 		}
 	}
@@ -145,8 +174,8 @@ func (g *Graph) MustGetUserID() string {
 }
 
 func (g *Graph) GetNewUserID() (string, bool) {
-	for i := len(g.Nodes) - 1; i >= 0; i-- {
-		if n, ok := g.Nodes[i].(interface{ NewUserID() string }); ok {
+	for i := len(g.AnnotatedNodes) - 1; i >= 0; i-- {
+		if n, ok := g.AnnotatedNodes[i].Node.(interface{ NewUserID() string }); ok {
 			return n.NewUserID(), true
 		}
 	}
@@ -162,8 +191,8 @@ func (g *Graph) MustGetUserLastIdentity() *identity.Info {
 }
 
 func (g *Graph) GetUserLastIdentity() (*identity.Info, bool) {
-	for i := len(g.Nodes) - 1; i >= 0; i-- {
-		if n, ok := g.Nodes[i].(interface{ UserIdentity() *identity.Info }); ok {
+	for i := len(g.AnnotatedNodes) - 1; i >= 0; i-- {
+		if n, ok := g.AnnotatedNodes[i].Node.(interface{ UserIdentity() *identity.Info }); ok {
 			iden := n.UserIdentity()
 			if iden != nil {
 				return iden, true
@@ -174,8 +203,8 @@ func (g *Graph) GetUserLastIdentity() (*identity.Info, bool) {
 }
 
 func (g *Graph) MustGetUpdateIdentityID() string {
-	for i := len(g.Nodes) - 1; i >= 0; i-- {
-		if n, ok := g.Nodes[i].(interface{ UpdateIdentityID() string }); ok {
+	for i := len(g.AnnotatedNodes) - 1; i >= 0; i-- {
+		if n, ok := g.AnnotatedNodes[i].Node.(interface{ UpdateIdentityID() string }); ok {
 			return n.UpdateIdentityID()
 		}
 	}
@@ -184,8 +213,8 @@ func (g *Graph) MustGetUpdateIdentityID() string {
 
 func (g *Graph) GetUserNewIdentities() []*identity.Info {
 	var identities []*identity.Info
-	for _, node := range g.Nodes {
-		if n, ok := node.(interface{ UserNewIdentity() *identity.Info }); ok {
+	for _, annotatedNode := range g.AnnotatedNodes {
+		if n, ok := annotatedNode.Node.(interface{ UserNewIdentity() *identity.Info }); ok {
 			identities = append(identities, n.UserNewIdentity())
 		}
 	}
@@ -193,8 +222,8 @@ func (g *Graph) GetUserNewIdentities() []*identity.Info {
 }
 
 func (g *Graph) GetUserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {
-	for i := len(g.Nodes) - 1; i >= 0; i-- {
-		if n, ok := g.Nodes[i].(interface {
+	for i := len(g.AnnotatedNodes) - 1; i >= 0; i-- {
+		if n, ok := g.AnnotatedNodes[i].Node.(interface {
 			UserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool)
 		}); ok {
 			ai, ok := n.UserAuthenticator(stage)
@@ -208,8 +237,8 @@ func (g *Graph) GetUserAuthenticator(stage authn.AuthenticationStage) (*authenti
 
 func (g *Graph) GetUserNewAuthenticators() []*authenticator.Info {
 	var authenticators []*authenticator.Info
-	for _, node := range g.Nodes {
-		if n, ok := node.(interface{ UserNewAuthenticators() []*authenticator.Info }); ok {
+	for _, annotatedNode := range g.AnnotatedNodes {
+		if n, ok := annotatedNode.Node.(interface{ UserNewAuthenticators() []*authenticator.Info }); ok {
 			authenticators = append(authenticators, n.UserNewAuthenticators()...)
 		}
 	}
@@ -266,15 +295,15 @@ func (g *Graph) FillDetails(err error) error {
 
 // Apply applies the effect the the graph nodes into the context.
 func (g *Graph) Apply(ctx *Context) error {
-	for i, node := range g.Nodes {
+	for i, annotatedNode := range g.AnnotatedNodes {
 		// Prepare the node with sliced graph.
 		slicedGraph := *g
-		slicedGraph.Nodes = slicedGraph.Nodes[:i+1]
-		if err := node.Prepare(ctx, &slicedGraph); err != nil {
+		slicedGraph.AnnotatedNodes = slicedGraph.AnnotatedNodes[:i+1]
+		if err := annotatedNode.Node.Prepare(ctx, &slicedGraph); err != nil {
 			return g.FillDetails(err)
 		}
 
-		effs, err := node.GetEffects()
+		effs, err := annotatedNode.Node.GetEffects()
 		if err != nil {
 			return g.FillDetails(err)
 		}
@@ -290,7 +319,11 @@ func (g *Graph) Apply(ctx *Context) error {
 }
 
 // Accept run the graph to the deepest node using the input
-func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) {
+func (g *Graph) accept(ctx *Context, input Input) (*Graph, []Edge, error) {
+	interactive := false
+	if input != nil {
+		interactive = input.IsInteractive()
+	}
 	graph := g
 	for {
 		node := graph.CurrentNode()
@@ -328,7 +361,10 @@ func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 		}
 
 		// Follow the edge to nextNode
-		graph = graph.appendingNode(nextNode)
+		graph = graph.appendingNode(AnnotatedNode{
+			Interactive: interactive,
+			Node:        nextNode,
+		})
 		err = nextNode.Prepare(ctx, graph)
 		if err != nil {
 			return nil, nil, err
@@ -338,7 +374,7 @@ func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 			return nil, nil, err
 		}
 		for _, eff := range effs {
-			err = eff.apply(ctx, graph, len(graph.Nodes)-1)
+			err = eff.apply(ctx, graph, len(graph.AnnotatedNodes)-1)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -351,9 +387,15 @@ type ifaceJSON struct {
 	Data json.RawMessage `json:"data"`
 }
 
+type annotatedNodeJSON struct {
+	Interactive bool      `json:"interactive"`
+	Node        ifaceJSON `json:"node"`
+}
+
 type graphJSON struct {
-	GraphID    string      `json:"graph_id"`
-	InstanceID string      `json:"instance_id"`
-	Intent     ifaceJSON   `json:"intent"`
-	Nodes      []ifaceJSON `json:"nodes"`
+	GraphID        string              `json:"graph_id"`
+	InstanceID     string              `json:"instance_id"`
+	Intent         ifaceJSON           `json:"intent"`
+	Nodes          []ifaceJSON         `json:"nodes"`
+	AnnotatedNodes []annotatedNodeJSON `json:"annotated_nodes"`
 }
