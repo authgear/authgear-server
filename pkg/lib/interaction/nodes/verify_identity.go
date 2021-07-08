@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -121,6 +122,14 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context) (*otp.CodeSendRe
 		)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	// disallow sending sms verification code if phone identity is disabled
+	fc := ctx.FeatureConfig
+	if config.LoginIDKeyType(code.LoginIDType) == config.LoginIDKeyTypePhone {
+		if fc.Identity.LoginID.Types.Phone.Disabled {
+			return nil, feature.ErrFeatureDisabledSendingSMS
 		}
 	}
 
