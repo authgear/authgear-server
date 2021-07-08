@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { TextField } from "@fluentui/react";
+import { TextField, Toggle } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -61,6 +61,7 @@ interface ConfigFormState {
   supportedLanguages: string[];
   fallbackLanguage: string;
   darkThemeDisabled: boolean;
+  watermarkDisabled: boolean;
 
   default_client_uri: string;
   default_redirect_uri: string;
@@ -87,6 +88,7 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       fallbackLanguage,
     ],
     darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
+    watermarkDisabled: config.ui?.watermark_disabled ?? false,
     default_client_uri: config.ui?.default_client_uri ?? "",
     default_redirect_uri: config.ui?.default_redirect_uri ?? "",
     default_post_logout_redirect_uri:
@@ -124,6 +126,9 @@ function constructConfig(
     config.ui = config.ui ?? {};
     if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
       config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
+    }
+    if (initialState.watermarkDisabled !== currentState.watermarkDisabled) {
+      config.ui.watermark_disabled = currentState.watermarkDisabled;
     }
 
     const propertyNames: (keyof PropertyNames)[] = [
@@ -621,6 +626,18 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       [setState, lightTheme, setDarkTheme]
     );
 
+    const onChangeWatermarkEnabled = useCallback(
+      (_event, checked?: boolean) => {
+        setState((prev) => {
+          return {
+            ...prev,
+            watermarkDisabled: !checked,
+          };
+        });
+      },
+      [setState]
+    );
+
     return (
       <ScreenContent className={styles.root}>
         <div className={styles.titleContainer}>
@@ -726,6 +743,20 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={getOnChangeImage(RESOURCE_FAVICON)}
           />
         </Widget>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="UISettingsScreen.branding.title" />
+          </WidgetTitle>
+          <Toggle
+            className={styles.control}
+            checked={!state.watermarkDisabled}
+            onChange={onChangeWatermarkEnabled}
+            label={renderToString(
+              "UISettingsScreen.branding.disable-authgear-logo.label"
+            )}
+            inlineLabel={true}
+          />
+        </Widget>
         <ThemeConfigurationWidget
           className={styles.widget}
           darkTheme={darkTheme}
@@ -811,6 +842,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
       resources: resources.state.resources,
       selectedLanguage: selectedLanguage ?? config.state.fallbackLanguage,
       darkThemeDisabled: config.state.darkThemeDisabled,
+      watermarkDisabled: config.state.watermarkDisabled,
       default_client_uri: config.state.default_client_uri,
       default_redirect_uri: config.state.default_redirect_uri,
       default_post_logout_redirect_uri:
@@ -820,6 +852,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
       config.state.supportedLanguages,
       config.state.fallbackLanguage,
       config.state.darkThemeDisabled,
+      config.state.watermarkDisabled,
       config.state.default_client_uri,
       config.state.default_redirect_uri,
       config.state.default_post_logout_redirect_uri,
@@ -841,6 +874,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
         supportedLanguages: newState.supportedLanguages,
         fallbackLanguage: newState.fallbackLanguage,
         darkThemeDisabled: newState.darkThemeDisabled,
+        watermarkDisabled: newState.watermarkDisabled,
         default_client_uri: newState.default_client_uri,
         default_redirect_uri: newState.default_redirect_uri,
         default_post_logout_redirect_uri:

@@ -271,6 +271,7 @@ export interface UICountryCallingCodeConfig {
 export interface UIConfig {
   country_calling_code?: UICountryCallingCodeConfig;
   dark_theme_disabled?: boolean;
+  watermark_disabled?: boolean;
   default_client_uri?: string;
   default_redirect_uri?: string;
   default_post_logout_redirect_uri?: string;
