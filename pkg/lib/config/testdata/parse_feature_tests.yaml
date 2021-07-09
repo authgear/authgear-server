@@ -54,6 +54,13 @@ config:
   custom_domain:
     disabled: true
 ---
+name: disable-ui-white-labeling
+error: null
+config:
+  ui:
+    white_labeling:
+      disabled: true
+---
 name: free-plan-config
 error: null
 config:
@@ -74,3 +81,6 @@ config:
         disabled: true
   custom_domain:
     disabled: true
+  ui:
+    white_labeling:
+      disabled: true

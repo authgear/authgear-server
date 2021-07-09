@@ -14,7 +14,8 @@ var _ = FeatureConfigSchema.Add("FeatureConfig", `
 	"properties": {
 		"identity": { "$ref": "#/$defs/IdentityFeatureConfig" },
 		"authentication": { "$ref": "#/$defs/AuthenticationFeatureConfig" },
-		"custom_domain": { "$ref": "#/$defs/CustomDomainFeatureConfig" }
+		"custom_domain": { "$ref": "#/$defs/CustomDomainFeatureConfig" },
+		"ui": { "$ref": "#/$defs/UIFeatureConfig" }
 	}
 }
 `)
@@ -23,6 +24,7 @@ type FeatureConfig struct {
 	Identity       *IdentityFeatureConfig       `json:"identity,omitempty"`
 	Authentication *AuthenticationFeatureConfig `json:"authentication,omitempty"`
 	CustomDomain   *CustomDomainFeatureConfig   `json:"custom_domain,omitempty"`
+	UI             *UIFeatureConfig             `json:"ui,omitempty"`
 }
 
 func ParseFeatureConfig(inputYAML []byte) (*FeatureConfig, error) {
