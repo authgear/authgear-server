@@ -458,6 +458,7 @@ export interface PortalAPIFeatureConfig {
   identity?: IdentityFeatureConfig;
   authentication?: AuthenticationFeatureConfig;
   custom_domain?: CustomDomainFeatureConfig;
+  ui?: UIFeatureConfig;
 }
 
 export interface AuthenticationFeatureConfig {
@@ -508,5 +509,13 @@ export interface OAuthSSOProviderFeatureConfig {
 }
 
 export interface CustomDomainFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface UIFeatureConfig {
+  white_labeling?: WhiteLabelingFeatureConfig;
+}
+
+export interface WhiteLabelingFeatureConfig {
   disabled?: boolean;
 }
