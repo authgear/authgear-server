@@ -105,37 +105,21 @@ func (s *ConfigService) UpdateResources(appID string, files []*resource.Resource
 }
 
 func (s *ConfigService) CreateDomain(appID string, domainID string, domain string, isCustom bool) error {
-	switch s.Controller.Handle.(type) {
-	case *configsource.Database:
-		if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
-			err := s.Kubernetes.CreateResourcesForDomain(appID, domainID, domain, isCustom)
-			if err != nil {
-				return fmt.Errorf("failed to create domain k8s resources: %w", err)
-			}
+	if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
+		err := s.Kubernetes.CreateResourcesForDomain(appID, domainID, domain, isCustom)
+		if err != nil {
+			return fmt.Errorf("failed to create domain k8s resources: %w", err)
 		}
-	case *configsource.LocalFS:
-		return apierrors.NewForbidden("cannot create domain for local FS")
-
-	default:
-		return errors.New("unsupported configuration source")
 	}
 	return nil
 }
 
 func (s *ConfigService) DeleteDomain(domain *model.Domain) error {
-	switch s.Controller.Handle.(type) {
-	case *configsource.Database:
-		if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
-			err := s.Kubernetes.DeleteResourcesForDomain(domain.ID)
-			if err != nil {
-				return fmt.Errorf("failed to delete domain k8s resources: %w", err)
-			}
+	if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
+		err := s.Kubernetes.DeleteResourcesForDomain(domain.ID)
+		if err != nil {
+			return fmt.Errorf("failed to delete domain k8s resources: %w", err)
 		}
-	case *configsource.LocalFS:
-		return apierrors.NewForbidden("cannot delete domain for local FS")
-
-	default:
-		return errors.New("unsupported configuration source")
 	}
 	return nil
 }
