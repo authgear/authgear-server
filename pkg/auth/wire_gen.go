@@ -124,6 +124,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	interactionLogger := interaction.NewLogger(factory)
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -177,13 +178,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -692,6 +694,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	featureConfig := config.FeatureConfig
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -745,13 +748,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               loginidProvider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1178,6 +1182,8 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1232,13 +1238,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1573,6 +1580,8 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1627,13 +1636,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -1893,6 +1903,8 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1947,13 +1959,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2217,6 +2230,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2271,13 +2286,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -2645,6 +2661,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	featureConfig := config.FeatureConfig
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2698,13 +2715,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               loginidProvider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3150,6 +3168,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -3206,13 +3225,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -3710,6 +3730,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -3766,13 +3787,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4270,6 +4292,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -4326,13 +4349,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -4830,6 +4854,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -4886,13 +4911,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5389,6 +5415,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -5445,13 +5472,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -5942,6 +5970,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -5998,13 +6027,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -6498,6 +6528,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -6554,13 +6585,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7057,6 +7089,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -7113,13 +7146,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -7613,6 +7647,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -7669,13 +7704,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8168,6 +8204,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -8224,13 +8261,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -8724,6 +8762,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -8780,13 +8819,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9281,6 +9321,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -9337,13 +9378,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -9836,6 +9878,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -9892,13 +9935,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -10391,6 +10435,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -10447,13 +10492,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -10948,6 +10994,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -11004,13 +11051,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -11503,6 +11551,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -11559,13 +11608,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -12058,6 +12108,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -12114,13 +12165,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -12616,6 +12668,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -12672,13 +12725,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -13171,6 +13225,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -13227,13 +13282,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -13731,6 +13787,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -13787,13 +13844,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -14286,6 +14344,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -14342,13 +14401,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -14842,6 +14902,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -14898,13 +14959,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -15397,6 +15459,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -15453,13 +15516,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -15971,6 +16035,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -16027,13 +16092,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -16528,6 +16594,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -16584,13 +16651,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -17084,6 +17152,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -17140,13 +17209,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -17649,6 +17719,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -17705,13 +17776,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -18205,6 +18277,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -18261,13 +18334,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -18761,6 +18835,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -18817,13 +18892,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -19318,6 +19394,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -19374,13 +19451,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -19880,6 +19958,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -19936,13 +20015,14 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -20436,6 +20516,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -20492,13 +20573,14 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -20992,6 +21074,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -21048,13 +21131,14 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -21536,6 +21620,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -21590,13 +21676,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -21940,6 +22027,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -21996,13 +22084,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -22495,6 +22584,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
+	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -22551,13 +22641,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          store,
-		LoginID:        provider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 store,
+		LoginID:               provider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
 		SQLBuilder:  sqlBuilder,
@@ -23303,6 +23394,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
+	featureConfig := config.FeatureConfig
+	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -23356,13 +23449,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	serviceService := &service.Service{
-		Authentication: authenticationConfig,
-		Identity:       identityConfig,
-		Store:          serviceStore,
-		LoginID:        loginidProvider,
-		OAuth:          oauthProvider,
-		Anonymous:      anonymousProvider,
-		Biometric:      biometricProvider,
+		Authentication:        authenticationConfig,
+		Identity:              identityConfig,
+		IdentityFeatureConfig: identityFeatureConfig,
+		Store:                 serviceStore,
+		LoginID:               loginidProvider,
+		OAuth:                 oauthProvider,
+		Anonymous:             anonymousProvider,
+		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
 		SQLBuilder:  sqlBuilder,

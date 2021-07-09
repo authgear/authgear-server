@@ -1,6 +1,12 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import cn from "classnames";
-import { Checkbox, DirectionalHint, Label, Toggle } from "@fluentui/react";
+import {
+  Checkbox,
+  DirectionalHint,
+  Label,
+  Toggle,
+  MessageBar,
+} from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
@@ -26,6 +32,7 @@ interface WidgetHeaderLabelProps {
 interface WidgetHeaderProps extends WidgetHeaderLabelProps {
   isEnabled: boolean;
   setIsEnabled: (value: boolean) => void;
+  disabled: boolean;
 }
 
 interface SingleSignOnConfigurationWidgetProps {
@@ -43,6 +50,8 @@ interface SingleSignOnConfigurationWidgetProps {
     config: OAuthSSOProviderConfig,
     secret: OAuthClientCredentialItem
   ) => void;
+
+  disabled: boolean;
 }
 
 type WidgetTextFieldKey =
@@ -188,7 +197,7 @@ const WidgetHeaderLabel: React.FC<WidgetHeaderLabelProps> =
 const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
   props: WidgetHeaderProps
 ) {
-  const { icon, messageID, isEnabled, setIsEnabled } = props;
+  const { icon, messageID, isEnabled, setIsEnabled, disabled } = props;
 
   const onChange = useCallback(
     (_, value?: boolean) => {
@@ -198,12 +207,25 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
   );
 
   return (
-    <Toggle
-      checked={isEnabled}
-      onChange={onChange}
-      inlineLabel={true}
-      label={<WidgetHeaderLabel icon={icon} messageID={messageID} />}
-    ></Toggle>
+    <div>
+      <Toggle
+        checked={isEnabled}
+        onChange={onChange}
+        inlineLabel={true}
+        label={<WidgetHeaderLabel icon={icon} messageID={messageID} />}
+        disabled={disabled && !isEnabled}
+      ></Toggle>
+      {disabled && (
+        <MessageBar>
+          <FormattedMessage
+            id="FeatureConfig.disabled"
+            values={{
+              HREF: "./settings/subscription",
+            }}
+          />
+        </MessageBar>
+      )}
+    </div>
   );
 };
 
@@ -221,6 +243,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       config,
       secret,
       onChange,
+      disabled,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -327,13 +350,14 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         extendButtonDisabled={isEnabled}
         extended={extended}
         onExtendClicked={onExtendClicked}
-        readOnly={!isEnabled}
+        readOnly={!isEnabled || disabled}
         HeaderComponent={
           <WidgetHeader
             icon={iconNode}
             isEnabled={isEnabled}
             setIsEnabled={onIsEnabledChange}
             messageID={messageID}
+            disabled={disabled}
           />
         }
       >

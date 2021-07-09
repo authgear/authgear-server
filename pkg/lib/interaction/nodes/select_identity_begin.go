@@ -22,14 +22,16 @@ func (e *EdgeSelectIdentityBegin) Instantiate(ctx *interaction.Context, graph *i
 }
 
 type NodeSelectIdentityBegin struct {
-	IsAuthentication bool                   `json:"is_authentication"`
-	IdentityTypes    []authn.IdentityType   `json:"-"`
-	IdentityConfig   *config.IdentityConfig `json:"-"`
+	IsAuthentication      bool                          `json:"is_authentication"`
+	IdentityTypes         []authn.IdentityType          `json:"-"`
+	IdentityConfig        *config.IdentityConfig        `json:"-"`
+	IdentityFeatureConfig *config.IdentityFeatureConfig `json:"-"`
 }
 
 func (n *NodeSelectIdentityBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	n.IdentityTypes = ctx.Config.Authentication.Identities
 	n.IdentityConfig = ctx.Config.Identity
+	n.IdentityFeatureConfig = ctx.FeatureConfig.Identity
 	return nil
 }
 
@@ -69,6 +71,7 @@ func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 				IsAuthentication: n.IsAuthentication,
 				IsCreating:       false,
 				Configs:          n.IdentityConfig.OAuth.Providers,
+				FeatureConfig:    n.IdentityFeatureConfig.OAuth.Providers,
 			})
 		default:
 			panic("interaction: unknown identity type: " + t)

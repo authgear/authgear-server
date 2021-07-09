@@ -31,6 +31,15 @@ func TestProviderListCandidates(t *testing.T) {
 				LoginID: &config.LoginIDConfig{},
 				OAuth:   &config.OAuthSSOConfig{},
 			},
+			IdentityFeatureConfig: &config.IdentityFeatureConfig{
+				OAuth: &config.OAuthSSOFeatureConfig{
+					Providers: &config.OAuthSSOProvidersFeatureConfig{
+						Google: &config.OAuthSSOProviderFeatureConfig{
+							Disabled: false,
+						},
+					},
+				},
+			},
 			LoginID: loginIDProvider,
 			OAuth:   oauthProvider,
 		}
