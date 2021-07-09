@@ -65,11 +65,6 @@ type Session struct {
 	// which includes both supported and unsupported prompt
 	Prompt []string `json:"prompt_list,omitempty"`
 
-	// FIXME(webapp): remove LegacyPrompt in the next deployment
-	// LegacyPrompt is legacy prompt parameter
-	// which should restore to prompt list after unmarshal
-	LegacyPrompt string `json:"prompt,omitempty"`
-
 	// UpdatedAt indicate the session last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 
