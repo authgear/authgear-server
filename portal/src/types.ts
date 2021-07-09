@@ -4,6 +4,7 @@ export interface HTTPConfig {
   public_origin?: string;
   allowed_origins?: string[];
   cookie_prefix?: string;
+  cookie_domain?: string;
 }
 
 // LoginIDKeyConfig
