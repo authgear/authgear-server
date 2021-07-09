@@ -12,8 +12,8 @@ import (
 func SendResetPasswordCodeRateLimitBucket(loginID string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("reset-password-send-code:%s", loginID),
-		Size:        1,
-		ResetPeriod: duration.PerMinute,
+		Size:        5,
+		ResetPeriod: 5 * duration.PerMinute,
 	}
 }
 
