@@ -426,6 +426,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -997,6 +998,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -2964,6 +2966,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3494,6 +3497,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4056,6 +4060,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4618,6 +4623,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5180,6 +5186,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5741,6 +5748,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6296,6 +6304,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6854,6 +6863,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7415,6 +7425,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7973,6 +7984,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8530,6 +8542,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9088,6 +9101,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9647,6 +9661,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10204,6 +10219,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10761,6 +10777,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11320,6 +11337,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11877,6 +11895,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12434,6 +12453,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12994,6 +13014,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13551,6 +13572,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -14113,6 +14135,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -14670,6 +14693,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -15228,6 +15252,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -15785,6 +15810,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -16361,6 +16387,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -16920,6 +16947,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -17478,6 +17506,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -18045,6 +18074,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -18603,6 +18633,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -19161,6 +19192,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -19720,6 +19752,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -20284,6 +20317,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -20842,6 +20876,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -21400,6 +21435,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -22353,6 +22389,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
@@ -22910,6 +22947,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
 		RateLimiter:    limiter,
+		FeatureConfig:  featureConfig,
 	}
 	verificationCodeSender := &verification.CodeSender{
 		OTPMessageSender: messageSender,
