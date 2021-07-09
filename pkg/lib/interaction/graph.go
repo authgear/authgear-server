@@ -72,6 +72,16 @@ func (g *Graph) CurrentNode() Node {
 	return g.AnnotatedNodes[idx].Node
 }
 
+func (g *Graph) HasInteractiveNodeBeforeCurrentNode() bool {
+	limit := len(g.AnnotatedNodes) - 1
+	for i, annotatedNode := range g.AnnotatedNodes {
+		if i < limit && annotatedNode.Interactive {
+			return true
+		}
+	}
+	return false
+}
+
 func (g *Graph) clone() *Graph {
 	annotatedNodes := make([]AnnotatedNode, len(g.AnnotatedNodes))
 	copy(annotatedNodes, g.AnnotatedNodes)

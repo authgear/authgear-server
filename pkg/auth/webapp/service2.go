@@ -96,6 +96,26 @@ func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 	return graph, nil
 }
 
+func (s *Service2) GetWithIndex(session *Session, idx int) (*interaction.Graph, error) {
+	graph, err := s.Graph.Get(session.Steps[idx].GraphID)
+	if err != nil {
+		return nil, ErrInvalidSession
+	}
+
+	err = s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {
+		err = graph.Apply(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return graph, nil
+}
+
 func (s *Service2) GetWithIntent(session *Session, intent interaction.Intent) (*interaction.Graph, error) {
 	var graph *interaction.Graph
 	err := s.Graph.DryRun(session.ID, func(ctx *interaction.Context) (*interaction.Graph, error) {

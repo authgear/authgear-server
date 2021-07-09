@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -51,6 +52,7 @@ type BaseViewModel struct {
 	IsNativePlatform      bool
 	FlashMessageType      string
 	ResolvedLanguageTag   string
+	ShouldShowBackButton  bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -84,6 +86,10 @@ type FlashMessage interface {
 	Pop(r *http.Request, rw http.ResponseWriter) string
 }
 
+type PageService interface {
+	GetWithIndex(session *webapp.Session, idx int) (*interaction.Graph, error)
+}
+
 type BaseViewModeler struct {
 	OAuth                 *config.OAuthConfig
 	AuthUI                *config.UIConfig
@@ -96,6 +102,7 @@ type BaseViewModeler struct {
 	FlashMessage          FlashMessage
 	DefaultLanguageTag    template.DefaultLanguageTag
 	SupportedLanguageTags template.SupportedLanguageTags
+	PageService           PageService
 }
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
@@ -173,6 +180,30 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 				continue
 			}
 			model.SessionStepURLs = append(model.SessionStepURLs, step.URL().String())
+		}
+
+		// Rewind to the graph matching the current URL.
+		// If x_step is absent, then we must treat it as no interaction.
+		// For example, this happens
+		//
+		// /login
+		// /enter_password?x_step=aaa
+		// BACK
+		// /login
+		//
+		// When /login is visited the second time,
+		// we must treat it as no interaction.
+		stepGraphID := r.Form.Get("x_step")
+		idx := -1
+		for i, step := range s.Steps {
+			if step.GraphID == stepGraphID {
+				idx = i
+			}
+		}
+		if idx >= 0 {
+			if graph, err := m.PageService.GetWithIndex(s, idx); err == nil {
+				model.ShouldShowBackButton = graph.HasInteractiveNodeBeforeCurrentNode()
+			}
 		}
 	}
 
