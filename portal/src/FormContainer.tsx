@@ -96,7 +96,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
       },
       {
         key: "reset",
-        text: renderToString("reset"),
+        text: renderToString("discard-changes"),
         iconProps: { iconName: "Refresh" },
         disabled,
         theme: disabled ? themes.main : themes.destructive,
@@ -133,7 +133,7 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
       >
         <DialogFooter>
           <PrimaryButton onClick={doReset} theme={themes.destructive}>
-            <FormattedMessage id="reset" />
+            <FormattedMessage id="confirm" />
           </PrimaryButton>
           <DefaultButton onClick={onDismissResetDialog}>
             <FormattedMessage id="cancel" />

@@ -8,6 +8,7 @@
 
   "error": "Error",
   "reset": "Reset",
+  "discard-changes": "Discard Changes",
   "action": "Action",
   "ok": "OK",
   "done": "Done",
@@ -609,8 +610,8 @@
   "ModifiedIndicator.confirm-dialog.title": "Reset Form State",
   "ModifiedIndicator.confirm-dialog.message": "Are you sure you want to reset form to initial state?",
 
-  "FormContainer.reset-dialog.title": "Reset unsaved changes",
-  "FormContainer.reset-dialog.message": "Are you sure you want to reset unsaved changes?",
+  "FormContainer.reset-dialog.title": "Discard unsaved changes",
+  "FormContainer.reset-dialog.message": "Are you sure you want to discard unsaved changes?",
 
   "AuthenticatorType.primary.password": "Password",
   "AuthenticatorType.primary.oob-otp-email": "Passwordless via Email",
