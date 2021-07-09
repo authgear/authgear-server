@@ -77,13 +77,6 @@ func (s *SessionStoreRedis) Get(id string) (session *Session, err error) {
 			return err
 		}
 		err = json.Unmarshal(data, &session)
-		// FIXME(webapp): remove LegacyPrompt in the next deployment
-		// translate old LegacyPrompt to Prompt list in web session
-		// since websession only have 20 mins lifetime
-		// the translation logic can be removed in the next deployment
-		if session.LegacyPrompt != "" && len(session.Prompt) == 0 {
-			session.Prompt = []string{session.LegacyPrompt}
-		}
 		// translation logic end
 		if err != nil {
 			return err
