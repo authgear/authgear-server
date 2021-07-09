@@ -17,8 +17,8 @@ export function attachPopStateListener() {
 }
 
 function handleBack(pathname: string): boolean {
-  const pathComponents = pathname.split("/").filter(c => c !== "");
-  if (pathComponents.length > 1 && pathComponents[0] === "settings") {
+  const pathComponents = getPathComponents(pathname);
+  if (isPathComponentsHierarchical(pathComponents)) {
     const newPathname = "/" + pathComponents.slice(0, pathComponents.length - 1).join("/");
     Turbolinks.visit(newPathname, { action: "replace" });
     return true;
@@ -26,6 +26,14 @@ function handleBack(pathname: string): boolean {
   return false;
 }
 
+function getPathComponents(pathname: string): string[] {
+  const pathComponents = pathname.split("/").filter(c => c !== "");
+  return pathComponents;
+}
+
+function isPathComponentsHierarchical(pathComponents: string[]): boolean {
+  return pathComponents.length > 1 && pathComponents[0] === "settings";
+}
 
 function onClickBackButton(e: Event) {
   e.preventDefault();
@@ -47,4 +55,25 @@ export function attachBackButtonListener() {
       elems[i].removeEventListener("click", onClickBackButton);
     }
   };
+}
+
+export function toggleBackButtonVisibility() {
+  const elems = document.querySelectorAll(".back-btn");
+  for (let i = 0; i < elems.length; i++) {
+    const element = elems[i];
+    const value = element.getAttribute("data-should-show");
+    let display;
+    if (value !== "true") {
+      const pathComponents = getPathComponents(window.location.pathname);
+      const hierarchical = isPathComponentsHierarchical(pathComponents);
+      if (!hierarchical) {
+        display = "none";
+      }
+    }
+    if (display != null) {
+      if (element instanceof HTMLElement) {
+        element.style.display = display;
+      }
+    }
+  }
 }

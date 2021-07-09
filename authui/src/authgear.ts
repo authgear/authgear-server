@@ -1,7 +1,11 @@
 import Turbolinks from "turbolinks";
 import { DateTime } from "luxon";
 
-import { attachPopStateListener, attachBackButtonListener } from "./history";
+import {
+  attachPopStateListener,
+  attachBackButtonListener,
+  toggleBackButtonVisibility,
+} from "./history";
 import { init } from "./core";
 import {
   intlDateTimeFormatIsSupported,
@@ -473,6 +477,7 @@ window.api.onLoad(() => {
 // Handle back button click.
 window.api.onLoad(attachPopStateListener);
 window.api.onLoad(attachBackButtonListener);
+window.api.onLoad(toggleBackButtonVisibility);
 
 // Websocket runtime
 window.api.onLoad(() => {
