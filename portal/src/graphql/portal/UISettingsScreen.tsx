@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { TextField, Toggle } from "@fluentui/react";
+import { TextField, Toggle, MessageBar } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -56,6 +56,7 @@ import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -66,6 +67,10 @@ interface ConfigFormState {
   default_client_uri: string;
   default_redirect_uri: string;
   default_post_logout_redirect_uri: string;
+}
+
+interface FeatureConfigFormState {
+  whiteLabelingDisabled: boolean;
 }
 
 const NOOP = () => {};
@@ -174,7 +179,10 @@ function constructResources(state: ResourcesFormState): Resource[] {
   return Object.values(state.resources).filter(Boolean) as Resource[];
 }
 
-interface FormState extends ConfigFormState, ResourcesFormState {
+interface FormState
+  extends ConfigFormState,
+    ResourcesFormState,
+    FeatureConfigFormState {
   selectedLanguage: string;
 }
 
@@ -638,6 +646,10 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       [setState]
     );
 
+    const watermarkEnabled = useMemo(() => {
+      return state.whiteLabelingDisabled || !state.watermarkDisabled;
+    }, [state.whiteLabelingDisabled, state.watermarkDisabled]);
+
     return (
       <ScreenContent className={styles.root}>
         <div className={styles.titleContainer}>
@@ -747,14 +759,25 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           <WidgetTitle>
             <FormattedMessage id="UISettingsScreen.branding.title" />
           </WidgetTitle>
+          {state.whiteLabelingDisabled && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.white-labeling.disabled"
+                values={{
+                  HREF: "./settings/subscription",
+                }}
+              />
+            </MessageBar>
+          )}
           <Toggle
             className={styles.control}
-            checked={!state.watermarkDisabled}
+            checked={watermarkEnabled}
             onChange={onChangeWatermarkEnabled}
             label={renderToString(
               "UISettingsScreen.branding.disable-authgear-logo.label"
             )}
             inlineLabel={true}
+            disabled={state.whiteLabelingDisabled}
           />
         </Widget>
         <ThemeConfigurationWidget
@@ -807,6 +830,8 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
     constructConfig
   );
 
+  const featureConfig = useAppFeatureConfigQuery(appID);
+
   const initialSupportedLanguages = useMemo(() => {
     return (
       config.effectiveConfig.localization?.supported_languages ?? [
@@ -847,6 +872,9 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
       default_redirect_uri: config.state.default_redirect_uri,
       default_post_logout_redirect_uri:
         config.state.default_post_logout_redirect_uri,
+      whiteLabelingDisabled:
+        featureConfig.effectiveFeatureConfig?.ui?.white_labeling?.disabled ??
+        false,
     }),
     [
       config.state.supportedLanguages,
@@ -858,14 +886,15 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
       config.state.default_post_logout_redirect_uri,
       resources.state.resources,
       selectedLanguage,
+      featureConfig.effectiveFeatureConfig?.ui?.white_labeling?.disabled,
     ]
   );
 
   const form: FormModel = {
-    isLoading: config.isLoading || resources.isLoading,
+    isLoading: config.isLoading || resources.isLoading || featureConfig.loading,
     isUpdating: config.isUpdating || resources.isUpdating,
     isDirty: config.isDirty || resources.isDirty,
-    loadError: config.loadError ?? resources.loadError,
+    loadError: config.loadError ?? resources.loadError ?? featureConfig.error,
     updateError: config.updateError ?? resources.updateError,
     state,
     setState: (fn) => {
@@ -886,6 +915,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
     reload: () => {
       config.reload();
       resources.reload();
+      featureConfig.refetch().finally(() => {});
     },
     reset: () => {
       config.reset();

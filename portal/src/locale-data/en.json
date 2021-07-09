@@ -727,6 +727,7 @@
 
   "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.white-labeling.disabled": "To hide Authgear branding in your app. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
