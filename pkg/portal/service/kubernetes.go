@@ -11,6 +11,7 @@ import (
 
 	goyaml "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -270,6 +271,11 @@ func deleteExtensionsV1beta1Ingresses(
 	client := k8sClient.ExtensionsV1beta1().Ingresses(namespace)
 	ingresses, err := client.List(ctx, listOptions)
 	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			// the server could not find the requested resource
+			// means the k8s cluster doesn't support the requested resource
+			return 0, nil
+		}
 		return 0, err
 	}
 
@@ -293,6 +299,11 @@ func deleteNetworkingV1beta1Ingresses(
 	client := k8sClient.NetworkingV1beta1().Ingresses(namespace)
 	ingresses, err := client.List(ctx, listOptions)
 	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			// the server could not find the requested resource
+			// means the k8s cluster doesn't support the requested resource
+			return 0, nil
+		}
 		return 0, err
 	}
 
@@ -316,6 +327,11 @@ func deleteNetworkingV1Ingresses(
 	client := k8sClient.NetworkingV1().Ingresses(namespace)
 	ingresses, err := client.List(ctx, listOptions)
 	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			// the server could not find the requested resource
+			// means the k8s cluster doesn't support the requested resource
+			return 0, nil
+		}
 		return 0, err
 	}
 
@@ -339,6 +355,11 @@ func deleteCertmanagerV1Certificate(
 	client := k8sClient.CertmanagerV1().Certificates(namespace)
 	certs, err := client.List(ctx, listOptions)
 	if err != nil {
+		if k8serrors.IsNotFound(err) {
+			// the server could not find the requested resource
+			// means the k8s cluster doesn't support the requested resource
+			return 0, nil
+		}
 		return 0, err
 	}
 
