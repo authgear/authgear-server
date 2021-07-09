@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/url"
 	"strings"
 
@@ -192,7 +191,6 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// start handle prompt == none
-	fmt.Printf("louis#what: %v\n", idToken)
 	if s == nil || (idToken != nil && s.GetUserID() != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
