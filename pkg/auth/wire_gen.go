@@ -3649,12 +3649,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -4212,12 +4214,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -4775,12 +4779,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -5338,12 +5344,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -5900,12 +5908,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -6456,12 +6466,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -7015,12 +7027,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -7577,12 +7591,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -8136,12 +8152,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -8694,12 +8712,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -9253,12 +9273,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -9813,12 +9835,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -10371,12 +10395,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -10929,12 +10955,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -11489,12 +11517,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -12047,12 +12077,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -12605,12 +12637,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -13166,12 +13200,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -13724,12 +13760,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -14287,12 +14325,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -14845,12 +14885,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -15404,12 +15446,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -15962,12 +16006,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -16539,12 +16585,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -17099,12 +17147,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -17658,12 +17708,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -18226,12 +18278,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -18785,12 +18839,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -19344,12 +19400,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -19904,12 +19962,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -20469,12 +20529,14 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -21028,12 +21090,14 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -21587,12 +21651,14 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -21981,6 +22047,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,
 	}
+	uiFeatureConfig := featureConfig.UI
 	forgotPasswordConfig := appConfig.ForgotPassword
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
 	errorCookie := &webapp.ErrorCookie{
@@ -21993,6 +22060,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -22541,12 +22609,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -23099,12 +23169,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
+	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,
@@ -23211,6 +23283,8 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
 	uiConfig := appConfig.UI
+	featureConfig := config.FeatureConfig
+	uiFeatureConfig := featureConfig.UI
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
@@ -23258,6 +23332,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
+		AuthUIFeatureConfig:   uiFeatureConfig,
 		StaticAssets:          staticAssetResolver,
 		ForgotPassword:        forgotPasswordConfig,
 		Authentication:        authenticationConfig,

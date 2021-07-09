@@ -88,6 +88,7 @@ type FlashMessage interface {
 type BaseViewModeler struct {
 	OAuth                 *config.OAuthConfig
 	AuthUI                *config.UIConfig
+	AuthUIFeatureConfig   *config.UIFeatureConfig
 	StaticAssets          StaticAssetResolver
 	ForgotPassword        *config.ForgotPasswordConfig
 	Authentication        *config.AuthenticationConfig
@@ -131,8 +132,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			url, _ = m.StaticAssets.StaticAssetURL(id)
 			return
 		},
-		DarkThemeEnabled:    !m.AuthUI.DarkThemeDisabled,
-		WatermarkEnabled:    !m.AuthUI.WatermarkDisabled,
+		DarkThemeEnabled: !m.AuthUI.DarkThemeDisabled,
+		WatermarkEnabled: m.AuthUIFeatureConfig.WhiteLabeling.Disabled ||
+			!m.AuthUI.WatermarkDisabled,
 		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
 		ClientURI:           clientURI,
 		ClientName:          clientName,
