@@ -29,46 +29,47 @@ type LogoutSessionManager interface {
 }
 
 type LogoutHandler struct {
-	Database       *appdb.Handle
-	TrustProxy     config.TrustProxy
-	OAuth          *config.OAuthConfig
-	UIConfig       *config.UIConfig
-	SessionManager LogoutSessionManager
-	BaseViewModel  *viewmodels.BaseViewModeler
-	Renderer       Renderer
+	ControllerFactory ControllerFactory
+	Database          *appdb.Handle
+	TrustProxy        config.TrustProxy
+	OAuth             *config.OAuthConfig
+	UIConfig          *config.UIConfig
+	SessionManager    LogoutSessionManager
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
 }
 
 func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method == "GET" {
-		_ = h.Database.WithTx(func() error {
-			baseViewModel := h.BaseViewModel.ViewModel(r, w)
-
-			data := map[string]interface{}{}
-
-			viewmodels.Embed(data, baseViewModel)
-
-			h.Renderer.RenderHTML(w, r, TemplateWebLogoutHTML, data)
-			return nil
-		})
+	ctrl, err := h.ControllerFactory.New(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+	defer ctrl.Serve()
 
-	if r.Method == "POST" {
-		err := h.Database.WithTx(func() error {
-			sess := session.GetSession(r.Context())
-			err := h.SessionManager.Logout(sess, w)
-			if err != nil {
-				return err
-			}
+	ctrl.Get(func() error {
+		baseViewModel := h.BaseViewModel.ViewModel(r, w)
 
-			clientID := clientid.GetClientID(r.Context())
-			client, _ := h.OAuth.GetClient(clientID)
-			postLogoutRedirectURI := webapp.ResolvePostLogoutRedirectURI(client, r.FormValue("post_logout_redirect_uri"), h.UIConfig)
-			redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), postLogoutRedirectURI)
-			http.Redirect(w, r, redirectURI, http.StatusFound)
-			return nil
-		})
+		data := map[string]interface{}{}
+
+		viewmodels.Embed(data, baseViewModel)
+
+		h.Renderer.RenderHTML(w, r, TemplateWebLogoutHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("logout", func() error {
+		sess := session.GetSession(r.Context())
+		err := h.SessionManager.Logout(sess, w)
 		if err != nil {
-			panic(err)
+			return err
 		}
-	}
+
+		clientID := clientid.GetClientID(r.Context())
+		client, _ := h.OAuth.GetClient(clientID)
+		postLogoutRedirectURI := webapp.ResolvePostLogoutRedirectURI(client, r.FormValue("post_logout_redirect_uri"), h.UIConfig)
+		redirectURI := webapp.GetRedirectURI(r, bool(h.TrustProxy), postLogoutRedirectURI)
+		http.Redirect(w, r, redirectURI, http.StatusFound)
+		return nil
+	})
 }
