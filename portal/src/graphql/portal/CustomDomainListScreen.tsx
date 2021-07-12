@@ -76,11 +76,13 @@ interface DomainListItem {
 
 interface FormState {
   publicOrigin: string;
+  cookieDomain?: string;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     publicOrigin: config.http?.public_origin ?? "",
+    cookieDomain: config.http?.cookie_domain,
   };
 }
 
@@ -94,6 +96,10 @@ function constructConfig(
     if (currentState.publicOrigin !== initialState.publicOrigin) {
       config.http.public_origin = currentState.publicOrigin;
     }
+    if (currentState.cookieDomain !== initialState.cookieDomain) {
+      config.http.cookie_domain = currentState.cookieDomain;
+    }
+
     clearEmptyObject(config);
   });
 }
@@ -212,7 +218,11 @@ interface DomainListActionButtonsProps {
   isVerified: boolean;
   isPublicOrigin: boolean;
   onDeleteClick: (domainID: string, domain: string) => void;
-  onSetPublicOriginClick: (urlOrigin: string) => void;
+  onDomainActivate: (
+    urlOrigin: string,
+    domain: string,
+    isCustom: boolean
+  ) => void;
 }
 
 const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
@@ -226,7 +236,7 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
       isVerified,
       isPublicOrigin,
       onDeleteClick: onDeleteClickProps,
-      onSetPublicOriginClick: onSetPublicOriginClickProps,
+      onDomainActivate: onDomainActivateProps,
     } = props;
 
     const { themes } = useSystemConfig();
@@ -234,11 +244,11 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
 
     const showDelete = domainID && isCustomDomain && !isPublicOrigin;
     const showVerify = domainID && !isVerified;
-    const showSetPublicOrigin = domainID && isVerified && !isPublicOrigin;
+    const showActivate = domainID && isVerified && !isPublicOrigin;
 
-    const onSetPublicOriginClick = useCallback(() => {
-      onSetPublicOriginClickProps(urlOrigin);
-    }, [urlOrigin, onSetPublicOriginClickProps]);
+    const onActivateClick = useCallback(() => {
+      onDomainActivateProps(urlOrigin, domain, isCustomDomain);
+    }, [urlOrigin, domain, isCustomDomain, onDomainActivateProps]);
 
     const onVerifyClicked = useCallback(() => {
       navigate(`./${domainID}/verify`);
@@ -251,7 +261,7 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
       onDeleteClickProps(domainID, domain);
     }, [domainID, domain, onDeleteClickProps]);
 
-    if (!showSetPublicOrigin && !showDelete && !showVerify) {
+    if (!showActivate && !showDelete && !showVerify) {
       return (
         <section className={styles.actionButtonContainer}>
           <Text>---</Text>
@@ -260,13 +270,13 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
     }
 
     const buttonNodes: React.ReactNode[] = [];
-    if (showSetPublicOrigin) {
+    if (showActivate) {
       buttonNodes.push(
         <ActionButton
           key={`${domainID}-domain-set-public-origin`}
           className={styles.actionButton}
           theme={themes.actionButton}
-          onClick={onSetPublicOriginClick}
+          onClick={onActivateClick}
         >
           <FormattedMessage id="activate" />
         </ActionButton>
@@ -555,11 +565,21 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
       setConfirmDeleteDomainDialogVisible(true);
     }, []);
 
-    const onSetPublicOriginClick = useCallback(
-      (urlOrigin: string) => {
+    const onDomainActivate = useCallback(
+      (urlOrigin: string, domain: string, isCustom: boolean) => {
+        // if the domain is the default app domain
+        // set cookie_domain to the domain
+        // to ensure the cookies are isolated between apps
+
+        // if the domain is a custom domain
+        // clear the cookie_domain config
+        // if the cookie_domain config is not provided, auth server will
+        // set cookie to the eTLD+1 domain
+        const cookieDomain = isCustom ? undefined : domain;
         setState((state) => ({
           ...state,
           publicOrigin: urlOrigin,
+          cookieDomain: cookieDomain,
         }));
       },
       [setState]
@@ -617,14 +637,14 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
                 isCustomDomain={item.isCustom}
                 isPublicOrigin={item.isPublicOrigin}
                 onDeleteClick={onDeleteClick}
-                onSetPublicOriginClick={onSetPublicOriginClick}
+                onDomainActivate={onDomainActivate}
               />
             );
           default:
             return null;
         }
       },
-      [onDeleteClick, onSetPublicOriginClick]
+      [onDeleteClick, onDomainActivate]
     );
 
     const renderDomainListHeader = useCallback<
