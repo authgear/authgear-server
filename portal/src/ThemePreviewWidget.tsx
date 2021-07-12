@@ -19,6 +19,7 @@ export interface ThemePreviewWidgetProps {
   bannerConfiguration: BannerConfiguration;
   className?: string;
   isDarkMode: boolean;
+  watermarkEnabled: boolean;
   primaryColor: string;
   textColor: string;
   backgroundColor: string;
@@ -447,7 +448,7 @@ function Disclaimer() {
 function Footer() {
   return (
     <div
-      className={cn(styles.footerWatermark, styles.marginV20, styles.widthFull)}
+      className={cn(styles.footerWatermark, styles.marginB20, styles.widthFull)}
     />
   );
 }
@@ -464,6 +465,7 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
       backgroundColor,
       appLogoValue,
       bannerConfiguration,
+      watermarkEnabled,
     } = props;
     const rootStyle = useMemo(() => {
       return isDarkMode
@@ -502,14 +504,14 @@ const ThemePreviewWidget: React.FC<Props> = forwardRef(
             >
               <div className={cn(styles.flex, styles.flexDirectionColumn)}>
                 <PageSwitch />
-                <div className={cn(styles.paddingH20)}>
+                <div className={cn(styles.paddingH20, styles.marginB20)}>
                   <LoginToContinueLabel />
                   <LoginIDForm />
                   <Separator />
                   <OAuthForm />
                   <Disclaimer />
                 </div>
-                <Footer />
+                {watermarkEnabled && <Footer />}
               </div>
             </div>
           </div>

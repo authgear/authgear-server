@@ -44,6 +44,7 @@ export interface ThemeConfigurationWidgetProps {
   darkTheme?: DarkTheme | null;
   isDarkMode: boolean;
   darkModeEnabled: boolean;
+  watermarkEnabled: boolean;
   onChangeLightTheme: (lightTheme: LightTheme) => void;
   onChangeDarkTheme: (darkTheme: DarkTheme) => void;
   onChangeDarkModeEnabled: (enabled: boolean) => void;
@@ -71,6 +72,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
       darkTheme,
       isDarkMode,
       darkModeEnabled,
+      watermarkEnabled,
       appLogoValue,
       onChangeAppLogo,
       onChangeLightTheme: onChangeLightThemeProp,
@@ -430,6 +432,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
                 ref={previewWidgetRef}
                 className={styles.previewWidget}
                 isDarkMode={isDarkMode}
+                watermarkEnabled={watermarkEnabled}
                 appLogoValue={appLogoValue}
                 bannerConfiguration={bannerConfiguration}
                 primaryColor={primaryColor}
