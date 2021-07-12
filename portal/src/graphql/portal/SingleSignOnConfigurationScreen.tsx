@@ -270,7 +270,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
           <FormattedMessage
             id="SingleSignOnConfigurationScreen.description"
             values={{
-              HREF: "https://docs.authgear.com/how-tos/how-to-setup-sso-integrations",
+              HREF: "https://docs.authgear.com/strategies/how-to-setup-sso-integrations",
             }}
             components={{
               Link,

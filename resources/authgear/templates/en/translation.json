@@ -70,7 +70,7 @@
   "add-button-label": "Add",
   "remove-button-label": "Remove",
   "more-button-label": "More",
-  "resend-verification-code-button-label": "Resend code",
+  "resend-verification-code-button-label": "Send verification code",
   "verification-status-label--unverified": "Not verified",
   "verification-status-label--verified": "Verified",
   "activated-label": "Activated",

@@ -252,7 +252,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               id="ApplicationsConfigurationScreen.client-endpoint.desc"
               values={{
                 clientEndpoint: state.publicOrigin,
-                dnsUrl: "../../dns/custom-domains",
+                dnsUrl: "../dns/custom-domains",
               }}
               components={{
                 Link,

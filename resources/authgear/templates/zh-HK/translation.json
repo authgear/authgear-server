@@ -70,7 +70,7 @@
   "add-button-label": "增加",
   "remove-button-label": "移除",
   "more-button-label": "更多",
-  "resend-verification-code-button-label": "重發認證碼",
+  "resend-verification-code-button-label": "發送驗證碼",
   "verification-status-label--unverified": "未認證",
   "verification-status-label--verified": "已認證",
   "activated-label": "已啟用",
