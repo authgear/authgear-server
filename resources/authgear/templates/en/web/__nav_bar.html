@@ -1,14 +1,15 @@
 {{ define "__nav_bar.html" }}
 <div class="nav-bar">
-	{{ if not . }}
-	<button
-		class="btn back-btn icon-btn"
-		type="button"
+	{{ if . }}
+	<a
+		class="not-a btn back-btn icon-btn"
 		title="{{ template "back-button-title" }}"
+		href="{{ . }}"
+		data-turbolinks-action="replace"
 	>
 		<i class="ti ti-arrow-left" aria-hidden="true"></i>
 		<span class="margin-h-4">{{ template "back-button-title" }}</span>
-	</button>
+	</a>
 	{{ end }}
 </div>
 {{ end }}
