@@ -38,6 +38,12 @@ html, body {
   font-weight: 700;
 }
 
+/* intl-tel-input */
+.iti__flag {background-image: url("./intl-tel-input/img/flags.416250f60d785a2e02f17e054d2e4e44.png");}
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .iti__flag {background-image: url("./intl-tel-input/img/flags@2x.d429a5777afaf2fc349652e812e9bb11.png");}
+}
+
 body {
   font-family: "Segoe UI Web",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
 }
