@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -29,9 +31,12 @@ func (m *PanicLogMiddleware) Handle(next http.Handler) http.Handler {
 					e = fmt.Errorf("%+v", err)
 				}
 
-				m.Logger.WithError(e).
-					WithField("stack", errorutil.Callers(10000)).
-					Error("panic occurred")
+				// ignore context cancel error
+				if !errors.Is(e, context.Canceled) {
+					m.Logger.WithError(e).
+						WithField("stack", errorutil.Callers(10000)).
+						Error("panic occurred")
+				}
 
 				// Rethrow
 				panic(err)

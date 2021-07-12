@@ -53,9 +53,7 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 			_ = h.rollbackTx()
 			panic(r)
 		} else if err != nil {
-			if rbErr := h.rollbackTx(); rbErr != nil {
-				h.Logger.WithError(rbErr).Error("failed to rollback tx")
-			}
+			_ = h.rollbackTx()
 		} else {
 			err = h.commitTx()
 		}
@@ -76,9 +74,7 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 			_ = h.rollbackTx()
 			panic(r)
 		} else if err != nil {
-			if rbErr := h.rollbackTx(); rbErr != nil {
-				h.Logger.WithError(rbErr).Error("failed to rollback tx")
-			}
+			_ = h.rollbackTx()
 		} else {
 			err = h.rollbackTx()
 		}
