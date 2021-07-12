@@ -26,11 +26,6 @@ type TranslationService interface {
 
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
-	// RequestURL is the absolute request URL.
-	RequestURL string
-	// RequestURI is the request URI as appeared in the first line of the HTTP textual format.
-	// That is, it is the path plus the optional query.
-	RequestURI          string
 	CSRFField           htmltemplate.HTML
 	Translations        TranslationService
 	StaticAssetURL      func(id string) (url string)
@@ -100,10 +95,6 @@ type BaseViewModeler struct {
 
 func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) BaseViewModel {
 	now := m.Clock.NowUTC().Unix()
-	requestURI := &url.URL{
-		Path:     r.URL.Path,
-		RawQuery: r.URL.RawQuery,
-	}
 	clientID := clientid.GetClientID(r.Context())
 	client, _ := m.OAuth.GetClient(clientID)
 	clientURI := webapp.ResolveClientURI(client, m.AuthUI)
@@ -117,8 +108,6 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	resolvedLanguageTag := resolvedLanguageTagTag.String()
 
 	model := BaseViewModel{
-		RequestURL:   r.URL.String(),
-		RequestURI:   requestURI.String(),
 		CSRFField:    csrf.TemplateField(r),
 		Translations: m.Translations,
 		// This function has to return 1-value only.
