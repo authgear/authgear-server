@@ -30,7 +30,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			ConfigSource: configSource,
 		},
 		p.Middleware(newPanicLogMiddleware),
-		p.Middleware(newSessionMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
@@ -48,6 +47,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	oauthAPIChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
@@ -55,6 +55,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	apiChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(newPanicAPIMiddleware),
 		p.Middleware(newCORSMiddleware),
@@ -62,6 +63,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	scopedChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(newPanicWriteEmptyResponseMiddleware),
 		p.Middleware(newCORSMiddleware),
@@ -71,6 +73,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	webappChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
 		p.Middleware(newPanicWebAppMiddleware),
