@@ -50,7 +50,6 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 
 			r = r.WithContext(WithInvalidSession(r.Context()))
 		} else if err != nil {
-			m.Logger.WithError(err).Error("failed to resolve session")
 			panic(err)
 		} else if s != nil {
 			r = r.WithContext(WithSession(r.Context(), s))
