@@ -17,12 +17,15 @@ func (r AuthorizationRequest) Scope() []string      { return parseSpaceDelimited
 func (r AuthorizationRequest) State() string        { return r["state"] }
 
 // OIDC extension
-func (r AuthorizationRequest) Prompt() []string              { return parseSpaceDelimitedString(r["prompt"]) }
-func (r AuthorizationRequest) setPrompt(prompt []string)     { r["prompt"] = strings.Join(prompt, " ") }
-func (r AuthorizationRequest) Nonce() string                 { return r["nonce"] }
-func (r AuthorizationRequest) UILocales() []string           { return parseSpaceDelimitedString(r["ui_locales"]) }
-func (r AuthorizationRequest) LoginHint() string             { return r["login_hint"] }
-func (r AuthorizationRequest) SetLoginHint(loginHint string) { r["login_hint"] = loginHint }
+func (r AuthorizationRequest) Prompt() []string          { return parseSpaceDelimitedString(r["prompt"]) }
+func (r AuthorizationRequest) setPrompt(prompt []string) { r["prompt"] = strings.Join(prompt, " ") }
+func (r AuthorizationRequest) Nonce() string             { return r["nonce"] }
+func (r AuthorizationRequest) UILocales() []string       { return parseSpaceDelimitedString(r["ui_locales"]) }
+func (r AuthorizationRequest) PopLoginHint() (string, bool) {
+	loginHint, ok := r["login_hint"]
+	delete(r, "login_hint")
+	return loginHint, ok
+}
 func (r AuthorizationRequest) IDTokenHint() (string, bool) {
 	idTokenHint, ok := r["id_token_hint"]
 	return idTokenHint, ok

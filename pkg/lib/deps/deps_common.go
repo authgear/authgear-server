@@ -126,7 +126,6 @@ var CommonDependencySet = wire.NewSet(
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
 		wire.Bind(new(interaction.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
-		wire.Bind(new(oauthhandler.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 		identitybiometric.DependencySet,
 		wire.Bind(new(interaction.BiometricIdentityProvider), new(*identitybiometric.Provider)),
