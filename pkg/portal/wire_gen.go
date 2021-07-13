@@ -234,6 +234,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppService:              appService,
 		DomainService:           domainService,
 		CollaboratorService:     collaboratorService,
+		AppResMgrFactory:        managerFactory,
 		SecretKeyAllowlist:      secretKeyAllowlist,
 	}
 	graphQLHandler := &transport.GraphQLHandler{

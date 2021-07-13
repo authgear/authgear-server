@@ -66,6 +66,10 @@ type AuthzService interface {
 	CheckAccessOfViewer(appID string) (userID string, err error)
 }
 
+type AppResourceManagerFactory interface {
+	NewManagerWithApp(app *model.App) *appresource.Manager
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -83,6 +87,7 @@ type Context struct {
 	AppService          AppService
 	DomainService       DomainService
 	CollaboratorService CollaboratorService
+	AppResMgrFactory    AppResourceManagerFactory
 
 	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
 }

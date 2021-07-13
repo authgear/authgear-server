@@ -2,7 +2,7 @@ package model
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/portal/util/resources"
+	"github.com/authgear/authgear-server/pkg/portal/appresource"
 )
 
 type App struct {
@@ -11,6 +11,6 @@ type App struct {
 }
 
 type AppResource struct {
-	DescriptedPath resources.DescriptedPath
+	DescriptedPath appresource.DescriptedPath
 	Context        *config.AppContext
 }
