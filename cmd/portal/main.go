@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 
+	"github.com/authgear/authgear-server/pkg/util/debug"
 	"github.com/authgear/authgear-server/pkg/version"
 )
 
@@ -24,6 +25,8 @@ func init() {
 }
 
 func main() {
+	debug.TrapSIGQUIT()
+
 	err := godotenv.Load()
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Printf("failed to load .env file: %s", err)
