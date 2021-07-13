@@ -1,0 +1,12 @@
+id: test
+http:
+  public_origin: http://test
+ui: 
+  phone_input:
+    allowlist:
+      - 'TW'
+      - 'HK'
+    pinned_list:
+      - 'HK'
+      - 'US'
+      - 'GB'
