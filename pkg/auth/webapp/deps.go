@@ -7,6 +7,7 @@ import (
 var DependencySet = wire.NewSet(
 	wire.Struct(new(URLProvider), "*"),
 	wire.Struct(new(AuthenticateURLProvider), "*"),
+	wire.Struct(new(LoginHintHandler), "*"),
 
 	NewCSRFCookieDef,
 	NewSessionCookieDef,
@@ -30,7 +31,8 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(SessionStoreRedis), "*"),
 	wire.Bind(new(SessionStore), new(*SessionStoreRedis)),
 	wire.Struct(new(Service2), "*"),
-	wire.Bind(new(PageService), new(*Service2)),
+	wire.Bind(new(AuthenticateURLPageService), new(*Service2)),
+	wire.Bind(new(LoginHintPageService), new(*Service2)),
 
 	wire.Struct(new(WechatURLProvider), "*"),
 )

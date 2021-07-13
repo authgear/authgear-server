@@ -37,6 +37,10 @@ type WebAppAuthenticateURLProvider interface {
 	AuthenticateURL(options webapp.AuthenticateURLOptions) (httputil.Result, error)
 }
 
+type LoginHintHandler interface {
+	HandleLoginHint(options webapp.HandleLoginHintOptions) (httputil.Result, error)
+}
+
 type AuthorizationHandlerLogger struct{ *log.Logger }
 
 func NewAuthorizationHandlerLogger(lf *log.Factory) AuthorizationHandlerLogger {
@@ -50,15 +54,15 @@ type AuthorizationHandler struct {
 	HTTPConfig *config.HTTPConfig
 	Logger     AuthorizationHandlerLogger
 
-	Authorizations  oauth.AuthorizationStore
-	CodeGrants      oauth.CodeGrantStore
-	OAuthURLs       OAuthURLProvider
-	WebAppURLs      WebAppAuthenticateURLProvider
-	ValidateScopes  ScopesValidator
-	CodeGenerator   TokenGenerator
-	LoginHintParser *LoginHintResolver
-	IDTokens        IDTokenVerifier
-	Clock           clock.Clock
+	Authorizations oauth.AuthorizationStore
+	CodeGrants     oauth.CodeGrantStore
+	OAuthURLs      OAuthURLProvider
+	WebAppURLs     WebAppAuthenticateURLProvider
+	ValidateScopes ScopesValidator
+	CodeGenerator  TokenGenerator
+	LoginHint      LoginHintHandler
+	IDTokens       IDTokenVerifier
+	Clock          clock.Clock
 }
 
 func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.Result {
@@ -122,7 +126,11 @@ func (h *AuthorizationHandler) doHandle(
 		s = idp
 	}
 
-	authnOptions := webapp.AuthenticateURLOptions{}
+	sessionOptions := webapp.SessionOptions{
+		ClientID:     r.ClientID(),
+		WebhookState: r.State(),
+	}
+	uiLocales := strings.Join(r.UILocales(), " ")
 
 	// Handle max_age and prompt=login
 	prompt := r.Prompt()
@@ -148,39 +156,50 @@ func (h *AuthorizationHandler) doHandle(
 			prompt = slice.AppendIfUniqueStrings(prompt, "login")
 		}
 	}
-	authnOptions.Prompt = prompt
+	sessionOptions.Prompt = prompt
 
-	var idToken jwt.Token
 	// Handle id_token_hint
+	var idToken jwt.Token
 	if idTokenHint, ok := r.IDTokenHint(); ok {
 		idToken, err = h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
 		if err != nil {
 			return nil, err
 		}
-		authnOptions.UserIDHint = idToken.Subject()
+		sessionOptions.UserIDHint = idToken.Subject()
+	}
+
+	loginHint, hasLoginHint := r.PopLoginHint()
+
+	// Generate self redirect URI here.
+	// Note that it is important to have Prompt, UserIDHint, and LoginHint processed before
+	// the URI is generated here.
+	r = r.CopyForSelfRedirection()
+	authorizeURI := h.OAuthURLs.AuthorizeURL(r)
+	sessionOptions.RedirectURI = authorizeURI.String()
+
+	// Handle login_hint
+	// We must return here.
+	if hasLoginHint {
+		result, err := h.LoginHint.HandleLoginHint(webapp.HandleLoginHintOptions{
+			SessionOptions:      sessionOptions,
+			LoginHint:           loginHint,
+			UILocales:           uiLocales,
+			OriginalRedirectURI: redirectURI.String(),
+		})
+		if err != nil {
+			return nil, protocol.NewError("invalid_request", err.Error())
+		}
+		return result, nil
 	}
 
 	// start web app authentication
 	if !slice.ContainsString(prompt, "none") {
-		r = r.CopyForSelfRedirection()
-
 		// Not authenticated as IdP session => request authentication and retry
-		authnOptions.ClientID = r.ClientID()
-		authnOptions.UILocales = strings.Join(r.UILocales(), " ")
-		authnOptions.Page = r.Page()
-
-		hint, err := h.LoginHintParser.ResolveLoginHint(r.LoginHint())
-		if err != nil {
-			return nil, protocol.NewError("invalid_request", err.Error())
-		}
-		authnOptions.AuthenticateHint = hint
-		r.SetLoginHint("")
-
-		authorizeURI := h.OAuthURLs.AuthorizeURL(r)
-		authnOptions.RedirectURI = authorizeURI.String()
-		authnOptions.WebhookState = r.State()
-
-		resp, err := h.WebAppURLs.AuthenticateURL(authnOptions)
+		resp, err := h.WebAppURLs.AuthenticateURL(webapp.AuthenticateURLOptions{
+			SessionOptions: sessionOptions,
+			Page:           r.Page(),
+			UILocales:      uiLocales,
+		})
 		if apierrors.IsKind(err, interaction.InvalidCredentials) {
 			return nil, protocol.NewError("invalid_request", err.Error())
 		} else if err != nil {

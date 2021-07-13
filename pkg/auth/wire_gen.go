@@ -573,21 +573,22 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Graph:                interactionService,
 	}
 	authenticateURLProvider := &webapp.AuthenticateURLProvider{
-		Endpoints:     endpointsProvider,
-		Pages:         webappService2,
-		SessionCookie: cookieDef2,
-		CookieFactory: cookieFactory,
-		Clock:         clock,
+		Endpoints: endpointsProvider,
+		Pages:     webappService2,
+		Clock:     clock,
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
-	loginHintResolver := &handler.LoginHintResolver{
+	loginHintHandler := &webapp.LoginHintHandler{
 		Config:           oAuthConfig,
 		Anonymous:        anonymousProvider,
 		OfflineGrants:    store,
 		AppSessionTokens: store,
 		AppSessions:      store,
 		Clock:            clock,
+		CookieFactory:    cookieFactory,
+		SessionCookie:    cookieDef2,
+		Pages:            webappService2,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -597,20 +598,20 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clock,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
-		Context:         context,
-		AppID:           appID,
-		Config:          oAuthConfig,
-		HTTPConfig:      httpConfig,
-		Logger:          authorizationHandlerLogger,
-		Authorizations:  authorizationStore,
-		CodeGrants:      store,
-		OAuthURLs:       urlProvider,
-		WebAppURLs:      authenticateURLProvider,
-		ValidateScopes:  scopesValidator,
-		CodeGenerator:   tokenGenerator,
-		LoginHintParser: loginHintResolver,
-		IDTokens:        idTokenIssuer,
-		Clock:           clock,
+		Context:        context,
+		AppID:          appID,
+		Config:         oAuthConfig,
+		HTTPConfig:     httpConfig,
+		Logger:         authorizationHandlerLogger,
+		Authorizations: authorizationStore,
+		CodeGrants:     store,
+		OAuthURLs:      urlProvider,
+		WebAppURLs:     authenticateURLProvider,
+		ValidateScopes: scopesValidator,
+		CodeGenerator:  tokenGenerator,
+		LoginHint:      loginHintHandler,
+		IDTokens:       idTokenIssuer,
+		Clock:          clock,
 	}
 	authorizeHandler := &oauth.AuthorizeHandler{
 		Logger:       authorizeHandlerLogger,

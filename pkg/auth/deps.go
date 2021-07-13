@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
+	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -64,11 +65,14 @@ var DependencySet = wire.NewSet(
 
 	webapp.DependencySet,
 	wire.Bind(new(oauthhandler.WebAppAuthenticateURLProvider), new(*webapp.AuthenticateURLProvider)),
+	wire.Bind(new(oauthhandler.LoginHintHandler), new(*webapp.LoginHintHandler)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.RedirectURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(forgotpassword.URLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(verification.WebAppURLProvider), new(*webapp.URLProvider)),
 	wire.Bind(new(sso.WechatURLProvider), new(*webapp.WechatURLProvider)),
+
+	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
 	middleware.DependencySet,
 
