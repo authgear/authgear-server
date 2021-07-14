@@ -39,10 +39,11 @@ func TestManager(t *testing.T) {
 		portalResMgr := &appresource.Manager{
 			AppResourceManager: resMgr,
 			AppFS:              appResourceFs,
+			SecretKeyAllowlist: allowlist,
 		}
 
 		applyUpdates := func(updates []appresource.Update) error {
-			_, err := portalResMgr.ApplyUpdates(appID, allowlist, updates)
+			_, err := portalResMgr.ApplyUpdates(appID, updates)
 			return err
 		}
 

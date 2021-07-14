@@ -8,10 +8,12 @@ import (
 	"path"
 	"sort"
 
+	"github.com/spf13/afero"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
-	"github.com/spf13/afero"
 )
 
 const ConfigFileMaxSize = 100 * 1024
@@ -19,6 +21,7 @@ const ConfigFileMaxSize = 100 * 1024
 type Manager struct {
 	AppResourceManager *resource.Manager
 	AppFS              resource.Fs
+	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
 }
 
 func (m *Manager) List() ([]string, error) {
@@ -84,7 +87,7 @@ func (m *Manager) AssociateDescriptor(paths ...string) ([]DescriptedPath, error)
 	return matches, nil
 }
 
-func (m *Manager) ApplyUpdates(appID string, secretKeyAllowlist []string, updates []Update) ([]*resource.ResourceFile, error) {
+func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.ResourceFile, error) {
 	// Validate file size.
 	for _, f := range updates {
 		if len(f.Data) > ConfigFileMaxSize {
@@ -93,7 +96,7 @@ func (m *Manager) ApplyUpdates(appID string, secretKeyAllowlist []string, update
 	}
 
 	// Construct new resource manager.
-	newManager, files, err := m.applyUpdates(m.AppFS, secretKeyAllowlist, updates)
+	newManager, files, err := m.applyUpdates(m.AppFS, updates)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +125,7 @@ func (m *Manager) ApplyUpdates(appID string, secretKeyAllowlist []string, update
 	return files, nil
 }
 
-func (m *Manager) applyUpdates(appFs resource.Fs, secretKeyAllowlist []string, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
+func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
 	manager := m.AppResourceManager
 
 	newFs, err := cloneFS(appFs)
@@ -174,7 +177,7 @@ func (m *Manager) applyUpdates(appFs resource.Fs, secretKeyAllowlist []string, u
 
 		resrc, err = desc.UpdateResource(resrc, u.Data, resource.AppFile{
 			Path:              u.Path,
-			AllowedSecretKeys: secretKeyAllowlist,
+			AllowedSecretKeys: m.SecretKeyAllowlist,
 		})
 		if err != nil {
 			return nil, nil, err

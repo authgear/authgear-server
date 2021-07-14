@@ -248,7 +248,7 @@ func (s *AppService) Create(userID string, id string) error {
 
 func (s *AppService) UpdateResources(app *model.App, updates []appresource.Update) error {
 	appResMgr := s.AppResMgrFactory.NewManagerWithApp(app)
-	files, err := appResMgr.ApplyUpdates(app.ID, s.SecretKeyAllowlist, updates)
+	files, err := appResMgr.ApplyUpdates(app.ID, updates)
 	if err != nil {
 		return err
 	}
@@ -330,7 +330,7 @@ func (s *AppService) generateConfig(appHost string, appID string, appPlan *model
 
 	appFs := resource.LeveledAferoFs{Fs: fs, FsLevel: resource.FsLevelApp}
 	appResMgr := s.AppResMgrFactory.NewManagerWithNewAppFS(appFs)
-	_, err = appResMgr.ApplyUpdates(appID, s.SecretKeyAllowlist, nil)
+	_, err = appResMgr.ApplyUpdates(appID, nil)
 	if err != nil {
 		return
 	}
