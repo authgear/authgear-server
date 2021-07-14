@@ -2,6 +2,7 @@ import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import cn from "classnames";
 import {
   Checkbox,
   ChoiceGroup,
@@ -13,12 +14,15 @@ import {
   Text,
   Link,
   DirectionalHint,
+  TooltipHost,
 } from "@fluentui/react";
-
 import {
+  AuthenticatorsFeatureConfig,
+  IdentityFeatureConfig,
   IdentityType,
   LoginIDKeyType,
   PortalAPIAppConfig,
+  PortalAPIFeatureConfig,
   SecondaryAuthenticationMode,
   SecondaryAuthenticatorType,
   VerificationClaimsConfig,
@@ -34,6 +38,7 @@ import { useAppConfigQuery } from "./query/appConfigQuery";
 import OnboardingFormContainer from "./OnboardingFormContainer";
 import styles from "./OnboardingConfigAppScreen.module.scss";
 import LabelWithTooltip from "../../LabelWithTooltip";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 const primaryAuthenticatorTypes = ["password", "oob"] as const;
 type PrimaryAuthenticatorType = typeof primaryAuthenticatorTypes[number];
@@ -133,10 +138,7 @@ const defaultPendingFormState: PendingFormState = {
   loginIDKeys: new Set<LoginIDKeyType>(["email"]),
   primaryAuthenticator: "password",
   secondaryAuthenticationMode: "if_exists",
-  secondaryAuthenticators: new Set<SecondaryAuthenticatorType>([
-    "totp",
-    "oob_otp_sms",
-  ]),
+  secondaryAuthenticators: new Set<SecondaryAuthenticatorType>(["totp"]),
   verificationClaims: {
     email: { enabled: true, required: true },
     phone_number: { enabled: true, required: true },
@@ -214,6 +216,51 @@ function constructConfig(
   });
 }
 
+interface UpgradeButtonProps {
+  labelMessageID: string;
+  headerMessageID: string;
+  bodyMessageID: string;
+}
+
+const UpgradeButton: React.FC<UpgradeButtonProps> = function UpgradeButton(
+  props: UpgradeButtonProps
+) {
+  const { labelMessageID, headerMessageID, bodyMessageID } = props;
+
+  const tooltipContent = useMemo(
+    () => (
+      <div className={styles.upgradeTooltip}>
+        <Text
+          variant="xLarge"
+          block={true}
+          className={styles.upgradeTooltipHeader}
+        >
+          <FormattedMessage id={headerMessageID} />
+        </Text>
+        <Text variant="medium" block={true}>
+          <FormattedMessage id={bodyMessageID} />
+        </Text>
+      </div>
+    ),
+    [headerMessageID, bodyMessageID]
+  );
+
+  return (
+    <div>
+      <TooltipHost
+        tooltipProps={{
+          onRenderContent: () => tooltipContent,
+        }}
+        directionalHint={DirectionalHint.bottomLeftEdge}
+      >
+        <Link className={styles.upgradeLink}>
+          <FormattedMessage id={labelMessageID} />
+        </Link>
+      </TooltipHost>
+    </div>
+  );
+};
+
 interface IdentitiesButton {
   labelId: string;
   iconName: string;
@@ -225,6 +272,7 @@ interface IdentitiesButton {
 
 interface IdentitiesItemContentProps {
   form: AppConfigFormModel<FormState>;
+  identityFeatureConfig?: IdentityFeatureConfig;
   btnItem: IdentitiesButton;
 }
 
@@ -232,6 +280,7 @@ const IdentitiesItemContent: React.FC<IdentitiesItemContentProps> =
   function IdentitiesItemContent(props) {
     const {
       form: { state, setState },
+      identityFeatureConfig,
       btnItem,
     } = props;
 
@@ -247,6 +296,27 @@ const IdentitiesItemContent: React.FC<IdentitiesItemContentProps> =
       );
       return false;
     }, [state, btnItem]);
+
+    const identityDisabled = useMemo(() => {
+      if (btnItem.loginIDType === "phone") {
+        return identityFeatureConfig?.login_id?.types?.phone?.disabled ?? false;
+      }
+
+      return false;
+    }, [btnItem.loginIDType, identityFeatureConfig]);
+
+    const upgradeButton = useMemo(() => {
+      if (btnItem.loginIDType === "phone" && identityDisabled) {
+        return (
+          <UpgradeButton
+            labelMessageID="Onboarding.upgrade.label"
+            headerMessageID="Onboarding.upgrade.support-sms.title"
+            bodyMessageID="Onboarding.upgrade.support-sms.desc"
+          />
+        );
+      }
+      return undefined;
+    }, [btnItem.loginIDType, identityDisabled]);
 
     const onCheckedChange = useCallback(
       (checked?: boolean) => {
@@ -318,29 +388,38 @@ const IdentitiesItemContent: React.FC<IdentitiesItemContentProps> =
     );
 
     return (
-      <div className={styles.identityListItem} onClick={onItemClick}>
-        <div className={styles.label}>
-          <FontIcon iconName={btnItem.iconName} className={styles.icon} />
-          <Text block={true} variant="medium">
-            <FormattedMessage id={btnItem.labelId} />
-          </Text>
+      <div className={styles.identityListItem}>
+        <div
+          className={cn(styles.identityListItemContent, {
+            [styles.readOnly]: identityDisabled,
+          })}
+          onClick={onItemClick}
+        >
+          <div className={styles.label}>
+            <FontIcon iconName={btnItem.iconName} className={styles.icon} />
+            <Text block={true} variant="medium">
+              <FormattedMessage id={btnItem.labelId} />
+            </Text>
+          </div>
+          <Checkbox
+            className={styles.checkbox}
+            checked={identityChecked}
+            onChange={onCheckboxChange}
+          />
         </div>
-        <Checkbox
-          className={styles.checkbox}
-          checked={identityChecked}
-          onChange={onCheckboxChange}
-        />
+        {upgradeButton}
       </div>
     );
   };
 
 interface IdentitiesListContentProps {
   form: AppConfigFormModel<FormState>;
+  identityFeatureConfig?: IdentityFeatureConfig;
 }
 
 const IdentitiesListContent: React.FC<IdentitiesListContentProps> =
   function IdentitiesListContent(props) {
-    const { form } = props;
+    const { form, identityFeatureConfig } = props;
 
     const showUsernameOnlyAlert = useMemo(
       () =>
@@ -367,6 +446,7 @@ const IdentitiesListContent: React.FC<IdentitiesListContentProps> =
             return (
               <IdentitiesItemContent
                 form={form}
+                identityFeatureConfig={identityFeatureConfig}
                 btnItem={btn}
                 key={`identity-item-${idx}`}
               />
@@ -528,6 +608,7 @@ interface SecondaryAuthenticatorOption {
 
 interface SecondaryAuthenticatorCheckboxProps {
   form: AppConfigFormModel<FormState>;
+  authenticatorsFeatureConfig?: AuthenticatorsFeatureConfig;
   option: SecondaryAuthenticatorOption;
 }
 
@@ -536,6 +617,7 @@ const SecondaryAuthenticatorCheckbox: React.FC<SecondaryAuthenticatorCheckboxPro
     const { renderToString } = useContext(Context);
     const {
       form: { state, setState },
+      authenticatorsFeatureConfig,
       option,
     } = props;
 
@@ -567,23 +649,45 @@ const SecondaryAuthenticatorCheckbox: React.FC<SecondaryAuthenticatorCheckboxPro
       [state, setState, option]
     );
 
+    const disabled = useMemo(() => {
+      return (
+        (option.authenticatorType === "oob_otp_sms" &&
+          authenticatorsFeatureConfig?.oob_otp_sms?.disabled) ??
+        false
+      );
+    }, [
+      option.authenticatorType,
+      authenticatorsFeatureConfig?.oob_otp_sms?.disabled,
+    ]);
+
     return (
-      <Checkbox
-        className={styles.checkboxGroup}
-        checked={getCheckedState(option.authenticatorType)}
-        label={renderToString(option.labelId)}
-        onChange={onChange}
-      />
+      <div className={styles.checkboxGroup}>
+        <Checkbox
+          className={styles.checkbox}
+          checked={getCheckedState(option.authenticatorType)}
+          label={renderToString(option.labelId)}
+          onChange={onChange}
+          disabled={disabled}
+        />
+        {disabled && (
+          <UpgradeButton
+            labelMessageID="Onboarding.upgrade.label"
+            headerMessageID="Onboarding.upgrade.support-sms.title"
+            bodyMessageID="Onboarding.upgrade.support-sms.desc"
+          />
+        )}
+      </div>
     );
   };
 
 interface SecondaryAuthenticatorsContentProps {
   form: AppConfigFormModel<FormState>;
+  authenticatorsFeatureConfig?: AuthenticatorsFeatureConfig;
 }
 
 const SecondaryAuthenticatorsContent: React.FC<SecondaryAuthenticatorsContentProps> =
   function SecondaryAuthenticatorsContent(props) {
-    const { form } = props;
+    const { form, authenticatorsFeatureConfig } = props;
 
     return (
       <section className={styles.sections}>
@@ -593,6 +697,7 @@ const SecondaryAuthenticatorsContent: React.FC<SecondaryAuthenticatorsContentPro
         </Label>
         {secondaryAuthenticatorOptions.map((o, idx) => (
           <SecondaryAuthenticatorCheckbox
+            authenticatorsFeatureConfig={authenticatorsFeatureConfig}
             key={`secondary-authenticator-${idx}`}
             form={form}
             option={o}
@@ -706,11 +811,12 @@ const VerificationContent: React.FC<VerificationContentProps> =
 
 interface OnboardingConfigAppScreenFormProps {
   form: AppConfigFormModel<FormState>;
+  featureConfig?: PortalAPIFeatureConfig;
 }
 
 const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps> =
   function OnboardingConfigAppScreenForm(props) {
-    const { form } = props;
+    const { form, featureConfig } = props;
 
     const showPrimaryAuthenticators = useMemo(
       () => form.state.pendingForm.identities.has("login_id"),
@@ -751,7 +857,10 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
         <Text className={styles.pageDesc} block={true} variant="small">
           <FormattedMessage id="Onboarding.desc" />
         </Text>
-        <IdentitiesListContent form={form} />
+        <IdentitiesListContent
+          form={form}
+          identityFeatureConfig={featureConfig?.identity}
+        />
         {showPrimaryAuthenticators && (
           <PrimaryAuthenticatorsContent form={form} />
         )}
@@ -759,7 +868,12 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
           <SecondaryAuthenticationModeContent form={form} />
         )}
         {showSecondaryAuthenticators && (
-          <SecondaryAuthenticatorsContent form={form} />
+          <SecondaryAuthenticatorsContent
+            form={form}
+            authenticatorsFeatureConfig={
+              featureConfig?.authentication?.secondary_authenticators
+            }
+          />
         )}
         {showEmailVerification && (
           <VerificationContent
@@ -781,8 +895,12 @@ const OnboardingConfigAppScreenForm: React.FC<OnboardingConfigAppScreenFormProps
     );
   };
 
-const OnboardingConfigAppScreenContent: React.FC =
-  function OnboardingConfigAppScreenContent() {
+interface OnboardingConfigAppScreenContentProps {
+  featureConfig?: PortalAPIFeatureConfig;
+}
+
+const OnboardingConfigAppScreenContent: React.FC<OnboardingConfigAppScreenContentProps> =
+  function OnboardingConfigAppScreenContent(props) {
     const { appID } = useParams();
     const navigate = useNavigate();
     const form = useAppConfigForm(
@@ -799,6 +917,8 @@ const OnboardingConfigAppScreenContent: React.FC =
       },
       setCanSave,
     } = form;
+
+    const { featureConfig } = props;
 
     useEffect(() => {
       if (form.isSubmitted) {
@@ -822,7 +942,10 @@ const OnboardingConfigAppScreenContent: React.FC =
 
     return (
       <OnboardingFormContainer form={form}>
-        <OnboardingConfigAppScreenForm form={form} />
+        <OnboardingConfigAppScreenForm
+          form={form}
+          featureConfig={featureConfig}
+        />
       </OnboardingFormContainer>
     );
   };
@@ -832,19 +955,48 @@ const OnboardingConfigAppScreen: React.FC =
     const { appID } = useParams();
 
     // NOTE: check if appID actually exist in authorized app list
-    const { effectiveAppConfig, loading, error } = useAppConfigQuery(appID);
-    if (loading) {
+    const form = useAppConfigQuery(appID);
+
+    const featureConfig = useAppFeatureConfigQuery(appID);
+
+    if (form.loading || featureConfig.loading) {
       return <ShowLoading />;
     }
-    const isInvalidAppID = error == null && effectiveAppConfig == null;
+
+    const isInvalidAppID =
+      form.error == null && form.effectiveAppConfig == null;
     if (isInvalidAppID) {
       return <Navigate to="/apps" replace={true} />;
+    }
+
+    if (form.error) {
+      return (
+        <ShowError
+          error={form.error}
+          onRetry={() => {
+            form.refetch().finally(() => {});
+          }}
+        />
+      );
+    }
+
+    if (featureConfig.error) {
+      return (
+        <ShowError
+          error={featureConfig.error}
+          onRetry={() => {
+            featureConfig.refetch().finally(() => {});
+          }}
+        />
+      );
     }
 
     return (
       <div className={styles.root}>
         <ScreenHeader />
-        <OnboardingConfigAppScreenContent />
+        <OnboardingConfigAppScreenContent
+          featureConfig={featureConfig.effectiveFeatureConfig ?? undefined}
+        />
       </div>
     );
   };

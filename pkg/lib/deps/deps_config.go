@@ -8,7 +8,7 @@ import (
 )
 
 var configDeps = wire.NewSet(
-	wire.FieldsOf(new(*config.Config), "AppConfig", "SecretConfig"),
+	wire.FieldsOf(new(*config.Config), "AppConfig", "SecretConfig", "FeatureConfig"),
 	wire.FieldsOf(new(*config.AppConfig),
 		"ID",
 		"HTTP",
@@ -35,6 +35,10 @@ var configDeps = wire.NewSet(
 		"Password",
 		"TOTP",
 		"OOB",
+	),
+	wire.FieldsOf(new(*config.FeatureConfig),
+		"Identity",
+		"UI",
 	),
 	ProvideDefaultLanguageTag,
 	ProvideSupportedLanguageTags,

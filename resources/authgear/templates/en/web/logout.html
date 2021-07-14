@@ -13,7 +13,7 @@
     {{ $.CSRFField }}
     <button class="btn primary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
   </form>
-  <div class="footer-watermark margin-v-20"></div>
+  <div class="margin-t-20">{{ template "__watermark.html" . }}</div>
 </div>
 </div>
 

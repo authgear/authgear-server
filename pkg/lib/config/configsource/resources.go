@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	AuthgearYAML       = "authgear.yaml"
-	AuthgearSecretYAML = "authgear.secrets.yaml"
+	AuthgearYAML        = "authgear.yaml"
+	AuthgearSecretYAML  = "authgear.secrets.yaml"
+	AuthgearFeatureYAML = "authgear.features.yaml"
 )
 
 var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective secret config")
@@ -275,3 +276,77 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(resrc *resource.ResourceFil
 }
 
 var SecretConfig = resource.RegisterResource(AuthgearSecretYAMLDescriptor{})
+
+type AuthgearFeatureYAMLDescriptor struct{}
+
+var _ resource.Descriptor = AuthgearFeatureYAMLDescriptor{}
+
+func (d AuthgearFeatureYAMLDescriptor) MatchResource(path string) (*resource.Match, bool) {
+	if path == AuthgearFeatureYAML {
+		return &resource.Match{}, true
+	}
+	return nil, false
+}
+
+func (d AuthgearFeatureYAMLDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	location := resource.Location{
+		Fs:   fs,
+		Path: AuthgearFeatureYAML,
+	}
+	_, err := resource.ReadLocation(location)
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return []resource.Location{location}, nil
+}
+
+func (d AuthgearFeatureYAMLDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+	app := func() (interface{}, error) {
+		var target *resource.ResourceFile
+		for _, resrc := range resources {
+			if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
+				s := resrc
+				target = &s
+			}
+		}
+		if target == nil {
+			return nil, resource.ErrResourceNotFound
+		}
+
+		return target.Data, nil
+	}
+
+	effective := func() (interface{}, error) {
+		bytes, err := app()
+		if err != nil {
+			return nil, err
+		}
+
+		featureConfig, err := config.ParseFeatureConfig(bytes.([]byte))
+		if err != nil {
+			return nil, fmt.Errorf("cannot parse feature config: %w", err)
+		}
+		return featureConfig, nil
+	}
+
+	switch rawView.(type) {
+	case resource.AppFileView:
+		return app()
+	case resource.EffectiveFileView:
+		return app()
+	case resource.EffectiveResourceView:
+		return effective()
+	case resource.ValidateResourceView:
+		return effective()
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+}
+
+func (d AuthgearFeatureYAMLDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, _ resource.View) (*resource.ResourceFile, error) {
+	return nil, fmt.Errorf("cannot update '%v'", AuthgearFeatureYAML)
+}
+
+var FeatureConfig = resource.RegisterResource(AuthgearFeatureYAMLDescriptor{})

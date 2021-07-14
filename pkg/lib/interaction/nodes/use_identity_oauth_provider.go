@@ -22,13 +22,16 @@ type EdgeUseIdentityOAuthProvider struct {
 	IsAuthentication bool
 	IsCreating       bool
 	Configs          []config.OAuthSSOProviderConfig
+	FeatureConfig    *config.OAuthSSOProvidersFeatureConfig
 }
 
 func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candidate {
-	candidates := make([]identity.Candidate, len(e.Configs))
-	for i, c := range e.Configs {
+	candidates := []identity.Candidate{}
+	for _, c := range e.Configs {
 		conf := c
-		candidates[i] = identity.NewOAuthCandidate(&conf)
+		if !identity.IsOAuthSSOProviderTypeDisabled(conf.Type, e.FeatureConfig) {
+			candidates = append(candidates, identity.NewOAuthCandidate(&conf))
+		}
 	}
 	return candidates
 }
@@ -42,6 +45,9 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 	alias := input.GetProviderAlias()
 	var oauthConfig *config.OAuthSSOProviderConfig
 	for _, c := range e.Configs {
+		if identity.IsOAuthSSOProviderTypeDisabled(c.Type, e.FeatureConfig) {
+			continue
+		}
 		if c.Alias == alias {
 			conf := c
 			oauthConfig = &conf
@@ -49,7 +55,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, gra
 		}
 	}
 	if oauthConfig == nil {
-		panic("interaction: no OAuth provider with specified alias")
+		panic("interaction: no OAuth provider with specified alias or provider is disabled")
 	}
 
 	nonceSource := ctx.Nonces.GenerateAndSet()

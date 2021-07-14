@@ -20,7 +20,9 @@ import {
   isOAuthSSOProvider,
   OAuthClientCredentialItem,
   OAuthSecretItem,
+  OAuthSSOFeatureConfig,
   OAuthSSOProviderConfig,
+  OAuthSSOProviderFeatureConfig,
   OAuthSSOProviderItemKey,
   oauthSSOProviderItemKeys,
   OAuthSSOProviderType,
@@ -30,6 +32,7 @@ import {
   PortalAPISecretConfig,
 } from "../../types";
 import styles from "./SingleSignOnConfigurationScreen.module.scss";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
@@ -159,11 +162,12 @@ function defaultAlias(
 interface OAuthClientItemProps {
   providerItemKey: OAuthSSOProviderItemKey;
   form: AppSecretConfigFormModel<FormState>;
+  oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
 }
 
 const OAuthClientItem: React.FC<OAuthClientItemProps> =
   function OAuthClientItem(props) {
-    const { providerItemKey, form } = props;
+    const { providerItemKey, form, oauthSSOFeatureConfig } = props;
     const {
       state: { providers, isEnabled },
       setState,
@@ -171,6 +175,14 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> =
 
     const [providerType, appType] =
       parseOAuthSSOProviderItemKey(providerItemKey);
+
+    const disabled = useMemo(() => {
+      const providersConfig = oauthSSOFeatureConfig?.providers ?? {};
+      const providerConfig = providersConfig[
+        providerType
+      ] as OAuthSSOProviderFeatureConfig | null;
+      return providerConfig?.disabled ?? false;
+    }, [oauthSSOFeatureConfig, providerType]);
 
     const provider = useMemo(
       () =>
@@ -251,12 +263,14 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> =
         config={provider.config}
         secret={provider.secret}
         onChange={onChange}
+        disabled={disabled}
       />
     );
   };
 
 interface SingleSignOnConfigurationContentProps {
   form: AppSecretConfigFormModel<FormState>;
+  oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
 }
 
 const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationContentProps> =
@@ -282,6 +296,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
             key={providerItemKey}
             providerItemKey={providerItemKey}
             form={props.form}
+            oauthSSOFeatureConfig={props.oauthSSOFeatureConfig}
           />
         ))}
       </ScreenContent>
@@ -298,17 +313,32 @@ const SingleSignOnConfigurationScreen: React.FC =
       constructConfig
     );
 
-    if (form.isLoading) {
+    const featureConfig = useAppFeatureConfigQuery(appID);
+
+    if (form.isLoading || featureConfig.loading) {
       return <ShowLoading />;
     }
 
-    if (form.loadError) {
-      return <ShowError error={form.loadError} onRetry={form.reload} />;
+    if (form.loadError ?? featureConfig.error) {
+      return (
+        <ShowError
+          error={form.loadError ?? featureConfig.error}
+          onRetry={() => {
+            form.reload();
+            featureConfig.refetch().finally(() => {});
+          }}
+        />
+      );
     }
 
     return (
       <FormContainer form={form}>
-        <SingleSignOnConfigurationContent form={form} />
+        <SingleSignOnConfigurationContent
+          form={form}
+          oauthSSOFeatureConfig={
+            featureConfig.effectiveFeatureConfig?.identity?.oauth
+          }
+        />
       </FormContainer>
     );
   };

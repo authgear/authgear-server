@@ -2,6 +2,7 @@ package configsource
 
 import (
 	"net/http"
+	"os"
 	"path"
 	"path/filepath"
 	"sync/atomic"
@@ -13,6 +14,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
+
+const LocalFSPlanName = "local-fs"
 
 type LocalFSLogger struct{ *log.Logger }
 
@@ -50,11 +53,13 @@ func (s *LocalFS) Open() error {
 		AppFs:     appFs,
 		Resources: resources,
 		Config:    cfg,
+		PlanName:  LocalFSPlanName,
 	})
 
 	if s.Config.Watch {
 		appConfigPath := path.Join(dir, AuthgearYAML)
 		secretConfigPath := path.Join(dir, AuthgearSecretYAML)
+		featureConfigPath := path.Join(dir, AuthgearFeatureYAML)
 
 		s.watcher, err = fsnotify.NewWatcher()
 		if err != nil {
@@ -70,6 +75,13 @@ func (s *LocalFS) Open() error {
 		}
 		if err = s.watcher.Add(secretConfigPath); err != nil {
 			return err
+		}
+		if err = s.watcher.Add(featureConfigPath); err != nil {
+			// watching feature config only works
+			// when the authgear.features.yaml exists before the server starts
+			if !os.IsNotExist(err) {
+				return err
+			}
 		}
 	}
 	return nil
@@ -128,6 +140,7 @@ func (s *LocalFS) reload() error {
 		AppFs:     appCtx.AppFs,
 		Resources: appCtx.Resources,
 		Config:    newConfig,
+		PlanName:  LocalFSPlanName,
 	}
 	s.config.Store(appCtx)
 	return nil

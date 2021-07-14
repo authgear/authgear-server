@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { TextField } from "@fluentui/react";
+import { TextField, Toggle, MessageBar } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -56,15 +56,21 @@ import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface ConfigFormState {
   supportedLanguages: string[];
   fallbackLanguage: string;
   darkThemeDisabled: boolean;
+  watermarkDisabled: boolean;
 
   default_client_uri: string;
   default_redirect_uri: string;
   default_post_logout_redirect_uri: string;
+}
+
+interface FeatureConfigFormState {
+  whiteLabelingDisabled: boolean;
 }
 
 const NOOP = () => {};
@@ -87,6 +93,7 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       fallbackLanguage,
     ],
     darkThemeDisabled: config.ui?.dark_theme_disabled ?? false,
+    watermarkDisabled: config.ui?.watermark_disabled ?? false,
     default_client_uri: config.ui?.default_client_uri ?? "",
     default_redirect_uri: config.ui?.default_redirect_uri ?? "",
     default_post_logout_redirect_uri:
@@ -124,6 +131,9 @@ function constructConfig(
     config.ui = config.ui ?? {};
     if (initialState.darkThemeDisabled !== currentState.darkThemeDisabled) {
       config.ui.dark_theme_disabled = currentState.darkThemeDisabled;
+    }
+    if (initialState.watermarkDisabled !== currentState.watermarkDisabled) {
+      config.ui.watermark_disabled = currentState.watermarkDisabled;
     }
 
     const propertyNames: (keyof PropertyNames)[] = [
@@ -169,7 +179,10 @@ function constructResources(state: ResourcesFormState): Resource[] {
   return Object.values(state.resources).filter(Boolean) as Resource[];
 }
 
-interface FormState extends ConfigFormState, ResourcesFormState {
+interface FormState
+  extends ConfigFormState,
+    ResourcesFormState,
+    FeatureConfigFormState {
   selectedLanguage: string;
 }
 
@@ -621,6 +634,22 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
       [setState, lightTheme, setDarkTheme]
     );
 
+    const onChangeWatermarkEnabled = useCallback(
+      (_event, checked?: boolean) => {
+        setState((prev) => {
+          return {
+            ...prev,
+            watermarkDisabled: !checked,
+          };
+        });
+      },
+      [setState]
+    );
+
+    const watermarkEnabled = useMemo(() => {
+      return state.whiteLabelingDisabled || !state.watermarkDisabled;
+    }, [state.whiteLabelingDisabled, state.watermarkDisabled]);
+
     return (
       <ScreenContent className={styles.root}>
         <div className={styles.titleContainer}>
@@ -726,12 +755,38 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={getOnChangeImage(RESOURCE_FAVICON)}
           />
         </Widget>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="UISettingsScreen.branding.title" />
+          </WidgetTitle>
+          {state.whiteLabelingDisabled && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.white-labeling.disabled"
+                values={{
+                  HREF: "./settings/subscription",
+                }}
+              />
+            </MessageBar>
+          )}
+          <Toggle
+            className={styles.control}
+            checked={watermarkEnabled}
+            onChange={onChangeWatermarkEnabled}
+            label={renderToString(
+              "UISettingsScreen.branding.disable-authgear-logo.label"
+            )}
+            inlineLabel={true}
+            disabled={state.whiteLabelingDisabled}
+          />
+        </Widget>
         <ThemeConfigurationWidget
           className={styles.widget}
           darkTheme={darkTheme}
           lightTheme={lightTheme}
           isDarkMode={false}
           darkModeEnabled={false}
+          watermarkEnabled={watermarkEnabled}
           appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
           onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO)}
           onChangeDarkModeEnabled={NOOP}
@@ -749,6 +804,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           lightTheme={lightTheme}
           isDarkMode={true}
           darkModeEnabled={!state.darkThemeDisabled}
+          watermarkEnabled={watermarkEnabled}
           appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO_DARK)}
           onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO_DARK)}
           onChangeLightTheme={setLightTheme}
@@ -775,6 +831,8 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
     constructConfigFormState,
     constructConfig
   );
+
+  const featureConfig = useAppFeatureConfigQuery(appID);
 
   const initialSupportedLanguages = useMemo(() => {
     return (
@@ -811,28 +869,34 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
       resources: resources.state.resources,
       selectedLanguage: selectedLanguage ?? config.state.fallbackLanguage,
       darkThemeDisabled: config.state.darkThemeDisabled,
+      watermarkDisabled: config.state.watermarkDisabled,
       default_client_uri: config.state.default_client_uri,
       default_redirect_uri: config.state.default_redirect_uri,
       default_post_logout_redirect_uri:
         config.state.default_post_logout_redirect_uri,
+      whiteLabelingDisabled:
+        featureConfig.effectiveFeatureConfig?.ui?.white_labeling?.disabled ??
+        false,
     }),
     [
       config.state.supportedLanguages,
       config.state.fallbackLanguage,
       config.state.darkThemeDisabled,
+      config.state.watermarkDisabled,
       config.state.default_client_uri,
       config.state.default_redirect_uri,
       config.state.default_post_logout_redirect_uri,
       resources.state.resources,
       selectedLanguage,
+      featureConfig.effectiveFeatureConfig?.ui?.white_labeling?.disabled,
     ]
   );
 
   const form: FormModel = {
-    isLoading: config.isLoading || resources.isLoading,
+    isLoading: config.isLoading || resources.isLoading || featureConfig.loading,
     isUpdating: config.isUpdating || resources.isUpdating,
     isDirty: config.isDirty || resources.isDirty,
-    loadError: config.loadError ?? resources.loadError,
+    loadError: config.loadError ?? resources.loadError ?? featureConfig.error,
     updateError: config.updateError ?? resources.updateError,
     state,
     setState: (fn) => {
@@ -841,6 +905,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
         supportedLanguages: newState.supportedLanguages,
         fallbackLanguage: newState.fallbackLanguage,
         darkThemeDisabled: newState.darkThemeDisabled,
+        watermarkDisabled: newState.watermarkDisabled,
         default_client_uri: newState.default_client_uri,
         default_redirect_uri: newState.default_redirect_uri,
         default_post_logout_redirect_uri:
@@ -852,6 +917,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
     reload: () => {
       config.reload();
       resources.reload();
+      featureConfig.refetch().finally(() => {});
     },
     reset: () => {
       config.reset();

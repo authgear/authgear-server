@@ -14,7 +14,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/spf13/afero"
 	"golang.org/x/net/publicsuffix"
-	"gopkg.in/yaml.v2"
+	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -134,6 +134,7 @@ func createConfigSource(ctx context.Context, tx *sql.Tx, appID string, data map[
 			"id",
 			"app_id",
 			"data",
+			"plan_name",
 			"created_at",
 			"updated_at",
 		).
@@ -141,6 +142,7 @@ func createConfigSource(ctx context.Context, tx *sql.Tx, appID string, data map[
 			uuid.New(),
 			appID,
 			dataJSON,
+			"",
 			time.Now().UTC(),
 			time.Now().UTC(),
 		)

@@ -272,6 +272,7 @@ export interface UICountryCallingCodeConfig {
 export interface UIConfig {
   country_calling_code?: UICountryCallingCodeConfig;
   dark_theme_disabled?: boolean;
+  watermark_disabled?: boolean;
   default_client_uri?: string;
   default_redirect_uri?: string;
   default_post_logout_redirect_uri?: string;
@@ -451,4 +452,70 @@ export interface PortalAPIApp {
   rawAppConfig?: PortalAPIAppConfig;
   effectiveAppConfig?: PortalAPIAppConfig;
   secretConfig?: PortalAPISecretConfig;
+}
+
+export interface PortalAPIFeatureConfig {
+  identity?: IdentityFeatureConfig;
+  authentication?: AuthenticationFeatureConfig;
+  custom_domain?: CustomDomainFeatureConfig;
+  ui?: UIFeatureConfig;
+}
+
+export interface AuthenticationFeatureConfig {
+  secondary_authenticators?: AuthenticatorsFeatureConfig;
+}
+
+export interface AuthenticatorsFeatureConfig {
+  oob_otp_sms?: AuthenticatorOOBOTBSMSFeatureConfig;
+}
+
+export interface AuthenticatorOOBOTBSMSFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface IdentityFeatureConfig {
+  login_id?: LoginIDFeatureConfig;
+  oauth?: OAuthSSOFeatureConfig;
+}
+
+export interface LoginIDFeatureConfig {
+  types?: LoginIDTypesFeatureConfig;
+}
+
+export interface LoginIDTypesFeatureConfig {
+  phone?: LoginIDPhoneFeatureConfig;
+}
+
+export interface LoginIDPhoneFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface OAuthSSOFeatureConfig {
+  providers?: OAuthSSOProvidersFeatureConfig;
+}
+
+export interface OAuthSSOProvidersFeatureConfig {
+  google?: OAuthSSOProviderConfig;
+  facebook?: OAuthSSOProviderConfig;
+  linkedin?: OAuthSSOProviderConfig;
+  azureadv2?: OAuthSSOProviderConfig;
+  adfs?: OAuthSSOProviderConfig;
+  apple?: OAuthSSOProviderConfig;
+  wechat?: OAuthSSOProviderConfig;
+}
+
+export interface OAuthSSOProviderFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface CustomDomainFeatureConfig {
+  disabled?: boolean;
+}
+
+export interface UIFeatureConfig {
+  white_labeling?: WhiteLabelingFeatureConfig;
+}
+
+export interface WhiteLabelingFeatureConfig {
+  disabled?: boolean;
 }

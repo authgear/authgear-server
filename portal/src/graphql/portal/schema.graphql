@@ -24,8 +24,14 @@ type App implements Node {
   """"""
   effectiveAppConfig: AppConfig!
 
+  """"""
+  effectiveFeatureConfig: FeatureConfig!
+
   """The ID of an object"""
   id: ID!
+
+  """"""
+  planName: String!
 
   """"""
   rawAppConfig: AppConfig!
@@ -242,6 +248,11 @@ type Domain {
   """"""
   verificationDNSRecord: String!
 }
+
+"""
+The `FeatureConfig` scalar type represents an feature config JSON object
+"""
+scalar FeatureConfig
 
 """"""
 type Mutation {

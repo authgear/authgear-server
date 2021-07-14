@@ -6,4 +6,5 @@ type AppContext struct {
 	AppFs     resource.Fs
 	Resources *resource.Manager
 	Config    *Config
+	PlanName  string
 }

@@ -3,7 +3,7 @@ package graphql
 import (
 	"net/url"
 
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 	"sigs.k8s.io/yaml"
 
@@ -63,6 +63,15 @@ var _ = registerMutationField(
 			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
 			if err != nil {
 				return nil, err
+			}
+
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+			fc := app.Context.Config.FeatureConfig
+			if fc.CustomDomain.Disabled {
+				return nil, apierrors.NewInvalid("custom domain is not supported")
 			}
 
 			domainModel, err := gqlCtx.DomainService.CreateCustomDomain(appID, domain)

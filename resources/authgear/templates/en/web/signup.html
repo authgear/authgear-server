@@ -20,7 +20,7 @@
 			<p class="primary-txt margin-t-0 margin-b-20 text-base">{{ template "public-signup-disabled-notice" }}</p>
 			<a class="as-btn not-a btn primary-btn margin-b-20" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
 		</div>
-		<div class="footer-watermark margin-b-20"></div>
+		<div>{{ template "__watermark.html" . }}</div>
 	</div>
 	</div>
 	{{ else }}
@@ -178,7 +178,7 @@
 			</p>
 			{{ end }}
 		</div>
-		<div class="footer-watermark margin-b-20"></div>
+		<div>{{ template "__watermark.html" . }}</div>
 	</div>
 	</div>
 	{{ end }}

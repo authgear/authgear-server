@@ -23,6 +23,7 @@ func (s *Store) selectConfigSourceQuery() db.SelectBuilder {
 			"created_at",
 			"updated_at",
 			"data",
+			"plan_name",
 		).
 		From(s.SQLBuilder.TableName("_portal_config_source"))
 }
@@ -37,6 +38,7 @@ func (s *Store) scanConfigSource(scn db.Scanner) (*DatabaseSource, error) {
 		&d.CreatedAt,
 		&d.UpdatedAt,
 		&dataByte,
+		&d.PlanName,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrAppNotFound
@@ -107,6 +109,7 @@ func (s *Store) CreateDatabaseSource(dbs *DatabaseSource) error {
 			"id",
 			"app_id",
 			"data",
+			"plan_name",
 			"created_at",
 			"updated_at",
 		).
@@ -114,6 +117,7 @@ func (s *Store) CreateDatabaseSource(dbs *DatabaseSource) error {
 			dbs.ID,
 			dbs.AppID,
 			data,
+			dbs.PlanName,
 			dbs.CreatedAt,
 			dbs.UpdatedAt,
 		)
@@ -136,6 +140,7 @@ func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
 		Update(s.SQLBuilder.TableName("_portal_config_source")).
 		Set("updated_at", dbs.UpdatedAt).
 		Set("data", data).
+		Set("plan_name", dbs.PlanName).
 		Where("id = ?", dbs.ID)
 
 	result, err := s.SQLExecutor.ExecWith(q)
@@ -160,6 +165,28 @@ func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
 // ListAll is introduced by the need of authgear internal elasticsearch reindex --all.
 func (s *Store) ListAll() ([]*DatabaseSource, error) {
 	builder := s.selectConfigSourceQuery()
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []*DatabaseSource
+	for rows.Next() {
+		item, err := s.scanConfigSource(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
+func (s *Store) ListByPlan(planName string) ([]*DatabaseSource, error) {
+	builder := s.selectConfigSourceQuery().
+		Where("plan_name = ?", planName)
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {

@@ -142,6 +142,10 @@
   "Onboarding.verification.optional" :"Optional",
   "Onboarding.verification.disabled" :"Disabled",
 
+  "Onboarding.upgrade.label": "Upgrade",
+  "Onboarding.upgrade.support-sms.title": "Upgrade plan to use SMS",
+  "Onboarding.upgrade.support-sms.desc": "Add passwordless login and one-time-password via SMS for your app users by upgrading your plan later.",
+  
   "OnboardingCompletion.title": "Done",
   "OnboardingCompletion.desc": "You can always change these configuration in the portal, or configure an even more complicated authentication system.",
   "OnboardingCompletion.completion-message": "You just setup a full feature login, signup and setting page for your next app!",
@@ -490,6 +494,9 @@
   "UISettingsScreen.default-post-logout-redirect-uri-label": "Post Logout Link",
   "UISettingsScreen.default-post-logout-redirect-uri-description": "If this link is provided, the user will be redirected after logout with non-OAuth flow.",
 
+  "UISettingsScreen.branding.title": "Authgear branding",
+  "UISettingsScreen.branding.disable-authgear-logo.label": "Display Authgear logo in Login and Signup page",
+
   "LocalizationConfigurationScreen.title": "Localization",
   "LocalizationConfigurationScreen.description": "Manage languages and template contents.",
   "LocalizationConfigurationScreen.template-content-title": "Manage Template Contents",
@@ -718,6 +725,10 @@
   "AuditLogActivityType.USER_AUTHENTICATED": "Logged in",
   "AuditLogActivityType.USER_CREATED": "Signed up",
   "AuditLogActivityType.USER_SIGNED_OUT": "Signed out",
+
+  "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.white-labeling.disabled": "To hide Authgear branding in your app. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

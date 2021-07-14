@@ -1,0 +1,86 @@
+name: empty-config
+error: null
+config: {}
+---
+name: unknown-key
+error: |-
+  invalid feature config:
+  /authentication/unknown-key: 
+config:
+  authentication:
+    unknown-key: {}
+---
+name: disable-mfa-oob-otp-sms
+error: null
+config:
+  authentication:
+    secondary_authenticators:
+      oob_otp_sms:
+        disabled: true
+---
+name: disable-phone-login-id
+error: null
+config:
+  identity:
+    login_id:
+      types:
+        phone:
+          disabled: true
+---
+name: disable-identity-sso-providers
+error: null
+config:
+  identity:
+    oauth:
+      providers:
+        google:
+          disabled: true
+        facebook:
+          disabled: true
+        linkedin:
+          disabled: true
+        azureadv2:
+          disabled: true
+        adfs:
+          disabled: true
+        apple:
+          disabled: true
+        wechat:
+          disabled: true
+---
+name: disable-custom-domain
+error: null
+config:
+  custom_domain:
+    disabled: true
+---
+name: disable-ui-white-labeling
+error: null
+config:
+  ui:
+    white_labeling:
+      disabled: true
+---
+name: free-plan-config
+error: null
+config:
+  identity:
+    login_id:
+      types:
+        phone:
+          disabled: true
+    oauth:
+      providers:
+        azureadv2:
+          disabled: true
+        adfs:
+          disabled: true
+  authentication:
+    secondary_authenticators:
+      oob_otp_sms:
+        disabled: true
+  custom_domain:
+    disabled: true
+  ui:
+    white_labeling:
+      disabled: true
