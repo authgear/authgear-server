@@ -3,13 +3,13 @@ package graphql
 import (
 	"encoding/base64"
 
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/session"
-	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -83,7 +83,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			var resourceUpdates []resources.Update
+			var resourceUpdates []appresource.Update
 			for _, f := range updates {
 				f := f.(map[string]interface{})
 				path := f["path"].(string)
@@ -95,7 +95,7 @@ var _ = registerMutationField(
 					}
 				}
 
-				resourceUpdates = append(resourceUpdates, resources.Update{
+				resourceUpdates = append(resourceUpdates, appresource.Update{
 					Path: path,
 					Data: data,
 				})

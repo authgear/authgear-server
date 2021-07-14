@@ -16,11 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 
+	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
-	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -62,6 +61,11 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 	return AppServiceLogger{lf.New("app-service")}
 }
 
+type AppResourceManagerFactory interface {
+	NewManagerWithNewAppFS(appFs resource.Fs) *appresource.Manager
+	NewManagerWithApp(app *model.App) *appresource.Manager
+}
+
 type AppService struct {
 	Logger      AppServiceLogger
 	SQLBuilder  *globaldb.SQLBuilder
@@ -74,7 +78,7 @@ type AppService struct {
 	AppAdminAPI        AppAdminAPIService
 	AppDomains         AppDomainService
 	Resources          ResourceManager
-	AppBaseResources   deps.AppBaseResources
+	AppResMgrFactory   AppResourceManagerFactory
 	Plan               AppPlanService
 }
 
@@ -242,8 +246,9 @@ func (s *AppService) Create(userID string, id string) error {
 	return nil
 }
 
-func (s *AppService) UpdateResources(app *model.App, updates []resources.Update) error {
-	files, err := resources.ApplyUpdates(app.ID, app.Context.AppFs, app.Context.Resources, s.SecretKeyAllowlist, updates)
+func (s *AppService) UpdateResources(app *model.App, updates []appresource.Update) error {
+	appResMgr := s.AppResMgrFactory.NewManagerWithApp(app)
+	files, err := appResMgr.ApplyUpdates(app.ID, s.SecretKeyAllowlist, updates)
 	if err != nil {
 		return err
 	}
@@ -324,8 +329,8 @@ func (s *AppService) generateConfig(appHost string, appID string, appPlan *model
 	}
 
 	appFs := resource.LeveledAferoFs{Fs: fs, FsLevel: resource.FsLevelApp}
-	resMgr := (*resource.Manager)(s.AppBaseResources).Overlay(appFs)
-	_, err = resources.ApplyUpdates(appID, appFs, resMgr, s.SecretKeyAllowlist, nil)
+	appResMgr := s.AppResMgrFactory.NewManagerWithNewAppFS(appFs)
+	_, err = appResMgr.ApplyUpdates(appID, s.SecretKeyAllowlist, nil)
 	if err != nil {
 		return
 	}
