@@ -20,32 +20,18 @@
 {{ $.CSRFField }}
 
 {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-<div class="phone-input margin-b-20">
-	<select class="select primary-txt" name="x_calling_code">
-		{{ range $.CountryCallingCodes }}
-		<option
-			value="{{ . }}"
-			{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
-			selected
-			{{ end }}{{ end }}
-			>
-			+{{ . }}
-		</option>
-		{{ end }}
-	</select>
-	<input
-		tabindex="0"
-		autofocus
-		class="input text-input primary-txt"
-		type="text"
-		inputmode="numeric"
-		pattern="[0-9]*"
-		autocomplete="one-time-code"
-		autocapitalize="none"
-		name="x_national_number"
-		placeholder="{{ template "phone-number-placeholder" }}"
-	>
-</div>
+<input
+	class="margin-b-20 phone-input primary-txt"
+	tabindex="0"
+	autofocus
+	type="text"
+	inputmode="numeric"
+	pattern="[0-9]*"
+	autocomplete="tel-national"
+	autocapitalize="none"
+	name="x_e164"
+	placeholder="{{ template "phone-number-placeholder" }}"
+>
 {{ else }}
 <input
 	tabindex="0"

@@ -65,33 +65,9 @@ var AddOrUpdateLoginIDSchema = validation.NewSimpleSchema(`
 			"x_login_id_input_type": { "type": "string" },
 			"x_login_id_key": { "type": "string" },
 			"x_login_id_type": { "type": "string" },
-			"x_calling_code": { "type": "string" },
-			"x_national_number": { "type": "string" },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_input_type", "x_login_id_key", "x_login_id_type"],
-		"allOf": [
-			{
-				"if": {
-					"properties": {
-						"x_login_id_key": { "type": "string", "const": "phone" }
-					}
-				},
-				"then": {
-					"required": ["x_calling_code", "x_national_number"]
-				}
-			},
-			{
-				"if": {
-					"properties": {
-						"x_login_id_key": { "type": "string", "enum": ["username", "email"] }
-					}
-				},
-				"then": {
-					"required": ["x_login_id"]
-				}
-			}
-		]
+		"required": ["x_login_id_input_type", "x_login_id_key", "x_login_id_type", "x_login_id"]
 	}
 `)
 
@@ -191,6 +167,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginIDType := r.Form.Get("x_login_id_type")
 		identityID := r.Form.Get("x_identity_id")
+		newLoginID := r.Form.Get("x_login_id")
 		var intent interaction.Intent
 		if identityID != "" {
 			intent = intents.NewIntentUpdateIdentity(userID, identityID)
@@ -200,10 +177,6 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			err = AddOrUpdateLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
-			if err != nil {
-				return nil, err
-			}
-			newLoginID, err := FormToLoginID(r.Form)
 			if err != nil {
 				return nil, err
 			}

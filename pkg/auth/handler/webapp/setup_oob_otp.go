@@ -33,10 +33,9 @@ var SetupOOBOTPSMSSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_calling_code": { "type": "string" },
-			"x_national_number": { "type": "string" }
+			"x_e164": { "type": "string" }
 		},
-		"required": ["x_calling_code", "x_national_number"]
+		"required": ["x_e164"]
 	}
 `)
 
@@ -183,11 +182,8 @@ func GetValidationSchema(oobAuthenticatorType authn.AuthenticatorType) *validati
 
 func FormToOOBTarget(oobAuthenticatorType authn.AuthenticatorType, form url.Values) (target string, inputType string, err error) {
 	if oobAuthenticatorType == authn.AuthenticatorTypeOOBSMS {
-		nationalNumber := form.Get("x_national_number")
-		countryCallingCode := form.Get("x_calling_code")
-
+		target = form.Get("x_e164")
 		inputType = "phone"
-		target = fmt.Sprintf("+%s%s", countryCallingCode, nationalNumber)
 		return
 	}
 

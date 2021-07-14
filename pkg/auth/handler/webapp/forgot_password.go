@@ -22,33 +22,9 @@ var ForgotPasswordSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-			"x_calling_code": { "type": "string" },
-			"x_national_number": { "type": "string" },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_input_type"],
-		"allOf": [
-			{
-				"if": {
-					"properties": {
-						"x_login_id_input_type": { "type": "string", "const": "phone" }
-					}
-				},
-				"then": {
-					"required": ["x_calling_code", "x_national_number"]
-				}
-			},
-			{
-				"if": {
-					"properties": {
-						"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
-					}
-				},
-				"then": {
-					"required": ["x_login_id"]
-				}
-			}
-		]
+		"required": ["x_login_id_input_type", "x_login_id"]
 	}
 `)
 
@@ -112,10 +88,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				return
 			}
 
-			loginID, err := FormToLoginID(r.Form)
-			if err != nil {
-				return
-			}
+			loginID := r.Form.Get("x_login_id")
 
 			input = &InputForgotPassword{
 				LoginID: loginID,
