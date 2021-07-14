@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
-	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -88,8 +87,6 @@ type Context struct {
 	DomainService       DomainService
 	CollaboratorService CollaboratorService
 	AppResMgrFactory    AppResourceManagerFactory
-
-	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
 }
 
 func (c *Context) Logger() *log.Logger {

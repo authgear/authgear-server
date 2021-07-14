@@ -71,15 +71,14 @@ type AppService struct {
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
-	AppConfig          *portalconfig.AppConfig
-	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
-	AppConfigs         AppConfigService
-	AppAuthz           AppAuthzService
-	AppAdminAPI        AppAdminAPIService
-	AppDomains         AppDomainService
-	Resources          ResourceManager
-	AppResMgrFactory   AppResourceManagerFactory
-	Plan               AppPlanService
+	AppConfig        *portalconfig.AppConfig
+	AppConfigs       AppConfigService
+	AppAuthz         AppAuthzService
+	AppAdminAPI      AppAdminAPIService
+	AppDomains       AppDomainService
+	Resources        ResourceManager
+	AppResMgrFactory AppResourceManagerFactory
+	Plan             AppPlanService
 }
 
 func (s *AppService) Get(id string) (*model.App, error) {
@@ -135,12 +134,10 @@ func (s *AppService) GetMaxOwnedApps(userID string) (int, error) {
 }
 
 func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error) {
-	result, err := app.Context.Resources.Read(configsource.AppConfig,
-		resource.AppFileWithConfig{
-			AppFileView: &resource.AppFile{
-				Path: configsource.AuthgearYAML,
-			},
-			AllowedSecretKeys: s.SecretKeyAllowlist,
+	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	result, err := resMgr.ReadAppFile(configsource.AppConfig,
+		&resource.AppFile{
+			Path: configsource.AuthgearYAML,
 		})
 	if err != nil {
 		return nil, err
@@ -155,14 +152,10 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 }
 
 func (s *AppService) LoadRawSecretConfig(app *model.App) (*config.SecretConfig, error) {
-	result, err := app.Context.Resources.Read(configsource.SecretConfig,
-		resource.AppFileWithConfig{
-			AppFileView: &resource.AppFile{
-				Path: configsource.AuthgearSecretYAML,
-			},
-			AllowedSecretKeys: s.SecretKeyAllowlist,
-		},
-	)
+	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
+		Path: configsource.AuthgearSecretYAML,
+	})
 	if err != nil {
 		return nil, err
 	}

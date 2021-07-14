@@ -111,7 +111,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, logFactory)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	appConfig := rootProvider.AppConfig
-	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
@@ -193,6 +192,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor:  sqlExecutor,
 	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
+	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
 	managerFactory := &factory.ManagerFactory{
 		AppBaseResources:   appBaseResources,
 		SecretKeyAllowlist: secretKeyAllowlist,
@@ -207,18 +207,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppConfig: appConfig,
 	}
 	appService := &service.AppService{
-		Logger:             appServiceLogger,
-		SQLBuilder:         sqlBuilder,
-		SQLExecutor:        sqlExecutor,
-		AppConfig:          appConfig,
-		SecretKeyAllowlist: secretKeyAllowlist,
-		AppConfigs:         configService,
-		AppAuthz:           authzService,
-		AppAdminAPI:        adminAPIService,
-		AppDomains:         domainService,
-		Resources:          manager,
-		AppResMgrFactory:   managerFactory,
-		Plan:               planService,
+		Logger:           appServiceLogger,
+		SQLBuilder:       sqlBuilder,
+		SQLExecutor:      sqlExecutor,
+		AppConfig:        appConfig,
+		AppConfigs:       configService,
+		AppAuthz:         authzService,
+		AppAdminAPI:      adminAPIService,
+		AppDomains:       domainService,
+		Resources:        manager,
+		AppResMgrFactory: managerFactory,
+		Plan:             planService,
 	}
 	appLoader := loader.NewAppLoader(appService, authzService)
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
@@ -236,7 +235,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DomainService:           domainService,
 		CollaboratorService:     collaboratorService,
 		AppResMgrFactory:        managerFactory,
-		SecretKeyAllowlist:      secretKeyAllowlist,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,

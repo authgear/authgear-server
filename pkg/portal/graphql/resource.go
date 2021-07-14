@@ -37,12 +37,10 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ctx := GQLContext(p.Context)
 				r := p.Source.(*model.AppResource)
-				result, err := r.Context.Resources.Read(r.DescriptedPath.Descriptor,
-					resource.AppFileWithConfig{
-						AppFileView: &resource.AppFile{
-							Path: r.DescriptedPath.Path,
-						},
-						AllowedSecretKeys: ctx.SecretKeyAllowlist,
+				resMgr := ctx.AppResMgrFactory.NewManagerWithAppContext(r.Context)
+				result, err := resMgr.ReadAppFile(r.DescriptedPath.Descriptor,
+					&resource.AppFile{
+						Path: r.DescriptedPath.Path,
 					})
 				if errors.Is(err, resource.ErrResourceNotFound) {
 					return nil, nil
