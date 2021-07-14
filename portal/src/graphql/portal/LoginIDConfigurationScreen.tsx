@@ -302,7 +302,10 @@ function constructConfig(
       ) {
         phoneConfig.allowlist = currentState.phone.allowlist;
       }
-      if (
+      // If the pinned list is empty, we instead reset it to undefined.
+      if (currentState.phone.pinned_list.length === 0) {
+        phoneConfig.pinned_list = undefined;
+      } else if (
         !deepEqual(
           initialState.phone.pinned_list,
           currentState.phone.pinned_list,
