@@ -43,6 +43,7 @@ import { Resource, ResourceSpecifier, specifierId } from "../../util/resource";
 import { useResourceForm } from "../../hook/useResourceForm";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import ALL_COUNTRIES from "../../data/country.json";
 
 // email domain lists are not language specific
 // so the locale in ResourceSpecifier is not important
@@ -287,8 +288,14 @@ function constructConfig(
           keyConfig.modify_disabled = currentState.phone.modify_disabled;
         }
       }
+
       const phoneConfig = config.ui.phone_input;
-      if (
+      // If the allowlist is the original one, we instead reset it to undefined.
+      // This avoids the config storing the default value, and also
+      // enable us to add more countries.
+      if (currentState.phone.allowlist.length === ALL_COUNTRIES.length) {
+        phoneConfig.allowlist = undefined;
+      } else if (
         !deepEqual(initialState.phone.allowlist, currentState.phone.allowlist, {
           strict: true,
         })
