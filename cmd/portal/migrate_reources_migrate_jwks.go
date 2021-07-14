@@ -62,7 +62,7 @@ func migrateResourcesJWKs(appID string, configSourceData map[string]string, DryR
 	encodedData := configSourceData["authgear.secrets.yaml"]
 	decoded, err := base64.StdEncoding.DecodeString(encodedData)
 	if err != nil {
-		return fmt.Errorf("failed decode authgear.yaml: %w", err)
+		return fmt.Errorf("failed decode authgear.secrets.yaml: %w", err)
 	}
 
 	if DryRun {
