@@ -20,12 +20,17 @@ type View interface {
 	view()
 }
 
+// ViewWithConfig is a wrapper that provides config to view
+type ViewWithConfig interface {
+	View
+	SecretKeyAllowlist() []string
+}
+
 // AppFileView is an view on the resources at specific path in the App FS.
 // Since the path is specific, so the view is single-locale.
 type AppFileView interface {
 	View
 	AppFilePath() string
-	SecretKeyAllowlist() []string
 }
 
 // EffectiveFileView is an view on the resources at specific path in all FSs.
@@ -50,9 +55,19 @@ type ValidateResourceView interface {
 	validateResource()
 }
 
-type AppFile struct {
-	Path              string
+type AppFileWithConfig struct {
+	AppFileView
 	AllowedSecretKeys []string
+}
+
+func (f AppFileWithConfig) SecretKeyAllowlist() []string {
+	return f.AllowedSecretKeys
+}
+
+var _ ViewWithConfig = AppFileWithConfig{}
+
+type AppFile struct {
+	Path string
 }
 
 var _ AppFileView = AppFile{}
@@ -60,9 +75,6 @@ var _ AppFileView = AppFile{}
 func (v AppFile) view() {}
 func (v AppFile) AppFilePath() string {
 	return v.Path
-}
-func (v AppFile) SecretKeyAllowlist() []string {
-	return v.AllowedSecretKeys
 }
 
 type EffectiveFile struct {

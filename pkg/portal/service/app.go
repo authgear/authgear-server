@@ -135,10 +135,13 @@ func (s *AppService) GetMaxOwnedApps(userID string) (int, error) {
 }
 
 func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error) {
-	result, err := app.Context.Resources.Read(configsource.AppConfig, resource.AppFile{
-		Path:              configsource.AuthgearYAML,
-		AllowedSecretKeys: s.SecretKeyAllowlist,
-	})
+	result, err := app.Context.Resources.Read(configsource.AppConfig,
+		resource.AppFileWithConfig{
+			AppFileView: &resource.AppFile{
+				Path: configsource.AuthgearYAML,
+			},
+			AllowedSecretKeys: s.SecretKeyAllowlist,
+		})
 	if err != nil {
 		return nil, err
 	}
@@ -152,10 +155,14 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 }
 
 func (s *AppService) LoadRawSecretConfig(app *model.App) (*config.SecretConfig, error) {
-	result, err := app.Context.Resources.Read(configsource.SecretConfig, resource.AppFile{
-		Path:              configsource.AuthgearSecretYAML,
-		AllowedSecretKeys: s.SecretKeyAllowlist,
-	})
+	result, err := app.Context.Resources.Read(configsource.SecretConfig,
+		resource.AppFileWithConfig{
+			AppFileView: &resource.AppFile{
+				Path: configsource.AuthgearSecretYAML,
+			},
+			AllowedSecretKeys: s.SecretKeyAllowlist,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

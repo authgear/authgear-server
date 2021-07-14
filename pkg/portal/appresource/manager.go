@@ -175,10 +175,14 @@ func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.M
 			return nil, nil, err
 		}
 
-		resrc, err = desc.UpdateResource(resrc, u.Data, resource.AppFile{
-			Path:              u.Path,
-			AllowedSecretKeys: m.SecretKeyAllowlist,
-		})
+		resrc, err = desc.UpdateResource(resrc, u.Data,
+			resource.AppFileWithConfig{
+				AppFileView: &resource.AppFile{
+					Path: u.Path,
+				},
+				AllowedSecretKeys: m.SecretKeyAllowlist,
+			},
+		)
 		if err != nil {
 			return nil, nil, err
 		}
