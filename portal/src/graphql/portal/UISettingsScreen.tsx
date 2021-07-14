@@ -786,6 +786,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           lightTheme={lightTheme}
           isDarkMode={false}
           darkModeEnabled={false}
+          watermarkEnabled={watermarkEnabled}
           appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO)}
           onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO)}
           onChangeDarkModeEnabled={NOOP}
@@ -803,6 +804,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           lightTheme={lightTheme}
           isDarkMode={true}
           darkModeEnabled={!state.darkThemeDisabled}
+          watermarkEnabled={watermarkEnabled}
           appLogoValue={getValueIgnoreEmptyString(RESOURCE_APP_LOGO_DARK)}
           onChangeAppLogo={getOnChangeImage(RESOURCE_APP_LOGO_DARK)}
           onChangeLightTheme={setLightTheme}
