@@ -61,6 +61,13 @@ config:
     white_labeling:
       disabled: true
 ---
+name: limit-number-of-applications
+error: null
+config:
+  oauth:
+    client:
+      maximum: 1
+---
 name: free-plan-config
 error: null
 config:
@@ -84,3 +91,6 @@ config:
   ui:
     white_labeling:
       disabled: true
+  oauth:
+    client:
+      maximum: 2
