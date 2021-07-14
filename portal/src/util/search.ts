@@ -1,8 +1,6 @@
 import { useCallback } from "react";
 
-type SearchItem = Record<string, unknown>;
-
-export function exactKeywordSearch<X extends SearchItem, K extends keyof X>(
+export function exactKeywordSearch<X, K extends keyof X>(
   list: X[],
   keyList: X[K] extends string | undefined ? K[] : never,
   searchString: string
@@ -20,7 +18,7 @@ export function exactKeywordSearch<X extends SearchItem, K extends keyof X>(
   return matchedItems;
 }
 
-export function useExactKeywordSearch<X extends SearchItem, K extends keyof X>(
+export function useExactKeywordSearch<X, K extends keyof X>(
   list: X[],
   keyList: X[K] extends string | undefined ? K[] : never
 ): {
