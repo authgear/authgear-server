@@ -6,10 +6,9 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import Widget from "../../Widget";
 import WidgetWithOrdering from "../../WidgetWithOrdering";
 import CheckboxWithContentLayout from "../../CheckboxWithContentLayout";
-import CountryCallingCodeList from "./AuthenticationCountryCallingCodeList";
+import PhoneInputListWidget from "./PhoneInputListWidget";
 import { useTagPickerWithNewTags } from "../../hook/useInput";
 import { clearEmptyObject } from "../../util/misc";
-import { countryCallingCodes as supportedCountryCallingCodes } from "../../data/countryCallingCode.json";
 import { useParams } from "react-router-dom";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import ShowLoading from "../../ShowLoading";
@@ -28,7 +27,7 @@ import {
   loginIDKeyTypes,
   LoginIDUsernameConfig,
   PortalAPIAppConfig,
-  UICountryCallingCodeConfig,
+  PhoneInputConfig,
 } from "../../types";
 import {
   renderPath,
@@ -81,7 +80,7 @@ interface UsernameConfig extends LoginIDUsernameConfig {
   modify_disabled?: boolean;
 }
 
-interface PhoneConfig extends UICountryCallingCodeConfig {
+interface PhoneConfig extends PhoneInputConfig {
   modify_disabled?: boolean;
 }
 
@@ -152,7 +151,7 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
       modify_disabled:
         config.identity?.login_id?.keys?.find((a) => a.type === "phone")
           ?.modify_disabled ?? false,
-      ...config.ui?.country_calling_code,
+      ...config.ui?.phone_input,
     },
   };
 }
@@ -172,7 +171,7 @@ function constructConfig(
     config.identity.login_id.types.username ??= {};
     config.identity.login_id.types.email ??= {};
     config.ui ??= {};
-    config.ui.country_calling_code ??= {};
+    config.ui.phone_input ??= {};
 
     const keys = new Map(config.identity.login_id.keys.map((k) => [k.type, k]));
     config.identity.login_id.keys = currentState.types
@@ -288,7 +287,7 @@ function constructConfig(
           keyConfig.modify_disabled = currentState.phone.modify_disabled;
         }
       }
-      const phoneConfig = config.ui.country_calling_code;
+      const phoneConfig = config.ui.phone_input;
       if (
         !deepEqual(initialState.phone.allowlist, currentState.phone.allowlist, {
           strict: true,
@@ -927,20 +926,20 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       [change]
     );
     const onPhoneListChange = useCallback(
-      (allowlist: string[], pinnedList: string[]) =>
+      (allowlist: string[], pinnedList: string[]) => {
         change((state) => {
           state.phone.allowlist = allowlist;
           state.phone.pinned_list = pinnedList;
-        }),
+        });
+      },
       [change]
     );
     const phoneSection = (
       <div className={styles.widgetContent}>
         <Widget className={styles.control}>
-          <CountryCallingCodeList
-            allCountryCallingCodes={supportedCountryCallingCodes}
-            selectedCountryCallingCodes={state.phone.allowlist}
-            pinnedCountryCallingCodes={state.phone.pinned_list}
+          <PhoneInputListWidget
+            allowedAlpha2={state.phone.allowlist}
+            pinnedAlpha2={state.phone.pinned_list}
             onChange={onPhoneListChange}
           />
         </Widget>
