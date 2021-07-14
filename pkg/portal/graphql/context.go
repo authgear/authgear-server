@@ -67,7 +67,7 @@ type AuthzService interface {
 }
 
 type AppResourceManagerFactory interface {
-	NewManagerWithApp(app *model.App) *appresource.Manager
+	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
 }
 
 type Logger struct{ *log.Logger }

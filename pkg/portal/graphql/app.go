@@ -40,7 +40,7 @@ var nodeApp = node(
 
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					appResMgr := ctx.AppResMgrFactory.NewManagerWithApp(app)
+					appResMgr := ctx.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 					if len(paths) == 0 {
 						var err error
 						paths, err = appResMgr.List()

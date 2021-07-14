@@ -63,7 +63,7 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 
 type AppResourceManagerFactory interface {
 	NewManagerWithNewAppFS(appFs resource.Fs) *appresource.Manager
-	NewManagerWithApp(app *model.App) *appresource.Manager
+	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
 }
 
 type AppService struct {
@@ -254,7 +254,7 @@ func (s *AppService) Create(userID string, id string) error {
 }
 
 func (s *AppService) UpdateResources(app *model.App, updates []appresource.Update) error {
-	appResMgr := s.AppResMgrFactory.NewManagerWithApp(app)
+	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	files, err := appResMgr.ApplyUpdates(app.ID, updates)
 	if err != nil {
 		return err

@@ -1,10 +1,10 @@
 package factory
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -13,10 +13,10 @@ type ManagerFactory struct {
 	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
 }
 
-func (f *ManagerFactory) NewManagerWithApp(app *model.App) *appresource.Manager {
+func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager {
 	return &appresource.Manager{
-		AppResourceManager: app.Context.Resources,
-		AppFS:              app.Context.AppFs,
+		AppResourceManager: appContext.Resources,
+		AppFS:              appContext.AppFs,
 		SecretKeyAllowlist: f.SecretKeyAllowlist,
 	}
 }

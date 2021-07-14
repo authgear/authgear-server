@@ -87,6 +87,13 @@ func (m *Manager) AssociateDescriptor(paths ...string) ([]DescriptedPath, error)
 	return matches, nil
 }
 
+func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileView) (interface{}, error) {
+	return m.AppResourceManager.Read(desc, resource.AppFileWithConfig{
+		AppFileView:       view,
+		AllowedSecretKeys: m.SecretKeyAllowlist,
+	})
+}
+
 func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.ResourceFile, error) {
 	// Validate file size.
 	for _, f := range updates {
