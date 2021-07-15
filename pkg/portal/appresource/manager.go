@@ -18,6 +18,17 @@ import (
 
 const ConfigFileMaxSize = 100 * 1024
 
+type AppFileWithConfig struct {
+	resource.AppFileView
+	AllowedSecretKeys []string
+}
+
+func (f AppFileWithConfig) SecretKeyAllowlist() []string {
+	return f.AllowedSecretKeys
+}
+
+var _ configsource.ViewWithConfig = AppFileWithConfig{}
+
 type Manager struct {
 	AppResourceManager *resource.Manager
 	AppFS              resource.Fs
@@ -88,7 +99,7 @@ func (m *Manager) AssociateDescriptor(paths ...string) ([]DescriptedPath, error)
 }
 
 func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileView) (interface{}, error) {
-	return m.AppResourceManager.Read(desc, resource.AppFileWithConfig{
+	return m.AppResourceManager.Read(desc, AppFileWithConfig{
 		AppFileView:       view,
 		AllowedSecretKeys: m.SecretKeyAllowlist,
 	})
@@ -183,7 +194,7 @@ func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.M
 		}
 
 		resrc, err = desc.UpdateResource(resrc, u.Data,
-			resource.AppFileWithConfig{
+			AppFileWithConfig{
 				AppFileView: &resource.AppFile{
 					Path: u.Path,
 				},

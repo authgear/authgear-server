@@ -19,6 +19,11 @@ const (
 
 var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective secret config")
 
+type ViewWithConfig interface {
+	resource.View
+	SecretKeyAllowlist() []string
+}
+
 type AuthgearYAMLDescriptor struct{}
 
 var _ resource.Descriptor = AuthgearYAMLDescriptor{}
@@ -140,7 +145,7 @@ func (d AuthgearSecretYAMLDescriptor) ViewResources(resources []resource.Resourc
 }
 
 func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
-	viewWithConfig, ok := view.(interface{}).(resource.ViewWithConfig)
+	viewWithConfig, ok := view.(interface{}).(ViewWithConfig)
 	if !ok {
 		panic("resource: missing config in the app file view")
 	}
@@ -229,7 +234,7 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(resrc *resource.ResourceFil
 			return nil, fmt.Errorf("failed to parse incoming secret config: %w", err)
 		}
 
-		viewWithConfig, ok := view.(interface{}).(resource.ViewWithConfig)
+		viewWithConfig, ok := view.(interface{}).(ViewWithConfig)
 		if !ok {
 			panic("resource: missing config in the app file view")
 		}

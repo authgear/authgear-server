@@ -20,12 +20,6 @@ type View interface {
 	view()
 }
 
-// ViewWithConfig is a wrapper that provides config to view
-type ViewWithConfig interface {
-	View
-	SecretKeyAllowlist() []string
-}
-
 // AppFileView is an view on the resources at specific path in the App FS.
 // Since the path is specific, so the view is single-locale.
 type AppFileView interface {
@@ -54,17 +48,6 @@ type ValidateResourceView interface {
 	View
 	validateResource()
 }
-
-type AppFileWithConfig struct {
-	AppFileView
-	AllowedSecretKeys []string
-}
-
-func (f AppFileWithConfig) SecretKeyAllowlist() []string {
-	return f.AllowedSecretKeys
-}
-
-var _ ViewWithConfig = AppFileWithConfig{}
 
 type AppFile struct {
 	Path string
