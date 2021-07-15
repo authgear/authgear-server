@@ -22,6 +22,7 @@ var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective sec
 type ViewWithConfig interface {
 	resource.View
 	SecretKeyAllowlist() []string
+	AppFeatureConfig() *config.FeatureConfig
 }
 
 type AuthgearYAMLDescriptor struct{}
@@ -92,14 +93,56 @@ func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile,
 	}
 }
 
-func (d AuthgearYAMLDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, _ resource.View) (*resource.ResourceFile, error) {
+func (d AuthgearYAMLDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, rawView resource.View) (*resource.ResourceFile, error) {
 	if data == nil {
 		return nil, fmt.Errorf("cannot delete '%v'", AuthgearYAML)
 	}
+
+	view, ok := rawView.(resource.AppFileView)
+	if !ok {
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+
+	viewWithConfig, ok := view.(interface{}).(ViewWithConfig)
+	if !ok {
+		panic("resource: missing config in the app file view")
+	}
+
+	fc := viewWithConfig.AppFeatureConfig()
+
+	original, err := config.Parse(resrc.Data)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse original app config %w", err)
+	}
+
+	incoming, err := config.Parse(data)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse incoming app config: %w", err)
+	}
+
+	err = d.validate(original, incoming, fc)
+	if err != nil {
+		return nil, err
+	}
+
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
 	}, nil
+}
+
+func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig) error {
+	// check when adding new oauth clients
+	if len(original.OAuth.Clients) < len(incoming.OAuth.Clients) {
+		if len(incoming.OAuth.Clients) > *fc.OAuth.Client.Maximum {
+			return fmt.Errorf("exceed the maximum number of oauth clients, actual: %d, expected: %d",
+				len(incoming.OAuth.Clients),
+				*fc.OAuth.Client.Maximum,
+			)
+		}
+	}
+
+	return nil
 }
 
 var AppConfig = resource.RegisterResource(AuthgearYAMLDescriptor{})
