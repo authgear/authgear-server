@@ -17,8 +17,9 @@ func TestManager(t *testing.T) {
 	Convey("ApplyUpdates", t, func() {
 		appID := "app-id"
 		cfg := &config.Config{
-			AppConfig:    configtest.FixtureAppConfig("app-id"),
-			SecretConfig: configtest.FixtureSecretConfig(0),
+			AppConfig:     configtest.FixtureAppConfig("app-id"),
+			SecretConfig:  configtest.FixtureSecretConfig(0),
+			FeatureConfig: configtest.FixtureFeatureConfig(configtest.FixtureLimitedPlanName),
 		}
 		config.PopulateDefaultValues(cfg.AppConfig)
 
@@ -40,6 +41,7 @@ func TestManager(t *testing.T) {
 			AppResourceManager: resMgr,
 			AppFS:              appResourceFs,
 			SecretKeyAllowlist: allowlist,
+			AppFeatureConfig:   cfg.FeatureConfig,
 		}
 
 		applyUpdates := func(updates []appresource.Update) error {
@@ -73,7 +75,7 @@ func TestManager(t *testing.T) {
 				Path: "authgear.yaml",
 				Data: []byte("{}"),
 			}})
-			So(err, ShouldBeError, `invalid resource: cannot parse app config: invalid configuration:
+			So(err, ShouldBeError, `cannot parse incoming app config: invalid configuration:
 <root>: required
   map[actual:<nil> expected:[http id] missing:[http id]]`)
 
@@ -83,6 +85,11 @@ func TestManager(t *testing.T) {
 			}})
 			So(err, ShouldBeError, `invalid resource 'authgear.yaml': incorrect app ID`)
 
+			err = applyUpdates([]appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\noauth:\n  clients:\n    - name: Test Client\n      client_id: test-client\n      redirect_uris:\n        - \"https://example.com\"\n    - name: Test Client2\n      client_id: test-client2\n      redirect_uris:\n        - \"https://example2.com\""),
+			}})
+			So(err, ShouldBeError, `exceed the maximum number of oauth clients, actual: 2, expected: 1`)
 		})
 
 		Convey("forbid deleting required items in secrets", func() {

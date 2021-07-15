@@ -18,6 +18,7 @@ func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext)
 		AppResourceManager: appContext.Resources,
 		AppFS:              appContext.AppFs,
 		SecretKeyAllowlist: f.SecretKeyAllowlist,
+		AppFeatureConfig:   appContext.Config.FeatureConfig,
 	}
 }
 
@@ -27,5 +28,8 @@ func (f *ManagerFactory) NewManagerWithNewAppFS(appFs resource.Fs) *appresource.
 		AppResourceManager: resMgr,
 		AppFS:              appFs,
 		SecretKeyAllowlist: f.SecretKeyAllowlist,
+		// The newly generated config should not violate any app plan
+		// use default unlimited feature config for the app creation
+		AppFeatureConfig: config.NewEffectiveDefaultFeatureConfig(),
 	}
 }
