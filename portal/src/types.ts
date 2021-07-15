@@ -459,6 +459,7 @@ export interface PortalAPIFeatureConfig {
   authentication?: AuthenticationFeatureConfig;
   custom_domain?: CustomDomainFeatureConfig;
   ui?: UIFeatureConfig;
+  oauth?: OAuthFeatureConfig;
 }
 
 export interface AuthenticationFeatureConfig {
@@ -518,4 +519,12 @@ export interface UIFeatureConfig {
 
 export interface WhiteLabelingFeatureConfig {
   disabled?: boolean;
+}
+
+export interface OAuthFeatureConfig {
+  client?: OAuthClientFeatureConfig;
+}
+
+export interface OAuthClientFeatureConfig {
+  maximum?: number;
 }
