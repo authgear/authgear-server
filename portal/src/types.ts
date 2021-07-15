@@ -264,13 +264,13 @@ export interface VerificationConfig {
 }
 
 // UIConfig
-export interface UICountryCallingCodeConfig {
+export interface PhoneInputConfig {
   allowlist?: string[];
   pinned_list?: string[];
 }
 
 export interface UIConfig {
-  country_calling_code?: UICountryCallingCodeConfig;
+  phone_input?: PhoneInputConfig;
   dark_theme_disabled?: boolean;
   watermark_disabled?: boolean;
   default_client_uri?: string;

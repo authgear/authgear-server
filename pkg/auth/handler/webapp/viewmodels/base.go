@@ -109,6 +109,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	_, resolvedLanguageTagTag := intl.Resolve(preferredLanguageTags, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
 	resolvedLanguageTag := resolvedLanguageTagTag.String()
 
+	countries := m.AuthUI.PhoneInput.GetCountries()
+	countryCallingCodes := make([]string, len(countries))
+	for i, country := range countries {
+		countryCallingCodes[i] = country.CountryCallingCode
+	}
+
 	model := BaseViewModel{
 		CSRFField:    csrf.TemplateField(r),
 		Translations: m.Translations,
@@ -124,7 +130,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		DarkThemeEnabled: !m.AuthUI.DarkThemeDisabled,
 		WatermarkEnabled: m.AuthUIFeatureConfig.WhiteLabeling.Disabled ||
 			!m.AuthUI.WatermarkDisabled,
-		CountryCallingCodes: m.AuthUI.CountryCallingCode.GetActiveCountryCodes(),
+		CountryCallingCodes: countryCallingCodes,
 		ClientURI:           clientURI,
 		ClientName:          clientName,
 		SliceContains:       sliceContains,

@@ -7,7 +7,7 @@ var _ = Schema.Add("UIConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"country_calling_code": { "$ref": "#/$defs/UICountryCallingCodeConfig" },
+		"phone_input": { "$ref": "#/$defs/PhoneInputConfig" },
 		"dark_theme_disabled": { "type": "boolean" },
 		"watermark_disabled": { "type": "boolean" },
 		"default_client_uri": { "type": "string", "format": "uri" },
@@ -18,9 +18,9 @@ var _ = Schema.Add("UIConfig", `
 `)
 
 type UIConfig struct {
-	CountryCallingCode *UICountryCallingCodeConfig `json:"country_calling_code,omitempty"`
-	DarkThemeDisabled  bool                        `json:"dark_theme_disabled,omitempty"`
-	WatermarkDisabled  bool                        `json:"watermark_disabled,omitempty"`
+	PhoneInput        *PhoneInputConfig `json:"phone_input,omitempty"`
+	DarkThemeDisabled bool              `json:"dark_theme_disabled,omitempty"`
+	WatermarkDisabled bool              `json:"watermark_disabled,omitempty"`
 	// client_uri to use when client_id is absent.
 	DefaultClientURI string `json:"default_client_uri,omitempty"`
 	// redirect_uri to use when client_id is absent.
@@ -29,44 +29,59 @@ type UIConfig struct {
 	DefaultPostLogoutRedirectURI string `json:"default_post_logout_redirect_uri,omitempty"`
 }
 
-var _ = Schema.Add("UICountryCallingCodeConfig", `
+var _ = Schema.Add("PhoneInputConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"allowlist": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-		"pinned_list": { "type": "array", "items": { "type": "string" } }
+		"allowlist": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" }, "minItems": 1 },
+		"pinned_list": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" } }
 	}
 }
 `)
 
-type UICountryCallingCodeConfig struct {
+var _ = Schema.Add("ISO31661Alpha2", phone.JSONSchemaString)
+
+type PhoneInputConfig struct {
 	AllowList  []string `json:"allowlist,omitempty"`
 	PinnedList []string `json:"pinned_list,omitempty"`
 }
 
-func (c *UICountryCallingCodeConfig) SetDefaults() {
+func (c *PhoneInputConfig) SetDefaults() {
 	if c.AllowList == nil {
-		c.AllowList = phone.CountryCallingCodes
+		c.AllowList = phone.AllAlpha2
 	}
 }
 
-// NOTE: Pinned list has order, goes before allow list
-// while allow list follows default order.
-// Country code in either pinned / allow list is counted as active
-func (c *UICountryCallingCodeConfig) GetActiveCountryCodes() []string {
-	isCodePinned := make(map[string]bool)
-	for _, code := range c.PinnedList {
-		isCodePinned[code] = true
+// GetCountries returns a list of countries, with pinned countries go first,
+// followed by allowed countries.
+func (c *PhoneInputConfig) GetCountries() []phone.Country {
+	var countries []phone.Country
+
+	isPinned := make(map[string]bool)
+	for _, alpha2 := range c.PinnedList {
+		isPinned[alpha2] = true
 	}
 
-	activeCountryCodes := []string{}
-	activeCountryCodes = append(activeCountryCodes, c.PinnedList...)
-	for _, code := range c.AllowList {
-		if !isCodePinned[code] {
-			activeCountryCodes = append(activeCountryCodes, code)
+	// Insert pinned country in order.
+	for _, alpha2 := range c.PinnedList {
+		country, ok := phone.GetCountryByAlpha2(alpha2)
+		if ok {
+			countries = append(countries, country)
 		}
 	}
 
-	return activeCountryCodes
+	// Insert allowed country in order.
+	for _, alpha2 := range c.AllowList {
+		pinned := isPinned[alpha2]
+		if pinned {
+			continue
+		}
+		country, ok := phone.GetCountryByAlpha2(alpha2)
+		if ok {
+			countries = append(countries, country)
+		}
+	}
+
+	return countries
 }

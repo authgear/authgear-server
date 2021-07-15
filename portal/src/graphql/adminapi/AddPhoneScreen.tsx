@@ -19,7 +19,7 @@ import { useAppConfigQuery } from "../portal/query/appConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import { PortalAPIAppConfig } from "../../types";
 import { ErrorParseRule } from "../../error/parse";
-import { getActiveCountryCallingCode } from "../../util/countryCallingCode";
+import ALL_COUNTRIES from "../../data/country.json";
 
 import styles from "./AddPhoneScreen.module.scss";
 
@@ -37,11 +37,34 @@ const errorRules: ErrorParseRule[] = [
   },
 ];
 
-function makePhoneNumber(countryCode: string, phone: string) {
+type Country = typeof ALL_COUNTRIES[number];
+type CountryMap = Record<string, Country>;
+
+const COUNTRY_MAP = ALL_COUNTRIES.reduce<CountryMap>(
+  (acc: CountryMap, country: Country) => {
+    acc[country.Alpha2] = country;
+    return acc;
+  },
+  {}
+);
+
+function makePhoneNumber(alpha2: string, phone: string) {
   if (phone.length === 0) {
     return "";
   }
-  return `+${countryCode}${phone}`;
+  const countryCallingCode = COUNTRY_MAP[alpha2].CountryCallingCode;
+  return `+${countryCallingCode}${phone}`;
+}
+
+function getAlpha2(pinned: string[], allowed: string[]): string[] {
+  const list = [...pinned];
+  const pinnedSet = new Set(pinned);
+  for (const alpha2 of allowed) {
+    if (!pinnedSet.has(alpha2)) {
+      list.push(alpha2);
+    }
+  }
+  return list;
 }
 
 interface PhoneFieldProps {
@@ -56,40 +79,41 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
   const { config, resetToken, onChange } = props;
   const { renderToString } = useContext(Context);
 
-  const countryCodes = useMemo(() => {
-    const countryCodeConfig = config?.ui?.country_calling_code;
-    const allowList = countryCodeConfig?.allowlist ?? [];
-    const pinnedList = countryCodeConfig?.pinned_list ?? [];
-    return getActiveCountryCallingCode(pinnedList, allowList);
+  const alpha2List = useMemo(() => {
+    const phoneInputConfig = config?.ui?.phone_input;
+    const allowList = phoneInputConfig?.allowlist ?? [];
+    const pinnedList = phoneInputConfig?.pinned_list ?? [];
+    return getAlpha2(pinnedList, allowList);
   }, [config]);
-  const defaultCountryCode = countryCodes[0];
+  const defaultAlpha2 = alpha2List[0];
 
-  const [countryCode, setCountryCode] = useState(defaultCountryCode);
+  const [alpha2, setAlpha2] = useState(defaultAlpha2);
   const [phone, setPhone] = useState("");
   useEffect(() => {
     // Reset internal state when form is reset.
     setPhone("");
-    setCountryCode(defaultCountryCode);
-  }, [resetToken, defaultCountryCode]);
+    setAlpha2(defaultAlpha2);
+  }, [resetToken, defaultAlpha2]);
 
-  const displayCountryCode = useCallback((countryCode: string) => {
-    return `+ ${countryCode}`;
+  const getLabel = useCallback((alpha2: string) => {
+    const country = COUNTRY_MAP[alpha2];
+    return `${country.Alpha2} +${country.CountryCallingCode}`;
   }, []);
 
   const { options: countryCodeOptions, onChange: onCountryCodeChange } =
     useDropdown(
-      countryCodes,
+      alpha2List,
       (option) => {
-        setCountryCode(option);
+        setAlpha2(option);
         onChange(makePhoneNumber(option, phone));
       },
-      defaultCountryCode,
-      displayCountryCode
+      alpha2,
+      getLabel
     );
 
   const { onChange: onPhoneChange } = useIntegerTextField((value) => {
     setPhone(value);
-    onChange(makePhoneNumber(countryCode, value));
+    onChange(makePhoneNumber(alpha2, value));
   });
 
   return (
@@ -100,7 +124,7 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
       <Dropdown
         className={styles.countryCode}
         options={countryCodeOptions}
-        selectedKey={countryCode}
+        selectedKey={alpha2}
         onChange={onCountryCodeChange}
         ariaLabel={renderToString("AddPhoneScreen.country-code.label")}
       />

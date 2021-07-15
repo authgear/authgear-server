@@ -1,0 +1,974 @@
+[
+  {
+    "Alpha2": "AD",
+    "CountryCallingCode": "376"
+  },
+  {
+    "Alpha2": "AE",
+    "CountryCallingCode": "971"
+  },
+  {
+    "Alpha2": "AF",
+    "CountryCallingCode": "93"
+  },
+  {
+    "Alpha2": "AG",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "AI",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "AL",
+    "CountryCallingCode": "355"
+  },
+  {
+    "Alpha2": "AM",
+    "CountryCallingCode": "374"
+  },
+  {
+    "Alpha2": "AO",
+    "CountryCallingCode": "244"
+  },
+  {
+    "Alpha2": "AR",
+    "CountryCallingCode": "54"
+  },
+  {
+    "Alpha2": "AS",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "AT",
+    "CountryCallingCode": "43"
+  },
+  {
+    "Alpha2": "AU",
+    "CountryCallingCode": "61"
+  },
+  {
+    "Alpha2": "AW",
+    "CountryCallingCode": "297"
+  },
+  {
+    "Alpha2": "AX",
+    "CountryCallingCode": "358"
+  },
+  {
+    "Alpha2": "AZ",
+    "CountryCallingCode": "994"
+  },
+  {
+    "Alpha2": "BA",
+    "CountryCallingCode": "387"
+  },
+  {
+    "Alpha2": "BB",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "BD",
+    "CountryCallingCode": "880"
+  },
+  {
+    "Alpha2": "BE",
+    "CountryCallingCode": "32"
+  },
+  {
+    "Alpha2": "BF",
+    "CountryCallingCode": "226"
+  },
+  {
+    "Alpha2": "BG",
+    "CountryCallingCode": "359"
+  },
+  {
+    "Alpha2": "BH",
+    "CountryCallingCode": "973"
+  },
+  {
+    "Alpha2": "BI",
+    "CountryCallingCode": "257"
+  },
+  {
+    "Alpha2": "BJ",
+    "CountryCallingCode": "229"
+  },
+  {
+    "Alpha2": "BL",
+    "CountryCallingCode": "590"
+  },
+  {
+    "Alpha2": "BM",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "BN",
+    "CountryCallingCode": "673"
+  },
+  {
+    "Alpha2": "BO",
+    "CountryCallingCode": "591"
+  },
+  {
+    "Alpha2": "BQ",
+    "CountryCallingCode": "599"
+  },
+  {
+    "Alpha2": "BR",
+    "CountryCallingCode": "55"
+  },
+  {
+    "Alpha2": "BS",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "BT",
+    "CountryCallingCode": "975"
+  },
+  {
+    "Alpha2": "BW",
+    "CountryCallingCode": "267"
+  },
+  {
+    "Alpha2": "BY",
+    "CountryCallingCode": "375"
+  },
+  {
+    "Alpha2": "BZ",
+    "CountryCallingCode": "501"
+  },
+  {
+    "Alpha2": "CA",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "CC",
+    "CountryCallingCode": "61"
+  },
+  {
+    "Alpha2": "CD",
+    "CountryCallingCode": "243"
+  },
+  {
+    "Alpha2": "CF",
+    "CountryCallingCode": "236"
+  },
+  {
+    "Alpha2": "CG",
+    "CountryCallingCode": "242"
+  },
+  {
+    "Alpha2": "CH",
+    "CountryCallingCode": "41"
+  },
+  {
+    "Alpha2": "CI",
+    "CountryCallingCode": "225"
+  },
+  {
+    "Alpha2": "CK",
+    "CountryCallingCode": "682"
+  },
+  {
+    "Alpha2": "CL",
+    "CountryCallingCode": "56"
+  },
+  {
+    "Alpha2": "CM",
+    "CountryCallingCode": "237"
+  },
+  {
+    "Alpha2": "CN",
+    "CountryCallingCode": "86"
+  },
+  {
+    "Alpha2": "CO",
+    "CountryCallingCode": "57"
+  },
+  {
+    "Alpha2": "CR",
+    "CountryCallingCode": "506"
+  },
+  {
+    "Alpha2": "CU",
+    "CountryCallingCode": "53"
+  },
+  {
+    "Alpha2": "CV",
+    "CountryCallingCode": "238"
+  },
+  {
+    "Alpha2": "CW",
+    "CountryCallingCode": "599"
+  },
+  {
+    "Alpha2": "CX",
+    "CountryCallingCode": "61"
+  },
+  {
+    "Alpha2": "CY",
+    "CountryCallingCode": "357"
+  },
+  {
+    "Alpha2": "CZ",
+    "CountryCallingCode": "420"
+  },
+  {
+    "Alpha2": "DE",
+    "CountryCallingCode": "49"
+  },
+  {
+    "Alpha2": "DJ",
+    "CountryCallingCode": "253"
+  },
+  {
+    "Alpha2": "DK",
+    "CountryCallingCode": "45"
+  },
+  {
+    "Alpha2": "DM",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "DO",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "DZ",
+    "CountryCallingCode": "213"
+  },
+  {
+    "Alpha2": "EC",
+    "CountryCallingCode": "593"
+  },
+  {
+    "Alpha2": "EE",
+    "CountryCallingCode": "372"
+  },
+  {
+    "Alpha2": "EG",
+    "CountryCallingCode": "20"
+  },
+  {
+    "Alpha2": "EH",
+    "CountryCallingCode": "212"
+  },
+  {
+    "Alpha2": "ER",
+    "CountryCallingCode": "291"
+  },
+  {
+    "Alpha2": "ES",
+    "CountryCallingCode": "34"
+  },
+  {
+    "Alpha2": "ET",
+    "CountryCallingCode": "251"
+  },
+  {
+    "Alpha2": "FI",
+    "CountryCallingCode": "358"
+  },
+  {
+    "Alpha2": "FJ",
+    "CountryCallingCode": "679"
+  },
+  {
+    "Alpha2": "FK",
+    "CountryCallingCode": "500"
+  },
+  {
+    "Alpha2": "FM",
+    "CountryCallingCode": "691"
+  },
+  {
+    "Alpha2": "FO",
+    "CountryCallingCode": "298"
+  },
+  {
+    "Alpha2": "FR",
+    "CountryCallingCode": "33"
+  },
+  {
+    "Alpha2": "GA",
+    "CountryCallingCode": "241"
+  },
+  {
+    "Alpha2": "GB",
+    "CountryCallingCode": "44"
+  },
+  {
+    "Alpha2": "GD",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "GE",
+    "CountryCallingCode": "995"
+  },
+  {
+    "Alpha2": "GF",
+    "CountryCallingCode": "594"
+  },
+  {
+    "Alpha2": "GG",
+    "CountryCallingCode": "44"
+  },
+  {
+    "Alpha2": "GH",
+    "CountryCallingCode": "233"
+  },
+  {
+    "Alpha2": "GI",
+    "CountryCallingCode": "350"
+  },
+  {
+    "Alpha2": "GL",
+    "CountryCallingCode": "299"
+  },
+  {
+    "Alpha2": "GM",
+    "CountryCallingCode": "220"
+  },
+  {
+    "Alpha2": "GN",
+    "CountryCallingCode": "224"
+  },
+  {
+    "Alpha2": "GP",
+    "CountryCallingCode": "590"
+  },
+  {
+    "Alpha2": "GQ",
+    "CountryCallingCode": "240"
+  },
+  {
+    "Alpha2": "GR",
+    "CountryCallingCode": "30"
+  },
+  {
+    "Alpha2": "GT",
+    "CountryCallingCode": "502"
+  },
+  {
+    "Alpha2": "GU",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "GW",
+    "CountryCallingCode": "245"
+  },
+  {
+    "Alpha2": "GY",
+    "CountryCallingCode": "592"
+  },
+  {
+    "Alpha2": "HK",
+    "CountryCallingCode": "852"
+  },
+  {
+    "Alpha2": "HN",
+    "CountryCallingCode": "504"
+  },
+  {
+    "Alpha2": "HR",
+    "CountryCallingCode": "385"
+  },
+  {
+    "Alpha2": "HT",
+    "CountryCallingCode": "509"
+  },
+  {
+    "Alpha2": "HU",
+    "CountryCallingCode": "36"
+  },
+  {
+    "Alpha2": "ID",
+    "CountryCallingCode": "62"
+  },
+  {
+    "Alpha2": "IE",
+    "CountryCallingCode": "353"
+  },
+  {
+    "Alpha2": "IL",
+    "CountryCallingCode": "972"
+  },
+  {
+    "Alpha2": "IM",
+    "CountryCallingCode": "44"
+  },
+  {
+    "Alpha2": "IN",
+    "CountryCallingCode": "91"
+  },
+  {
+    "Alpha2": "IO",
+    "CountryCallingCode": "246"
+  },
+  {
+    "Alpha2": "IQ",
+    "CountryCallingCode": "964"
+  },
+  {
+    "Alpha2": "IR",
+    "CountryCallingCode": "98"
+  },
+  {
+    "Alpha2": "IS",
+    "CountryCallingCode": "354"
+  },
+  {
+    "Alpha2": "IT",
+    "CountryCallingCode": "39"
+  },
+  {
+    "Alpha2": "JE",
+    "CountryCallingCode": "44"
+  },
+  {
+    "Alpha2": "JM",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "JO",
+    "CountryCallingCode": "962"
+  },
+  {
+    "Alpha2": "JP",
+    "CountryCallingCode": "81"
+  },
+  {
+    "Alpha2": "KE",
+    "CountryCallingCode": "254"
+  },
+  {
+    "Alpha2": "KG",
+    "CountryCallingCode": "996"
+  },
+  {
+    "Alpha2": "KH",
+    "CountryCallingCode": "855"
+  },
+  {
+    "Alpha2": "KI",
+    "CountryCallingCode": "686"
+  },
+  {
+    "Alpha2": "KM",
+    "CountryCallingCode": "269"
+  },
+  {
+    "Alpha2": "KN",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "KP",
+    "CountryCallingCode": "850"
+  },
+  {
+    "Alpha2": "KR",
+    "CountryCallingCode": "82"
+  },
+  {
+    "Alpha2": "KW",
+    "CountryCallingCode": "965"
+  },
+  {
+    "Alpha2": "KY",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "KZ",
+    "CountryCallingCode": "7"
+  },
+  {
+    "Alpha2": "LA",
+    "CountryCallingCode": "856"
+  },
+  {
+    "Alpha2": "LB",
+    "CountryCallingCode": "961"
+  },
+  {
+    "Alpha2": "LC",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "LI",
+    "CountryCallingCode": "423"
+  },
+  {
+    "Alpha2": "LK",
+    "CountryCallingCode": "94"
+  },
+  {
+    "Alpha2": "LR",
+    "CountryCallingCode": "231"
+  },
+  {
+    "Alpha2": "LS",
+    "CountryCallingCode": "266"
+  },
+  {
+    "Alpha2": "LT",
+    "CountryCallingCode": "370"
+  },
+  {
+    "Alpha2": "LU",
+    "CountryCallingCode": "352"
+  },
+  {
+    "Alpha2": "LV",
+    "CountryCallingCode": "371"
+  },
+  {
+    "Alpha2": "LY",
+    "CountryCallingCode": "218"
+  },
+  {
+    "Alpha2": "MA",
+    "CountryCallingCode": "212"
+  },
+  {
+    "Alpha2": "MC",
+    "CountryCallingCode": "377"
+  },
+  {
+    "Alpha2": "MD",
+    "CountryCallingCode": "373"
+  },
+  {
+    "Alpha2": "ME",
+    "CountryCallingCode": "382"
+  },
+  {
+    "Alpha2": "MF",
+    "CountryCallingCode": "590"
+  },
+  {
+    "Alpha2": "MG",
+    "CountryCallingCode": "261"
+  },
+  {
+    "Alpha2": "MH",
+    "CountryCallingCode": "692"
+  },
+  {
+    "Alpha2": "MK",
+    "CountryCallingCode": "389"
+  },
+  {
+    "Alpha2": "ML",
+    "CountryCallingCode": "223"
+  },
+  {
+    "Alpha2": "MM",
+    "CountryCallingCode": "95"
+  },
+  {
+    "Alpha2": "MN",
+    "CountryCallingCode": "976"
+  },
+  {
+    "Alpha2": "MO",
+    "CountryCallingCode": "853"
+  },
+  {
+    "Alpha2": "MP",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "MQ",
+    "CountryCallingCode": "596"
+  },
+  {
+    "Alpha2": "MR",
+    "CountryCallingCode": "222"
+  },
+  {
+    "Alpha2": "MS",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "MT",
+    "CountryCallingCode": "356"
+  },
+  {
+    "Alpha2": "MU",
+    "CountryCallingCode": "230"
+  },
+  {
+    "Alpha2": "MV",
+    "CountryCallingCode": "960"
+  },
+  {
+    "Alpha2": "MW",
+    "CountryCallingCode": "265"
+  },
+  {
+    "Alpha2": "MX",
+    "CountryCallingCode": "52"
+  },
+  {
+    "Alpha2": "MY",
+    "CountryCallingCode": "60"
+  },
+  {
+    "Alpha2": "MZ",
+    "CountryCallingCode": "258"
+  },
+  {
+    "Alpha2": "NA",
+    "CountryCallingCode": "264"
+  },
+  {
+    "Alpha2": "NC",
+    "CountryCallingCode": "687"
+  },
+  {
+    "Alpha2": "NE",
+    "CountryCallingCode": "227"
+  },
+  {
+    "Alpha2": "NF",
+    "CountryCallingCode": "672"
+  },
+  {
+    "Alpha2": "NG",
+    "CountryCallingCode": "234"
+  },
+  {
+    "Alpha2": "NI",
+    "CountryCallingCode": "505"
+  },
+  {
+    "Alpha2": "NL",
+    "CountryCallingCode": "31"
+  },
+  {
+    "Alpha2": "NO",
+    "CountryCallingCode": "47"
+  },
+  {
+    "Alpha2": "NP",
+    "CountryCallingCode": "977"
+  },
+  {
+    "Alpha2": "NR",
+    "CountryCallingCode": "674"
+  },
+  {
+    "Alpha2": "NU",
+    "CountryCallingCode": "683"
+  },
+  {
+    "Alpha2": "NZ",
+    "CountryCallingCode": "64"
+  },
+  {
+    "Alpha2": "OM",
+    "CountryCallingCode": "968"
+  },
+  {
+    "Alpha2": "PA",
+    "CountryCallingCode": "507"
+  },
+  {
+    "Alpha2": "PE",
+    "CountryCallingCode": "51"
+  },
+  {
+    "Alpha2": "PF",
+    "CountryCallingCode": "689"
+  },
+  {
+    "Alpha2": "PG",
+    "CountryCallingCode": "675"
+  },
+  {
+    "Alpha2": "PH",
+    "CountryCallingCode": "63"
+  },
+  {
+    "Alpha2": "PK",
+    "CountryCallingCode": "92"
+  },
+  {
+    "Alpha2": "PL",
+    "CountryCallingCode": "48"
+  },
+  {
+    "Alpha2": "PM",
+    "CountryCallingCode": "508"
+  },
+  {
+    "Alpha2": "PR",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "PS",
+    "CountryCallingCode": "970"
+  },
+  {
+    "Alpha2": "PT",
+    "CountryCallingCode": "351"
+  },
+  {
+    "Alpha2": "PW",
+    "CountryCallingCode": "680"
+  },
+  {
+    "Alpha2": "PY",
+    "CountryCallingCode": "595"
+  },
+  {
+    "Alpha2": "QA",
+    "CountryCallingCode": "974"
+  },
+  {
+    "Alpha2": "RE",
+    "CountryCallingCode": "262"
+  },
+  {
+    "Alpha2": "RO",
+    "CountryCallingCode": "40"
+  },
+  {
+    "Alpha2": "RS",
+    "CountryCallingCode": "381"
+  },
+  {
+    "Alpha2": "RU",
+    "CountryCallingCode": "7"
+  },
+  {
+    "Alpha2": "RW",
+    "CountryCallingCode": "250"
+  },
+  {
+    "Alpha2": "SA",
+    "CountryCallingCode": "966"
+  },
+  {
+    "Alpha2": "SB",
+    "CountryCallingCode": "677"
+  },
+  {
+    "Alpha2": "SC",
+    "CountryCallingCode": "248"
+  },
+  {
+    "Alpha2": "SD",
+    "CountryCallingCode": "249"
+  },
+  {
+    "Alpha2": "SE",
+    "CountryCallingCode": "46"
+  },
+  {
+    "Alpha2": "SG",
+    "CountryCallingCode": "65"
+  },
+  {
+    "Alpha2": "SH",
+    "CountryCallingCode": "290"
+  },
+  {
+    "Alpha2": "SI",
+    "CountryCallingCode": "386"
+  },
+  {
+    "Alpha2": "SJ",
+    "CountryCallingCode": "47"
+  },
+  {
+    "Alpha2": "SK",
+    "CountryCallingCode": "421"
+  },
+  {
+    "Alpha2": "SL",
+    "CountryCallingCode": "232"
+  },
+  {
+    "Alpha2": "SM",
+    "CountryCallingCode": "378"
+  },
+  {
+    "Alpha2": "SN",
+    "CountryCallingCode": "221"
+  },
+  {
+    "Alpha2": "SO",
+    "CountryCallingCode": "252"
+  },
+  {
+    "Alpha2": "SR",
+    "CountryCallingCode": "597"
+  },
+  {
+    "Alpha2": "SS",
+    "CountryCallingCode": "211"
+  },
+  {
+    "Alpha2": "ST",
+    "CountryCallingCode": "239"
+  },
+  {
+    "Alpha2": "SV",
+    "CountryCallingCode": "503"
+  },
+  {
+    "Alpha2": "SX",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "SY",
+    "CountryCallingCode": "963"
+  },
+  {
+    "Alpha2": "SZ",
+    "CountryCallingCode": "268"
+  },
+  {
+    "Alpha2": "TC",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "TD",
+    "CountryCallingCode": "235"
+  },
+  {
+    "Alpha2": "TG",
+    "CountryCallingCode": "228"
+  },
+  {
+    "Alpha2": "TH",
+    "CountryCallingCode": "66"
+  },
+  {
+    "Alpha2": "TJ",
+    "CountryCallingCode": "992"
+  },
+  {
+    "Alpha2": "TK",
+    "CountryCallingCode": "690"
+  },
+  {
+    "Alpha2": "TL",
+    "CountryCallingCode": "670"
+  },
+  {
+    "Alpha2": "TM",
+    "CountryCallingCode": "993"
+  },
+  {
+    "Alpha2": "TN",
+    "CountryCallingCode": "216"
+  },
+  {
+    "Alpha2": "TO",
+    "CountryCallingCode": "676"
+  },
+  {
+    "Alpha2": "TR",
+    "CountryCallingCode": "90"
+  },
+  {
+    "Alpha2": "TT",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "TV",
+    "CountryCallingCode": "688"
+  },
+  {
+    "Alpha2": "TW",
+    "CountryCallingCode": "886"
+  },
+  {
+    "Alpha2": "TZ",
+    "CountryCallingCode": "255"
+  },
+  {
+    "Alpha2": "UA",
+    "CountryCallingCode": "380"
+  },
+  {
+    "Alpha2": "UG",
+    "CountryCallingCode": "256"
+  },
+  {
+    "Alpha2": "US",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "UY",
+    "CountryCallingCode": "598"
+  },
+  {
+    "Alpha2": "UZ",
+    "CountryCallingCode": "998"
+  },
+  {
+    "Alpha2": "VA",
+    "CountryCallingCode": "39"
+  },
+  {
+    "Alpha2": "VC",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "VE",
+    "CountryCallingCode": "58"
+  },
+  {
+    "Alpha2": "VG",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "VI",
+    "CountryCallingCode": "1"
+  },
+  {
+    "Alpha2": "VN",
+    "CountryCallingCode": "84"
+  },
+  {
+    "Alpha2": "VU",
+    "CountryCallingCode": "678"
+  },
+  {
+    "Alpha2": "WF",
+    "CountryCallingCode": "681"
+  },
+  {
+    "Alpha2": "WS",
+    "CountryCallingCode": "685"
+  },
+  {
+    "Alpha2": "XK",
+    "CountryCallingCode": "383"
+  },
+  {
+    "Alpha2": "YE",
+    "CountryCallingCode": "967"
+  },
+  {
+    "Alpha2": "YT",
+    "CountryCallingCode": "262"
+  },
+  {
+    "Alpha2": "ZA",
+    "CountryCallingCode": "27"
+  },
+  {
+    "Alpha2": "ZM",
+    "CountryCallingCode": "260"
+  },
+  {
+    "Alpha2": "ZW",
+    "CountryCallingCode": "263"
+  }
+]

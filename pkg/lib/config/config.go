@@ -155,21 +155,21 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		}
 	}
 
-	countryCallingCodePinnedOK := true
-	countryCallingCodeAllowListMap := make(map[string]bool)
-	for _, code := range c.UI.CountryCallingCode.AllowList {
-		countryCallingCodeAllowListMap[code] = true
+	phoneInputPinnedOK := true
+	phoneInputAllowListMap := make(map[string]bool)
+	for _, alpha2 := range c.UI.PhoneInput.AllowList {
+		phoneInputAllowListMap[alpha2] = true
 	}
 
-	for _, pinnedCode := range c.UI.CountryCallingCode.PinnedList {
-		if !countryCallingCodeAllowListMap[pinnedCode] {
-			countryCallingCodePinnedOK = false
+	for _, alpha2 := range c.UI.PhoneInput.PinnedList {
+		if !phoneInputAllowListMap[alpha2] {
+			phoneInputPinnedOK = false
 		}
 	}
 
-	if !countryCallingCodePinnedOK {
-		ctx.Child("ui", "country_calling_code", "pinned_list").
-			EmitErrorMessage("pinned country calling code is unlisted")
+	if !phoneInputPinnedOK {
+		ctx.Child("ui", "phone_input", "pinned_list").
+			EmitErrorMessage("pinned country code is unlisted")
 	}
 
 	supportedLanguagesSet := make(map[string]struct{})

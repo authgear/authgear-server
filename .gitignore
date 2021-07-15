@@ -2,6 +2,7 @@
 .env
 /var/authgear.yaml
 /var/authgear.secrets.yaml
+/var/authgear.features.yaml
 /tls-cert.pem
 /tls-key.pem
 

@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func TestAppConfig(t *testing.T) {
@@ -87,8 +88,8 @@ func TestAppConfig(t *testing.T) {
 			}
 		})
 
-		Convey("get active country calling code", func() {
-			data, err := ioutil.ReadFile("testdata/country_calling_code_config_test.yaml")
+		Convey("get phone input country", func() {
+			data, err := ioutil.ReadFile("testdata/phone_input_config_test.yaml")
 			if err != nil {
 				panic(err)
 			}
@@ -99,10 +100,14 @@ func TestAppConfig(t *testing.T) {
 				panic(err)
 			}
 
-			activeCountryCodes := cfg.UI.CountryCallingCode.GetActiveCountryCodes()
-			expectedActiveCountryCodes := []string{"2", "1", "4", "5"}
-
-			So(activeCountryCodes, ShouldResemble, expectedActiveCountryCodes)
+			countries := cfg.UI.PhoneInput.GetCountries()
+			expected := []phone.Country{
+				phone.Country{Alpha2: "HK", CountryCallingCode: "852"},
+				phone.Country{Alpha2: "US", CountryCallingCode: "1"},
+				phone.Country{Alpha2: "GB", CountryCallingCode: "44"},
+				phone.Country{Alpha2: "TW", CountryCallingCode: "886"},
+			}
+			So(countries, ShouldResemble, expected)
 		})
 	})
 }
