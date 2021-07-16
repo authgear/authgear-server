@@ -60,3 +60,7 @@ func NewEffectiveDefaultFeatureConfig() *FeatureConfig {
 	setFieldDefaults(&config)
 	return &config
 }
+
+func PopulateFeatureConfigDefaultValues(config *FeatureConfig) {
+	setFieldDefaults(config)
+}

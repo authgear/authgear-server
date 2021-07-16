@@ -85,11 +85,34 @@ func TestManager(t *testing.T) {
 			}})
 			So(err, ShouldBeError, `invalid resource 'authgear.yaml': incorrect app ID`)
 
-			err = applyUpdates([]appresource.Update{{
+		})
+
+		Convey("validate configuration YAML with plan", func() {
+			applyUpdatesWithPlan := func(planName configtest.FixturePlanName, updates []appresource.Update) error {
+				fc := configtest.FixtureFeatureConfig(planName)
+				config.PopulateFeatureConfigDefaultValues(fc)
+				portalResMgr := &appresource.Manager{
+					AppResourceManager: resMgr,
+					AppFS:              appResourceFs,
+					SecretKeyAllowlist: allowlist,
+					AppFeatureConfig:   fc,
+				}
+				_, err := portalResMgr.ApplyUpdates(appID, updates)
+				return err
+			}
+
+			var err error
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\noauth:\n  clients:\n    - name: Test Client\n      client_id: test-client\n      redirect_uris:\n        - \"https://example.com\"\n    - name: Test Client2\n      client_id: test-client2\n      redirect_uris:\n        - \"https://example2.com\""),
 			}})
 			So(err, ShouldBeError, `exceed the maximum number of oauth clients, actual: 2, expected: 1`)
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\noauth:\n  clients:\n    - name: Test Client\n      client_id: test-client\n      redirect_uris:\n        - \"https://example.com\"\n    - name: Test Client2\n      client_id: test-client2\n      redirect_uris:\n        - \"https://example2.com\""),
+			}})
+			So(err, ShouldBeNil)
 		})
 
 		Convey("forbid deleting required items in secrets", func() {
