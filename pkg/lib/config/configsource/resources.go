@@ -142,6 +142,15 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 		}
 	}
 
+	if len(original.Identity.OAuth.Providers) < len(incoming.Identity.OAuth.Providers) {
+		if len(incoming.Identity.OAuth.Providers) > *fc.Identity.OAuth.MaximumProviders {
+			return fmt.Errorf("exceed the maximum number of sso providers, actual: %d, expected: %d",
+				len(incoming.Identity.OAuth.Providers),
+				*fc.Identity.OAuth.MaximumProviders,
+			)
+		}
+	}
+
 	return nil
 }
 

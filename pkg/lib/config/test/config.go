@@ -42,6 +42,11 @@ func FixtureFeatureConfig(plan FixturePlanName) *config.FeatureConfig {
 					Maximum: newInt(1),
 				},
 			},
+			Identity: &config.IdentityFeatureConfig{
+				OAuth: &config.OAuthSSOFeatureConfig{
+					MaximumProviders: newInt(1),
+				},
+			},
 		}
 	case FixtureUnlimitedPlanName:
 		return config.NewEffectiveDefaultFeatureConfig()
