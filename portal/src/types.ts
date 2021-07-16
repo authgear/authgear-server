@@ -460,6 +460,7 @@ export interface PortalAPIFeatureConfig {
   custom_domain?: CustomDomainFeatureConfig;
   ui?: UIFeatureConfig;
   oauth?: OAuthFeatureConfig;
+  hook?: HookFeatureConfig;
 }
 
 export interface AuthenticationFeatureConfig {
@@ -526,5 +527,18 @@ export interface OAuthFeatureConfig {
 }
 
 export interface OAuthClientFeatureConfig {
+  maximum?: number;
+}
+
+export interface HookFeatureConfig {
+  blocking_handler?: BlockingHookHandlerFeatureConfig;
+  non_blocking_handler?: NonBlockingHookHandlerFeatureConfig;
+}
+
+export interface BlockingHookHandlerFeatureConfig {
+  maximum?: number;
+}
+
+export interface NonBlockingHookHandlerFeatureConfig {
   maximum?: number;
 }

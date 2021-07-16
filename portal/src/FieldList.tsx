@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
+import cn from "classnames";
 import { ActionButton, IconButton, Stack, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -23,6 +24,7 @@ interface FieldListProps<T> {
   makeDefaultItem: () => T;
   renderListItem: RenderFieldListItem<T>;
   addButtonLabelMessageID?: string;
+  addDisabled?: boolean;
 }
 
 const FieldList = function FieldList<T>(
@@ -38,6 +40,7 @@ const FieldList = function FieldList<T>(
     renderListItem,
     makeDefaultItem,
     addButtonLabelMessageID,
+    addDisabled,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -97,7 +100,9 @@ const FieldList = function FieldList<T>(
       </Stack>
       <Text className={styles.errorMessage}>{errorMessage}</Text>
       <ActionButton
-        className={styles.addButton}
+        className={cn(styles.addButton, {
+          [styles.readOnly]: addDisabled,
+        })}
         theme={themes.actionButton}
         iconProps={{ iconName: "CirclePlus", className: styles.addButtonIcon }}
         onClick={onItemAdd}
