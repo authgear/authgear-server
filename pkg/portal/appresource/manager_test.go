@@ -113,6 +113,19 @@ func TestManager(t *testing.T) {
 				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\noauth:\n  clients:\n    - name: Test Client\n      client_id: test-client\n      redirect_uris:\n        - \"https://example.com\"\n    - name: Test Client2\n      client_id: test-client2\n      redirect_uris:\n        - \"https://example2.com\""),
 			}})
 			So(err, ShouldBeNil)
+
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nidentity:\n  oauth:\n    providers:\n      - alias: facebook\n        type: facebook\n        client_id: client_a\n      - alias: google\n        type: google\n        client_id: client_a"),
+			}})
+			So(err, ShouldBeError, `exceed the maximum number of sso providers, actual: 2, expected: 1`)
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nidentity:\n  oauth:\n    providers:\n      - alias: facebook\n        type: facebook\n        client_id: client_a\n      - alias: google\n        type: google\n        client_id: client_a"),
+			}})
+			// passed the app plan checking and show the missing secret error
+			So(err, ShouldBeError, "invalid secret config: invalid secrets:\n<root>: OAuth client credentials (secret 'sso.oauth.client') is required")
 		})
 
 		Convey("forbid deleting required items in secrets", func() {
