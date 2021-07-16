@@ -69,6 +69,15 @@ config:
     client:
       maximum: 1
 ---
+name: limit-number-of-hooks
+error: null
+config:
+  hook:
+    blocking_handler:
+      maximum: 1
+    non_blocking_handler:
+      maximum: 1
+---
 name: free-plan-config
 error: null
 config:
@@ -96,3 +105,8 @@ config:
   oauth:
     client:
       maximum: 2
+  hook:
+    blocking_handler:
+      maximum: 0
+    non_blocking_handler:
+      maximum: 1
