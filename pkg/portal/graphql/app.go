@@ -7,7 +7,6 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -39,15 +38,17 @@ var nodeApp = node(
 						}
 					}
 
+					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
+					appResMgr := ctx.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 					if len(paths) == 0 {
 						var err error
-						paths, err = resources.List(app.Context.Resources)
+						paths, err = appResMgr.List()
 						if err != nil {
 							return nil, err
 						}
 					}
-					descriptedPaths, err := resources.AssociateDescriptor(app.Context.Resources, paths...)
+					descriptedPaths, err := appResMgr.AssociateDescriptor(paths...)
 					if err != nil {
 						return nil, err
 					}

@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/endpoint"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
@@ -84,8 +85,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
-	factory := rootProvider.LoggerFactory
-	logger := graphql.NewLogger(factory)
+	logFactory := rootProvider.LoggerFactory
+	logger := graphql.NewLogger(logFactory)
 	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
 	controller := rootProvider.ConfigSourceController
@@ -101,20 +102,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuthzAdder:     adder,
 	}
 	userLoader := loader.NewUserLoader(adminAPIService)
-	appServiceLogger := service.NewAppServiceLogger(factory)
+	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	databaseEnvironmentConfig := rootProvider.DatabaseConfig
 	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
 	request := p.Request
 	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
-	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, logFactory)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	appConfig := rootProvider.AppConfig
-	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
-	configServiceLogger := service.NewConfigServiceLogger(factory)
+	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
-	kubernetesLogger := service.NewKubernetesLogger(factory)
+	kubernetesLogger := service.NewKubernetesLogger(logFactory)
 	kubernetes := &service.Kubernetes{
 		KubernetesConfig: kubernetesConfig,
 		AppConfig:        appConfig,
@@ -130,8 +130,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Kubernetes:           kubernetes,
 	}
 	mailConfig := rootProvider.MailConfig
-	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)
-	mailLogger := mail.NewLogger(factory)
+	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
+	mailLogger := mail.NewLogger(logFactory)
 	smtpConfig := rootProvider.SMTPConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
@@ -140,7 +140,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:      devMode,
 		GomailDialer: dialer,
 	}
-	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
+	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
 	sendMessagesTask := &tasks.SendMessagesTask{
 		EmailSender: sender,
 		Logger:      sendMessagesLogger,
@@ -192,6 +192,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor:  sqlExecutor,
 	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
+	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
+	managerFactory := &factory.ManagerFactory{
+		AppBaseResources:   appBaseResources,
+		SecretKeyAllowlist: secretKeyAllowlist,
+	}
 	store := &plan.Store{
 		Clock:       clock,
 		SQLBuilder:  sqlBuilder,
@@ -202,18 +207,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppConfig: appConfig,
 	}
 	appService := &service.AppService{
-		Logger:             appServiceLogger,
-		SQLBuilder:         sqlBuilder,
-		SQLExecutor:        sqlExecutor,
-		AppConfig:          appConfig,
-		SecretKeyAllowlist: secretKeyAllowlist,
-		AppConfigs:         configService,
-		AppAuthz:           authzService,
-		AppAdminAPI:        adminAPIService,
-		AppDomains:         domainService,
-		Resources:          manager,
-		AppBaseResources:   appBaseResources,
-		Plan:               planService,
+		Logger:           appServiceLogger,
+		SQLBuilder:       sqlBuilder,
+		SQLExecutor:      sqlExecutor,
+		AppConfig:        appConfig,
+		AppConfigs:       configService,
+		AppAuthz:         authzService,
+		AppAdminAPI:      adminAPIService,
+		AppDomains:       domainService,
+		Resources:        manager,
+		AppResMgrFactory: managerFactory,
+		Plan:             planService,
 	}
 	appLoader := loader.NewAppLoader(appService, authzService)
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
@@ -230,7 +234,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppService:              appService,
 		DomainService:           domainService,
 		CollaboratorService:     collaboratorService,
-		SecretKeyAllowlist:      secretKeyAllowlist,
+		AppResMgrFactory:        managerFactory,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
@@ -272,15 +276,15 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	pool := rootProvider.Database
 	databaseEnvironmentConfig := rootProvider.DatabaseConfig
-	factory := rootProvider.LoggerFactory
-	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, factory)
-	configServiceLogger := service.NewConfigServiceLogger(factory)
+	logFactory := rootProvider.LoggerFactory
+	handle := globaldb.NewHandle(context, pool, databaseEnvironmentConfig, logFactory)
+	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
 	configSource := deps.ProvideConfigSource(controller)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
-	kubernetesLogger := service.NewKubernetesLogger(factory)
+	kubernetesLogger := service.NewKubernetesLogger(logFactory)
 	kubernetes := &service.Kubernetes{
 		KubernetesConfig: kubernetesConfig,
 		AppConfig:        appConfig,
@@ -299,8 +303,8 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	mailConfig := rootProvider.MailConfig
-	inProcessExecutorLogger := task.NewInProcessExecutorLogger(factory)
-	logger := mail.NewLogger(factory)
+	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
+	logger := mail.NewLogger(logFactory)
 	environmentConfig := rootProvider.EnvironmentConfig
 	devMode := environmentConfig.DevMode
 	smtpConfig := rootProvider.SMTPConfig
@@ -311,7 +315,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:      devMode,
 		GomailDialer: dialer,
 	}
-	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
+	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
 	sendMessagesTask := &tasks.SendMessagesTask{
 		EmailSender: sender,
 		Logger:      sendMessagesLogger,
@@ -366,7 +370,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
-	adminAPILogger := transport.NewAdminAPILogger(factory)
+	adminAPILogger := transport.NewAdminAPILogger(logFactory)
 	adminAPIHandler := &transport.AdminAPIHandler{
 		Database: handle,
 		Authz:    authzService,

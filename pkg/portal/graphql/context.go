@@ -4,9 +4,8 @@ import (
 	"context"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
+	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
-	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -35,7 +34,7 @@ type AppService interface {
 	Get(id string) (*model.App, error)
 	List(userID string) ([]*model.App, error)
 	Create(userID string, id string) error
-	UpdateResources(app *model.App, updates []resources.Update) error
+	UpdateResources(app *model.App, updates []appresource.Update) error
 	GetMaxOwnedApps(userID string) (int, error)
 	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 	LoadRawSecretConfig(app *model.App) (*config.SecretConfig, error)
@@ -66,6 +65,10 @@ type AuthzService interface {
 	CheckAccessOfViewer(appID string) (userID string, err error)
 }
 
+type AppResourceManagerFactory interface {
+	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
+}
+
 type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")} }
@@ -83,8 +86,7 @@ type Context struct {
 	AppService          AppService
 	DomainService       DomainService
 	CollaboratorService CollaboratorService
-
-	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
+	AppResMgrFactory    AppResourceManagerFactory
 }
 
 func (c *Context) Logger() *log.Logger {

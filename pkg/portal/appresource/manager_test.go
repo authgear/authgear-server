@@ -1,4 +1,4 @@
-package resources_test
+package appresource_test
 
 import (
 	"testing"
@@ -9,11 +9,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	configtest "github.com/authgear/authgear-server/pkg/lib/config/test"
-	"github.com/authgear/authgear-server/pkg/portal/util/resources"
+	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-func TestApplyUpdates(t *testing.T) {
+func TestManager(t *testing.T) {
 	Convey("ApplyUpdates", t, func() {
 		appID := "app-id"
 		cfg := &config.Config{
@@ -35,8 +35,15 @@ func TestApplyUpdates(t *testing.T) {
 			"webhook",
 			"sso.oauth.client",
 		}
-		applyUpdates := func(updates []resources.Update) error {
-			_, err := resources.ApplyUpdates(appID, appResourceFs, resMgr, allowlist, updates)
+
+		portalResMgr := &appresource.Manager{
+			AppResourceManager: resMgr,
+			AppFS:              appResourceFs,
+			SecretKeyAllowlist: allowlist,
+		}
+
+		applyUpdates := func(updates []appresource.Update) error {
+			_, err := portalResMgr.ApplyUpdates(appID, updates)
 			return err
 		}
 
@@ -54,7 +61,7 @@ func TestApplyUpdates(t *testing.T) {
 		})
 
 		Convey("validate file size", func() {
-			err := applyUpdates([]resources.Update{{
+			err := applyUpdates([]appresource.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: " + string(make([]byte, 1024*1024))),
 			}})
@@ -62,7 +69,7 @@ func TestApplyUpdates(t *testing.T) {
 		})
 
 		Convey("validate configuration YAML", func() {
-			err := applyUpdates([]resources.Update{{
+			err := applyUpdates([]appresource.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("{}"),
 			}})
@@ -70,7 +77,7 @@ func TestApplyUpdates(t *testing.T) {
 <root>: required
   map[actual:<nil> expected:[http id] missing:[http id]]`)
 
-			err = applyUpdates([]resources.Update{{
+			err = applyUpdates([]appresource.Update{{
 				Path: "authgear.yaml",
 				Data: []byte("id: test\nhttp:\n  public_origin: \"http://test\""),
 			}})
@@ -79,7 +86,7 @@ func TestApplyUpdates(t *testing.T) {
 		})
 
 		Convey("forbid deleting required items in secrets", func() {
-			err := applyUpdates([]resources.Update{{
+			err := applyUpdates([]appresource.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: []byte("{}"),
 			}})
@@ -93,7 +100,7 @@ func TestApplyUpdates(t *testing.T) {
 			bytes, err := yaml.Marshal(newSecretConfig)
 			So(err, ShouldBeNil)
 
-			err = applyUpdates([]resources.Update{{
+			err = applyUpdates([]appresource.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: bytes,
 			}})
@@ -120,7 +127,7 @@ func TestApplyUpdates(t *testing.T) {
 			bytes, err := yaml.Marshal(newSecretConfig)
 			So(err, ShouldBeNil)
 
-			err = applyUpdates([]resources.Update{{
+			err = applyUpdates([]appresource.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: bytes,
 			}})
@@ -128,13 +135,13 @@ func TestApplyUpdates(t *testing.T) {
 		})
 
 		Convey("forbid deleting configuration YAML", func() {
-			err := applyUpdates([]resources.Update{{
+			err := applyUpdates([]appresource.Update{{
 				Path: "authgear.yaml",
 				Data: nil,
 			}})
 			So(err, ShouldBeError, "cannot delete 'authgear.yaml'")
 
-			err = applyUpdates([]resources.Update{{
+			err = applyUpdates([]appresource.Update{{
 				Path: "authgear.secrets.yaml",
 				Data: nil,
 			}})
@@ -142,11 +149,50 @@ func TestApplyUpdates(t *testing.T) {
 		})
 
 		Convey("forbid unknown resource files", func() {
-			err := applyUpdates([]resources.Update{{
+			err := applyUpdates([]appresource.Update{{
 				Path: "unknown.txt",
 				Data: nil,
 			}})
 			So(err, ShouldBeError, `invalid resource 'unknown.txt': unknown resource path`)
 		})
 	})
+
+	Convey("List", t, func() {
+		reg := &resource.Registry{}
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		res := resource.NewManager(reg, []resource.Fs{
+			&resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			&resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+		})
+		portalResMgr := &appresource.Manager{
+			AppResourceManager: res,
+			AppFS:              &resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+		}
+
+		reg.Register(resource.SimpleDescriptor{Path: "test/a/x.txt"})
+		reg.Register(resource.SimpleDescriptor{Path: "test/b/z.txt"})
+		reg.Register(resource.SimpleDescriptor{Path: "test/x.txt"})
+		reg.Register(resource.SimpleDescriptor{Path: "w.txt"})
+
+		_ = fsA.MkdirAll("test/a", 0666)
+		_ = fsA.MkdirAll("test/b", 0666)
+		_ = fsB.MkdirAll("test/a", 0666)
+		_ = afero.WriteFile(fsA, "test/a/x.txt", nil, 0666)
+		_ = afero.WriteFile(fsA, "test/a/y.txt", nil, 0666)
+		_ = afero.WriteFile(fsA, "test/b/z.txt", nil, 0666)
+		_ = afero.WriteFile(fsB, "test/x.txt", nil, 0666)
+		_ = afero.WriteFile(fsB, "test/b/z.txt", nil, 0666)
+		_ = afero.WriteFile(fsB, "w.txt", nil, 0666)
+
+		paths, err := portalResMgr.List()
+		So(err, ShouldBeNil)
+		So(paths, ShouldResemble, []string{
+			"test/a/x.txt",
+			"test/b/z.txt",
+			"test/x.txt",
+			"w.txt",
+		})
+	})
+
 }

@@ -16,11 +16,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 
+	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
-	"github.com/authgear/authgear-server/pkg/portal/deps"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
-	"github.com/authgear/authgear-server/pkg/portal/util/resources"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
@@ -62,20 +61,24 @@ func NewAppServiceLogger(lf *log.Factory) AppServiceLogger {
 	return AppServiceLogger{lf.New("app-service")}
 }
 
+type AppResourceManagerFactory interface {
+	NewManagerWithNewAppFS(appFs resource.Fs) *appresource.Manager
+	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
+}
+
 type AppService struct {
 	Logger      AppServiceLogger
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
-	AppConfig          *portalconfig.AppConfig
-	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
-	AppConfigs         AppConfigService
-	AppAuthz           AppAuthzService
-	AppAdminAPI        AppAdminAPIService
-	AppDomains         AppDomainService
-	Resources          ResourceManager
-	AppBaseResources   deps.AppBaseResources
-	Plan               AppPlanService
+	AppConfig        *portalconfig.AppConfig
+	AppConfigs       AppConfigService
+	AppAuthz         AppAuthzService
+	AppAdminAPI      AppAdminAPIService
+	AppDomains       AppDomainService
+	Resources        ResourceManager
+	AppResMgrFactory AppResourceManagerFactory
+	Plan             AppPlanService
 }
 
 func (s *AppService) Get(id string) (*model.App, error) {
@@ -131,10 +134,11 @@ func (s *AppService) GetMaxOwnedApps(userID string) (int, error) {
 }
 
 func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error) {
-	result, err := app.Context.Resources.Read(configsource.AppConfig, resource.AppFile{
-		Path:              configsource.AuthgearYAML,
-		AllowedSecretKeys: s.SecretKeyAllowlist,
-	})
+	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	result, err := resMgr.ReadAppFile(configsource.AppConfig,
+		&resource.AppFile{
+			Path: configsource.AuthgearYAML,
+		})
 	if err != nil {
 		return nil, err
 	}
@@ -148,9 +152,9 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 }
 
 func (s *AppService) LoadRawSecretConfig(app *model.App) (*config.SecretConfig, error) {
-	result, err := app.Context.Resources.Read(configsource.SecretConfig, resource.AppFile{
-		Path:              configsource.AuthgearSecretYAML,
-		AllowedSecretKeys: s.SecretKeyAllowlist,
+	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
+		Path: configsource.AuthgearSecretYAML,
 	})
 	if err != nil {
 		return nil, err
@@ -242,8 +246,9 @@ func (s *AppService) Create(userID string, id string) error {
 	return nil
 }
 
-func (s *AppService) UpdateResources(app *model.App, updates []resources.Update) error {
-	files, err := resources.ApplyUpdates(app.ID, app.Context.AppFs, app.Context.Resources, s.SecretKeyAllowlist, updates)
+func (s *AppService) UpdateResources(app *model.App, updates []appresource.Update) error {
+	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	files, err := appResMgr.ApplyUpdates(app.ID, updates)
 	if err != nil {
 		return err
 	}
@@ -324,8 +329,8 @@ func (s *AppService) generateConfig(appHost string, appID string, appPlan *model
 	}
 
 	appFs := resource.LeveledAferoFs{Fs: fs, FsLevel: resource.FsLevelApp}
-	resMgr := (*resource.Manager)(s.AppBaseResources).Overlay(appFs)
-	_, err = resources.ApplyUpdates(appID, appFs, resMgr, s.SecretKeyAllowlist, nil)
+	appResMgr := s.AppResMgrFactory.NewManagerWithNewAppFS(appFs)
+	_, err = appResMgr.ApplyUpdates(appID, nil)
 	if err != nil {
 		return
 	}

@@ -1,4 +1,4 @@
-package resources
+package appresource
 
 import (
 	"errors"
@@ -6,21 +6,106 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"sort"
 
 	"github.com/spf13/afero"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
-type Update struct {
-	Path string
-	Data []byte
-}
-
 const ConfigFileMaxSize = 100 * 1024
 
-func ApplyUpdates(appID string, appFs resource.Fs, manager *resource.Manager, secretKeyAllowlist []string, updates []Update) ([]*resource.ResourceFile, error) {
+type AppFileWithConfig struct {
+	resource.AppFileView
+	AllowedSecretKeys []string
+}
+
+func (f AppFileWithConfig) SecretKeyAllowlist() []string {
+	return f.AllowedSecretKeys
+}
+
+var _ configsource.ViewWithConfig = AppFileWithConfig{}
+
+type Manager struct {
+	AppResourceManager *resource.Manager
+	AppFS              resource.Fs
+	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
+}
+
+func (m *Manager) List() ([]string, error) {
+	r := m.AppResourceManager
+
+	// Find the union all known paths in all FSs.
+	filePaths := make(map[string]struct{})
+	for _, fs := range r.Fs {
+		locations, err := resource.EnumerateAllLocations(fs)
+		if err != nil {
+			return nil, err
+		}
+		for _, location := range locations {
+			filePaths[location.Path] = struct{}{}
+		}
+	}
+
+	// Omit paths that are not resources.
+	for p := range filePaths {
+		found := false
+		for _, desc := range r.Registry.Descriptors {
+			if _, ok := desc.MatchResource(p); !ok {
+				continue
+			}
+			found = true
+			break
+		}
+		if !found {
+			delete(filePaths, p)
+		}
+	}
+
+	var paths []string
+	for p := range filePaths {
+		paths = append(paths, p)
+	}
+	sort.Strings(paths)
+
+	return paths, nil
+}
+
+func (m *Manager) AssociateDescriptor(paths ...string) ([]DescriptedPath, error) {
+	r := m.AppResourceManager
+
+	var matches []DescriptedPath
+	for _, p := range paths {
+		found := false
+		for _, desc := range r.Registry.Descriptors {
+			if _, ok := desc.MatchResource(p); !ok {
+				continue
+			}
+			matches = append(matches, DescriptedPath{
+				Path:       p,
+				Descriptor: desc,
+			})
+			found = true
+			break
+		}
+		if !found {
+			return nil, apierrors.NewInvalid("unknown resource: " + p)
+		}
+	}
+	return matches, nil
+}
+
+func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileView) (interface{}, error) {
+	return m.AppResourceManager.Read(desc, AppFileWithConfig{
+		AppFileView:       view,
+		AllowedSecretKeys: m.SecretKeyAllowlist,
+	})
+}
+
+func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.ResourceFile, error) {
 	// Validate file size.
 	for _, f := range updates {
 		if len(f.Data) > ConfigFileMaxSize {
@@ -29,7 +114,7 @@ func ApplyUpdates(appID string, appFs resource.Fs, manager *resource.Manager, se
 	}
 
 	// Construct new resource manager.
-	newManager, files, err := applyUpdates(manager, appFs, secretKeyAllowlist, updates)
+	newManager, files, err := m.applyUpdates(m.AppFS, updates)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +143,9 @@ func ApplyUpdates(appID string, appFs resource.Fs, manager *resource.Manager, se
 	return files, nil
 }
 
-func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowlist []string, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
+func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
+	manager := m.AppResourceManager
+
 	newFs, err := cloneFS(appFs)
 	if err != nil {
 		return nil, nil, err
@@ -106,10 +193,14 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 			return nil, nil, err
 		}
 
-		resrc, err = desc.UpdateResource(resrc, u.Data, resource.AppFile{
-			Path:              u.Path,
-			AllowedSecretKeys: secretKeyAllowlist,
-		})
+		resrc, err = desc.UpdateResource(resrc, u.Data,
+			AppFileWithConfig{
+				AppFileView: &resource.AppFile{
+					Path: u.Path,
+				},
+				AllowedSecretKeys: m.SecretKeyAllowlist,
+			},
+		)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -133,36 +224,4 @@ func applyUpdates(manager *resource.Manager, appFs resource.Fs, secretKeyAllowli
 		}
 	}
 	return resource.NewManager(manager.Registry, newResFs), files, nil
-}
-
-func cloneFS(fs resource.Fs) (afero.Fs, error) {
-	memory := afero.NewMemMapFs()
-	locations, err := resource.EnumerateAllLocations(fs)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, location := range locations {
-		err := func() error {
-			f, err := fs.Open(location.Path)
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-
-			data, err := ioutil.ReadAll(f)
-			if err != nil {
-				return err
-			}
-
-			_ = memory.MkdirAll(path.Dir(location.Path), 0666)
-			_ = afero.WriteFile(memory, location.Path, data, 0666)
-			return nil
-		}()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return memory, nil
 }
