@@ -32,6 +32,7 @@ error: null
 config:
   identity:
     oauth:
+      maximum_providers: 2
       providers:
         google:
           disabled: true
@@ -77,6 +78,7 @@ config:
         phone:
           disabled: true
     oauth:
+      maximum_providers: 2
       providers:
         azureadv2:
           disabled: true

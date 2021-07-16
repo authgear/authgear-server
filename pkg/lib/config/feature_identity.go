@@ -63,13 +63,21 @@ var _ = FeatureConfigSchema.Add("OAuthSSOFeatureConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"maximum_providers": { "type": "integer" },
 		"providers": { "$ref": "#/$defs/OAuthSSOProvidersFeatureConfig" }
 	}
 }
 `)
 
 type OAuthSSOFeatureConfig struct {
-	Providers *OAuthSSOProvidersFeatureConfig `json:"providers,omitempty"`
+	MaximumProviders *int                            `json:"maximum_providers,omitempty"`
+	Providers        *OAuthSSOProvidersFeatureConfig `json:"providers,omitempty"`
+}
+
+func (c *OAuthSSOFeatureConfig) SetDefaults() {
+	if c.MaximumProviders == nil {
+		c.MaximumProviders = newInt(99)
+	}
 }
 
 var _ = FeatureConfigSchema.Add("OAuthSSOProvidersFeatureConfig", `
