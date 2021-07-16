@@ -492,17 +492,17 @@ export interface LoginIDPhoneFeatureConfig {
 }
 
 export interface OAuthSSOFeatureConfig {
+  maximum_providers?: number;
   providers?: OAuthSSOProvidersFeatureConfig;
 }
-
 export interface OAuthSSOProvidersFeatureConfig {
-  google?: OAuthSSOProviderConfig;
-  facebook?: OAuthSSOProviderConfig;
-  linkedin?: OAuthSSOProviderConfig;
-  azureadv2?: OAuthSSOProviderConfig;
-  adfs?: OAuthSSOProviderConfig;
-  apple?: OAuthSSOProviderConfig;
-  wechat?: OAuthSSOProviderConfig;
+  google?: OAuthSSOProviderFeatureConfig;
+  facebook?: OAuthSSOProviderFeatureConfig;
+  linkedin?: OAuthSSOProviderFeatureConfig;
+  azureadv2?: OAuthSSOProviderFeatureConfig;
+  adfs?: OAuthSSOProviderFeatureConfig;
+  apple?: OAuthSSOProviderFeatureConfig;
+  wechat?: OAuthSSOProviderFeatureConfig;
 }
 
 export interface OAuthSSOProviderFeatureConfig {

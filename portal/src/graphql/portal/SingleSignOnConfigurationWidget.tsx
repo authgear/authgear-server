@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import cn from "classnames";
 import {
   Checkbox,
@@ -33,6 +39,7 @@ interface WidgetHeaderProps extends WidgetHeaderLabelProps {
   isEnabled: boolean;
   setIsEnabled: (value: boolean) => void;
   disabled: boolean;
+  disabledByLimitReached: boolean;
 }
 
 interface SingleSignOnConfigurationWidgetProps {
@@ -52,6 +59,7 @@ interface SingleSignOnConfigurationWidgetProps {
   ) => void;
 
   disabled: boolean;
+  limitReached: boolean;
 }
 
 type WidgetTextFieldKey =
@@ -197,7 +205,14 @@ const WidgetHeaderLabel: React.FC<WidgetHeaderLabelProps> =
 const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
   props: WidgetHeaderProps
 ) {
-  const { icon, messageID, isEnabled, setIsEnabled, disabled } = props;
+  const {
+    icon,
+    messageID,
+    isEnabled,
+    setIsEnabled,
+    disabled,
+    disabledByLimitReached,
+  } = props;
 
   const onChange = useCallback(
     (_, value?: boolean) => {
@@ -206,6 +221,20 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
     [setIsEnabled]
   );
 
+  let messageBar;
+  if (disabled) {
+    messageBar = (
+      <MessageBar>
+        <FormattedMessage
+          id="FeatureConfig.disabled"
+          values={{
+            HREF: "./settings/subscription",
+          }}
+        />
+      </MessageBar>
+    );
+  }
+
   return (
     <div>
       <Toggle
@@ -213,18 +242,9 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
         onChange={onChange}
         inlineLabel={true}
         label={<WidgetHeaderLabel icon={icon} messageID={messageID} />}
-        disabled={disabled && !isEnabled}
+        disabled={!isEnabled && (disabled || disabledByLimitReached)}
       ></Toggle>
-      {disabled && (
-        <MessageBar>
-          <FormattedMessage
-            id="FeatureConfig.disabled"
-            values={{
-              HREF: "./settings/subscription",
-            }}
-          />
-        </MessageBar>
-      )}
+      {messageBar}
     </div>
   );
 };
@@ -244,6 +264,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       secret,
       onChange,
       disabled,
+      limitReached,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -343,6 +364,10 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
       [onChange, config, secret]
     );
 
+    const disabledByLimitReached = useMemo(() => {
+      return !isEnabled && limitReached;
+    }, [limitReached, isEnabled]);
+
     return (
       <ExtendableWidget
         className={className}
@@ -350,7 +375,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
         extendButtonDisabled={isEnabled}
         extended={extended}
         onExtendClicked={onExtendClicked}
-        readOnly={!isEnabled || disabled}
+        readOnly={!isEnabled || disabled || disabledByLimitReached}
         HeaderComponent={
           <WidgetHeader
             icon={iconNode}
@@ -358,6 +383,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
             setIsEnabled={onIsEnabledChange}
             messageID={messageID}
             disabled={disabled}
+            disabledByLimitReached={disabledByLimitReached}
           />
         }
       >

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { Link } from "@fluentui/react";
+import { Link, MessageBar, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
@@ -163,11 +163,13 @@ interface OAuthClientItemProps {
   providerItemKey: OAuthSSOProviderItemKey;
   form: AppSecretConfigFormModel<FormState>;
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig;
+  limitReached: boolean;
 }
 
 const OAuthClientItem: React.FC<OAuthClientItemProps> =
   function OAuthClientItem(props) {
-    const { providerItemKey, form, oauthSSOFeatureConfig } = props;
+    const { providerItemKey, form, oauthSSOFeatureConfig, limitReached } =
+      props;
     const {
       state: { providers, isEnabled },
       setState,
@@ -264,6 +266,7 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> =
         secret={provider.secret}
         onChange={onChange}
         disabled={disabled}
+        limitReached={limitReached}
       />
     );
   };
@@ -275,21 +278,48 @@ interface SingleSignOnConfigurationContentProps {
 
 const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationContentProps> =
   function SingleSignOnConfigurationContent(props) {
+    const { oauthSSOFeatureConfig } = props;
+    const { state } = props.form;
+
+    const oauthClientsMaximum = useMemo(
+      () => oauthSSOFeatureConfig?.maximum_providers ?? 99,
+      [oauthSSOFeatureConfig?.maximum_providers]
+    );
+
+    const limitReached =
+      Object.values(state.isEnabled).filter(Boolean).length >=
+      oauthClientsMaximum;
+
     return (
       <ScreenContent className={styles.root}>
         <ScreenTitle>
           <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
-          <FormattedMessage
-            id="SingleSignOnConfigurationScreen.description"
-            values={{
-              HREF: "https://docs.authgear.com/strategies/how-to-setup-sso-integrations",
-            }}
-            components={{
-              Link,
-            }}
-          />
+          <Text className={styles.description} block={true}>
+            <FormattedMessage
+              id="SingleSignOnConfigurationScreen.description"
+              values={{
+                HREF: "https://docs.authgear.com/strategies/how-to-setup-sso-integrations",
+              }}
+              components={{
+                Link,
+              }}
+            />
+          </Text>
+          {limitReached && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.sso.limit-reached"
+                values={{
+                  HREF: "./settings/subscription",
+                }}
+                components={{
+                  Link,
+                }}
+              />
+            </MessageBar>
+          )}
         </ScreenDescription>
         {oauthSSOProviderItemKeys.map((providerItemKey) => (
           <OAuthClientItem
@@ -297,6 +327,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
             providerItemKey={providerItemKey}
             form={props.form}
             oauthSSOFeatureConfig={props.oauthSSOFeatureConfig}
+            limitReached={limitReached}
           />
         ))}
       </ScreenContent>
