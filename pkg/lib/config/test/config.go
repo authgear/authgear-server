@@ -11,7 +11,7 @@ type FixturePlanName string
 
 const (
 	FixtureLimitedPlanName   FixturePlanName = "limited"
-	FixtureUnLimitedPlanName FixturePlanName = "unlimited"
+	FixtureUnlimitedPlanName FixturePlanName = "unlimited"
 )
 
 func newInt(v int) *int { return &v }
@@ -43,7 +43,7 @@ func FixtureFeatureConfig(plan FixturePlanName) *config.FeatureConfig {
 				},
 			},
 		}
-	case FixtureUnLimitedPlanName:
+	case FixtureUnlimitedPlanName:
 		return config.NewEffectiveDefaultFeatureConfig()
 	}
 	return nil
