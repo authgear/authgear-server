@@ -8,6 +8,8 @@ import {
   ISelectableOption,
   Label,
   TextField,
+  MessageBar,
+  Link,
 } from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
@@ -17,7 +19,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
-import { PortalAPIAppConfig } from "../../types";
+import { HookFeatureConfig, PortalAPIAppConfig } from "../../types";
 import {
   AppConfigFormModel,
   useAppConfigForm,
@@ -29,6 +31,7 @@ import { clearEmptyObject } from "../../util/misc";
 import styles from "./WebhookConfigurationScreen.module.scss";
 import { renderErrors } from "../../error/parse";
 import WidgetDescription from "../../WidgetDescription";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface BlockingEventHandler {
   event: string;
@@ -218,10 +221,12 @@ const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
   };
 interface WebhookConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
+  hookFeatureConfig?: HookFeatureConfig;
 }
 
 const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenContentProps> =
   function WebhookConfigurationScreenContent(props) {
+    const { hookFeatureConfig } = props;
     const { state, setState } = props.form;
 
     const { renderToString } = useContext(Context);
@@ -305,6 +310,40 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
       [setState]
     );
 
+    const blockingHandlerMax = useMemo(() => {
+      return hookFeatureConfig?.blocking_handler?.maximum ?? 99;
+    }, [hookFeatureConfig?.blocking_handler?.maximum]);
+
+    const nonBlockingHandlerMax = useMemo(() => {
+      return hookFeatureConfig?.non_blocking_handler?.maximum ?? 99;
+    }, [hookFeatureConfig?.non_blocking_handler?.maximum]);
+
+    const blockingHandlerLimitReached = useMemo(() => {
+      return state.blocking_handlers.length >= blockingHandlerMax;
+    }, [state.blocking_handlers, blockingHandlerMax]);
+
+    const nonBlockingHandlerLimitReached = useMemo(() => {
+      return state.non_blocking_handlers.length >= nonBlockingHandlerMax;
+    }, [state.non_blocking_handlers, nonBlockingHandlerMax]);
+
+    const blockingHandlerDisabled = useMemo(() => {
+      return blockingHandlerMax < 1;
+    }, [blockingHandlerMax]);
+
+    const nonBlockingHandlerDisabled = useMemo(() => {
+      return nonBlockingHandlerMax < 1;
+    }, [nonBlockingHandlerMax]);
+
+    const hideBlockingHandlerList = useMemo(() => {
+      return blockingHandlerDisabled && state.blocking_handlers.length === 0;
+    }, [state.blocking_handlers.length, blockingHandlerDisabled]);
+
+    const hideNonBlockingHandlerList = useMemo(() => {
+      return (
+        nonBlockingHandlerDisabled && state.non_blocking_handlers.length === 0
+      );
+    }, [state.non_blocking_handlers.length, nonBlockingHandlerDisabled]);
+
     return (
       <ScreenContent className={styles.root}>
         <ScreenTitle>
@@ -321,21 +360,51 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           <WidgetDescription>
             <FormattedMessage id="WebhookConfigurationScreen.blocking-events.description" />
           </WidgetDescription>
-          <FieldList
-            className={styles.control}
-            label={
-              <Label>
-                <FormattedMessage id="WebhookConfigurationScreen.blocking-handlers.label" />
-              </Label>
-            }
-            parentJSONPointer="/hook"
-            fieldName="blocking_handlers"
-            list={state.blocking_handlers}
-            onListChange={onBlockingHandlersChange}
-            makeDefaultItem={makeDefaultHandler}
-            renderListItem={renderBlockingHandlerItem}
-            addButtonLabelMessageID="add"
-          />
+          {blockingHandlerMax < 99 &&
+            (blockingHandlerDisabled ? (
+              <MessageBar>
+                <FormattedMessage
+                  id="FeatureConfig.webhook.blocking-events.disabled"
+                  values={{
+                    HREF: "./settings/subscription",
+                  }}
+                  components={{
+                    Link,
+                  }}
+                />
+              </MessageBar>
+            ) : (
+              <MessageBar>
+                <FormattedMessage
+                  id="FeatureConfig.webhook.blocking-events.maximum"
+                  values={{
+                    HREF: "./settings/subscription",
+                    maximum: blockingHandlerMax,
+                  }}
+                  components={{
+                    Link,
+                  }}
+                />
+              </MessageBar>
+            ))}
+          {!hideBlockingHandlerList && (
+            <FieldList
+              className={styles.control}
+              label={
+                <Label>
+                  <FormattedMessage id="WebhookConfigurationScreen.blocking-handlers.label" />
+                </Label>
+              }
+              parentJSONPointer="/hook"
+              fieldName="blocking_handlers"
+              list={state.blocking_handlers}
+              onListChange={onBlockingHandlersChange}
+              makeDefaultItem={makeDefaultHandler}
+              renderListItem={renderBlockingHandlerItem}
+              addButtonLabelMessageID="add"
+              addDisabled={blockingHandlerLimitReached}
+            />
+          )}
         </Widget>
 
         <Widget className={cn(styles.widget, styles.controlGroup)}>
@@ -345,21 +414,51 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           <WidgetDescription>
             <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events.description" />
           </WidgetDescription>
-          <FieldList
-            className={styles.control}
-            label={
-              <Label>
-                <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events-endpoints.label" />
-              </Label>
-            }
-            parentJSONPointer="/hook"
-            fieldName="non_blocking_handlers"
-            list={state.non_blocking_handlers}
-            onListChange={onNonBlockingHandlersChange}
-            makeDefaultItem={makeDefaultNonBlockingHandler}
-            renderListItem={renderNonBlockingHandlerItem}
-            addButtonLabelMessageID="add"
-          />
+          {nonBlockingHandlerMax < 99 &&
+            (nonBlockingHandlerDisabled ? (
+              <MessageBar>
+                <FormattedMessage
+                  id="FeatureConfig.webhook.non-blocking-events.disabled"
+                  values={{
+                    HREF: "./settings/subscription",
+                  }}
+                  components={{
+                    Link,
+                  }}
+                />
+              </MessageBar>
+            ) : (
+              <MessageBar>
+                <FormattedMessage
+                  id="FeatureConfig.webhook.non-blocking-events.maximum"
+                  values={{
+                    HREF: "./settings/subscription",
+                    maximum: nonBlockingHandlerMax,
+                  }}
+                  components={{
+                    Link,
+                  }}
+                />
+              </MessageBar>
+            ))}
+          {!hideNonBlockingHandlerList && (
+            <FieldList
+              className={styles.control}
+              label={
+                <Label>
+                  <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events-endpoints.label" />
+                </Label>
+              }
+              parentJSONPointer="/hook"
+              fieldName="non_blocking_handlers"
+              list={state.non_blocking_handlers}
+              onListChange={onNonBlockingHandlersChange}
+              makeDefaultItem={makeDefaultNonBlockingHandler}
+              renderListItem={renderNonBlockingHandlerItem}
+              addButtonLabelMessageID="add"
+              addDisabled={nonBlockingHandlerLimitReached}
+            />
+          )}
         </Widget>
 
         <Widget className={cn(styles.widget, styles.controlGroup)}>
@@ -395,8 +494,9 @@ const WebhookConfigurationScreen: React.FC =
   function WebhookConfigurationScreen() {
     const { appID } = useParams();
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const featureConfig = useAppFeatureConfigQuery(appID);
 
-    if (form.isLoading) {
+    if (form.isLoading || featureConfig.loading) {
       return <ShowLoading />;
     }
 
@@ -404,9 +504,23 @@ const WebhookConfigurationScreen: React.FC =
       return <ShowError error={form.loadError} onRetry={form.reload} />;
     }
 
+    if (featureConfig.error) {
+      return (
+        <ShowError
+          error={featureConfig.error}
+          onRetry={() => {
+            featureConfig.refetch().finally(() => {});
+          }}
+        />
+      );
+    }
+
     return (
       <FormContainer form={form}>
-        <WebhookConfigurationScreenContent form={form} />
+        <WebhookConfigurationScreenContent
+          form={form}
+          hookFeatureConfig={featureConfig.effectiveFeatureConfig?.hook}
+        />
       </FormContainer>
     );
   };

@@ -731,6 +731,10 @@
   "FeatureConfig.white-labeling.disabled": "To hide Authgear branding in your app. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.oauth-clients.maximum": "Only {maximum, plural, one{1 application} other{# applications}} can be configured in your project. To create more applications in your project. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.sso.maximum": "Only {maximum, plural, one{1 social connection} other{# social connections}} can be configured in your project. To enable more social connections in your project. {Link, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.webhook.blocking-events.disabled": "Blocking event webhook is not available for your project plan. {Link, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.webhook.non-blocking-events.disabled": "Non blocking event webhook is not available for your project plan. {Link, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.webhook.blocking-events.maximum": "Only {maximum, plural, one{1 blocking event handler} other{# blocking event handlers}} can be configured in your project. To configure more blocking event handlers. {Link, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.webhook.non-blocking-events.maximum": "Only {maximum, plural, one{1 non-blocking event endpoint} other{# non-blocking event endpoints}} can be configured in your project. To configure more non-blocking event endpoints. {Link, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
