@@ -27,7 +27,7 @@ import {
   instantiateSystemConfig,
   mergeSystemConfig,
 } from "./system-config";
-import { loadTheme, Link as FluentLink } from "@fluentui/react";
+import { loadTheme, Link as FluentLink, ILinkProps } from "@fluentui/react";
 import OnboardingConfigAppScreen from "./graphql/portal/OnboardingConfigAppScreen";
 import OnboardingCompletionScreen from "./graphql/portal/OnboardingCompletionScreen";
 import OnboardingRedirect from "./OnboardingRedirect";
@@ -99,6 +99,15 @@ const PortalLink = React.forwardRef<HTMLAnchorElement, ReactRouterLinkProps>(
   }
 );
 
+function ExternalLink(props: ILinkProps) {
+  return <FluentLink target="_blank" rel="noreferrer" {...props} />;
+}
+
+const defaultComponents = {
+  ExternalLink,
+  ReactRouterLink: PortalLink,
+};
+
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
 const ReactApp: React.FC = function ReactApp() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
@@ -122,10 +131,7 @@ const ReactApp: React.FC = function ReactApp() {
       <LocaleProvider
         locale="en"
         messageByID={MESSAGES}
-        defaultComponents={{
-          ReactRouterLink: PortalLink,
-          Link: FluentLink,
-        }}
+        defaultComponents={defaultComponents}
       >
         <p>
           <FormattedMessage id="error.failed-to-initialize-app" />
@@ -144,10 +150,7 @@ const ReactApp: React.FC = function ReactApp() {
     <LocaleProvider
       locale="en"
       messageByID={systemConfig.translations.en}
-      defaultComponents={{
-        ReactRouterLink: PortalLink,
-        Link: FluentLink,
-      }}
+      defaultComponents={defaultComponents}
     >
       <HelmetProvider>
         <ApolloProvider client={client}>
