@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useContext } from "react";
+import { useParams } from "react-router-dom";
 import {
   ICommandBarItemProps,
   IDropdownOption,
@@ -8,6 +9,7 @@ import {
   DefaultButton,
   DatePicker,
   TextField,
+  MessageBar,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { gql, useQuery } from "@apollo/client";
@@ -28,6 +30,7 @@ import {
 import { AuditLogActivityType } from "./__generated__/globalTypes";
 
 import styles from "./AuditLogScreen.module.scss";
+import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 
 const pageSize = 10;
 
@@ -162,12 +165,35 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     fetchPolicy: "network-only",
   });
 
+  const { appID } = useParams();
+  const featureConfig = useAppFeatureConfigQuery(appID);
+
   const messageBar = useMemo(() => {
     if (error != null) {
       return <ShowError error={error} onRetry={refetch} />;
     }
+    if (featureConfig.error != null) {
+      return (
+        <ShowError
+          error={featureConfig.error}
+          onRetry={() => {
+            featureConfig.refetch().finally(() => {});
+          }}
+        />
+      );
+    }
     return null;
-  }, [error, refetch]);
+  }, [error, refetch, featureConfig]);
+
+  const logRetrieveDays = useMemo(() => {
+    if (featureConfig.loading) {
+      return -1;
+    }
+    return featureConfig.effectiveFeatureConfig?.audit_log?.retrieve_days ?? -1;
+  }, [
+    featureConfig.loading,
+    featureConfig.effectiveFeatureConfig?.audit_log?.retrieve_days,
+  ]);
 
   const onChangeSelectedKey = useCallback(
     (_e: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
@@ -319,6 +345,17 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       >
         <main className={styles.content}>
           <NavBreadcrumb items={items} />
+          {logRetrieveDays !== -1 && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.audit-log.retrieve-days"
+                values={{
+                  planPagePath: "../configuration/settings/subscription",
+                  logRetrieveDays: logRetrieveDays,
+                }}
+              />
+            </MessageBar>
+          )}
           <AuditLogList
             className={styles.list}
             loading={loading}

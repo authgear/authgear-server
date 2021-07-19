@@ -461,6 +461,7 @@ export interface PortalAPIFeatureConfig {
   ui?: UIFeatureConfig;
   oauth?: OAuthFeatureConfig;
   hook?: HookFeatureConfig;
+  audit_log?: AuditLogFeatureConfig;
 }
 
 export interface AuthenticationFeatureConfig {
@@ -541,4 +542,8 @@ export interface BlockingHookHandlerFeatureConfig {
 
 export interface NonBlockingHookHandlerFeatureConfig {
   maximum?: number;
+}
+
+export interface AuditLogFeatureConfig {
+  retrieve_days?: number;
 }
