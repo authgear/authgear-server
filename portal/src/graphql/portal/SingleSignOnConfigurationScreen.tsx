@@ -304,12 +304,13 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
               }}
             />
           </Text>
-          {limitReached && (
+          {oauthClientsMaximum < 99 && (
             <MessageBar>
               <FormattedMessage
-                id="FeatureConfig.sso.limit-reached"
+                id="FeatureConfig.sso.maximum"
                 values={{
                   HREF: "./settings/subscription",
+                  maximum: oauthClientsMaximum,
                 }}
                 components={{
                   Link,
