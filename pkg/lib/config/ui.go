@@ -52,36 +52,3 @@ func (c *PhoneInputConfig) SetDefaults() {
 		c.AllowList = phone.AllAlpha2
 	}
 }
-
-// GetCountries returns a list of countries, with pinned countries go first,
-// followed by allowed countries.
-func (c *PhoneInputConfig) GetCountries() []phone.Country {
-	var countries []phone.Country
-
-	isPinned := make(map[string]bool)
-	for _, alpha2 := range c.PinnedList {
-		isPinned[alpha2] = true
-	}
-
-	// Insert pinned country in order.
-	for _, alpha2 := range c.PinnedList {
-		country, ok := phone.GetCountryByAlpha2(alpha2)
-		if ok {
-			countries = append(countries, country)
-		}
-	}
-
-	// Insert allowed country in order.
-	for _, alpha2 := range c.AllowList {
-		pinned := isPinned[alpha2]
-		if pinned {
-			continue
-		}
-		country, ok := phone.GetCountryByAlpha2(alpha2)
-		if ok {
-			countries = append(countries, country)
-		}
-	}
-
-	return countries
-}

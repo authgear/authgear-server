@@ -12,7 +12,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
 func TestAppConfig(t *testing.T) {
@@ -86,28 +85,6 @@ func TestAppConfig(t *testing.T) {
 					}
 				})
 			}
-		})
-
-		Convey("get phone input country", func() {
-			data, err := ioutil.ReadFile("testdata/phone_input_config_test.yaml")
-			if err != nil {
-				panic(err)
-			}
-
-			var cfg config.AppConfig
-			err = yaml.Unmarshal(data, &cfg)
-			if err != nil {
-				panic(err)
-			}
-
-			countries := cfg.UI.PhoneInput.GetCountries()
-			expected := []phone.Country{
-				phone.Country{Alpha2: "HK", CountryCallingCode: "852"},
-				phone.Country{Alpha2: "US", CountryCallingCode: "1"},
-				phone.Country{Alpha2: "GB", CountryCallingCode: "44"},
-				phone.Country{Alpha2: "TW", CountryCallingCode: "886"},
-			}
-			So(countries, ShouldResemble, expected)
 		})
 	})
 }

@@ -46,7 +46,9 @@
 				<input type="hidden" name="x_login_id_type" value="{{ .login_id_type }}">
 				{{ if eq .login_id_type "phone" }}
 					<input
-						class="margin-b-20 phone-input primary-txt"
+						data-intl-tel-input="true"
+						data-intl-tel-input-class="margin-b-20 flex flex-col"
+						class="margin-b-20 primary-txt input text-input"
 						tabindex="0"
 						autofocus
 						type="text"

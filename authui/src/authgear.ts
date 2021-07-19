@@ -4,6 +4,7 @@ import {
   intlDateTimeFormatIsSupported,
   intlRelativeTimeFormatIsSupported,
 } from "./feature";
+import { setupIntlTelInput } from "./intlTelInput";
 import { DateTime } from "luxon";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
@@ -13,6 +14,8 @@ init();
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
+
+window.api.onLoad(setupIntlTelInput);
 
 // Format date in browser timezone
 window.api.onLoad(() => {

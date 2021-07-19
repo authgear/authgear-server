@@ -4,6 +4,9 @@
 <title>{{ template "app.name" }}</title>
 <link rel="shortcut icon" href="{{ call $.StaticAssetURL "favicon" }}">
 <meta name="x-authgear-page-loaded-at" content="{{ .PageLoadedAt }}">
+<meta name="x-intl-tel-input-only-countries" content="{{ $.AllowedPhoneCountryCodeJSON }}">
+<meta name="x-intl-tel-input-preferred-countries" content="{{ $.PinnedPhoneCountryCodeJSON }}">
+<meta name="x-geoip-country-code" content="{{ $.GeoIPCountryCode }}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "normalize.min.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "tabler-icons.min.css" }}">

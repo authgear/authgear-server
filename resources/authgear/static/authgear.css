@@ -992,8 +992,6 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-password-strength-meter-5);
 }
 
-.phone-input {}
-
 .btn.sso-btn {
   height: 36px;
   border-radius: 2px;
