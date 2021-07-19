@@ -74,7 +74,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 						&nodes.EdgeDoCreateUser{},
 					}, nil
 				default:
-					return nil, interaction.ErrInvalidCredentials
+					return nil, interaction.ErrUserNotFound
 				}
 			}
 

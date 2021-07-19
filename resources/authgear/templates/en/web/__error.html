@@ -70,6 +70,8 @@
                         <li>{{ . }}</li>
                     {{ end }}
                 {{ end }}
+            {{ else if eq .Error.reason "UserNotFound" }}
+                <li>{{ template "error-user-not-found" }}</li>
             {{ else if eq .Error.reason "InvalidCredentials" }}
                 <li>{{ template "error-invalid-credentials" (dict "AuthenticationType" $info.AuthenticationType) }}</li>
             {{ else if eq .Error.reason "PasswordResetFailed" }}
