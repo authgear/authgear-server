@@ -41,7 +41,7 @@
     "@authgear/web": "0.12.1",
     "@fluentui/react": "8.9.0",
     "@monaco-editor/react": "3.7.2",
-    "@oursky/react-messageformat": "1.0.0",
+    "@oursky/react-messageformat": "1.1.1",
     "base64-js": "1.5.1",
     "classnames": "2.3.1",
     "deep-equal": "2.0.5",
