@@ -592,10 +592,7 @@ const SecondaryAuthenticationModeContent: React.FC<SecondaryAuthenticationModeCo
           onChange={onChange}
         />
         <Text className={styles.helpText} block={true} variant="small">
-          <FormattedMessage
-            id="Onboarding.secondary-authentication-mode.desc"
-            components={{ Link }}
-          />
+          <FormattedMessage id="Onboarding.secondary-authentication-mode.desc" />
         </Text>
       </section>
     );
