@@ -78,6 +78,12 @@ config:
     non_blocking_handler:
       maximum: 1
 ---
+name: audit-logs-retrieve-days
+error: null
+config:
+  audit_log:
+    retrieval_days: 3
+---
 name: free-plan-config
 error: null
 config:
@@ -110,3 +116,5 @@ config:
       maximum: 0
     non_blocking_handler:
       maximum: 1
+  audit_log:
+    retrieval_days: 3
