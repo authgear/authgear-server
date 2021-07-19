@@ -460,7 +460,7 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
             <FormattedMessage
               id="FeatureConfig.disabled"
               values={{
-                HREF: "../settings/subscription",
+                planPagePath: "../../settings/subscription",
               }}
             />
           </MessageBar>

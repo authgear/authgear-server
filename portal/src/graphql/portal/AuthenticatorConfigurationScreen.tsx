@@ -490,7 +490,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
-                  HREF: "../settings/subscription",
+                  planPagePath: "../../settings/subscription",
                 }}
               />
             </MessageBar>
@@ -514,7 +514,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
-                  HREF: "../settings/subscription",
+                  planPagePath: "../../settings/subscription",
                 }}
               />
             </MessageBar>

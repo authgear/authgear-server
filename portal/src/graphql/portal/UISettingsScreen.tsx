@@ -764,7 +764,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               <FormattedMessage
                 id="FeatureConfig.white-labeling.disabled"
                 values={{
-                  HREF: "./settings/subscription",
+                  planPagePath: "../settings/subscription",
                 }}
               />
             </MessageBar>

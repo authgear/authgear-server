@@ -10,7 +10,7 @@ import {
   VerticalDivider,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
 import cn from "classnames";
 
@@ -253,9 +253,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               values={{
                 clientEndpoint: state.publicOrigin,
                 dnsUrl: "../dns/custom-domains",
-              }}
-              components={{
-                Link,
               }}
             />
           </Text>

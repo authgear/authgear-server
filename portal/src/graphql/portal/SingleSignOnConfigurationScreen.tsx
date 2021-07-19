@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { Link } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
@@ -285,9 +284,6 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
             id="SingleSignOnConfigurationScreen.description"
             values={{
               HREF: "https://docs.authgear.com/strategies/how-to-setup-sso-integrations",
-            }}
-            components={{
-              Link,
             }}
           />
         </ScreenDescription>

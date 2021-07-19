@@ -249,7 +249,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               <FormattedMessage
                 id="FeatureConfig.disabled"
                 values={{
-                  HREF: "../settings/subscription",
+                  planPagePath: "../../settings/subscription",
                 }}
               />
             </MessageBar>
