@@ -1,57 +1,65 @@
-# OIDC
-
-Authgear acts as OpenID Provider (OP).
-
+- [OIDC](#oidc)
   * [OAuth 2 and OIDC Conformance](#oauth-2-and-oidc-conformance)
   * [Client Metadata](#client-metadata)
-    * [Standard Client Metadata](#standard-client-metadata)
-    * [Custom Client Metadata](#custom-client-metadata)
-      * [Generic RP Client Metadata example](#generic-rp-client-metadata-example)
-      * [Native application Client Metadata example](#native-application-client-metadata-example)
-      * [Web application sharing the same root domain Client Metadata example](#web-application-sharing-the-same-root-domain-client-metadata-example)
-      * [Silent Authentication Client Metadata example](#silent-authentication-client-metadata-example)
+    + [Standard Client Metadata](#standard-client-metadata)
+    + [Custom Client Metadata](#custom-client-metadata)
+      - [Generic RP Client Metadata example](#generic-rp-client-metadata-example)
+      - [Native application Client Metadata example](#native-application-client-metadata-example)
+      - [Web application sharing the same root domain Client Metadata example](#web-application-sharing-the-same-root-domain-client-metadata-example)
+      - [Silent Authentication Client Metadata example](#silent-authentication-client-metadata-example)
   * [Authentication Request](#authentication-request)
-    * [scope](#scope)
-    * [response_type](#response_type)
-    * [display](#display)
-    * [prompt](#prompt)
-    * [max_age](#max_age)
-    * [id_token_hint](#id_token_hint)
-    * [login_hint](#login_hint)
-    * [acr_values](#acr_values)
-    * [code_challenge_method](#code_challenge_method)
+    + [scope](#scope)
+    + [response_type](#response_type)
+    + [prompt](#prompt)
+    + [max_age](#max_age)
+    + [id_token_hint](#id_token_hint)
+    + [login_hint](#login_hint)
+    + [acr_values](#acr_values)
+    + [code_challenge_method](#code_challenge_method)
   * [Token Request](#token-request)
-    * [grant_type](#grant_type)
-    * [jwt](#jwt)
+    + [grant_type](#grant_type)
+    + [id_token_hint](#id_token_hint-1)
+    + [jwt](#jwt)
   * [Token Response](#token-response)
-    * [token_type](#token_type)
-    * [refresh_token](#refresh_token)
-    * [scope](#scope-1)
+    + [token_type](#token_type)
+    + [refresh_token](#refresh_token)
+    + [scope](#scope-1)
   * [The metadata endpoint](#the-metadata-endpoint)
-    * [authorization_endpoint](#authorization_endpoint)
-    * [token_endpoint](#token_endpoint)
-    * [userinfo_endpoint](#userinfo_endpoint)
-    * [revocation_endpoint](#revocation_endpoint)
-    * [jwks_uri](#jwks_uri)
-    * [scopes_supported](#scopes_supported)
-    * [response_types_supported](#response_types_supported)
-    * [grant_types_supported](#grant_types_supported)
-    * [subject_types_supported](#subject_types_supported)
-    * [id_token_signing_alg_values_supported](#id_token_signing_alg_values_supported)
-    * [claims_supported](#claims_supported)
-    * [code_challenge_methods_supported](#code_challenge_methods_supported)
+    + [authorization_endpoint](#authorization_endpoint)
+    + [token_endpoint](#token_endpoint)
+    + [userinfo_endpoint](#userinfo_endpoint)
+    + [revocation_endpoint](#revocation_endpoint)
+    + [jwks_uri](#jwks_uri)
+    + [scopes_supported](#scopes_supported)
+    + [response_types_supported](#response_types_supported)
+    + [grant_types_supported](#grant_types_supported)
+    + [subject_types_supported](#subject_types_supported)
+    + [id_token_signing_alg_values_supported](#id_token_signing_alg_values_supported)
+    + [claims_supported](#claims_supported)
+    + [code_challenge_methods_supported](#code_challenge_methods_supported)
   * [ID Token](#id-token)
-    * [amr](#amr)
-    * [acr](#acr)
-    * [https://authgear.com/user/is_anonymous](#httpsauthgearcomuseris_anonymous)
-    * [https://authgear.com/user/metadata](#httpsauthgearcomusermetadata)
-    * [https://authgear.com/user/is_verified](#httpsauthgearcomuseris_verified)
+    + [`amr`](#amr)
+    + [`auth_time`](#auth_time)
+    + [`https://authgear.com/user/can_reauthenticate`](#httpsauthgearcomusercan_reauthenticate)
+    + [`https://authgear.com/user/is_anonymous`](#httpsauthgearcomuseris_anonymous)
+    + [`https://authgear.com/user/is_verified`](#httpsauthgearcomuseris_verified)
   * [External application acting as RP while Authgear acting as OP](#external-application-acting-as-rp-while-authgear-acting-as-op)
   * [Authgear acting as authentication server with native application](#authgear-acting-as-authentication-server-with-native-application)
   * [Authgear acting as authentication server with web application](#authgear-acting-as-authentication-server-with-web-application)
+  * [Voluntary reauthentication](#voluntary-reauthentication)
   * [Silent Authentication](#silent-authentication)
-    * [Comparison with cookie sharing approach](#comparison-with-cookie-sharing-approach)
-    * [Details of Silent Authentication](#details-of-silent-authentication)
+    + [Comparison with cookie sharing approach](#comparison-with-cookie-sharing-approach)
+    + [Details of Silent Authentication](#details-of-silent-authentication)
+  * [First-party Clients](#first-party-clients)
+    + [App Session Token](#app-session-token)
+  * [How to construct authentication request to achieve different scenarios](#how-to-construct-authentication-request-to-achieve-different-scenarios)
+    + [The user has NOT signed in yet in my mobile app. I want to authenticate any user.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user)
+    + [The user has NOT signed in yet in my mobile app. I want to authenticate any user. Possibly reuse any previous signed in sessions.](#the-user-has-not-signed-in-yet-in-my-mobile-app-i-want-to-authenticate-any-user-possibly-reuse-any-previous-signed-in-sessions)
+    + [The user has signed in. I want to reauthenticate the user before they can perform sensitive operation.](#the-user-has-signed-in-i-want-to-reauthenticate-the-user-before-they-can-perform-sensitive-operation)
+
+# OIDC
+
+Authgear acts as OpenID Provider (OP).
 
 ## OAuth 2 and OIDC Conformance
 
@@ -136,27 +144,26 @@ Refresh token is not used.
 
 ### response_type
 
-- `code`: Authorization Code Flow
-- `none`: [Authgear acting as authentication server with web application](#authgear-acting-as-authentication-server-with-web-application)
-
-### display
-
-The only supported value is `page`.
+- `none`: Nothing is included in the authentication response.
+- `code`: `code` is included in the authentication response. This is the authorization code flow.
 
 ### prompt
 
-The following values are supported.
+- `none`: An error is returned if the authentication request cannot be processed without user interaction.
+- `login`: Reauthenticate the end-user with any authenticator they have.
 
-- `login`
-- `none`
+> In the future, we may support select_account and content.
 
 ### max_age
 
-Unsupported.
+- `0`: It is equivalent to prompt=login.
+- `n`, where n is Any positive integer: It is equivalent to prompt=login if the elapsed time in seconds of the last authentication is greater than `n`. Otherwise, it has no effect.
 
 ### id_token_hint
 
-No difference from the spec, for `prompt=none` case.
+When `id_token_hint` is given, the end-user is guaranteed to be authenticated as the user indicated by this ID token. Otherwise it is an error.
+
+If this is present and there is an valid session, the user is reauthenticated.
 
 ### login_hint
 
@@ -184,7 +191,7 @@ Unknown parameters are ignored, and invalid parameters are rejected. However, if
 
 ### acr_values
 
-Unsupported yet.
+Currently not supported.
 
 ### code_challenge_method
 
@@ -198,10 +205,20 @@ Only `S256` is supported. `plain` is not supported.
 - `refresh_token`
 - `urn:authgear:params:oauth:grant-type:anonymous-request`
 - `urn:authgear:params:oauth:grant-type:biometric-request`
+- `urn:authgear:params:oauth:grant-type:id-token`
 
 `urn:authgear:params:oauth:grant-type:anonymous-request` is for authenticating and issuing tokens directly for anonymous user.
 
 `urn:authgear:params:oauth:grant-type:biometric-request` is for authenticating and issuing tokens directly for users with Biometric identity.
+
+### id_token_hint
+
+When the grant type is `urn:authgear:params:oauth:grant-type:id-token`, the request must include `id_token_hint`.
+The response will include an ID token with the following claims updated:
+
+- `https://authgear.com/user/can_reauthenticate`
+- `https://authgear.com/user/is_anonymous`
+- `https://authgear.com/user/is_verified`
 
 ### jwt
 
@@ -300,23 +317,24 @@ To indicate the authenticator used in authentication, `amr` claim is used in OID
 - If password authenticator is used: `pwd` is included.
 - If any OTP (TOTP/OOB-OTP) is used: `otp` is included.
 - If WebAuthn is used: `hwk` is included.
+- If Biometric is used: `x_biometric` is included.
 
-If no authentication method is to be included in `amr` claim, `amr` claim would be omitted from the ID token.
+If no authentication method is included in `amr` claim, `amr` claim would be omitted from the ID token.
 
-### `acr`
+### `auth_time`
 
-If any secondary authenticator is performed, `acr` claim would be included in ID token with value `http://schemas.openid.net/pape/policies/2007/06/multi-factor`.
+The time in Unix epoch when the authentication was performed.
+This claim is only present if the ID token is obtained via the authorization code flow or the implicit flow.
 
-To perform step-up authentication, developer can pass a `acr_values` of  `http://schemas.openid.net/pape/policies/2007/06/multi-factor` to the authorize endpoint.
+This is the authenticated at of the IdP session.
 
+### `https://authgear.com/user/can_reauthenticate`
+
+The value `true` means the user can be [reauthenticated](voluntary-reauthentication).
 
 ### `https://authgear.com/user/is_anonymous`
 
 The value `true` means the user is anonymous. Otherwise, it is a normal user.
-
-### `https://authgear.com/user/metadata`
-
-Custom metadata of the user.
 
 ### `https://authgear.com/user/is_verified`
 
@@ -366,6 +384,26 @@ The value `true` means the user is verified.
 1. User authorizes and consents
 1. Authgear creates IdP session in eTLD+1, redirect empty result back to client SDK
 1. Since IdP session is set in eTLD+1, cookies header will be included when user send request to AppBackend too. The reverse proxy delegates to Authgear to resolve the session.
+
+## Voluntary reauthentication
+
+By verifying the signature of the ID token and validating the claims in the ID token,
+the developer can assure the user has authenticated themselves.
+
+The flow is illustrated by the following chart.
+
+[![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggXG4gICAgYShCZWZvcmUgcGVyZm9ybWluZyBzZW5zaXRpdmUgb3BlcmF0aW9uKSAtLT58Q0FOTk9UIHJlYXV0aGVudGljYXRlfCBiKFNlbmQgc2Vuc2l0aXZlIHJlcXVlc3QgYWxvbmcgd2l0aCBJRCB0b2tlbilcbiAgICBhIC0tPnxDQU4gcmVhdXRoZW50aWNhdGV8IGMoVHJpZ2dlciByZWF1dGhlbnRpY2F0aW9uIHdpdGggU0RLKVxuICAgIGMgLS0-fFJlYXV0aGVudGljYXRpb24gc3VjY2VlZGVkfCBiXG4gICAgYyAtLT58UmVhdXRoZW50aWNhdGlvbiBmYWlsZWR8IGMiLCJtZXJtYWlkIjp7InRoZW1lIjoiZGVmYXVsdCJ9LCJ1cGRhdGVFZGl0b3IiOmZhbHNlLCJhdXRvU3luYyI6dHJ1ZSwidXBkYXRlRGlhZ3JhbSI6ZmFsc2V9)](https://mermaid-js.github.io/mermaid-live-editor/edit##eyJjb2RlIjoiZ3JhcGggXG4gICAgYShCZWZvcmUgcGVyZm9ybWluZyBzZW5zaXRpdmUgb3BlcmF0aW9uKSAtLT58Q0FOTk9UIHJlYXV0aGVudGljYXRlfCBiKFNlbmQgc2Vuc2l0aXZlIHJlcXVlc3QgYWxvbmcgd2l0aCBJRCB0b2tlbilcbiAgICBhIC0tPnxDQU4gcmVhdXRoZW50aWNhdGV8IGMoVHJpZ2dlciByZWF1dGhlbnRpY2F0aW9uIHdpdGggU0RLKVxuICAgIGMgLS0-fFJlYXV0aGVudGljYXRpb24gc3VjY2VlZGVkfCBiXG4gICAgYyAtLT58UmVhdXRoZW50aWNhdGlvbiBmYWlsZWR8IGMiLCJtZXJtYWlkIjoie1xuICBcInRoZW1lXCI6IFwiZGVmYXVsdFwiXG59IiwidXBkYXRlRWRpdG9yIjpmYWxzZSwiYXV0b1N5bmMiOnRydWUsInVwZGF0ZURpYWdyYW0iOmZhbHNlfQ)
+
+Details:
+
+1. Before performing sensitive operation, check if reauthentication is possible. You can either check the claim `https://authgear.com/user/can_reauthenticate` or call the SDK method `authgear.canReauthenticate`.
+1. If reauthentication is impossible, you should send your request along with the ID token.
+1. If reauthentication is possible, trigger reauthentication with the SDK.
+1. Send your request along with the updated ID token.
+1. Your server verifies the signature of the ID token.
+1. Check whether `amr` includes `x_biometric` and `auth_time` is recent enough.
+1. Check whether `https://authgear.com/user/can_reauthenticate` is true and `auth_time` is recent enough.
+1. Otherwise, the user cannot be reauthenticated.
 
 ## Silent Authentication
 
@@ -489,4 +527,40 @@ When the app session token is consumed:
 - The session cookie would contain a token referencing the refresh token,
   instead of IdP sessions. Therefore, the lifetime of session cookie is bound
   to refresh token instead of IdP session.
- 
+
+## How to construct authentication request to achieve different scenarios
+
+### The user has NOT signed in yet in my mobile app. I want to authenticate any user.
+
+The authentication request is `response_type=code&prompt=login&scope=openid+offline_access`.
+
+The user will NOT see select account screen even if they have previously signed in.
+
+The user is authenticated fully.
+
+### The user has NOT signed in yet in my mobile app. I want to authenticate any user. Possibly reuse any previous signed in sessions.
+
+The authentication request is `response_type=code&scope=openid+offline_access`.
+
+The user will see select account screen if they have valid sessions.
+If the user continues with an existing valid session, the user is NOT reauthenticated.
+If the user continues with another account, the user is authenticated fully.
+
+### The user has signed in. I want to reauthenticate the user before they can perform sensitive operation.
+
+The authentication request is `response_type=code&prompt=login&max_age=0&scope=openid&id_token_hint=ID_TOKEN`.
+
+The user will NOT see select account screen because `id_token_hint` is given.
+
+If the user has valid session, the user is reauthenticated with any of their primary authenticator, or secondary authenticator.
+
+It is an error if the user does not have any authenticator.
+For example, the user just signed up with Google so they do not have any primary authenticator.
+
+If the user does not have valid session, a normal authentication screen is shown.
+It is an error if the user signs in as a different user.
+
+The user is authenticated fully.
+
+It is possible that we show a tailor made screen that let the user to choose which login method to use,
+but this requires much effort to implement and may leak available login methods.
