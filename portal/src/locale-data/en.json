@@ -730,7 +730,7 @@
   "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.white-labeling.disabled": "To hide Authgear branding in your app. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.oauth-clients.maximum": "Only {maximum, plural, one{1 application} other{# applications}} can be configured in your project. To create more applications in your project. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
-  "FeatureConfig.sso.limit-reached": "To enable more social connections in your project. {Link, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.sso.maximum": "Only {maximum, plural, one{1 social connection} other{# social connections}} can be configured in your project. To enable more social connections in your project. {Link, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
