@@ -180,7 +180,7 @@ const CORSConfigurationWidget: React.FC<CORSConfigurationWidgetProps> =
 
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
-  limitReached: boolean;
+  oauthClientsMaximum: number;
   showNotification: (msg: string) => void;
 }
 
@@ -190,7 +190,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
       showNotification,
       form,
       form: { state, setState },
-      limitReached,
+      oauthClientsMaximum,
     } = props;
     const { renderToString } = useContext(Context);
 
@@ -259,12 +259,13 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               }}
             />
           </Text>
-          {limitReached && (
+          {oauthClientsMaximum < 99 && (
             <MessageBar>
               <FormattedMessage
-                id="FeatureConfig.oauth-clients.limit-reached"
+                id="FeatureConfig.oauth-clients.maximum"
                 values={{
                   HREF: "./settings/subscription",
+                  maximum: oauthClientsMaximum,
                 }}
               />
             </MessageBar>
@@ -300,14 +301,13 @@ const ApplicationsConfigurationScreen: React.FC =
       );
     }, []);
 
+    const oauthClientsMaximum = useMemo(() => {
+      return featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum ?? 99;
+    }, [featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum]);
+
     const limitReached = useMemo(() => {
-      const oauthClientsMaximum =
-        featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum ?? 99;
       return form.state.clients.length >= oauthClientsMaximum;
-    }, [
-      featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum,
-      form.state.clients.length,
-    ]);
+    }, [oauthClientsMaximum, form.state.clients.length]);
 
     const commandBarFarItems: ICommandBarItemProps[] = useMemo(
       () => [
@@ -351,7 +351,7 @@ const ApplicationsConfigurationScreen: React.FC =
       >
         <OAuthClientConfigurationContent
           form={form}
-          limitReached={limitReached}
+          oauthClientsMaximum={oauthClientsMaximum}
           showNotification={showNotification}
         />
       </FormContainer>
