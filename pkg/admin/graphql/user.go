@@ -26,7 +26,7 @@ var nodeUser = node(
 				Type:        graphql.DateTime,
 				Description: "The last login time of user",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					return p.Source.(*user.User).LastLoginAt, nil
+					return p.Source.(*user.User).MostRecentLoginAt, nil
 				},
 			},
 			"identities": &graphql.Field{
