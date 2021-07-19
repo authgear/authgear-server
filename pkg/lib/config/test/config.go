@@ -47,6 +47,14 @@ func FixtureFeatureConfig(plan FixturePlanName) *config.FeatureConfig {
 					MaximumProviders: newInt(1),
 				},
 			},
+			Hook: &config.HookFeatureConfig{
+				BlockingHandler: &config.BlockingHandlerFeatureConfig{
+					Maximum: newInt(1),
+				},
+				NonBlockingHandler: &config.NonBlockingHandlerFeatureConfig{
+					Maximum: newInt(1),
+				},
+			},
 		}
 	case FixtureUnlimitedPlanName:
 		return config.NewEffectiveDefaultFeatureConfig()

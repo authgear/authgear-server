@@ -126,6 +126,31 @@ func TestManager(t *testing.T) {
 			}})
 			// passed the app plan checking and show the missing secret error
 			So(err, ShouldBeError, "invalid secret config: invalid secrets:\n<root>: OAuth client credentials (secret 'sso.oauth.client') is required")
+
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nhook:\n  blocking_handlers:\n  - event: user.pre_create\n    url: http://example.com\n  - event: user.pre_create\n    url: http://example.com"),
+			}})
+			So(err, ShouldBeError, "exceed the maximum number of blocking handlers, actual: 2, expected: 1")
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nhook:\n  blocking_handlers:\n  - event: user.pre_create\n    url: http://example.com\n  - event: user.pre_create\n    url: http://example.com"),
+			}})
+			So(err, ShouldBeNil)
+
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nhook:\n  non_blocking_handlers:\n    - events:\n        - '*'\n      url: http://example.com\n    - events:\n        - '*'\n      url: http://example.com"),
+			}})
+			So(err, ShouldBeError, "exceed the maximum number of non blocking handlers, actual: 2, expected: 1")
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nhook:\n  non_blocking_handlers:\n    - events:\n        - '*'\n      url: http://example.com\n    - events:\n        - '*'\n      url: http://example.com"),
+			}})
+			So(err, ShouldBeNil)
+
 		})
 
 		Convey("forbid deleting required items in secrets", func() {

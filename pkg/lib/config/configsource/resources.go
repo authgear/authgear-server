@@ -151,6 +151,24 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 		}
 	}
 
+	if len(original.Hook.BlockingHandlers) < len(incoming.Hook.BlockingHandlers) {
+		if len(incoming.Hook.BlockingHandlers) > *fc.Hook.BlockingHandler.Maximum {
+			return fmt.Errorf("exceed the maximum number of blocking handlers, actual: %d, expected: %d",
+				len(incoming.Hook.BlockingHandlers),
+				*fc.Hook.BlockingHandler.Maximum,
+			)
+		}
+	}
+
+	if len(original.Hook.NonBlockingHandlers) < len(incoming.Hook.NonBlockingHandlers) {
+		if len(incoming.Hook.NonBlockingHandlers) > *fc.Hook.NonBlockingHandler.Maximum {
+			return fmt.Errorf("exceed the maximum number of non blocking handlers, actual: %d, expected: %d",
+				len(incoming.Hook.NonBlockingHandlers),
+				*fc.Hook.NonBlockingHandler.Maximum,
+			)
+		}
+	}
+
 	return nil
 }
 
