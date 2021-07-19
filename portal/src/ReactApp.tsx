@@ -27,10 +27,11 @@ import {
   instantiateSystemConfig,
   mergeSystemConfig,
 } from "./system-config";
-import { loadTheme } from "@fluentui/react";
+import { loadTheme, Link as FluentLink } from "@fluentui/react";
 import OnboardingConfigAppScreen from "./graphql/portal/OnboardingConfigAppScreen";
 import OnboardingCompletionScreen from "./graphql/portal/OnboardingCompletionScreen";
 import OnboardingRedirect from "./OnboardingRedirect";
+import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -92,6 +93,12 @@ const PortalRoot = function PortalRoot() {
   );
 };
 
+const PortalLink = React.forwardRef<HTMLAnchorElement, ReactRouterLinkProps>(
+  function LinkWithRef({ ...rest }, ref) {
+    return <ReactRouterLink {...rest} ref={ref} component={FluentLink} />;
+  }
+);
+
 // ReactApp is responsible for fetching runtime config and initialize authgear SDK.
 const ReactApp: React.FC = function ReactApp() {
   const [systemConfig, setSystemConfig] = useState<SystemConfig | null>(null);
@@ -112,7 +119,14 @@ const ReactApp: React.FC = function ReactApp() {
 
   if (error != null) {
     return (
-      <LocaleProvider locale="en" messageByID={MESSAGES}>
+      <LocaleProvider
+        locale="en"
+        messageByID={MESSAGES}
+        defaultComponents={{
+          ReactRouterLink: PortalLink,
+          Link: FluentLink,
+        }}
+      >
         <p>
           <FormattedMessage id="error.failed-to-initialize-app" />
         </p>
@@ -127,7 +141,14 @@ const ReactApp: React.FC = function ReactApp() {
   registerLocale(i18nISOCountriesEnLocale);
 
   return (
-    <LocaleProvider locale="en" messageByID={systemConfig.translations.en}>
+    <LocaleProvider
+      locale="en"
+      messageByID={systemConfig.translations.en}
+      defaultComponents={{
+        ReactRouterLink: PortalLink,
+        Link: FluentLink,
+      }}
+    >
       <HelmetProvider>
         <ApolloProvider client={client}>
           <SystemConfigContext.Provider value={systemConfig}>

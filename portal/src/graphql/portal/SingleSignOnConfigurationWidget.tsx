@@ -220,7 +220,7 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
           <FormattedMessage
             id="FeatureConfig.disabled"
             values={{
-              HREF: "./settings/subscription",
+              planPagePath: "../settings/subscription",
             }}
           />
         </MessageBar>

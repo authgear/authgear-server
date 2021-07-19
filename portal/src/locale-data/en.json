@@ -404,7 +404,7 @@
   "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
 
   "ApplicationsConfigurationScreen.title": "Applications",
-  "ApplicationsConfigurationScreen.client-endpoint.desc": "Configure applications to be used at the endpoint: {a, react, href{{clientEndpoint}} children{{clientEndpoint}}}.\nYou can change this endpoint at the {Link, react, to{{dnsUrl}} children{Custom Domains configuration}} with your custom domains.",
+  "ApplicationsConfigurationScreen.client-endpoint.desc": "Configure applications to be used at the endpoint: {Link, react, href{{clientEndpoint}} children{{clientEndpoint}}}.\nYou can change this endpoint at the {ReactRouterLink, react, to{{dnsUrl}} children{Custom Domains configuration}} with your custom domains.",
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
@@ -603,12 +603,12 @@
   "WebhookConfigurationScreen.timeout.label": "Per-handler timeout (seconds)",
 
   "WebhookConfigurationScreen.blocking-events": "Blocking Events",
-  "WebhookConfigurationScreen.blocking-events.description": "Blocking Events allow your server to check and abort operations in different scenarios. {br, react} {a, react, href{https://docs.authgear.com/webhooks#blocking-events} children{Learn more about blocking events} target{_blank}}.",
+  "WebhookConfigurationScreen.blocking-events.description": "Blocking Events allow your server to check and abort operations in different scenarios. {br, react} {Link, react, href{https://docs.authgear.com/webhooks#blocking-events} children{Learn more about blocking events} target{_blank}}.",
   "WebhookConfigurationScreen.blocking-handlers.label": "Blocking Handlers",
   "WebhookConfigurationScreen.blocking-events.label": "Handler event type",
   "WebhookConfigurationScreen.blocking-event-type.user.pre_create": "User pre create",
   "WebhookConfigurationScreen.non-blocking-events": "Non Blocking Events",
-  "WebhookConfigurationScreen.non-blocking-events.description": "Non Blocking Events allow your server to receive notification asynchronously when an event happens in Authgear. {br, react} {br, react} All events will be sent to the configured endpoint, you can filter event by the type in payload. {br, react} {a, react, href{https://docs.authgear.com/webhooks#non-blocking-events} children{Learn more about non-blocking events} target{_blank}}.",
+  "WebhookConfigurationScreen.non-blocking-events.description": "Non Blocking Events allow your server to receive notification asynchronously when an event happens in Authgear. {br, react} {br, react} All events will be sent to the configured endpoint, you can filter event by the type in payload. {br, react} {Link, react, href{https://docs.authgear.com/webhooks#non-blocking-events} children{Learn more about non-blocking events} target{_blank}}.",
   "WebhookConfigurationScreen.non-blocking-events-endpoints.label": "Endpoints",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
@@ -726,9 +726,9 @@
   "AuditLogActivityType.USER_CREATED": "Signed up",
   "AuditLogActivityType.USER_SIGNED_OUT": "Signed out",
 
-  "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
-  "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
-  "FeatureConfig.white-labeling.disabled": "To hide Authgear branding in your app. {a, react, href{{HREF}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan}}.",
+  "FeatureConfig.white-labeling.disabled": "To hide Authgear branding in your app. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
