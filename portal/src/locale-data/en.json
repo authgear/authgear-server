@@ -735,6 +735,7 @@
   "FeatureConfig.webhook.non-blocking-events.disabled": "Non blocking event webhook is not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.webhook.blocking-events.maximum": "You can only add {maximum, plural, one{1 blocking event handler} other{# blocking event handlers}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.webhook.non-blocking-events.maximum": "You can only add {maximum, plural, one{1 non-blocking event endpoint} other{# non-blocking event endpoints}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
+  "FeatureConfig.audit-log.retrieval-days": "You can only retrieve audit logs for the last {logRetrievalDays, plural, one{1 day} other{# days}}. To retrieve more logs, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
