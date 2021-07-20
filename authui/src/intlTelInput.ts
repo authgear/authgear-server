@@ -8,21 +8,37 @@ export function setupIntlTelInput() {
     initialCountry = "";
   }
 
+  const instances: (ReturnType<typeof window.intlTelInput>)[] = [];
   const elements = document.querySelectorAll("[data-intl-tel-input]");
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
     if (element instanceof HTMLInputElement) {
-      const name = element.name;
-      element.name = name + "_intl_tel_input";
+      // Store the original form field name.
+      let originalName = element.getAttribute("data-intl-tel-input-name");
+      if (originalName == null || originalName === "") {
+        originalName = element.name;
+      }
+
+      // Rename the name of this form field,
+      // because the actual input being used is hiddenInput.
+      element.name = originalName + "_intl_tel_input";
+
       const customContainer = element.getAttribute("data-intl-tel-input-class") ?? undefined;
-      window.intlTelInput(element, {
+      const instance = window.intlTelInput(element, {
+        hiddenInput: originalName,
         autoPlaceholder: "aggressive",
-        hiddenInput: name,
         onlyCountries,
         preferredCountries,
         initialCountry,
         customContainer,
       });
+      instances.push(instance);
     }
   }
+
+  return () => {
+    for (const instance of instances) {
+      instance.destroy();
+    }
+  };
 }
