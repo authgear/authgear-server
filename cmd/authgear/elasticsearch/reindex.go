@@ -62,7 +62,7 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 			AppID:       string(q.AppID),
 			CreatedAt:   u.CreatedAt,
 			UpdatedAt:   u.UpdatedAt,
-			LastLoginAt: u.LastLoginAt,
+			LastLoginAt: u.MostRecentLoginAt,
 			IsDisabled:  u.IsDisabled,
 		}
 

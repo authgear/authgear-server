@@ -67,7 +67,7 @@ func (s *Service) ReindexUser(userID string, isDelete bool) (err error) {
 		AppID:       string(s.AppID),
 		CreatedAt:   u.CreatedAt,
 		UpdatedAt:   u.UpdatedAt,
-		LastLoginAt: u.LastLoginAt,
+		LastLoginAt: u.MostRecentLoginAt,
 		IsDisabled:  u.IsDisabled,
 	}
 
