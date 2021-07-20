@@ -219,10 +219,10 @@ window.api.onLoad(() => {
 function refreshPage() {
   let url = window.location.pathname;
   if (window.location.search !== "") {
-    url += "?" + window.location.search;
+    url += window.location.search;
   }
   if (window.location.hash !== "") {
-    url += "#" + window.location.hash;
+    url += window.location.hash;
   }
   Turbolinks.visit(url, { action: "replace" });
 }
