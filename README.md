@@ -280,4 +280,4 @@ When we update libraries that reference to other static asset files, we should u
 
 - In `tabler-icons.min.css`, update all fonts file names with hashes
 - In `normalize.min.css`, update `normalize.min.css.map` with hash
-
+- In `authgear.css`, update intl-tel-input flag image names with hashes.
