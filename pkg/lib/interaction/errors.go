@@ -24,6 +24,7 @@ func NewInvariantViolated(cause string, msg string, data map[string]interface{})
 	)
 }
 
+var ErrUserNotFound = apierrors.NotFound.WithReason("UserNotFound").New("user not found")
 var ErrInvalidCredentials = InvalidCredentials.New("invalid credentials")
 var ErrDuplicatedIdentity = NewInvariantViolated("DuplicatedIdentity", "identity already exists", nil)
 var ErrDuplicatedAuthenticator = NewInvariantViolated("DuplicatedAuthenticator", "authenticator already exists", nil)

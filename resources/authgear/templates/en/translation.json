@@ -28,6 +28,7 @@
   "error-invalid-username": "{IntentKind, select, IntentAuthenticate {Please sign up with a valid username} other {Invalid username}}",
   "error-email-not-allowed": "Email is not allowed",
   "error-username-not-allowed": "Username is not allowed",
+  "error-user-not-found": "Cannot find the user",
   "error-invalid-credentials": "{AuthenticationType, select, password {Incorrect password} otp {Incorrect code} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",

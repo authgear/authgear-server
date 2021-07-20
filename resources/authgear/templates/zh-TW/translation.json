@@ -28,6 +28,7 @@
   "error-invalid-username": "用戶名稱無效",
   "error-email-not-allowed": "電郵地址被禁用",
   "error-username-not-allowed": "用戶名稱被禁用",
+  "error-user-not-found": "找不到該帳號",
   "error-invalid-credentials": "登入失敗，帳號資訊或密碼不正確",
   "error-max-length": "字串長度須少於或等於{expected, plural, other{#個字}}",
   "error-password-reset-failed": "該重設密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
