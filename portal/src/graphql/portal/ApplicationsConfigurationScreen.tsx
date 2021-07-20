@@ -264,7 +264,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               <FormattedMessage
                 id="FeatureConfig.oauth-clients.maximum"
                 values={{
-                  HREF: "./settings/subscription",
+                  planPagePath: "../settings/subscription",
                   maximum: oauthClientsMaximum,
                 }}
               />
