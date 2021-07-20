@@ -9,7 +9,6 @@ import {
   Label,
   TextField,
   MessageBar,
-  Link,
 } from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
@@ -366,10 +365,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.disabled"
                   values={{
-                    HREF: "./settings/subscription",
-                  }}
-                  components={{
-                    Link,
+                    planPagePath: "../../settings/subscription",
                   }}
                 />
               </MessageBar>
@@ -378,11 +374,8 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.maximum"
                   values={{
-                    HREF: "./settings/subscription",
+                    planPagePath: "../../settings/subscription",
                     maximum: blockingHandlerMax,
-                  }}
-                  components={{
-                    Link,
                   }}
                 />
               </MessageBar>
@@ -420,10 +413,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.disabled"
                   values={{
-                    HREF: "./settings/subscription",
-                  }}
-                  components={{
-                    Link,
+                    planPagePath: "../../settings/subscription",
                   }}
                 />
               </MessageBar>
@@ -432,11 +422,8 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.maximum"
                   values={{
-                    HREF: "./settings/subscription",
+                    planPagePath: "../../settings/subscription",
                     maximum: nonBlockingHandlerMax,
-                  }}
-                  components={{
-                    Link,
                   }}
                 />
               </MessageBar>

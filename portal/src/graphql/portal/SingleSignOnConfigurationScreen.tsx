@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import { Link, MessageBar, Text } from "@fluentui/react";
+import { MessageBar, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import SingleSignOnConfigurationWidget from "./SingleSignOnConfigurationWidget";
 import ShowLoading from "../../ShowLoading";
@@ -309,11 +309,8 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
               <FormattedMessage
                 id="FeatureConfig.sso.maximum"
                 values={{
-                  HREF: "./settings/subscription",
+                  planPagePath: "../settings/subscription",
                   maximum: oauthClientsMaximum,
-                }}
-                components={{
-                  Link,
                 }}
               />
             </MessageBar>
