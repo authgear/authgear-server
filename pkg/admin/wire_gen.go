@@ -384,6 +384,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,

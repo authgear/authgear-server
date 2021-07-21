@@ -141,6 +141,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	logger := redis.NewLogger(factory)
 	store := &redis.Store{
+		Context:     context,
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
