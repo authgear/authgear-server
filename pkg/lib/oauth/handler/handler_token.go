@@ -322,9 +322,7 @@ func (h *TokenHandler) handleRefreshToken(
 	}
 
 	expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
-	offlineGrant.DeviceInfo = deviceInfo
-
-	err = h.OfflineGrants.UpdateOfflineGrant(offlineGrant, expiry)
+	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(offlineGrant.ID, deviceInfo, expiry)
 	if err != nil {
 		return nil, err
 	}
@@ -686,17 +684,18 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 	// Update auth_time of the offline grant if possible.
 	if sid := code.IDTokenHintSID; sid != "" {
 		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
+
 			offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
 			if err == nil {
 				if s.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
-					offlineGrant.AuthenticatedAt = s.AuthenticatedAt
 					expiry := oauth.ComputeOfflineGrantExpiryWithClient(offlineGrant, client)
-					err = h.OfflineGrants.UpdateOfflineGrant(offlineGrant, expiry)
+					_, err := h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, s.AuthenticatedAt, expiry)
 					if err != nil {
 						return nil, err
 					}
 				}
 			}
+
 		}
 	}
 
