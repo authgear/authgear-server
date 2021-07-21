@@ -37,7 +37,14 @@ func (s *Store) Create(code *Code) (err error) {
 	return
 }
 
-func (s *Store) Update(code *Code) (err error) {
+func (s *Store) MarkConsumed(codeHash string) (err error) {
+	code, err := s.Get(codeHash)
+	if err != nil {
+		return
+	}
+
+	code.Consumed = true
+
 	ctx := context.Background()
 	bytes, err := json.Marshal(code)
 	if err != nil {

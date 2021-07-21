@@ -302,16 +302,6 @@ func (p *Provider) HashCode(code string) string {
 }
 
 func (p *Provider) AfterResetPasswordByCode(codeHash string) (err error) {
-	code, err := p.Store.Get(codeHash)
-	if err != nil {
-		return
-	}
-
-	code.Consumed = true
-	err = p.Store.Update(code)
-	if err != nil {
-		return
-	}
-
+	err = p.Store.MarkConsumed(codeHash)
 	return
 }
