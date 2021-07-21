@@ -37,32 +37,20 @@
 				</h1>
 
 				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
-				<div class="margin-b-20 phone-input">
-					<select class="select primary-txt" name="x_calling_code">
-						{{ range $.CountryCallingCodes }}
-						<option
-							value="{{ . }}"
-							{{ if $.x_calling_code }}{{ if eq $.x_calling_code . }}
-							selected
-							{{ end }}{{ end }}
-							>
-							+{{ . }}
-						</option>
-						{{ end }}
-					</select>
-					<input
-						tabindex="0"
-						autofocus
-						class="input text-input primary-txt"
-						type="text"
-						inputmode="numeric"
-						pattern="[0-9]*"
-						autocomplete="tel-national"
-						autocapitalize="none"
-						name="x_national_number"
-						placeholder="{{ template "phone-number-placeholder" }}"
-					>
-				</div>
+				<input
+					data-intl-tel-input="true"
+					data-intl-tel-input-class="margin-b-20 flex flex-col"
+					class="margin-b-20 primary-txt input text-input"
+					tabindex="0"
+					autofocus
+					type="text"
+					inputmode="numeric"
+					pattern="[0-9]*"
+					autocomplete="tel-national"
+					autocapitalize="none"
+					name="x_login_id"
+					placeholder="{{ template "phone-number-placeholder" }}"
+				>
 				{{ end }}{{ end }}{{ end }}
 
 				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}

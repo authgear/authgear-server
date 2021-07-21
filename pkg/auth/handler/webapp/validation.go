@@ -43,8 +43,4 @@ func (p *FormPrefiller) Prefill(form url.Values) {
 			form.Set("x_login_id_key", p.LoginID.Keys[0].Key)
 		}
 	}
-
-	if _, ok := form["x_calling_code"]; !ok {
-		form.Set("x_calling_code", p.UI.PhoneInput.GetCountries()[0].CountryCallingCode)
-	}
 }

@@ -66,6 +66,23 @@ var IconsFontWOFF2 = resource.RegisterResource(resource.SimpleDescriptor{
 	Path: StaticAssetFontResourcePrefix + "tabler-icons.woff2",
 })
 
+// IntlTelInputCSS - intl-tel-input v17.0.13
+var IntlTelInputCSS = resource.RegisterResource(CSSDescriptor{
+	Path: StaticAssetResourcePrefix + "intl-tel-input/css/intlTelInput.min.css",
+})
+var IntlTelInputImage = resource.RegisterResource(resource.SimpleDescriptor{
+	Path: StaticAssetResourcePrefix + "intl-tel-input/img/flags.png",
+})
+var IntlTelInputImage2X = resource.RegisterResource(resource.SimpleDescriptor{
+	Path: StaticAssetResourcePrefix + "intl-tel-input/img/flags@2x.png",
+})
+var IntlTelInputRuntime = resource.RegisterResource(JavaScriptDescriptor{
+	Path: StaticAssetResourcePrefix + "intl-tel-input/js/intlTelInput.min.js",
+})
+var IntlTelInputRealRuntime = resource.RegisterResource(JavaScriptDescriptor{
+	Path: StaticAssetResourcePrefix + "intl-tel-input/js/utils.js",
+})
+
 var AppLogo = resource.RegisterResource(ImageDescriptor{Name: "app_logo"})
 var AppLogoDark = resource.RegisterResource(ImageDescriptor{Name: "app_logo_dark"})
 var Favicon = resource.RegisterResource(ImageDescriptor{Name: "favicon"})

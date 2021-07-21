@@ -15,22 +15,31 @@ import (
 )
 
 var StaticAssetResources = map[string]resource.Descriptor{
-	"web-js":                   WebJS,
-	"password-policy-js":       PasswordPolicyJS,
-	"app-logo":                 AppLogo,
-	"app-logo-dark":            AppLogoDark,
-	"favicon":                  Favicon,
+	"web-js":             WebJS,
+	"password-policy-js": PasswordPolicyJS,
+	"app-logo":           AppLogo,
+	"app-logo-dark":      AppLogoDark,
+	"favicon":            Favicon,
+
 	"authgear.css":             AuthgearCSS,
 	"authgear-light-theme.css": AuthgearLightThemeCSS,
 	"authgear-dark-theme.css":  AuthgearDarkThemeCSS,
-	"normalize.min.css":        NormalizeCSS,
-	"normalize.min.css.map":    NormalizeCSSMap,
+
+	"normalize.min.css":     NormalizeCSS,
+	"normalize.min.css.map": NormalizeCSSMap,
+
 	"tabler-icons.min.css":     IconsCSS,
 	"fonts/tabler-icons.eot":   IconsFontEOT,
 	"fonts/tabler-icons.svg":   IconsFontSVG,
 	"fonts/tabler-icons.ttf":   IconsFontTTF,
 	"fonts/tabler-icons.woff":  IconsFontWOFF,
 	"fonts/tabler-icons.woff2": IconsFontWOFF2,
+
+	"intl-tel-input/css/intlTelInput.min.css": IntlTelInputCSS,
+	"intl-tel-input/img/flags.png":            IntlTelInputImage,
+	"intl-tel-input/img/flags@2x.png":         IntlTelInputImage2X,
+	"intl-tel-input/js/intlTelInput.min.js":   IntlTelInputRuntime,
+	"intl-tel-input/js/utils.js":              IntlTelInputRealRuntime,
 }
 
 type ResourceManager interface {

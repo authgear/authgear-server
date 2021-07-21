@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/geoip"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -26,12 +27,14 @@ type TranslationService interface {
 
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
-	CSRFField           htmltemplate.HTML
-	Translations        TranslationService
-	StaticAssetURL      func(id string) (url string)
-	DarkThemeEnabled    bool
-	WatermarkEnabled    bool
-	CountryCallingCodes []string
+	CSRFField                   htmltemplate.HTML
+	Translations                TranslationService
+	StaticAssetURL              func(id string) (url string)
+	DarkThemeEnabled            bool
+	WatermarkEnabled            bool
+	AllowedPhoneCountryCodeJSON string
+	PinnedPhoneCountryCodeJSON  string
+	GeoIPCountryCode            string
 	// ClientURI is the home page of the client.
 	ClientURI             string
 	ClientName            string
@@ -109,10 +112,19 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	_, resolvedLanguageTagTag := intl.Resolve(preferredLanguageTags, string(m.DefaultLanguageTag), []string(m.SupportedLanguageTags))
 	resolvedLanguageTag := resolvedLanguageTagTag.String()
 
-	countries := m.AuthUI.PhoneInput.GetCountries()
-	countryCallingCodes := make([]string, len(countries))
-	for i, country := range countries {
-		countryCallingCodes[i] = country.CountryCallingCode
+	allowedPhoneCountryCodeJSON, err := json.Marshal(m.AuthUI.PhoneInput.AllowList)
+	if err != nil {
+		panic(err)
+	}
+	pinnedPhoneCountryCodeJSON, err := json.Marshal(m.AuthUI.PhoneInput.PinnedList)
+	if err != nil {
+		panic(err)
+	}
+
+	geoipCountryCode := ""
+	geoipInfo, ok := geoip.DefaultDatabase.IPString(r.RemoteAddr)
+	if ok {
+		geoipCountryCode = geoipInfo.CountryCode
 	}
 
 	model := BaseViewModel{
@@ -130,10 +142,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		DarkThemeEnabled: !m.AuthUI.DarkThemeDisabled,
 		WatermarkEnabled: m.AuthUIFeatureConfig.WhiteLabeling.Disabled ||
 			!m.AuthUI.WatermarkDisabled,
-		CountryCallingCodes: countryCallingCodes,
-		ClientURI:           clientURI,
-		ClientName:          clientName,
-		SliceContains:       sliceContains,
+		AllowedPhoneCountryCodeJSON: string(allowedPhoneCountryCodeJSON),
+		PinnedPhoneCountryCodeJSON:  string(pinnedPhoneCountryCodeJSON),
+		GeoIPCountryCode:            geoipCountryCode,
+		ClientURI:                   clientURI,
+		ClientName:                  clientName,
+		SliceContains:               sliceContains,
 		MakeURL: func(path string, pairs ...string) string {
 			u := r.URL
 			inQuery := url.Values{}

@@ -25,33 +25,9 @@ var SignupWithLoginIDSchema = validation.NewSimpleSchema(`
 			"x_login_id_key": { "type": "string" },
 			"x_login_id_type": { "type": "string" },
 			"x_login_id_input_type": { "type": "string", "enum": ["email", "phone", "text"] },
-			"x_calling_code": { "type": "string" },
-			"x_national_number": { "type": "string" },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id_key", "x_login_id_type", "x_login_id_input_type"],
-		"allOf": [
-			{
-				"if": {
-					"properties": {
-						"x_login_id_input_type": { "type": "string", "const": "phone" }
-					}
-				},
-				"then": {
-					"required": ["x_calling_code", "x_national_number"]
-				}
-			},
-			{
-				"if": {
-					"properties": {
-						"x_login_id_input_type": { "type": "string", "enum": ["text", "email"] }
-					}
-				},
-				"then": {
-					"required": ["x_login_id"]
-				}
-			}
-		]
+		"required": ["x_login_id_key", "x_login_id_type", "x_login_id_input_type", "x_login_id"]
 	}
 `)
 
@@ -142,11 +118,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			loginIDValue, err := FormToLoginID(r.Form)
-			if err != nil {
-				return
-			}
-
+			loginIDValue := r.Form.Get("x_login_id")
 			loginIDKey := r.Form.Get("x_login_id_key")
 			loginIDType := r.Form.Get("x_login_id_type")
 

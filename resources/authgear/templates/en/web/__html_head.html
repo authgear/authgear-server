@@ -4,14 +4,20 @@
 <title>{{ template "app.name" }}</title>
 <link rel="shortcut icon" href="{{ call $.StaticAssetURL "favicon" }}">
 <meta name="x-authgear-page-loaded-at" content="{{ .PageLoadedAt }}">
+<meta name="x-intl-tel-input-only-countries" content="{{ $.AllowedPhoneCountryCodeJSON }}">
+<meta name="x-intl-tel-input-preferred-countries" content="{{ $.PinnedPhoneCountryCodeJSON }}">
+<meta name="x-geoip-country-code" content="{{ $.GeoIPCountryCode }}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "normalize.min.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "tabler-icons.min.css" }}">
+<link rel="stylesheet" href="{{ call $.StaticAssetURL "intl-tel-input/css/intlTelInput.min.css" }}">
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-light-theme.css" }}">
 {{ if $.DarkThemeEnabled }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-dark-theme.css" }}">
 {{ end }}
 <link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear.css" }}">
+<script src="{{ call $.StaticAssetURL "intl-tel-input/js/intlTelInput.min.js" }}"></script>
+<script src="{{ call $.StaticAssetURL "intl-tel-input/js/utils.js" }}"></script>
 <script src="{{ call $.StaticAssetURL "web-js" }}"></script>
 <script src="{{ call $.StaticAssetURL "password-policy-js" }}" async></script>
 </head>

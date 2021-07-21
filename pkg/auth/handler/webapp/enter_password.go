@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -36,10 +35,8 @@ func ConfigureEnterPasswordRoute(route httproute.Route) httproute.Route {
 type EnterPasswordViewModel struct {
 	IdentityDisplayID string
 	// ForgotPasswordInputType is either phone or email
-	ForgotPasswordInputType   string
-	ForgotPasswordLoginID     string
-	ForgotPasswordCallingCode string
-	ForgotPasswordNational    string
+	ForgotPasswordInputType string
+	ForgotPasswordLoginID   string
 }
 
 type EnterPasswordHandler struct {
@@ -62,8 +59,6 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 	identityDisplayID := ""
 	forgotPasswordInputType := ""
 	forgotPasswordLoginID := ""
-	forgotPasswordCallingCode := ""
-	forgotPasswordNational := ""
 
 	if identityInfo, ok := graph.GetUserLastIdentity(); ok {
 		identityDisplayID = identityInfo.DisplayID()
@@ -74,10 +69,7 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 		// So user cannot use this flow to check the identity type
 		if err := phoneFormat.CheckFormat(identityDisplayID); err == nil {
 			forgotPasswordInputType = "phone"
-			forgotPasswordNational, forgotPasswordCallingCode, err = phone.ParseE164ToCallingCodeAndNumber(identityDisplayID)
-			if err != nil {
-				panic("enter_password: cannot parse number: " + err.Error())
-			}
+			forgotPasswordLoginID = identityDisplayID
 		} else if err := emailFormat.CheckFormat(identityDisplayID); err == nil {
 			forgotPasswordInputType = "email"
 			forgotPasswordLoginID = identityDisplayID
@@ -85,11 +77,9 @@ func (h *EnterPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 	}
 
 	enterPasswordViewModel := EnterPasswordViewModel{
-		IdentityDisplayID:         identityDisplayID,
-		ForgotPasswordInputType:   forgotPasswordInputType,
-		ForgotPasswordLoginID:     forgotPasswordLoginID,
-		ForgotPasswordCallingCode: forgotPasswordCallingCode,
-		ForgotPasswordNational:    forgotPasswordNational,
+		IdentityDisplayID:       identityDisplayID,
+		ForgotPasswordInputType: forgotPasswordInputType,
+		ForgotPasswordLoginID:   forgotPasswordLoginID,
 	}
 
 	viewmodels.Embed(data, baseViewModel)
