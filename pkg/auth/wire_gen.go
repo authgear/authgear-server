@@ -409,8 +409,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -982,8 +983,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -2950,8 +2952,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -3481,8 +3484,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -4046,8 +4050,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -4611,8 +4616,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -5176,8 +5182,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -5740,8 +5747,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -6298,8 +6306,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -6859,8 +6868,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -7423,8 +7433,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -7984,8 +7995,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -8544,8 +8556,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -9105,8 +9118,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -9667,8 +9681,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -10227,8 +10242,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -10787,8 +10803,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -11349,8 +11366,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -11909,8 +11927,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -12469,8 +12488,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -13032,8 +13052,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -13592,8 +13613,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -14157,8 +14179,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -14717,8 +14740,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -15278,8 +15302,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -15838,8 +15863,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -16417,8 +16443,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -16979,8 +17006,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -17540,8 +17568,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -18110,8 +18139,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -18671,8 +18701,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -19232,8 +19263,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -19794,8 +19826,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -20361,8 +20394,9 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -20922,8 +20956,9 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -21483,8 +21518,9 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -22043,8 +22079,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -22623,8 +22660,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -23183,8 +23221,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{

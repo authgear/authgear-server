@@ -515,8 +515,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
