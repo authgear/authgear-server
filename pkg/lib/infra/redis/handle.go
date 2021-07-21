@@ -2,8 +2,10 @@ package redis
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/go-redsync/redsync/v4"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -55,4 +57,14 @@ func (h *Handle) Subscribe(channelName string) (chan *redis.Message, func()) {
 
 func (h *Handle) Client() *redis.Client {
 	return h.pool.Client(h.cfg, h.credentials)
+}
+
+func (h *Handle) NewMutex(name string) *redsync.Mutex {
+	redsyncInstance := h.pool.instance(h.cfg, h.credentials).Redsync
+	mutex := redsyncInstance.NewMutex(
+		name,
+		redsync.WithExpiry(5*time.Second),
+		redsync.WithTries(5),
+	)
+	return mutex
 }
