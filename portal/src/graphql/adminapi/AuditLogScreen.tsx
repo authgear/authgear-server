@@ -10,7 +10,9 @@ import {
   DatePicker,
   TextField,
   MessageBar,
+  addDays,
 } from "@fluentui/react";
+import { useConst } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { gql, useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
@@ -196,6 +198,15 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     featureConfig.loading,
     featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days,
   ]);
+
+  const today = useConst(new Date(Date.now()));
+
+  const datePickerMinDate = useMemo(() => {
+    if (logRetrievalDays === -1) {
+      return undefined;
+    }
+    return addDays(today, -logRetrievalDays + 1);
+  }, [today, logRetrievalDays]);
 
   const onChangeSelectedKey = useCallback(
     (_e: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
@@ -384,11 +395,15 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         <DatePicker
           label={renderToString("AuditLogScreen.date-range.start-date")}
           value={uncommittedRangeFrom ?? undefined}
+          minDate={datePickerMinDate}
+          maxDate={today}
           onSelectDate={onSelectRangeFrom}
         />
         <DatePicker
           label={renderToString("AuditLogScreen.date-range.end-date")}
           value={uncommittedRangeTo ?? undefined}
+          minDate={datePickerMinDate}
+          maxDate={today}
           onSelectDate={onSelectRangeTo}
         />
         <DialogFooter>
