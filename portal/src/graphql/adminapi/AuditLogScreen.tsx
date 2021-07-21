@@ -94,12 +94,41 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     rollback: rollbackRangeTo,
   } = useTransactionalState<Date | null>(null);
 
+  const { appID } = useParams();
+  const featureConfig = useAppFeatureConfigQuery(appID);
+
+  const logRetrievalDays = useMemo(() => {
+    if (featureConfig.loading) {
+      return -1;
+    }
+    return (
+      featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days ?? -1
+    );
+  }, [
+    featureConfig.loading,
+    featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days,
+  ]);
+
+  const today = useConst(new Date(Date.now()));
+
+  const datePickerMinDate = useMemo(() => {
+    if (logRetrievalDays === -1) {
+      return undefined;
+    }
+    const minDate = addDays(today, -logRetrievalDays + 1);
+    minDate.setHours(0, 0, 0, 0);
+    return minDate;
+  }, [today, logRetrievalDays]);
+
   const queryRangeFrom = useMemo(() => {
     if (rangeFrom != null) {
       return rangeFrom.toISOString();
     }
+    if (datePickerMinDate != null) {
+      return datePickerMinDate.toISOString();
+    }
     return null;
-  }, [rangeFrom]);
+  }, [rangeFrom, datePickerMinDate]);
 
   const queryRangeTo = useMemo(() => {
     if (rangeTo != null) {
@@ -165,10 +194,8 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       rangeTo: queryRangeTo,
     },
     fetchPolicy: "network-only",
+    skip: featureConfig.loading,
   });
-
-  const { appID } = useParams();
-  const featureConfig = useAppFeatureConfigQuery(appID);
 
   const messageBar = useMemo(() => {
     if (error != null) {
@@ -186,27 +213,6 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     }
     return null;
   }, [error, refetch, featureConfig]);
-
-  const logRetrievalDays = useMemo(() => {
-    if (featureConfig.loading) {
-      return -1;
-    }
-    return (
-      featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days ?? -1
-    );
-  }, [
-    featureConfig.loading,
-    featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days,
-  ]);
-
-  const today = useConst(new Date(Date.now()));
-
-  const datePickerMinDate = useMemo(() => {
-    if (logRetrievalDays === -1) {
-      return undefined;
-    }
-    return addDays(today, -logRetrievalDays + 1);
-  }, [today, logRetrievalDays]);
 
   const onChangeSelectedKey = useCallback(
     (_e: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
