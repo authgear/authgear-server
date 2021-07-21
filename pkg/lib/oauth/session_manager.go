@@ -29,23 +29,6 @@ func (m *SessionManager) Get(id string) (session.Session, error) {
 	return grant, nil
 }
 
-func (m *SessionManager) Update(iSession session.Session) error {
-	s := iSession.(*OfflineGrant)
-
-	expiry, err := ComputeOfflineGrantExpiryWithClients(s, m.Config)
-	if errors.Is(err, ErrGrantNotFound) {
-		return session.ErrSessionNotFound
-	} else if err != nil {
-		return err
-	}
-
-	err = m.Store.UpdateOfflineGrant(s, expiry)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (m *SessionManager) Delete(session session.Session) error {
 	err := m.Store.DeleteOfflineGrant(session.(*OfflineGrant))
 	if err != nil {
