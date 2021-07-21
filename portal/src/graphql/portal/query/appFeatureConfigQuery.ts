@@ -14,6 +14,7 @@ export const appFeatureConfigQuery = gql`
       ... on App {
         id
         effectiveFeatureConfig
+        planName
       }
     }
   }
@@ -27,6 +28,7 @@ interface AppFeatureConfigQueryResult
   effectiveFeatureConfig:
     | AppFeatureConfigQuery_node_App["effectiveFeatureConfig"]
     | null;
+  planName: AppFeatureConfigQuery_node_App["planName"] | null;
 }
 
 export const useAppFeatureConfigQuery = (
@@ -47,6 +49,7 @@ export const useAppFeatureConfigQuery = (
       data?.node?.__typename === "App" ? data.node : null;
     return {
       effectiveFeatureConfig: featureConfigNode?.effectiveFeatureConfig ?? null,
+      planName: featureConfigNode?.planName ?? null,
     };
   }, [data]);
 

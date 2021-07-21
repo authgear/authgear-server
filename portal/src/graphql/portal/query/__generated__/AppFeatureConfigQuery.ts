@@ -18,6 +18,7 @@ export interface AppFeatureConfigQuery_node_App {
    */
   id: string;
   effectiveFeatureConfig: GQL_FeatureConfig;
+  planName: string;
 }
 
 export type AppFeatureConfigQuery_node = AppFeatureConfigQuery_node_User | AppFeatureConfigQuery_node_App;
