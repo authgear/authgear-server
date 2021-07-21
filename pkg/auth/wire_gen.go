@@ -518,7 +518,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -685,7 +688,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	sessionConfig := appConfig.Session
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -2654,7 +2660,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	sessionConfig := appConfig.Session
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -3593,7 +3602,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -4159,7 +4171,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -4725,7 +4740,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -5291,7 +5309,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -5856,7 +5877,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -6415,7 +6439,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -6977,7 +7004,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -7542,7 +7572,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -8104,7 +8137,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -8665,7 +8701,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -9227,7 +9266,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -9790,7 +9832,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -10351,7 +10396,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -10912,7 +10960,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -11475,7 +11526,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -12036,7 +12090,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -12597,7 +12654,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -13161,7 +13221,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -13722,7 +13785,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -14288,7 +14354,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -14849,7 +14918,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -15411,7 +15483,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -15972,7 +16047,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -16552,7 +16630,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -17115,7 +17196,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -17677,7 +17761,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -18248,7 +18335,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -18810,7 +18900,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -19372,7 +19465,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -19935,7 +20031,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -20503,7 +20602,10 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -21065,7 +21167,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -21627,7 +21732,10 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -22188,7 +22296,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -22769,7 +22880,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -23330,7 +23444,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -23661,8 +23778,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	handle := appProvider.Redis
+	context := deps.ProvideRequestContext(request)
 	appID := appConfig.ID
+	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	factory := appProvider.LoggerFactory
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -23681,7 +23799,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        handle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -23699,7 +23820,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
 	appdbHandle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{

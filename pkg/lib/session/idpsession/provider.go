@@ -1,6 +1,7 @@
 package idpsession
 
 import (
+	"context"
 	"crypto/subtle"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -29,7 +31,10 @@ type AccessEventProvider interface {
 type Rand *rand.Rand
 
 type Provider struct {
+	Context      context.Context
 	Request      *http.Request
+	AppID        config.AppID
+	Redis        *redis.Handle
 	Store        Store
 	AccessEvents AccessEventProvider
 	TrustProxy   config.TrustProxy
@@ -58,6 +63,16 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 }
 
 func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
+	mutexName := sessionMutexName(p.AppID, id)
+	mutex := p.Redis.NewMutex(mutexName)
+	err = mutex.LockContext(p.Context)
+	if err != nil {
+		return
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(p.Context)
+	}()
+
 	s, err := p.Get(id)
 	if err != nil {
 		return
@@ -139,6 +154,16 @@ func (p *Provider) AccessWithToken(token string, accessEvent access.Event) (*IDP
 		return nil, err
 	}
 
+	mutexName := sessionMutexName(p.AppID, s.ID)
+	mutex := p.Redis.NewMutex(mutexName)
+	err = mutex.LockContext(p.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(p.Context)
+	}()
+
 	s.AccessInfo.LastAccess = accessEvent
 
 	expiry := computeSessionStorageExpiry(s, p.Config)
@@ -152,6 +177,16 @@ func (p *Provider) AccessWithToken(token string, accessEvent access.Event) (*IDP
 }
 
 func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSession, error) {
+	mutexName := sessionMutexName(p.AppID, id)
+	mutex := p.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(p.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(p.Context)
+	}()
+
 	s, err := p.Get(id)
 	if err != nil {
 		return nil, err
@@ -191,4 +226,8 @@ func decodeTokenSessionID(token string) (id string, ok bool) {
 	}
 	id, ok = parts[0], true
 	return
+}
+
+func sessionMutexName(appID config.AppID, sessionID string) string {
+	return fmt.Sprintf("app:%s:session-mutex:%s", appID, sessionID)
 }

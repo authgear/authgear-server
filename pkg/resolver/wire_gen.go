@@ -91,8 +91,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	handle := appProvider.Redis
+	context := deps.ProvideRequestContext(request)
 	appID := appConfig.ID
+	handle := appProvider.Redis
 	clock := _wireSystemClockValue
 	factory := appProvider.LoggerFactory
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -111,7 +112,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	rand := _wireRandValue
 	provider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        handle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -129,7 +133,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
 	appdbHandle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{

@@ -559,7 +559,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
