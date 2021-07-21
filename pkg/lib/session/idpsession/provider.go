@@ -57,10 +57,24 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	return session, token
 }
 
-func (p *Provider) Reauthenticate(session *IDPSession, amr []string) {
+func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
+	s, err := p.Get(id)
+	if err != nil {
+		return
+	}
+
 	now := p.Clock.NowUTC()
-	session.AuthenticatedAt = now
-	session.Attrs.SetAMR(amr)
+	s.AuthenticatedAt = now
+	s.Attrs.SetAMR(amr)
+
+	expiry := computeSessionStorageExpiry(s, p.Config)
+	err = p.Store.Update(s, expiry)
+	if err != nil {
+		err = fmt.Errorf("failed to update session: %w", err)
+		return err
+	}
+
+	return nil
 }
 
 func (p *Provider) Create(session *IDPSession) error {
@@ -119,13 +133,40 @@ func (p *Provider) Get(id string) (*IDPSession, error) {
 	return session, nil
 }
 
-func (p *Provider) Update(sess *IDPSession) error {
-	expiry := computeSessionStorageExpiry(sess, p.Config)
-	err := p.Store.Update(sess, expiry)
+func (p *Provider) AccessWithToken(token string, accessEvent access.Event) (*IDPSession, error) {
+	s, err := p.GetByToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	s.AccessInfo.LastAccess = accessEvent
+
+	expiry := computeSessionStorageExpiry(s, p.Config)
+	err = p.Store.Update(s, expiry)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
+		return nil, err
 	}
-	return err
+
+	return s, nil
+}
+
+func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSession, error) {
+	s, err := p.Get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	s.AccessInfo.LastAccess = accessEvent
+
+	expiry := computeSessionStorageExpiry(s, p.Config)
+	err = p.Store.Update(s, expiry)
+	if err != nil {
+		err = fmt.Errorf("failed to update session: %w", err)
+		return nil, err
+	}
+
+	return s, nil
 }
 
 func (p *Provider) generateToken(s *IDPSession) string {

@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -42,21 +43,22 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 	sessionToCreate, token := ctx.Sessions.MakeSession(attrs)
 	sessionCookie := ctx.CookieFactory.ValueCookie(ctx.SessionCookie.Def, token)
 
-	var sessionToUpdate *idpsession.IDPSession
+	var updateSessionID string
+	var updateSessionAMR []string
 	if mode == EnsureSessionModeUpdateIfPossible {
 		s := session.GetSession(ctx.Request.Context())
 		if idp, ok := s.(*idpsession.IDPSession); ok && idp.GetUserID() == userID {
-			ctx.Sessions.Reauthenticate(idp, amr)
-
-			sessionToUpdate = idp
+			updateSessionID = idp.ID
+			updateSessionAMR = amr
 			sessionToCreate = nil
 			sessionCookie = nil
 		}
 	}
 
 	if mode == EnsureSessionModeNoop {
+		updateSessionID = ""
+		updateSessionAMR = nil
 		sessionToCreate = nil
-		sessionToUpdate = nil
 		sessionCookie = nil
 	}
 
@@ -65,10 +67,14 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 		"true",
 	)
 
+	now := ctx.Clock.NowUTC()
+
 	return &NodeDoEnsureSession{
 		CreateReason:         e.CreateReason,
 		SessionToCreate:      sessionToCreate,
-		SessionToUpdate:      sessionToUpdate,
+		UpdateLoginTime:      now,
+		UpdateSessionID:      updateSessionID,
+		UpdateSessionAMR:     updateSessionAMR,
 		SessionCookie:        sessionCookie,
 		SameSiteStrictCookie: sameSiteStrictCookie,
 		IsAdminAPI:           interaction.IsAdminAPI(input),
@@ -78,7 +84,9 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 type NodeDoEnsureSession struct {
 	CreateReason         session.CreateReason   `json:"reason"`
 	SessionToCreate      *idpsession.IDPSession `json:"session_to_create,omitempty"`
-	SessionToUpdate      *idpsession.IDPSession `json:"session_to_update,omitempty"`
+	UpdateLoginTime      time.Time              `json:"update_login_time,omitempty"`
+	UpdateSessionID      string                 `json:"update_session_id,omitempty"`
+	UpdateSessionAMR     []string               `json:"update_session_amr,omitempty"`
 	SessionCookie        *http.Cookie           `json:"session_cookie,omitempty"`
 	SameSiteStrictCookie *http.Cookie           `json:"same_site_strict_cookie,omitempty"`
 	IsAdminAPI           bool                   `json:"is_admin_api"`
@@ -97,16 +105,6 @@ func (n *NodeDoEnsureSession) GetCookies() (cookies []*http.Cookie) {
 
 func (n *NodeDoEnsureSession) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
-}
-
-func (n *NodeDoEnsureSession) GetSession() (*idpsession.IDPSession, bool) {
-	if n.SessionToCreate != nil {
-		return n.SessionToCreate, true
-	}
-	if n.SessionToUpdate != nil {
-		return n.SessionToUpdate, true
-	}
-	return nil, false
 }
 
 func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
@@ -153,8 +151,8 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 			userID := graph.MustGetUserID()
 
 			var err error
-			if sess, ok := n.GetSession(); ok {
-				err = ctx.Users.UpdateLoginTime(userID, sess.AuthenticatedAt)
+			if !n.UpdateLoginTime.IsZero() {
+				err = ctx.Users.UpdateLoginTime(userID, n.UpdateLoginTime)
 				if err != nil {
 					return err
 				}
@@ -194,8 +192,8 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 				}
 			}
 
-			if n.SessionToUpdate != nil {
-				err = ctx.Sessions.Update(n.SessionToUpdate)
+			if n.UpdateSessionID != "" {
+				err = ctx.Sessions.Reauthenticate(n.UpdateSessionID, n.UpdateSessionAMR)
 				if err != nil {
 					return err
 				}

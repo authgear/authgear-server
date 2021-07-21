@@ -11,8 +11,7 @@ import (
 )
 
 type resolverProvider interface {
-	GetByToken(token string) (*IDPSession, error)
-	Update(session *IDPSession) error
+	AccessWithToken(token string, accessEvent access.Event) (*IDPSession, error)
 }
 
 type Resolver struct {
@@ -29,16 +28,12 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 		return nil, nil
 	}
 
-	s, err := re.Provider.GetByToken(cookie.Value)
+	accessEvent := access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
+	s, err := re.Provider.AccessWithToken(cookie.Value, accessEvent)
 	if err != nil {
 		if errors.Is(err, ErrSessionNotFound) {
 			err = session.ErrInvalidSession
 		}
-		return nil, err
-	}
-
-	s.AccessInfo.LastAccess = access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
-	if err = re.Provider.Update(s); err != nil {
 		return nil, err
 	}
 

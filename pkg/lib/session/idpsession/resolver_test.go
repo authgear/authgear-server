@@ -8,6 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -16,23 +17,15 @@ type mockResolverProvider struct {
 	Sessions []IDPSession
 }
 
-func (r *mockResolverProvider) GetByToken(token string) (*IDPSession, error) {
-	for _, s := range r.Sessions {
+func (r *mockResolverProvider) AccessWithToken(token string, accessEvent access.Event) (*IDPSession, error) {
+	for i, s := range r.Sessions {
 		if s.TokenHash == token {
+			s.AccessInfo.LastAccess = accessEvent
+			r.Sessions[i] = s
 			return &s, nil
 		}
 	}
 	return nil, ErrSessionNotFound
-}
-
-func (r *mockResolverProvider) Update(session *IDPSession) error {
-	for i, s := range r.Sessions {
-		if s.ID == session.ID {
-			r.Sessions[i] = *session
-			break
-		}
-	}
-	return nil
 }
 
 func TestResolver(t *testing.T) {

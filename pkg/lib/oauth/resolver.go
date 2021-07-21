@@ -13,8 +13,7 @@ import (
 )
 
 type ResolverSessionProvider interface {
-	Get(id string) (*idpsession.IDPSession, error)
-	Update(*idpsession.IDPSession) error
+	AccessWithID(id string, accessEvent access.Event) (*idpsession.IDPSession, error)
 }
 
 type AccessTokenDecoder interface {
@@ -99,17 +98,12 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 
 	switch grant.SessionKind {
 	case GrantSessionKindSession:
-		s, err := re.Sessions.Get(grant.SessionID)
+		s, err := re.Sessions.AccessWithID(grant.SessionID, event)
 		if errors.Is(err, idpsession.ErrSessionNotFound) {
 			return nil, session.ErrInvalidSession
 		} else if err != nil {
 			return nil, err
 		}
-		s.AccessInfo.LastAccess = event
-		if err = re.Sessions.Update(s); err != nil {
-			return nil, err
-		}
-
 		authSession = s
 
 	case GrantSessionKindOffline:
