@@ -33,49 +33,12 @@ func (o QueryPageOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
 	return q
 }
 
-type Store struct {
+type ReadStore struct {
 	SQLBuilder  *auditdb.SQLBuilder
-	SQLExecutor *auditdb.SQLExecutor
+	SQLExecutor *auditdb.ReadSQLExecutor
 }
 
-func (s *Store) PersistLog(logEntry *Log) (err error) {
-	data, err := json.Marshal(logEntry.Data)
-	if err != nil {
-		return
-	}
-
-	builder := s.SQLBuilder.Tenant().
-		Insert(s.SQLBuilder.TableName("_audit_log")).
-		Columns(
-			"id",
-			"created_at",
-			"user_id",
-			"activity_type",
-			"ip_address",
-			"user_agent",
-			"client_id",
-			"data",
-		).
-		Values(
-			logEntry.ID,
-			logEntry.CreatedAt,
-			logEntry.UserID,
-			logEntry.ActivityType,
-			logEntry.IPAddress,
-			logEntry.UserAgent,
-			logEntry.ClientID,
-			data,
-		)
-
-	_, err = s.SQLExecutor.ExecWith(builder)
-	if err != nil {
-		return
-	}
-
-	return nil
-}
-
-func (s *Store) Count(opts QueryPageOptions) (uint64, error) {
+func (s *ReadStore) Count(opts QueryPageOptions) (uint64, error) {
 	query := s.SQLBuilder.Tenant().
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_audit_log"))
@@ -96,7 +59,7 @@ func (s *Store) Count(opts QueryPageOptions) (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) QueryPage(opts QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*Log, uint64, error) {
+func (s *ReadStore) QueryPage(opts QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*Log, uint64, error) {
 	query := s.selectQuery()
 
 	query = opts.Apply(query)
@@ -126,7 +89,7 @@ func (s *Store) QueryPage(opts QueryPageOptions, pageArgs graphqlutil.PageArgs) 
 	return logs, offset, nil
 }
 
-func (s *Store) GetByIDs(ids []string) ([]*Log, error) {
+func (s *ReadStore) GetByIDs(ids []string) ([]*Log, error) {
 	query := s.selectQuery().Where("id = ANY (?)", pq.Array(ids))
 
 	rows, err := s.SQLExecutor.QueryWith(query)
@@ -147,7 +110,7 @@ func (s *Store) GetByIDs(ids []string) ([]*Log, error) {
 	return logs, nil
 }
 
-func (s *Store) selectQuery() db.SelectBuilder {
+func (s *ReadStore) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.Tenant().
 		Select(
 			"id",
@@ -162,7 +125,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 		From(s.SQLBuilder.TableName("_audit_log"))
 }
 
-func (s *Store) scan(scn db.Scanner) (*Log, error) {
+func (s *ReadStore) scan(scn db.Scanner) (*Log, error) {
 	l := &Log{}
 
 	var data []byte

@@ -487,18 +487,18 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -1068,18 +1068,18 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -1504,18 +1504,18 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
@@ -2551,18 +2551,18 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
@@ -3045,18 +3045,18 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -3578,18 +3578,18 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -4148,18 +4148,18 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -4718,18 +4718,18 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -5288,18 +5288,18 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -5857,18 +5857,18 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -6420,18 +6420,18 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -6986,18 +6986,18 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -7555,18 +7555,18 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -8121,18 +8121,18 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -8686,18 +8686,18 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -9252,18 +9252,18 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -9819,18 +9819,18 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -10384,18 +10384,18 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -10949,18 +10949,18 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -11516,18 +11516,18 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -12081,18 +12081,18 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -12646,18 +12646,18 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -13214,18 +13214,18 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -13779,18 +13779,18 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -14349,18 +14349,18 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -14914,18 +14914,18 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -15480,18 +15480,18 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -16045,18 +16045,18 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -16629,18 +16629,18 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -17196,18 +17196,18 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -17762,18 +17762,18 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -18337,18 +18337,18 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -18903,18 +18903,18 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -19469,18 +19469,18 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -20036,18 +20036,18 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -20608,18 +20608,18 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -21174,18 +21174,18 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -21740,18 +21740,18 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -22305,18 +22305,18 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -22890,18 +22890,18 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -23455,18 +23455,18 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
-	auditdbHandle := appProvider.AuditDatabase
+	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{

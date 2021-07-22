@@ -425,17 +425,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
 	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
-	auditdbHandle := appProvider.AuditDatabase
+	readHandle := appProvider.AuditReadDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	auditdbSQLExecutor := auditdb.NewSQLExecutor(context, auditdbHandle)
-	auditStore := &audit.Store{
+	readSQLExecutor := auditdb.NewReadSQLExecutor(context, readHandle)
+	readStore := &audit.ReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: auditdbSQLExecutor,
+		SQLExecutor: readSQLExecutor,
 	}
 	query := &audit.Query{
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: readHandle,
+		Store:    readStore,
 	}
 	auditLogLoader := loader.NewAuditLogLoader(query)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
@@ -474,10 +474,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Deliverer: deliverer,
 	}
 	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
 	auditSink := &audit.Sink{
 		Logger:   auditLogger,
-		Database: auditdbHandle,
-		Store:    auditStore,
+		Database: writeHandle,
+		Store:    writeStore,
 	}
 	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
@@ -663,7 +669,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
 		AppDatabase:    handle,
-		AuditDatabase:  auditdbHandle,
+		AuditDatabase:  readHandle,
 	}
 	return graphQLHandler
 }
