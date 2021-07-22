@@ -39,6 +39,7 @@ var configDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.FeatureConfig),
 		"Identity",
 		"UI",
+		"AuditLog",
 	),
 	ProvideDefaultLanguageTag,
 	ProvideSupportedLanguageTags,

@@ -616,8 +616,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Users:             userFacade,
 		Interaction:       serviceInteractionService,
 	}
+	auditLogFeatureConfig := featureConfig.AuditLog
 	auditLogFacade := &facade2.AuditLogFacade{
-		AuditLogQuery: query,
+		AuditLogQuery:         query,
+		Clock:                 clockClock,
+		AuditLogFeatureConfig: auditLogFeatureConfig,
 	}
 	facadeIdentityFacade := &facade2.IdentityFacade{
 		Identities:  serviceService,

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useContext } from "react";
+import { useParams } from "react-router-dom";
 import {
   ICommandBarItemProps,
   IDropdownOption,
@@ -8,7 +9,10 @@ import {
   DefaultButton,
   DatePicker,
   TextField,
+  MessageBar,
+  addDays,
 } from "@fluentui/react";
+import { useConst } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { gql, useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
@@ -28,6 +32,7 @@ import {
 import { AuditLogActivityType } from "./__generated__/globalTypes";
 
 import styles from "./AuditLogScreen.module.scss";
+import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 
 const pageSize = 10;
 
@@ -89,12 +94,41 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     rollback: rollbackRangeTo,
   } = useTransactionalState<Date | null>(null);
 
+  const { appID } = useParams();
+  const featureConfig = useAppFeatureConfigQuery(appID);
+
+  const logRetrievalDays = useMemo(() => {
+    if (featureConfig.loading) {
+      return -1;
+    }
+    return (
+      featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days ?? -1
+    );
+  }, [
+    featureConfig.loading,
+    featureConfig.effectiveFeatureConfig?.audit_log?.retrieval_days,
+  ]);
+
+  const today = useConst(new Date(Date.now()));
+
+  const datePickerMinDate = useMemo(() => {
+    if (logRetrievalDays === -1) {
+      return undefined;
+    }
+    const minDate = addDays(today, -logRetrievalDays + 1);
+    minDate.setHours(0, 0, 0, 0);
+    return minDate;
+  }, [today, logRetrievalDays]);
+
   const queryRangeFrom = useMemo(() => {
     if (rangeFrom != null) {
       return rangeFrom.toISOString();
     }
+    if (datePickerMinDate != null) {
+      return datePickerMinDate.toISOString();
+    }
     return null;
-  }, [rangeFrom]);
+  }, [rangeFrom, datePickerMinDate]);
 
   const queryRangeTo = useMemo(() => {
     if (rangeTo != null) {
@@ -160,14 +194,25 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       rangeTo: queryRangeTo,
     },
     fetchPolicy: "network-only",
+    skip: featureConfig.loading,
   });
 
   const messageBar = useMemo(() => {
     if (error != null) {
       return <ShowError error={error} onRetry={refetch} />;
     }
+    if (featureConfig.error != null) {
+      return (
+        <ShowError
+          error={featureConfig.error}
+          onRetry={() => {
+            featureConfig.refetch().finally(() => {});
+          }}
+        />
+      );
+    }
     return null;
-  }, [error, refetch]);
+  }, [error, refetch, featureConfig]);
 
   const onChangeSelectedKey = useCallback(
     (_e: React.FormEvent<HTMLDivElement>, item?: IDropdownOption) => {
@@ -319,6 +364,17 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
       >
         <main className={styles.content}>
           <NavBreadcrumb items={items} />
+          {logRetrievalDays !== -1 && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.audit-log.retrieval-days"
+                values={{
+                  planPagePath: "../configuration/settings/subscription",
+                  logRetrievalDays: logRetrievalDays,
+                }}
+              />
+            </MessageBar>
+          )}
           <AuditLogList
             className={styles.list}
             loading={loading}
@@ -345,11 +401,15 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         <DatePicker
           label={renderToString("AuditLogScreen.date-range.start-date")}
           value={uncommittedRangeFrom ?? undefined}
+          minDate={datePickerMinDate}
+          maxDate={today}
           onSelectDate={onSelectRangeFrom}
         />
         <DatePicker
           label={renderToString("AuditLogScreen.date-range.end-date")}
           value={uncommittedRangeTo ?? undefined}
+          minDate={datePickerMinDate}
+          maxDate={today}
           onSelectDate={onSelectRangeTo}
         />
         <DialogFooter>

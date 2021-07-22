@@ -32,6 +32,7 @@ import ScreenTitle from "../../ScreenTitle";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import FormTextFieldList from "../../FormTextFieldList";
+import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface FormState {
   publicOrigin: string;
@@ -179,6 +180,7 @@ const CORSConfigurationWidget: React.FC<CORSConfigurationWidgetProps> =
 
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
+  oauthClientsMaximum: number;
   showNotification: (msg: string) => void;
 }
 
@@ -188,6 +190,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
       showNotification,
       form,
       form: { state, setState },
+      oauthClientsMaximum,
     } = props;
     const { renderToString } = useContext(Context);
 
@@ -256,6 +259,17 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               }}
             />
           </Text>
+          {oauthClientsMaximum < 99 && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.oauth-clients.maximum"
+                values={{
+                  planPagePath: "../settings/subscription",
+                  maximum: oauthClientsMaximum,
+                }}
+              />
+            </MessageBar>
+          )}
           <DetailsList
             className={styles.clientList}
             columns={oauthClientListColumns}
@@ -276,6 +290,7 @@ const ApplicationsConfigurationScreen: React.FC =
     const navigate = useNavigate();
 
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const featureConfig = useAppFeatureConfigQuery(appID);
 
     const [messageBar, setMessageBar] = useState<React.ReactNode>(null);
     const showNotification = useCallback((msg: string) => {
@@ -286,6 +301,14 @@ const ApplicationsConfigurationScreen: React.FC =
       );
     }, []);
 
+    const oauthClientsMaximum = useMemo(() => {
+      return featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum ?? 99;
+    }, [featureConfig.effectiveFeatureConfig?.oauth?.client?.maximum]);
+
+    const limitReached = useMemo(() => {
+      return form.state.clients.length >= oauthClientsMaximum;
+    }, [oauthClientsMaximum, form.state.clients.length]);
+
     const commandBarFarItems: ICommandBarItemProps[] = useMemo(
       () => [
         {
@@ -295,17 +318,29 @@ const ApplicationsConfigurationScreen: React.FC =
           ),
           iconProps: { iconName: "CirclePlus" },
           onClick: () => navigate("./add"),
+          className: limitReached ? styles.readOnly : undefined,
         },
       ],
-      [navigate, renderToString]
+      [navigate, renderToString, limitReached]
     );
 
-    if (form.isLoading) {
+    if (form.isLoading || featureConfig.loading) {
       return <ShowLoading />;
     }
 
     if (form.loadError) {
       return <ShowError error={form.loadError} onRetry={form.reload} />;
+    }
+
+    if (featureConfig.error) {
+      return (
+        <ShowError
+          error={form.loadError}
+          onRetry={() => {
+            featureConfig.refetch().finally(() => {});
+          }}
+        />
+      );
     }
 
     return (
@@ -316,6 +351,7 @@ const ApplicationsConfigurationScreen: React.FC =
       >
         <OAuthClientConfigurationContent
           form={form}
+          oauthClientsMaximum={oauthClientsMaximum}
           showNotification={showNotification}
         />
       </FormContainer>

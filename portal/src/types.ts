@@ -459,6 +459,9 @@ export interface PortalAPIFeatureConfig {
   authentication?: AuthenticationFeatureConfig;
   custom_domain?: CustomDomainFeatureConfig;
   ui?: UIFeatureConfig;
+  oauth?: OAuthFeatureConfig;
+  hook?: HookFeatureConfig;
+  audit_log?: AuditLogFeatureConfig;
 }
 
 export interface AuthenticationFeatureConfig {
@@ -491,17 +494,17 @@ export interface LoginIDPhoneFeatureConfig {
 }
 
 export interface OAuthSSOFeatureConfig {
+  maximum_providers?: number;
   providers?: OAuthSSOProvidersFeatureConfig;
 }
-
 export interface OAuthSSOProvidersFeatureConfig {
-  google?: OAuthSSOProviderConfig;
-  facebook?: OAuthSSOProviderConfig;
-  linkedin?: OAuthSSOProviderConfig;
-  azureadv2?: OAuthSSOProviderConfig;
-  adfs?: OAuthSSOProviderConfig;
-  apple?: OAuthSSOProviderConfig;
-  wechat?: OAuthSSOProviderConfig;
+  google?: OAuthSSOProviderFeatureConfig;
+  facebook?: OAuthSSOProviderFeatureConfig;
+  linkedin?: OAuthSSOProviderFeatureConfig;
+  azureadv2?: OAuthSSOProviderFeatureConfig;
+  adfs?: OAuthSSOProviderFeatureConfig;
+  apple?: OAuthSSOProviderFeatureConfig;
+  wechat?: OAuthSSOProviderFeatureConfig;
 }
 
 export interface OAuthSSOProviderFeatureConfig {
@@ -518,4 +521,29 @@ export interface UIFeatureConfig {
 
 export interface WhiteLabelingFeatureConfig {
   disabled?: boolean;
+}
+
+export interface OAuthFeatureConfig {
+  client?: OAuthClientFeatureConfig;
+}
+
+export interface OAuthClientFeatureConfig {
+  maximum?: number;
+}
+
+export interface HookFeatureConfig {
+  blocking_handler?: BlockingHookHandlerFeatureConfig;
+  non_blocking_handler?: NonBlockingHookHandlerFeatureConfig;
+}
+
+export interface BlockingHookHandlerFeatureConfig {
+  maximum?: number;
+}
+
+export interface NonBlockingHookHandlerFeatureConfig {
+  maximum?: number;
+}
+
+export interface AuditLogFeatureConfig {
+  retrieval_days?: number;
 }

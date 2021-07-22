@@ -17,8 +17,9 @@ func TestManager(t *testing.T) {
 	Convey("ApplyUpdates", t, func() {
 		appID := "app-id"
 		cfg := &config.Config{
-			AppConfig:    configtest.FixtureAppConfig("app-id"),
-			SecretConfig: configtest.FixtureSecretConfig(0),
+			AppConfig:     configtest.FixtureAppConfig("app-id"),
+			SecretConfig:  configtest.FixtureSecretConfig(0),
+			FeatureConfig: configtest.FixtureFeatureConfig(configtest.FixtureLimitedPlanName),
 		}
 		config.PopulateDefaultValues(cfg.AppConfig)
 
@@ -40,6 +41,7 @@ func TestManager(t *testing.T) {
 			AppResourceManager: resMgr,
 			AppFS:              appResourceFs,
 			SecretKeyAllowlist: allowlist,
+			AppFeatureConfig:   cfg.FeatureConfig,
 		}
 
 		applyUpdates := func(updates []appresource.Update) error {
@@ -73,7 +75,7 @@ func TestManager(t *testing.T) {
 				Path: "authgear.yaml",
 				Data: []byte("{}"),
 			}})
-			So(err, ShouldBeError, `invalid resource: cannot parse app config: invalid configuration:
+			So(err, ShouldBeError, `cannot parse incoming app config: invalid configuration:
 <root>: required
   map[actual:<nil> expected:[http id] missing:[http id]]`)
 
@@ -82,6 +84,72 @@ func TestManager(t *testing.T) {
 				Data: []byte("id: test\nhttp:\n  public_origin: \"http://test\""),
 			}})
 			So(err, ShouldBeError, `invalid resource 'authgear.yaml': incorrect app ID`)
+
+		})
+
+		Convey("validate configuration YAML with plan", func() {
+			applyUpdatesWithPlan := func(planName configtest.FixturePlanName, updates []appresource.Update) error {
+				fc := configtest.FixtureFeatureConfig(planName)
+				config.PopulateFeatureConfigDefaultValues(fc)
+				portalResMgr := &appresource.Manager{
+					AppResourceManager: resMgr,
+					AppFS:              appResourceFs,
+					SecretKeyAllowlist: allowlist,
+					AppFeatureConfig:   fc,
+				}
+				_, err := portalResMgr.ApplyUpdates(appID, updates)
+				return err
+			}
+
+			var err error
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\noauth:\n  clients:\n    - name: Test Client\n      client_id: test-client\n      redirect_uris:\n        - \"https://example.com\"\n    - name: Test Client2\n      client_id: test-client2\n      redirect_uris:\n        - \"https://example2.com\""),
+			}})
+			So(err, ShouldBeError, `exceed the maximum number of oauth clients, actual: 2, expected: 1`)
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\noauth:\n  clients:\n    - name: Test Client\n      client_id: test-client\n      redirect_uris:\n        - \"https://example.com\"\n    - name: Test Client2\n      client_id: test-client2\n      redirect_uris:\n        - \"https://example2.com\""),
+			}})
+			So(err, ShouldBeNil)
+
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nidentity:\n  oauth:\n    providers:\n      - alias: facebook\n        type: facebook\n        client_id: client_a\n      - alias: google\n        type: google\n        client_id: client_a"),
+			}})
+			So(err, ShouldBeError, `exceed the maximum number of sso providers, actual: 2, expected: 1`)
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nidentity:\n  oauth:\n    providers:\n      - alias: facebook\n        type: facebook\n        client_id: client_a\n      - alias: google\n        type: google\n        client_id: client_a"),
+			}})
+			// passed the app plan checking and show the missing secret error
+			So(err, ShouldBeError, "invalid secret config: invalid secrets:\n<root>: OAuth client credentials (secret 'sso.oauth.client') is required")
+
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nhook:\n  blocking_handlers:\n  - event: user.pre_create\n    url: http://example.com\n  - event: user.pre_create\n    url: http://example.com"),
+			}})
+			So(err, ShouldBeError, "exceed the maximum number of blocking handlers, actual: 2, expected: 1")
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nhook:\n  blocking_handlers:\n  - event: user.pre_create\n    url: http://example.com\n  - event: user.pre_create\n    url: http://example.com"),
+			}})
+			So(err, ShouldBeNil)
+
+			err = applyUpdatesWithPlan(configtest.FixtureLimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nhook:\n  non_blocking_handlers:\n    - events:\n        - '*'\n      url: http://example.com\n    - events:\n        - '*'\n      url: http://example.com"),
+			}})
+			So(err, ShouldBeError, "exceed the maximum number of non blocking handlers, actual: 2, expected: 1")
+
+			err = applyUpdatesWithPlan(configtest.FixtureUnlimitedPlanName, []appresource.Update{{
+				Path: "authgear.yaml",
+				Data: []byte("id: app-id\nhttp:\n  public_origin: http://test\nhook:\n  non_blocking_handlers:\n    - events:\n        - '*'\n      url: http://example.com\n    - events:\n        - '*'\n      url: http://example.com"),
+			}})
+			So(err, ShouldBeNil)
 
 		})
 

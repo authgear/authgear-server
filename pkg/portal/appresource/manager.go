@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/afero"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -21,10 +22,15 @@ const ConfigFileMaxSize = 100 * 1024
 type AppFileWithConfig struct {
 	resource.AppFileView
 	AllowedSecretKeys []string
+	FeatureConfig     *config.FeatureConfig
 }
 
 func (f AppFileWithConfig) SecretKeyAllowlist() []string {
 	return f.AllowedSecretKeys
+}
+
+func (f AppFileWithConfig) AppFeatureConfig() *config.FeatureConfig {
+	return f.FeatureConfig
 }
 
 var _ configsource.ViewWithConfig = AppFileWithConfig{}
@@ -33,6 +39,7 @@ type Manager struct {
 	AppResourceManager *resource.Manager
 	AppFS              resource.Fs
 	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
+	AppFeatureConfig   *config.FeatureConfig
 }
 
 func (m *Manager) List() ([]string, error) {
@@ -102,6 +109,7 @@ func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileVie
 	return m.AppResourceManager.Read(desc, AppFileWithConfig{
 		AppFileView:       view,
 		AllowedSecretKeys: m.SecretKeyAllowlist,
+		FeatureConfig:     m.AppFeatureConfig,
 	})
 }
 
@@ -199,6 +207,7 @@ func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.M
 					Path: u.Path,
 				},
 				AllowedSecretKeys: m.SecretKeyAllowlist,
+				FeatureConfig:     m.AppFeatureConfig,
 			},
 		)
 		if err != nil {
