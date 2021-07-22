@@ -90,6 +90,7 @@
   "ScreenNav.localization": "Localization",
   "ScreenNav.sessions": "Sessions",
   "ScreenNav.webhooks": "Webhooks",
+  "ScreenNav.subscription": "Subscription",
   "ScreenNav.settings": "Settings",
   "ScreenNav.audit-log": "Audit Log",
 
@@ -736,6 +737,54 @@
   "FeatureConfig.webhook.blocking-events.maximum": "You can only add {maximum, plural, one{1 blocking event handler} other{# blocking event handlers}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.webhook.non-blocking-events.maximum": "You can only add {maximum, plural, one{1 non-blocking event endpoint} other{# non-blocking event endpoints}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.audit-log.retrieval-days": "You can only retrieve audit logs for the last {logRetrievalDays, plural, one{1 day} other{# days}}. To retrieve more logs, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
+
+  "SubscriptionScreen.title": "Subscription",
+  "SubscriptionScreen.current-plan-summary.title": "Current Plan Summary",
+  "SubscriptionScreen.subscription.label": "Your subscription",
+  "SubscriptionScreen.monthly-active-users.label": "Monthly Active Users",
+  "SubscriptionScreen.plan-cost.label": "Plan Cost",
+
+  "SubscriptionScreen.plan-name.free": "Starter",
+  "SubscriptionScreen.plan-name.startups": "Startups",
+  "SubscriptionScreen.plan-name.business": "Business",
+  "SubscriptionScreen.plan-name.enterprise": "Enterprise",
+
+  "SubscriptionScreen.summary-mau.free": "5,000",
+  "SubscriptionScreen.summary-mau.startups": "5,000",
+  "SubscriptionScreen.summary-mau.business": "20,000",
+  "SubscriptionScreen.summary-mau.enterprise": "-",
+
+  "SubscriptionScreen.summary-price.free": "Free",
+  "SubscriptionScreen.summary-price.startups": "$100/mo",
+  "SubscriptionScreen.summary-price.business": "$500/mo",
+  "SubscriptionScreen.summary-price.enterprise": "-",
+
+  "SubscriptionScreen.upgrade-your-plan.title": "Upgrade your plan",
+
+  "SubscriptionScreen.price.startups": "$100/mo",
+  "SubscriptionScreen.price.business": "$500/mo",
+  "SubscriptionScreen.price.enterprise": "Get in Touch",
+
+  "SubscriptionScreen.des.startups": "For simple projects & early-stage startups",
+  "SubscriptionScreen.des.business": "Manage up to 50,000 MAUs",
+  "SubscriptionScreen.des.enterprise": "Manage 50,000+ MAUs",
+
+  "SubscriptionScreen.mau.startups": "Up to 5,000 MAUs",
+  "SubscriptionScreen.mau.business": "20,000 MAUs included",
+  "SubscriptionScreen.mau.enterprise": "",
+
+  "SubscriptionScreen.extra-cost.startups": "",
+  "SubscriptionScreen.extra-cost.business": "USD 50/mo per 2,000 additional MAUs\nUSD 0.05 per SMS",
+  "SubscriptionScreen.extra-cost.enterprise": "",
+
+  "SubscriptionScreen.features.startups": "All other features from Starter plan\n10 App Clients\nCustom Domains\nNo Visible Branding\nUnlimited Social Connections\n2 Webhooks\n7 days Log Retention\n3 Admins with Role Management",
+  "SubscriptionScreen.features.business": "All other features from Startups plan\nUnlimited App Clients\nPasswordless Login by SMS\nSMS as Secondary Autheticator\nBiometric Login\nEnterprise Login (AD, LDAP)\nUnlimited Webhooks\n5 Admins with Role Management\nCustom Localization",
+  "SubscriptionScreen.features.enterprise": "Volume Discount\nNo admin and role limits\nPrivate cloud option\nSLA\nEnterprise Support",
+
+  "SubscriptionScreen.contact-us.label": "Contact Us",
+
+  "SubscriptionScreen.plan-features.title": "Plan Features",
+  "SubscriptionScreen.plan-features.desc": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing#compare-plans} children{pricing page}}.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
