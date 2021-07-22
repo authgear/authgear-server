@@ -27,7 +27,7 @@ var errRollback = errors.New("rollback transaction")
 type GraphQLHandler struct {
 	GraphQLContext *graphql.Context
 	AppDatabase    *appdb.Handle
-	AuditDatabase  *auditdb.Handle
+	AuditDatabase  *auditdb.ReadHandle
 }
 
 func (h *GraphQLHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

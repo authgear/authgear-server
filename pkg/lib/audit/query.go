@@ -8,8 +8,8 @@ import (
 )
 
 type Query struct {
-	Database *auditdb.Handle
-	Store    *Store
+	Database *auditdb.ReadHandle
+	Store    *ReadStore
 }
 
 func (q *Query) GetByIDs(ids []string) ([]*Log, error) {

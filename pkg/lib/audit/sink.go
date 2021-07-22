@@ -12,8 +12,8 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("audit-sink")} }
 
 type Sink struct {
 	Logger   Logger
-	Database *auditdb.Handle
-	Store    *Store
+	Database *auditdb.WriteHandle
+	Store    *WriteStore
 }
 
 func (s *Sink) ReceiveBlockingEvent(e *event.Event) (err error) {

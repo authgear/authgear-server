@@ -97,7 +97,14 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	if a := cfg.SecretConfig.LookupData(config.AuditDatabaseCredentialsKey); a != nil {
 		auditDatabaseCredentials = a.(*config.AuditDatabaseCredentials)
 	}
-	auditDatabase := auditdb.NewHandle(
+	auditReadDatabase := auditdb.NewReadHandle(
+		ctx,
+		p.DatabasePool,
+		cfg.AppConfig.Database,
+		auditDatabaseCredentials,
+		loggerFactory,
+	)
+	auditWriteDatabase := auditdb.NewWriteHandle(
 		ctx,
 		p.DatabasePool,
 		cfg.AppConfig.Database,
@@ -113,14 +120,15 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	)
 
 	provider := &AppProvider{
-		RootProvider:  p,
-		Context:       ctx,
-		Config:        cfg,
-		LoggerFactory: loggerFactory,
-		AppDatabase:   appDatabase,
-		AuditDatabase: auditDatabase,
-		Redis:         redis,
-		Resources:     appCtx.Resources,
+		RootProvider:       p,
+		Context:            ctx,
+		Config:             cfg,
+		LoggerFactory:      loggerFactory,
+		AppDatabase:        appDatabase,
+		AuditReadDatabase:  auditReadDatabase,
+		AuditWriteDatabase: auditWriteDatabase,
+		Redis:              redis,
+		Resources:          appCtx.Resources,
 	}
 	provider.TaskQueue = p.TaskQueueFactory(provider)
 	return provider
@@ -160,14 +168,15 @@ func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task
 type AppProvider struct {
 	*RootProvider
 
-	Context       context.Context
-	Config        *config.Config
-	LoggerFactory *log.Factory
-	AppDatabase   *appdb.Handle
-	AuditDatabase *auditdb.Handle
-	Redis         *redis.Handle
-	TaskQueue     task.Queue
-	Resources     *resource.Manager
+	Context            context.Context
+	Config             *config.Config
+	LoggerFactory      *log.Factory
+	AppDatabase        *appdb.Handle
+	AuditReadDatabase  *auditdb.ReadHandle
+	AuditWriteDatabase *auditdb.WriteHandle
+	Redis              *redis.Handle
+	TaskQueue          task.Queue
+	Resources          *resource.Manager
 }
 
 func (p *AppProvider) NewRequestProvider(w http.ResponseWriter, r *http.Request) *RequestProvider {
