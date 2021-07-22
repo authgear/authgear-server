@@ -132,6 +132,10 @@ const ScreenNav: React.FC = function ScreenNav() {
             textKey: "ScreenNav.webhooks",
             url: "configuration/settings/web-hooks",
           },
+          {
+            textKey: "ScreenNav.subscription",
+            url: "configuration/settings/subscription",
+          },
         ],
       },
     ];
