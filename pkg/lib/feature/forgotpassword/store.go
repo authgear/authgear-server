@@ -14,12 +14,12 @@ import (
 )
 
 type Store struct {
-	AppID config.AppID
-	Redis *redis.Handle
+	Context context.Context
+	AppID   config.AppID
+	Redis   *redis.Handle
 }
 
 func (s *Store) Create(code *Code) (err error) {
-	ctx := context.Background()
 	bytes, err := json.Marshal(code)
 	if err != nil {
 		return
@@ -27,7 +27,7 @@ func (s *Store) Create(code *Code) (err error) {
 
 	key := codeKey(s.AppID, code.CodeHash)
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
-		_, err := conn.SetNX(ctx, key, bytes, codeExpire(code)).Result()
+		_, err := conn.SetNX(s.Context, key, bytes, codeExpire(code)).Result()
 		if errors.Is(err, goredis.Nil) {
 			err = fmt.Errorf("duplicated forgot password code: %w", err)
 		}
@@ -37,8 +37,24 @@ func (s *Store) Create(code *Code) (err error) {
 	return
 }
 
-func (s *Store) Update(code *Code) (err error) {
-	ctx := context.Background()
+func (s *Store) MarkConsumed(codeHash string) (err error) {
+	code, err := s.Get(codeHash)
+	if err != nil {
+		return
+	}
+
+	mutexName := codeMutexName(s.AppID, code.CodeHash)
+	mutex := s.Redis.NewMutex(mutexName)
+	err = mutex.LockContext(s.Context)
+	if err != nil {
+		return
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	code.Consumed = true
+
 	bytes, err := json.Marshal(code)
 	if err != nil {
 		return
@@ -46,7 +62,7 @@ func (s *Store) Update(code *Code) (err error) {
 
 	key := codeKey(s.AppID, code.CodeHash)
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
-		_, err := conn.SetXX(ctx, key, bytes, codeExpire(code)).Result()
+		_, err := conn.SetXX(s.Context, key, bytes, codeExpire(code)).Result()
 		if errors.Is(err, goredis.Nil) {
 			err = fmt.Errorf("non-existent forgot password code: %w", err)
 		}
@@ -57,11 +73,10 @@ func (s *Store) Update(code *Code) (err error) {
 }
 
 func (s *Store) Get(codeHash string) (code *Code, err error) {
-	ctx := context.Background()
 	key := codeKey(s.AppID, codeHash)
 
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
-		data, err := conn.Get(ctx, key).Bytes()
+		data, err := conn.Get(s.Context, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			err = ErrInvalidCode
 			return err
@@ -77,6 +92,10 @@ func (s *Store) Get(codeHash string) (code *Code, err error) {
 
 func codeKey(appID config.AppID, codeHash string) string {
 	return fmt.Sprintf("app:%s:forgotpassword-code:%s", appID, codeHash)
+}
+
+func codeMutexName(appID config.AppID, codeHash string) string {
+	return fmt.Sprintf("app:%s:forgotpassword-code-mutex:%s", appID, codeHash)
 }
 
 func codeExpire(code *Code) time.Duration {

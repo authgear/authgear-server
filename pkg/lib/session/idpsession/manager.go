@@ -40,16 +40,6 @@ func (m *Manager) Get(id string) (session.Session, error) {
 	return s, nil
 }
 
-func (m *Manager) Update(session session.Session) error {
-	s := session.(*IDPSession)
-	expiry := computeSessionStorageExpiry(s, m.Config)
-	err := m.Store.Update(s, expiry)
-	if err != nil {
-		return fmt.Errorf("failed to update session: %w", err)
-	}
-	return nil
-}
-
 func (m *Manager) Delete(session session.Session) error {
 	err := m.Store.Delete(session.(*IDPSession))
 	if err != nil {

@@ -384,6 +384,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -515,8 +516,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -558,7 +560,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,

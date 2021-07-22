@@ -86,6 +86,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	clock := _wireSystemClockValue
 	store := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -409,8 +410,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -517,7 +519,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -660,6 +665,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	clockClock := _wireSystemClockValue
 	store := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -684,7 +690,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	sessionConfig := appConfig.Session
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -982,8 +991,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -1430,6 +1440,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -1825,6 +1836,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -2148,6 +2160,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -2475,6 +2488,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -2628,6 +2642,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	clockClock := _wireSystemClockValue
 	store := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -2652,7 +2667,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	sessionConfig := appConfig.Session
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -2950,8 +2968,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -3416,6 +3435,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -3481,8 +3501,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -3589,7 +3610,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -3981,6 +4005,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -4046,8 +4071,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -4154,7 +4180,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -4546,6 +4575,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -4611,8 +4641,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -4719,7 +4750,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -5111,6 +5145,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -5176,8 +5211,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -5284,7 +5320,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -5675,6 +5714,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -5740,8 +5780,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -5848,7 +5889,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -6233,6 +6277,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -6298,8 +6343,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -6406,7 +6452,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -6794,6 +6843,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -6859,8 +6909,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -6967,7 +7018,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -7358,6 +7412,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -7423,8 +7478,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -7531,7 +7587,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -7919,6 +7978,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -7984,8 +8044,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -8092,7 +8153,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -8479,6 +8543,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -8544,8 +8609,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -8652,7 +8718,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -9040,6 +9109,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -9105,8 +9175,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -9213,7 +9284,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -9602,6 +9676,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -9667,8 +9742,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -9775,7 +9851,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -10162,6 +10241,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -10227,8 +10307,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -10335,7 +10416,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -10722,6 +10806,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -10787,8 +10872,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -10895,7 +10981,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -11284,6 +11373,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -11349,8 +11439,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -11457,7 +11548,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -11844,6 +11938,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -11909,8 +12004,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -12017,7 +12113,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -12404,6 +12503,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -12469,8 +12569,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -12577,7 +12678,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -12967,6 +13071,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -13032,8 +13137,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -13140,7 +13246,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -13527,6 +13636,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -13592,8 +13702,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -13700,7 +13811,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -14092,6 +14206,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -14157,8 +14272,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -14265,7 +14381,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -14652,6 +14771,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -14717,8 +14837,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -14825,7 +14946,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -15213,6 +15337,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -15278,8 +15403,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -15386,7 +15512,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -15773,6 +15902,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -15838,8 +15968,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -15946,7 +16077,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -16352,6 +16486,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -16417,8 +16552,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -16525,7 +16661,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -16914,6 +17053,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -16979,8 +17119,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -17087,7 +17228,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -17475,6 +17619,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -17540,8 +17685,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -17648,7 +17794,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -18045,6 +18194,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -18110,8 +18260,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -18218,7 +18369,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -18606,6 +18760,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -18671,8 +18826,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -18779,7 +18935,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -19167,6 +19326,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -19232,8 +19392,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -19340,7 +19501,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -19729,6 +19893,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -19794,8 +19959,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -19902,7 +20068,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -20296,6 +20465,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -20361,8 +20531,9 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -20469,7 +20640,10 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -20857,6 +21031,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -20922,8 +21097,9 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -21030,7 +21206,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -21418,6 +21597,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -21483,8 +21663,9 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -21591,7 +21772,10 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -21978,6 +22162,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -22043,8 +22228,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -22151,7 +22337,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -22558,6 +22747,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -22623,8 +22813,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -22731,7 +22922,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -23118,6 +23312,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
+		Context:     context,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -23183,8 +23378,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		AppID: appID,
-		Redis: redisHandle,
+		Context: context,
+		AppID:   appID,
+		Redis:   redisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -23291,7 +23487,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -23622,8 +23821,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	handle := appProvider.Redis
+	context := deps.ProvideRequestContext(request)
 	appID := appConfig.ID
+	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	factory := appProvider.LoggerFactory
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -23642,7 +23842,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
+		Context:      context,
 		Request:      request,
+		AppID:        appID,
+		Redis:        handle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -23660,7 +23863,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
 	appdbHandle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
@@ -23669,6 +23871,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	logger := redis.NewLogger(factory)
 	store := &redis.Store{
+		Context:     context,
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,

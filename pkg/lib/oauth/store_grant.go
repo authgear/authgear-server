@@ -2,6 +2,8 @@ package oauth
 
 import (
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 )
 
 type CodeGrantStore interface {
@@ -13,8 +15,11 @@ type CodeGrantStore interface {
 type OfflineGrantStore interface {
 	GetOfflineGrant(id string) (*OfflineGrant, error)
 	CreateOfflineGrant(offlineGrant *OfflineGrant, expireAt time.Time) error
-	UpdateOfflineGrant(offlineGrant *OfflineGrant, expireAt time.Time) error
 	DeleteOfflineGrant(*OfflineGrant) error
+
+	AccessWithID(id string, accessEvent access.Event, expireAt time.Time) (*OfflineGrant, error)
+	UpdateOfflineGrantDeviceInfo(id string, deviceInfo map[string]interface{}, expireAt time.Time) (*OfflineGrant, error)
+	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)
 }

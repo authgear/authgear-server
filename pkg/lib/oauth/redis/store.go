@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -25,6 +26,7 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type Store struct {
+	Context     context.Context
 	Redis       *redis.Handle
 	AppID       config.AppID
 	Logger      Logger
@@ -237,7 +239,85 @@ func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time
 	return nil
 }
 
-func (s *Store) UpdateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
+func (s *Store) AccessWithID(grantID string, accessEvent access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	grant.AccessInfo.LastAccess = accessEvent
+
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
+func (s *Store) UpdateOfflineGrantDeviceInfo(grantID string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	grant.DeviceInfo = deviceInfo
+
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
+func (s *Store) UpdateOfflineGrantAuthenticatedAt(grantID string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrant(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	grant.AuthenticatedAt = authenticatedAt
+
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
+func (s *Store) updateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
 	ctx := context.Background()
 	expiry, err := expireAt.MarshalText()
 	if err != nil {

@@ -14,6 +14,7 @@ require (
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-redis/redis/v8 v8.10.0
+	github.com/go-redsync/redsync/v4 v4.3.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.2.0
 	github.com/google/wire v0.5.0

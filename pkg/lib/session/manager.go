@@ -22,7 +22,6 @@ type UserQuery interface {
 type ManagementService interface {
 	ClearCookie() []*http.Cookie
 	Get(id string) (Session, error)
-	Update(Session) error
 	Delete(Session) error
 	List(userID string) ([]Session, error)
 }
@@ -116,16 +115,6 @@ func (m *Manager) Get(id string) (Session, error) {
 	}
 
 	return nil, ErrSessionNotFound
-}
-
-func (m *Manager) Update(session Session) error {
-	provider := m.resolveManagementProvider(session)
-	err := provider.Update(session)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (m *Manager) List(userID string) ([]Session, error) {

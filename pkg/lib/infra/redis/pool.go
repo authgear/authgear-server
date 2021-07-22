@@ -4,26 +4,33 @@ import (
 	"sync"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/go-redsync/redsync/v4"
+	redsyncgoredis "github.com/go-redsync/redsync/v4/redis/goredis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
+
+type redisInstance struct {
+	Client  *redis.Client
+	Redsync *redsync.Redsync
+}
 
 type Pool struct {
 	closed     bool
 	closeMutex sync.RWMutex
 
-	cachedClient      map[string]*redis.Client
-	cachedClientMutex sync.RWMutex
+	cachedInstance      map[string]*redisInstance
+	cachedInstanceMutex sync.RWMutex
 }
 
 func NewPool() *Pool {
 	p := &Pool{
-		cachedClient: make(map[string]*redis.Client),
+		cachedInstance: make(map[string]*redisInstance),
 	}
 	return p
 }
 
-func (p *Pool) Client(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
+func (p *Pool) instance(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redisInstance {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -31,22 +38,26 @@ func (p *Pool) Client(cfg *config.RedisConfig, credentials *config.RedisCredenti
 	}
 	connKey := credentials.ConnKey()
 
-	p.cachedClientMutex.RLock()
-	pool, exists := p.cachedClient[connKey]
-	p.cachedClientMutex.RUnlock()
+	p.cachedInstanceMutex.RLock()
+	instance, exists := p.cachedInstance[connKey]
+	p.cachedInstanceMutex.RUnlock()
 	if exists {
-		return pool
+		return instance
 	}
 
-	p.cachedClientMutex.Lock()
-	pool, exists = p.cachedClient[connKey]
+	p.cachedInstanceMutex.Lock()
+	instance, exists = p.cachedInstance[connKey]
 	if !exists {
-		pool = p.openRedis(cfg, credentials)
-		p.cachedClient[connKey] = pool
+		instance = p.openInstance(cfg, credentials)
+		p.cachedInstance[connKey] = instance
 	}
-	p.cachedClientMutex.Unlock()
+	p.cachedInstanceMutex.Unlock()
 
-	return pool
+	return instance
+}
+
+func (p *Pool) Client(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
+	return p.instance(cfg, credentials).Client
 }
 
 func (p *Pool) Close() (err error) {
@@ -54,8 +65,8 @@ func (p *Pool) Close() (err error) {
 	defer func() { p.closeMutex.Unlock() }()
 
 	p.closed = true
-	for _, db := range p.cachedClient {
-		if closeErr := db.Close(); closeErr != nil {
+	for _, instance := range p.cachedInstance {
+		if closeErr := instance.Client.Close(); closeErr != nil {
 			err = closeErr
 		}
 	}
@@ -63,7 +74,7 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func (p *Pool) openRedis(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
+func (p *Pool) openInstance(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redisInstance {
 	opts, err := redis.ParseURL(credentials.RedisURL)
 	if err != nil {
 		panic(err)
@@ -72,5 +83,11 @@ func (p *Pool) openRedis(cfg *config.RedisConfig, credentials *config.RedisCrede
 	opts.PoolSize = *cfg.MaxOpenConnection
 	opts.IdleTimeout = cfg.IdleConnectionTimeout.Duration()
 	opts.MaxConnAge = cfg.MaxConnectionLifetime.Duration()
-	return redis.NewClient(opts)
+	client := redis.NewClient(opts)
+	redsyncPool := redsyncgoredis.NewPool(client)
+	redsyncInstance := redsync.New(redsyncPool)
+	return &redisInstance{
+		Client:  client,
+		Redsync: redsyncInstance,
+	}
 }

@@ -14,6 +14,10 @@ func offlineGrantKey(appID, id string) string {
 	return fmt.Sprintf("app:%s:offline-grant:%s", appID, id)
 }
 
+func offlineGrantMutexName(appID, id string) string {
+	return fmt.Sprintf("app:%s:offline-grant-mutex:%s", appID, id)
+}
+
 func offlineGrantListKey(appID, userID string) string {
 	return fmt.Sprintf("app:%s:offline-grant-list:%s", appID, userID)
 }
