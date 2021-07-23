@@ -149,6 +149,7 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
     phone: {
       allowlist: [],
       pinned_list: [],
+      preselect_by_ip_disabled: false,
       modify_disabled:
         config.identity?.login_id?.keys?.find((a) => a.type === "phone")
           ?.modify_disabled ?? false,
@@ -290,6 +291,15 @@ function constructConfig(
       }
 
       const phoneConfig = config.ui.phone_input;
+      if (currentState.phone.preselect_by_ip_disabled === false) {
+        phoneConfig.preselect_by_ip_disabled = undefined;
+      } else if (
+        initialState.phone.preselect_by_ip_disabled !==
+        currentState.phone.preselect_by_ip_disabled
+      ) {
+        phoneConfig.preselect_by_ip_disabled =
+          currentState.phone.preselect_by_ip_disabled;
+      }
       // If the allowlist is the original one, we instead reset it to undefined.
       // This avoids the config storing the default value, and also
       // enable us to add more countries.
@@ -927,6 +937,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       </div>
     );
 
+    const onPhonePreselectByIPDisabledChange = useCallback(
+      (_, value?: boolean) => {
+        change((state) => {
+          state.phone.preselect_by_ip_disabled = !value;
+        });
+      },
+      [change]
+    );
     const onPhoneModifyDisabledChange = useCallback(
       (_, value?: boolean) => {
         change((state) => {
@@ -953,6 +971,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             onChange={onPhoneListChange}
           />
         </Widget>
+        <Checkbox
+          label={renderToString(
+            "LoginIDConfigurationScreen.phone.preselect-by-ip"
+          )}
+          className={styles.control}
+          checked={state.phone.preselect_by_ip_disabled !== true}
+          onChange={onPhonePreselectByIPDisabledChange}
+        />
         <Checkbox
           label={renderToString(
             "LoginIDConfigurationScreen.phone.modify-disabled"
