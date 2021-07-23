@@ -122,11 +122,13 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		panic(err)
 	}
 
-	requestIP := httputil.GetIP(r, bool(m.TrustProxy))
 	geoipCountryCode := ""
-	geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
-	if ok {
-		geoipCountryCode = geoipInfo.CountryCode
+	if !m.AuthUI.PhoneInput.PreselectByIPDisabled {
+		requestIP := httputil.GetIP(r, bool(m.TrustProxy))
+		geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
+		if ok {
+			geoipCountryCode = geoipInfo.CountryCode
+		}
 	}
 
 	model := BaseViewModel{
