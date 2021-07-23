@@ -84,6 +84,7 @@ type FlashMessage interface {
 }
 
 type BaseViewModeler struct {
+	TrustProxy            config.TrustProxy
 	OAuth                 *config.OAuthConfig
 	AuthUI                *config.UIConfig
 	AuthUIFeatureConfig   *config.UIFeatureConfig
@@ -121,8 +122,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		panic(err)
 	}
 
+	requestIP := httputil.GetIP(r, bool(m.TrustProxy))
 	geoipCountryCode := ""
-	geoipInfo, ok := geoip.DefaultDatabase.IPString(r.RemoteAddr)
+	geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
 	if ok {
 		geoipCountryCode = geoipInfo.CountryCode
 	}
