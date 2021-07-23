@@ -35,7 +35,8 @@ var _ = Schema.Add("PhoneInputConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"allowlist": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" }, "minItems": 1 },
-		"pinned_list": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" } }
+		"pinned_list": { "type": "array", "items": { "$ref": "#/$defs/ISO31661Alpha2" } },
+		"preselect_by_ip_disabled": { "type": "boolean" }
 	}
 }
 `)
@@ -43,8 +44,9 @@ var _ = Schema.Add("PhoneInputConfig", `
 var _ = Schema.Add("ISO31661Alpha2", phone.JSONSchemaString)
 
 type PhoneInputConfig struct {
-	AllowList  []string `json:"allowlist,omitempty"`
-	PinnedList []string `json:"pinned_list,omitempty"`
+	AllowList             []string `json:"allowlist,omitempty"`
+	PinnedList            []string `json:"pinned_list,omitempty"`
+	PreselectByIPDisabled bool     `json:"preselect_by_ip_disabled,omitempty"`
 }
 
 func (c *PhoneInputConfig) SetDefaults() {
