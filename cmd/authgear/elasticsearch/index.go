@@ -13,6 +13,8 @@ import (
 func CreateIndex(es *elasticsearch.Client) error {
 	// index_prefixes is only available on text.
 	// Therefore we have to store both keyword and text.
+	// Note that we have to specify the analyzer as "keyword"
+	// because we want elasticsearch to treat the whole field as a term.
 
 	// If we even need to adjust index_prefixes.min_chars,
 	// we have to make sure that PrefixMinChars in pkg/lib/elasticsearch is also updated.
@@ -29,6 +31,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 				"email": { "type": "keyword" },
 				"email_text": {
 					"type": "text",
+					"analyzer": "keyword",
 					"index_prefixes": {
 						"min_chars": 3,
 						"max_chars": 19
@@ -37,6 +40,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 				"email_local_part": { "type": "keyword" },
 				"email_local_part_text": {
 					"type": "text",
+					"analyzer": "keyword",
 					"index_prefixes": {
 						"min_chars": 3,
 						"max_chars": 10
@@ -45,6 +49,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 				"email_domain": { "type": "keyword" },
 				"email_domain_text": {
 					"type": "text",
+					"analyzer": "keyword",
 					"index_prefixes": {
 						"min_chars": 3,
 						"max_chars": 10
@@ -53,6 +58,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 				"preferred_username": { "type": "keyword" },
 				"preferred_username_text": {
 					"type": "text",
+					"analyzer": "keyword",
 					"index_prefixes": {
 						"min_chars": 3,
 						"max_chars": 19
@@ -61,6 +67,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 				"phone_number": { "type": "keyword" },
 				"phone_number_text": {
 					"type": "text",
+					"analyzer": "keyword",
 					"index_prefixes": {
 						"min_chars": 3,
 						"max_chars": 19
@@ -70,6 +77,7 @@ func CreateIndex(es *elasticsearch.Client) error {
 				"phone_number_national_number": { "type": "keyword" },
 				"phone_number_national_number_text": {
 					"type": "text",
+					"analyzer": "keyword",
 					"index_prefixes": {
 						"min_chars": 3,
 						"max_chars": 15
