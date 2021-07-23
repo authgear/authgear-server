@@ -347,24 +347,28 @@ func (s *Service) Create(info *identity.Info) error {
 		if err := s.LoginID.Create(i); err != nil {
 			return err
 		}
+		*info = *loginIDToIdentityInfo(i)
 
 	case authn.IdentityTypeOAuth:
 		i := oauthFromIdentityInfo(info)
 		if err := s.OAuth.Create(i); err != nil {
 			return err
 		}
+		*info = *s.toIdentityInfo(i)
 
 	case authn.IdentityTypeAnonymous:
 		i := anonymousFromIdentityInfo(info)
 		if err := s.Anonymous.Create(i); err != nil {
 			return err
 		}
+		*info = *anonymousToIdentityInfo(i)
 
 	case authn.IdentityTypeBiometric:
 		i := biometricFromIdentityInfo(info)
 		if err := s.Biometric.Create(i); err != nil {
 			return err
 		}
+		*info = *biometricToIdentityInfo(i)
 
 	default:
 		panic("identity: unknown identity type " + info.Type)
@@ -395,11 +399,15 @@ func (s *Service) Update(info *identity.Info) error {
 		if err := s.LoginID.Update(i); err != nil {
 			return err
 		}
+		*info = *loginIDToIdentityInfo(i)
+
 	case authn.IdentityTypeOAuth:
 		i := oauthFromIdentityInfo(info)
 		if err := s.OAuth.Update(i); err != nil {
 			return err
 		}
+		*info = *s.toIdentityInfo(i)
+
 	case authn.IdentityTypeAnonymous:
 		panic("identity: update no support for identity type " + info.Type)
 	case authn.IdentityTypeBiometric:
