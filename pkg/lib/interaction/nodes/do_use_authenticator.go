@@ -36,7 +36,7 @@ func (e *EdgeDoUseAuthenticator) Instantiate(ctx *interaction.Context, graph *in
 			if err != nil {
 				return nil, err
 			}
-			cookie := ctx.CookieFactory.ValueCookie(ctx.MFADeviceTokenCookie.Def, token)
+			cookie := ctx.CookieManager.ValueCookie(ctx.MFADeviceTokenCookie.Def, token)
 			n.DeviceTokenCookie = cookie
 		}
 	}

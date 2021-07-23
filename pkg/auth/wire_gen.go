@@ -112,15 +112,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	interactionLogger := interaction.NewLogger(factory)
 	featureConfig := config.FeatureConfig
@@ -352,13 +352,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:  store,
@@ -436,7 +436,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -556,7 +556,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -579,7 +579,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	authenticateURLProvider := &webapp.AuthenticateURLProvider{
@@ -596,7 +596,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppSessionTokens: store,
 		AppSessions:      store,
 		Clock:            clock,
-		CookieFactory:    cookieFactory,
+		Cookies:          cookieManager,
 		SessionCookie:    cookieDef2,
 		Pages:            webappService2,
 	}
@@ -925,14 +925,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         storeRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     storeRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:  store,
@@ -1017,7 +1017,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -1091,7 +1091,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                  request,
 		Database:                 sqlExecutor,
@@ -1118,7 +1118,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 provider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef,
@@ -1429,14 +1429,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -1825,14 +1825,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -2149,14 +2149,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -2477,14 +2477,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -2572,11 +2572,12 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	endSessionHandler := &handler2.EndSessionHandler{
-		Config:         oAuthConfig,
-		Endpoints:      endpointsProvider,
-		URLs:           urlProvider,
-		SessionManager: manager2,
-		SessionCookie:  cookieDef,
+		Config:           oAuthConfig,
+		Endpoints:        endpointsProvider,
+		URLs:             urlProvider,
+		SessionManager:   manager2,
+		SessionCookieDef: cookieDef,
+		Cookies:          cookieManager,
 	}
 	oauthEndSessionHandler := &oauth.EndSessionHandler{
 		Logger:            endSessionHandlerLogger,
@@ -2902,14 +2903,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         storeRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     storeRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:  store,
@@ -2994,7 +2995,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -3068,7 +3069,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                  request,
 		Database:                 sqlExecutor,
@@ -3095,7 +3096,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 provider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef,
@@ -3171,19 +3172,19 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -3425,13 +3426,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -3527,7 +3528,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -3647,7 +3648,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -3670,13 +3671,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -3742,19 +3743,19 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -3996,13 +3997,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -4098,7 +4099,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -4218,7 +4219,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -4241,13 +4242,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -4313,19 +4314,19 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -4567,13 +4568,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -4669,7 +4670,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -4789,7 +4790,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -4812,13 +4813,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -4884,19 +4885,19 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -5138,13 +5139,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -5240,7 +5241,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -5360,7 +5361,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -5383,13 +5384,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -5436,6 +5437,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		Users:                queries,
 		Identities:           serviceService,
+		Cookies:              cookieManager,
 	}
 	return selectAccountHandler
 }
@@ -5454,19 +5456,19 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -5708,13 +5710,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -5810,7 +5812,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -5930,7 +5932,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -5953,13 +5955,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -6018,19 +6020,19 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -6272,13 +6274,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -6374,7 +6376,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -6494,7 +6496,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -6517,13 +6519,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -6585,19 +6587,19 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -6839,13 +6841,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -6941,7 +6943,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -7061,7 +7063,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -7084,13 +7086,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -7155,19 +7157,19 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -7409,13 +7411,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -7511,7 +7513,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -7631,7 +7633,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -7654,13 +7656,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -7722,19 +7724,19 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -7976,13 +7978,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -8078,7 +8080,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -8198,7 +8200,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -8221,13 +8223,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -8288,19 +8290,19 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -8542,13 +8544,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -8644,7 +8646,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -8764,7 +8766,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -8787,13 +8789,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -8855,19 +8857,19 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -9109,13 +9111,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -9211,7 +9213,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -9331,7 +9333,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -9354,13 +9356,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -9423,19 +9425,19 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -9677,13 +9679,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -9779,7 +9781,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -9899,7 +9901,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -9922,13 +9924,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -9989,19 +9991,19 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -10243,13 +10245,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -10345,7 +10347,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -10465,7 +10467,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -10488,13 +10490,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -10555,19 +10557,19 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -10809,13 +10811,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -10911,7 +10913,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -11031,7 +11033,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -11054,13 +11056,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -11123,19 +11125,19 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -11377,13 +11379,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -11479,7 +11481,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -11599,7 +11601,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -11622,13 +11624,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -11689,19 +11691,19 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -11943,13 +11945,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -12045,7 +12047,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -12165,7 +12167,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -12188,13 +12190,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -12255,19 +12257,19 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -12509,13 +12511,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -12611,7 +12613,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -12731,7 +12733,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -12754,13 +12756,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -12824,19 +12826,19 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -13078,13 +13080,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -13180,7 +13182,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -13300,7 +13302,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -13323,13 +13325,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -13390,19 +13392,19 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -13644,13 +13646,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -13746,7 +13748,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -13866,7 +13868,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -13889,13 +13891,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -13961,19 +13963,19 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -14215,13 +14217,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -14317,7 +14319,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -14437,7 +14439,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -14460,13 +14462,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -14527,19 +14529,19 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -14781,13 +14783,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -14883,7 +14885,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -15003,7 +15005,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -15026,13 +15028,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -15094,19 +15096,19 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -15348,13 +15350,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -15450,7 +15452,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -15570,7 +15572,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -15593,13 +15595,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -15660,19 +15662,19 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -15914,13 +15916,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -16016,7 +16018,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -16136,7 +16138,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -16159,13 +16161,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -16245,19 +16247,19 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -16499,13 +16501,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -16601,7 +16603,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -16721,7 +16723,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -16744,13 +16746,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -16813,19 +16815,19 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -17067,13 +17069,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -17169,7 +17171,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -17289,7 +17291,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -17312,13 +17314,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -17380,19 +17382,19 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -17634,13 +17636,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -17736,7 +17738,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -17856,7 +17858,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -17879,13 +17881,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -17956,19 +17958,19 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -18210,13 +18212,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -18312,7 +18314,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -18432,7 +18434,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -18455,13 +18457,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -18523,19 +18525,19 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -18777,13 +18779,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -18879,7 +18881,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -18999,7 +19001,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -19022,13 +19024,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -19090,19 +19092,19 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -19344,13 +19346,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -19446,7 +19448,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -19566,7 +19568,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -19589,13 +19591,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -19658,19 +19660,19 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -19912,13 +19914,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -20014,7 +20016,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -20134,7 +20136,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -20157,13 +20159,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -20231,19 +20233,19 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -20485,13 +20487,13 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -20587,7 +20589,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -20707,7 +20709,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -20730,13 +20732,13 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -20798,19 +20800,19 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -21052,13 +21054,13 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -21154,7 +21156,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -21274,7 +21276,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -21297,13 +21299,13 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -21365,19 +21367,19 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -21619,13 +21621,13 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -21721,7 +21723,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -21841,7 +21843,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -21864,13 +21866,13 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -21931,19 +21933,19 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -22185,13 +22187,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -22287,7 +22289,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -22407,7 +22409,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -22430,13 +22432,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -22517,19 +22519,19 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -22771,13 +22773,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -22873,7 +22875,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -22993,7 +22995,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -23016,13 +23018,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -23083,19 +23085,19 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Redis: redisHandle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	signedUpCookieDef := webapp.NewSignedUpCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
 	authenticationConfig := appConfig.Authentication
-	cookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
+	cookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
+	errorCookieDef := webapp.NewErrorCookieDef()
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
 	context := deps.ProvideRequestContext(request)
@@ -23337,13 +23339,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieDef2 := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef2,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef2,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -23439,7 +23441,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -23559,7 +23561,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
@@ -23582,13 +23584,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SignedUpCookie:       signedUpCookieDef,
 		MFADeviceTokenCookie: cookieDef,
 		ErrorCookie:          errorCookie,
-		CookieFactory:        cookieFactory,
+		Cookies:              cookieManager,
 		Graph:                interactionService,
 	}
 	uiConfig := appConfig.UI
 	uiFeatureConfig := featureConfig.UI
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -23721,11 +23723,11 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
-	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	errorCookieDef := webapp.NewErrorCookieDef()
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	errorCookie := &webapp.ErrorCookie{
-		Cookie:        errorCookieDef,
-		CookieFactory: cookieFactory,
+		Cookie:  errorCookieDef,
+		Cookies: cookieManager,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -23745,7 +23747,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	clockClock := _wireSystemClockValue
 	flashMessage := &httputil.FlashMessage{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
 		TrustProxy:            trustProxy,
@@ -23850,14 +23852,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	httpConfig := appConfig.HTTP
 	sessionConfig := appConfig.Session
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	context := deps.ProvideRequestContext(request)
 	appID := appConfig.ID
 	handle := appProvider.Redis
@@ -23891,7 +23893,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Random:       idpsessionRand,
 	}
 	resolver := &idpsession.Resolver{
-		Cookie:     cookieDef,
+		Cookies:    cookieManager,
+		CookieDef:  cookieDef,
 		Provider:   provider,
 		TrustProxy: trustProxy,
 		Clock:      clockClock,
@@ -24147,11 +24150,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	idpsessionManager := &idpsession.Manager{
-		Store:         storeRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     storeRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:  store,
@@ -24203,13 +24206,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppSessions:        store,
 		AccessTokenDecoder: accessTokenEncoding,
 		Sessions:           provider,
-		SessionCookie:      cookieDef,
+		Cookies:            cookieManager,
+		SessionCookieDef:   cookieDef,
 		Clock:              clockClock,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
-		CookieFactory:              cookieFactory,
+		Cookies:                    cookieManager,
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,
@@ -24230,17 +24234,17 @@ func newWebAppSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Redis: handle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	sessionMiddleware := &webapp.SessionMiddleware{
-		States:        sessionStoreRedis,
-		Cookie:        sessionCookieDef,
-		CookieFactory: cookieFactory,
+		States:    sessionStoreRedis,
+		CookieDef: sessionCookieDef,
+		Cookies:   cookieManager,
 	}
 	return sessionMiddleware
 }
@@ -24251,9 +24255,12 @@ func newWebAppUILocalesMiddleware(p *deps.RequestProvider) httproute.Middleware 
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	uiLocalesMiddleware := &webapp.UILocalesMiddleware{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	return uiLocalesMiddleware
 }
@@ -24268,19 +24275,19 @@ func newWebAppClientIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Redis: handle,
 	}
-	httpConfig := appConfig.HTTP
-	sessionCookieDef := webapp.NewSessionCookieDef(httpConfig)
-	clientIDCookieDef := webapp.NewClientIDCookieDef(httpConfig)
+	sessionCookieDef := webapp.NewSessionCookieDef()
+	clientIDCookieDef := webapp.NewClientIDCookieDef()
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	clientIDMiddleware := &webapp.ClientIDMiddleware{
 		States:            sessionStoreRedis,
 		SessionCookieDef:  sessionCookieDef,
 		ClientIDCookieDef: clientIDCookieDef,
-		CookieFactory:     cookieFactory,
+		Cookies:           cookieManager,
 	}
 	return clientIDMiddleware
 }
@@ -24291,9 +24298,12 @@ func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Mid
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	weChatRedirectURIMiddleware := &webapp.WeChatRedirectURIMiddleware{
-		CookieFactory: cookieFactory,
+		Cookies: cookieManager,
 	}
 	return weChatRedirectURIMiddleware
 }

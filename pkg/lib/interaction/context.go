@@ -154,7 +154,7 @@ type VerificationCodeSender interface {
 	SendCode(code *verification.Code) error
 }
 
-type CookieFactory interface {
+type CookieManager interface {
 	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
@@ -206,7 +206,7 @@ type Context struct {
 	Challenges           ChallengeProvider
 	Users                UserService
 	Events               EventService
-	CookieFactory        CookieFactory
+	CookieManager        CookieManager
 	Sessions             SessionProvider
 	SessionManager       SessionManager
 	SessionCookie        session.CookieDef

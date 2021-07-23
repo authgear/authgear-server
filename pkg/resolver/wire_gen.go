@@ -83,14 +83,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
 	config := appProvider.Config
 	appConfig := config.AppConfig
-	httpConfig := appConfig.HTTP
 	sessionConfig := appConfig.Session
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	context := deps.ProvideRequestContext(request)
 	appID := appConfig.ID
 	handle := appProvider.Redis
@@ -124,7 +124,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Random:       rand,
 	}
 	resolver := &idpsession.Resolver{
-		Cookie:     cookieDef,
+		Cookies:    cookieManager,
+		CookieDef:  cookieDef,
 		Provider:   provider,
 		TrustProxy: trustProxy,
 		Clock:      clock,
@@ -376,11 +377,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	idpsessionManager := &idpsession.Manager{
-		Store:         storeRedis,
-		Clock:         clock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     storeRedis,
+		Clock:     clock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	sessionManager := &oauth2.SessionManager{
 		Store:  store,
@@ -432,13 +433,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppSessions:        store,
 		AccessTokenDecoder: accessTokenEncoding,
 		Sessions:           provider,
-		SessionCookie:      cookieDef,
+		Cookies:            cookieManager,
+		SessionCookieDef:   cookieDef,
 		Clock:              clock,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
-		CookieFactory:              cookieFactory,
+		Cookies:                    cookieManager,
 		IDPSessionResolver:         resolver,
 		AccessTokenSessionResolver: oauthResolver,
 		AccessEvents:               eventProvider,

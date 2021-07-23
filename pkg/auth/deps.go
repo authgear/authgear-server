@@ -46,7 +46,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
-	wire.Bind(new(webapp.CookieFactory), new(*httputil.CookieFactory)),
+	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
+	wire.Bind(new(handlerwebapp.CookieManager), new(*httputil.CookieManager)),
 
 	wire.NewSet(
 		wire.Struct(new(MainOriginProvider), "*"),

@@ -10,9 +10,11 @@ import (
 )
 
 type CookieDef struct {
-	Name              string
-	Path              string
-	Domain            string
+	// NameSuffix means the cookie could have prefix.
+	NameSuffix string
+	Path       string
+	// Domain is omitted because it is controlled somewhere else.
+	// Domain            string
 	AllowScriptAccess bool
 	SameSite          http.SameSite
 	MaxAge            *int
@@ -70,12 +72,14 @@ func CookieDomainFromETLDPlusOneWithoutPort(host string) string {
 	return host
 }
 
-type CookieFactory struct {
-	Request    *http.Request
-	TrustProxy bool
+type CookieManager struct {
+	Request      *http.Request
+	TrustProxy   bool
+	CookiePrefix string
+	CookieDomain string
 }
 
-func (f *CookieFactory) fixupCookie(cookie *http.Cookie) {
+func (f *CookieManager) fixupCookie(cookie *http.Cookie) {
 	host := GetHost(f.Request, f.TrustProxy)
 	proto := GetProto(f.Request, f.TrustProxy)
 
@@ -90,11 +94,23 @@ func (f *CookieFactory) fixupCookie(cookie *http.Cookie) {
 	}
 }
 
-func (f *CookieFactory) ValueCookie(def *CookieDef, value string) *http.Cookie {
+// CookieName returns the full name, that is, CookiePrefix followed by NameSuffix.
+func (f *CookieManager) CookieName(def *CookieDef) string {
+	return f.CookiePrefix + def.NameSuffix
+}
+
+// GetCookie is wrapper around http.Request.Cookie, taking care of cookie name.
+func (f *CookieManager) GetCookie(r *http.Request, def *CookieDef) (*http.Cookie, error) {
+	cookieName := f.CookieName(def)
+	return r.Cookie(cookieName)
+}
+
+// ValueCookie generates a cookie that when set, the cookie is set to the specified value.
+func (f *CookieManager) ValueCookie(def *CookieDef, value string) *http.Cookie {
 	cookie := &http.Cookie{
-		Name:     def.Name,
+		Name:     f.CookieName(def),
 		Path:     def.Path,
-		Domain:   def.Domain,
+		Domain:   f.CookieDomain,
 		HttpOnly: !def.AllowScriptAccess,
 		SameSite: def.SameSite,
 	}
@@ -109,11 +125,12 @@ func (f *CookieFactory) ValueCookie(def *CookieDef, value string) *http.Cookie {
 	return cookie
 }
 
-func (f *CookieFactory) ClearCookie(def *CookieDef) *http.Cookie {
+// ClearCookie generates a cookie that when set, the cookie is clear.
+func (f *CookieManager) ClearCookie(def *CookieDef) *http.Cookie {
 	cookie := &http.Cookie{
-		Name:     def.Name,
+		Name:     f.CookieName(def),
 		Path:     def.Path,
-		Domain:   def.Domain,
+		Domain:   f.CookieDomain,
 		HttpOnly: !def.AllowScriptAccess,
 		SameSite: def.SameSite,
 		Expires:  time.Unix(0, 0),

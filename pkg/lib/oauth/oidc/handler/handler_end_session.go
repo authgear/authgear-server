@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
@@ -15,20 +16,26 @@ type WebAppURLsProvider interface {
 	LogoutURL(redirectURI *url.URL) *url.URL
 	SettingsURL() *url.URL
 }
+
 type LogoutSessionManager interface {
 	Logout(session.Session, http.ResponseWriter) error
 }
 
+type CookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
+}
+
 type EndSessionHandler struct {
-	Config         *config.OAuthConfig
-	Endpoints      oidc.EndpointsProvider
-	URLs           WebAppURLsProvider
-	SessionManager LogoutSessionManager
-	SessionCookie  session.CookieDef
+	Config           *config.OAuthConfig
+	Endpoints        oidc.EndpointsProvider
+	URLs             WebAppURLsProvider
+	SessionManager   LogoutSessionManager
+	SessionCookieDef session.CookieDef
+	Cookies          CookieManager
 }
 
 func (h *EndSessionHandler) Handle(s session.Session, req protocol.EndSessionRequest, r *http.Request, rw http.ResponseWriter) error {
-	sameSiteStrict, err := r.Cookie(h.SessionCookie.SameSiteStrictDef.Name)
+	sameSiteStrict, err := h.Cookies.GetCookie(r, h.SessionCookieDef.SameSiteStrictDef)
 	if s != nil && err == nil && sameSiteStrict.Value == "true" {
 		// Logout directly.
 		err := h.SessionManager.Logout(s, rw)

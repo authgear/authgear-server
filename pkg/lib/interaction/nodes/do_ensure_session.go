@@ -41,7 +41,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 	attrs := session.NewAttrs(userID)
 	attrs.SetAMR(amr)
 	sessionToCreate, token := ctx.Sessions.MakeSession(attrs)
-	sessionCookie := ctx.CookieFactory.ValueCookie(ctx.SessionCookie.Def, token)
+	sessionCookie := ctx.CookieManager.ValueCookie(ctx.SessionCookie.Def, token)
 
 	var updateSessionID string
 	var updateSessionAMR []string
@@ -62,7 +62,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 		sessionCookie = nil
 	}
 
-	sameSiteStrictCookie := ctx.CookieFactory.ValueCookie(
+	sameSiteStrictCookie := ctx.CookieManager.ValueCookie(
 		ctx.SessionCookie.SameSiteStrictDef,
 		"true",
 	)

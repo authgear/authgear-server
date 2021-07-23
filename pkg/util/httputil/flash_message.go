@@ -1,38 +1,41 @@
 package httputil
 
-import "net/http"
+import (
+	"net/http"
+)
 
 // FlashMessageTypeCookieDef is a HTTP session cookie.
-var FlashMessageTypeCookieDef = CookieDef{
-	Name:     "flash_message_type",
-	Path:     "/",
-	SameSite: http.SameSiteNoneMode,
+var FlashMessageTypeCookieDef = &CookieDef{
+	NameSuffix: "flash_message_type",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
 }
 
-type CookieFactoryInterface interface {
+type FlashMessageCookieManager interface {
+	GetCookie(r *http.Request, def *CookieDef) (*http.Cookie, error)
 	ValueCookie(def *CookieDef, value string) *http.Cookie
 	ClearCookie(def *CookieDef) *http.Cookie
 }
 
 type FlashMessage struct {
-	CookieFactory CookieFactoryInterface
+	Cookies FlashMessageCookieManager
 }
 
 func (f *FlashMessage) Pop(r *http.Request, rw http.ResponseWriter) string {
-	cookie, err := r.Cookie(FlashMessageTypeCookieDef.Name)
+	cookie, err := f.Cookies.GetCookie(r, FlashMessageTypeCookieDef)
 	if err != nil {
 		return ""
 	}
 
 	messageType := cookie.Value
 
-	clearCookie := f.CookieFactory.ClearCookie(&FlashMessageTypeCookieDef)
+	clearCookie := f.Cookies.ClearCookie(FlashMessageTypeCookieDef)
 	UpdateCookie(rw, clearCookie)
 
 	return messageType
 }
 
 func (f *FlashMessage) Flash(rw http.ResponseWriter, messageType string) {
-	cookie := f.CookieFactory.ValueCookie(&FlashMessageTypeCookieDef, messageType)
+	cookie := f.Cookies.ValueCookie(FlashMessageTypeCookieDef, messageType)
 	UpdateCookie(rw, cookie)
 }

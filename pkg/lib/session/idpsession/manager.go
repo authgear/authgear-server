@@ -11,22 +11,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type CookieFactory interface {
+type CookieManager interface {
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
 type Manager struct {
-	Store         Store
-	Clock         clock.Clock
-	Config        *config.SessionConfig
-	CookieFactory CookieFactory
-	CookieDef     session.CookieDef
+	Store     Store
+	Clock     clock.Clock
+	Config    *config.SessionConfig
+	Cookies   CookieManager
+	CookieDef session.CookieDef
 }
 
 func (m *Manager) ClearCookie() []*http.Cookie {
 	return []*http.Cookie{
-		m.CookieFactory.ClearCookie(m.CookieDef.Def),
-		m.CookieFactory.ClearCookie(m.CookieDef.SameSiteStrictDef),
+		m.Cookies.ClearCookie(m.CookieDef.Def),
+		m.Cookies.ClearCookie(m.CookieDef.SameSiteStrictDef),
 	}
 }
 

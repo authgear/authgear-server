@@ -7,7 +7,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type CookieFactory interface {
+type CookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
 }
 
@@ -16,17 +17,17 @@ type CookieDef struct {
 	SameSiteStrictDef *httputil.CookieDef
 }
 
-func NewSessionCookieDef(httpCfg *config.HTTPConfig, sessionCfg *config.SessionConfig) CookieDef {
+func NewSessionCookieDef(sessionCfg *config.SessionConfig) CookieDef {
 	def := &httputil.CookieDef{
-		Name:     httpCfg.CookiePrefix + "session",
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
+		NameSuffix: "session",
+		Path:       "/",
+		SameSite:   http.SameSiteLaxMode,
 	}
 
 	strictDef := &httputil.CookieDef{
-		Name:     httpCfg.CookiePrefix + "same_site_strict",
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
+		NameSuffix: "same_site_strict",
+		Path:       "/",
+		SameSite:   http.SameSiteStrictMode,
 	}
 
 	if sessionCfg.CookieNonPersistent {
@@ -38,11 +39,6 @@ func NewSessionCookieDef(httpCfg *config.HTTPConfig, sessionCfg *config.SessionC
 		maxAge := int(sessionCfg.Lifetime)
 		def.MaxAge = &maxAge
 		strictDef.MaxAge = &maxAge
-	}
-
-	if httpCfg.CookieDomain != nil {
-		def.Domain = *httpCfg.CookieDomain
-		strictDef.Domain = *httpCfg.CookieDomain
 	}
 
 	return CookieDef{

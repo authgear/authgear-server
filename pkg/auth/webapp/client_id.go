@@ -11,7 +11,7 @@ type ClientIDMiddleware struct {
 	States            SessionMiddlewareStore
 	SessionCookieDef  SessionCookieDef
 	ClientIDCookieDef ClientIDCookieDef
-	CookieFactory     CookieFactory
+	Cookies           CookieManager
 }
 
 func (m *ClientIDMiddleware) Handle(next http.Handler) http.Handler {
@@ -21,7 +21,7 @@ func (m *ClientIDMiddleware) Handle(next http.Handler) http.Handler {
 		// Persist client_id into cookie.
 		// So that client_id no longer need to be present on the query.
 		if ok {
-			cookie := m.CookieFactory.ValueCookie(m.ClientIDCookieDef.Def, clientID)
+			cookie := m.Cookies.ValueCookie(m.ClientIDCookieDef.Def, clientID)
 			httputil.UpdateCookie(w, cookie)
 		}
 
@@ -47,7 +47,7 @@ func (m *ClientIDMiddleware) ReadClientID(r *http.Request) (clientID string, ok 
 		return
 	}
 
-	if cookie, err := r.Cookie(m.SessionCookieDef.Def.Name); err == nil {
+	if cookie, err := m.Cookies.GetCookie(r, m.SessionCookieDef.Def); err == nil {
 		if s, err := m.States.Get(cookie.Value); err == nil && s.ClientID != "" {
 			clientID = s.ClientID
 			ok = true
@@ -55,7 +55,7 @@ func (m *ClientIDMiddleware) ReadClientID(r *http.Request) (clientID string, ok 
 		}
 	}
 
-	if cookie, err := r.Cookie(m.ClientIDCookieDef.Def.Name); err == nil {
+	if cookie, err := m.Cookies.GetCookie(r, m.ClientIDCookieDef.Def); err == nil {
 		clientID = cookie.Value
 		ok = true
 		return

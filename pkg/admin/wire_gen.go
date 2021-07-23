@@ -373,14 +373,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger: storeRedisLogger,
 	}
 	sessionConfig := appConfig.Session
-	cookieFactory := deps.NewCookieFactory(request, trustProxy)
-	cookieDef := session.NewSessionCookieDef(httpConfig, sessionConfig)
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:         idpsessionStoreRedis,
-		Clock:         clockClock,
-		Config:        sessionConfig,
-		CookieFactory: cookieFactory,
-		CookieDef:     cookieDef,
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
@@ -548,7 +548,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
-		CookieFactory:  cookieFactory,
+		Cookies:        cookieManager,
 		Request:        request,
 		ResponseWriter: responseWriter,
 	}
@@ -577,7 +577,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:        clockClock,
 		Random:       rand,
 	}
-	mfaCookieDef := mfa.NewDeviceTokenCookieDef(httpConfig, authenticationConfig)
+	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                  request,
 		Database:                 sqlExecutor,
@@ -604,7 +604,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Challenges:               challengeProvider,
 		Users:                    userProvider,
 		Events:                   eventService,
-		CookieFactory:            cookieFactory,
+		CookieManager:            cookieManager,
 		Sessions:                 idpsessionProvider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef,

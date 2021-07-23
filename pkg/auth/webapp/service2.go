@@ -48,7 +48,7 @@ type Service2 struct {
 	SignedUpCookie       SignedUpCookieDef
 	MFADeviceTokenCookie mfa.CookieDef
 	ErrorCookie          *ErrorCookie
-	CookieFactory        CookieFactory
+	Cookies              CookieManager
 
 	Graph GraphService
 }
@@ -59,7 +59,7 @@ func (s *Service2) CreateSession(session *Session, redirectURI string) (*Result,
 	}
 	result := &Result{
 		RedirectURI: redirectURI,
-		Cookies:     []*http.Cookie{s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID)},
+		Cookies:     []*http.Cookie{s.Cookies.ValueCookie(s.SessionCookie.Def, session.ID)},
 	}
 	return result, nil
 }
@@ -164,7 +164,7 @@ func (s *Service2) doPost(
 		switch kind {
 		case SessionStepAuthenticate:
 			authDeviceToken := ""
-			if deviceTokenCookie, err := s.Request.Cookie(s.MFADeviceTokenCookie.Def.Name); err == nil {
+			if deviceTokenCookie, err := s.Cookies.GetCookie(s.Request, s.MFADeviceTokenCookie.Def); err == nil {
 				for _, edge := range edges {
 					if _, ok := edge.(*nodes.EdgeUseDeviceToken); ok {
 						authDeviceToken = deviceTokenCookie.Value
@@ -354,7 +354,7 @@ func (s *Service2) afterPost(
 			// Marked signed up in cookie after authorization.
 			// When user visit auth ui root "/", redirect user to "/login" if
 			// cookie exists
-			result.Cookies = append(result.Cookies, s.CookieFactory.ValueCookie(s.SignedUpCookie.Def, "true"))
+			result.Cookies = append(result.Cookies, s.Cookies.ValueCookie(s.SignedUpCookie.Def, "true"))
 		default:
 			// Use the default navigation action for any other intents.
 			// That is, "advance" will be used.
@@ -393,13 +393,13 @@ func (s *Service2) afterPost(
 		if err != nil {
 			return err
 		}
-		result.Cookies = append(result.Cookies, s.CookieFactory.ClearCookie(s.SessionCookie.Def))
+		result.Cookies = append(result.Cookies, s.Cookies.ClearCookie(s.SessionCookie.Def))
 	} else if isNewGraph {
 		err := s.Sessions.Create(session)
 		if err != nil {
 			return err
 		}
-		result.Cookies = append(result.Cookies, s.CookieFactory.ValueCookie(s.SessionCookie.Def, session.ID))
+		result.Cookies = append(result.Cookies, s.Cookies.ValueCookie(s.SessionCookie.Def, session.ID))
 	} else if interactionErr == nil {
 		err := s.Sessions.Update(session)
 		if err != nil {

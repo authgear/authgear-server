@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type ResolverSessionProvider interface {
@@ -18,6 +19,10 @@ type ResolverSessionProvider interface {
 
 type AccessTokenDecoder interface {
 	DecodeAccessToken(encodedToken string) (tok string, isHash bool, err error)
+}
+
+type ResolverCookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 }
 
 type Resolver struct {
@@ -29,7 +34,8 @@ type Resolver struct {
 	AppSessions        AppSessionStore
 	AccessTokenDecoder AccessTokenDecoder
 	Sessions           ResolverSessionProvider
-	SessionCookie      session.CookieDef
+	Cookies            ResolverCookieManager
+	SessionCookieDef   session.CookieDef
 	Clock              clock.Clock
 }
 
@@ -135,7 +141,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 }
 
 func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
-	cookie, err := r.Cookie(re.SessionCookie.Def.Name)
+	cookie, err := re.Cookies.GetCookie(r, re.SessionCookieDef.Def)
 	if err != nil {
 		// No session cookie. Simply proceed.
 		return nil, nil

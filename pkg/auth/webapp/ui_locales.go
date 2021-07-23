@@ -8,14 +8,14 @@ import (
 )
 
 // UILocalesCookieDef is a HTTP session cookie.
-var UILocalesCookieDef = httputil.CookieDef{
-	Name:     "ui_locales",
-	Path:     "/",
-	SameSite: http.SameSiteNoneMode,
+var UILocalesCookieDef = &httputil.CookieDef{
+	NameSuffix: "ui_locales",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
 }
 
 type UILocalesMiddleware struct {
-	CookieFactory CookieFactory
+	Cookies CookieManager
 }
 
 func (m *UILocalesMiddleware) Handle(next http.Handler) http.Handler {
@@ -26,13 +26,13 @@ func (m *UILocalesMiddleware) Handle(next http.Handler) http.Handler {
 		// Persist ui_locales into cookie.
 		// So that ui_locales no longer need to be present on the query.
 		if uiLocales != "" {
-			cookie := m.CookieFactory.ValueCookie(&UILocalesCookieDef, uiLocales)
+			cookie := m.Cookies.ValueCookie(UILocalesCookieDef, uiLocales)
 			httputil.UpdateCookie(w, cookie)
 		}
 
 		// Restore ui_locales from cookie
 		if uiLocales == "" {
-			cookie, err := r.Cookie(UILocalesCookieDef.Name)
+			cookie, err := m.Cookies.GetCookie(r, UILocalesCookieDef)
 			if err == nil {
 				uiLocales = cookie.Value
 			}
