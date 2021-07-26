@@ -2,52 +2,39 @@ package secrets
 
 import (
 	"crypto/rsa"
-	"encoding/base32"
-	"io"
+	mathrand "math/rand"
 
 	"github.com/lestrrat-go/jwx/jwk"
 
+	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-func GenerateKeyID(rand io.Reader) string {
-	id := make([]byte, 16)
-	_, err := rand.Read(id)
-	if err != nil {
-		panic(err)
-	}
+// Alphabet is an alphabet for secret.
+// Secret is not intended to be manually entered by human.
+const Alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 
-	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(id)
+func GenerateSecret(length int, rng *mathrand.Rand) string {
+	return rand.StringWithAlphabet(length, Alphabet, rng)
 }
 
-func GenerateOctetKey(rand io.Reader) jwk.Key {
-	key := make([]byte, 32)
-
-	_, err := rand.Read(key)
-	if err != nil {
-		panic(err)
-	}
+func GenerateOctetKey(rng *mathrand.Rand) jwk.Key {
+	key := []byte(GenerateSecret(32, rng))
 
 	jwkKey, err := jwk.New(key)
 	if err != nil {
 		panic(err)
 	}
 
-	id := make([]byte, 16)
-	_, err = rand.Read(id)
-	if err != nil {
-		panic(err)
-	}
-
-	_ = jwkKey.Set(jwk.KeyIDKey, GenerateKeyID(rand))
+	_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
 	_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
 	_ = jwkKey.Set(jwk.AlgorithmKey, "HS256")
 
 	return jwkKey
 }
 
-func GenerateRSAKey(rand io.Reader) jwk.Key {
-	privateKey, err := rsa.GenerateKey(rand, 2048)
+func GenerateRSAKey(rng *mathrand.Rand) jwk.Key {
+	privateKey, err := rsa.GenerateKey(rng, 2048)
 	if err != nil {
 		panic(err)
 	}

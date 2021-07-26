@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"io"
+	mathrand "math/rand"
 
 	"github.com/lestrrat-go/jwx/jwk"
 
@@ -33,7 +33,7 @@ type GenerateSecretConfigOptions struct {
 	RedisURL         string
 }
 
-func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rand io.Reader) *SecretConfig {
+func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rng *mathrand.Rand) *SecretConfig {
 	var items []SecretItem
 
 	if opts.DatabaseURL != "" {
@@ -64,22 +64,22 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rand io.
 
 	items = append(items, SecretItem{
 		Key:  OAuthKeyMaterialsKey,
-		Data: &OAuthKeyMaterials{Set: wrapInSet(secrets.GenerateRSAKey(rand))},
+		Data: &OAuthKeyMaterials{Set: wrapInSet(secrets.GenerateRSAKey(rng))},
 	})
 
 	items = append(items, SecretItem{
 		Key:  CSRFKeyMaterialsKey,
-		Data: &CSRFKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(rand))},
+		Data: &CSRFKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(rng))},
 	})
 
 	items = append(items, SecretItem{
 		Key:  WebhookKeyMaterialsKey,
-		Data: &WebhookKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(rand))},
+		Data: &WebhookKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(rng))},
 	})
 
 	items = append(items, SecretItem{
 		Key:  AdminAPIAuthKeyKey,
-		Data: &AdminAPIAuthKey{Set: wrapInSet(secrets.GenerateRSAKey(rand))},
+		Data: &AdminAPIAuthKey{Set: wrapInSet(secrets.GenerateRSAKey(rng))},
 	})
 
 	marshalSecretData(items)
