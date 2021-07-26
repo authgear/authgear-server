@@ -30,12 +30,12 @@ func (r *mockResolverProvider) AccessWithToken(token string, accessEvent access.
 
 func TestResolver(t *testing.T) {
 	Convey("Resolver", t, func() {
+		cookieManager := &httputil.CookieManager{}
 		cookie := session.CookieDef{
 			Def: &httputil.CookieDef{
-				Name:   "session",
-				Path:   "/",
-				Domain: "app.test",
-				MaxAge: nil,
+				NameSuffix: "session",
+				Path:       "/",
+				MaxAge:     nil,
 			},
 		}
 		provider := &mockResolverProvider{}
@@ -50,7 +50,8 @@ func TestResolver(t *testing.T) {
 		}
 
 		resolver := Resolver{
-			Cookie:     cookie,
+			Cookies:    cookieManager,
+			CookieDef:  cookie,
 			Provider:   provider,
 			TrustProxy: true,
 			Clock:      clock.NewMockClock(),

@@ -47,6 +47,7 @@ type SelectAccountHandler struct {
 	SignedUpCookie       webapp.SignedUpCookieDef
 	Users                SelectAccountUserService
 	Identities           SelectAccountIdentityService
+	Cookies              CookieManager
 }
 
 func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
@@ -92,7 +93,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	}
 	gotoSignupOrLogin := func() {
-		signedUpCookie, err := r.Cookie(h.SignedUpCookie.Def.Name)
+		signedUpCookie, err := h.Cookies.GetCookie(r, h.SignedUpCookie.Def)
 		signedUp := (err == nil && signedUpCookie.Value == "true")
 		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
 		http.Redirect(w, r, path, http.StatusFound)

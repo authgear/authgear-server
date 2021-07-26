@@ -11,19 +11,15 @@ type CookieDef struct {
 	Def *httputil.CookieDef
 }
 
-func NewDeviceTokenCookieDef(httpCfg *config.HTTPConfig, cfg *config.AuthenticationConfig) CookieDef {
+func NewDeviceTokenCookieDef(cfg *config.AuthenticationConfig) CookieDef {
 	def := &httputil.CookieDef{
-		Name:     httpCfg.CookiePrefix + "mfa_device_token",
-		Path:     "/",
-		SameSite: http.SameSiteStrictMode,
+		NameSuffix: "mfa_device_token",
+		Path:       "/",
+		SameSite:   http.SameSiteStrictMode,
 	}
 
 	maxAge := int(cfg.DeviceToken.ExpireIn.Duration().Seconds())
 	def.MaxAge = &maxAge
-
-	if httpCfg.CookieDomain != nil {
-		def.Domain = *httpCfg.CookieDomain
-	}
 
 	return CookieDef{Def: def}
 }

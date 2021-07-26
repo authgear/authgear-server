@@ -12,9 +12,9 @@ type SessionMiddlewareStore interface {
 }
 
 type SessionMiddleware struct {
-	States        SessionMiddlewareStore
-	Cookie        SessionCookieDef
-	CookieFactory CookieFactory
+	States    SessionMiddlewareStore
+	CookieDef SessionCookieDef
+	Cookies   CookieManager
 }
 
 func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
@@ -26,7 +26,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 			return
 		} else if errors.Is(err, ErrInvalidSession) {
 			// Clear the session before continuing
-			cookie := m.CookieFactory.ClearCookie(m.Cookie.Def)
+			cookie := m.Cookies.ClearCookie(m.CookieDef.Def)
 			httputil.UpdateCookie(w, cookie)
 			next.ServeHTTP(w, r)
 			return
@@ -41,7 +41,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *SessionMiddleware) loadSession(r *http.Request) (*Session, error) {
-	cookie, err := r.Cookie(m.Cookie.Def.Name)
+	cookie, err := m.Cookies.GetCookie(r, m.CookieDef.Def)
 	if err != nil {
 		return nil, ErrSessionNotFound
 	}

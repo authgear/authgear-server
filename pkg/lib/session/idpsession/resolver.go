@@ -8,21 +8,27 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type resolverProvider interface {
 	AccessWithToken(token string, accessEvent access.Event) (*IDPSession, error)
 }
 
+type ResolverCookieManager interface {
+	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
+}
+
 type Resolver struct {
-	Cookie     session.CookieDef
+	Cookies    ResolverCookieManager
+	CookieDef  session.CookieDef
 	Provider   resolverProvider
 	TrustProxy config.TrustProxy
 	Clock      clock.Clock
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
-	cookie, err := r.Cookie(re.Cookie.Def.Name)
+	cookie, err := re.Cookies.GetCookie(r, re.CookieDef.Def)
 	if err != nil {
 		// No cookie. Simply proceed.
 		return nil, nil

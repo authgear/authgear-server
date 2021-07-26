@@ -29,10 +29,6 @@ type LoginHintPageService interface {
 	PostWithIntent(session *Session, intent interaction.Intent, inputFn func() (interface{}, error)) (*Result, error)
 }
 
-type LoginHintCookieFactory interface {
-	ValueCookie(def *httputil.CookieDef, value string) *http.Cookie
-}
-
 type LoginHintHandler struct {
 	Config           *config.OAuthConfig
 	Anonymous        AnonymousIdentityProvider
@@ -40,7 +36,7 @@ type LoginHintHandler struct {
 	AppSessionTokens oauth.AppSessionTokenStore
 	AppSessions      oauth.AppSessionStore
 	Clock            clock.Clock
-	CookieFactory    CookieFactory
+	Cookies          CookieManager
 	SessionCookie    session.CookieDef
 	Pages            LoginHintPageService
 }
@@ -104,7 +100,7 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 			return nil, nil
 		}
 
-		cookie := r.CookieFactory.ValueCookie(r.SessionCookie.Def, token)
+		cookie := r.Cookies.ValueCookie(r.SessionCookie.Def, token)
 		return &Result{
 			Cookies:     []*http.Cookie{cookie},
 			RedirectURI: options.OriginalRedirectURI,

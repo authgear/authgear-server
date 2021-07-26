@@ -28,7 +28,7 @@ func NewMiddlewareLogger(lf *log.Factory) MiddlewareLogger {
 
 type Middleware struct {
 	SessionCookie              CookieDef
-	CookieFactory              CookieFactory
+	Cookies                    CookieManager
 	IDPSessionResolver         IDPSessionResolver
 	AccessTokenSessionResolver AccessTokenSessionResolver
 	AccessEvents               *access.EventProvider
@@ -43,8 +43,8 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 
 		if errors.Is(err, ErrInvalidSession) {
 			// Clear invalid session cookie if exist
-			if _, err := r.Cookie(m.SessionCookie.Def.Name); err == nil {
-				cookie := m.CookieFactory.ClearCookie(m.SessionCookie.Def)
+			if _, err := m.Cookies.GetCookie(r, m.SessionCookie.Def); err == nil {
+				cookie := m.Cookies.ClearCookie(m.SessionCookie.Def)
 				httputil.UpdateCookie(rw, cookie)
 			}
 

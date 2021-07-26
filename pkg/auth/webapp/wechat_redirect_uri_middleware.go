@@ -8,21 +8,21 @@ import (
 )
 
 // WeChatRedirectURICookieDef is a HTTP session cookie.
-var WeChatRedirectURICookieDef = httputil.CookieDef{
-	Name:     "wechat_redirect_uri",
-	Path:     "/",
-	SameSite: http.SameSiteNoneMode,
+var WeChatRedirectURICookieDef = &httputil.CookieDef{
+	NameSuffix: "wechat_redirect_uri",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
 }
 
 // PlatformCookieDef is a HTTP session cookie.
-var PlatformCookieDef = httputil.CookieDef{
-	Name:     "platform",
-	Path:     "/",
-	SameSite: http.SameSiteNoneMode,
+var PlatformCookieDef = &httputil.CookieDef{
+	NameSuffix: "platform",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
 }
 
 type WeChatRedirectURIMiddleware struct {
-	CookieFactory CookieFactory
+	Cookies CookieManager
 }
 
 func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
@@ -33,13 +33,13 @@ func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
 
 		// Persist weChatRedirectURI.
 		if weChatRedirectURI != "" {
-			cookie := m.CookieFactory.ValueCookie(&WeChatRedirectURICookieDef, weChatRedirectURI)
+			cookie := m.Cookies.ValueCookie(WeChatRedirectURICookieDef, weChatRedirectURI)
 			httputil.UpdateCookie(w, cookie)
 		}
 
 		// Restore weChatRedirectURI from cookie
 		if weChatRedirectURI == "" {
-			cookie, err := r.Cookie(WeChatRedirectURICookieDef.Name)
+			cookie, err := m.Cookies.GetCookie(r, WeChatRedirectURICookieDef)
 			if err == nil {
 				weChatRedirectURI = cookie.Value
 			}
@@ -54,12 +54,12 @@ func (m *WeChatRedirectURIMiddleware) Handle(next http.Handler) http.Handler {
 		// Repeat the steps for platform
 		platform := q.Get("x_platform")
 		if platform != "" {
-			cookie := m.CookieFactory.ValueCookie(&PlatformCookieDef, platform)
+			cookie := m.Cookies.ValueCookie(PlatformCookieDef, platform)
 			httputil.UpdateCookie(w, cookie)
 		}
 
 		if platform == "" {
-			cookie, err := r.Cookie(PlatformCookieDef.Name)
+			cookie, err := m.Cookies.GetCookie(r, PlatformCookieDef)
 			if err == nil {
 				platform = cookie.Value
 			}
