@@ -267,6 +267,7 @@ export interface VerificationConfig {
 export interface PhoneInputConfig {
   allowlist?: string[];
   pinned_list?: string[];
+  preselect_by_ip_disabled?: boolean;
 }
 
 export interface UIConfig {

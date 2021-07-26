@@ -300,6 +300,7 @@
   "LoginIDConfigurationScreen.username.caseSensitive": "Case Sensitive",
   "LoginIDConfigurationScreen.username.asciiOnly": "ASCII Only",
   "LoginIDConfigurationScreen.phone.title": "Phone Number",
+  "LoginIDConfigurationScreen.phone.preselect-by-ip": "Pre-select the country calling code by the IP address of the user",
   "LoginIDConfigurationScreen.phone.modify-disabled": "Forbid the user to add, update, or delete phone number after signup",
   "LoginIDConfigurationScreen.phone.columns.active": "Active",
   "LoginIDConfigurationScreen.phone.columns.country-or-area": "Country / Area",

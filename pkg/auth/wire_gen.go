@@ -3679,6 +3679,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -4249,6 +4250,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -4819,6 +4821,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -5389,6 +5392,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -5958,6 +5962,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -6521,6 +6526,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -7087,6 +7093,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -7656,6 +7663,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -8222,6 +8230,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -8787,6 +8796,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -9353,6 +9363,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -9920,6 +9931,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -10485,6 +10497,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -11050,6 +11063,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -11617,6 +11631,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -12182,6 +12197,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -12747,6 +12763,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -13315,6 +13332,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -13880,6 +13898,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -14450,6 +14469,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -15015,6 +15035,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -15581,6 +15602,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -16146,6 +16168,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -16730,6 +16753,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -17297,6 +17321,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -17863,6 +17888,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -18438,6 +18464,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -19004,6 +19031,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -19570,6 +19598,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -20137,6 +20166,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -20709,6 +20739,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -21275,6 +21306,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -21841,6 +21873,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -22406,6 +22439,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -22991,6 +23025,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -23556,6 +23591,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,
@@ -23661,6 +23697,9 @@ func newPanicAPIMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	oAuthConfig := appConfig.OAuth
@@ -23671,8 +23710,6 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	context := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
@@ -23685,7 +23722,6 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	forgotPasswordConfig := appConfig.ForgotPassword
 	authenticationConfig := appConfig.Authentication
 	errorCookieDef := webapp.NewErrorCookieDef(httpConfig)
-	trustProxy := environmentConfig.TrustProxy
 	cookieFactory := deps.NewCookieFactory(request, trustProxy)
 	errorCookie := &webapp.ErrorCookie{
 		Cookie:        errorCookieDef,
@@ -23712,6 +23748,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		CookieFactory: cookieFactory,
 	}
 	baseViewModeler := &viewmodels.BaseViewModeler{
+		TrustProxy:            trustProxy,
 		OAuth:                 oAuthConfig,
 		AuthUI:                uiConfig,
 		AuthUIFeatureConfig:   uiFeatureConfig,

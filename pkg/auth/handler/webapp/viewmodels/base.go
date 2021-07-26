@@ -84,6 +84,7 @@ type FlashMessage interface {
 }
 
 type BaseViewModeler struct {
+	TrustProxy            config.TrustProxy
 	OAuth                 *config.OAuthConfig
 	AuthUI                *config.UIConfig
 	AuthUIFeatureConfig   *config.UIFeatureConfig
@@ -122,9 +123,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	}
 
 	geoipCountryCode := ""
-	geoipInfo, ok := geoip.DefaultDatabase.IPString(r.RemoteAddr)
-	if ok {
-		geoipCountryCode = geoipInfo.CountryCode
+	if !m.AuthUI.PhoneInput.PreselectByIPDisabled {
+		requestIP := httputil.GetIP(r, bool(m.TrustProxy))
+		geoipInfo, ok := geoip.DefaultDatabase.IPString(requestIP)
+		if ok {
+			geoipCountryCode = geoipInfo.CountryCode
+		}
 	}
 
 	model := BaseViewModel{
