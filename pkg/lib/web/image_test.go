@@ -135,6 +135,29 @@ func TestTemplateResource(t *testing.T) {
 			So(asset.Data, ShouldResemble, pngA)
 		})
 
+		Convey("it should use fallback language in the app fs first", func() {
+			writeFile(fsA, "en", ".png", pngA)
+			writeFile(fsB, "jp", ".png", pngB)
+
+			asset, err := read(resource.EffectiveResource{
+				SupportedTags: []string{"en", "jp"},
+				DefaultTag:    "jp",
+				PreferredTags: []string{"en"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/jp/myimage.png")
+			So(asset.Data, ShouldResemble, pngB)
+
+			asset, err = read(resource.EffectiveResource{
+				SupportedTags: []string{"jp", "zh"},
+				DefaultTag:    "jp",
+				PreferredTags: []string{"fr"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/jp/myimage.png")
+			So(asset.Data, ShouldResemble, pngB)
+		})
+
 		Convey("it should disallow duplicate resource", func() {
 			writeFile(fsA, "en", ".png", pngA)
 			writeFile(fsB, "en", ".png", pngB)

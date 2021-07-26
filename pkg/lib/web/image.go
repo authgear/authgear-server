@@ -14,6 +14,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
+var imageResolveFsLevelPriority = []resource.FsLevel{
+	resource.FsLevelApp, resource.FsLevelCustom, resource.FsLevelBuiltin,
+}
+
 type languageImage struct {
 	LanguageTag     string
 	RealLanguageTag string
@@ -151,16 +155,25 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
 
-	images := make(map[string]intlresource.LanguageItem)
+	var fallbackImage *languageImage
+	images := make(map[resource.FsLevel]map[string]intlresource.LanguageItem)
 	extractLanguageTag := func(resrc resource.ResourceFile) string {
 		langTag := imageRegex.FindStringSubmatch(resrc.Location.Path)[1]
 		return langTag
 	}
 	add := func(langTag string, resrc resource.ResourceFile) error {
-		images[langTag] = languageImage{
+		fsLevel := resrc.Location.Fs.GetFsLevel()
+		i := languageImage{
 			LanguageTag:     langTag,
 			RealLanguageTag: extractLanguageTag(resrc),
 			Data:            resrc.Data,
+		}
+		if images[fsLevel] == nil {
+			images[fsLevel] = make(map[string]intlresource.LanguageItem)
+		}
+		images[fsLevel][langTag] = i
+		if fallbackImage == nil {
+			fallbackImage = &i
 		}
 		return nil
 	}
@@ -170,22 +183,36 @@ func (a ImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile
 		return nil, err
 	}
 
-	var items []intlresource.LanguageItem
-	for _, i := range images {
-		items = append(items, i)
+	var matched intlresource.LanguageItem
+	for _, fsLevel := range imageResolveFsLevelPriority {
+		var items []intlresource.LanguageItem
+		imagesInFsLevel, ok := images[fsLevel]
+		if !ok {
+			continue
+		}
+
+		for _, i := range imagesInFsLevel {
+			items = append(items, i)
+		}
+
+		matched, err = intlresource.Match(preferredLanguageTags, defaultLanguageTag, items)
+		if err == nil {
+			break
+		} else if errors.Is(err, intlresource.ErrNoLanguageMatch) {
+			continue
+		} else {
+			return nil, err
+		}
 	}
 
-	matched, err := intlresource.Match(preferredLanguageTags, defaultLanguageTag, items)
-	if errors.Is(err, intlresource.ErrNoLanguageMatch) {
-		if len(items) > 0 {
+	if matched == nil {
+		if fallbackImage != nil {
 			// Use first item in case of no match, to ensure resolution always succeed
-			matched = items[0]
+			matched = fallbackImage
 		} else {
 			// If no configured translation, fail the resolution process
 			return nil, resource.ErrResourceNotFound
 		}
-	} else if err != nil {
-		return nil, err
 	}
 
 	tagger := matched.(languageImage)
