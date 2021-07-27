@@ -38,7 +38,6 @@ func (c *Controller) Start() {
 		cfg.DomainImplementation,
 		&cfg.Search,
 		&cfg.AuditLog,
-		cfg.App.SecretKeyAllowlist,
 	)
 	if err != nil {
 		golog.Fatalf("failed to setup server: %s", err)

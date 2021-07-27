@@ -36,8 +36,6 @@ type RootProvider struct {
 	ConfigSourceController *configsource.Controller
 	Resources              *resource.Manager
 	AppBaseResources       *resource.Manager
-
-	SecretKeyAllowlist portalconfig.SecretKeyAllowlist
 }
 
 func NewRootProvider(
@@ -57,7 +55,6 @@ func NewRootProvider(
 	domainImplementation portalconfig.DomainImplementationType,
 	searchConfig *portalconfig.SearchConfig,
 	auditLogConfig *portalconfig.AuditLogConfig,
-	secretKeyAllowlist portalconfig.SecretKeyAllowlist,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -101,7 +98,6 @@ func NewRootProvider(
 			appBuiltinResourceDirectory,
 			appCustomResourceDirectory,
 		),
-		SecretKeyAllowlist: secretKeyAllowlist,
 	}, nil
 }
 
