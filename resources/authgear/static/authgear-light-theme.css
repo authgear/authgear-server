@@ -184,7 +184,7 @@
 }
 
 .primary-btn {
-  color: var(--color-background-unshaded);
+  color: var(--color-white-shaded-8);
   background-color: var(--color-primary-unshaded);
 }
 .primary-btn:hover, .primary-btn:focus {

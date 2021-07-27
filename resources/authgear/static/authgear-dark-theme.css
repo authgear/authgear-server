@@ -88,7 +88,7 @@
 
 @media (prefers-color-scheme: dark) {
   .primary-btn {
-    color: var(--color-text-unshaded);
+    color: var(--color-white-shaded-8);
     background-color: var(--color-primary-unshaded);
   }
   .primary-btn:hover, .primary-btn:focus {
