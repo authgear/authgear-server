@@ -2,10 +2,12 @@ package graphql
 
 import (
 	"context"
+	"errors"
 
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -57,7 +59,14 @@ var nodeApp = node(
 					var paths []string
 					if argPaths, ok := p.Args["paths"]; ok {
 						for _, path := range argPaths.([]interface{}) {
-							paths = append(paths, path.(string))
+							path := path.(string)
+							if path == configsource.AuthgearYAML {
+								return nil, errors.New("direct access on authgear.yaml is disallowed")
+							}
+							if path == configsource.AuthgearSecretYAML {
+								return nil, errors.New("direct access on authgear.secrets.yaml is disallowed")
+							}
+							paths = append(paths, path)
 						}
 					}
 
