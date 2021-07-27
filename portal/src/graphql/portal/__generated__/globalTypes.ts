@@ -15,6 +15,15 @@ export interface AppResourceUpdate {
   path: string;
 }
 
+export interface OauthClientSecretInput {
+  alias: string;
+  clientSecret: string;
+}
+
+export interface SecretConfigInput {
+  oauthClientSecrets?: OauthClientSecretInput[] | null;
+}
+
 //==============================================================
 // END Enums and Input Objects
 //==============================================================

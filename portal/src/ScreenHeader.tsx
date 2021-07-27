@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import authgear from "@authgear/web";
 import { Icon, IconButton, Text, Link as FluentUILink } from "@fluentui/react";
-import { useAppConfigQuery } from "./graphql/portal/query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 
 import styles from "./ScreenHeader.module.scss";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -19,7 +19,7 @@ const iconProps = {
 const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> =
   function ScreenHeaderAppSection(props: ScreenHeaderAppSectionProps) {
     const { appID } = props;
-    const { effectiveAppConfig, loading } = useAppConfigQuery(appID);
+    const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
     const { appHostSuffix, themes } = useSystemConfig();
 
     const rawAppID = effectiveAppConfig?.id;

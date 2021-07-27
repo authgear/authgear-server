@@ -18,8 +18,7 @@ import {
 import {
   createOAuthSSOProviderItemKey,
   isOAuthSSOProvider,
-  OAuthClientCredentialItem,
-  OAuthSecretItem,
+  OAuthClientSecret,
   OAuthSSOFeatureConfig,
   OAuthSSOProviderConfig,
   OAuthSSOProviderFeatureConfig,
@@ -36,7 +35,7 @@ import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface SSOProviderFormState {
   config: OAuthSSOProviderConfig;
-  secret: OAuthClientCredentialItem;
+  secret: OAuthClientSecret;
 }
 
 interface FormState {
@@ -49,14 +48,9 @@ function constructFormState(
   secretConfig: PortalAPISecretConfig
 ): FormState {
   const providerList = appConfig.identity?.oauth?.providers ?? [];
-  const secretMap = new Map<string, OAuthClientCredentialItem>();
-  for (const item of secretConfig.secrets) {
-    if (item.key === "sso.oauth.client") {
-      for (const clientSecret of item.data.items) {
-        secretMap.set(clientSecret.alias, clientSecret);
-      }
-      break;
-    }
+  const secretMap = new Map<string, OAuthClientSecret>();
+  for (const item of secretConfig.oauthClientSecrets ?? []) {
+    secretMap.set(item.alias, item);
   }
 
   const providers: SSOProviderFormState[] = [];
@@ -65,7 +59,7 @@ function constructFormState(
       config,
       secret: secretMap.get(config.alias) ?? {
         alias: config.alias,
-        client_secret: "",
+        clientSecret: "",
       },
     });
   }
@@ -88,13 +82,13 @@ function constructFormState(
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  secrets: PortalAPISecretConfig,
+  secretConfig: PortalAPISecretConfig,
   initialState: FormState,
   currentState: FormState,
   effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
   // eslint-disable-next-line complexity
-  return produce([config, secrets], ([config, { secrets }]) => {
+  return produce([config, secretConfig], ([config, secretConfig]) => {
     const providers = currentState.providers.filter(
       (p) =>
         currentState.isEnabled[
@@ -103,7 +97,7 @@ function constructConfig(
     );
 
     const configs: OAuthSSOProviderConfig[] = [];
-    const clientSecrets: OAuthClientCredentialItem[] = [];
+    const clientSecrets: OAuthClientSecret[] = [];
     for (const p of providers) {
       configs.push(p.config);
       clientSecrets.push(p.secret);
@@ -113,21 +107,7 @@ function constructConfig(
     config.identity.oauth ??= {};
     config.identity.oauth.providers = configs;
 
-    const secretItem: OAuthSecretItem = {
-      key: "sso.oauth.client",
-      data: { items: clientSecrets },
-    };
-
-    const secretIndex = secrets.findIndex((s) => s.key === "sso.oauth.client");
-    if (clientSecrets.length === 0) {
-      if (secretIndex >= 0) {
-        secrets.splice(secretIndex, 1);
-      }
-    } else if (secretIndex >= 0) {
-      secrets[secretIndex] = secretItem;
-    } else {
-      secrets.push(secretItem);
-    }
+    secretConfig.oauthClientSecrets = clientSecrets;
 
     function hasOAuthProviders(s: FormState) {
       return Object.values(s.isEnabled).some(Boolean);
@@ -186,7 +166,7 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> =
       return providerConfig?.disabled ?? false;
     }, [oauthSSOFeatureConfig, providerType]);
 
-    const provider = useMemo(
+    const provider = useMemo<SSOProviderFormState>(
       () =>
         providers.find((p) =>
           isOAuthSSOProvider(p.config, providerType, appType)
@@ -198,7 +178,7 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> =
           },
           secret: {
             alias: defaultAlias(providerType, appType),
-            client_secret: "",
+            clientSecret: "",
           },
         },
       [providers, providerType, appType]
@@ -237,7 +217,7 @@ const OAuthClientItem: React.FC<OAuthClientItemProps> =
     );
 
     const onChange = useCallback(
-      (config: OAuthSSOProviderConfig, secret: OAuthClientCredentialItem) =>
+      (config: OAuthSSOProviderConfig, secret: OAuthClientSecret) =>
         setState((state) =>
           produce(state, (state) => {
             const index = state.providers.findIndex((p) =>

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import deepEqual from "deep-equal";
-import { useAppConfigQuery } from "../graphql/portal/query/appConfigQuery";
-import { useUpdateAppConfigMutation } from "../graphql/portal/mutations/updateAppConfigMutation";
+import { useAppAndSecretConfigQuery } from "../graphql/portal/query/appAndSecretConfigQuery";
+import { useUpdateAppAndSecretConfigMutation } from "../graphql/portal/mutations/updateAppAndSecretMutation";
 import { PortalAPIAppConfig } from "../types";
 import { APIError } from "../error/error";
 
@@ -43,8 +43,9 @@ export function useAppConfigForm<State>(
     effectiveAppConfig,
     rawAppConfig: rawConfig,
     refetch: reload,
-  } = useAppConfigQuery(appID);
-  const { updateAppConfig: updateConfig } = useUpdateAppConfigMutation(appID);
+  } = useAppAndSecretConfigQuery(appID);
+  const { updateAppAndSecretConfig: updateConfig } =
+    useUpdateAppAndSecretConfigMutation(appID);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<unknown>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -104,7 +105,7 @@ export function useAppConfigForm<State>(
 
     setIsUpdating(true);
     setUpdateError(null);
-    await updateConfig(newConfig)
+    await updateConfig(newConfig, null)
       .then(() => {
         setCurrentState(null);
         setIsSubmitted(true);

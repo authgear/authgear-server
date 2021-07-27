@@ -15,7 +15,7 @@ import ShowError from "../../ShowError";
 import FormTextField from "../../FormTextField";
 import AddIdentityForm from "./AddIdentityForm";
 import { useDropdown, useIntegerTextField } from "../../hook/useInput";
-import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import { PortalAPIAppConfig } from "../../types";
 import { ErrorParseRule } from "../../error/parse";
@@ -156,7 +156,7 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
     loading: loadingAppConfig,
     error: appConfigError,
     refetch: refetchAppConfig,
-  } = useAppConfigQuery(appID);
+  } = useAppAndSecretConfigQuery(appID);
 
   const navBreadcrumbItems = useMemo(() => {
     return [

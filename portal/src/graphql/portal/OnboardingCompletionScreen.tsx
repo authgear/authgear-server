@@ -14,7 +14,7 @@ import styles from "./OnboardingCompletionScreen.module.scss";
 import SignupScreenImg from "../../images/onboarding_signup_screen.png";
 import SettingScreenImg from "../../images/onboarding_settings_screen.png";
 import SSOLogoImg from "../../images/onboarding_sso_logo.png";
-import { useAppConfigQuery } from "./query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import ShowLoading from "../../ShowLoading";
 import { PortalAPIAppConfig } from "../../types";
@@ -198,7 +198,7 @@ const OnboardingCompletionScreen: React.FC =
   function OnboardingCompletionScreen() {
     const { appID } = useParams();
 
-    const { effectiveAppConfig, loading } = useAppConfigQuery(appID);
+    const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
 
     if (loading || !effectiveAppConfig) {
       return <ShowLoading />;

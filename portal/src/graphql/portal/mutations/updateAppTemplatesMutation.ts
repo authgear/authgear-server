@@ -17,7 +17,7 @@ const updateAppTemplatesMutation = gql`
     $updates: [AppResourceUpdate!]!
     $paths: [String!]!
   ) {
-    updateAppResources(input: { appID: $appID, updates: $updates }) {
+    updateApp(input: { appID: $appID, updates: $updates }) {
       app {
         id
         resources(paths: $paths) {
@@ -100,7 +100,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
           updates: updatePayload,
         },
       });
-      return result.data?.updateAppResources.app ?? null;
+      return result.data?.updateApp.app ?? null;
     },
     [appID, mutationFunction]
   );
