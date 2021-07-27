@@ -37,7 +37,6 @@ type AppService interface {
 	UpdateResources(app *model.App, updates []appresource.Update) error
 	GetMaxOwnedApps(userID string) (int, error)
 	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
-	LoadRawSecretConfig(app *model.App) (*config.SecretConfig, error)
 	LoadAppSecretConfig(app *model.App) (*config.SecretConfig, error)
 }
 

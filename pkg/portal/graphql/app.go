@@ -94,14 +94,6 @@ var nodeApp = node(
 					return ctx.AppService.LoadRawAppConfig(app)
 				},
 			},
-			"rawSecretConfig": &graphql.Field{
-				Type: graphql.NewNonNull(SecretConfig),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
-					app := p.Source.(*model.App)
-					return ctx.AppService.LoadRawSecretConfig(app)
-				},
-			},
 			"secretConfig": &graphql.Field{
 				Type: graphql.NewNonNull(secretConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {

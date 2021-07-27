@@ -37,9 +37,6 @@ type App implements Node {
   rawAppConfig: AppConfig!
 
   """"""
-  rawSecretConfig: SecretConfig!
-
-  """"""
   resources(paths: [String!]): [AppResource!]!
 
   """"""
@@ -283,9 +280,6 @@ type Mutation {
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
-  """Update app resource files"""
-  updateAppResources(input: UpdateAppResourcesInput!): UpdateAppResourcesPayload!
-
   """Request verification of a domain of target app"""
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
 }
@@ -350,9 +344,6 @@ type Query {
   viewer: User
 }
 
-"""The `SecretConfig` scalar type represents a secret config JSON object"""
-scalar SecretConfig
-
 """"""
 input SecretConfigInput {
   """"""
@@ -382,21 +373,6 @@ input UpdateAppInput {
 
 """"""
 type UpdateAppPayload {
-  """"""
-  app: App!
-}
-
-""""""
-input UpdateAppResourcesInput {
-  """App ID to update."""
-  appID: ID!
-
-  """Resource file updates."""
-  updates: [AppResourceUpdate!]
-}
-
-""""""
-type UpdateAppResourcesPayload {
   """"""
   app: App!
 }
