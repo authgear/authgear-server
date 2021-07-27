@@ -280,6 +280,9 @@ type Mutation {
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
 
+  """Update app"""
+  updateApp(input: UpdateAppInput!): UpdateAppPayload!
+
   """Update app resource files"""
   updateAppResources(input: UpdateAppResourcesInput!): UpdateAppResourcesPayload!
 
@@ -295,6 +298,15 @@ interface Node {
 
 """OAuth client secret"""
 type OAuthClientSecret {
+  """"""
+  alias: String!
+
+  """"""
+  clientSecret: String!
+}
+
+""""""
+input OauthClientSecretInput {
   """"""
   alias: String!
 
@@ -341,10 +353,37 @@ type Query {
 """The `SecretConfig` scalar type represents a secret config JSON object"""
 scalar SecretConfig
 
+""""""
+input SecretConfigInput {
+  """"""
+  oauthClientSecrets: [OauthClientSecretInput!]
+}
+
 """The content of authgear.secrets.yaml"""
 type StructuredSecretConfig {
   """"""
   oauthClientSecrets: [OAuthClientSecret!]
+}
+
+""""""
+input UpdateAppInput {
+  """authgear.yaml in JSON."""
+  appConfig: AppConfig
+
+  """App ID to update."""
+  appID: ID!
+
+  """secrets to update."""
+  secretConfig: SecretConfigInput
+
+  """Resource file updates."""
+  updates: [AppResourceUpdate!]
+}
+
+""""""
+type UpdateAppPayload {
+  """"""
+  app: App!
 }
 
 """"""
