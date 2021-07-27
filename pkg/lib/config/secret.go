@@ -30,6 +30,34 @@ type SecretConfig struct {
 	Secrets []SecretItem `json:"secrets,omitempty"`
 }
 
+// ParsePartialSecret unmarshals inputYAML into a full SecretConfig,
+// without performing validation.
+func ParsePartialSecret(inputYAML []byte) (*SecretConfig, error) {
+	const validationErrorMessage = "invalid secrets"
+
+	jsonData, err := yaml.YAMLToJSON(inputYAML)
+	if err != nil {
+		return nil, err
+	}
+
+	var config SecretConfig
+	decoder := json.NewDecoder(bytes.NewReader(jsonData))
+	err = decoder.Decode(&config)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := &validation.Context{}
+	for i := range config.Secrets {
+		config.Secrets[i].parse(ctx.Child("secrets", strconv.Itoa(i)))
+	}
+	if err := ctx.Error(validationErrorMessage); err != nil {
+		return nil, err
+	}
+
+	return &config, nil
+}
+
 func ParseSecret(inputYAML []byte) (*SecretConfig, error) {
 	const validationErrorMessage = "invalid secrets"
 

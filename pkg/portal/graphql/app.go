@@ -10,6 +10,29 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
+var oauthClientSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "OAuthClientSecret",
+	Description: "OAuth client secret",
+	Fields: graphql.Fields{
+		"alias": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"clientSecret": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var secretConfig = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "StructuredSecretConfig",
+	Description: "The content of authgear.secrets.yaml",
+	Fields: graphql.Fields{
+		"oauthClientSecrets": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecret)),
+		},
+	},
+})
+
 const typeApp = "App"
 
 var nodeApp = node(
@@ -77,6 +100,19 @@ var nodeApp = node(
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
 					return ctx.AppService.LoadRawSecretConfig(app)
+				},
+			},
+			"secretConfig": &graphql.Field{
+				Type: graphql.NewNonNull(secretConfig),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					app := p.Source.(*model.App)
+					rawSecretConfig, err := ctx.AppService.LoadAppSecretConfig(app)
+					if err != nil {
+						return nil, err
+					}
+					out := model.NewStructuredSecretConfig(rawSecretConfig)
+					return out, nil
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

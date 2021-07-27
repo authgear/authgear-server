@@ -168,6 +168,25 @@ func (s *AppService) LoadRawSecretConfig(app *model.App) (*config.SecretConfig, 
 	return cfg, nil
 }
 
+func (s *AppService) LoadAppSecretConfig(app *model.App) (*config.SecretConfig, error) {
+	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
+		Path: configsource.AuthgearSecretYAML,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	bytes := result.([]byte)
+
+	cfg, err := config.ParsePartialSecret(bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
+}
+
 func (s *AppService) Create(userID string, id string) error {
 	if err := s.validateAppID(id); err != nil {
 		return err

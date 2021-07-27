@@ -41,6 +41,9 @@ type App implements Node {
 
   """"""
   resources(paths: [String!]): [AppResource!]!
+
+  """"""
+  secretConfig: StructuredSecretConfig!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""
@@ -290,6 +293,15 @@ interface Node {
   id: ID!
 }
 
+"""OAuth client secret"""
+type OAuthClientSecret {
+  """"""
+  alias: String!
+
+  """"""
+  clientSecret: String!
+}
+
 """Information about pagination in a connection."""
 type PageInfo {
   """When paginating forwards, the cursor to continue."""
@@ -328,6 +340,12 @@ type Query {
 
 """The `SecretConfig` scalar type represents a secret config JSON object"""
 scalar SecretConfig
+
+"""The content of authgear.secrets.yaml"""
+type StructuredSecretConfig {
+  """"""
+  oauthClientSecrets: [OAuthClientSecret!]
+}
 
 """"""
 input UpdateAppResourcesInput {
