@@ -353,99 +353,13 @@ export interface PortalAPIAppConfig {
   hook?: HookConfig;
 }
 
-// secret config
-export const secretConfigKeyList = [
-  "db",
-  "redis",
-  "admin-api.auth",
-  "sso.oauth.client",
-  "mail.smtp",
-  "sms.twilio",
-  "sms.nexmo",
-  "oidc",
-  "csrf",
-  "webhook",
-] as const;
-export type SecretConfigKey = typeof secretConfigKeyList[number];
-
-// item with different key has different schema
-
-export interface DbSecretItem {
-  key: "db";
-  data: Record<string, unknown>;
-}
-
-export interface RedisSecretItem {
-  key: "redis";
-  data: Record<string, unknown>;
-}
-
-export interface AdminApiSecretItem {
-  key: "admin-api.auth";
-  data: Record<string, unknown>;
-}
-
-// sso.oauth.client
-
-export interface OAuthClientCredentialItem {
+export interface OAuthClientSecret {
   alias: string;
-  client_secret: string;
+  clientSecret: string;
 }
-
-export interface OAuthClientCredentials {
-  items: OAuthClientCredentialItem[];
-}
-
-export interface OAuthSecretItem {
-  key: "sso.oauth.client";
-  data: OAuthClientCredentials;
-}
-
-export interface SmtpSecretItem {
-  key: "mail.smtp";
-  data: Record<string, unknown>;
-}
-
-export interface TwilioSecretItem {
-  key: "sms.twilio";
-  data: Record<string, unknown>;
-}
-
-export interface NexmoSecretItem {
-  key: "sms.nexmo";
-  data: Record<string, unknown>;
-}
-
-export interface OidcSecretItem {
-  key: "oidc";
-  data: Record<string, unknown>;
-}
-
-export interface CsrfSecretItem {
-  key: "csrf";
-  data: Record<string, unknown>;
-}
-
-export interface WebhookSecretItem {
-  key: "webhook";
-  data: Record<string, unknown>;
-}
-
-// union type
-export type SecretItem =
-  | DbSecretItem
-  | RedisSecretItem
-  | AdminApiSecretItem
-  | OAuthSecretItem
-  | SmtpSecretItem
-  | TwilioSecretItem
-  | NexmoSecretItem
-  | OidcSecretItem
-  | CsrfSecretItem
-  | WebhookSecretItem;
 
 export interface PortalAPISecretConfig {
-  secrets: SecretItem[];
+  oauthClientSecrets?: OAuthClientSecret[] | null;
 }
 
 export interface PortalAPIApp {

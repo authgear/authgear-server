@@ -21,7 +21,6 @@ var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective sec
 
 type ViewWithConfig interface {
 	resource.View
-	SecretKeyAllowlist() []string
 	AppFeatureConfig() *config.FeatureConfig
 }
 
@@ -215,12 +214,6 @@ func (d AuthgearSecretYAMLDescriptor) ViewResources(resources []resource.Resourc
 }
 
 func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
-	viewWithConfig, ok := view.(interface{}).(ViewWithConfig)
-	if !ok {
-		panic("resource: missing config in the app file view")
-	}
-	allowlist := viewWithConfig.SecretKeyAllowlist()
-
 	var target *resource.ResourceFile
 	for _, resrc := range resources {
 		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelApp {
@@ -236,22 +229,6 @@ func (d AuthgearSecretYAMLDescriptor) viewAppFile(resources []resource.ResourceF
 	var cfg config.SecretConfig
 	if err := yaml.Unmarshal(target.Data, &cfg); err != nil {
 		return nil, fmt.Errorf("malformed secret config: %w", err)
-	}
-
-	if len(allowlist) > 0 {
-		allowmap := make(map[config.SecretKey]struct{})
-		for _, key := range allowlist {
-			allowmap[config.SecretKey(key)] = struct{}{}
-		}
-
-		var secrets []config.SecretItem
-		for _, secretItem := range cfg.Secrets {
-			_, allowed := allowmap[secretItem.Key]
-			if allowed {
-				secrets = append(secrets, secretItem)
-			}
-		}
-		cfg.Secrets = secrets
 	}
 
 	bytes, err := yaml.Marshal(cfg)
@@ -290,7 +267,7 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(resrc *resource.ResourceFil
 		return nil, fmt.Errorf("cannot delete '%v'", AuthgearSecretYAML)
 	}
 
-	switch view := rawView.(type) {
+	switch rawView.(type) {
 	case resource.AppFileView:
 		var original config.SecretConfig
 		err := yaml.Unmarshal(resrc.Data, &original)
@@ -304,46 +281,7 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(resrc *resource.ResourceFil
 			return nil, fmt.Errorf("failed to parse incoming secret config: %w", err)
 		}
 
-		viewWithConfig, ok := view.(interface{}).(ViewWithConfig)
-		if !ok {
-			panic("resource: missing config in the app file view")
-		}
-		allowlist := viewWithConfig.SecretKeyAllowlist()
-
-		// When allowlist is non-empty:
-		// For example, suppose original has "a", "b", "c" and the allowlist is "a".
-		// Then original should keep "b" and "c" only.
-		//
-		// When allowlist is empty:
-		// Then original should be ignored.
-		var mergedConfig *config.SecretConfig
-		if len(allowlist) > 0 {
-			allowmap := make(map[config.SecretKey]struct{})
-			for _, key := range allowlist {
-				allowmap[config.SecretKey(key)] = struct{}{}
-			}
-
-			for _, secretItem := range incoming.Secrets {
-				_, allowed := allowmap[secretItem.Key]
-				if !allowed {
-					return nil, fmt.Errorf("'%s' in secret config is not allowed", secretItem.Key)
-				}
-			}
-
-			var originalSecrets []config.SecretItem
-			for _, secretItem := range original.Secrets {
-				_, allowed := allowmap[secretItem.Key]
-				if !allowed {
-					originalSecrets = append(originalSecrets, secretItem)
-				}
-			}
-
-			mergedConfig = (&config.SecretConfig{}).Overlay(&config.SecretConfig{
-				Secrets: originalSecrets,
-			}, &incoming)
-		} else {
-			mergedConfig = &incoming
-		}
+		mergedConfig := (&config.SecretConfig{}).Overlay(&original, &incoming)
 
 		mergedYAML, err := yaml.Marshal(&mergedConfig)
 		if err != nil {

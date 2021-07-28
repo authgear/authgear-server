@@ -9,7 +9,7 @@ import { AppResourceUpdate } from "./../../__generated__/globalTypes";
 // GraphQL mutation operation: UpdateAppTemplatesMutation
 // ====================================================
 
-export interface UpdateAppTemplatesMutation_updateAppResources_app_resources {
+export interface UpdateAppTemplatesMutation_updateApp_app_resources {
   __typename: "AppResource";
   path: string;
   languageTag: string | null;
@@ -17,32 +17,32 @@ export interface UpdateAppTemplatesMutation_updateAppResources_app_resources {
   effectiveData: string | null;
 }
 
-export interface UpdateAppTemplatesMutation_updateAppResources_app_resourceLocales {
+export interface UpdateAppTemplatesMutation_updateApp_app_resourceLocales {
   __typename: "AppResource";
   path: string;
   languageTag: string | null;
 }
 
-export interface UpdateAppTemplatesMutation_updateAppResources_app {
+export interface UpdateAppTemplatesMutation_updateApp_app {
   __typename: "App";
   /**
    * The ID of an object
    */
   id: string;
-  resources: UpdateAppTemplatesMutation_updateAppResources_app_resources[];
-  resourceLocales: UpdateAppTemplatesMutation_updateAppResources_app_resourceLocales[];
+  resources: UpdateAppTemplatesMutation_updateApp_app_resources[];
+  resourceLocales: UpdateAppTemplatesMutation_updateApp_app_resourceLocales[];
 }
 
-export interface UpdateAppTemplatesMutation_updateAppResources {
-  __typename: "UpdateAppResourcesPayload";
-  app: UpdateAppTemplatesMutation_updateAppResources_app;
+export interface UpdateAppTemplatesMutation_updateApp {
+  __typename: "UpdateAppPayload";
+  app: UpdateAppTemplatesMutation_updateApp_app;
 }
 
 export interface UpdateAppTemplatesMutation {
   /**
-   * Update app resource files
+   * Update app
    */
-  updateAppResources: UpdateAppTemplatesMutation_updateAppResources;
+  updateApp: UpdateAppTemplatesMutation_updateApp;
 }
 
 export interface UpdateAppTemplatesMutationVariables {

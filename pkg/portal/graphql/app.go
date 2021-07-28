@@ -2,13 +2,38 @@ package graphql
 
 import (
 	"context"
+	"errors"
 
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
+
+var oauthClientSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "OAuthClientSecret",
+	Description: "OAuth client secret",
+	Fields: graphql.Fields{
+		"alias": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"clientSecret": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var secretConfig = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "StructuredSecretConfig",
+	Description: "The content of authgear.secrets.yaml",
+	Fields: graphql.Fields{
+		"oauthClientSecrets": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecret)),
+		},
+	},
+})
 
 const typeApp = "App"
 
@@ -34,7 +59,14 @@ var nodeApp = node(
 					var paths []string
 					if argPaths, ok := p.Args["paths"]; ok {
 						for _, path := range argPaths.([]interface{}) {
-							paths = append(paths, path.(string))
+							path := path.(string)
+							if path == configsource.AuthgearYAML {
+								return nil, errors.New("direct access on authgear.yaml is disallowed")
+							}
+							if path == configsource.AuthgearSecretYAML {
+								return nil, errors.New("direct access on authgear.secrets.yaml is disallowed")
+							}
+							paths = append(paths, path)
 						}
 					}
 
@@ -71,12 +103,17 @@ var nodeApp = node(
 					return ctx.AppService.LoadRawAppConfig(app)
 				},
 			},
-			"rawSecretConfig": &graphql.Field{
-				Type: graphql.NewNonNull(SecretConfig),
+			"secretConfig": &graphql.Field{
+				Type: graphql.NewNonNull(secretConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					return ctx.AppService.LoadRawSecretConfig(app)
+					rawSecretConfig, err := ctx.AppService.LoadAppSecretConfig(app)
+					if err != nil {
+						return nil, err
+					}
+					out := model.NewStructuredSecretConfig(rawSecretConfig)
+					return out, nil
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

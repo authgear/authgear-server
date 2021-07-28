@@ -8,7 +8,7 @@ import NavBreadcrumb from "../../NavBreadcrumb";
 import PasswordField from "../../PasswordField";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useTextField } from "../../hook/useInput";
 import { PortalAPIAppConfig } from "../../types";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
@@ -88,7 +88,7 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
   const navigate = useNavigate();
 
   const { effectiveAppConfig, loading, error, refetch } =
-    useAppConfigQuery(appID);
+    useAppAndSecretConfigQuery(appID);
   const passwordPolicy = useMemo(
     () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
     [effectiveAppConfig]

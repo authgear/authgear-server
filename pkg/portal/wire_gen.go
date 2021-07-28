@@ -192,10 +192,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor:  sqlExecutor,
 	}
 	appBaseResources := deps.ProvideAppBaseResources(rootProvider)
-	secretKeyAllowlist := rootProvider.SecretKeyAllowlist
 	managerFactory := &factory.ManagerFactory{
-		AppBaseResources:   appBaseResources,
-		SecretKeyAllowlist: secretKeyAllowlist,
+		AppBaseResources: appBaseResources,
 	}
 	store := &plan.Store{
 		Clock:       clock,

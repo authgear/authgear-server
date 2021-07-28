@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
-import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -121,7 +121,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     loading: loadingAppConfig,
     error: appConfigError,
     refetch: refetchAppConfig,
-  } = useAppConfigQuery(appID);
+  } = useAppAndSecretConfigQuery(appID);
 
   const navBreadcrumbItems = React.useMemo(() => {
     return [

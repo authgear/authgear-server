@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
-import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import FormTextField from "../../FormTextField";
@@ -66,7 +66,7 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
     loading: loadingAppConfig,
     error: appConfigError,
     refetch: refetchAppConfig,
-  } = useAppConfigQuery(appID);
+  } = useAppAndSecretConfigQuery(appID);
 
   const navBreadcrumbItems = useMemo(() => {
     return [

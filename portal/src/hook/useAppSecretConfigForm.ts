@@ -53,10 +53,7 @@ export function useAppSecretConfigForm<State>(
     () => effectiveAppConfig ?? { id: appID },
     [effectiveAppConfig, appID]
   );
-  const secrets = useMemo(
-    () => secretConfig ?? { secrets: [] },
-    [secretConfig]
-  );
+  const secrets = useMemo(() => secretConfig ?? {}, [secretConfig]);
 
   const initialState = useMemo(
     () => constructState(effectiveConfig, secrets),

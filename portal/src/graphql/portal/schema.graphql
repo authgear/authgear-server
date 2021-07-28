@@ -37,10 +37,10 @@ type App implements Node {
   rawAppConfig: AppConfig!
 
   """"""
-  rawSecretConfig: SecretConfig!
+  resources(paths: [String!]): [AppResource!]!
 
   """"""
-  resources(paths: [String!]): [AppResource!]!
+  secretConfig: StructuredSecretConfig!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""
@@ -277,8 +277,8 @@ type Mutation {
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
 
-  """Update app resource files"""
-  updateAppResources(input: UpdateAppResourcesInput!): UpdateAppResourcesPayload!
+  """Update app"""
+  updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
   """Request verification of a domain of target app"""
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
@@ -288,6 +288,24 @@ type Mutation {
 interface Node {
   """The id of the object"""
   id: ID!
+}
+
+"""OAuth client secret"""
+type OAuthClientSecret {
+  """"""
+  alias: String!
+
+  """"""
+  clientSecret: String!
+}
+
+""""""
+input OauthClientSecretInput {
+  """"""
+  alias: String!
+
+  """"""
+  clientSecret: String!
 }
 
 """Information about pagination in a connection."""
@@ -326,20 +344,35 @@ type Query {
   viewer: User
 }
 
-"""The `SecretConfig` scalar type represents a secret config JSON object"""
-scalar SecretConfig
+""""""
+input SecretConfigInput {
+  """"""
+  oauthClientSecrets: [OauthClientSecretInput!]
+}
+
+"""The content of authgear.secrets.yaml"""
+type StructuredSecretConfig {
+  """"""
+  oauthClientSecrets: [OAuthClientSecret!]
+}
 
 """"""
-input UpdateAppResourcesInput {
+input UpdateAppInput {
+  """authgear.yaml in JSON."""
+  appConfig: AppConfig
+
   """App ID to update."""
   appID: ID!
+
+  """secrets to update."""
+  secretConfig: SecretConfigInput
 
   """Resource file updates."""
   updates: [AppResourceUpdate!]
 }
 
 """"""
-type UpdateAppResourcesPayload {
+type UpdateAppPayload {
   """"""
   app: App!
 }

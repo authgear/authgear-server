@@ -34,7 +34,7 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import { useAppConfigQuery } from "./query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import OnboardingFormContainer from "./OnboardingFormContainer";
 import styles from "./OnboardingConfigAppScreen.module.scss";
 import LabelWithTooltip from "../../LabelWithTooltip";
@@ -952,7 +952,7 @@ const OnboardingConfigAppScreen: React.FC =
     const { appID } = useParams();
 
     // NOTE: check if appID actually exist in authorized app list
-    const form = useAppConfigQuery(appID);
+    const form = useAppAndSecretConfigQuery(appID);
 
     const featureConfig = useAppFeatureConfigQuery(appID);
 

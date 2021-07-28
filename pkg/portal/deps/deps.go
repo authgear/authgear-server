@@ -38,7 +38,6 @@ var DependencySet = wire.NewSet(
 		"Database",
 		"ConfigSourceController",
 		"Resources",
-		"SecretKeyAllowlist",
 	),
 	wire.FieldsOf(new(*config.EnvironmentConfig),
 		"TrustProxy",

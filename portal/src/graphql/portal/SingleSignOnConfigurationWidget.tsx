@@ -19,7 +19,7 @@ import ExtendableWidget from "../../ExtendableWidget";
 import FormTextField from "../../FormTextField";
 import {
   createOAuthSSOProviderItemKey,
-  OAuthClientCredentialItem,
+  OAuthClientSecret,
   OAuthSSOProviderConfig,
   OAuthSSOProviderItemKey,
   OAuthSSOProviderType,
@@ -52,11 +52,8 @@ interface SingleSignOnConfigurationWidgetProps {
   onIsEnabledChange: (value: boolean) => void;
 
   config: OAuthSSOProviderConfig;
-  secret: OAuthClientCredentialItem;
-  onChange: (
-    config: OAuthSSOProviderConfig,
-    secret: OAuthClientCredentialItem
-  ) => void;
+  secret: OAuthClientSecret;
+  onChange: (config: OAuthSSOProviderConfig, secret: OAuthClientSecret) => void;
 
   disabled: boolean;
   limitReached: boolean;
@@ -337,7 +334,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
 
     const onClientSecretChange = useCallback(
       (_, value?: string) =>
-        onChange(config, { ...secret, client_secret: value ?? "" }),
+        onChange(config, { ...secret, clientSecret: value ?? "" }),
       [onChange, config, secret]
     );
     const onAccountIDChange = useCallback(
@@ -421,7 +418,7 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
                 : TEXT_FIELD_STYLE
             }
             multiline={isSecretFieldTextArea}
-            value={secret.client_secret}
+            value={secret.clientSecret}
             onChange={onClientSecretChange}
           />
         )}

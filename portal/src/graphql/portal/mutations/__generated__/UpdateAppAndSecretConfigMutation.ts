@@ -3,13 +3,24 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import { AppResourceUpdate } from "./../../__generated__/globalTypes";
+import { SecretConfigInput } from "./../../__generated__/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: UpdateAppAndSecretConfigMutation
 // ====================================================
 
-export interface UpdateAppAndSecretConfigMutation_updateAppResources_app {
+export interface UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig_oauthClientSecrets {
+  __typename: "OAuthClientSecret";
+  alias: string;
+  clientSecret: string;
+}
+
+export interface UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig {
+  __typename: "StructuredSecretConfig";
+  oauthClientSecrets: UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig_oauthClientSecrets[] | null;
+}
+
+export interface UpdateAppAndSecretConfigMutation_updateApp_app {
   __typename: "App";
   /**
    * The ID of an object
@@ -17,22 +28,23 @@ export interface UpdateAppAndSecretConfigMutation_updateAppResources_app {
   id: string;
   rawAppConfig: GQL_AppConfig;
   effectiveAppConfig: GQL_AppConfig;
-  rawSecretConfig: GQL_SecretConfig;
+  secretConfig: UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig;
 }
 
-export interface UpdateAppAndSecretConfigMutation_updateAppResources {
-  __typename: "UpdateAppResourcesPayload";
-  app: UpdateAppAndSecretConfigMutation_updateAppResources_app;
+export interface UpdateAppAndSecretConfigMutation_updateApp {
+  __typename: "UpdateAppPayload";
+  app: UpdateAppAndSecretConfigMutation_updateApp_app;
 }
 
 export interface UpdateAppAndSecretConfigMutation {
   /**
-   * Update app resource files
+   * Update app
    */
-  updateAppResources: UpdateAppAndSecretConfigMutation_updateAppResources;
+  updateApp: UpdateAppAndSecretConfigMutation_updateApp;
 }
 
 export interface UpdateAppAndSecretConfigMutationVariables {
   appID: string;
-  updates: AppResourceUpdate[];
+  appConfig: GQL_AppConfig;
+  secretConfig?: SecretConfigInput | null;
 }

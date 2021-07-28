@@ -31,16 +31,10 @@ func TestManager(t *testing.T) {
 			baseResourceFs,
 			appResourceFs,
 		})
-		allowlist := []string{
-			"admin-api.auth",
-			"webhook",
-			"sso.oauth.client",
-		}
 
 		portalResMgr := &appresource.Manager{
 			AppResourceManager: resMgr,
 			AppFS:              appResourceFs,
-			SecretKeyAllowlist: allowlist,
 			AppFeatureConfig:   cfg.FeatureConfig,
 		}
 
@@ -94,7 +88,6 @@ func TestManager(t *testing.T) {
 				portalResMgr := &appresource.Manager{
 					AppResourceManager: resMgr,
 					AppFS:              appResourceFs,
-					SecretKeyAllowlist: allowlist,
 					AppFeatureConfig:   fc,
 				}
 				_, err := portalResMgr.ApplyUpdates(appID, updates)
@@ -153,45 +146,8 @@ func TestManager(t *testing.T) {
 
 		})
 
-		Convey("forbid deleting required items in secrets", func() {
-			err := applyUpdates([]appresource.Update{{
-				Path: "authgear.secrets.yaml",
-				Data: []byte("{}"),
-			}})
-			So(err, ShouldBeError, `invalid secret config: invalid secrets:
-<root>: admin API auth key materials (secret 'admin-api.auth') is required`)
-
-		})
-
-		Convey("forbid updating secrets no in the allowlist", func() {
-			newSecretConfig := configtest.FixtureSecretConfig(1)
-			bytes, err := yaml.Marshal(newSecretConfig)
-			So(err, ShouldBeNil)
-
-			err = applyUpdates([]appresource.Update{{
-				Path: "authgear.secrets.yaml",
-				Data: bytes,
-			}})
-			So(err, ShouldBeError, "'db' in secret config is not allowed")
-		})
-
 		Convey("allow updating secrets", func() {
 			newSecretConfig := configtest.FixtureSecretConfig(1)
-
-			// Remove keys that are not in the allowlist
-			allowmap := make(map[string]struct{})
-			for _, key := range allowlist {
-				allowmap[key] = struct{}{}
-			}
-			var secrets []config.SecretItem
-			for _, secretItem := range newSecretConfig.Secrets {
-				_, allowed := allowmap[string(secretItem.Key)]
-				if allowed {
-					secrets = append(secrets, secretItem)
-				}
-			}
-			newSecretConfig.Secrets = secrets
-
 			bytes, err := yaml.Marshal(newSecretConfig)
 			So(err, ShouldBeNil)
 

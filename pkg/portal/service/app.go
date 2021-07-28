@@ -151,7 +151,7 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 	return cfg, nil
 }
 
-func (s *AppService) LoadRawSecretConfig(app *model.App) (*config.SecretConfig, error) {
+func (s *AppService) LoadAppSecretConfig(app *model.App) (*config.SecretConfig, error) {
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
 		Path: configsource.AuthgearSecretYAML,
@@ -161,10 +161,12 @@ func (s *AppService) LoadRawSecretConfig(app *model.App) (*config.SecretConfig, 
 	}
 
 	bytes := result.([]byte)
-	var cfg *config.SecretConfig
-	if err := yaml.Unmarshal(bytes, &cfg); err != nil {
+
+	cfg, err := config.ParsePartialSecret(bytes)
+	if err != nil {
 		return nil, err
 	}
+
 	return cfg, nil
 }
 

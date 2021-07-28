@@ -15,7 +15,12 @@ export const appAndSecretConfigQuery = gql`
         id
         effectiveAppConfig
         rawAppConfig
-        rawSecretConfig
+        secretConfig {
+          oauthClientSecrets {
+            alias
+            clientSecret
+          }
+        }
       }
     }
   }
@@ -30,7 +35,7 @@ interface AppAndSecretConfigQueryResult
   effectiveAppConfig:
     | AppAndSecretConfigQuery_node_App["effectiveAppConfig"]
     | null;
-  secretConfig: AppAndSecretConfigQuery_node_App["rawSecretConfig"] | null;
+  secretConfig: AppAndSecretConfigQuery_node_App["secretConfig"] | null;
 }
 export const useAppAndSecretConfigQuery = (
   appID: string
@@ -50,7 +55,7 @@ export const useAppAndSecretConfigQuery = (
     return {
       rawAppConfig: appConfigNode?.rawAppConfig ?? null,
       effectiveAppConfig: appConfigNode?.effectiveAppConfig ?? null,
-      secretConfig: appConfigNode?.rawSecretConfig ?? null,
+      secretConfig: appConfigNode?.secretConfig ?? null,
     };
   }, [data]);
 

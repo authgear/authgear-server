@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { ChoiceGroup, IChoiceGroupOption, Label, Text } from "@fluentui/react";
-import { useAppConfigQuery } from "../portal/query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useCreateUserMutation } from "./mutations/createUserMutation";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
@@ -287,7 +287,7 @@ const AddUserScreen: React.FC = function AddUserScreen() {
   const navigate = useNavigate();
 
   const { effectiveAppConfig, loading, error, refetch } =
-    useAppConfigQuery(appID);
+    useAppAndSecretConfigQuery(appID);
   const loginIDTypes = useMemo(
     () => getLoginIdTypeOptions(effectiveAppConfig),
     [effectiveAppConfig]

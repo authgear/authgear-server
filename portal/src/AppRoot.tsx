@@ -3,7 +3,7 @@ import { Routes, Route, useParams, Navigate } from "react-router-dom";
 import { ApolloProvider } from "@apollo/client";
 
 import { makeClient } from "./graphql/adminapi/apollo";
-import { useAppConfigQuery } from "./graphql/portal/query/appConfigQuery";
+import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
 import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 
@@ -45,7 +45,8 @@ const AppRoot: React.FC = function AppRoot() {
   }, [appID]);
 
   // NOTE: check if appID actually exist in authorized app list
-  const { effectiveAppConfig, loading, error } = useAppConfigQuery(appID);
+  const { effectiveAppConfig, loading, error } =
+    useAppAndSecretConfigQuery(appID);
   if (loading) {
     return <ShowLoading />;
   }
