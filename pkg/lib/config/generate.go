@@ -1,14 +1,12 @@
 package config
 
 import (
-	"crypto/rsa"
-	"encoding/base32"
 	"encoding/json"
-	"io"
+	mathrand "math/rand"
 
 	"github.com/lestrrat-go/jwx/jwk"
 
-	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/authgear/authgear-server/pkg/util/secrets"
 )
 
 type GenerateAppConfigOptions struct {
@@ -35,7 +33,7 @@ type GenerateSecretConfigOptions struct {
 	RedisURL         string
 }
 
-func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rand io.Reader) *SecretConfig {
+func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rng *mathrand.Rand) *SecretConfig {
 	var items []SecretItem
 
 	if opts.DatabaseURL != "" {
@@ -66,22 +64,22 @@ func GenerateSecretConfigFromOptions(opts *GenerateSecretConfigOptions, rand io.
 
 	items = append(items, SecretItem{
 		Key:  OAuthKeyMaterialsKey,
-		Data: &OAuthKeyMaterials{Set: generateRSAKey(rand)},
+		Data: &OAuthKeyMaterials{Set: wrapInSet(secrets.GenerateRSAKey(rng))},
 	})
 
 	items = append(items, SecretItem{
 		Key:  CSRFKeyMaterialsKey,
-		Data: &CSRFKeyMaterials{Set: generateOctetKey(rand)},
+		Data: &CSRFKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(rng))},
 	})
 
 	items = append(items, SecretItem{
 		Key:  WebhookKeyMaterialsKey,
-		Data: &WebhookKeyMaterials{Set: generateOctetKey(rand)},
+		Data: &WebhookKeyMaterials{Set: wrapInSet(secrets.GenerateOctetKey(rng))},
 	})
 
 	items = append(items, SecretItem{
 		Key:  AdminAPIAuthKeyKey,
-		Data: &AdminAPIAuthKey{Set: generateRSAKey(rand)},
+		Data: &AdminAPIAuthKey{Set: wrapInSet(secrets.GenerateRSAKey(rng))},
 	})
 
 	marshalSecretData(items)
@@ -100,58 +98,7 @@ func marshalSecretData(items []SecretItem) {
 	}
 }
 
-func generateKeyID(rand io.Reader) string {
-	id := make([]byte, 16)
-	_, err := rand.Read(id)
-	if err != nil {
-		panic(err)
-	}
-
-	return base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(id)
-}
-
-func generateOctetKey(rand io.Reader) jwk.Set {
-	key := make([]byte, 32)
-
-	_, err := rand.Read(key)
-	if err != nil {
-		panic(err)
-	}
-
-	jwkKey, err := jwk.New(key)
-	if err != nil {
-		panic(err)
-	}
-
-	id := make([]byte, 16)
-	_, err = rand.Read(id)
-	if err != nil {
-		panic(err)
-	}
-
-	_ = jwkKey.Set(jwk.KeyIDKey, generateKeyID(rand))
-	_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
-	_ = jwkKey.Set(jwk.AlgorithmKey, "HS256")
-
-	keySet := jwk.NewSet()
-	_ = keySet.Add(jwkKey)
-	return keySet
-}
-
-func generateRSAKey(rand io.Reader) jwk.Set {
-	privateKey, err := rsa.GenerateKey(rand, 2048)
-	if err != nil {
-		panic(err)
-	}
-
-	jwkKey, err := jwk.New(privateKey)
-	if err != nil {
-		panic(err)
-	}
-	_ = jwkKey.Set(jwk.KeyIDKey, uuid.New())
-	_ = jwkKey.Set(jwk.KeyUsageKey, jwk.ForSignature)
-	_ = jwkKey.Set(jwk.AlgorithmKey, "RS256")
-
+func wrapInSet(jwkKey jwk.Key) jwk.Set {
 	keySet := jwk.NewSet()
 	_ = keySet.Add(jwkKey)
 	return keySet

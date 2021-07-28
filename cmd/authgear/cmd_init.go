@@ -1,13 +1,13 @@
 package main
 
 import (
-	"crypto/rand"
 	"log"
 
 	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/cmd/authgear/config"
 	libconfig "github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 var cmdInit = &cobra.Command{
@@ -45,7 +45,7 @@ var cmdInitSecrets = &cobra.Command{
 		}
 
 		opts := config.ReadSecretConfigOptionsFromConsole()
-		cfg := libconfig.GenerateSecretConfigFromOptions(opts, rand.Reader)
+		cfg := libconfig.GenerateSecretConfigFromOptions(opts, rand.SecureRand)
 		err := config.MarshalConfigYAML(cfg, outputPath)
 		if err != nil {
 			log.Fatalf("cannot write file: %s", err.Error())
