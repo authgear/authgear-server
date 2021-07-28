@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -79,6 +80,7 @@ type AppService struct {
 	Resources        ResourceManager
 	AppResMgrFactory AppResourceManagerFactory
 	Plan             AppPlanService
+	Clock            clock.Clock
 }
 
 func (s *AppService) Get(id string) (*model.App, error) {
@@ -276,7 +278,8 @@ func (s *AppService) generateResources(appHost string, appID string, featureConf
 	appResources[configsource.AuthgearYAML] = appConfigYAML
 
 	// Generate secret config
-	secretConfig := config.GenerateSecretConfigFromOptions(&config.GenerateSecretConfigOptions{}, corerand.SecureRand)
+	createdAt := s.Clock.NowUTC()
+	secretConfig := config.GenerateSecretConfigFromOptions(&config.GenerateSecretConfigOptions{}, createdAt, corerand.SecureRand)
 	secretConfigYAML, err := yaml.Marshal(secretConfig)
 	if err != nil {
 		return nil, err
