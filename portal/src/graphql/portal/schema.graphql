@@ -348,6 +348,9 @@ type Query {
 type SecretConfig {
   """"""
   oauthClientSecrets: [OAuthClientSecret!]
+
+  """"""
+  webhookSecret: WebhookSecret
 }
 
 """"""
@@ -402,5 +405,11 @@ type VerifyDomainPayload {
 
   """"""
   domain: Domain!
+}
+
+"""Webhook secret"""
+type WebhookSecret {
+  """"""
+  secret: String
 }
 

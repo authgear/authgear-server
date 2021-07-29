@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 
+	"github.com/lestrrat-go/jwx/jwk"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -19,6 +20,10 @@ type AppResource struct {
 	Context        *config.AppContext
 }
 
+type WebhookSecret struct {
+	Secret *string `json:"secret,omitempty"`
+}
+
 type OAuthClientSecret struct {
 	Alias        string `json:"alias,omitempty"`
 	ClientSecret string `json:"clientSecret,omitempty"`
@@ -26,6 +31,7 @@ type OAuthClientSecret struct {
 
 type SecretConfig struct {
 	OAuthClientSecrets []OAuthClientSecret `json:"oauthClientSecrets,omitempty"`
+	WebhookSecret      *WebhookSecret      `json:"webhookSecret,omitempty"`
 }
 
 func NewSecretConfig(secretConfig *config.SecretConfig) *SecretConfig {
@@ -38,6 +44,20 @@ func NewSecretConfig(secretConfig *config.SecretConfig) *SecretConfig {
 				Alias:        item.Alias,
 				ClientSecret: item.ClientSecret,
 			})
+		}
+	}
+
+	webhook, ok := secretConfig.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials)
+	if ok {
+		if webhook.Set.Len() == 1 {
+			if jwkKey, ok := webhook.Set.Get(0); ok {
+				if _, ok := jwkKey.(jwk.SymmetricKey); ok {
+					// octets := sKey.Octets()
+					out.WebhookSecret = &WebhookSecret{
+						// FIXME(secret): expose unmasked secret.
+					}
+				}
+			}
 		}
 	}
 

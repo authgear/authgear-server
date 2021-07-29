@@ -25,12 +25,25 @@ var oauthClientSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var webhookSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "WebhookSecret",
+	Description: "Webhook secret",
+	Fields: graphql.Fields{
+		"secret": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SecretConfig",
 	Description: "The content of authgear.secrets.yaml",
 	Fields: graphql.Fields{
 		"oauthClientSecrets": &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecret)),
+		},
+		"webhookSecret": &graphql.Field{
+			Type: webhookSecret,
 		},
 	},
 })
