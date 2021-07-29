@@ -10,6 +10,21 @@ type AcceptCollaboratorInvitationPayload {
   app: App!
 }
 
+"""Admin API secret"""
+type AdminAPISecret {
+  """"""
+  createdAt: DateTime
+
+  """"""
+  keyID: String!
+
+  """"""
+  privateKeyPEM: String
+
+  """"""
+  publicKeyPEM: String!
+}
+
 """Authgear app"""
 type App implements Node {
   """"""
@@ -346,6 +361,9 @@ type Query {
 
 """The content of authgear.secrets.yaml"""
 type SecretConfig {
+  """"""
+  adminAPISecrets: [AdminAPISecret!]
+
   """"""
   oauthClientSecrets: [OAuthClientSecret!]
 

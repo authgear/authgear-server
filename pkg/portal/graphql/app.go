@@ -35,6 +35,25 @@ var webhookSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var adminAPISecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "AdminAPISecret",
+	Description: "Admin API secret",
+	Fields: graphql.Fields{
+		"keyID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"createdAt": &graphql.Field{
+			Type: graphql.DateTime,
+		},
+		"publicKeyPEM": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"privateKeyPEM": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SecretConfig",
 	Description: "The content of authgear.secrets.yaml",
@@ -44,6 +63,9 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"webhookSecret": &graphql.Field{
 			Type: webhookSecret,
+		},
+		"adminAPISecrets": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(adminAPISecret)),
 		},
 	},
 })
