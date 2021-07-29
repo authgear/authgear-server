@@ -26,7 +26,7 @@ var oauthClientSecret = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
-	Name:        "StructuredSecretConfig",
+	Name:        "SecretConfig",
 	Description: "The content of authgear.secrets.yaml",
 	Fields: graphql.Fields{
 		"oauthClientSecrets": &graphql.Field{
@@ -112,7 +112,7 @@ var nodeApp = node(
 					if err != nil {
 						return nil, err
 					}
-					out := model.NewStructuredSecretConfig(rawSecretConfig)
+					out := model.NewSecretConfig(rawSecretConfig)
 					return out, nil
 				},
 			},

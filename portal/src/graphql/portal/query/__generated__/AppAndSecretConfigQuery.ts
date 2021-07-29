@@ -18,7 +18,7 @@ export interface AppAndSecretConfigQuery_node_App_secretConfig_oauthClientSecret
 }
 
 export interface AppAndSecretConfigQuery_node_App_secretConfig {
-  __typename: "StructuredSecretConfig";
+  __typename: "SecretConfig";
   oauthClientSecrets: AppAndSecretConfigQuery_node_App_secretConfig_oauthClientSecrets[] | null;
 }
 

@@ -24,12 +24,12 @@ type OAuthClientSecret struct {
 	ClientSecret string `json:"clientSecret,omitempty"`
 }
 
-type StructuredSecretConfig struct {
+type SecretConfig struct {
 	OAuthClientSecrets []OAuthClientSecret `json:"oauthClientSecrets,omitempty"`
 }
 
-func NewStructuredSecretConfig(secretConfig *config.SecretConfig) *StructuredSecretConfig {
-	out := &StructuredSecretConfig{}
+func NewSecretConfig(secretConfig *config.SecretConfig) *SecretConfig {
+	out := &SecretConfig{}
 
 	oauthClientCredentials, ok := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials)
 	if ok {
@@ -49,7 +49,7 @@ type secretItem struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
-func (c *StructuredSecretConfig) ToYAMLForUpdate() ([]byte, error) {
+func (c *SecretConfig) ToYAMLForUpdate() ([]byte, error) {
 	var items []secretItem
 	if c.OAuthClientSecrets != nil {
 		var oauthItems []config.OAuthClientCredentialsItem

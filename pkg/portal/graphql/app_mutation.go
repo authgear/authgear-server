@@ -162,7 +162,7 @@ var _ = registerMutationField(
 					return nil, err
 				}
 
-				var structured model.StructuredSecretConfig
+				var structured model.SecretConfig
 				err = json.Unmarshal(secretConfigJSON, &structured)
 				if err != nil {
 					return nil, err

@@ -40,7 +40,7 @@ type App implements Node {
   resources(paths: [String!]): [AppResource!]!
 
   """"""
-  secretConfig: StructuredSecretConfig!
+  secretConfig: SecretConfig!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""
@@ -344,16 +344,16 @@ type Query {
   viewer: User
 }
 
+"""The content of authgear.secrets.yaml"""
+type SecretConfig {
+  """"""
+  oauthClientSecrets: [OAuthClientSecret!]
+}
+
 """"""
 input SecretConfigInput {
   """"""
   oauthClientSecrets: [OauthClientSecretInput!]
-}
-
-"""The content of authgear.secrets.yaml"""
-type StructuredSecretConfig {
-  """"""
-  oauthClientSecrets: [OAuthClientSecret!]
 }
 
 """"""
