@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -143,12 +144,12 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					rawSecretConfig, err := ctx.AppService.LoadAppSecretConfig(app)
+					sessionInfo := session.GetValidSessionInfo(p.Context)
+					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo)
 					if err != nil {
 						return nil, err
 					}
-					out := model.NewSecretConfig(rawSecretConfig)
-					return out, nil
+					return secretConfig, nil
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

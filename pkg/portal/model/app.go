@@ -44,11 +44,10 @@ type SecretConfig struct {
 	AdminAPISecrets    []AdminAPISecret    `json:"adminAPISecrets,omitempty"`
 }
 
-func NewSecretConfig(secretConfig *config.SecretConfig) *SecretConfig {
+func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretConfig, error) {
 	out := &SecretConfig{}
 
-	oauthClientCredentials, ok := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials)
-	if ok {
+	if oauthClientCredentials, ok := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials); ok {
 		for _, item := range oauthClientCredentials.Items {
 			out.OAuthClientSecrets = append(out.OAuthClientSecrets, OAuthClientSecret{
 				Alias:        item.Alias,
@@ -57,47 +56,62 @@ func NewSecretConfig(secretConfig *config.SecretConfig) *SecretConfig {
 		}
 	}
 
-	webhook, ok := secretConfig.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials)
-	if ok {
+	if webhook, ok := secretConfig.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials); ok {
 		if webhook.Set.Len() == 1 {
 			if jwkKey, ok := webhook.Set.Get(0); ok {
-				if _, ok := jwkKey.(jwk.SymmetricKey); ok {
-					// octets := sKey.Octets()
+				if sKey, ok := jwkKey.(jwk.SymmetricKey); ok {
+					var secret *string
+					if unmasked {
+						octets := sKey.Octets()
+						octetsStr := string(octets)
+						secret = &octetsStr
+					}
 					out.WebhookSecret = &WebhookSecret{
-						// FIXME(secret): expose unmasked secret.
+						Secret: secret,
 					}
 				}
 			}
 		}
 	}
 
-	adminAPI, _ := secretConfig.LookupData(config.AdminAPIAuthKeyKey).(*config.AdminAPIAuthKey)
-	for i := 0; i < adminAPI.Set.Len(); i++ {
-		if jwkKey, ok := adminAPI.Set.Get(i); ok {
-			var createdAt *time.Time
-			if anyCreatedAt, ok := jwkKey.Get("created_at"); ok {
-				if fCreatedAt, ok := anyCreatedAt.(float64); ok {
-					t := time.Unix(int64(fCreatedAt), 0).UTC()
-					createdAt = &t
+	if adminAPI, ok := secretConfig.LookupData(config.AdminAPIAuthKeyKey).(*config.AdminAPIAuthKey); ok {
+		for i := 0; i < adminAPI.Set.Len(); i++ {
+			if jwkKey, ok := adminAPI.Set.Get(i); ok {
+				var createdAt *time.Time
+				if anyCreatedAt, ok := jwkKey.Get("created_at"); ok {
+					if fCreatedAt, ok := anyCreatedAt.(float64); ok {
+						t := time.Unix(int64(fCreatedAt), 0).UTC()
+						createdAt = &t
+					}
 				}
-			}
-			set := jwk.NewSet()
-			_ = set.Add(jwkKey)
-			publicKeyPEMBytes, err := jwkutil.PublicPEM(set)
-			if err != nil {
-				panic(err)
-			}
+				set := jwk.NewSet()
+				_ = set.Add(jwkKey)
+				publicKeyPEMBytes, err := jwkutil.PublicPEM(set)
+				if err != nil {
+					return nil, err
+				}
 
-			out.AdminAPISecrets = append(out.AdminAPISecrets, AdminAPISecret{
-				KeyID:        jwkKey.KeyID(),
-				CreatedAt:    createdAt,
-				PublicKeyPEM: string(publicKeyPEMBytes),
-				// FIXME(secret): expose unmasked secret.
-			})
+				var privateKeyPEM *string
+				if unmasked {
+					privateKeyPEMBytes, err := jwkutil.PrivatePublicPEM(set)
+					if err != nil {
+						return nil, err
+					}
+					privateKeyPEMStr := string(privateKeyPEMBytes)
+					privateKeyPEM = &privateKeyPEMStr
+				}
+
+				out.AdminAPISecrets = append(out.AdminAPISecrets, AdminAPISecret{
+					KeyID:         jwkKey.KeyID(),
+					CreatedAt:     createdAt,
+					PublicKeyPEM:  string(publicKeyPEMBytes),
+					PrivateKeyPEM: privateKeyPEM,
+				})
+			}
 		}
 	}
 
-	return out
+	return out, nil
 }
 
 type secretItem struct {

@@ -216,6 +216,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resources:        manager,
 		AppResMgrFactory: managerFactory,
 		Plan:             planService,
+		Clock:            clock,
 	}
 	appLoader := loader.NewAppLoader(appService, authzService)
 	domainLoader := loader.NewDomainLoader(domainService, authzService)

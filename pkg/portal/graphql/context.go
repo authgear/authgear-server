@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -37,7 +38,7 @@ type AppService interface {
 	UpdateResources(app *model.App, updates []appresource.Update) error
 	GetMaxOwnedApps(userID string) (int, error)
 	LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
-	LoadAppSecretConfig(app *model.App) (*config.SecretConfig, error)
+	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo) (*model.SecretConfig, error)
 }
 
 type DomainService interface {
