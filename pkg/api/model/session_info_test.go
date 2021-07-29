@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 
@@ -28,20 +29,22 @@ func TestSessionInfo(t *testing.T) {
 
 			Convey("valid auth", func() {
 				var i = &model.SessionInfo{
-					IsValid:       true,
-					UserID:        "user-id",
-					UserAnonymous: true,
-					UserVerified:  true,
-					SessionAMR:    []string{"pwd", "mfa", "otp"},
+					IsValid:         true,
+					UserID:          "user-id",
+					UserAnonymous:   true,
+					UserVerified:    true,
+					SessionAMR:      []string{"pwd", "mfa", "otp"},
+					AuthenticatedAt: time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC),
 				}
 
 				i.PopulateHeaders(rw)
 				So(rw.Header(), ShouldResemble, http.Header{
-					"X-Authgear-Session-Valid":  []string{"true"},
-					"X-Authgear-User-Id":        []string{"user-id"},
-					"X-Authgear-User-Anonymous": []string{"true"},
-					"X-Authgear-User-Verified":  []string{"true"},
-					"X-Authgear-Session-Amr":    []string{"pwd mfa otp"},
+					"X-Authgear-Session-Valid":            []string{"true"},
+					"X-Authgear-User-Id":                  []string{"user-id"},
+					"X-Authgear-User-Anonymous":           []string{"true"},
+					"X-Authgear-User-Verified":            []string{"true"},
+					"X-Authgear-Session-Amr":              []string{"pwd mfa otp"},
+					"X-Authgear-Session-Authenticated-At": []string{"1136171045"},
 				})
 			})
 		})
@@ -62,11 +65,12 @@ func TestSessionInfo(t *testing.T) {
 			test(&model.SessionInfo{IsValid: false})
 
 			test(&model.SessionInfo{
-				IsValid:       true,
-				UserID:        "user-id",
-				UserAnonymous: true,
-				UserVerified:  true,
-				SessionAMR:    []string{"pwd", "mfa", "otp"},
+				IsValid:         true,
+				UserID:          "user-id",
+				UserAnonymous:   true,
+				UserVerified:    true,
+				SessionAMR:      []string{"pwd", "mfa", "otp"},
+				AuthenticatedAt: time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC),
 			})
 		})
 	})
