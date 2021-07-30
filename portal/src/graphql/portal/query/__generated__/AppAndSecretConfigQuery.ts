@@ -17,9 +17,24 @@ export interface AppAndSecretConfigQuery_node_App_secretConfig_oauthClientSecret
   clientSecret: string;
 }
 
+export interface AppAndSecretConfigQuery_node_App_secretConfig_webhookSecret {
+  __typename: "WebhookSecret";
+  secret: string | null;
+}
+
+export interface AppAndSecretConfigQuery_node_App_secretConfig_adminAPISecrets {
+  __typename: "AdminAPISecret";
+  keyID: string;
+  createdAt: GQL_DateTime | null;
+  publicKeyPEM: string;
+  privateKeyPEM: string | null;
+}
+
 export interface AppAndSecretConfigQuery_node_App_secretConfig {
   __typename: "SecretConfig";
   oauthClientSecrets: AppAndSecretConfigQuery_node_App_secretConfig_oauthClientSecrets[] | null;
+  webhookSecret: AppAndSecretConfigQuery_node_App_secretConfig_webhookSecret | null;
+  adminAPISecrets: AppAndSecretConfigQuery_node_App_secretConfig_adminAPISecrets[] | null;
 }
 
 export interface AppAndSecretConfigQuery_node_App {

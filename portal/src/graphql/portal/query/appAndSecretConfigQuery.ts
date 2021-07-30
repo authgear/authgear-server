@@ -20,6 +20,15 @@ export const appAndSecretConfigQuery = gql`
             alias
             clientSecret
           }
+          webhookSecret {
+            secret
+          }
+          adminAPISecrets {
+            keyID
+            createdAt
+            publicKeyPEM
+            privateKeyPEM
+          }
         }
       }
     }
