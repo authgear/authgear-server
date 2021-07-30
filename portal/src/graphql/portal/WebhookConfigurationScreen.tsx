@@ -1,6 +1,6 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   Dropdown,
@@ -9,6 +9,7 @@ import {
   Label,
   TextField,
   MessageBar,
+  PrimaryButton,
 } from "@fluentui/react";
 import produce from "immer";
 import ShowError from "../../ShowError";
@@ -18,15 +19,20 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
-import { HookFeatureConfig, PortalAPIAppConfig } from "../../types";
 import {
-  AppConfigFormModel,
-  useAppConfigForm,
-} from "../../hook/useAppConfigForm";
+  HookFeatureConfig,
+  PortalAPIAppConfig,
+  PortalAPISecretConfig,
+} from "../../types";
+import {
+  AppSecretConfigFormModel,
+  useAppSecretConfigForm,
+} from "../../hook/useAppSecretConfigForm";
 import { useFormField } from "../../form";
 import FieldList from "../../FieldList";
 import FormContainer from "../../FormContainer";
 import { clearEmptyObject } from "../../util/misc";
+import { copyToClipboard } from "../../util/clipboard";
 import styles from "./WebhookConfigurationScreen.module.scss";
 import { renderErrors } from "../../error/parse";
 import WidgetDescription from "../../WidgetDescription";
@@ -46,23 +52,32 @@ interface FormState {
   totalTimeout: number;
   blocking_handlers: BlockingEventHandler[];
   non_blocking_handlers: NonBlockingEventHandler[];
+  secret: string | null;
 }
 
-function constructFormState(config: PortalAPIAppConfig): FormState {
+const MASKED_SECRET = "***************";
+
+function constructFormState(
+  config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig
+): FormState {
   return {
     timeout: config.hook?.sync_hook_timeout_seconds ?? 0,
     totalTimeout: config.hook?.sync_hook_total_timeout_seconds ?? 0,
     blocking_handlers: config.hook?.blocking_handlers ?? [],
     non_blocking_handlers: config.hook?.non_blocking_handlers ?? [],
+    secret: secrets.webhookSecret?.secret ?? null,
   };
 }
 
 function constructConfig(
   config: PortalAPIAppConfig,
+  secrets: PortalAPISecretConfig,
   initialState: FormState,
-  currentState: FormState
-): PortalAPIAppConfig {
-  return produce(config, (config) => {
+  currentState: FormState,
+  _effectiveConfig: PortalAPIAppConfig
+): [PortalAPIAppConfig, PortalAPISecretConfig] {
+  const newConfig = produce(config, (config) => {
     config.hook = config.hook ?? {};
     if (initialState.timeout !== currentState.timeout) {
       config.hook.sync_hook_timeout_seconds = currentState.timeout;
@@ -74,6 +89,7 @@ function constructConfig(
     config.hook.non_blocking_handlers = currentState.non_blocking_handlers;
     clearEmptyObject(config);
   });
+  return [newConfig, secrets];
 }
 
 const blockingEventTypes: IDropdownOption[] = ["user.pre_create"].map(
@@ -219,7 +235,7 @@ const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
     );
   };
 interface WebhookConfigurationScreenContentProps {
-  form: AppConfigFormModel<FormState>;
+  form: AppSecretConfigFormModel<FormState>;
   hookFeatureConfig?: HookFeatureConfig;
 }
 
@@ -227,6 +243,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
   function WebhookConfigurationScreenContent(props) {
     const { hookFeatureConfig } = props;
     const { state, setState } = props.form;
+    const [revealed, setRevealed] = useState(false);
 
     const { renderToString } = useContext(Context);
 
@@ -307,6 +324,31 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
         setState((state) => ({ ...state, non_blocking_handlers: value }));
       },
       [setState]
+    );
+
+    const onClickReveal = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (state.secret != null) {
+          setRevealed(true);
+        }
+
+        // TODO(secret): reauthenticate
+      },
+      [state.secret]
+    );
+
+    const onClickCopy = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (state.secret != null) {
+          copyToClipboard(state.secret);
+        }
+      },
+      [state.secret]
     );
 
     const blockingHandlerMax = useMemo(() => {
@@ -473,6 +515,38 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
             onChange={onTimeoutChange}
           />
         </Widget>
+
+        <Widget className={cn(styles.widget, styles.controlGroup)}>
+          <WidgetTitle>
+            <FormattedMessage id="WebhookConfigurationScreen.signature.title" />
+          </WidgetTitle>
+          <WidgetDescription>
+            <FormattedMessage id="WebhookConfigurationScreen.signature.description" />
+          </WidgetDescription>
+          <div className={styles.secretControlGroup}>
+            <TextField
+              className={cn(styles.control, styles.secretControl)}
+              type="text"
+              label={renderToString(
+                "WebhookConfigurationScreen.signature.secret-key"
+              )}
+              value={
+                revealed && state.secret != null ? state.secret : MASKED_SECRET
+              }
+              readOnly={true}
+            />
+            <PrimaryButton
+              className={styles.secretControlButton}
+              onClick={revealed ? onClickCopy : onClickReveal}
+            >
+              {revealed ? (
+                <FormattedMessage id="copy" />
+              ) : (
+                <FormattedMessage id="reveal" />
+              )}
+            </PrimaryButton>
+          </div>
+        </Widget>
       </ScreenContent>
     );
   };
@@ -480,7 +554,11 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
 const WebhookConfigurationScreen: React.FC =
   function WebhookConfigurationScreen() {
     const { appID } = useParams();
-    const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const form = useAppSecretConfigForm(
+      appID,
+      constructFormState,
+      constructConfig
+    );
     const featureConfig = useAppFeatureConfigQuery(appID);
 
     if (form.isLoading || featureConfig.loading) {
