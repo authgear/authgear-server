@@ -37,6 +37,7 @@ import styles from "./WebhookConfigurationScreen.module.scss";
 import { renderErrors } from "../../error/parse";
 import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import { startReauthentication } from "./Authenticated";
 
 interface BlockingEventHandler {
   event: string;
@@ -240,6 +241,7 @@ interface WebhookConfigurationScreenContentProps {
 }
 
 const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenContentProps> =
+  // eslint-disable-next-line complexity
   function WebhookConfigurationScreenContent(props) {
     const { hookFeatureConfig } = props;
     const { state, setState } = props.form;
@@ -333,9 +335,13 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
 
         if (state.secret != null) {
           setRevealed(true);
+          return;
         }
 
-        // TODO(secret): reauthenticate
+        startReauthentication().catch((e) => {
+          // Normally there should not be any error.
+          console.error(e);
+        });
       },
       [state.secret]
     );
