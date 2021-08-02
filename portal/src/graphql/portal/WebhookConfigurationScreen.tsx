@@ -355,7 +355,9 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           return;
         }
 
-        startReauthentication().catch((e) => {
+        startReauthentication({
+          isOAuthRedirect: true,
+        }).catch((e) => {
           // Normally there should not be any error.
           console.error(e);
         });
