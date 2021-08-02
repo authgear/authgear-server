@@ -31,13 +31,14 @@ type StructuredSecretConfig struct {
 func NewStructuredSecretConfig(secretConfig *config.SecretConfig) *StructuredSecretConfig {
 	out := &StructuredSecretConfig{}
 
-	oauthClientCredentials, _ := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials)
-
-	for _, item := range oauthClientCredentials.Items {
-		out.OAuthClientSecrets = append(out.OAuthClientSecrets, OAuthClientSecret{
-			Alias:        item.Alias,
-			ClientSecret: item.ClientSecret,
-		})
+	oauthClientCredentials, ok := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials)
+	if ok {
+		for _, item := range oauthClientCredentials.Items {
+			out.OAuthClientSecrets = append(out.OAuthClientSecrets, OAuthClientSecret{
+				Alias:        item.Alias,
+				ClientSecret: item.ClientSecret,
+			})
+		}
 	}
 
 	return out
