@@ -1,7 +1,7 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useLocation } from "react-router-dom";
 import {
   Dropdown,
   IDropdownOption,
@@ -57,6 +57,8 @@ interface FormState {
 }
 
 const MASKED_SECRET = "***************";
+
+const WEBHOOK_SIGNATURE_ID = "webhook-signature";
 
 function constructFormState(
   config: PortalAPIAppConfig,
@@ -236,6 +238,7 @@ const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
     );
   };
 interface WebhookConfigurationScreenContentProps {
+  isOAuthRedirect: boolean;
   form: AppSecretConfigFormModel<FormState>;
   hookFeatureConfig?: HookFeatureConfig;
 }
@@ -243,9 +246,9 @@ interface WebhookConfigurationScreenContentProps {
 const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenContentProps> =
   // eslint-disable-next-line complexity
   function WebhookConfigurationScreenContent(props) {
-    const { hookFeatureConfig } = props;
+    const { isOAuthRedirect, hookFeatureConfig } = props;
     const { state, setState } = props.form;
-    const [revealed, setRevealed] = useState(false);
+    const [revealed, setRevealed] = useState(isOAuthRedirect);
 
     const { renderToString } = useContext(Context);
 
@@ -523,7 +526,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
         </Widget>
 
         <Widget className={cn(styles.widget, styles.controlGroup)}>
-          <WidgetTitle>
+          <WidgetTitle id={WEBHOOK_SIGNATURE_ID}>
             <FormattedMessage id="WebhookConfigurationScreen.signature.title" />
           </WidgetTitle>
           <WidgetDescription>
@@ -560,6 +563,8 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
 const WebhookConfigurationScreen: React.FC =
   function WebhookConfigurationScreen() {
     const { appID } = useParams();
+    const { state } = useLocation();
+    const isOAuthRedirect = (state as any)?.isOAuthRedirect === true;
     const form = useAppSecretConfigForm(
       appID,
       constructFormState,
@@ -589,6 +594,7 @@ const WebhookConfigurationScreen: React.FC =
     return (
       <FormContainer form={form}>
         <WebhookConfigurationScreenContent
+          isOAuthRedirect={isOAuthRedirect}
           form={form}
           hookFeatureConfig={featureConfig.effectiveFeatureConfig?.hook}
         />
