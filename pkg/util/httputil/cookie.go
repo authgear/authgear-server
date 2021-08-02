@@ -133,7 +133,7 @@ func (f *CookieManager) ClearCookie(def *CookieDef) *http.Cookie {
 		Domain:   f.CookieDomain,
 		HttpOnly: !def.AllowScriptAccess,
 		SameSite: def.SameSite,
-		Expires:  time.Unix(0, 0),
+		Expires:  time.Unix(0, 0).UTC(),
 	}
 
 	f.fixupCookie(cookie)

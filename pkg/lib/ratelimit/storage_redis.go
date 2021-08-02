@@ -81,7 +81,7 @@ func (s storageRedisConn) GetResetTime(bucket Bucket, now time.Time) (time.Time,
 		// Invalid reset time, default to now to avoid stuck state
 		return now, nil
 	}
-	return time.Unix(0, nano), nil
+	return time.Unix(0, nano).UTC(), nil
 }
 
 func (s storageRedisConn) Reset(bucket Bucket, now time.Time) error {
