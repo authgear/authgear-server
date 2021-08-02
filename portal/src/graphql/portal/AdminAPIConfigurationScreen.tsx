@@ -20,6 +20,7 @@ import {
 } from "./query/appAndSecretConfigQuery";
 import { formatDatetime } from "../../util/formatDatetime";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { downloadStringAsFile } from "../../util/download";
 import styles from "./AdminAPIConfigurationScreen.module.scss";
 
 interface AdminAPIConfigurationScreenContentProps {
@@ -38,12 +39,40 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
     const { locale, renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
 
-    const downloadItem = useCallback((item: Item) => {
-      if (item.privateKeyPEM != null) {
-        // TODO: download the file
+    const adminAPISecrets = useMemo(() => {
+      return props.queryResult.secretConfig?.adminAPISecrets ?? [];
+    }, [props.queryResult.secretConfig?.adminAPISecrets]);
+
+    const items: Item[] = useMemo(() => {
+      const items = [];
+      for (const adminAPISecret of adminAPISecrets) {
+        items.push({
+          keyID: adminAPISecret.keyID,
+          createdAt: formatDatetime(locale, adminAPISecret.createdAt),
+          publicKeyPEM: adminAPISecret.publicKeyPEM,
+          privateKeyPEM: adminAPISecret.privateKeyPEM,
+        });
       }
-      // TODO: reauthenticate
-    }, []);
+      return items;
+    }, [locale, adminAPISecrets]);
+
+    const downloadItem = useCallback(
+      (keyID: string) => {
+        const item = items.find((a) => a.keyID === keyID);
+        if (item == null) {
+          return;
+        }
+        if (item.privateKeyPEM != null) {
+          downloadStringAsFile({
+            content: item.privateKeyPEM,
+            mimeType: "application/x-pem-file",
+            filename: `${item.keyID}.pem`,
+          });
+        }
+        // TODO: reauthenticate
+      },
+      [items]
+    );
 
     const actionColumnOnRender = useCallback(
       (item?: Item) => {
@@ -55,7 +84,7 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
               e.preventDefault();
               e.stopPropagation();
               if (item != null) {
-                downloadItem(item);
+                downloadItem(item.keyID);
               }
             }}
           >
@@ -88,23 +117,6 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
         },
       ];
     }, [renderToString, actionColumnOnRender]);
-
-    const adminAPISecrets = useMemo(() => {
-      return props.queryResult.secretConfig?.adminAPISecrets ?? [];
-    }, [props.queryResult.secretConfig?.adminAPISecrets]);
-
-    const items: Item[] = useMemo(() => {
-      const items = [];
-      for (const adminAPISecret of adminAPISecrets) {
-        items.push({
-          keyID: adminAPISecret.keyID,
-          createdAt: formatDatetime(locale, adminAPISecret.createdAt),
-          publicKeyPEM: adminAPISecret.publicKeyPEM,
-          privateKeyPEM: adminAPISecret.privateKeyPEM,
-        });
-      }
-      return items;
-    }, [locale, adminAPISecrets]);
 
     return (
       <ScreenContent className={styles.root}>
