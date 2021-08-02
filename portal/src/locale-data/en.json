@@ -94,6 +94,7 @@
   "ScreenNav.subscription": "Subscription",
   "ScreenNav.settings": "Settings",
   "ScreenNav.audit-log": "Audit Log",
+  "ScreenNav.admin-api": "Admin API",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -616,6 +617,9 @@
   "WebhookConfigurationScreen.signature.title": "Webhook Signature",
   "WebhookConfigurationScreen.signature.description": "Each webhook event request is signed with a secret key. You must validate the signature to ensure the request originates from Authgear. The signature is calculated as the hex encoded value of HMAC-SHA256 of the request body and is set as the HTTP header {code, react, children{x-authgear-body-signature}}. {br, react} {ExternalLink, react, href{https://docs.authgear.com/webhooks/webhooks#check-the-webhook-signatures} children{Learn more about validating the signature}}",
   "WebhookConfigurationScreen.signature.secret-key": "Secret Key",
+
+  "AdminAPIConfigurationScreen.title": "Admin API",
+  "AdminAPIConfigurationScreen.description": "Use the Admin API keys to manage your project with Admin API. {ExternalLink, react, href{https://docs.authgear.com/apis/admin-apis} children{Learn more}}",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 

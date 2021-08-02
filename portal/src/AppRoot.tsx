@@ -32,6 +32,7 @@ import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
 import SessionConfigurationScreen from "./graphql/portal/SessionConfigurationScreen";
 import WebhookConfigurationScreen from "./graphql/portal/WebhookConfigurationScreen";
+import AdminAPIConfigurationScreen from "./graphql/portal/AdminAPIConfigurationScreen";
 import LoginIDConfigurationScreen from "./graphql/portal/LoginIDConfigurationScreen";
 import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConfigurationScreen";
 import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
@@ -170,6 +171,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/settings/subscription"
             element={<SubscriptionScreen />}
+          />
+          <Route
+            path="/configuration/settings/admin-api"
+            element={<AdminAPIConfigurationScreen />}
           />
           <Route path="/audit-log/" element={<AuditLogScreen />} />
           <Route

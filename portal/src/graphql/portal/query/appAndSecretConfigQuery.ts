@@ -35,7 +35,7 @@ export const appAndSecretConfigQuery = gql`
   }
 `;
 
-interface AppAndSecretConfigQueryResult
+export interface AppAndSecretConfigQueryResult
   extends Pick<
     QueryResult<AppAndSecretConfigQuery, AppAndSecretConfigQueryVariables>,
     "loading" | "error" | "refetch"
