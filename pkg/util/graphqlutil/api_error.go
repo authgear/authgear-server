@@ -32,6 +32,16 @@ func (a APIErrorExtension) ExecutionDidStart(ctx context.Context) (context.Conte
 		logger := GQLContext(ctx).Logger()
 		for i, gqlError := range result.Errors {
 			err := originalError(gqlError)
+
+			// This error will appear when GraphiQL is opened, it is better to ignore this.
+			// I know it is not a good practice to match on the error message,
+			// but the original error is constructed with fmt.Errorf inline.
+			// So I have no choice :(
+			// See https://github.com/graphql-go/graphql/blob/1a9db8859ef57c2821bbd47b0db9a1a09e617f41/executor.go#L144
+			if err.Error() == "Must provide an operation." {
+				continue
+			}
+
 			if !apierrors.IsAPIError(err) {
 				// FIXME(graphql): Log panics correctly
 				//		graphql-go recovers panic and translates it to error automatically.
