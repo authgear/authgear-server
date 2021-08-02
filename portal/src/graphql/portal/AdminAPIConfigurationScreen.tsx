@@ -1,5 +1,5 @@
-import React, { useContext, useMemo, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import React, { useContext, useMemo, useCallback, useEffect } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import {
   DetailsList,
   IColumn,
@@ -21,6 +21,7 @@ import {
 import { formatDatetime } from "../../util/formatDatetime";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { downloadStringAsFile } from "../../util/download";
+import { startReauthentication } from "./Authenticated";
 import styles from "./AdminAPIConfigurationScreen.module.scss";
 
 interface AdminAPIConfigurationScreenContentProps {
@@ -38,6 +39,9 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
   function AdminAPIConfigurationScreenContent(props) {
     const { locale, renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
+    const { state } = useLocation();
+
+    const redirectKeyID: string | undefined | null = (state as any)?.keyID;
 
     const adminAPISecrets = useMemo(() => {
       return props.queryResult.secretConfig?.adminAPISecrets ?? [];
@@ -68,11 +72,23 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
             mimeType: "application/x-pem-file",
             filename: `${item.keyID}.pem`,
           });
+          return;
         }
-        // TODO: reauthenticate
+
+        startReauthentication({
+          keyID,
+        }).catch((e) => {
+          console.error(e);
+        });
       },
       [items]
     );
+
+    useEffect(() => {
+      if (redirectKeyID != null) {
+        downloadItem(redirectKeyID);
+      }
+    }, []);
 
     const actionColumnOnRender = useCallback(
       (item?: Item) => {
