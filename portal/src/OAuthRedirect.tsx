@@ -31,6 +31,7 @@ const OAuthRedirect: React.FC = function OAuthRedirect() {
         }
         navigate(navigateToPath, {
           state: {
+            ...(state?.state as any),
             isOAuthRedirect: true,
           },
         });
