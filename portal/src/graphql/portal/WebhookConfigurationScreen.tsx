@@ -1,6 +1,12 @@
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
-import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import {
   Dropdown,
@@ -251,6 +257,14 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
     const [revealed, setRevealed] = useState(isOAuthRedirect);
 
     const { renderToString } = useContext(Context);
+
+    useEffect(() => {
+      if (isOAuthRedirect) {
+        window.location.hash = "";
+        window.location.hash = "#" + WEBHOOK_SIGNATURE_ID;
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const onTimeoutChange = useCallback(
       (_, value?: string) => {
