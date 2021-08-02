@@ -1,13 +1,7 @@
-import React, {
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-  useEffect,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import {
   Dropdown,
   IDropdownOption,
@@ -44,6 +38,7 @@ import { renderErrors } from "../../error/parse";
 import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { startReauthentication } from "./Authenticated";
+import { useLocationEffect } from "../../hook/useLocationEffect";
 
 interface BlockingEventHandler {
   event: string;
@@ -243,28 +238,33 @@ const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
       </div>
     );
   };
+
 interface WebhookConfigurationScreenContentProps {
-  isOAuthRedirect: boolean;
   form: AppSecretConfigFormModel<FormState>;
   hookFeatureConfig?: HookFeatureConfig;
+}
+
+interface LocationState {
+  isOAuthRedirect: boolean;
 }
 
 const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenContentProps> =
   // eslint-disable-next-line complexity
   function WebhookConfigurationScreenContent(props) {
-    const { isOAuthRedirect, hookFeatureConfig } = props;
-    const { state, setState } = props.form;
-    const [revealed, setRevealed] = useState(isOAuthRedirect);
-
     const { renderToString } = useContext(Context);
+    const { hookFeatureConfig } = props;
+    const { state, setState } = props.form;
 
-    useEffect(() => {
-      if (isOAuthRedirect) {
+    const locationState = useLocationEffect((state: LocationState) => {
+      if (state.isOAuthRedirect) {
         window.location.hash = "";
         window.location.hash = "#" + WEBHOOK_SIGNATURE_ID;
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    });
+
+    const [revealed, setRevealed] = useState(
+      locationState?.isOAuthRedirect ?? false
+    );
 
     const onTimeoutChange = useCallback(
       (_, value?: string) => {
@@ -355,9 +355,11 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           return;
         }
 
-        startReauthentication({
+        const locationState: LocationState = {
           isOAuthRedirect: true,
-        }).catch((e) => {
+        };
+
+        startReauthentication(locationState).catch((e) => {
           // Normally there should not be any error.
           console.error(e);
         });
@@ -579,8 +581,6 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
 const WebhookConfigurationScreen: React.FC =
   function WebhookConfigurationScreen() {
     const { appID } = useParams();
-    const { state } = useLocation();
-    const isOAuthRedirect = (state as any)?.isOAuthRedirect === true;
     const form = useAppSecretConfigForm(
       appID,
       constructFormState,
@@ -610,7 +610,6 @@ const WebhookConfigurationScreen: React.FC =
     return (
       <FormContainer form={form}>
         <WebhookConfigurationScreenContent
-          isOAuthRedirect={isOAuthRedirect}
           form={form}
           hookFeatureConfig={featureConfig.effectiveFeatureConfig?.hook}
         />

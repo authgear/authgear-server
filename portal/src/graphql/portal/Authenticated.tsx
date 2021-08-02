@@ -65,9 +65,7 @@ const Authenticated: React.FC<Props> = function Authenticated(ownProps: Props) {
   return <ShowQueryResult isAuthenticated={isAuthenticated} {...ownProps} />;
 };
 
-export async function startReauthentication<S extends Record<string, unknown>>(
-  state?: S
-): Promise<void> {
+export async function startReauthentication<S>(state?: S): Promise<void> {
   await authgear.refreshIDToken();
   const redirectURI = window.location.origin + "/oauth-redirect";
   const originalPath = `${window.location.pathname}${window.location.search}`;

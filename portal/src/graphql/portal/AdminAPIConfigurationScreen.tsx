@@ -1,5 +1,5 @@
-import React, { useContext, useMemo, useCallback, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import React, { useContext, useMemo, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import {
   DetailsList,
   IColumn,
@@ -22,6 +22,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { downloadStringAsFile } from "../../util/download";
 import { startReauthentication } from "./Authenticated";
+import { useLocationEffect } from "../../hook/useLocationEffect";
 import styles from "./AdminAPIConfigurationScreen.module.scss";
 
 interface AdminAPIConfigurationScreenContentProps {
@@ -35,13 +36,14 @@ interface Item {
   privateKeyPEM?: string | null;
 }
 
+interface LocationState {
+  keyID: string;
+}
+
 const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenContentProps> =
   function AdminAPIConfigurationScreenContent(props) {
     const { locale, renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
-    const { state } = useLocation();
-
-    const redirectKeyID: string | undefined | null = (state as any)?.keyID;
 
     const adminAPISecrets = useMemo(() => {
       return props.queryResult.secretConfig?.adminAPISecrets ?? [];
@@ -75,20 +77,20 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
           return;
         }
 
-        startReauthentication({
+        const state: LocationState = {
           keyID,
-        }).catch((e) => {
+        };
+
+        startReauthentication(state).catch((e) => {
           console.error(e);
         });
       },
       [items]
     );
 
-    useEffect(() => {
-      if (redirectKeyID != null) {
-        downloadItem(redirectKeyID);
-      }
-    }, []);
+    useLocationEffect((state: LocationState) => {
+      downloadItem(state.keyID);
+    });
 
     const actionColumnOnRender = useCallback(
       (item?: Item) => {
