@@ -1,9 +1,19 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   ActionButton,
+  Callout,
+  DelayedRender,
   DetailsList,
+  DirectionalHint,
   IColumn,
   ICommandBarItemProps,
+  IconButton,
   MessageBar,
   SelectionMode,
   Text,
@@ -83,32 +93,86 @@ function makeOAuthClientListColumns(
       minWidth: 300,
       className: styles.columnHeader,
     },
-    { key: "action", name: renderToString("action"), minWidth: 200 },
+    {
+      key: "action",
+      name: renderToString("action"),
+      className: styles.columnHeader,
+      minWidth: 200,
+    },
   ];
 }
 
+interface OAuthClientIdCellProps {
+  clientId: string;
+  dismissTimeout?: number;
+}
+
+const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
+  function OAuthClientIdCell(props) {
+    const { clientId, dismissTimeout } = props;
+    const copyButtonId = "oauth-client-id-copy-button";
+    const [isCalloutVisible, setIsCalloutVisible] = useState(false);
+    const [calloutToggle, setCalloutToggle] = useState(false);
+    const { renderToString } = useContext(Context);
+
+    const handleCalloutDismiss = () => setIsCalloutVisible(false);
+
+    useEffect(() => {
+      setIsCalloutVisible(true);
+      const timer = setTimeout(handleCalloutDismiss, dismissTimeout ?? 2000);
+      return () => clearTimeout(timer);
+    }, [calloutToggle, dismissTimeout]);
+
+    const onCopyClick = () => {
+      copyToClipboard(clientId);
+      setCalloutToggle((v) => !v);
+    };
+
+    return (
+      <>
+        <span className={styles.cellContent}>{clientId}</span>
+        <IconButton
+          id={copyButtonId}
+          onClick={onCopyClick}
+          iconProps={{ iconName: "Copy" }}
+          title="Copy"
+          ariaLabel="Copy"
+          styles={{ root: styles.copyButtonRoot }}
+        />
+        {isCalloutVisible && (
+          <Callout
+            target={`#${copyButtonId}`}
+            className={styles.callout}
+            directionalHint={DirectionalHint.topCenter}
+            onDismiss={handleCalloutDismiss}
+          >
+            <DelayedRender>
+              <Text variant="small">
+                {renderToString(
+                  "ApplicationsConfigurationScreen.client-id-copied"
+                )}
+              </Text>
+            </DelayedRender>
+          </Callout>
+        )}
+      </>
+    );
+  };
+
 interface OAuthClientListActionCellProps {
   clientId: string;
-  onCopyComplete: () => void;
   onRemoveClientClick: (clientId: string) => void;
 }
 
 const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> =
   function OAuthClientListActionCell(props: OAuthClientListActionCellProps) {
-    const { clientId, onCopyComplete, onRemoveClientClick } = props;
+    const { clientId, onRemoveClientClick } = props;
     const navigate = useNavigate();
     const { themes } = useSystemConfig();
 
     const onEditClick = useCallback(() => {
       navigate(`./${clientId}/edit`);
     }, [navigate, clientId]);
-
-    const onCopyClick = useCallback(() => {
-      copyToClipboard(clientId);
-
-      // Invoke callback
-      onCopyComplete();
-    }, [clientId, onCopyComplete]);
 
     const onRemoveClick = useCallback(() => {
       onRemoveClientClick(clientId);
@@ -122,14 +186,6 @@ const OAuthClientListActionCell: React.FC<OAuthClientListActionCellProps> =
           onClick={onEditClick}
         >
           <FormattedMessage id="edit" />
-        </ActionButton>
-        <VerticalDivider className={styles.cellActionDivider} />
-        <ActionButton
-          className={styles.cellAction}
-          theme={themes.actionButton}
-          onClick={onCopyClick}
-        >
-          <FormattedMessage id="copy" />
         </ActionButton>
         <VerticalDivider className={styles.cellActionDivider} />
         <ActionButton
@@ -187,7 +243,6 @@ interface OAuthClientConfigurationContentProps {
 const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentProps> =
   function OAuthClientConfigurationContent(props) {
     const {
-      showNotification,
       form,
       form: { state, setState },
       oauthClientsMaximum,
@@ -197,12 +252,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
     const oauthClientListColumns = useMemo(() => {
       return makeOAuthClientListColumns(renderToString);
     }, [renderToString]);
-
-    const onClientIdCopied = useCallback(() => {
-      showNotification(
-        renderToString("ApplicationsConfigurationScreen.client-id-copied")
-      );
-    }, [showNotification, renderToString]);
 
     const onRemoveClientClick = useCallback(
       (clientId: string) => {
@@ -224,7 +273,6 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
             return (
               <OAuthClientListActionCell
                 clientId={item.client_id}
-                onCopyComplete={onClientIdCopied}
                 onRemoveClientClick={onRemoveClientClick}
               />
             );
@@ -233,12 +281,12 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               <span className={styles.cellContent}>{item.name ?? ""}</span>
             );
           case "clientId":
-            return <span className={styles.cellContent}>{item.client_id}</span>;
+            return <OAuthClientIdCell clientId={item.client_id} />;
           default:
             return null;
         }
       },
-      [onClientIdCopied, onRemoveClientClick]
+      [onRemoveClientClick]
     );
 
     return (
