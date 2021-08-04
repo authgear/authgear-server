@@ -2,6 +2,8 @@ import { ApolloError } from "@apollo/client";
 import { APIError, isAPIError } from "./error";
 import { ValidationFailedErrorInfoCause } from "./validation";
 import { Values } from "@oursky/react-messageformat";
+import { APIPasswordPolicyViolatedError } from "./password";
+import { APIResourceTooLargeError } from "./resources";
 
 export function parseRawError(error: unknown): APIError[] {
   const errors: APIError[] = [];
@@ -78,6 +80,69 @@ function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   return { messageID, arguments: args };
 }
 
+function parsePasswordPolicyViolatedError(
+  error: APIPasswordPolicyViolatedError,
+  errors: ParsedAPIError[]
+) {
+  let hasUnmatched = false;
+  for (const cause of error.info.causes) {
+    switch (cause.Name) {
+      case "PasswordReused":
+        errors.push({
+          messageID: "errors.password-policy.password-reused",
+        });
+        break;
+      case "PasswordContainingExcludedKeywords":
+        errors.push({
+          messageID: "errors.password-policy.containing-excluded-keywords",
+        });
+        break;
+      default:
+        hasUnmatched = true;
+        break;
+    }
+  }
+  if (hasUnmatched && errors.length === 0) {
+    errors.push({ messageID: "errors.password-policy.unknown" });
+  }
+}
+
+function parseResourceTooLargeError(
+  error: APIResourceTooLargeError,
+  errors: ParsedAPIError[]
+) {
+  const faviconRe = /^static\/(.+)\/favicon\.(.*)/;
+  const appLogoRe = /^static\/(.+)\/app_logo\.(.*)/;
+
+  if (error.info.path) {
+    if (faviconRe.test(error.info.path)) {
+      errors.push({
+        messageID: "errors.resource-too-large",
+        arguments: {
+          maxSize: error.info.max_size / 1024,
+          resourceType: "favicon",
+        },
+      });
+    } else if (appLogoRe.test(error.info.path)) {
+      errors.push({
+        messageID: "errors.resource-too-large",
+        arguments: {
+          maxSize: error.info.max_size / 1024,
+          resourceType: "app logo",
+        },
+      });
+    } else {
+      errors.push({
+        messageID: "errors.resource-too-large",
+        arguments: {
+          maxSize: error.info.max_size / 1024,
+          resourceType: "unknown",
+        },
+      });
+    }
+  }
+}
+
 function parseError(error: APIError): ParsedAPIError[] {
   const errors: ParsedAPIError[] = [];
   switch (error.reason) {
@@ -93,28 +158,12 @@ function parseError(error: APIError): ParsedAPIError[] {
         arguments: { message: error.info.message },
       });
       break;
+    case "ResourceTooLarge": {
+      parseResourceTooLargeError(error, errors);
+      break;
+    }
     case "PasswordPolicyViolated": {
-      let hasUnmatched = false;
-      for (const cause of error.info.causes) {
-        switch (cause.Name) {
-          case "PasswordReused":
-            errors.push({
-              messageID: "errors.password-policy.password-reused",
-            });
-            break;
-          case "PasswordContainingExcludedKeywords":
-            errors.push({
-              messageID: "errors.password-policy.containing-excluded-keywords",
-            });
-            break;
-          default:
-            hasUnmatched = true;
-            break;
-        }
-      }
-      if (hasUnmatched && errors.length === 0) {
-        errors.push({ messageID: "errors.password-policy.unknown" });
-      }
+      parsePasswordPolicyViolatedError(error, errors);
       break;
     }
     default:
