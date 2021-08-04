@@ -56,6 +56,9 @@ const ScreenNav: React.FC = function ScreenNav() {
   const links: NavLinkProps[] = useMemo(() => {
     const links = [
       { textKey: "ScreenNav.users", url: "users" },
+      ...(auditLogEnabled
+        ? [{ textKey: "ScreenNav.audit-log", url: "audit-log" }]
+        : []),
       {
         textKey: "ScreenNav.authentication",
         url: "configuration/authentication",
@@ -69,7 +72,7 @@ const ScreenNav: React.FC = function ScreenNav() {
             url: "configuration/authentication/authenticators",
           },
           {
-            textKey: "VerificationConfigurationScreen.title.nav",
+            textKey: "ScreenNav.verification",
             url: "configuration/authentication/verification",
           },
         ],
@@ -87,18 +90,8 @@ const ScreenNav: React.FC = function ScreenNav() {
         url: "configuration/single-sign-on",
       },
       {
-        textKey: "ScreenNav.passwords",
-        url: "configuration/passwords",
-        children: [
-          {
-            textKey: "ScreenNav.password-policy",
-            url: "configuration/passwords/policy",
-          },
-          {
-            textKey: "ScreenNav.forgot-password",
-            url: "configuration/passwords/forgot-password",
-          },
-        ],
+        textKey: "ScreenNav.password-policy",
+        url: "configuration/passwords/policy",
       },
       {
         textKey: "ScreenNav.client-applications",
@@ -117,16 +110,20 @@ const ScreenNav: React.FC = function ScreenNav() {
         url: "configuration/localization",
       },
       {
+        textKey: "ScreenNav.subscription",
+        url: "configuration/settings/subscription",
+      },
+      {
         textKey: "ScreenNav.settings",
         url: "configuration/settings",
         children: [
           {
-            textKey: "PortalAdminSettings.title",
-            url: "configuration/settings/portal-admins",
-          },
-          {
             textKey: "ScreenNav.sessions",
             url: "configuration/settings/sessions",
+          },
+          {
+            textKey: "ScreenNav.forgot-password",
+            url: "configuration/passwords/forgot-password",
           },
           {
             textKey: "ScreenNav.webhooks",
@@ -136,20 +133,13 @@ const ScreenNav: React.FC = function ScreenNav() {
             textKey: "ScreenNav.admin-api",
             url: "configuration/settings/admin-api",
           },
-          {
-            textKey: "ScreenNav.subscription",
-            url: "configuration/settings/subscription",
-          },
         ],
       },
+      {
+        textKey: "PortalAdminSettings.title",
+        url: "configuration/settings/portal-admins",
+      },
     ];
-
-    if (auditLogEnabled) {
-      links.push({
-        textKey: "ScreenNav.audit-log",
-        url: "audit-log",
-      });
-    }
 
     return links;
   }, [auditLogEnabled]);
