@@ -29,3 +29,17 @@
     flex: 1 0 0;
   }
 }
+
+.secretControlGroup {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
+.secretControl {
+  width: 200px;
+}
+
+.secretControlButton {
+  margin: 10px 0;
+}

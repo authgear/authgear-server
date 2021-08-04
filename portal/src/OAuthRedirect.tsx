@@ -29,7 +29,9 @@ const OAuthRedirect: React.FC = function OAuthRedirect() {
         if (navigateToPath === "/") {
           navigateToPath = "/onboarding-redirect";
         }
-        navigate(navigateToPath);
+        navigate(navigateToPath, {
+          state: state?.state as any,
+        });
       })
       .catch((err) => {
         console.error(err);

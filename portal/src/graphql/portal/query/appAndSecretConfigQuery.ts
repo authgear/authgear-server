@@ -20,13 +20,22 @@ export const appAndSecretConfigQuery = gql`
             alias
             clientSecret
           }
+          webhookSecret {
+            secret
+          }
+          adminAPISecrets {
+            keyID
+            createdAt
+            publicKeyPEM
+            privateKeyPEM
+          }
         }
       }
     }
   }
 `;
 
-interface AppAndSecretConfigQueryResult
+export interface AppAndSecretConfigQueryResult
   extends Pick<
     QueryResult<AppAndSecretConfigQuery, AppAndSecretConfigQueryVariables>,
     "loading" | "error" | "refetch"

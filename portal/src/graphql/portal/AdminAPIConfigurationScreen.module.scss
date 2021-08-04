@@ -1,0 +1,14 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.widget {
+  margin: 10px 15px;
+  max-width: 672px;
+}
+
+.actionButton {
+  font-weight: 600;
+  height: auto;
+}

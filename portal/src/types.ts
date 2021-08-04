@@ -358,8 +358,21 @@ export interface OAuthClientSecret {
   clientSecret: string;
 }
 
+export interface WebhookSecret {
+  secret?: string | null;
+}
+
+export interface AdminAPISecret {
+  keyID: string;
+  createdAt?: string | null;
+  publicKeyPEM: string;
+  privateKeyPEM?: string | null;
+}
+
 export interface PortalAPISecretConfig {
   oauthClientSecrets?: OAuthClientSecret[] | null;
+  webhookSecret?: WebhookSecret | null;
+  adminAPISecrets?: AdminAPISecret[] | null;
 }
 
 export interface PortalAPIApp {

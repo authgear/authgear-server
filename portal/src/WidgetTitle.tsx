@@ -1,22 +1,32 @@
 import React from "react";
-import cn from "classnames";
 import { Text } from "@fluentui/react";
 import styles from "./WidgetTitle.module.scss";
 
 export interface WidgetTitleProps {
   className?: string;
   children?: React.ReactNode;
+  id?: string;
 }
 
 const WidgetTitle: React.FC<WidgetTitleProps> = function WidgetTitle(
   props: WidgetTitleProps
 ) {
-  const { className, children } = props;
-  return (
-    <Text as="h2" variant="xLarge" className={cn(className, styles.title)}>
+  const { className, children, id } = props;
+  const element = (
+    <Text as="h2" variant="xLarge" className={styles.title}>
       {children}
     </Text>
   );
+
+  if (id != null) {
+    return (
+      <a id={id} href={"#" + id} className={className}>
+        {element}
+      </a>
+    );
+  }
+
+  return <div className={className}>{element}</div>;
 };
 
 export default WidgetTitle;

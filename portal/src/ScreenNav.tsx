@@ -133,6 +133,10 @@ const ScreenNav: React.FC = function ScreenNav() {
             url: "configuration/settings/web-hooks",
           },
           {
+            textKey: "ScreenNav.admin-api",
+            url: "configuration/settings/admin-api",
+          },
+          {
             textKey: "ScreenNav.subscription",
             url: "configuration/settings/subscription",
           },
