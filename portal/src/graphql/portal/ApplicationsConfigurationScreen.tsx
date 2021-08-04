@@ -8,7 +8,6 @@ import React, {
 import {
   ActionButton,
   Callout,
-  DelayedRender,
   DetailsList,
   DirectionalHint,
   IColumn,
@@ -102,31 +101,49 @@ function makeOAuthClientListColumns(
   ];
 }
 
+function useDelayedAction(delayed: () => void): (delay: number) => void {
+  // tuple is used instead of number because we want to trigger the effect even when delay argument is the same
+  const [delay, setDelay] = useState<[number] | null>(null);
+
+  useEffect(() => {
+    if (!delay) {
+      return () => {};
+    }
+    const timer = setTimeout(() => {
+      delayed();
+    }, delay[0]);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [delay, delayed]);
+
+  return (delay: number) => setDelay([delay]);
+}
+
 interface OAuthClientIdCellProps {
   clientId: string;
-  dismissTimeout?: number;
+  normalDismissTimeout?: number;
+  quickDismissTimeout?: number;
 }
 
 const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
   function OAuthClientIdCell(props) {
-    const { clientId, dismissTimeout } = props;
+    const { clientId, normalDismissTimeout, quickDismissTimeout } = props;
     const copyButtonId = "oauth-client-id-copy-button";
     const [isCalloutVisible, setIsCalloutVisible] = useState(false);
-    const [calloutToggle, setCalloutToggle] = useState(false);
     const { renderToString } = useContext(Context);
+    const dismissCallout = useCallback(() => setIsCalloutVisible(false), []);
+    const scheduleCalloutDismiss = useDelayedAction(dismissCallout);
 
-    const handleCalloutDismiss = () => setIsCalloutVisible(false);
-
-    useEffect(() => {
-      setIsCalloutVisible(true);
-      const timer = setTimeout(handleCalloutDismiss, dismissTimeout ?? 2000);
-      return () => clearTimeout(timer);
-    }, [calloutToggle, dismissTimeout]);
-
-    const onCopyClick = () => {
+    const onCopyClick = useCallback(() => {
       copyToClipboard(clientId);
-      setCalloutToggle((v) => !v);
-    };
+      setIsCalloutVisible(true);
+      scheduleCalloutDismiss(normalDismissTimeout ?? 2000);
+    }, [clientId, normalDismissTimeout, scheduleCalloutDismiss]);
+
+    const onMouseLeaveCopy = useCallback(() => {
+      scheduleCalloutDismiss(quickDismissTimeout ?? 500);
+    }, [quickDismissTimeout, scheduleCalloutDismiss]);
 
     return (
       <>
@@ -138,21 +155,20 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
           title="Copy"
           ariaLabel="Copy"
           styles={{ root: styles.copyButtonRoot }}
+          onMouseLeave={onMouseLeaveCopy}
         />
         {isCalloutVisible && (
           <Callout
             target={`#${copyButtonId}`}
             className={styles.callout}
             directionalHint={DirectionalHint.topCenter}
-            onDismiss={handleCalloutDismiss}
+            onDismiss={dismissCallout}
           >
-            <DelayedRender>
-              <Text variant="small">
-                {renderToString(
-                  "ApplicationsConfigurationScreen.client-id-copied"
-                )}
-              </Text>
-            </DelayedRender>
+            <Text variant="small">
+              {renderToString(
+                "ApplicationsConfigurationScreen.client-id-copied"
+              )}
+            </Text>
           </Callout>
         )}
       </>
