@@ -23,9 +23,11 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import { downloadStringAsFile } from "../../util/download";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
+import { makeGraphQLEndpoint } from "../adminapi/apollo";
 import styles from "./AdminAPIConfigurationScreen.module.scss";
 
 interface AdminAPIConfigurationScreenContentProps {
+  appID: string;
   queryResult: AppAndSecretConfigQueryResult;
 }
 
@@ -42,12 +44,17 @@ interface LocationState {
 
 const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenContentProps> =
   function AdminAPIConfigurationScreenContent(props) {
+    const { appID, queryResult } = props;
     const { locale, renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
 
+    const graphqlEndpoint = useMemo(() => {
+      return makeGraphQLEndpoint(appID);
+    }, [appID]);
+
     const adminAPISecrets = useMemo(() => {
-      return props.queryResult.secretConfig?.adminAPISecrets ?? [];
-    }, [props.queryResult.secretConfig?.adminAPISecrets]);
+      return queryResult.secretConfig?.adminAPISecrets ?? [];
+    }, [queryResult.secretConfig?.adminAPISecrets]);
 
     const items: Item[] = useMemo(() => {
       const items = [];
@@ -142,7 +149,10 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
           <FormattedMessage id="AdminAPIConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
-          <FormattedMessage id="AdminAPIConfigurationScreen.description" />
+          <FormattedMessage
+            id="AdminAPIConfigurationScreen.description"
+            values={{ graphqlEndpoint }}
+          />
         </ScreenDescription>
         <Widget className={styles.widget}>
           <WidgetTitle>
@@ -173,7 +183,12 @@ const AdminAPIConfigurationScreen: React.FC =
       );
     }
 
-    return <AdminAPIConfigurationScreenContent queryResult={queryResult} />;
+    return (
+      <AdminAPIConfigurationScreenContent
+        appID={appID}
+        queryResult={queryResult}
+      />
+    );
   };
 
 export default AdminAPIConfigurationScreen;
