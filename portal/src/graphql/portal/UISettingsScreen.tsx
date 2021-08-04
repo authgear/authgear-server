@@ -57,6 +57,7 @@ import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import WidgetDescription from "../../WidgetDescription";
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -749,6 +750,9 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           <WidgetTitle>
             <FormattedMessage id="UISettingsScreen.favicon-title" />
           </WidgetTitle>
+          <WidgetDescription>
+            <FormattedMessage id="UISettingsScreen.favicon-description" />
+          </WidgetDescription>
           <ImageFilePicker
             className={styles.faviconImagePicker}
             base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
