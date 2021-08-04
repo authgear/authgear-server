@@ -413,7 +413,7 @@
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
-  "ApplicationsConfigurationScreen.client-id-copied": "Client ID is copied to clipboard",
+  "ApplicationsConfigurationScreen.client-id-copied": "Copied to clipboard",
   "ApplicationsConfigurationScreen.cors.title": "Allowed Origins",
   "ApplicationsConfigurationScreen.cors.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
 
