@@ -5,23 +5,26 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type SessionInfo struct {
-	IsValid       bool
-	UserID        string
-	UserAnonymous bool
-	UserVerified  bool
+	IsValid         bool
+	UserID          string
+	UserAnonymous   bool
+	UserVerified    bool
+	AuthenticatedAt time.Time
 
 	SessionAMR []string
 }
 
 const (
-	headerSessionValid  = "X-Authgear-Session-Valid"
-	headerUserID        = "X-Authgear-User-Id"
-	headerUserVerified  = "X-Authgear-User-Verified"
-	headerUserAnonymous = "X-Authgear-User-Anonymous"
-	headerSessionAmr    = "X-Authgear-Session-Amr"
+	headerSessionValid           = "X-Authgear-Session-Valid"
+	headerUserID                 = "X-Authgear-User-Id"
+	headerUserVerified           = "X-Authgear-User-Verified"
+	headerUserAnonymous          = "X-Authgear-User-Anonymous"
+	headerSessionAmr             = "X-Authgear-Session-Amr"
+	headerSessionAuthenticatedAt = "X-Authgear-Session-Authenticated-At"
 )
 
 func (i *SessionInfo) PopulateHeaders(rw http.ResponseWriter) {
@@ -39,6 +42,9 @@ func (i *SessionInfo) PopulateHeaders(rw http.ResponseWriter) {
 	rw.Header().Set(headerUserVerified, strconv.FormatBool(i.UserVerified))
 
 	rw.Header().Set(headerSessionAmr, strings.Join(i.SessionAMR, " "))
+	if !i.AuthenticatedAt.IsZero() {
+		rw.Header().Set(headerSessionAuthenticatedAt, strconv.FormatInt(i.AuthenticatedAt.Unix(), 10))
+	}
 }
 
 func headerParseBool(name string, value string) (b bool, err error) {
@@ -86,10 +92,21 @@ func NewSessionInfoFromHeaders(hdr http.Header) (info *SessionInfo, err error) {
 
 	amr := headerParseSpaceSeparated(hdr.Get(headerSessionAmr))
 
+	var authenticatedAt time.Time
+	if str := hdr.Get(headerSessionAuthenticatedAt); str != "" {
+		var sec int64
+		sec, err = strconv.ParseInt(str, 10, 64)
+		if err != nil {
+			return
+		}
+		authenticatedAt = time.Unix(sec, 0).UTC()
+	}
+
 	info.IsValid = sessionValid
 	info.UserID = userID
 	info.UserAnonymous = anonymous
 	info.UserVerified = verified
 	info.SessionAMR = amr
+	info.AuthenticatedAt = authenticatedAt
 	return
 }

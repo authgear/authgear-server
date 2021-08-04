@@ -2,11 +2,14 @@ package model
 
 import (
 	"encoding/json"
+	"time"
 
+	"github.com/lestrrat-go/jwx/jwk"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
+	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 )
 
 type App struct {
@@ -19,20 +22,32 @@ type AppResource struct {
 	Context        *config.AppContext
 }
 
+type WebhookSecret struct {
+	Secret *string `json:"secret,omitempty"`
+}
+
 type OAuthClientSecret struct {
 	Alias        string `json:"alias,omitempty"`
 	ClientSecret string `json:"clientSecret,omitempty"`
 }
 
-type StructuredSecretConfig struct {
-	OAuthClientSecrets []OAuthClientSecret `json:"oauthClientSecrets,omitempty"`
+type AdminAPISecret struct {
+	KeyID         string     `json:"keyID,omitempty"`
+	CreatedAt     *time.Time `json:"createdAt,omitempty"`
+	PublicKeyPEM  string     `json:"publicKeyPEM,omitempty"`
+	PrivateKeyPEM *string    `json:"privateKeyPEM,omitempty"`
 }
 
-func NewStructuredSecretConfig(secretConfig *config.SecretConfig) *StructuredSecretConfig {
-	out := &StructuredSecretConfig{}
+type SecretConfig struct {
+	OAuthClientSecrets []OAuthClientSecret `json:"oauthClientSecrets,omitempty"`
+	WebhookSecret      *WebhookSecret      `json:"webhookSecret,omitempty"`
+	AdminAPISecrets    []AdminAPISecret    `json:"adminAPISecrets,omitempty"`
+}
 
-	oauthClientCredentials, ok := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials)
-	if ok {
+func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretConfig, error) {
+	out := &SecretConfig{}
+
+	if oauthClientCredentials, ok := secretConfig.LookupData(config.OAuthClientCredentialsKey).(*config.OAuthClientCredentials); ok {
 		for _, item := range oauthClientCredentials.Items {
 			out.OAuthClientSecrets = append(out.OAuthClientSecrets, OAuthClientSecret{
 				Alias:        item.Alias,
@@ -41,7 +56,62 @@ func NewStructuredSecretConfig(secretConfig *config.SecretConfig) *StructuredSec
 		}
 	}
 
-	return out
+	if webhook, ok := secretConfig.LookupData(config.WebhookKeyMaterialsKey).(*config.WebhookKeyMaterials); ok {
+		if webhook.Set.Len() == 1 {
+			if jwkKey, ok := webhook.Set.Get(0); ok {
+				if sKey, ok := jwkKey.(jwk.SymmetricKey); ok {
+					var secret *string
+					if unmasked {
+						octets := sKey.Octets()
+						octetsStr := string(octets)
+						secret = &octetsStr
+					}
+					out.WebhookSecret = &WebhookSecret{
+						Secret: secret,
+					}
+				}
+			}
+		}
+	}
+
+	if adminAPI, ok := secretConfig.LookupData(config.AdminAPIAuthKeyKey).(*config.AdminAPIAuthKey); ok {
+		for i := 0; i < adminAPI.Set.Len(); i++ {
+			if jwkKey, ok := adminAPI.Set.Get(i); ok {
+				var createdAt *time.Time
+				if anyCreatedAt, ok := jwkKey.Get("created_at"); ok {
+					if fCreatedAt, ok := anyCreatedAt.(float64); ok {
+						t := time.Unix(int64(fCreatedAt), 0).UTC()
+						createdAt = &t
+					}
+				}
+				set := jwk.NewSet()
+				_ = set.Add(jwkKey)
+				publicKeyPEMBytes, err := jwkutil.PublicPEM(set)
+				if err != nil {
+					return nil, err
+				}
+
+				var privateKeyPEM *string
+				if unmasked {
+					privateKeyPEMBytes, err := jwkutil.PrivatePublicPEM(set)
+					if err != nil {
+						return nil, err
+					}
+					privateKeyPEMStr := string(privateKeyPEMBytes)
+					privateKeyPEM = &privateKeyPEMStr
+				}
+
+				out.AdminAPISecrets = append(out.AdminAPISecrets, AdminAPISecret{
+					KeyID:         jwkKey.KeyID(),
+					CreatedAt:     createdAt,
+					PublicKeyPEM:  string(publicKeyPEMBytes),
+					PrivateKeyPEM: privateKeyPEM,
+				})
+			}
+		}
+	}
+
+	return out, nil
 }
 
 type secretItem struct {
@@ -49,7 +119,7 @@ type secretItem struct {
 	Data interface{} `json:"data,omitempty"`
 }
 
-func (c *StructuredSecretConfig) ToYAMLForUpdate() ([]byte, error) {
+func (c *SecretConfig) ToYAMLForUpdate() ([]byte, error) {
 	var items []secretItem
 	if c.OAuthClientSecrets != nil {
 		var oauthItems []config.OAuthClientCredentialsItem

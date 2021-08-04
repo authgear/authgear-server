@@ -10,6 +10,21 @@ type AcceptCollaboratorInvitationPayload {
   app: App!
 }
 
+"""Admin API secret"""
+type AdminAPISecret {
+  """"""
+  createdAt: DateTime
+
+  """"""
+  keyID: String!
+
+  """"""
+  privateKeyPEM: String
+
+  """"""
+  publicKeyPEM: String!
+}
+
 """Authgear app"""
 type App implements Node {
   """"""
@@ -40,7 +55,7 @@ type App implements Node {
   resources(paths: [String!]): [AppResource!]!
 
   """"""
-  secretConfig: StructuredSecretConfig!
+  secretConfig: SecretConfig!
 }
 
 """The `AppConfig` scalar type represents an app config JSON object"""
@@ -344,16 +359,22 @@ type Query {
   viewer: User
 }
 
+"""The content of authgear.secrets.yaml"""
+type SecretConfig {
+  """"""
+  adminAPISecrets: [AdminAPISecret!]
+
+  """"""
+  oauthClientSecrets: [OAuthClientSecret!]
+
+  """"""
+  webhookSecret: WebhookSecret
+}
+
 """"""
 input SecretConfigInput {
   """"""
   oauthClientSecrets: [OauthClientSecretInput!]
-}
-
-"""The content of authgear.secrets.yaml"""
-type StructuredSecretConfig {
-  """"""
-  oauthClientSecrets: [OAuthClientSecret!]
 }
 
 """"""
@@ -402,5 +423,11 @@ type VerifyDomainPayload {
 
   """"""
   domain: Domain!
+}
+
+"""Webhook secret"""
+type WebhookSecret {
+  """"""
+  secret: String
 }
 

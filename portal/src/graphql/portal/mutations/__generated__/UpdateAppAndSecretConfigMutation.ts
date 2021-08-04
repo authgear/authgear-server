@@ -16,7 +16,7 @@ export interface UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig_oau
 }
 
 export interface UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig {
-  __typename: "StructuredSecretConfig";
+  __typename: "SecretConfig";
   oauthClientSecrets: UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig_oauthClientSecrets[] | null;
 }
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -25,12 +26,47 @@ var oauthClientSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var webhookSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "WebhookSecret",
+	Description: "Webhook secret",
+	Fields: graphql.Fields{
+		"secret": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+
+var adminAPISecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "AdminAPISecret",
+	Description: "Admin API secret",
+	Fields: graphql.Fields{
+		"keyID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"createdAt": &graphql.Field{
+			Type: graphql.DateTime,
+		},
+		"publicKeyPEM": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"privateKeyPEM": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
-	Name:        "StructuredSecretConfig",
+	Name:        "SecretConfig",
 	Description: "The content of authgear.secrets.yaml",
 	Fields: graphql.Fields{
 		"oauthClientSecrets": &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecret)),
+		},
+		"webhookSecret": &graphql.Field{
+			Type: webhookSecret,
+		},
+		"adminAPISecrets": &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(adminAPISecret)),
 		},
 	},
 })
@@ -108,12 +144,12 @@ var nodeApp = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					ctx := GQLContext(p.Context)
 					app := p.Source.(*model.App)
-					rawSecretConfig, err := ctx.AppService.LoadAppSecretConfig(app)
+					sessionInfo := session.GetValidSessionInfo(p.Context)
+					secretConfig, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo)
 					if err != nil {
 						return nil, err
 					}
-					out := model.NewStructuredSecretConfig(rawSecretConfig)
-					return out, nil
+					return secretConfig, nil
 				},
 			},
 			"effectiveAppConfig": &graphql.Field{

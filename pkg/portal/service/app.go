@@ -7,11 +7,13 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"time"
 
 	"github.com/spf13/afero"
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -153,7 +155,7 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, error)
 	return cfg, nil
 }
 
-func (s *AppService) LoadAppSecretConfig(app *model.App) (*config.SecretConfig, error) {
+func (s *AppService) LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo) (*model.SecretConfig, error) {
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	result, err := resMgr.ReadAppFile(configsource.SecretConfig, &resource.AppFile{
 		Path: configsource.AuthgearSecretYAML,
@@ -169,7 +171,21 @@ func (s *AppService) LoadAppSecretConfig(app *model.App) (*config.SecretConfig, 
 		return nil, err
 	}
 
-	return cfg, nil
+	// Return unmasked secret if the authentication is within 5 minutes.
+	now := s.Clock.NowUTC()
+	authenticatedAt := sessionInfo.AuthenticatedAt
+	elapsed := now.Sub(authenticatedAt)
+	var unmasked bool
+	if elapsed >= 0 && elapsed < 5*time.Minute {
+		unmasked = true
+	}
+
+	secretConfig, err := model.NewSecretConfig(cfg, unmasked)
+	if err != nil {
+		return nil, err
+	}
+
+	return secretConfig, nil
 }
 
 func (s *AppService) Create(userID string, id string) error {
