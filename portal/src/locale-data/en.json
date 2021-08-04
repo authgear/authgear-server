@@ -68,7 +68,7 @@
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",
   "errors.password-policy.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
   "errors.password-policy.unknown": "Password is invalid; please check password policies",
-  "errors.resource-too-large": "The {resourceType} file size is too large. Please upload a JPG, PNG or GIF file smaller than {maxSize} KB.",
+  "errors.resource-too-large": "The {resourceType, select, favicon{favicon } app_logo{app logo } other{}}file size is too large. Please upload a JPG, PNG or GIF file smaller than {maxSize} KB.",
   "errors.network": "There is a problem with the network",
   "errors.unknown": "Unknown error: {message}",
 

@@ -111,36 +111,17 @@ function parseResourceTooLargeError(
   error: APIResourceTooLargeError,
   errors: ParsedAPIError[]
 ) {
-  const faviconRe = /^static\/(.+)\/favicon\.(.*)/;
-  const appLogoRe = /^static\/(.+)\/app_logo\.(.*)/;
+  const dir = error.info.path.split("/");
+  const fileName = dir[dir.length - 1];
+  const resourceType = fileName.slice(0, fileName.lastIndexOf("."));
 
-  if (error.info.path) {
-    if (faviconRe.test(error.info.path)) {
-      errors.push({
-        messageID: "errors.resource-too-large",
-        arguments: {
-          maxSize: error.info.max_size / 1024,
-          resourceType: "favicon",
-        },
-      });
-    } else if (appLogoRe.test(error.info.path)) {
-      errors.push({
-        messageID: "errors.resource-too-large",
-        arguments: {
-          maxSize: error.info.max_size / 1024,
-          resourceType: "app logo",
-        },
-      });
-    } else {
-      errors.push({
-        messageID: "errors.resource-too-large",
-        arguments: {
-          maxSize: error.info.max_size / 1024,
-          resourceType: "unknown",
-        },
-      });
-    }
-  }
+  errors.push({
+    messageID: "errors.resource-too-large",
+    arguments: {
+      maxSize: error.info.max_size / 1024,
+      resourceType,
+    },
+  });
 }
 
 function parseError(error: APIError): ParsedAPIError[] {
