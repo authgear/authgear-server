@@ -109,7 +109,9 @@ func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.Reso
 	// Validate file size.
 	for _, f := range updates {
 		if len(f.Data) > ConfigFileMaxSize {
-			return nil, fmt.Errorf("invalid resource '%s': too large (%v > %v)", f.Path, len(f.Data), ConfigFileMaxSize)
+			message:= fmt.Sprintf("invalid resource '%s': too large (%v > %v)", f.Path, len(f.Data), ConfigFileMaxSize)
+			err := ResouceTooLarge.NewWithInfo(message, apierrors.Details{"size": len(f.Data), "max_size": ConfigFileMaxSize, "path": f.Path})
+			return nil, err;
 		}
 	}
 
