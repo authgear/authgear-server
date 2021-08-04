@@ -168,8 +168,8 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
           id={copyButtonId}
           onClick={onCopyClick}
           iconProps={COPY_ICON_PROPS}
-          title="Copy"
-          ariaLabel="Copy"
+          title={renderToString("copy")}
+          ariaLabel={renderToString("copy")}
           styles={COPY_ICON_STLYES}
           onMouseLeave={onMouseLeaveCopy}
         />
