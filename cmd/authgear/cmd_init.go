@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -45,7 +46,8 @@ var cmdInitSecrets = &cobra.Command{
 		}
 
 		opts := config.ReadSecretConfigOptionsFromConsole()
-		cfg := libconfig.GenerateSecretConfigFromOptions(opts, rand.SecureRand)
+		createdAt := time.Now().UTC()
+		cfg := libconfig.GenerateSecretConfigFromOptions(opts, createdAt, rand.SecureRand)
 		err := config.MarshalConfigYAML(cfg, outputPath)
 		if err != nil {
 			log.Fatalf("cannot write file: %s", err.Error())

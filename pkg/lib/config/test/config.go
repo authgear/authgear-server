@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -30,7 +31,7 @@ func FixtureSecretConfig(seed int64) *config.SecretConfig {
 		DatabaseSchema:   "public",
 		ElasticsearchURL: "http://127.0.0.1:9200",
 		RedisURL:         "redis://127.0.0.1",
-	}, rand.New(rand.NewSource(seed)))
+	}, time.Date(2006, 1, 2, 3, 4, 5, 0, time.UTC), rand.New(rand.NewSource(seed)))
 }
 
 func FixtureFeatureConfig(plan FixturePlanName) *config.FeatureConfig {

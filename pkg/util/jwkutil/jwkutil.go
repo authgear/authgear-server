@@ -8,6 +8,10 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 )
 
+const (
+	KeyCreatedAt = "created_at"
+)
+
 func ExtractOctetKey(set jwk.Set, id string) ([]byte, error) {
 	for it := set.Iterate(context.Background()); it.Next(context.Background()); {
 		pair := it.Pair()
