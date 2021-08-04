@@ -10,9 +10,14 @@ import {
   Callout,
   DetailsList,
   DirectionalHint,
+  IButtonStyles,
+  ICalloutContentStyleProps,
+  ICalloutContentStyles,
   IColumn,
   ICommandBarItemProps,
   IconButton,
+  IIconProps,
+  IStyleFunctionOrObject,
   MessageBar,
   SelectionMode,
   Text,
@@ -42,6 +47,17 @@ import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import FormTextFieldList from "../../FormTextFieldList";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+
+const COPY_ICON_PROPS: IIconProps = { iconName: "Copy" };
+const COPY_ICON_STLYES: IButtonStyles = {
+  root: { margin: 4 },
+  rootHovered: { backgroundColor: "#d8d6d3" },
+  rootPressed: { backgroundColor: "#c2c0be" },
+};
+const CALLOUT_STYLES: IStyleFunctionOrObject<
+  ICalloutContentStyleProps,
+  ICalloutContentStyles
+> = { root: { padding: 8 } };
 
 interface FormState {
   publicOrigin: string;
@@ -151,18 +167,18 @@ const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
         <IconButton
           id={copyButtonId}
           onClick={onCopyClick}
-          iconProps={{ iconName: "Copy" }}
+          iconProps={COPY_ICON_PROPS}
           title="Copy"
           ariaLabel="Copy"
-          styles={{ root: styles.copyButtonRoot }}
+          styles={COPY_ICON_STLYES}
           onMouseLeave={onMouseLeaveCopy}
         />
         {isCalloutVisible && (
           <Callout
             target={`#${copyButtonId}`}
-            className={styles.callout}
             directionalHint={DirectionalHint.topCenter}
             onDismiss={dismissCallout}
+            styles={CALLOUT_STYLES}
           >
             <Text variant="small">
               {renderToString(
