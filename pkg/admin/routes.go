@@ -1,8 +1,6 @@
 package admin
 
 import (
-	"net/http"
-
 	graphqlhandler "github.com/graphql-go/handler"
 
 	"github.com/authgear/authgear-server/pkg/admin/transport"
@@ -17,11 +15,6 @@ import (
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, auth config.AdminAPIAuth) *httproute.Router {
 	router := httproute.NewRouter()
 
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/healthz",
-	}, http.HandlerFunc(httputil.HealthCheckHandler))
-
 	// TODO(csp): improve security
 	secMiddleware := &web.SecHeadersMiddleware{
 		CSPDirectives: []string{
@@ -32,18 +25,22 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		},
 	}
 
-	chain := httproute.Chain(
+	rootChain := httproute.Chain(
 		p.RootMiddleware(newPanicEndMiddleware),
 		p.RootMiddleware(newPanicWriteEmptyResponseMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
-		secMiddleware,
-		httproute.MiddlewareFunc(httputil.NoCache),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
 		p.Middleware(newPanicLogMiddleware),
+	)
+
+	chain := httproute.Chain(
+		rootChain,
+		secMiddleware,
+		httproute.MiddlewareFunc(httputil.NoCache),
 		p.Middleware(func(p *deps.RequestProvider) httproute.Middleware {
 			return newAuthorizationMiddleware(p, auth)
 		}),
@@ -53,8 +50,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		}),
 	)
 
-	route := httproute.Route{Middleware: chain}
+	rootRoute := httproute.Route{Middleware: rootChain}
+	router.Add(rootRoute.WithMethods("GET").WithPathPattern("/healthz"), p.Handler(newHealthzHandler))
 
+	route := httproute.Route{Middleware: chain}
 	router.AddRoutes(p.Handler(newGraphQLHandler), transport.ConfigureGraphQLRoute(route)...)
 
 	return router

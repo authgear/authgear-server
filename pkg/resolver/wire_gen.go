@@ -21,7 +21,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -42,6 +44,29 @@ import (
 )
 
 // Injectors from wire.go:
+
+func newHealthzHandler(p *deps.RequestProvider) http.Handler {
+	request := p.Request
+	context := deps.ProvideRequestContext(request)
+	appProvider := p.AppProvider
+	handle := appProvider.AppDatabase
+	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	readHandle := appProvider.AuditReadDatabase
+	readSQLExecutor := auditdb.NewReadSQLExecutor(context, readHandle)
+	redisHandle := appProvider.Redis
+	factory := appProvider.LoggerFactory
+	handlerLogger := healthz.NewHandlerLogger(factory)
+	handler := &healthz.Handler{
+		Context:       context,
+		AppDatabase:   handle,
+		AppExecutor:   sqlExecutor,
+		AuditDatabase: readHandle,
+		AuditExecutor: readSQLExecutor,
+		Redis:         redisHandle,
+		Logger:        handlerLogger,
+	}
+	return handler
+}
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub

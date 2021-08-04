@@ -1,24 +1,16 @@
 package resolver
 
 import (
-	"net/http"
-
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 	router := httproute.NewRouter()
 
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/healthz",
-	}, http.HandlerFunc(httputil.HealthCheckHandler))
-
-	chain := httproute.Chain(
+	rootChain := httproute.Chain(
 		p.RootMiddleware(newPanicEndMiddleware),
 		p.RootMiddleware(newPanicWriteEmptyResponseMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
@@ -28,11 +20,17 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			ConfigSource: configSource,
 		},
 		p.Middleware(newPanicLogMiddleware),
+	)
+
+	chain := httproute.Chain(
+		rootChain,
 		p.Middleware(newSessionMiddleware),
 	)
 
+	rootRoute := httproute.Route{Middleware: rootChain}
 	route := httproute.Route{Middleware: chain}
 
+	router.Add(rootRoute.WithMethods("GET").WithPathPattern("/healthz"), p.Handler(newHealthzHandler))
 	router.AddRoutes(p.Handler(newSessionResolveHandler), handler.ConfigureResolveRoute(route)...)
 
 	return router
