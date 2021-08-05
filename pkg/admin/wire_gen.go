@@ -343,10 +343,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue

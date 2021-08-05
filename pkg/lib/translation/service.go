@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -15,10 +14,9 @@ type StaticAssetResolver interface {
 }
 
 type Service struct {
-	Context           context.Context
-	EnvironmentConfig *config.EnvironmentConfig
-	TemplateEngine    *template.Engine
-	StaticAssets      StaticAssetResolver
+	Context        context.Context
+	TemplateEngine *template.Engine
+	StaticAssets   StaticAssetResolver
 
 	translations *template.TranslationMap `wire:"-"`
 }

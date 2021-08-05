@@ -326,10 +326,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -907,10 +906,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -1399,10 +1397,9 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -1795,10 +1792,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -2119,10 +2115,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -2447,10 +2442,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -2885,10 +2879,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -3396,10 +3389,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -3967,10 +3959,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -4538,10 +4529,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -5109,10 +5099,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -5680,10 +5669,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -6244,10 +6232,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -6811,10 +6798,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -7381,10 +7367,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -7948,10 +7933,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -8514,10 +8498,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -9081,10 +9064,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -9649,10 +9631,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -10215,10 +10196,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -10781,10 +10761,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -11349,10 +11328,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -11915,10 +11893,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -12481,10 +12458,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -13050,10 +13026,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -13616,10 +13591,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -14187,10 +14161,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -14753,10 +14726,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -15320,10 +15292,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -15886,10 +15857,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -16471,10 +16441,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -17039,10 +17008,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -17606,10 +17574,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -18182,10 +18149,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -18749,10 +18715,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -19316,10 +19281,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -19884,10 +19848,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -20457,10 +20420,9 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -21024,10 +20986,9 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -21591,10 +21552,9 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -22157,10 +22117,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -22743,10 +22702,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -23309,10 +23267,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
@@ -23740,10 +23697,9 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resolver: resolver,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	clockClock := _wireSystemClockValue
 	flashMessage := &httputil.FlashMessage{
@@ -24131,10 +24087,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:           context,
-		EnvironmentConfig: environmentConfig,
-		TemplateEngine:    engine,
-		StaticAssets:      staticAssetResolver,
+		Context:        context,
+		TemplateEngine: engine,
+		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
