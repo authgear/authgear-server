@@ -117,11 +117,11 @@ const AppRoot: React.FC = function AppRoot() {
             element={<SingleSignOnConfigurationScreen />}
           />
           <Route
-            path="/configuration/passwords/policy"
+            path="/configuration/password-policy"
             element={<PasswordPolicyConfigurationScreen />}
           />
           <Route
-            path="/configuration/passwords/forgot-password"
+            path="/advanced/password-reset-code"
             element={<ForgotPasswordConfigurationScreen />}
           />
           <Route
@@ -136,12 +136,9 @@ const AppRoot: React.FC = function AppRoot() {
             path="/configuration/apps/:clientID/edit"
             element={<EditOAuthClientScreen />}
           />
+          <Route path="/custom-domains" element={<CustomDomainListScreen />} />
           <Route
-            path="/configuration/dns/custom-domains"
-            element={<CustomDomainListScreen />}
-          />
-          <Route
-            path="/configuration/dns/custom-domains/:domainID/verify"
+            path="/custom-domains/:domainID/verify"
             element={<VerifyDomainScreen />}
           />
           <Route
@@ -152,28 +149,19 @@ const AppRoot: React.FC = function AppRoot() {
             path="/configuration/localization"
             element={<LocalizationConfigurationScreen />}
           />
+          <Route path="/portal-admins" element={<PortalAdminsSettings />} />
+          <Route path="/portal-admins/invite" element={<InviteAdminScreen />} />
           <Route
-            path="/configuration/settings/portal-admins"
-            element={<PortalAdminsSettings />}
-          />
-          <Route
-            path="/configuration/settings/portal-admins/invite"
-            element={<InviteAdminScreen />}
-          />
-          <Route
-            path="/configuration/settings/sessions"
+            path="/advanced/sessions"
             element={<SessionConfigurationScreen />}
           />
           <Route
-            path="/configuration/settings/web-hooks"
+            path="/advanced/webhooks"
             element={<WebhookConfigurationScreen />}
           />
+          <Route path="/billing" element={<SubscriptionScreen />} />
           <Route
-            path="/configuration/settings/subscription"
-            element={<SubscriptionScreen />}
-          />
-          <Route
-            path="/configuration/settings/admin-api"
+            path="/advanced/admin-api"
             element={<AdminAPIConfigurationScreen />}
           />
           <Route path="/audit-log/" element={<AuditLogScreen />} />

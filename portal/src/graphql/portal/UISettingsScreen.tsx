@@ -768,7 +768,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
               <FormattedMessage
                 id="FeatureConfig.white-labeling.disabled"
                 values={{
-                  planPagePath: "../settings/subscription",
+                  planPagePath: "../../billing",
                 }}
               />
             </MessageBar>
