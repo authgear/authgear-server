@@ -292,6 +292,9 @@ type Mutation {
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
 
+  """Send test STMP configuration email"""
+  sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
+
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
@@ -429,5 +432,26 @@ type VerifyDomainPayload {
 type WebhookSecret {
   """"""
   secret: String
+}
+
+""""""
+input sendTestSMTPConfigurationEmailInput {
+  """App ID to test."""
+  appID: ID!
+
+  """SMTP Host."""
+  smtpHost: String!
+
+  """SMTP Password."""
+  smtpPassword: String!
+
+  """SMTP Port."""
+  smtpPort: Int!
+
+  """SMTP Username."""
+  smtpUsername: String!
+
+  """The recipient email address."""
+  to: String!
 }
 
