@@ -289,7 +289,7 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
               <FormattedMessage
                 id="FeatureConfig.sso.maximum"
                 values={{
-                  planPagePath: "../settings/subscription",
+                  planPagePath: "../../billing",
                   maximum: oauthClientsMaximum,
                 }}
               />

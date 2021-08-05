@@ -434,7 +434,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.disabled"
                   values={{
-                    planPagePath: "../../settings/subscription",
+                    planPagePath: "../../billing",
                   }}
                 />
               </MessageBar>
@@ -443,7 +443,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.blocking-events.maximum"
                   values={{
-                    planPagePath: "../../settings/subscription",
+                    planPagePath: "../../billing",
                     maximum: blockingHandlerMax,
                   }}
                 />
@@ -482,7 +482,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.disabled"
                   values={{
-                    planPagePath: "../../settings/subscription",
+                    planPagePath: "../../billing",
                   }}
                 />
               </MessageBar>
@@ -491,7 +491,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage
                   id="FeatureConfig.webhook.non-blocking-events.maximum"
                   values={{
-                    planPagePath: "../../settings/subscription",
+                    planPagePath: "../../billing",
                     maximum: nonBlockingHandlerMax,
                   }}
                 />

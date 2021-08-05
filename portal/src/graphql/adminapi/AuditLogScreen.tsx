@@ -369,7 +369,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
               <FormattedMessage
                 id="FeatureConfig.audit-log.retrieval-days"
                 values={{
-                  planPagePath: "../configuration/settings/subscription",
+                  planPagePath: "../billing",
                   logRetrievalDays: logRetrievalDays,
                 }}
               />

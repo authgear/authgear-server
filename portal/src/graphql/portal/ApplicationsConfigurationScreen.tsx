@@ -335,7 +335,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               id="ApplicationsConfigurationScreen.client-endpoint.desc"
               values={{
                 clientEndpoint: state.publicOrigin,
-                dnsUrl: "../dns/custom-domains",
+                dnsUrl: "../../custom-domains",
               }}
             />
           </Text>
@@ -344,7 +344,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
               <FormattedMessage
                 id="FeatureConfig.oauth-clients.maximum"
                 values={{
-                  planPagePath: "../settings/subscription",
+                  planPagePath: "../../billing",
                   maximum: oauthClientsMaximum,
                 }}
               />

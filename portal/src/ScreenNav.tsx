@@ -91,7 +91,7 @@ const ScreenNav: React.FC = function ScreenNav() {
       },
       {
         textKey: "ScreenNav.password-policy",
-        url: "configuration/passwords-policy",
+        url: "configuration/password-policy",
       },
       {
         textKey: "ScreenNav.client-applications",
@@ -99,7 +99,7 @@ const ScreenNav: React.FC = function ScreenNav() {
       },
       {
         textKey: "CustomDomainListScreen.title",
-        url: "configuration/custom-domains",
+        url: "custom-domains",
       },
       {
         textKey: "ScreenNav.ui-settings",
@@ -111,33 +111,33 @@ const ScreenNav: React.FC = function ScreenNav() {
       },
       {
         textKey: "ScreenNav.billing",
-        url: "configuration/billing",
+        url: "billing",
       },
       {
         textKey: "ScreenNav.advanced",
-        url: "configuration/advanced",
+        url: "advanced",
         children: [
           {
             textKey: "ScreenNav.sessions",
-            url: "configuration/advanced/sessions",
+            url: "advanced/sessions",
           },
           {
             textKey: "ScreenNav.password-reset-code",
-            url: "configuration/advanced/password-reset-code",
+            url: "advanced/password-reset-code",
           },
           {
             textKey: "ScreenNav.webhooks",
-            url: "configuration/advanced/web-hooks",
+            url: "advanced/webhooks",
           },
           {
             textKey: "ScreenNav.admin-api",
-            url: "configuration/advanced/admin-api",
+            url: "advanced/admin-api",
           },
         ],
       },
       {
         textKey: "PortalAdminSettings.title",
-        url: "configuration/portal-admins",
+        url: "portal-admins",
       },
     ];
 
