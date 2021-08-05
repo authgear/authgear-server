@@ -751,7 +751,7 @@
   "FeatureConfig.webhook.non-blocking-events.maximum": "You can only add {maximum, plural, one{1 non-blocking event endpoint} other{# non-blocking event endpoints}} at once on your plan. To add more, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
   "FeatureConfig.audit-log.retrieval-days": "You can only retrieve audit logs for the last {logRetrievalDays, plural, one{1 day} other{# days}}. To retrieve more logs, {ReactRouterLink, react, to{{planPagePath}} children{upgrade your project plan} target{_blank}}.",
 
-  "SubscriptionScreen.title": "Subscription",
+  "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.current-plan-summary.title": "Current Plan Summary",
   "SubscriptionScreen.subscription.label": "Your subscription",
   "SubscriptionScreen.monthly-active-users.label": "Monthly Active Users",
