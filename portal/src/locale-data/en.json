@@ -403,8 +403,8 @@
   "PasswordPolicyConfigurationScreen.history-size.label": "No. of password history to keep",
   "PasswordPolicyConfigurationScreen.excluded-keywords.label": "Keywords to be excluded",
 
-  "ForgotPasswordConfigurationScreen.title": "Forgot Password",
-  "ForgotPasswordConfigurationScreen.description": "Configure forgot password code lifetime.",
+  "ForgotPasswordConfigurationScreen.title": "Password Reset Code",
+  "ForgotPasswordConfigurationScreen.description": "Configure password reset code lifetime.",
   "ForgotPasswordConfigurationScreen.code-settings": "Code Settings",
   "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label": "Reset code valid duration (seconds)",
 
