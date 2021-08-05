@@ -56,10 +56,12 @@ type CollaboratorService interface {
 	DeleteCollaborator(c *model.Collaborator) error
 
 	GetInvitation(id string) (*model.CollaboratorInvitation, error)
+	GetInvitationWithCode(id string) (*model.CollaboratorInvitation, error)
 	ListInvitations(appID string) ([]*model.CollaboratorInvitation, error)
 	DeleteInvitation(i *model.CollaboratorInvitation) error
 	SendInvitation(appID string, inviteeEmail string) (*model.CollaboratorInvitation, error)
 	AcceptInvitation(code string) (*model.Collaborator, error)
+	CheckInviteeEmail(i *model.CollaboratorInvitation, actorID string) error
 }
 
 type AuthzService interface {

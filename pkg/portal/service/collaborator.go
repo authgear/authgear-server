@@ -374,26 +374,7 @@ func (s *CollaboratorService) GetInvitation(id string) (*model.CollaboratorInvit
 	return scanCollaboratorInvitation(row)
 }
 
-func (s *CollaboratorService) DeleteInvitation(i *model.CollaboratorInvitation) error {
-	err := s.deleteExpiredInvitations()
-	if err != nil {
-		return err
-	}
-
-	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
-		Delete(s.SQLBuilder.TableName("_portal_app_collaborator_invitation")).
-		Where("id = ?", i.ID),
-	)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator, error) {
-	actorID := session.GetValidSessionInfo(s.Context).UserID
-
+func (s *CollaboratorService) GetInvitationWithCode(code string) (*model.CollaboratorInvitation, error) {
 	now := s.Clock.NowUTC()
 	q := s.selectCollaboratorInvitation().Where("code = ? AND expire_at > ?", code, now)
 	rows, err := s.SQLExecutor.QueryWith(q)
@@ -415,9 +396,35 @@ func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator
 		return nil, ErrCollaboratorInvitationInvalidCode
 	}
 
-	invitation := is[0]
+	return is[0], nil
+}
 
-	err = s.checkInviteeEmail(invitation, actorID)
+func (s *CollaboratorService) DeleteInvitation(i *model.CollaboratorInvitation) error {
+	err := s.deleteExpiredInvitations()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.SQLExecutor.ExecWith(s.SQLBuilder.
+		Delete(s.SQLBuilder.TableName("_portal_app_collaborator_invitation")).
+		Where("id = ?", i.ID),
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator, error) {
+	actorID := session.GetValidSessionInfo(s.Context).UserID
+
+	invitation, err :=s.GetInvitationWithCode(code)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.CheckInviteeEmail(invitation, actorID)
 	if err != nil {
 		return nil, err
 	}
@@ -486,7 +493,7 @@ func (s *CollaboratorService) createCollaboratorInvitation(i *model.Collaborator
 	return nil
 }
 
-func (s *CollaboratorService) checkInviteeEmail(i *model.CollaboratorInvitation, actorID string) error {
+func (s *CollaboratorService) CheckInviteeEmail(i *model.CollaboratorInvitation, actorID string) error {
 	id := relay.ToGlobalID("User", actorID)
 
 	params := graphqlutil.DoParams{
