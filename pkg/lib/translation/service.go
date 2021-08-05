@@ -64,6 +64,20 @@ func (s *Service) renderTemplate(tpl template.Resource, args interface{}) (strin
 	return out, nil
 }
 
+func (s *Service) GetSenderForTestEmail() (sender string, err error) {
+	t, err := s.translationMap()
+	if err != nil {
+		return
+	}
+
+	sender, err = t.RenderText("email.default.sender", nil)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func (s *Service) emailMessageHeader(name string, args interface{}) (sender, replyTo, subject string, err error) {
 	t, err := s.translationMap()
 	if err != nil {
