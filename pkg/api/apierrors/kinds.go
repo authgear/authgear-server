@@ -15,6 +15,7 @@ const (
 	TooManyRequest     Name = "TooManyRequest"
 	InternalError      Name = "InternalError"
 	ServiceUnavailable Name = "ServiceUnavailable"
+	RequestEntityTooLarge Name = "RequestEntityTooLarge"
 )
 
 func (n Name) HTTPStatus() int {
@@ -35,6 +36,8 @@ func (n Name) HTTPStatus() int {
 		return http.StatusInternalServerError
 	case ServiceUnavailable:
 		return http.StatusServiceUnavailable
+	case RequestEntityTooLarge:
+		return http.StatusRequestEntityTooLarge
 	default:
 		return http.StatusInternalServerError
 	}

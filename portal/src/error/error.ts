@@ -22,7 +22,10 @@ import {
   APIInvalidAppIDError,
   APIReservedAppIDError,
 } from "./apps";
-import { APIResourceNotFoundError } from "./resources";
+import {
+  APIResourceNotFoundError,
+  APIResourceTooLargeError,
+} from "./resources";
 
 export interface NetworkError {
   errorName: "NetworkFailed";
@@ -58,7 +61,8 @@ export type APIError =
   | APIDuplicatedAppIDError
   | APIInvalidAppIDError
   | APIReservedAppIDError
-  | APIResourceNotFoundError;
+  | APIResourceNotFoundError
+  | APIResourceTooLargeError;
 
 export function isAPIError(value: unknown): value is APIError {
   return (
