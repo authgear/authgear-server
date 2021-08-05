@@ -8,11 +8,19 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
+
+func newHealthzHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*healthz.Handler)),
+	))
+}
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(

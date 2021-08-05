@@ -11,9 +11,17 @@ import (
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
+
+func newHealthzHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*healthz.Handler)),
+	))
+}
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
