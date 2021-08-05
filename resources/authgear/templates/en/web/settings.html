@@ -21,6 +21,7 @@
     </p>
   </section>
 
+  {{ $show_more_button := false }}
   {{ range .IdentityCandidates }}
   {{ $claim_verification_statuses := index $.VerificationStatuses .identity_id }}
   {{ $verification_status := "disabled" }}
@@ -30,6 +31,7 @@
 
   {{/* We do not want to show OAuth connect button */}}
   {{ $is_oauth_candidate := (and (eq .type "oauth") (not .identity_id)) }}
+  {{ $show_more_button = (or ($show_more_button) ($is_oauth_candidate)) }}
 
   {{ if not $is_oauth_candidate }}
   <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2-action3">
@@ -142,12 +144,14 @@
   {{ end }}
   {{ end }}
 
+  {{ if $show_more_button }}
   <section class="padding-20 row-sep">
     <a class="link action text-sm" href="/settings/identity">
       <i class="ti ti-chevrons-right"></i>
-      {{ template "more-button-label" }}
+      {{ template "more-login-methods-label" }}
     </a>
   </section>
+  {{ end }}
 
 </div>
 </div>
