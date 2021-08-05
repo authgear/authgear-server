@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Navigate } from "react-router-dom";
 import {
   LocaleProvider,
   FormattedMessage,
@@ -8,7 +8,6 @@ import {
 import { ApolloProvider } from "@apollo/client";
 import authgear from "@authgear/web";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import Authenticated from "./graphql/portal/Authenticated";
 import AppsScreen from "./graphql/portal/AppsScreen";
 import CreateAppScreen from "./graphql/portal/CreateAppScreen";
 import AppRoot from "./AppRoot";
@@ -32,6 +31,7 @@ import OnboardingConfigAppScreen from "./graphql/portal/OnboardingConfigAppScree
 import OnboardingCompletionScreen from "./graphql/portal/OnboardingCompletionScreen";
 import OnboardingRedirect from "./OnboardingRedirect";
 import { ReactRouterLink, ReactRouterLinkProps } from "./ReactRouterLink";
+import { AppRoute } from "./AppRoute";
 
 async function loadSystemConfig(): Promise<SystemConfig> {
   const resp = await fetch("/api/system-config.json");
@@ -54,21 +54,47 @@ const ReactAppRoutes: React.FC = function ReactAppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="projects/" replace={true} />} />
-        <Route path="/projects/" element={<AppsScreen />} />
-        <Route path="/projects/create" element={<CreateAppScreen />} />
-        <Route path="/project/:appID/*" element={<AppRoot />} />
-        <Route
+        <AppRoute
+          requireAuth={true}
+          path="/"
+          element={<Navigate to="projects/" replace={true} />}
+        />
+        <AppRoute
+          requireAuth={true}
+          path="/projects/"
+          element={<AppsScreen />}
+        />
+        <AppRoute
+          requireAuth={true}
+          path="/projects/create"
+          element={<CreateAppScreen />}
+        />
+        <AppRoute
+          requireAuth={true}
+          path="/project/:appID/*"
+          element={<AppRoot />}
+        />
+        <AppRoute
+          requireAuth={true}
           path="/project/:appID/onboarding"
           element={<OnboardingConfigAppScreen />}
         />
-        <Route
+        <AppRoute
+          requireAuth={true}
           path="/project/:appID/done"
           element={<OnboardingCompletionScreen />}
         />
-        <Route path="/oauth-redirect" element={<OAuthRedirect />} />
-        <Route path="/onboarding-redirect" element={<OnboardingRedirect />} />
-        <Route
+        <AppRoute path="/oauth-redirect" element={<OAuthRedirect />} />
+        <AppRoute
+          path="/onboarding-redirect"
+          element={<OnboardingRedirect />}
+        />
+        <AppRoute
+          requireAuth={true}
+          path="/"
+          element={<Navigate to="projects/" replace={true} />}
+        />
+        <AppRoute
           path="/collaborators/invitation"
           element={<AcceptAdminInvitationScreen />}
         />
@@ -85,9 +111,7 @@ const PortalRoot = function PortalRoot() {
         <title>{renderToString("system.title")} </title>
       </Helmet>
       <div className={styles.root}>
-        <Authenticated>
-          <ReactAppRoutes />
-        </Authenticated>
+        <ReactAppRoutes />
       </div>
     </>
   );
