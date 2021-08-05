@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
+	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/portal/task"
 	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
@@ -222,6 +223,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
 	collaboratorLoader := loader.NewCollaboratorLoader(collaboratorService, authzService)
 	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
+	smtpService := &smtp.Service{
+		Context: context,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
 		Users:                   userLoader,
@@ -233,6 +237,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppService:              appService,
 		DomainService:           domainService,
 		CollaboratorService:     collaboratorService,
+		SMTPService:             smtpService,
 		AppResMgrFactory:        managerFactory,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
