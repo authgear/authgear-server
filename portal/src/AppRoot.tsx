@@ -117,11 +117,11 @@ const AppRoot: React.FC = function AppRoot() {
             element={<SingleSignOnConfigurationScreen />}
           />
           <Route
-            path="/configuration/passwords/policy"
+            path="/configuration/passwords-policy"
             element={<PasswordPolicyConfigurationScreen />}
           />
           <Route
-            path="/configuration/passwords/forgot-password"
+            path="/configuration/advanced/password-reset-code"
             element={<ForgotPasswordConfigurationScreen />}
           />
           <Route
@@ -137,7 +137,7 @@ const AppRoot: React.FC = function AppRoot() {
             element={<EditOAuthClientScreen />}
           />
           <Route
-            path="/configuration/dns/custom-domains"
+            path="/configuration/custom-domains"
             element={<CustomDomainListScreen />}
           />
           <Route
@@ -153,7 +153,7 @@ const AppRoot: React.FC = function AppRoot() {
             element={<LocalizationConfigurationScreen />}
           />
           <Route
-            path="/configuration/settings/portal-admins"
+            path="/configuration/portal-admins"
             element={<PortalAdminsSettings />}
           />
           <Route
@@ -161,19 +161,19 @@ const AppRoot: React.FC = function AppRoot() {
             element={<InviteAdminScreen />}
           />
           <Route
-            path="/configuration/settings/sessions"
+            path="/configuration/advanced/sessions"
             element={<SessionConfigurationScreen />}
           />
           <Route
-            path="/configuration/settings/web-hooks"
+            path="/configuration/advanced/web-hooks"
             element={<WebhookConfigurationScreen />}
           />
           <Route
-            path="/configuration/settings/subscription"
+            path="/configuration/billing"
             element={<SubscriptionScreen />}
           />
           <Route
-            path="/configuration/settings/admin-api"
+            path="/configuration/advanced/admin-api"
             element={<AdminAPIConfigurationScreen />}
           />
           <Route path="/audit-log/" element={<AuditLogScreen />} />

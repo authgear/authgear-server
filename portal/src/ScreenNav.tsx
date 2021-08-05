@@ -91,7 +91,7 @@ const ScreenNav: React.FC = function ScreenNav() {
       },
       {
         textKey: "ScreenNav.password-policy",
-        url: "configuration/passwords/policy",
+        url: "configuration/passwords-policy",
       },
       {
         textKey: "ScreenNav.client-applications",
@@ -99,7 +99,7 @@ const ScreenNav: React.FC = function ScreenNav() {
       },
       {
         textKey: "CustomDomainListScreen.title",
-        url: "configuration/dns/custom-domains",
+        url: "configuration/custom-domains",
       },
       {
         textKey: "ScreenNav.ui-settings",
@@ -110,34 +110,34 @@ const ScreenNav: React.FC = function ScreenNav() {
         url: "configuration/localization",
       },
       {
-        textKey: "ScreenNav.subscription",
-        url: "configuration/settings/subscription",
+        textKey: "ScreenNav.billing",
+        url: "configuration/billing",
       },
       {
-        textKey: "ScreenNav.settings",
-        url: "configuration/settings",
+        textKey: "ScreenNav.advanced",
+        url: "configuration/advanced",
         children: [
           {
             textKey: "ScreenNav.sessions",
-            url: "configuration/settings/sessions",
+            url: "configuration/advanced/sessions",
           },
           {
-            textKey: "ScreenNav.forgot-password",
-            url: "configuration/passwords/forgot-password",
+            textKey: "ScreenNav.password-reset-code",
+            url: "configuration/advanced/password-reset-code",
           },
           {
             textKey: "ScreenNav.webhooks",
-            url: "configuration/settings/web-hooks",
+            url: "configuration/advanced/web-hooks",
           },
           {
             textKey: "ScreenNav.admin-api",
-            url: "configuration/settings/admin-api",
+            url: "configuration/advanced/admin-api",
           },
         ],
       },
       {
         textKey: "PortalAdminSettings.title",
-        url: "configuration/settings/portal-admins",
+        url: "configuration/portal-admins",
       },
     ];
 
