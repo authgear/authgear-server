@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"net/http"
+
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -13,6 +15,11 @@ import (
 
 func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
 	router := httproute.NewRouter()
+
+	router.Add(httproute.Route{
+		Methods:     []string{"GET"},
+		PathPattern: "/healthz",
+	}, http.HandlerFunc(httputil.HealthCheckHandler))
 
 	rootChain := httproute.Chain(
 		p.RootMiddleware(newPanicEndMiddleware),
@@ -96,7 +103,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		webapp.RequireAuthenticatedMiddleware{},
 	)
 
-	rootRoute := httproute.Route{Middleware: rootChain}
 	staticRoute := httproute.Route{Middleware: staticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
@@ -107,8 +113,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
 	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
-
-	router.Add(rootRoute.WithMethods("GET").WithPathPattern("/healthz"), p.Handler(newHealthzHandler))
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureLoginRoute(webappAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))

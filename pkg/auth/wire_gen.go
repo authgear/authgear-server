@@ -33,7 +33,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
-	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -61,29 +60,6 @@ import (
 )
 
 // Injectors from wire_handler.go:
-
-func newHealthzHandler(p *deps.RequestProvider) http.Handler {
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
-	appProvider := p.AppProvider
-	handle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
-	readHandle := appProvider.AuditReadDatabase
-	readSQLExecutor := auditdb.NewReadSQLExecutor(context, readHandle)
-	redisHandle := appProvider.Redis
-	factory := appProvider.LoggerFactory
-	handlerLogger := healthz.NewHandlerLogger(factory)
-	handler := &healthz.Handler{
-		Context:       context,
-		AppDatabase:   handle,
-		AppExecutor:   sqlExecutor,
-		AuditDatabase: readHandle,
-		AuditExecutor: readSQLExecutor,
-		Redis:         redisHandle,
-		Logger:        handlerLogger,
-	}
-	return handler
-}
 
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
