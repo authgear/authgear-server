@@ -1,6 +1,7 @@
 .root {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   height: 100vh;
   width: 100vw;
 }
@@ -17,4 +18,32 @@
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 20px;
+}
+
+.description {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #898989;
+}
+
+.widget {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  justify-self: center;
+  justify-content: center;
+  text-align: left;
+  max-width: 436px;
+}
+
+.loginButton {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.createAccountButton {
+  width: 100%;
 }
