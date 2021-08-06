@@ -44,11 +44,32 @@ var oauthClientSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	},
 })
 
+var smtpSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMTPSecretInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"host": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"port": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"username": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"password": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
 var secretConfigInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SecretConfigInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"oauthClientSecrets": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecretInput)),
+		},
+		"smtpSecret": &graphql.InputObjectFieldConfig{
+			Type: smtpSecretInput,
 		},
 	},
 })

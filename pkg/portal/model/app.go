@@ -141,6 +141,7 @@ type secretItem struct {
 
 func (c *SecretConfig) ToYAMLForUpdate() ([]byte, error) {
 	var items []secretItem
+
 	if c.OAuthClientSecrets != nil {
 		var oauthItems []config.OAuthClientCredentialsItem
 		for _, secret := range c.OAuthClientSecrets {
@@ -154,6 +155,18 @@ func (c *SecretConfig) ToYAMLForUpdate() ([]byte, error) {
 			Key: string(config.OAuthClientCredentialsKey),
 			Data: &config.OAuthClientCredentials{
 				Items: oauthItems,
+			},
+		})
+	}
+
+	if c.SMTPSecret != nil {
+		items = append(items, secretItem{
+			Key: string(config.SMTPServerCredentialsKey),
+			Data: &config.SMTPServerCredentials{
+				Host:     c.SMTPSecret.Host,
+				Port:     c.SMTPSecret.Port,
+				Username: c.SMTPSecret.Username,
+				Password: *c.SMTPSecret.Password,
 			},
 		})
 	}

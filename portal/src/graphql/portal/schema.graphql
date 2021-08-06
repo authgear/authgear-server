@@ -377,6 +377,21 @@ type SMTPSecret {
   username: String!
 }
 
+""""""
+input SMTPSecretInput {
+  """"""
+  host: String!
+
+  """"""
+  password: String!
+
+  """"""
+  port: Int!
+
+  """"""
+  username: String!
+}
+
 """The content of authgear.secrets.yaml"""
 type SecretConfig {
   """"""
@@ -396,6 +411,9 @@ type SecretConfig {
 input SecretConfigInput {
   """"""
   oauthClientSecrets: [OauthClientSecretInput!]
+
+  """"""
+  smtpSecret: SMTPSecretInput
 }
 
 """"""
