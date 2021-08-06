@@ -362,6 +362,21 @@ type Query {
   viewer: User
 }
 
+"""SMTP secret"""
+type SMTPSecret {
+  """"""
+  host: String!
+
+  """"""
+  password: String
+
+  """"""
+  port: Int!
+
+  """"""
+  username: String!
+}
+
 """The content of authgear.secrets.yaml"""
 type SecretConfig {
   """"""
@@ -369,6 +384,9 @@ type SecretConfig {
 
   """"""
   oauthClientSecrets: [OAuthClientSecret!]
+
+  """"""
+  smtpSecret: SMTPSecret
 
   """"""
   webhookSecret: WebhookSecret

@@ -38,10 +38,18 @@ type AdminAPISecret struct {
 	PrivateKeyPEM *string    `json:"privateKeyPEM,omitempty"`
 }
 
+type SMTPSecret struct {
+	Host     string  `json:"host,omitempty"`
+	Port     int     `json:"port,omitempty"`
+	Username string  `json:"username,omitempty"`
+	Password *string `json:"password,omitempty"`
+}
+
 type SecretConfig struct {
 	OAuthClientSecrets []OAuthClientSecret `json:"oauthClientSecrets,omitempty"`
 	WebhookSecret      *WebhookSecret      `json:"webhookSecret,omitempty"`
 	AdminAPISecrets    []AdminAPISecret    `json:"adminAPISecrets,omitempty"`
+	SMTPSecret         *SMTPSecret         `json:"smtpSecret,omitempty"`
 }
 
 func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretConfig, error) {
@@ -109,6 +117,18 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 				})
 			}
 		}
+	}
+
+	if smtp, ok := secretConfig.LookupData(config.SMTPServerCredentialsKey).(*config.SMTPServerCredentials); ok {
+		smtpSecret := &SMTPSecret{
+			Host:     smtp.Host,
+			Port:     smtp.Port,
+			Username: smtp.Username,
+		}
+		if unmasked {
+			smtpSecret.Password = &smtp.Password
+		}
+		out.SMTPSecret = smtpSecret
 	}
 
 	return out, nil
