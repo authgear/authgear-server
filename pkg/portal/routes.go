@@ -43,7 +43,6 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 
 	graphqlChain := httproute.Chain(
 		rootChain,
-		p.Middleware(newSessionRequiredMiddleware),
 		httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
