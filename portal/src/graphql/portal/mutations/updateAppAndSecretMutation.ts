@@ -35,6 +35,12 @@ const updateAppAndSecretConfigMutation = gql`
             alias
             clientSecret
           }
+          smtpSecret {
+            host
+            port
+            username
+            password
+          }
         }
       }
     }

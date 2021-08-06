@@ -30,11 +30,20 @@ export interface AppAndSecretConfigQuery_node_App_secretConfig_adminAPISecrets {
   privateKeyPEM: string | null;
 }
 
+export interface AppAndSecretConfigQuery_node_App_secretConfig_smtpSecret {
+  __typename: "SMTPSecret";
+  host: string;
+  port: number;
+  username: string;
+  password: string | null;
+}
+
 export interface AppAndSecretConfigQuery_node_App_secretConfig {
   __typename: "SecretConfig";
   oauthClientSecrets: AppAndSecretConfigQuery_node_App_secretConfig_oauthClientSecrets[] | null;
   webhookSecret: AppAndSecretConfigQuery_node_App_secretConfig_webhookSecret | null;
   adminAPISecrets: AppAndSecretConfigQuery_node_App_secretConfig_adminAPISecrets[] | null;
+  smtpSecret: AppAndSecretConfigQuery_node_App_secretConfig_smtpSecret | null;
 }
 
 export interface AppAndSecretConfigQuery_node_App {

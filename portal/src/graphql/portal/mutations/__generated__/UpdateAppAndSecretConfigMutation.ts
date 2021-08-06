@@ -15,9 +15,18 @@ export interface UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig_oau
   clientSecret: string;
 }
 
+export interface UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig_smtpSecret {
+  __typename: "SMTPSecret";
+  host: string;
+  port: number;
+  username: string;
+  password: string | null;
+}
+
 export interface UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig {
   __typename: "SecretConfig";
   oauthClientSecrets: UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig_oauthClientSecrets[] | null;
+  smtpSecret: UpdateAppAndSecretConfigMutation_updateApp_app_secretConfig_smtpSecret | null;
 }
 
 export interface UpdateAppAndSecretConfigMutation_updateApp_app {
