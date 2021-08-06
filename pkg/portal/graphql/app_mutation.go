@@ -93,6 +93,12 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can update app")
+			}
+
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
 			updates, _ := input["updates"].([]interface{})
