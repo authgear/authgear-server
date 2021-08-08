@@ -383,7 +383,7 @@ input SMTPSecretInput {
   host: String!
 
   """"""
-  password: String!
+  password: String
 
   """"""
   port: Int!

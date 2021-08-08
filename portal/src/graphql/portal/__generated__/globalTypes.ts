@@ -22,7 +22,7 @@ export interface OauthClientSecretInput {
 
 export interface SMTPSecretInput {
   host: string;
-  password: string;
+  password?: string | null;
   port: number;
   username: string;
 }

@@ -134,46 +134,92 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmasked bool) (*SecretC
 	return out, nil
 }
 
-type secretItem struct {
-	Key  string      `json:"key,omitempty"`
-	Data interface{} `json:"data,omitempty"`
+func (c *SecretConfig) updateOAuthClientCredentials() (item *config.SecretItem, err error) {
+	if len(c.OAuthClientSecrets) <= 0 {
+		return
+	}
+
+	// The strategy is simply use incoming one.
+	var oauthItems []config.OAuthClientCredentialsItem
+	for _, secret := range c.OAuthClientSecrets {
+		oauthItems = append(oauthItems, config.OAuthClientCredentialsItem{
+			Alias:        secret.Alias,
+			ClientSecret: secret.ClientSecret,
+		})
+	}
+
+	var data []byte
+	data, err = json.Marshal(&config.OAuthClientCredentials{
+		Items: oauthItems,
+	})
+	if err != nil {
+		return
+	}
+
+	item = &config.SecretItem{
+		Key:     config.OAuthClientCredentialsKey,
+		RawData: json.RawMessage(data),
+	}
+	return
 }
 
-func (c *SecretConfig) ToYAMLForUpdate() ([]byte, error) {
-	var items []secretItem
+func (c *SecretConfig) updateSMTP(currentConfig *config.SecretConfig) (item *config.SecretItem, err error) {
+	if c.SMTPSecret == nil {
+		return
+	}
 
-	if c.OAuthClientSecrets != nil {
-		var oauthItems []config.OAuthClientCredentialsItem
-		for _, secret := range c.OAuthClientSecrets {
-			oauthItems = append(oauthItems, config.OAuthClientCredentialsItem{
-				Alias:        secret.Alias,
-				ClientSecret: secret.ClientSecret,
-			})
+	_, existingItem, ok := currentConfig.Lookup(config.SMTPServerCredentialsKey)
+
+	if c.SMTPSecret.Password == nil {
+		// No change
+		if ok {
+			item = existingItem
+		}
+	} else {
+		var data []byte
+		data, err = json.Marshal(&config.SMTPServerCredentials{
+			Host:     c.SMTPSecret.Host,
+			Port:     c.SMTPSecret.Port,
+			Username: c.SMTPSecret.Username,
+			Password: *c.SMTPSecret.Password,
+		})
+		if err != nil {
+			return
 		}
 
-		items = append(items, secretItem{
-			Key: string(config.OAuthClientCredentialsKey),
-			Data: &config.OAuthClientCredentials{
-				Items: oauthItems,
-			},
-		})
+		item = &config.SecretItem{
+			Key:     config.SMTPServerCredentialsKey,
+			RawData: json.RawMessage(data),
+		}
 	}
 
-	if c.SMTPSecret != nil {
-		items = append(items, secretItem{
-			Key: string(config.SMTPServerCredentialsKey),
-			Data: &config.SMTPServerCredentials{
-				Host:     c.SMTPSecret.Host,
-				Port:     c.SMTPSecret.Port,
-				Username: c.SMTPSecret.Username,
-				Password: *c.SMTPSecret.Password,
-			},
-		})
+	return
+}
+
+func (c *SecretConfig) ToYAMLForUpdate(currentConfig *config.SecretConfig) ([]byte, error) {
+	var items []config.SecretItem
+
+	oauthItem, err := c.updateOAuthClientCredentials()
+	if err != nil {
+		return nil, err
+	}
+	if oauthItem != nil {
+		items = append(items, *oauthItem)
 	}
 
-	jsonBytes, err := json.Marshal(map[string]interface{}{
-		"secrets": items,
-	})
+	smtpItem, err := c.updateSMTP(currentConfig)
+	if err != nil {
+		return nil, err
+	}
+	if smtpItem != nil {
+		items = append(items, *smtpItem)
+	}
+
+	newConfig := &config.SecretConfig{
+		Secrets: items,
+	}
+
+	jsonBytes, err := json.Marshal(newConfig)
 	if err != nil {
 		return nil, err
 	}

@@ -50,11 +50,8 @@ const updateAppAndSecretConfigMutation = gql`
 // sanitizeSecretConfig makes sure the return value does not contain fields like __typename.
 // The GraphQL runtime will complain about unknown fields.
 function sanitizeSecretConfig(
-  secretConfig: PortalAPISecretConfig | null
-): PortalAPISecretConfig | null {
-  if (secretConfig == null) {
-    return null;
-  }
+  secretConfig: PortalAPISecretConfig
+): PortalAPISecretConfig {
   return {
     oauthClientSecrets:
       secretConfig.oauthClientSecrets?.map((oauthClientSecret) => {
@@ -63,13 +60,22 @@ function sanitizeSecretConfig(
           clientSecret: oauthClientSecret.clientSecret,
         };
       }) ?? null,
+    smtpSecret:
+      secretConfig.smtpSecret != null
+        ? {
+            host: secretConfig.smtpSecret.host,
+            port: secretConfig.smtpSecret.port,
+            username: secretConfig.smtpSecret.username,
+            password: secretConfig.smtpSecret.password,
+          }
+        : null,
   };
 }
 
 export function useUpdateAppAndSecretConfigMutation(appID: string): {
   updateAppAndSecretConfig: (
     appConfig: PortalAPIAppConfig,
-    secretConfig: PortalAPISecretConfig | null
+    secretConfig: PortalAPISecretConfig
   ) => Promise<PortalAPIApp | null>;
   loading: boolean;
   error: unknown;
@@ -82,7 +88,7 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
   const updateAppAndSecretConfig = React.useCallback(
     async (
       appConfig: PortalAPIAppConfig,
-      secretConfig: PortalAPISecretConfig | null
+      secretConfig: PortalAPISecretConfig
     ) => {
       const result = await mutationFunction({
         variables: {
