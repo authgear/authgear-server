@@ -99,6 +99,10 @@ const ScreenNav: React.FC = function ScreenNav() {
         url: "custom-domains",
       },
       {
+        textKey: "ScreenNav.smtp",
+        url: "configuration/smtp",
+      },
+      {
         textKey: "ScreenNav.ui-settings",
         url: "configuration/ui-settings",
       },

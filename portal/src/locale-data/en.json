@@ -97,6 +97,7 @@
   "ScreenNav.advanced": "Advanced",
   "ScreenNav.audit-log": "Audit Log",
   "ScreenNav.admin-api": "Admin API",
+  "ScreenNav.smtp": "Custom Email Provider",
 
   "NavBreadcrumb.label": "Nested navigation",
 
