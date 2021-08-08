@@ -802,6 +802,14 @@
   "SubscriptionScreen.plan-features.title": "Plan Features",
   "SubscriptionScreen.plan-features.desc": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing#compare-plans} children{pricing page}}.",
 
+  "SMTPConfigurationScreen.title": "Custom Email Provider",
+  "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",
+  "SMTPConfigurationScreen.enable.label": "Use my own provider",
+  "SMTPConfigurationScreen.host.label": "Host",
+  "SMTPConfigurationScreen.port.label": "Port",
+  "SMTPConfigurationScreen.username.label": "Username",
+  "SMTPConfigurationScreen.password.label": "Password",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",

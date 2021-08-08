@@ -24,6 +24,10 @@ const cache = new InMemoryCache({
           // Take incoming data
           merge: false,
         },
+        secretConfig: {
+          // Take incoming data
+          merge: false,
+        },
       },
     },
     // AppResource does not have id, so we must teach Apollo what is the key of AppResource.

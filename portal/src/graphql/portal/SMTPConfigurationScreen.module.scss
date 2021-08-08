@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.widget {
+  margin: 10px 15px;
+  max-width: 672px;
+}
+
+.control {
+  margin: 10px;
+}
