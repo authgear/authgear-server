@@ -112,9 +112,6 @@ type CheckCollaboratorInvitationPayload {
   appID: String!
 
   """"""
-  isCodeValid: Boolean!
-
-  """"""
   isInvitee: Boolean!
 }
 
@@ -356,7 +353,7 @@ type Query {
   apps(after: String, before: String, first: Int, last: Int): AppConnection
 
   """Check whether the viewer can accept the collaboration invitation"""
-  checkCollaboratorInvitation(code: String!): CheckCollaboratorInvitationPayload!
+  checkCollaboratorInvitation(code: String!): CheckCollaboratorInvitationPayload
 
   """Fetches an object given its ID"""
   node(
