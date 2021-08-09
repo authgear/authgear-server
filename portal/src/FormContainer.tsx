@@ -10,7 +10,6 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import NavigationBlockerDialog from "./NavigationBlockerDialog";
 import CommandBarContainer from "./CommandBarContainer";
-import { APIError } from "./error/error";
 import { FormProvider } from "./form";
 import { ErrorParseRule } from "./error/parse";
 import { FormErrorMessageBar } from "./FormErrorMessageBar";
@@ -33,7 +32,7 @@ export interface FormContainerProps {
   form: FormModel;
   canSave?: boolean;
   saveButtonProps?: SaveButtonProps;
-  localError?: APIError | null;
+  localError?: unknown;
   errorRules?: ErrorParseRule[];
   fallbackErrorMessageID?: string;
   farItems?: ICommandBarItemProps[];
