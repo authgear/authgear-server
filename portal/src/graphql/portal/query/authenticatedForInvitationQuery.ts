@@ -11,7 +11,6 @@ export const authenticatedQuery = gql`
       email
     }
     checkCollaboratorInvitation(code: $code) {
-      isCodeValid
       isInvitee
       appID
     }
@@ -26,7 +25,7 @@ export interface AuthenticatedForInvitationQueryResult
   isCodeValid?: boolean;
   isAuthenticated?: boolean;
   isInvitee?: boolean;
-  appID: string;
+  appID?: string;
 }
 
 export const useAuthenticatedForInvitationQuery = (
@@ -37,21 +36,17 @@ export const useAuthenticatedForInvitationQuery = (
     AuthenticatedForInvitationQueryVariables
   >(authenticatedQuery, { client, variables: { code } });
 
-  if (
-    error?.networkError &&
-    "statusCode" in error.networkError &&
-    error.networkError.statusCode === 401
-  ) {
-    return { loading, error, refetch, appID: "" };
+  if (error?.networkError && "statusCode" in error.networkError) {
+    return { loading, error, refetch };
   }
 
   return {
     loading,
     error,
     refetch,
-    isCodeValid: !!data?.checkCollaboratorInvitation.isCodeValid,
+    isCodeValid: !!data?.checkCollaboratorInvitation,
     isAuthenticated: !!data?.viewer,
-    isInvitee: !!data?.checkCollaboratorInvitation.isInvitee,
-    appID: data?.checkCollaboratorInvitation.appID ?? "",
+    isInvitee: data?.checkCollaboratorInvitation?.isInvitee,
+    appID: data?.checkCollaboratorInvitation?.appID,
   };
 };

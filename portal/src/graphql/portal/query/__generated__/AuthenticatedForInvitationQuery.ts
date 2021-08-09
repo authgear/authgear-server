@@ -14,7 +14,6 @@ export interface AuthenticatedForInvitationQuery_viewer {
 
 export interface AuthenticatedForInvitationQuery_checkCollaboratorInvitation {
   __typename: "CheckCollaboratorInvitationPayload";
-  isCodeValid: boolean;
   isInvitee: boolean;
   appID: string;
 }
@@ -27,7 +26,7 @@ export interface AuthenticatedForInvitationQuery {
   /**
    * Check whether the viewer can accept the collaboration invitation
    */
-  checkCollaboratorInvitation: AuthenticatedForInvitationQuery_checkCollaboratorInvitation;
+  checkCollaboratorInvitation: AuthenticatedForInvitationQuery_checkCollaboratorInvitation | null;
 }
 
 export interface AuthenticatedForInvitationQueryVariables {
