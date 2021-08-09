@@ -13,6 +13,8 @@ import {
 } from "./__generated__/UpdateAppAndSecretConfigMutation";
 import { useGraphqlMutation } from "../../../hook/graphql";
 
+// This mutation must fetch the the same set (or super set) fields of AppAndSecretConfigQuery.
+// Otherwise, after the mutation, that query will be refetched by Apollo.
 const updateAppAndSecretConfigMutation = gql`
   mutation UpdateAppAndSecretConfigMutation(
     $appID: ID!
@@ -28,12 +30,21 @@ const updateAppAndSecretConfigMutation = gql`
     ) {
       app {
         id
-        rawAppConfig
         effectiveAppConfig
+        rawAppConfig
         secretConfig {
           oauthClientSecrets {
             alias
             clientSecret
+          }
+          webhookSecret {
+            secret
+          }
+          adminAPISecrets {
+            keyID
+            createdAt
+            publicKeyPEM
+            privateKeyPEM
           }
           smtpSecret {
             host
