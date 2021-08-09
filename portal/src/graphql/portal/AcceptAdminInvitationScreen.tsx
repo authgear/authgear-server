@@ -137,6 +137,7 @@ const AcceptAdminInvitationIsInvitee: React.FC<AcceptAdminInvitationIsInviteePro
 const AcceptAdminInvitationScreen: React.FC =
   function AcceptAdminInvitationScreen() {
     const { renderToString } = useContext(Context);
+    const navigate = useNavigate();
     const location = useLocation();
     const invitationCode = useMemo(() => {
       return new URLSearchParams(location.search).get("code") ?? "";
@@ -152,7 +153,6 @@ const AcceptAdminInvitationScreen: React.FC =
       refetch,
     } = useAuthenticatedForInvitationQuery(invitationCode);
 
-    const homeURI = window.location.origin;
     const redirectURI = window.location.origin + "/oauth-redirect";
     const originalPath = `${window.location.pathname}${window.location.search}`;
 
@@ -177,9 +177,7 @@ const AcceptAdminInvitationScreen: React.FC =
       [redirectURI, originalPath]
     );
 
-    const goToHome = useCallback(() => {
-      window.location.replace(homeURI);
-    }, [homeURI]);
+    const goToHome = useCallback(() => navigate("/"), [navigate]);
 
     if (loading) {
       return <ShowLoading />;
@@ -211,7 +209,7 @@ const AcceptAdminInvitationScreen: React.FC =
         <AcceptAdminInvitationContent
           title={{
             id: "AcceptAdminInvitationScreen.not-authenticaed.title",
-            values: { appID },
+            values: { appID: appID! },
           }}
           descriptions={[
             { id: "AcceptAdminInvitationScreen.not-authenticaed.description" },
@@ -255,7 +253,7 @@ const AcceptAdminInvitationScreen: React.FC =
       );
     }
 
-    return <AcceptAdminInvitationIsInvitee appID={appID} />;
+    return <AcceptAdminInvitationIsInvitee appID={appID!} />;
   };
 
 export default AcceptAdminInvitationScreen;
