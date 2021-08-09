@@ -145,7 +145,7 @@ interface OAuthClientIdCellProps {
 const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
   function OAuthClientIdCell(props) {
     const { clientId, normalDismissTimeout, quickDismissTimeout } = props;
-    const copyButtonId = "oauth-client-id-copy-button";
+    const copyButtonId = `oauth-client-id-copy-button-${clientId}`;
     const [isCalloutVisible, setIsCalloutVisible] = useState(false);
     const { renderToString } = useContext(Context);
     const dismissCallout = useCallback(() => setIsCalloutVisible(false), []);
