@@ -1,7 +1,14 @@
-import React, { useCallback, useContext } from "react";
+import React, { useCallback, useContext, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import produce from "immer";
-import { Toggle, TextField, PrimaryButton } from "@fluentui/react";
+import {
+  Toggle,
+  TextField,
+  PrimaryButton,
+  DefaultButton,
+  Dialog,
+  DialogFooter,
+} from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -16,6 +23,11 @@ import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import { startReauthentication } from "./Authenticated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
+import { useViewerQuery } from "./query/viewerQuery";
+import {
+  useSendTestEmailMutation,
+  UseSendTestEmailMutationReturnType,
+} from "./mutations/sendTestEmail";
 import styles from "./SMTPConfigurationScreen.module.scss";
 
 const MASKED_PASSWORD_VALUE = "****************";
@@ -80,12 +92,19 @@ function constructConfig(
 }
 
 interface SMTPConfigurationScreenContentProps {
+  sendTestEmailHandle: UseSendTestEmailMutationReturnType;
   form: AppSecretConfigFormModel<FormState>;
 }
 
 const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentProps> =
   function SMTPConfigurationScreenContent(props) {
-    const { state, setState } = props.form;
+    const { form, sendTestEmailHandle } = props;
+    const { state, setState } = form;
+    const { sendTestEmail, loading } = sendTestEmailHandle;
+
+    const [isDialogHidden, setIsDialogHidden] = useState(true);
+    const [toAddress, setToAddress] = useState("");
+    const { viewer } = useViewerQuery();
     const { renderToString } = useContext(Context);
 
     const onChangeEnabled = useCallback(
@@ -180,6 +199,69 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
       });
     }, []);
 
+    const onClickSendTestEmail = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setToAddress(viewer?.email ?? "");
+        setIsDialogHidden(false);
+      },
+      [viewer]
+    );
+
+    const onDismissDialog = useCallback(
+      (e?: React.MouseEvent<unknown>) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+
+        if (!loading) {
+          setIsDialogHidden(true);
+        }
+      },
+      [loading]
+    );
+
+    const onClickSend = useCallback(
+      (e?: React.MouseEvent<unknown>) => {
+        e?.preventDefault();
+        e?.stopPropagation();
+
+        sendTestEmail({
+          smtpHost: state.host,
+          smtpPort: parseInt(state.portString, 10),
+          smtpUsername: state.username,
+          smtpPassword: state.password,
+          to: toAddress,
+        }).then(
+          () => {
+            setIsDialogHidden(true);
+          },
+          () => {
+            setIsDialogHidden(true);
+          }
+        );
+      },
+      [sendTestEmail, state, toAddress]
+    );
+
+    const onChangeToAddress = useCallback((_, value?: string) => {
+      if (value != null) {
+        setToAddress(value);
+      }
+    }, []);
+
+    const dialogContentProps = useMemo(() => {
+      return {
+        title: renderToString(
+          "SMTPConfigurationScreen.send-test-email-dialog.title"
+        ),
+        subText: renderToString(
+          "SMTPConfigurationScreen.send-test-email-dialog.description"
+        ),
+      };
+    }, [renderToString]);
+
     return (
       <ScreenContent className={styles.root}>
         <ScreenTitle>
@@ -240,11 +322,39 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                 disabled={state.isPasswordMasked}
                 onChange={onChangePassword}
               />
-              {state.isPasswordMasked && (
+              {state.isPasswordMasked ? (
                 <PrimaryButton className={styles.control} onClick={onClickEdit}>
                   <FormattedMessage id="edit" />
                 </PrimaryButton>
+              ) : (
+                <DefaultButton
+                  className={styles.control}
+                  onClick={onClickSendTestEmail}
+                >
+                  <FormattedMessage id="SMTPConfigurationScreen.send-test-email.label" />
+                </DefaultButton>
               )}
+              <Dialog
+                hidden={isDialogHidden}
+                onDismiss={onDismissDialog}
+                dialogContentProps={dialogContentProps}
+              >
+                <TextField
+                  type="email"
+                  placeholder="user@example.com"
+                  value={toAddress}
+                  required={true}
+                  onChange={onChangeToAddress}
+                />
+                <DialogFooter>
+                  <PrimaryButton onClick={onClickSend} disabled={loading}>
+                    <FormattedMessage id="send" />
+                  </PrimaryButton>
+                  <DefaultButton onClick={onDismissDialog} disabled={loading}>
+                    <FormattedMessage id="cancel" />
+                  </DefaultButton>
+                </DialogFooter>
+              </Dialog>
             </>
           )}
         </Widget>
@@ -260,6 +370,8 @@ const SMTPConfigurationScreen: React.FC = function SMTPConfigurationScreen() {
     constructConfig
   );
 
+  const sendTestEmailHandle = useSendTestEmailMutation(appID);
+
   if (form.isLoading) {
     return <ShowLoading />;
   }
@@ -269,8 +381,11 @@ const SMTPConfigurationScreen: React.FC = function SMTPConfigurationScreen() {
   }
 
   return (
-    <FormContainer form={form}>
-      <SMTPConfigurationScreenContent form={form} />
+    <FormContainer form={form} localError={sendTestEmailHandle.error}>
+      <SMTPConfigurationScreenContent
+        sendTestEmailHandle={sendTestEmailHandle}
+        form={form}
+      />
     </FormContainer>
   );
 };

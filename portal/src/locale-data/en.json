@@ -17,6 +17,7 @@
   "edit": "Edit",
   "copy": "Copy",
   "save": "Save",
+  "send": "Send",
   "saving": "Saving",
   "details": "Details",
   "activated": "Activated",
@@ -809,6 +810,9 @@
   "SMTPConfigurationScreen.port.label": "Port",
   "SMTPConfigurationScreen.username.label": "Username",
   "SMTPConfigurationScreen.password.label": "Password",
+  "SMTPConfigurationScreen.send-test-email.label": "Send Test Email",
+  "SMTPConfigurationScreen.send-test-email-dialog.title": "Enter the recipient email address",
+  "SMTPConfigurationScreen.send-test-email-dialog.description": "Test your SMPT configuration by sending an email to the given address.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
