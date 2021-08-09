@@ -56,9 +56,6 @@ const ScreenNav: React.FC = function ScreenNav() {
   const links: NavLinkProps[] = useMemo(() => {
     const links = [
       { textKey: "ScreenNav.users", url: "users" },
-      ...(auditLogEnabled
-        ? [{ textKey: "ScreenNav.audit-log", url: "audit-log" }]
-        : []),
       {
         textKey: "ScreenNav.authentication",
         url: "configuration/authentication",
@@ -135,6 +132,9 @@ const ScreenNav: React.FC = function ScreenNav() {
           },
         ],
       },
+      ...(auditLogEnabled
+        ? [{ textKey: "ScreenNav.audit-log", url: "audit-log" }]
+        : []),
       {
         textKey: "PortalAdminSettings.title",
         url: "portal-admins",
