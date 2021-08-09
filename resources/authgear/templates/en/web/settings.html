@@ -29,11 +29,16 @@
     {{ $verification_status = (index $claim_verification_statuses 0).Status }}
   {{ end }}
 
-  {{/* We do not want to show OAuth connect button */}}
-  {{ $is_oauth_candidate := (and (eq .type "oauth") (not .identity_id)) }}
-  {{ $show_more_button = (or ($show_more_button) ($is_oauth_candidate)) }}
+  {{/* We do not want to show unset row */}}
+  {{ $is_unset := (not .identity_id) }}
 
-  {{ if not $is_oauth_candidate }}
+  {{/* We define is_hidden here for future configurability */}}
+  {{ $is_hidden := ($is_unset)}}
+
+  {{/* Only show more button when at least one row is hidden */}}
+  {{ $show_more_button = (or ($show_more_button) ($is_hidden)) }}
+
+  {{ if not $is_hidden }}
   <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2-action3">
     {{ $ti := "" }}
 
