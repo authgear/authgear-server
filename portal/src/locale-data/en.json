@@ -819,6 +819,8 @@
   "SMTPConfigurationScreen.send-test-email-dialog.description": "Test your SMPT configuration by sending an email to the given address.",
   "SMTPConfigurationScreen.provider.sendgrid": "SendGrid",
   "SMTPConfigurationScreen.provider.custom": "SMTP Provider",
+  "SMTPConfigurationScreen.sendgrid.description": "Sign up for a SengGrid account and generate a SendGrid API Key. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
+  "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

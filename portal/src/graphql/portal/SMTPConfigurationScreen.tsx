@@ -2,6 +2,7 @@ import React, { useCallback, useContext, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import produce from "immer";
 import {
+  Text,
   FontIcon,
   Image,
   Label,
@@ -152,6 +153,34 @@ function ProviderCard(props: ProviderCardProps) {
       {logoSrc != null && <Image src={logoSrc} width={32} height={32} />}
       <Label>{children}</Label>
     </div>
+  );
+}
+
+interface ProviderDescriptionProps {
+  children?: React.ReactNode;
+}
+
+function ProviderDescription(props: ProviderDescriptionProps) {
+  const { children } = props;
+  const {
+    themes: {
+      main: {
+        semanticColors: { bodySubtext: color },
+      },
+    },
+  } = useSystemConfig();
+
+  return (
+    <Text
+      className={styles.control}
+      variant="small"
+      block={true}
+      style={{
+        color,
+      }}
+    >
+      {children}
+    </Text>
   );
 }
 
@@ -409,6 +438,9 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
               </div>
               {providerType === "custom" && (
                 <>
+                  <ProviderDescription>
+                    <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
+                  </ProviderDescription>
                   <TooltipTextField
                     className={styles.control}
                     type="text"
@@ -464,6 +496,9 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
               )}
               {providerType === "sendgrid" && (
                 <>
+                  <ProviderDescription>
+                    <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
+                  </ProviderDescription>
                   <TooltipTextField
                     className={styles.control}
                     type="password"
