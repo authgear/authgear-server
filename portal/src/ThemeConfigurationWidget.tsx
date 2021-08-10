@@ -212,6 +212,49 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
       [onChangeDarkModeEnabled]
     );
 
+    const [customTheme, setCustomTheme] = useState<
+      Omit<LightTheme | DarkTheme, "isDarkTheme">
+    >(() => {
+      if (isDarkMode) {
+        if (darkTheme) {
+          const { isDarkTheme, ...colors } = darkTheme;
+          return colors;
+        }
+        const { isDarkTheme, ...colors } = DEFAULT_DARK_THEME;
+        return colors;
+      }
+      if (lightTheme) {
+        const { isDarkTheme, ...colors } = lightTheme;
+        return colors;
+      }
+      const { isDarkTheme, ...colors } = DEFAULT_LIGHT_THEME;
+      return colors;
+    });
+
+    const onPickerChangePrimaryColor = useCallback(
+      (color: string) => {
+        setCustomTheme((theme) => ({ ...theme, primaryColor: color }));
+        onChangePrimaryColor(color);
+      },
+      [onChangePrimaryColor]
+    );
+
+    const onPickerChangeTextColor = useCallback(
+      (color: string) => {
+        setCustomTheme((theme) => ({ ...theme, textColor: color }));
+        onChangeTextColor(color);
+      },
+      [onChangeTextColor]
+    );
+
+    const onPickerChangeBackgroundColor = useCallback(
+      (color: string) => {
+        setCustomTheme((theme) => ({ ...theme, backgroundColor: color }));
+        onChangeBackgroundColor(color);
+      },
+      [onChangeBackgroundColor]
+    );
+
     const [darkThemeIsCustom, setDarkThemeIsCustom] = useState(() => {
       let equal = false;
       for (const theme of DARK_THEME_PRESETS) {
@@ -249,9 +292,19 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
     );
 
     const onClickCustom = useCallback(() => {
-      setLightThemeIsCustom(true);
-      setDarkThemeIsCustom(true);
-    }, []);
+      if (isDarkMode) {
+        setDarkThemeIsCustom(true);
+        onChangeDarkThemeProp({ isDarkTheme: true, ...customTheme });
+      } else {
+        setLightThemeIsCustom(true);
+        onChangeLightThemeProp({ isDarkTheme: false, ...customTheme });
+      }
+    }, [
+      customTheme,
+      isDarkMode,
+      onChangeDarkThemeProp,
+      onChangeLightThemeProp,
+    ]);
 
     const disabled = isDarkMode && !darkModeEnabled;
 
@@ -268,15 +321,27 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
       : darkTheme ?? DEFAULT_DARK_THEME;
 
     const primaryColor = isDarkMode
-      ? (darkTheme ?? DEFAULT_DARK_THEME).primaryColor
+      ? darkThemeIsCustom
+        ? customTheme.primaryColor
+        : (darkTheme ?? DEFAULT_DARK_THEME).primaryColor
+      : lightThemeIsCustom
+      ? customTheme.primaryColor
       : (lightTheme ?? DEFAULT_LIGHT_THEME).primaryColor;
 
     const textColor = isDarkMode
-      ? (darkTheme ?? DEFAULT_DARK_THEME).textColor
+      ? darkThemeIsCustom
+        ? customTheme.textColor
+        : (darkTheme ?? DEFAULT_DARK_THEME).textColor
+      : lightThemeIsCustom
+      ? customTheme.textColor
       : (lightTheme ?? DEFAULT_LIGHT_THEME).textColor;
 
     const backgroundColor = isDarkMode
-      ? (darkTheme ?? DEFAULT_DARK_THEME).backgroundColor
+      ? darkThemeIsCustom
+        ? customTheme.backgroundColor
+        : (darkTheme ?? DEFAULT_DARK_THEME).backgroundColor
+      : lightThemeIsCustom
+      ? customTheme.backgroundColor
       : (lightTheme ?? DEFAULT_LIGHT_THEME).backgroundColor;
 
     return (
@@ -324,7 +389,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
                 <PortalColorPicker
                   className={styles.colorPicker}
                   color={primaryColor}
-                  onChange={onChangePrimaryColor}
+                  onChange={onPickerChangePrimaryColor}
                   disabled={disabled || colorControlsDisabled}
                 />
               </div>
@@ -335,7 +400,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
                 <PortalColorPicker
                   className={styles.colorPicker}
                   color={textColor}
-                  onChange={onChangeTextColor}
+                  onChange={onPickerChangeTextColor}
                   disabled={disabled || colorControlsDisabled}
                 />
               </div>
@@ -346,7 +411,7 @@ const ThemeConfigurationWidget: React.FC<ThemeConfigurationWidgetProps> =
                 <PortalColorPicker
                   className={styles.colorPicker}
                   color={backgroundColor}
-                  onChange={onChangeBackgroundColor}
+                  onChange={onPickerChangeBackgroundColor}
                   disabled={disabled || colorControlsDisabled}
                 />
               </div>
