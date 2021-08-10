@@ -1,10 +1,12 @@
 package graphql
 
 import (
+	"errors"
+
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -74,8 +76,11 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				code := p.Args["code"].(string)
 
 				invitation, err := ctx.CollaboratorService.GetInvitationWithCode(code)
-				if err != nil && apierrors.IsKind(err, apierrors.Invalid.WithReason("CollaboratorInvitationInvalidCode")) {
-					return nil, nil
+				if err != nil {
+					if errors.Is(err, service.ErrCollaboratorInvitationInvalidCode) {
+						return nil, nil
+					}
+					return nil, err
 				}
 
 				sessionInfo := session.GetValidSessionInfo(p.Context)
@@ -88,11 +93,14 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				actorID := sessionInfo.UserID
 
 				err = ctx.CollaboratorService.CheckInviteeEmail(invitation, actorID)
-				if err != nil && apierrors.IsKind(err, apierrors.Invalid.WithReason("CollaboratorInvitationInvalidEmail")) {
-					return graphqlutil.NewLazyValue(map[string]interface{}{
-						"isInvitee": false,
-						"appID":     invitation.AppID,
-					}).Value, nil
+				if err != nil {
+					if errors.Is(err, service.ErrCollaboratorInvitationInvalidEmail) {
+						return graphqlutil.NewLazyValue(map[string]interface{}{
+							"isInvitee": false,
+							"appID":     invitation.AppID,
+						}).Value, nil
+					}
+					return nil, err
 				}
 
 				return graphqlutil.NewLazyValue(map[string]interface{}{
