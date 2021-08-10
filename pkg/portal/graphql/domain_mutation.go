@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -47,6 +48,12 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can create domain")
+			}
+
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
 			domain := input["domain"].(string)
@@ -120,6 +127,12 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can delete domain")
+			}
+
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
 			domainID := input["domainID"].(string)
@@ -254,6 +267,12 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can verify domain")
+			}
+
 			input := p.Args["input"].(map[string]interface{})
 			appNodeID := input["appID"].(string)
 			domainID := input["domainID"].(string)

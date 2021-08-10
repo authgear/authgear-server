@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -38,6 +38,12 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can delete collaborator")
+			}
+
 			input := p.Args["input"].(map[string]interface{})
 			collaboratorID := input["collaboratorID"].(string)
 
@@ -104,6 +110,12 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can delete collaborator invitation")
+			}
+
 			input := p.Args["input"].(map[string]interface{})
 			collaboratorInvitationID := input["collaboratorInvitationID"].(string)
 
@@ -180,6 +192,13 @@ var _ = registerMutationField(
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
+
+			// Access Control: authenticated user.
+			sessionInfo := session.GetValidSessionInfo(p.Context)
+			if sessionInfo == nil {
+				return nil, AccessDenied.New("only authenticated users can create collaborator invitation")
+			}
+
 			err := createCollaboratorInvitationInputSchema.Validator().ValidateValue(input)
 			if err != nil {
 				return nil, err

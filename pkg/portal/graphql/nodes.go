@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/authgear/graphql-go-relay"
+	"github.com/authgear/authgear-server/pkg/portal/session"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 )
 
@@ -16,6 +17,11 @@ var nodeTypes = map[reflect.Type]*graphql.Object{}
 
 var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
 	IDFetcher: func(id string, info graphql.ResolveInfo, ctx context.Context) (interface{}, error) {
+		// Access Control: authenticated user.
+		sessionInfo := session.GetValidSessionInfo(ctx)
+		if sessionInfo == nil {
+			return nil, nil
+		}
 		// If the ID is invalid, we should return null instead of returning an error.
 		// This behavior conforms the schema.
 		resolvedID := relay.FromGlobalID(id)

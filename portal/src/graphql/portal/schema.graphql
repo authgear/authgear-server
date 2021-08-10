@@ -106,6 +106,15 @@ input AppResourceUpdate {
   path: String!
 }
 
+""""""
+type CheckCollaboratorInvitationPayload {
+  """"""
+  appID: String!
+
+  """"""
+  isInvitee: Boolean!
+}
+
 """Collaborator of an app"""
 type Collaborator {
   """"""
@@ -345,6 +354,9 @@ type PageInfo {
 type Query {
   """All apps accessible by the viewer"""
   apps(after: String, before: String, first: Int, last: Int): AppConnection
+
+  """Check whether the viewer can accept the collaboration invitation"""
+  checkCollaboratorInvitation(code: String!): CheckCollaboratorInvitationPayload
 
   """Fetches an object given its ID"""
   node(

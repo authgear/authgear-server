@@ -590,10 +590,23 @@
   "InviteAdminScreen.duplicated-error": "Invitation has already been sent",
 
   "AcceptAdminInvitationScreen.title": "Admin Invitation",
+  "AcceptAdminInvitationScreen.continue-to-authgear.label": "Continue to Authgear",
+  "AcceptAdminInvitationScreen.login.label": "Login",
+  "AcceptAdminInvitationScreen.login-with-another-user.label": "Login As Another User",
+  "AcceptAdminInvitationScreen.create-new-account.label": "Create a new account",
   "AcceptAdminInvitationScreen.accept.label": "Accept",
   "AcceptAdminInvitationScreen.invalid-code-error": "Invalid invitation code",
   "AcceptAdminInvitationScreen.invalid-email-error": "The invitee email does not match your email. Did you log in a different user?",
   "AcceptAdminInvitationScreen.duplicated-collaborator-error": "Admin already exist",
+  "AcceptAdminInvitationScreen.invalid-code.title": "Invalid Invite",
+  "AcceptAdminInvitationScreen.invalid-code.description": "The invite link is invalid or expired. Please contact the admin to resent an invite.",
+  "AcceptAdminInvitationScreen.not-authenticaed.title": "You're invited to join Authgear with a tenent called {appID}",
+  "AcceptAdminInvitationScreen.not-authenticated.description": "You will need to create a new Authgear account or login to your existing account.",
+  "AcceptAdminInvitationScreen.not-invitee.title": "The invitee email does not match your logged in email",
+  "AcceptAdminInvitationScreen.not-invitee.description": "Try logout and login as a different user?",
+  "AcceptAdminInvitationScreen.is-invitee.title": "Confirm your invitation to join the tenant {appID}",
+  "AcceptAdminInvitationScreen.is-invitee.description": "You will join the tenant with admin access by clicking the Accept button below.",
+  "AcceptAdminInvitationScreen.accept-error.title": "Accept Invitation Error",
 
   "GeneralSettings.app-id.label": "App ID",
 
