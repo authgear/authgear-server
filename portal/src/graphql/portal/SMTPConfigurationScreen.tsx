@@ -2,12 +2,18 @@ import React, { useCallback, useContext, useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import produce from "immer";
 import {
+  FontIcon,
+  Image,
+  Label,
   Toggle,
   PrimaryButton,
   DefaultButton,
+  DefaultEffects,
   Dialog,
   DialogFooter,
   TextField,
+  IIconProps,
+  IButtonProps,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import TooltipTextField from "../../TooltipTextField";
@@ -24,11 +30,13 @@ import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import { startReauthentication } from "./Authenticated";
 import { PortalAPIAppConfig, PortalAPISecretConfig } from "../../types";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useViewerQuery } from "./query/viewerQuery";
 import {
   useSendTestEmailMutation,
   UseSendTestEmailMutationReturnType,
 } from "./mutations/sendTestEmail";
+import logoSendgrid from "../../images/sendgrid_logo.png";
 import styles from "./SMTPConfigurationScreen.module.scss";
 
 type ProviderType = "sendgrid" | "custom";
@@ -96,6 +104,55 @@ function constructConfig(
     }
   });
   return [config, newSecrets];
+}
+
+interface ProviderCardProps {
+  iconProps?: IIconProps;
+  logoSrc?: any;
+  children?: React.ReactNode;
+  onClick?: IButtonProps["onClick"];
+  isSelected?: boolean;
+  disabled?: boolean;
+}
+
+const PROVIDER_CARD_ICON_STYLE = {
+  width: "32px",
+  height: "32px",
+  fontSize: "32px",
+};
+
+const CUSTOM_PROVIDER_ICON_PROPS = {
+  iconName: "Mail",
+};
+
+function ProviderCard(props: ProviderCardProps) {
+  const { disabled, isSelected, children, onClick, iconProps, logoSrc } = props;
+  const {
+    themes: {
+      main: {
+        palette: { themePrimary },
+        semanticColors: { disabledBackground: backgroundColor },
+      },
+    },
+  } = useSystemConfig();
+  return (
+    <div
+      style={{
+        boxShadow: disabled ? undefined : DefaultEffects.elevation4,
+        borderColor: isSelected ? themePrimary : "transparent",
+        backgroundColor: disabled ? backgroundColor : undefined,
+        cursor: disabled ? "not-allowed" : undefined,
+      }}
+      className={styles.providerCard}
+      onClick={disabled ? undefined : onClick}
+    >
+      {iconProps != null && (
+        <FontIcon {...iconProps} style={PROVIDER_CARD_ICON_STYLE} />
+      )}
+      {logoSrc != null && <Image src={logoSrc} width={32} height={32} />}
+      <Label>{children}</Label>
+    </div>
+  );
 }
 
 interface SMTPConfigurationScreenContentProps {
@@ -332,16 +389,24 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
           />
           {state.enabled && (
             <>
-              <DefaultButton
-                className={styles.control}
-                text="Sendgrid"
-                onClick={onClickProviderSendgrid}
-              />
-              <DefaultButton
-                className={styles.control}
-                text="Custom"
-                onClick={onClickProviderCustom}
-              />
+              <div className={styles.providerCards}>
+                <ProviderCard
+                  onClick={onClickProviderSendgrid}
+                  isSelected={providerType === "sendgrid"}
+                  disabled={state.isPasswordMasked}
+                  logoSrc={logoSendgrid}
+                >
+                  <FormattedMessage id="SMTPConfigurationScreen.provider.sendgrid" />
+                </ProviderCard>
+                <ProviderCard
+                  onClick={onClickProviderCustom}
+                  isSelected={providerType === "custom"}
+                  disabled={state.isPasswordMasked}
+                  iconProps={CUSTOM_PROVIDER_ICON_PROPS}
+                >
+                  <FormattedMessage id="SMTPConfigurationScreen.provider.custom" />
+                </ProviderCard>
+              </div>
               {providerType === "custom" && (
                 <>
                   <TooltipTextField
