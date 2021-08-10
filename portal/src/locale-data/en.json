@@ -809,6 +809,7 @@
   "SMTPConfigurationScreen.host.label": "Host",
   "SMTPConfigurationScreen.port.label": "Port",
   "SMTPConfigurationScreen.username.label": "Username",
+  "SMTPConfigurationScreen.api-key.label": "API Key",
   "SMTPConfigurationScreen.password.label": "Password",
   "SMTPConfigurationScreen.send-test-email.label": "Send Test Email",
   "SMTPConfigurationScreen.send-test-email-dialog.title": "Enter the recipient email address",

@@ -30,7 +30,13 @@ import {
 } from "./mutations/sendTestEmail";
 import styles from "./SMTPConfigurationScreen.module.scss";
 
+type ProviderType = "sendgrid" | "custom";
+
 const MASKED_PASSWORD_VALUE = "****************";
+
+const SENDGRID_HOST = "smtp.sendgrid.net";
+const SENDGRID_PORT_STRING = "587";
+const SENDGRID_USERNAME = "apikey";
 
 interface FormState {
   enabled: boolean;
@@ -262,6 +268,50 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
       };
     }, [renderToString]);
 
+    const providerType: ProviderType = useMemo(() => {
+      const isSendgrid =
+        state.host === SENDGRID_HOST &&
+        state.portString === SENDGRID_PORT_STRING &&
+        state.username === SENDGRID_USERNAME;
+      return isSendgrid ? "sendgrid" : "custom";
+    }, [state]);
+
+    const onClickProviderSendgrid = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setState((state) => {
+          return {
+            ...state,
+            host: SENDGRID_HOST,
+            portString: SENDGRID_PORT_STRING,
+            username: SENDGRID_USERNAME,
+            password: "",
+          };
+        });
+      },
+      [setState]
+    );
+
+    const onClickProviderCustom = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        setState((state) => {
+          return {
+            ...state,
+            host: "",
+            portString: "",
+            username: "",
+            password: "",
+          };
+        });
+      },
+      [setState]
+    );
+
     return (
       <ScreenContent className={styles.root}>
         <ScreenTitle>
@@ -281,47 +331,84 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
           />
           {state.enabled && (
             <>
-              <TextField
+              <DefaultButton
                 className={styles.control}
-                type="text"
-                label={renderToString("SMTPConfigurationScreen.host.label")}
-                value={state.host}
-                disabled={state.isPasswordMasked}
-                required={true}
-                onChange={onChangeHost}
+                text="Sendgrid"
+                onClick={onClickProviderSendgrid}
               />
-              <TextField
+              <DefaultButton
                 className={styles.control}
-                type="number"
-                min="1"
-                step="1"
-                max="65535"
-                label={renderToString("SMTPConfigurationScreen.port.label")}
-                value={state.portString}
-                disabled={state.isPasswordMasked}
-                required={true}
-                onChange={onChangePort}
+                text="Custom"
+                onClick={onClickProviderCustom}
               />
-              <TextField
-                className={styles.control}
-                type="text"
-                label={renderToString("SMTPConfigurationScreen.username.label")}
-                value={state.username}
-                disabled={state.isPasswordMasked}
-                onChange={onChangeUsername}
-              />
-              <TextField
-                className={styles.control}
-                type="password"
-                label={renderToString("SMTPConfigurationScreen.password.label")}
-                value={
-                  state.isPasswordMasked
-                    ? MASKED_PASSWORD_VALUE
-                    : state.password
-                }
-                disabled={state.isPasswordMasked}
-                onChange={onChangePassword}
-              />
+              {providerType === "custom" && (
+                <>
+                  <TextField
+                    className={styles.control}
+                    type="text"
+                    label={renderToString("SMTPConfigurationScreen.host.label")}
+                    value={state.host}
+                    disabled={state.isPasswordMasked}
+                    required={true}
+                    onChange={onChangeHost}
+                  />
+                  <TextField
+                    className={styles.control}
+                    type="number"
+                    min="1"
+                    step="1"
+                    max="65535"
+                    label={renderToString("SMTPConfigurationScreen.port.label")}
+                    value={state.portString}
+                    disabled={state.isPasswordMasked}
+                    required={true}
+                    onChange={onChangePort}
+                  />
+                  <TextField
+                    className={styles.control}
+                    type="text"
+                    label={renderToString(
+                      "SMTPConfigurationScreen.username.label"
+                    )}
+                    value={state.username}
+                    disabled={state.isPasswordMasked}
+                    onChange={onChangeUsername}
+                  />
+                  <TextField
+                    className={styles.control}
+                    type="password"
+                    label={renderToString(
+                      "SMTPConfigurationScreen.password.label"
+                    )}
+                    value={
+                      state.isPasswordMasked
+                        ? MASKED_PASSWORD_VALUE
+                        : state.password
+                    }
+                    disabled={state.isPasswordMasked}
+                    onChange={onChangePassword}
+                  />
+                </>
+              )}
+              {providerType === "sendgrid" && (
+                <>
+                  <TextField
+                    className={styles.control}
+                    type="password"
+                    label={renderToString(
+                      "SMTPConfigurationScreen.api-key.label"
+                    )}
+                    value={
+                      state.isPasswordMasked
+                        ? MASKED_PASSWORD_VALUE
+                        : state.password
+                    }
+                    required={true}
+                    disabled={state.isPasswordMasked}
+                    onChange={onChangePassword}
+                  />
+                </>
+              )}
               {state.isPasswordMasked ? (
                 <PrimaryButton className={styles.control} onClick={onClickEdit}>
                   <FormattedMessage id="edit" />
