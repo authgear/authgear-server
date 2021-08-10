@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/model"
+	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -66,6 +67,10 @@ type AuthzService interface {
 	CheckAccessOfViewer(appID string) (userID string, err error)
 }
 
+type SMTPService interface {
+	SendTestEmail(app *model.App, options smtp.SendTestEmailOptions) (err error)
+}
+
 type AppResourceManagerFactory interface {
 	NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager
 }
@@ -87,6 +92,7 @@ type Context struct {
 	AppService          AppService
 	DomainService       DomainService
 	CollaboratorService CollaboratorService
+	SMTPService         SMTPService
 	AppResMgrFactory    AppResourceManagerFactory
 }
 

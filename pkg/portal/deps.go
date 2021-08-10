@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/lib/plan"
 	"github.com/authgear/authgear-server/pkg/portal/loader"
 	"github.com/authgear/authgear-server/pkg/portal/service"
+	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/portal/task"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -35,6 +36,8 @@ var DependencySet = wire.NewSet(
 
 	template.DependencySet,
 	endpoint.DependencySet,
+
+	smtp.DependencySet,
 
 	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
 	wire.Bind(new(service.CollaboratorServiceTaskQueue), new(*task.InProcessQueue)),
@@ -61,6 +64,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.AppService), new(*service.AppService)),
 	wire.Bind(new(graphql.DomainService), new(*service.DomainService)),
 	wire.Bind(new(graphql.CollaboratorService), new(*service.CollaboratorService)),
+	wire.Bind(new(graphql.SMTPService), new(*smtp.Service)),
 	wire.Bind(new(graphql.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 
 	transport.DependencySet,

@@ -29,6 +29,12 @@ export const appAndSecretConfigQuery = gql`
             publicKeyPEM
             privateKeyPEM
           }
+          smtpSecret {
+            host
+            port
+            username
+            password
+          }
         }
       }
     }

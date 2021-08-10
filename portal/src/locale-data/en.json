@@ -17,6 +17,7 @@
   "edit": "Edit",
   "copy": "Copy",
   "save": "Save",
+  "send": "Send",
   "saving": "Saving",
   "details": "Details",
   "activated": "Activated",
@@ -97,6 +98,7 @@
   "ScreenNav.advanced": "Advanced",
   "ScreenNav.audit-log": "Audit Log",
   "ScreenNav.admin-api": "Admin API",
+  "ScreenNav.smtp": "Custom Email Provider",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -800,6 +802,25 @@
 
   "SubscriptionScreen.plan-features.title": "Plan Features",
   "SubscriptionScreen.plan-features.desc": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing#compare-plans} children{pricing page}}.",
+
+  "SMTPConfigurationScreen.title": "Custom Email Provider",
+  "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",
+  "SMTPConfigurationScreen.enable.label": "Use my own provider",
+  "SMTPConfigurationScreen.host.label": "Host",
+  "SMTPConfigurationScreen.host.tooltip": "Hostname or IP address of your SMTP server",
+  "SMTPConfigurationScreen.port.label": "Port",
+  "SMTPConfigurationScreen.port.tooltip": "Port of your SMTP server. Typical values are 25, 465, 587. Avoid using port 25 if you can, since many providers have limitations on this port.",
+  "SMTPConfigurationScreen.username.label": "Username",
+  "SMTPConfigurationScreen.sendgrid.api-key.label": "API Key",
+  "SMTPConfigurationScreen.sendgrid.api-key.tooltip": "Your SendGrid API Key",
+  "SMTPConfigurationScreen.password.label": "Password",
+  "SMTPConfigurationScreen.send-test-email.label": "Send Test Email",
+  "SMTPConfigurationScreen.send-test-email-dialog.title": "Enter the recipient email address",
+  "SMTPConfigurationScreen.send-test-email-dialog.description": "Test your SMPT configuration by sending an email to the given address.",
+  "SMTPConfigurationScreen.provider.sendgrid": "SendGrid",
+  "SMTPConfigurationScreen.provider.custom": "SMTP Provider",
+  "SMTPConfigurationScreen.sendgrid.description": "Sign up for a SengGrid account and generate a SendGrid API Key. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
+  "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

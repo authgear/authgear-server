@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -15,10 +14,9 @@ type StaticAssetResolver interface {
 }
 
 type Service struct {
-	Context           context.Context
-	EnvironmentConfig *config.EnvironmentConfig
-	TemplateEngine    *template.Engine
-	StaticAssets      StaticAssetResolver
+	Context        context.Context
+	TemplateEngine *template.Engine
+	StaticAssets   StaticAssetResolver
 
 	translations *template.TranslationMap `wire:"-"`
 }
@@ -64,6 +62,20 @@ func (s *Service) renderTemplate(tpl template.Resource, args interface{}) (strin
 	}
 
 	return out, nil
+}
+
+func (s *Service) GetSenderForTestEmail() (sender string, err error) {
+	t, err := s.translationMap()
+	if err != nil {
+		return
+	}
+
+	sender, err = t.RenderText("email.default.sender", nil)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (s *Service) emailMessageHeader(name string, args interface{}) (sender, replyTo, subject string, err error) {

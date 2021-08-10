@@ -369,10 +369,18 @@ export interface AdminAPISecret {
   privateKeyPEM?: string | null;
 }
 
+export interface SMTPSecret {
+  host: string;
+  port: number;
+  username: string;
+  password?: string | null;
+}
+
 export interface PortalAPISecretConfig {
   oauthClientSecrets?: OAuthClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
   adminAPISecrets?: AdminAPISecret[] | null;
+  smtpSecret?: SMTPSecret | null;
 }
 
 export interface PortalAPIApp {

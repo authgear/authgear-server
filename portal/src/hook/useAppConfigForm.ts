@@ -42,6 +42,7 @@ export function useAppConfigForm<State>(
     error: loadError,
     effectiveAppConfig,
     rawAppConfig: rawConfig,
+    secretConfig,
     refetch: reload,
   } = useAppAndSecretConfigQuery(appID);
   const { updateAppAndSecretConfig: updateConfig } =
@@ -84,7 +85,7 @@ export function useAppConfigForm<State>(
 
   const save = useCallback(async () => {
     const allowSave = canSave !== undefined ? canSave : isDirty;
-    if (!rawConfig || !initialState) {
+    if (!rawConfig || !initialState || secretConfig == null) {
       return;
     } else if (!allowSave || isUpdating) {
       return;
@@ -105,7 +106,7 @@ export function useAppConfigForm<State>(
 
     setIsUpdating(true);
     setUpdateError(null);
-    await updateConfig(newConfig, null)
+    await updateConfig(newConfig, secretConfig)
       .then(() => {
         setCurrentState(null);
         setIsSubmitted(true);
@@ -121,6 +122,7 @@ export function useAppConfigForm<State>(
     initialState,
     currentState,
     updateConfig,
+    secretConfig,
     validate,
     canSave,
   ]);

@@ -1,0 +1,36 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.widget {
+  margin: 10px 15px;
+  max-width: 672px;
+}
+
+.control {
+  margin: 10px;
+}
+
+.providerCard {
+  margin: 10px;
+  flex: 1;
+
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-width: 1px;
+  border-style: solid;
+  cursor: pointer;
+}
+
+.providerCard > * {
+  margin: 8px;
+  cursor: inherit;
+}
+
+.providerCards {
+  display: flex;
+  flex-direction: row;
+}

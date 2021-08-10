@@ -38,6 +38,7 @@ import AuthenticatorConfigurationScreen from "./graphql/portal/AuthenticatorConf
 import VerificationConfigurationScreen from "./graphql/portal/VerificationConfigurationScreen";
 import BiometricConfigurationScreen from "./graphql/portal/BiometricConfigurationScreen";
 import SubscriptionScreen from "./graphql/portal/SubscriptionScreen";
+import SMTPConfigurationScreen from "./graphql/portal/SMTPConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -148,6 +149,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/localization"
             element={<LocalizationConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/smtp"
+            element={<SMTPConfigurationScreen />}
           />
           <Route path="/portal-admins" element={<PortalAdminsSettings />} />
           <Route path="/portal-admins/invite" element={<InviteAdminScreen />} />

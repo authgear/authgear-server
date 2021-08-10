@@ -44,11 +44,32 @@ var oauthClientSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	},
 })
 
+var smtpSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SMTPSecretInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"host": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"port": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"username": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"password": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+	},
+})
+
 var secretConfigInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SecretConfigInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"oauthClientSecrets": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecretInput)),
+		},
+		"smtpSecret": &graphql.InputObjectFieldConfig{
+			Type: smtpSecretInput,
 		},
 	},
 })
@@ -113,6 +134,11 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
+			app, err := gqlCtx.AppService.Get(appID)
+			if err != nil {
+				return nil, err
+			}
+
 			var resourceUpdates []appresource.Update
 			for _, f := range updates {
 				f := f.(map[string]interface{})
@@ -168,7 +194,7 @@ var _ = registerMutationField(
 					return nil, err
 				}
 
-				secretConfigYAML, err := structured.ToYAMLForUpdate()
+				secretConfigYAML, err := structured.ToYAMLForUpdate(app.Context.Config.SecretConfig)
 				if err != nil {
 					return nil, err
 				}
@@ -177,11 +203,6 @@ var _ = registerMutationField(
 					Path: configsource.AuthgearSecretYAML,
 					Data: secretConfigYAML,
 				})
-			}
-
-			app, err := gqlCtx.AppService.Get(appID)
-			if err != nil {
-				return nil, err
 			}
 
 			err = gqlCtx.AppService.UpdateResources(app, resourceUpdates)

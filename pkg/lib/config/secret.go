@@ -114,6 +114,41 @@ func (c *SecretConfig) Overlay(layers ...*SecretConfig) *SecretConfig {
 	return merged
 }
 
+// UpdateWith returns a new SecretConfig by considering newConfig as an update.
+// Non-updatable keys are ALWAYS KEEPED.
+// Updatable keys that only exist in c are REMOVED.
+// Updatable keys that exist in both are UPDATED.
+// Updatable keys that only exist in newConfig are ADDED.
+func (c *SecretConfig) UpdateWith(newConfig *SecretConfig) *SecretConfig {
+	out := &SecretConfig{}
+
+	// Keep non-updatable keys.
+	for _, item := range c.Secrets {
+		if !item.Key.IsUpdatable() {
+			out.Secrets = append(out.Secrets, item)
+		}
+	}
+
+	// Since we are looping newConfig.Secrets
+	// Items that are not in newConfig are automatically REMOVED.
+	// We do not need to handle update or add specifically because
+	// out.Secrets have only non-updatable keys.
+	for _, item := range newConfig.Secrets {
+		// Ignore non-updatable key.
+		if !item.Key.IsUpdatable() {
+			continue
+		}
+
+		out.Secrets = append(out.Secrets, item)
+	}
+
+	sort.Slice(out.Secrets, func(i, j int) bool {
+		return out.Secrets[i].Key < out.Secrets[j].Key
+	})
+
+	return out
+}
+
 func (c *SecretConfig) Lookup(key SecretKey) (int, *SecretItem, bool) {
 	for index, item := range c.Secrets {
 		if item.Key == key {
@@ -210,6 +245,16 @@ const (
 	CSRFKeyMaterialsKey         SecretKey = "csrf"
 	WebhookKeyMaterialsKey      SecretKey = "webhook"
 )
+
+func (key SecretKey) IsUpdatable() bool {
+	switch key {
+	case OAuthClientCredentialsKey,
+		SMTPServerCredentialsKey:
+		return true
+	default:
+		return false
+	}
+}
 
 type SecretItemData interface {
 	SensitiveStrings() []string

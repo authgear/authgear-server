@@ -281,15 +281,14 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(resrc *resource.ResourceFil
 			return nil, fmt.Errorf("failed to parse incoming secret config: %w", err)
 		}
 
-		mergedConfig := (&config.SecretConfig{}).Overlay(&original, &incoming)
-
-		mergedYAML, err := yaml.Marshal(&mergedConfig)
+		updatedConfig := original.UpdateWith(&incoming)
+		updatedYAML, err := yaml.Marshal(updatedConfig)
 		if err != nil {
 			return nil, err
 		}
 
 		newResrc := *resrc
-		newResrc.Data = mergedYAML
+		newResrc.Data = updatedYAML
 		return &newResrc, nil
 	default:
 		return nil, fmt.Errorf("unsupported view: %T", rawView)

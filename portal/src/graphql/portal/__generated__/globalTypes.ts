@@ -20,8 +20,16 @@ export interface OauthClientSecretInput {
   clientSecret: string;
 }
 
+export interface SMTPSecretInput {
+  host: string;
+  password?: string | null;
+  port: number;
+  username: string;
+}
+
 export interface SecretConfigInput {
   oauthClientSecrets?: OauthClientSecretInput[] | null;
+  smtpSecret?: SMTPSecretInput | null;
 }
 
 //==============================================================

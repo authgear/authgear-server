@@ -55,6 +55,25 @@ var adminAPISecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SMTPSecret",
+	Description: "SMTP secret",
+	Fields: graphql.Fields{
+		"host": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"port": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.Int),
+		},
+		"username": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"password": &graphql.Field{
+			Type: graphql.String,
+		},
+	},
+})
+
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SecretConfig",
 	Description: "The content of authgear.secrets.yaml",
@@ -67,6 +86,9 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"adminAPISecrets": &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(adminAPISecret)),
+		},
+		"smtpSecret": &graphql.Field{
+			Type: smtpSecret,
 		},
 	},
 })

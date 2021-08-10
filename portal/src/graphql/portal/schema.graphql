@@ -292,6 +292,9 @@ type Mutation {
   """Delete domain of target app"""
   deleteDomain(input: DeleteDomainInput!): DeleteDomainPayload!
 
+  """Send test STMP configuration email"""
+  sendTestSMTPConfigurationEmail(input: sendTestSMTPConfigurationEmailInput!): Boolean
+
   """Update app"""
   updateApp(input: UpdateAppInput!): UpdateAppPayload!
 
@@ -359,6 +362,36 @@ type Query {
   viewer: User
 }
 
+"""SMTP secret"""
+type SMTPSecret {
+  """"""
+  host: String!
+
+  """"""
+  password: String
+
+  """"""
+  port: Int!
+
+  """"""
+  username: String!
+}
+
+""""""
+input SMTPSecretInput {
+  """"""
+  host: String!
+
+  """"""
+  password: String
+
+  """"""
+  port: Int!
+
+  """"""
+  username: String!
+}
+
 """The content of authgear.secrets.yaml"""
 type SecretConfig {
   """"""
@@ -368,6 +401,9 @@ type SecretConfig {
   oauthClientSecrets: [OAuthClientSecret!]
 
   """"""
+  smtpSecret: SMTPSecret
+
+  """"""
   webhookSecret: WebhookSecret
 }
 
@@ -375,6 +411,9 @@ type SecretConfig {
 input SecretConfigInput {
   """"""
   oauthClientSecrets: [OauthClientSecretInput!]
+
+  """"""
+  smtpSecret: SMTPSecretInput
 }
 
 """"""
@@ -429,5 +468,26 @@ type VerifyDomainPayload {
 type WebhookSecret {
   """"""
   secret: String
+}
+
+""""""
+input sendTestSMTPConfigurationEmailInput {
+  """App ID to test."""
+  appID: ID!
+
+  """SMTP Host."""
+  smtpHost: String!
+
+  """SMTP Password."""
+  smtpPassword: String!
+
+  """SMTP Port."""
+  smtpPort: Int!
+
+  """SMTP Username."""
+  smtpUsername: String!
+
+  """The recipient email address."""
+  to: String!
 }
 
