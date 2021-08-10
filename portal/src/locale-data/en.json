@@ -624,10 +624,13 @@
   "WebhookConfigurationScreen.signature.secret-key": "Secret Key",
 
   "AdminAPIConfigurationScreen.title": "Admin API",
-  "AdminAPIConfigurationScreen.description": "Use the Admin API keys to manage your project with Admin API. {ExternalLink, react, href{https://docs.authgear.com/apis/admin-apis} children{Learn more}}{br, react}You can build queries in the {ExternalLink, react, href{{graphqlEndpoint}} children{GraphiQL tool}}.",
+  "AdminAPIConfigurationScreen.description": "Use the Admin API keys to manage your project with Admin API.",
   "AdminAPIConfigurationScreen.keys.title": "List of Admin API keys",
   "AdminAPIConfigurationScreen.column.key-id": "Key ID",
   "AdminAPIConfigurationScreen.column.created-at": "Created At",
+  "AdminAPIConfigurationScreen.graphiql.title": "GraphiQL Explorer",
+  "AdminAPIConfigurationScreen.graphiql.description": "Inspect the GraphQL schema and build queries with {ExternalLink, react, href{{graphqlEndpoint}} children{GraphiQL}}.",
+  "AdminAPIConfigurationScreen.graphiql.warning": "Please beware this is {strong, react, children{NOT}} a sandbox environment, changes are made to {strong, react, children{REAL DATA}}; Read{ExternalLink, react, href{https://docs.authgear.com/apis/admin-apis} children{the doc}} here.",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 
