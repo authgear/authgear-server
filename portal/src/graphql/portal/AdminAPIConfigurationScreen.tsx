@@ -5,6 +5,8 @@ import {
   IColumn,
   SelectionMode,
   ActionButton,
+  MessageBar,
+  MessageBarType,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScreenContent from "../../ScreenContent";
@@ -12,6 +14,7 @@ import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import Widget from "../../Widget";
 import WidgetTitle from "../../WidgetTitle";
+import WidgetDescription from "../../WidgetDescription";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import {
@@ -42,6 +45,35 @@ interface LocationState {
   keyID: string;
 }
 
+const messageBarStyles = {
+  root: {
+    width: "auto",
+  },
+};
+
+const EXAMPLE_QUERY = `# The GraphQL schema follows the Relay GraphQL Server convention.
+# If you find the terms like "Node", "Edge", "Connection" strange to you, you can learn about them
+# at the related documentation of Relay at https://relay.dev/docs/guides/graphql-server-specification/
+#
+# For those who are curious, this is a more formal documentation https://relay.dev/assets/files/connections-932f4f2cdffd79724ac76373deb30dc8.htm
+#
+# Here is an example query of fetching a list of users with page size equal to 2.
+query {
+  users(first: 2) {
+    pageInfo {
+      hasNextPage
+    }
+    edges {
+      cursor
+      node {
+        id
+        createdAt
+      }
+    }
+  }
+}
+`;
+
 const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenContentProps> =
   function AdminAPIConfigurationScreenContent(props) {
     const { appID, queryResult } = props;
@@ -49,7 +81,8 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
     const { themes } = useSystemConfig();
 
     const graphqlEndpoint = useMemo(() => {
-      return makeGraphQLEndpoint(appID);
+      const base = makeGraphQLEndpoint(appID);
+      return base + "?query=" + encodeURIComponent(EXAMPLE_QUERY);
     }, [appID]);
 
     const adminAPISecrets = useMemo(() => {
@@ -149,11 +182,26 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
           <FormattedMessage id="AdminAPIConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
-          <FormattedMessage
-            id="AdminAPIConfigurationScreen.description"
-            values={{ graphqlEndpoint }}
-          />
+          <FormattedMessage id="AdminAPIConfigurationScreen.description" />
         </ScreenDescription>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
+          </WidgetTitle>
+          <WidgetDescription>
+            <FormattedMessage
+              id="AdminAPIConfigurationScreen.graphiql.description"
+              values={{ graphqlEndpoint }}
+            />
+          </WidgetDescription>
+          <MessageBar
+            className={styles.messageBar}
+            messageBarType={MessageBarType.warning}
+            styles={messageBarStyles}
+          >
+            <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
+          </MessageBar>
+        </Widget>
         <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="AdminAPIConfigurationScreen.keys.title" />
