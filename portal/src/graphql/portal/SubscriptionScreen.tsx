@@ -8,7 +8,6 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./SubscriptionScreen.module.scss";
-import CommandBarContainer from "../../CommandBarContainer";
 
 const contactUsLink = "https://oursky.typeform.com/to/PecQiGfc";
 
@@ -194,16 +193,14 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
   }
 
   return (
-    <CommandBarContainer>
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
-          <FormattedMessage id="SubscriptionScreen.title" />
-        </ScreenTitle>
-        <SubscriptionPlanSummary planName={planName} />
-        <SubscriptionPlanBlocks />
-        <SubscriptionPlanFeatures />
-      </ScreenContent>
-    </CommandBarContainer>
+    <ScreenContent className={styles.root}>
+      <ScreenTitle>
+        <FormattedMessage id="SubscriptionScreen.title" />
+      </ScreenTitle>
+      <SubscriptionPlanSummary planName={planName} />
+      <SubscriptionPlanBlocks />
+      <SubscriptionPlanFeatures />
+    </ScreenContent>
   );
 };
 
