@@ -92,7 +92,10 @@ func (s *AdminAPIService) Director(appID string) (director func(*http.Request), 
 	}
 
 	director = func(r *http.Request) {
+		// It is important to preserve raw query so that GraphiQL ?query=... is not broken.
+		rawQuery := r.URL.RawQuery
 		r.URL = endpoint
+		r.URL.RawQuery = rawQuery
 		r.Host = host
 		r.Header.Set("X-Forwarded-Host", r.Host)
 
