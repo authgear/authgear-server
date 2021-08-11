@@ -439,7 +439,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
               {providerType === "custom" && (
                 <>
                   <ProviderDescription>
-                    <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
+                    <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
                   </ProviderDescription>
                   <TooltipTextField
                     className={styles.control}
@@ -497,7 +497,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
               {providerType === "sendgrid" && (
                 <>
                   <ProviderDescription>
-                    <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
+                    <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
                   </ProviderDescription>
                   <TooltipTextField
                     className={styles.control}
