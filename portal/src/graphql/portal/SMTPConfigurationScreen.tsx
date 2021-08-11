@@ -415,6 +415,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
             onChange={onChangeEnabled}
             label={renderToString("SMTPConfigurationScreen.enable.label")}
             inlineLabel={true}
+            disabled={state.isPasswordMasked}
           />
           {state.enabled && (
             <>
