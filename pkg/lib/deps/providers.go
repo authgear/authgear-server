@@ -134,6 +134,13 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	return provider
 }
 
+func (p *RootProvider) RootHandler(factory func(*RootProvider, http.ResponseWriter, *http.Request, context.Context) http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h := factory(p, w, r, r.Context())
+		h.ServeHTTP(w, r)
+	})
+}
+
 func (p *RootProvider) Handler(factory func(*RequestProvider) http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := getRequestProvider(w, r)

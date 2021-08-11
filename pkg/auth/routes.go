@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"net/http"
-
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -19,7 +17,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
 		PathPattern: "/healthz",
-	}, http.HandlerFunc(httputil.HealthCheckHandler))
+	}, p.RootHandler(newHealthzHandler))
 
 	rootChain := httproute.Chain(
 		p.RootMiddleware(newPanicEndMiddleware),

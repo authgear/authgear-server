@@ -6,6 +6,7 @@
 package auth
 
 import (
+	"context"
 	"github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -33,9 +34,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -61,13 +64,30 @@ import (
 
 // Injectors from wire_handler.go:
 
+func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
+	pool := p.DatabasePool
+	environmentConfig := p.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.Database
+	factory := p.LoggerFactory
+	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	handlerLogger := healthz.NewHandlerLogger(factory)
+	handler := &healthz.Handler{
+		Context:        ctx,
+		GlobalDatabase: handle,
+		GlobalExecutor: sqlExecutor,
+		Logger:         handlerLogger,
+	}
+	return handler
+}
+
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	authorizeHandlerLogger := oauth.NewAuthorizeHandlerLogger(factory)
 	handle := appProvider.AppDatabase
 	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	contextContext := deps.ProvideRequestContext(request)
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -77,7 +97,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -86,7 +106,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	clock := _wireSystemClockValue
 	store := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -319,14 +339,14 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -409,7 +429,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -489,7 +509,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -499,7 +519,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -518,7 +538,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -607,7 +627,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clock,
 	}
 	authorizationHandler := &handler.AuthorizationHandler{
-		Context:        context,
+		Context:        contextContext,
 		AppID:          appID,
 		Config:         oAuthConfig,
 		HTTPConfig:     httpConfig,
@@ -654,8 +674,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -664,7 +684,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	clockClock := _wireSystemClockValue
 	store := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -689,7 +709,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	sessionConfig := appConfig.Session
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -899,14 +919,14 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -989,7 +1009,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -1069,7 +1089,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -1079,7 +1099,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -1185,8 +1205,8 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1390,14 +1410,14 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -1437,7 +1457,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -1504,7 +1524,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -1514,7 +1534,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
@@ -1582,9 +1602,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
+	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1785,14 +1805,14 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -1832,7 +1852,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -1906,8 +1926,8 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2108,14 +2128,14 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -2155,7 +2175,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -2233,8 +2253,8 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2435,14 +2455,14 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -2482,7 +2502,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -2548,7 +2568,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -2558,7 +2578,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
@@ -2627,8 +2647,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2637,7 +2657,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	clockClock := _wireSystemClockValue
 	store := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      logger,
@@ -2662,7 +2682,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	sessionConfig := appConfig.Session
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -2872,14 +2892,14 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -2962,7 +2982,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -3042,7 +3062,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -3052,7 +3072,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -3180,8 +3200,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -3382,14 +3402,14 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -3428,7 +3448,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -3494,7 +3514,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -3574,7 +3594,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -3584,7 +3604,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -3603,7 +3623,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -3750,8 +3770,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -3952,14 +3972,14 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -3998,7 +4018,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -4064,7 +4084,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -4144,7 +4164,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -4154,7 +4174,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -4173,7 +4193,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -4320,8 +4340,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -4522,14 +4542,14 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -4568,7 +4588,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -4634,7 +4654,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -4714,7 +4734,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -4724,7 +4744,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -4743,7 +4763,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -4890,8 +4910,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -5092,14 +5112,14 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -5138,7 +5158,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -5204,7 +5224,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -5284,7 +5304,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -5294,7 +5314,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -5313,7 +5333,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -5460,8 +5480,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -5662,14 +5682,14 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -5708,7 +5728,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -5774,7 +5794,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -5854,7 +5874,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -5864,7 +5884,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -5883,7 +5903,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -6023,8 +6043,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -6225,14 +6245,14 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -6271,7 +6291,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -6337,7 +6357,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -6417,7 +6437,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -6427,7 +6447,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -6446,7 +6466,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -6589,8 +6609,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -6791,14 +6811,14 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -6837,7 +6857,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -6903,7 +6923,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -6983,7 +7003,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -6993,7 +7013,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -7012,7 +7032,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -7158,8 +7178,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -7360,14 +7380,14 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -7406,7 +7426,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -7472,7 +7492,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -7552,7 +7572,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -7562,7 +7582,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -7581,7 +7601,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -7724,8 +7744,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -7926,14 +7946,14 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -7972,7 +7992,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -8038,7 +8058,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -8118,7 +8138,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -8128,7 +8148,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -8147,7 +8167,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -8289,8 +8309,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -8491,14 +8511,14 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -8537,7 +8557,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -8603,7 +8623,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -8683,7 +8703,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -8693,7 +8713,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -8712,7 +8732,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -8855,8 +8875,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -9057,14 +9077,14 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -9103,7 +9123,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -9169,7 +9189,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -9249,7 +9269,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -9259,7 +9279,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -9278,7 +9298,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -9422,8 +9442,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -9624,14 +9644,14 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -9670,7 +9690,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -9736,7 +9756,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -9816,7 +9836,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -9826,7 +9846,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -9845,7 +9865,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -9987,8 +10007,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -10189,14 +10209,14 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -10235,7 +10255,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -10301,7 +10321,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -10381,7 +10401,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -10391,7 +10411,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -10410,7 +10430,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -10552,8 +10572,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -10754,14 +10774,14 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -10800,7 +10820,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -10866,7 +10886,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -10946,7 +10966,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -10956,7 +10976,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -10975,7 +10995,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -11119,8 +11139,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -11321,14 +11341,14 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -11367,7 +11387,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -11433,7 +11453,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -11513,7 +11533,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -11523,7 +11543,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -11542,7 +11562,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -11684,8 +11704,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -11886,14 +11906,14 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -11932,7 +11952,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -11998,7 +12018,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -12078,7 +12098,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -12088,7 +12108,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -12107,7 +12127,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -12249,8 +12269,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -12451,14 +12471,14 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -12497,7 +12517,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -12563,7 +12583,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -12643,7 +12663,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -12653,7 +12673,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -12672,7 +12692,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -12817,8 +12837,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -13019,14 +13039,14 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -13065,7 +13085,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -13131,7 +13151,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -13211,7 +13231,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -13221,7 +13241,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -13240,7 +13260,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -13382,8 +13402,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -13584,14 +13604,14 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -13630,7 +13650,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -13696,7 +13716,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -13776,7 +13796,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -13786,7 +13806,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -13805,7 +13825,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -13952,8 +13972,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -14154,14 +14174,14 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -14200,7 +14220,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -14266,7 +14286,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -14346,7 +14366,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -14356,7 +14376,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -14375,7 +14395,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -14517,8 +14537,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -14719,14 +14739,14 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -14765,7 +14785,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -14831,7 +14851,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -14911,7 +14931,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -14921,7 +14941,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -14940,7 +14960,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -15083,8 +15103,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -15285,14 +15305,14 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -15331,7 +15351,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -15397,7 +15417,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -15477,7 +15497,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -15487,7 +15507,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -15506,7 +15526,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -15648,8 +15668,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -15850,14 +15870,14 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -15896,7 +15916,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -15962,7 +15982,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -16042,7 +16062,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -16052,7 +16072,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -16071,7 +16091,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -16232,8 +16252,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -16434,14 +16454,14 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -16480,7 +16500,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -16546,7 +16566,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -16626,7 +16646,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -16636,7 +16656,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -16655,7 +16675,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -16799,8 +16819,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -17001,14 +17021,14 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -17047,7 +17067,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -17113,7 +17133,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -17193,7 +17213,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -17203,7 +17223,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -17222,7 +17242,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -17365,8 +17385,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -17567,14 +17587,14 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -17613,7 +17633,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -17679,7 +17699,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -17759,7 +17779,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -17769,7 +17789,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -17788,7 +17808,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -17940,8 +17960,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -18142,14 +18162,14 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -18188,7 +18208,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -18254,7 +18274,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -18334,7 +18354,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -18344,7 +18364,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -18363,7 +18383,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -18506,8 +18526,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -18708,14 +18728,14 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -18754,7 +18774,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -18820,7 +18840,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -18900,7 +18920,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -18910,7 +18930,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -18929,7 +18949,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -19072,8 +19092,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -19274,14 +19294,14 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -19320,7 +19340,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -19386,7 +19406,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -19466,7 +19486,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -19476,7 +19496,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -19495,7 +19515,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -19639,8 +19659,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -19841,14 +19861,14 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -19887,7 +19907,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -19953,7 +19973,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -20033,7 +20053,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -20043,7 +20063,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -20062,7 +20082,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -20211,8 +20231,8 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -20413,14 +20433,14 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -20459,7 +20479,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -20525,7 +20545,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -20605,7 +20625,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -20615,7 +20635,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -20634,7 +20654,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -20777,8 +20797,8 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -20979,14 +20999,14 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -21025,7 +21045,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -21091,7 +21111,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -21171,7 +21191,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -21181,7 +21201,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -21200,7 +21220,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -21343,8 +21363,8 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -21545,14 +21565,14 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -21591,7 +21611,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -21657,7 +21677,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -21737,7 +21757,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -21747,7 +21767,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -21766,7 +21786,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -21908,8 +21928,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -22110,14 +22130,14 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -22156,7 +22176,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -22222,7 +22242,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -22302,7 +22322,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -22312,7 +22332,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -22331,7 +22351,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -22493,8 +22513,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -22695,14 +22715,14 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -22741,7 +22761,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -22807,7 +22827,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -22887,7 +22907,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -22897,7 +22917,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -22916,7 +22936,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -23058,8 +23078,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Cookies: cookieManager,
 	}
 	logger := interaction.NewLogger(factory)
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	clockClock := _wireSystemClockValue
 	featureConfig := config.FeatureConfig
 	identityConfig := appConfig.Identity
@@ -23260,14 +23280,14 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -23306,7 +23326,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -23372,7 +23392,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -23452,7 +23472,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -23462,7 +23482,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -23481,7 +23501,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,
@@ -23666,13 +23686,13 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	featureConfig := config.FeatureConfig
 	uiFeatureConfig := featureConfig.UI
 	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	contextContext := deps.ProvideRequestContext(request)
 	httpConfig := appConfig.HTTP
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	manager := appProvider.Resources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
@@ -23697,7 +23717,7 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Resolver: resolver,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -23816,7 +23836,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	context := deps.ProvideRequestContext(request)
+	contextContext := deps.ProvideRequestContext(request)
 	appID := appConfig.ID
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
@@ -23837,7 +23857,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	idpsessionRand := _wireRandValue
 	provider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        handle,
@@ -23860,14 +23880,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	appdbHandle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
 	store := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
@@ -24080,14 +24100,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
