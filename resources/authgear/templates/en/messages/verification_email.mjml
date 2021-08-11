@@ -6,11 +6,6 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#f3f3f3">
-  <mj-section padding="20px 0 0 0">
-    <mj-column>
-      <mj-image padding="0" align="left" width="150px" src="{{ call $.StaticAssetURL `app-logo` }}"/>
-    </mj-column>
-  </mj-section>
   <mj-section>
     <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
       <mj-text font-weight="bold" font-size="24px" align="left">Email Verification</mj-text>
