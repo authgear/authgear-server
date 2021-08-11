@@ -7,8 +7,8 @@
   "sms.default.sender": "Authgear",
 
   "email.welcome-message.subject": "歡迎！",
-  "email.forgot-password.subject": "重設密碼指示",
-  "email.verification.subject": "電郵地址驗證指示",
+  "email.forgot-password.subject": "[{AppName}] 重設密碼指示",
+  "email.verification.subject": "[{AppName}] 電郵地址驗證指示",
   "email.setup-primary-oob.subject": "登記 {AppName} ",
   "email.setup-secondary-oob.subject": "登記 {AppName} ",
   "email.authenticate-primary-oob.subject": "登入 {AppName}",
