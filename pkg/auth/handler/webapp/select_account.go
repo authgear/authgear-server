@@ -98,25 +98,25 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
 		http.Redirect(w, r, path, http.StatusFound)
 	}
+	gotoLogin := func() {
+		http.Redirect(w, r, "/login", http.StatusFound)
+	}
 
 	// ctrl.Serve() always write response.
 	// So we have to put http.Redirect before it.
 	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
-		sess := session.GetSession(r.Context())
 		loginPrompt := false
 		fromAuthzEndpoint := false
 		userIDHint := ""
-
-		gotoLogin := func() {
-			http.Redirect(w, r, "/login", http.StatusFound)
-		}
+		canUseIntentReauthenticate := false
 
 		if webSession != nil {
 			loginPrompt = slice.ContainsString(webSession.Prompt, "login")
 			fromAuthzEndpoint = webSession.ClientID != ""
 			userIDHint = webSession.UserIDHint
+			canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
 		}
 
 		opts := webapp.SessionOptions{
@@ -138,7 +138,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			}
 
 			// The current session is the same user, reauthenticate the user if needed.
-			if sess != nil && sess.GetUserID() == userIDHint {
+			if canUseIntentReauthenticate {
 				if loginPrompt {
 					intent := &intents.IntentReauthenticate{
 						WebhookState: webSession.WebhookState,
@@ -167,6 +167,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return nil
 		}
 
+		sess := session.GetSession(r.Context())
 		// If anything of the following condition holds,
 		// the end-user does not need to select anything.
 		// 1. The request is not from the authorization endpoint, e.g. /

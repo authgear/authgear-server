@@ -94,6 +94,39 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
+	redisHandle := appProvider.Redis
+	clock := _wireSystemClockValue
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	storeRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clock,
+		Logger: storeRedisLogger,
+	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: redisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	sessionConfig := appConfig.Session
+	rand := _wireRandValue
+	provider := &idpsession.Provider{
+		Context:      contextContext,
+		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
+		Store:        storeRedis,
+		AccessEvents: eventProvider,
+		TrustProxy:   trustProxy,
+		Config:       sessionConfig,
+		Clock:        clock,
+		Random:       rand,
+	}
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
@@ -102,9 +135,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
 	logger := redis.NewLogger(factory)
-	clock := _wireSystemClockValue
 	store := &redis.Store{
 		Context:     contextContext,
 		Redis:       redisHandle,
@@ -114,9 +145,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	mainOriginProvider := &MainOriginProvider{
 		Request:    request,
 		TrustProxy: trustProxy,
@@ -167,7 +195,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	provider := &loginid.Provider{
+	loginidProvider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -203,7 +231,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
 		Store:                 serviceStore,
-		LoginID:               provider,
+		LoginID:               loginidProvider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
@@ -255,7 +283,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	storeRedis := &oob.StoreRedis{
+	oobStoreRedis := &oob.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
 		Clock: clock,
@@ -264,7 +292,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	oobProvider := &oob.Provider{
 		Config:    authenticatorOOBConfig,
 		Store:     oobStore,
-		CodeStore: storeRedis,
+		CodeStore: oobStoreRedis,
 		Clock:     clock,
 		Logger:    oobLogger,
 	}
@@ -363,17 +391,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
-		AppID:  appID,
-		Clock:  clock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
+		Store:     storeRedis,
 		Clock:     clock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
@@ -529,26 +549,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Commands: commands,
 		Queries:  queries,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
-	rand := _wireRandValue
-	idpsessionProvider := &idpsession.Provider{
-		Context:      contextContext,
-		Request:      request,
-		AppID:        appID,
-		Redis:        redisHandle,
-		Store:        idpsessionStoreRedis,
-		AccessEvents: eventProvider,
-		TrustProxy:   trustProxy,
-		Config:       sessionConfig,
-		Clock:        clock,
-		Random:       rand,
-	}
 	interactionContext := &interaction.Context{
 		Request:                  request,
 		Database:                 sqlExecutor,
@@ -576,7 +576,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Users:                    userProvider,
 		Events:                   eventService,
 		CookieManager:            cookieManager,
-		Sessions:                 idpsessionProvider,
+		Sessions:                 provider,
 		SessionManager:           idpsessionManager,
 		SessionCookie:            cookieDef2,
 		MFADeviceTokenCookie:     cookieDef,
@@ -632,7 +632,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config:         oAuthConfig,
 		HTTPConfig:     httpConfig,
 		Logger:         authorizationHandlerLogger,
+		Sessions:       provider,
 		Authorizations: authorizationStore,
+		OfflineGrants:  store,
 		CodeGrants:     store,
 		OAuthURLs:      urlProvider,
 		WebAppURLs:     authenticateURLProvider,
