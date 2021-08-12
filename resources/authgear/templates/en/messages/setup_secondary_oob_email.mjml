@@ -5,11 +5,6 @@
   </mj-attributes>
 </mj-head>
 <mj-body background-color="#ffffff">
-  <mj-section padding="20px 0 0 0">
-    <mj-column>
-      <mj-image padding="0" align="left" width="150px" src="{{ call $.StaticAssetURL `app-logo` }}"/>
-    </mj-column>
-  </mj-section>
   <mj-section padding-top="10px">
     <mj-column>
       <mj-text font-weight="bold" font-size="24px">Setup Two-Step Verification on {{ template "app.name" }}</mj-text>
