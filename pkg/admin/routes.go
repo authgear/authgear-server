@@ -1,8 +1,6 @@
 package admin
 
 import (
-	"net/http"
-
 	graphqlhandler "github.com/graphql-go/handler"
 
 	"github.com/authgear/authgear-server/pkg/admin/transport"
@@ -20,7 +18,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
 		PathPattern: "/healthz",
-	}, http.HandlerFunc(httputil.HealthCheckHandler))
+	}, p.RootHandler(newHealthzHandler))
 
 	// TODO(csp): improve security
 	secMiddleware := &web.SecHeadersMiddleware{

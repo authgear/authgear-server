@@ -6,6 +6,7 @@
 package resolver
 
 import (
+	"context"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -21,7 +22,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -42,6 +45,23 @@ import (
 )
 
 // Injectors from wire.go:
+
+func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
+	pool := p.DatabasePool
+	environmentConfig := p.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.Database
+	factory := p.LoggerFactory
+	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	handlerLogger := healthz.NewHandlerLogger(factory)
+	handler := &healthz.Handler{
+		Context:        ctx,
+		GlobalDatabase: handle,
+		GlobalExecutor: sqlExecutor,
+		Logger:         handlerLogger,
+	}
+	return handler
+}
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
@@ -91,7 +111,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	context := deps.ProvideRequestContext(request)
+	contextContext := deps.ProvideRequestContext(request)
 	appID := appConfig.ID
 	handle := appProvider.Redis
 	clock := _wireSystemClockValue
@@ -112,7 +132,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	rand := _wireRandValue
 	provider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        handle,
@@ -135,14 +155,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	appdbHandle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(context, appdbHandle)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
 	store := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
@@ -351,14 +371,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -469,8 +489,8 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
-	context := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	contextContext := deps.ProvideRequestContext(request)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,

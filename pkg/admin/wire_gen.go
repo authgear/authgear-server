@@ -6,6 +6,7 @@
 package admin
 
 import (
+	"context"
 	facade2 "github.com/authgear/authgear-server/pkg/admin/facade"
 	"github.com/authgear/authgear-server/pkg/admin/graphql"
 	"github.com/authgear/authgear-server/pkg/admin/loader"
@@ -35,9 +36,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
@@ -58,6 +61,23 @@ import (
 )
 
 // Injectors from wire.go:
+
+func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
+	pool := p.DatabasePool
+	environmentConfig := p.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.Database
+	factory := p.LoggerFactory
+	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	handlerLogger := healthz.NewHandlerLogger(factory)
+	handler := &healthz.Handler{
+		Context:        ctx,
+		GlobalDatabase: handle,
+		GlobalExecutor: sqlExecutor,
+		Logger:         handlerLogger,
+	}
+	return handler
+}
 
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
@@ -130,9 +150,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appID := appConfig.ID
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
 	request := p.Request
-	context := deps.ProvideRequestContext(request)
+	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -336,14 +356,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	localizationConfig := appConfig.Localization
 	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            context,
+		Context:            contextContext,
 		Config:             httpConfig,
 		Localization:       localizationConfig,
 		StaticAssetsPrefix: staticAssetURLPrefix,
 		Resources:          manager,
 	}
 	translationService := &translation.Service{
-		Context:        context,
+		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -383,7 +403,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     context,
+		Context:     contextContext,
 		Redis:       redisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -427,7 +447,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	readHandle := appProvider.AuditReadDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	readSQLExecutor := auditdb.NewReadSQLExecutor(context, readHandle)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(contextContext, readHandle)
 	readStore := &audit.ReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
@@ -474,7 +494,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(context, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
@@ -484,7 +504,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(context, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -521,7 +541,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{
-		Context: context,
+		Context: contextContext,
 		AppID:   appID,
 		Redis:   redisHandle,
 	}
@@ -565,7 +585,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      context,
+		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
 		Redis:        redisHandle,

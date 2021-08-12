@@ -3,6 +3,7 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/google/wire"
@@ -10,7 +11,19 @@ import (
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 )
+
+func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
+	panic(wire.Build(
+		deps.RootDependencySet,
+		wire.FieldsOf(new(*deps.RootProvider),
+			"DatabasePool",
+		),
+		healthz.DependencySet,
+		wire.Bind(new(http.Handler), new(*healthz.Handler)),
+	))
+}
 
 func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(

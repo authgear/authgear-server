@@ -24,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
+	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -50,6 +51,8 @@ var CommonDependencySet = wire.NewSet(
 	appdb.DependencySet,
 	auditdb.DependencySet,
 	template.DependencySet,
+
+	healthz.DependencySet,
 
 	wire.NewSet(
 		libes.DependencySet,
