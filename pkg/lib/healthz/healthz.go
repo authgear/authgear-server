@@ -45,7 +45,7 @@ func (h *Handler) CheckHealth() (err error) {
 		if err != nil {
 			return err
 		}
-		h.Logger.Infof("global database connection healthz passed")
+		h.Logger.Debugf("global database connection healthz passed")
 		return nil
 	})
 	if err != nil {
