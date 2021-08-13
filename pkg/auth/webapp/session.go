@@ -25,6 +25,7 @@ type SessionOptions struct {
 	KeepAfterFinish            bool
 	Prompt                     []string
 	Extra                      map[string]interface{}
+	Page                       string
 	UserIDHint                 string
 	WebhookState               string
 	UpdatedAt                  time.Time
@@ -38,6 +39,7 @@ func NewSessionOptionsFromSession(s *Session) SessionOptions {
 		KeepAfterFinish: s.KeepAfterFinish,
 		Prompt:          s.Prompt,
 		Extra:           nil, // Omit extra by default
+		Page:            s.Page,
 		WebhookState:    s.WebhookState,
 		UserIDHint:      s.UserIDHint,
 	}
@@ -65,6 +67,9 @@ type Session struct {
 	// Prompt is used to indicate requested authentication behavior
 	// which includes both supported and unsupported prompt
 	Prompt []string `json:"prompt_list,omitempty"`
+
+	// Page is used to indicate the preferred page to show.
+	Page string `json:"page,omitempty"`
 
 	// UpdatedAt indicate the session last updated time
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
@@ -98,6 +103,7 @@ func NewSession(options SessionOptions) *Session {
 		ClientID:                   options.ClientID,
 		Extra:                      make(map[string]interface{}),
 		Prompt:                     options.Prompt,
+		Page:                       options.Page,
 		UpdatedAt:                  options.UpdatedAt,
 		WebhookState:               options.WebhookState,
 		UserIDHint:                 options.UserIDHint,

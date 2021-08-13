@@ -45,6 +45,7 @@ func (p *EndpointsProvider) RevokeEndpointURL() *url.URL         { return p.urlO
 func (p *EndpointsProvider) JWKSEndpointURL() *url.URL           { return p.urlOf("oauth2/jwks") }
 func (p *EndpointsProvider) UserInfoEndpointURL() *url.URL       { return p.urlOf("oauth2/userinfo") }
 func (p *EndpointsProvider) EndSessionEndpointURL() *url.URL     { return p.urlOf("oauth2/end_session") }
+func (p *EndpointsProvider) OAuthEntrypointURL() *url.URL        { return p.urlOf("./_oauth_entrypoint") }
 func (p *EndpointsProvider) LoginEndpointURL() *url.URL          { return p.urlOf("./login") }
 func (p *EndpointsProvider) SignupEndpointURL() *url.URL         { return p.urlOf("./signup") }
 func (p *EndpointsProvider) PromoteUserEndpointURL() *url.URL    { return p.urlOf("./promote_user") }

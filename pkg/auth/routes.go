@@ -113,6 +113,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
+	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
 	router.Add(webapphandler.ConfigureLoginRoute(webappAuthEntrypointRoute), p.Handler(newWebAppLoginHandler))
 	router.Add(webapphandler.ConfigureSignupRoute(webappAuthEntrypointRoute), p.Handler(newWebAppSignupHandler))
 	router.Add(webapphandler.ConfigureSelectAccountRoute(webappAuthEntrypointRoute), p.Handler(newWebAppSelectAccountHandler))

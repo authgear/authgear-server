@@ -12,6 +12,7 @@ import (
 
 type EndpointsProvider interface {
 	BaseURL() *url.URL
+	OAuthEntrypointURL() *url.URL
 	LoginEndpointURL() *url.URL
 	SignupEndpointURL() *url.URL
 	LogoutEndpointURL() *url.URL
@@ -70,19 +71,11 @@ type AuthenticateURLProvider struct {
 
 type AuthenticateURLOptions struct {
 	SessionOptions SessionOptions
-	Page           string
 	UILocales      string
 }
 
 func (p *AuthenticateURLProvider) AuthenticateURL(options AuthenticateURLOptions) (httputil.Result, error) {
-	endpoint := p.Endpoints.BaseURL().String()
-	switch options.Page {
-	case "login":
-		endpoint = p.Endpoints.LoginEndpointURL().String()
-	case "signup":
-		endpoint = p.Endpoints.SignupEndpointURL().String()
-	}
-
+	endpoint := p.Endpoints.OAuthEntrypointURL().String()
 	now := p.Clock.NowUTC()
 	sessionOpts := options.SessionOptions
 	sessionOpts.UpdatedAt = now

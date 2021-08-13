@@ -93,9 +93,34 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	}
 	gotoSignupOrLogin := func() {
+		// Page has the highest precedence if it is specified.
+		if webSession != nil && webSession.Page != "" {
+			var path string
+			switch webSession.Page {
+			case "signup":
+				if h.AuthenticationConfig.PublicSignupDisabled {
+					path = "/login"
+				} else {
+					path = "/signup"
+				}
+			case "login":
+				path = "/login"
+			}
+			if path != "" {
+				http.Redirect(w, r, path, http.StatusFound)
+				return
+			}
+		}
+
+		// Page is something that we do not understand or it is absent.
+		// In this case, we look at the cookie.
 		signedUpCookie, err := h.Cookies.GetCookie(r, h.SignedUpCookie.Def)
 		signedUp := (err == nil && signedUpCookie.Value == "true")
-		path := GetAuthenticationEndpoint(signedUp, h.AuthenticationConfig.PublicSignupDisabled)
+		path := "/signup"
+		if h.AuthenticationConfig.PublicSignupDisabled || signedUp {
+			path = "/login"
+		}
+
 		http.Redirect(w, r, path, http.StatusFound)
 	}
 	gotoLogin := func() {
@@ -196,13 +221,4 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
-}
-
-func GetAuthenticationEndpoint(signedUp bool, publicSignupDisabled bool) string {
-	path := "/signup"
-	if publicSignupDisabled || signedUp {
-		path = "/login"
-	}
-
-	return path
 }
