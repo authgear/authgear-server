@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -53,6 +54,11 @@ var CommonDependencySet = wire.NewSet(
 	template.DependencySet,
 
 	healthz.DependencySet,
+
+	wire.NewSet(
+		authenticationinfo.DependencySet,
+		wire.Bind(new(interaction.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+	),
 
 	wire.NewSet(
 		libes.DependencySet,

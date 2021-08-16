@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -43,6 +44,10 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 	sessionToCreate, token := ctx.Sessions.MakeSession(attrs)
 	sessionCookie := ctx.CookieManager.ValueCookie(ctx.SessionCookie.Def, token)
 
+	authenticationInfo := sessionToCreate.GetAuthenticationInfo()
+	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo)
+	authenticationInfoCookie := ctx.CookieManager.ValueCookie(authenticationinfo.CookieDef, authenticationInfoEntry.ID)
+
 	var updateSessionID string
 	var updateSessionAMR []string
 	if mode == EnsureSessionModeUpdateOrCreate {
@@ -70,26 +75,30 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 	now := ctx.Clock.NowUTC()
 
 	return &NodeDoEnsureSession{
-		CreateReason:         e.CreateReason,
-		SessionToCreate:      sessionToCreate,
-		UpdateLoginTime:      now,
-		UpdateSessionID:      updateSessionID,
-		UpdateSessionAMR:     updateSessionAMR,
-		SessionCookie:        sessionCookie,
-		SameSiteStrictCookie: sameSiteStrictCookie,
-		IsAdminAPI:           interaction.IsAdminAPI(input),
+		CreateReason:             e.CreateReason,
+		SessionToCreate:          sessionToCreate,
+		AuthenticationInfoEntry:  authenticationInfoEntry,
+		UpdateLoginTime:          now,
+		UpdateSessionID:          updateSessionID,
+		UpdateSessionAMR:         updateSessionAMR,
+		SessionCookie:            sessionCookie,
+		SameSiteStrictCookie:     sameSiteStrictCookie,
+		AuthenticationInfoCookie: authenticationInfoCookie,
+		IsAdminAPI:               interaction.IsAdminAPI(input),
 	}, nil
 }
 
 type NodeDoEnsureSession struct {
-	CreateReason         session.CreateReason   `json:"reason"`
-	SessionToCreate      *idpsession.IDPSession `json:"session_to_create,omitempty"`
-	UpdateLoginTime      time.Time              `json:"update_login_time,omitempty"`
-	UpdateSessionID      string                 `json:"update_session_id,omitempty"`
-	UpdateSessionAMR     []string               `json:"update_session_amr,omitempty"`
-	SessionCookie        *http.Cookie           `json:"session_cookie,omitempty"`
-	SameSiteStrictCookie *http.Cookie           `json:"same_site_strict_cookie,omitempty"`
-	IsAdminAPI           bool                   `json:"is_admin_api"`
+	CreateReason             session.CreateReason      `json:"reason"`
+	SessionToCreate          *idpsession.IDPSession    `json:"session_to_create,omitempty"`
+	AuthenticationInfoEntry  *authenticationinfo.Entry `json:"authentication_info_entry,omitempty"`
+	UpdateLoginTime          time.Time                 `json:"update_login_time,omitempty"`
+	UpdateSessionID          string                    `json:"update_session_id,omitempty"`
+	UpdateSessionAMR         []string                  `json:"update_session_amr,omitempty"`
+	SessionCookie            *http.Cookie              `json:"session_cookie,omitempty"`
+	SameSiteStrictCookie     *http.Cookie              `json:"same_site_strict_cookie,omitempty"`
+	AuthenticationInfoCookie *http.Cookie              `json:"authentication_info_cookie,omitempty"`
+	IsAdminAPI               bool                      `json:"is_admin_api"`
 }
 
 // GetCookies implements CookiesGetter
@@ -100,6 +109,9 @@ func (n *NodeDoEnsureSession) GetCookies() (cookies []*http.Cookie) {
 	if n.SameSiteStrictCookie != nil {
 		cookies = append(cookies, n.SameSiteStrictCookie)
 	}
+	if n.AuthenticationInfoCookie != nil {
+		cookies = append(cookies, n.AuthenticationInfoCookie)
+	}
 	return
 }
 
@@ -109,6 +121,9 @@ func (n *NodeDoEnsureSession) Prepare(ctx *interaction.Context, graph *interacti
 
 func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
+		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			return ctx.AuthenticationInfoService.Save(n.AuthenticationInfoEntry)
+		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.CreateReason != session.CreateReasonPromote {
 				return nil

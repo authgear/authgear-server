@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
@@ -173,6 +174,10 @@ type SearchService interface {
 	ReindexUser(userID string, isDelete bool) error
 }
 
+type AuthenticationInfoService interface {
+	Save(entry *authenticationinfo.Entry) error
+}
+
 type Context struct {
 	IsCommitting bool   `wire:"-"`
 	WebSessionID string `wire:"-"`
@@ -203,14 +208,15 @@ type Context struct {
 
 	Search SearchService
 
-	Challenges           ChallengeProvider
-	Users                UserService
-	Events               EventService
-	CookieManager        CookieManager
-	Sessions             SessionProvider
-	SessionManager       SessionManager
-	SessionCookie        session.CookieDef
-	MFADeviceTokenCookie mfa.CookieDef
+	Challenges                ChallengeProvider
+	Users                     UserService
+	Events                    EventService
+	CookieManager             CookieManager
+	AuthenticationInfoService AuthenticationInfoService
+	Sessions                  SessionProvider
+	SessionManager            SessionManager
+	SessionCookie             session.CookieDef
+	MFADeviceTokenCookie      mfa.CookieDef
 }
 
 var interactionGraphSavePoint savePoint = "interaction_graph"
