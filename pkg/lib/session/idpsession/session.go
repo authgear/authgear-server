@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
@@ -65,4 +66,13 @@ func (s *IDPSession) ToAPIModel() *model.Session {
 	}
 
 	return apiModel
+}
+
+func (s *IDPSession) GetAuthenticationInfo() authenticationinfo.T {
+	amr, _ := s.GetOIDCAMR()
+	return authenticationinfo.T{
+		UserID:          s.GetUserID(),
+		AuthenticatedAt: s.GetAuthenticatedAt(),
+		AMR:             amr,
+	}
 }

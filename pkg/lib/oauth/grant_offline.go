@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
@@ -88,4 +89,13 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 	}
 
 	return apiModel
+}
+
+func (g *OfflineGrant) GetAuthenticationInfo() authenticationinfo.T {
+	amr, _ := g.GetOIDCAMR()
+	return authenticationinfo.T{
+		UserID:          g.GetUserID(),
+		AuthenticatedAt: g.GetAuthenticatedAt(),
+		AMR:             amr,
+	}
 }
