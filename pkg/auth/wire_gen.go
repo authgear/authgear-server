@@ -3168,8 +3168,28 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	return appSessionTokenHandler
 }
 
+func newWebAppOAuthEntrypointHandler(p *deps.RequestProvider) http.Handler {
+	oAuthEntrypointHandler := &webapp2.OAuthEntrypointHandler{}
+	return oAuthEntrypointHandler
+}
+
 func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
-	rootHandler := &webapp2.RootHandler{}
+	appProvider := p.AppProvider
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	authenticationConfig := appConfig.Authentication
+	request := p.Request
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	signedUpCookieDef := webapp.NewSignedUpCookieDef()
+	rootHandler := &webapp2.RootHandler{
+		AuthenticationConfig: authenticationConfig,
+		Cookies:              cookieManager,
+		SignedUpCookie:       signedUpCookieDef,
+	}
 	return rootHandler
 }
 

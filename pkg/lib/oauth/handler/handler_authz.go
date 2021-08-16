@@ -135,6 +135,7 @@ func (h *AuthorizationHandler) doHandle(
 	sessionOptions := webapp.SessionOptions{
 		ClientID:     r.ClientID(),
 		WebhookState: r.State(),
+		Page:         r.Page(),
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
 
@@ -234,7 +235,6 @@ func (h *AuthorizationHandler) doHandle(
 	if !slice.ContainsString(prompt, "none") {
 		resp, err := h.WebAppURLs.AuthenticateURL(webapp.AuthenticateURLOptions{
 			SessionOptions: sessionOptions,
-			Page:           r.Page(),
 			UILocales:      uiLocales,
 		})
 		if apierrors.IsKind(err, interaction.InvalidCredentials) {
