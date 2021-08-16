@@ -110,7 +110,6 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 	return result
 }
 
-// nolint: gocyclo
 func (h *AuthorizationHandler) doHandle(
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,
@@ -139,41 +138,15 @@ func (h *AuthorizationHandler) doHandle(
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
 
-	// Handle max_age and prompt=login
-	prompt := r.Prompt()
-	if maxAge, ok := r.MaxAge(); ok {
-		impliesPromptLogin := false
-		// When there is no session, the presence of max_age implies prompt=login.
-		if idpSession == nil {
-			impliesPromptLogin = true
-		} else {
-			// max_age=0 implies prompt=login
-			if maxAge == 0 {
-				impliesPromptLogin = true
-			} else {
-				// max_age=n implies prompt=login if elapsed time is greater than max_age.
-				// In extreme rare case, elapsed time can be negative.
-				elapsedTime := h.Clock.NowUTC().Sub(idpSession.GetAuthenticatedAt())
-				if elapsedTime < 0 || elapsedTime > maxAge {
-					impliesPromptLogin = true
-				}
-			}
-		}
-		if impliesPromptLogin {
-			prompt = slice.AppendIfUniqueStrings(prompt, "login")
-		}
+	idToken, sidSession, err := h.handleIDTokenHint(client, r)
+	if err != nil {
+		return nil, err
 	}
-	sessionOptions.Prompt = prompt
 
-	// Handle id_token_hint
-	var idToken jwt.Token
-	if idTokenHint, ok := r.IDTokenHint(); ok {
-		idToken, err = h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
-		if err != nil {
-			return nil, err
-		}
+	sessionOptions.Prompt = h.handleMaxAgeAndPrompt(r, sidSession)
+
+	if idToken != nil {
 		sessionOptions.UserIDHint = idToken.Subject()
-
 		// Set CanUseIntentReauthenticate to true if
 		// 1. The ID token is not expired.
 		// 2. The sid of the ID token hint points to a valid session (either IDPSession or OfflineGrant).
@@ -181,30 +154,19 @@ func (h *AuthorizationHandler) doHandle(
 		if tv := idToken.Expiration(); !tv.IsZero() && tv.Unix() != 0 {
 			now := h.Clock.NowUTC().Truncate(time.Second)
 			tv = tv.Truncate(time.Second)
-			if now.Before(tv) {
-				if sid, ok := idToken.Get(string(authn.ClaimSID)); ok {
-					if sid, ok := sid.(string); ok {
-						if typ, sessionID, ok := oidc.DecodeSID(sid); ok {
-							switch typ {
-							case session.TypeIdentityProvider:
-								if _, err = h.Sessions.Get(sessionID); err == nil {
-									sessionOptions.CanUseIntentReauthenticate = true
-								}
-							case session.TypeOfflineGrant:
-								if offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
-									if slice.ContainsString(offlineGrant.Scopes, oauth.FullAccessScope) {
-										sessionOptions.CanUseIntentReauthenticate = true
-									}
-								}
-							default:
-								panic(fmt.Errorf("oauth: unknown session type: %v", typ))
-							}
+			if now.Before(tv) && sidSession != nil {
+				switch sidSession.SessionType() {
+				case session.TypeIdentityProvider:
+					sessionOptions.CanUseIntentReauthenticate = true
+				case session.TypeOfflineGrant:
+					if offlineGrant, ok := sidSession.(*oauth.OfflineGrant); ok {
+						if slice.ContainsString(offlineGrant.Scopes, oauth.FullAccessScope) {
+							sessionOptions.CanUseIntentReauthenticate = true
 						}
 					}
 				}
 			}
 		}
-
 	}
 
 	loginHint, hasLoginHint := r.PopLoginHint()
@@ -232,7 +194,7 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// Handle prompt!=none
-	if !slice.ContainsString(prompt, "none") {
+	if !slice.ContainsString(sessionOptions.Prompt, "none") {
 		resp, err := h.WebAppURLs.AuthenticateURL(webapp.AuthenticateURLOptions{
 			SessionOptions: sessionOptions,
 			UILocales:      uiLocales,
@@ -382,4 +344,80 @@ func (h *AuthorizationHandler) generateCodeResponse(
 
 	resp.Code(code)
 	return nil
+}
+
+func (h *AuthorizationHandler) handleMaxAgeAndPrompt(
+	r protocol.AuthorizationRequest,
+	sidSession session.Session,
+) (prompt []string) {
+	prompt = r.Prompt()
+	if maxAge, ok := r.MaxAge(); ok {
+		impliesPromptLogin := false
+		// When there is no session, the presence of max_age implies prompt=login.
+		if sidSession == nil {
+			impliesPromptLogin = true
+		} else {
+			// max_age=0 implies prompt=login
+			if maxAge == 0 {
+				impliesPromptLogin = true
+			} else {
+				// max_age=n implies prompt=login if elapsed time is greater than max_age.
+				// In extreme rare case, elapsed time can be negative.
+				elapsedTime := h.Clock.NowUTC().Sub(sidSession.GetAuthenticatedAt())
+				if elapsedTime < 0 || elapsedTime > maxAge {
+					impliesPromptLogin = true
+				}
+			}
+		}
+		if impliesPromptLogin {
+			prompt = slice.AppendIfUniqueStrings(prompt, "login")
+		}
+	}
+
+	return
+}
+
+func (h *AuthorizationHandler) handleIDTokenHint(
+	client *config.OAuthClientConfig,
+	r protocol.AuthorizationRequest,
+) (idToken jwt.Token, sidSession session.Session, err error) {
+	idTokenHint, ok := r.IDTokenHint()
+	if !ok {
+		return
+	}
+
+	idToken, err = h.IDTokens.VerifyIDTokenHint(client, idTokenHint)
+	if err != nil {
+		return
+	}
+
+	sidInterface, ok := idToken.Get(string(authn.ClaimSID))
+	if !ok {
+		return
+	}
+
+	sid, ok := sidInterface.(string)
+	if !ok {
+		return
+	}
+
+	typ, sessionID, ok := oidc.DecodeSID(sid)
+	if !ok {
+		return
+	}
+
+	switch typ {
+	case session.TypeIdentityProvider:
+		if sess, err := h.Sessions.Get(sessionID); err == nil {
+			sidSession = sess
+		}
+	case session.TypeOfflineGrant:
+		if sess, err := h.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
+			sidSession = sess
+		}
+	default:
+		panic(fmt.Errorf("oauth: unknown session type: %v", typ))
+	}
+
+	return
 }
