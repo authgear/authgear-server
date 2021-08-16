@@ -39,7 +39,7 @@ func (i *IntentReauthenticate) DeriveEdgesForNode(graph *interaction.Graph, node
 		return []interaction.Edge{
 			&nodes.EdgeDoEnsureSession{
 				CreateReason: session.CreateReasonReauthenticate,
-				Mode:         nodes.EnsureSessionModeUpdateIfPossible,
+				Mode:         nodes.EnsureSessionModeUpdateOrCreate,
 			},
 		}, nil
 	case *nodes.NodeDoEnsureSession:

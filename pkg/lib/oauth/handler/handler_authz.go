@@ -3,8 +3,10 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/lestrrat-go/jwx/jwt"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -54,7 +57,9 @@ type AuthorizationHandler struct {
 	HTTPConfig *config.HTTPConfig
 	Logger     AuthorizationHandlerLogger
 
+	Sessions       SessionProvider
 	Authorizations oauth.AuthorizationStore
+	OfflineGrants  oauth.OfflineGrantStore
 	CodeGrants     oauth.CodeGrantStore
 	OAuthURLs      OAuthURLProvider
 	WebAppURLs     WebAppAuthenticateURLProvider
@@ -105,6 +110,7 @@ func (h *AuthorizationHandler) Handle(r protocol.AuthorizationRequest) httputil.
 	return result
 }
 
+// nolint: gocyclo
 func (h *AuthorizationHandler) doHandle(
 	redirectURI *url.URL,
 	client *config.OAuthClientConfig,
@@ -121,9 +127,9 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	// Authorization endpoint ignores non-IDP session.
-	var s session.Session
-	if idp := session.GetSession(h.Context); idp != nil && idp.SessionType() == session.TypeIdentityProvider {
-		s = idp
+	var idpSession session.Session
+	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
+		idpSession = s
 	}
 
 	sessionOptions := webapp.SessionOptions{
@@ -137,7 +143,7 @@ func (h *AuthorizationHandler) doHandle(
 	if maxAge, ok := r.MaxAge(); ok {
 		impliesPromptLogin := false
 		// When there is no session, the presence of max_age implies prompt=login.
-		if s == nil {
+		if idpSession == nil {
 			impliesPromptLogin = true
 		} else {
 			// max_age=0 implies prompt=login
@@ -146,7 +152,7 @@ func (h *AuthorizationHandler) doHandle(
 			} else {
 				// max_age=n implies prompt=login if elapsed time is greater than max_age.
 				// In extreme rare case, elapsed time can be negative.
-				elapsedTime := h.Clock.NowUTC().Sub(s.GetAuthenticatedAt())
+				elapsedTime := h.Clock.NowUTC().Sub(idpSession.GetAuthenticatedAt())
 				if elapsedTime < 0 || elapsedTime > maxAge {
 					impliesPromptLogin = true
 				}
@@ -166,6 +172,38 @@ func (h *AuthorizationHandler) doHandle(
 			return nil, err
 		}
 		sessionOptions.UserIDHint = idToken.Subject()
+
+		// Set CanUseIntentReauthenticate to true if
+		// 1. The ID token is not expired.
+		// 2. The sid of the ID token hint points to a valid session (either IDPSession or OfflineGrant).
+		// 3. If the session indicated by sid is an offline grant, it must contain the FullAccessScope.
+		if tv := idToken.Expiration(); !tv.IsZero() && tv.Unix() != 0 {
+			now := h.Clock.NowUTC().Truncate(time.Second)
+			tv = tv.Truncate(time.Second)
+			if now.Before(tv) {
+				if sid, ok := idToken.Get(string(authn.ClaimSID)); ok {
+					if sid, ok := sid.(string); ok {
+						if typ, sessionID, ok := oidc.DecodeSID(sid); ok {
+							switch typ {
+							case session.TypeIdentityProvider:
+								if _, err = h.Sessions.Get(sessionID); err == nil {
+									sessionOptions.CanUseIntentReauthenticate = true
+								}
+							case session.TypeOfflineGrant:
+								if offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
+									if slice.ContainsString(offlineGrant.Scopes, oauth.FullAccessScope) {
+										sessionOptions.CanUseIntentReauthenticate = true
+									}
+								}
+							default:
+								panic(fmt.Errorf("oauth: unknown session type: %v", typ))
+							}
+						}
+					}
+				}
+			}
+		}
+
 	}
 
 	loginHint, hasLoginHint := r.PopLoginHint()
@@ -192,9 +230,8 @@ func (h *AuthorizationHandler) doHandle(
 		return result, nil
 	}
 
-	// start web app authentication
+	// Handle prompt!=none
 	if !slice.ContainsString(prompt, "none") {
-		// Not authenticated as IdP session => request authentication and retry
 		resp, err := h.WebAppURLs.AuthenticateURL(webapp.AuthenticateURLOptions{
 			SessionOptions: sessionOptions,
 			Page:           r.Page(),
@@ -209,8 +246,8 @@ func (h *AuthorizationHandler) doHandle(
 		return resp, nil
 	}
 
-	// start handle prompt == none
-	if s == nil || (idToken != nil && s.GetUserID() != idToken.Subject()) {
+	// Handle prompt=none
+	if idpSession == nil || (idToken != nil && idpSession.GetUserID() != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
@@ -219,7 +256,7 @@ func (h *AuthorizationHandler) doHandle(
 		h.Clock.NowUTC(),
 		h.AppID,
 		r.ClientID(),
-		s.GetUserID(),
+		idpSession.GetUserID(),
 		scopes,
 	)
 	if err != nil {
@@ -229,7 +266,7 @@ func (h *AuthorizationHandler) doHandle(
 	resp := protocol.AuthorizationResponse{}
 	switch r.ResponseType() {
 	case "code":
-		err = h.generateCodeResponse(redirectURI.String(), s, idToken, r, authz, scopes, resp)
+		err = h.generateCodeResponse(redirectURI.String(), idpSession, idToken, r, authz, scopes, resp)
 		if err != nil {
 			return nil, err
 		}

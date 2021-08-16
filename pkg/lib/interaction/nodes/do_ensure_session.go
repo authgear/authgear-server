@@ -18,10 +18,10 @@ func init() {
 type EnsureSessionMode string
 
 const (
-	EnsureSessionModeDefault          EnsureSessionMode = ""
-	EnsureSessionModeCreate           EnsureSessionMode = "create"
-	EnsureSessionModeUpdateIfPossible EnsureSessionMode = "update_if_possible"
-	EnsureSessionModeNoop             EnsureSessionMode = "noop"
+	EnsureSessionModeDefault        EnsureSessionMode = ""
+	EnsureSessionModeCreate         EnsureSessionMode = "create"
+	EnsureSessionModeUpdateOrCreate EnsureSessionMode = "update_or_create"
+	EnsureSessionModeNoop           EnsureSessionMode = "noop"
 )
 
 type EdgeDoEnsureSession struct {
@@ -45,7 +45,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 
 	var updateSessionID string
 	var updateSessionAMR []string
-	if mode == EnsureSessionModeUpdateIfPossible {
+	if mode == EnsureSessionModeUpdateOrCreate {
 		s := session.GetSession(ctx.Request.Context())
 		if idp, ok := s.(*idpsession.IDPSession); ok && idp.GetUserID() == userID {
 			updateSessionID = idp.ID

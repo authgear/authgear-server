@@ -20,14 +20,15 @@ func WithSession(ctx context.Context, session *Session) context.Context {
 }
 
 type SessionOptions struct {
-	RedirectURI     string
-	ClientID        string
-	KeepAfterFinish bool
-	Prompt          []string
-	Extra           map[string]interface{}
-	UserIDHint      string
-	WebhookState    string
-	UpdatedAt       time.Time
+	RedirectURI                string
+	ClientID                   string
+	KeepAfterFinish            bool
+	Prompt                     []string
+	Extra                      map[string]interface{}
+	UserIDHint                 string
+	WebhookState               string
+	UpdatedAt                  time.Time
+	CanUseIntentReauthenticate bool
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
@@ -76,6 +77,9 @@ type Session struct {
 	// It is expected that the authenticated user is indicated by this user ID,
 	// otherwise it is an error.
 	UserIDHint string `json:"user_id_hint,omitempty"`
+
+	// CanUseIntentReauthenticate indicates whether IntentReauthenticate can be used.
+	CanUseIntentReauthenticate bool `json:"can_use_intent_reauthenticate,omitempty"`
 }
 
 func newSessionID() string {
@@ -88,15 +92,16 @@ func newSessionID() string {
 
 func NewSession(options SessionOptions) *Session {
 	s := &Session{
-		ID:              newSessionID(),
-		RedirectURI:     options.RedirectURI,
-		KeepAfterFinish: options.KeepAfterFinish,
-		ClientID:        options.ClientID,
-		Extra:           make(map[string]interface{}),
-		Prompt:          options.Prompt,
-		UpdatedAt:       options.UpdatedAt,
-		WebhookState:    options.WebhookState,
-		UserIDHint:      options.UserIDHint,
+		ID:                         newSessionID(),
+		RedirectURI:                options.RedirectURI,
+		KeepAfterFinish:            options.KeepAfterFinish,
+		ClientID:                   options.ClientID,
+		Extra:                      make(map[string]interface{}),
+		Prompt:                     options.Prompt,
+		UpdatedAt:                  options.UpdatedAt,
+		WebhookState:               options.WebhookState,
+		UserIDHint:                 options.UserIDHint,
+		CanUseIntentReauthenticate: options.CanUseIntentReauthenticate,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v
