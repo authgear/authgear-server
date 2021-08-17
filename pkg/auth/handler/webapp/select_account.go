@@ -175,44 +175,47 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		// When UserIDHint is present, the end-user should never need to select anything in /select_account,
 		// so this if block always ends with a return statement, and each branch must write response.
 		if userIDHint != "" {
-			// When id_token_hint is present, we have a limitation that is not specified in the OIDC spec.
-			// The limitation is that, when id_token_hint is present, an intention of reauthentication is assumed.
-			// Therefore, the user indicated by the id_token_hint must be able to reauthenticate.
-			user, err := h.Users.Get(userIDHint)
-			if err != nil {
-				return err
-			}
-			if !user.CanReauthenticate {
-				return interaction.ErrNoAuthenticator
-			}
+			if loginPrompt && canUseIntentReauthenticate {
+				// Reauthentication
+				// 1. UserIDHint present
+				// 2. prompt=login
+				// 3. canUseIntentReauthenticate
+				// 4. user.CanReauthenticate
 
-			// The current session is the same user, reauthenticate the user if needed.
-			if canUseIntentReauthenticate {
-				if loginPrompt {
-					intent := &intents.IntentReauthenticate{
-						WebhookState: webSession.WebhookState,
-						UserIDHint:   userIDHint,
-					}
-					result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
-						return nil, nil
-					})
-					if err != nil {
-						return err
-					}
-					result.WriteResponse(w, r)
-				} else {
-					// Otherwise, select the current account because this is the only
-					// consequence that should happen.
-					err := continueWithCurrentAccount()
-					if err != nil {
-						return err
-					}
+				user, err := h.Users.Get(userIDHint)
+				if err != nil {
+					return err
+				}
+
+				if !user.CanReauthenticate {
+					return interaction.ErrNoAuthenticator
+				}
+
+				intent := &intents.IntentReauthenticate{
+					WebhookState: webSession.WebhookState,
+					UserIDHint:   userIDHint,
+				}
+				result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+					return nil, nil
+				})
+				if err != nil {
+					return err
+				}
+				result.WriteResponse(w, r)
+			} else if !loginPrompt && idpSession != nil && idpSession.GetAuthenticationInfo().UserID == userIDHint {
+				// Continue without user interaction
+				// 1. UserIDHint present
+				// 2. IDP session present and the same as UserIDHint
+				// 3. prompt!=login
+
+				err := continueWithCurrentAccount()
+				if err != nil {
+					return err
 				}
 			} else {
-				// There is no session or the session is another user,
-				// redirect to /login so that the end-user could reauthenticate as UserIDHint.
 				gotoLogin()
 			}
+
 			return nil
 		}
 
