@@ -58,6 +58,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		authenticationinfo.DependencySet,
 		wire.Bind(new(interaction.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+		wire.Bind(new(oauthhandler.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	),
 
 	wire.NewSet(

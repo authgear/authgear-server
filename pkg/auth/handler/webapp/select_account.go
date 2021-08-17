@@ -6,12 +6,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -35,19 +37,24 @@ type SelectAccountIdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
 }
 
+type SelectAccountAuthenticationInfoService interface {
+	Save(entry *authenticationinfo.Entry) error
+}
+
 type SelectAccountViewModel struct {
 	IdentityDisplayName string
 }
 
 type SelectAccountHandler struct {
-	ControllerFactory    ControllerFactory
-	BaseViewModel        *viewmodels.BaseViewModeler
-	Renderer             Renderer
-	AuthenticationConfig *config.AuthenticationConfig
-	SignedUpCookie       webapp.SignedUpCookieDef
-	Users                SelectAccountUserService
-	Identities           SelectAccountIdentityService
-	Cookies              CookieManager
+	ControllerFactory         ControllerFactory
+	BaseViewModel             *viewmodels.BaseViewModeler
+	Renderer                  Renderer
+	AuthenticationConfig      *config.AuthenticationConfig
+	SignedUpCookie            webapp.SignedUpCookieDef
+	Users                     SelectAccountUserService
+	Identities                SelectAccountIdentityService
+	AuthenticationInfoService SelectAccountAuthenticationInfoService
+	Cookies                   CookieManager
 }
 
 func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
@@ -78,17 +85,34 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	idpSession := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
 	continueWithCurrentAccount := func() error {
 		redirectURI := "/settings"
-		// continue to use the previous session
-		// complete the web session and redirect to web session's RedirectURI
+
+		// Complete the web session and redirect to web session's RedirectURI
 		if webSession != nil {
 			redirectURI = webSession.RedirectURI
 			if err := ctrl.DeleteSession(webSession.ID); err != nil {
 				return err
 			}
 		}
+
+		// Write authentication info cookie
+		if idpSession != nil {
+			info := idpSession.GetAuthenticationInfo()
+			entry := authenticationinfo.NewEntry(info)
+			err := h.AuthenticationInfoService.Save(entry)
+			if err != nil {
+				return err
+			}
+			cookie := h.Cookies.ValueCookie(
+				authenticationinfo.CookieDef,
+				entry.ID,
+			)
+			httputil.UpdateCookie(w, cookie)
+		}
+
 		http.Redirect(w, r, redirectURI, http.StatusFound)
 		return nil
 	}
@@ -192,18 +216,17 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return nil
 		}
 
-		sess := session.GetSession(r.Context())
 		// If anything of the following condition holds,
 		// the end-user does not need to select anything.
 		// 1. The request is not from the authorization endpoint, e.g. /
 		// 2. There is no session, so nothing to select.
 		// 3. prompt=login, in this case, the end-user cannot select existing account.
-		if !fromAuthzEndpoint || sess == nil || loginPrompt {
+		if !fromAuthzEndpoint || idpSession == nil || loginPrompt {
 			gotoSignupOrLogin()
 			return nil
 		}
 
-		data, err := h.GetData(r, w, sess.GetUserID())
+		data, err := h.GetData(r, w, idpSession.GetUserID())
 		if err != nil {
 			return err
 		}
@@ -220,5 +243,4 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		gotoSignupOrLogin()
 		return nil
 	})
-
 }

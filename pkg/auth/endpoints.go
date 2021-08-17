@@ -40,6 +40,7 @@ func (p *EndpointsProvider) urlOf(relPath string) *url.URL {
 }
 
 func (p *EndpointsProvider) AuthorizeEndpointURL() *url.URL      { return p.urlOf("oauth2/authorize") }
+func (p *EndpointsProvider) FromWebAppEndpointURL() *url.URL     { return p.urlOf("oauth2/_from_webapp") }
 func (p *EndpointsProvider) TokenEndpointURL() *url.URL          { return p.urlOf("oauth2/token") }
 func (p *EndpointsProvider) RevokeEndpointURL() *url.URL         { return p.urlOf("oauth2/revoke") }
 func (p *EndpointsProvider) JWKSEndpointURL() *url.URL           { return p.urlOf("oauth2/jwks") }

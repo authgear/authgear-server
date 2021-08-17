@@ -21,9 +21,8 @@ func (r AuthorizationRequest) Prompt() []string          { return parseSpaceDeli
 func (r AuthorizationRequest) setPrompt(prompt []string) { r["prompt"] = strings.Join(prompt, " ") }
 func (r AuthorizationRequest) Nonce() string             { return r["nonce"] }
 func (r AuthorizationRequest) UILocales() []string       { return parseSpaceDelimitedString(r["ui_locales"]) }
-func (r AuthorizationRequest) PopLoginHint() (string, bool) {
+func (r AuthorizationRequest) LoginHint() (string, bool) {
 	loginHint, ok := r["login_hint"]
-	delete(r, "login_hint")
 	return loginHint, ok
 }
 func (r AuthorizationRequest) IDTokenHint() (string, bool) {
@@ -54,16 +53,6 @@ func (r AuthorizationRequest) MaxAge() (duration time.Duration, ok bool) {
 
 	duration = time.Duration(numSeconds) * time.Second
 	return
-}
-
-func (r AuthorizationRequest) CopyForSelfRedirection() AuthorizationRequest {
-	rr := AuthorizationRequest{}
-	for k, v := range r {
-		rr[k] = v
-	}
-	rr.setPrompt([]string{"none"})
-	delete(rr, "max_age")
-	return rr
 }
 
 // PKCE extension

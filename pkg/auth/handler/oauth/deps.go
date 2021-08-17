@@ -7,6 +7,8 @@ import (
 var DependencySet = wire.NewSet(
 	NewAuthorizeHandlerLogger,
 	wire.Struct(new(AuthorizeHandler), "*"),
+	NewFromWebAppHandlerLogger,
+	wire.Struct(new(FromWebAppHandler), "*"),
 	NewTokenHandlerLogger,
 	wire.Struct(new(TokenHandler), "*"),
 	NewRevokeHandlerLogger,

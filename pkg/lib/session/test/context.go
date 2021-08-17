@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 )
@@ -45,6 +46,15 @@ func (m *MockSession) GetUserID() string { return m.Attrs.UserID }
 func (m *MockSession) GetOIDCAMR() ([]string, bool) { return m.Attrs.GetAMR() }
 
 func (m MockSession) ToAPIModel() *model.Session { return nil }
+
+func (m MockSession) GetAuthenticationInfo() authenticationinfo.T {
+	amr, _ := m.GetOIDCAMR()
+	return authenticationinfo.T{
+		UserID:          m.GetUserID(),
+		AMR:             amr,
+		AuthenticatedAt: m.GetAuthenticatedAt(),
+	}
+}
 
 func (m *MockSession) SetUserID(id string) *MockSession {
 	m.Attrs.UserID = id
