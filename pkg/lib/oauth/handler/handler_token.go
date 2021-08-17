@@ -701,9 +701,14 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 
 	resp := protocol.TokenResponse{}
 
-	// Note that we only issue access token if we also issue refresh token.
-	// This means the response of reauthentication does NOT have access token.
+	// As required by the spec, we must include access_token.
+	// If we issue refresh token, then access token is just the access token of the refresh token.
+	// Else if id_token_hint is present, use the sid.
+	// Otherwise we return an error.
+	var accessTokenSessionID string
+	var accessTokenSessionKind oauth.GrantSessionKind
 	var sid string
+
 	if issueRefreshToken {
 		opts := IssueOfflineGrantOptions{
 			Scopes:             code.Scopes,
@@ -717,15 +722,38 @@ func (h *TokenHandler) issueTokensForAuthorizationCode(
 			return nil, err
 		}
 		sid = oidc.EncodeSID(offlineGrant)
-		err = h.issueAccessGrant(client, code.Scopes, authz.ID, authz.UserID, offlineGrant.ID, oauth.GrantSessionKindOffline, resp)
-		if err != nil {
-			return nil, err
+		accessTokenSessionID = offlineGrant.ID
+		accessTokenSessionKind = oauth.GrantSessionKindOffline
+	} else if code.IDTokenHintSID != "" {
+		sid = code.IDTokenHintSID
+		if typ, sessionID, ok := oidc.DecodeSID(sid); ok {
+			accessTokenSessionID = sessionID
+			switch typ {
+			case session.TypeOfflineGrant:
+				accessTokenSessionKind = oauth.GrantSessionKindOffline
+			case session.TypeIdentityProvider:
+				accessTokenSessionKind = oauth.GrantSessionKindSession
+			default:
+				panic(fmt.Errorf("unknown session type: %v", typ))
+			}
 		}
+	}
+
+	if accessTokenSessionID == "" || accessTokenSessionKind == "" {
+		return nil, protocol.NewError("invalid_request", "cannot issue access token")
+	}
+
+	err := h.issueAccessGrant(client, code.Scopes, authz.ID, authz.UserID, accessTokenSessionID, accessTokenSessionKind, resp)
+	if err != nil {
+		return nil, err
 	}
 
 	if issueIDToken {
 		if h.IDTokenIssuer == nil {
 			return nil, errors.New("id token issuer is not provided")
+		}
+		if sid == "" {
+			return nil, protocol.NewError("invalid_request", "cannot issue ID token")
 		}
 		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
