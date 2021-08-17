@@ -2,7 +2,6 @@ package protocol
 
 import (
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -17,10 +16,9 @@ func (r AuthorizationRequest) Scope() []string      { return parseSpaceDelimited
 func (r AuthorizationRequest) State() string        { return r["state"] }
 
 // OIDC extension
-func (r AuthorizationRequest) Prompt() []string          { return parseSpaceDelimitedString(r["prompt"]) }
-func (r AuthorizationRequest) setPrompt(prompt []string) { r["prompt"] = strings.Join(prompt, " ") }
-func (r AuthorizationRequest) Nonce() string             { return r["nonce"] }
-func (r AuthorizationRequest) UILocales() []string       { return parseSpaceDelimitedString(r["ui_locales"]) }
+func (r AuthorizationRequest) Prompt() []string    { return parseSpaceDelimitedString(r["prompt"]) }
+func (r AuthorizationRequest) Nonce() string       { return r["nonce"] }
+func (r AuthorizationRequest) UILocales() []string { return parseSpaceDelimitedString(r["ui_locales"]) }
 func (r AuthorizationRequest) LoginHint() (string, bool) {
 	loginHint, ok := r["login_hint"]
 	return loginHint, ok
