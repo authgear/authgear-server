@@ -226,7 +226,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return nil
 		}
 
-		data, err := h.GetData(r, w, idpSession.GetUserID())
+		data, err := h.GetData(r, w, idpSession.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
 		}

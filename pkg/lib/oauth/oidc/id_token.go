@@ -124,8 +124,10 @@ func (ti *IDTokenIssuer) sign(token jwt.Token) (string, error) {
 func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s session.Session, nonce string) (string, error) {
 	claims := jwt.New()
 
+	info := s.GetAuthenticationInfo()
+
 	// Populate user specific claims
-	err := ti.updateUserClaims(claims, s.GetUserID())
+	err := ti.updateUserClaims(claims, info.UserID)
 	if err != nil {
 		return "", err
 	}
@@ -140,8 +142,8 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	// Note that we MUST NOT include any personal identifiable information (PII) here.
 	// The ID token may be included in the GET request in form of `id_token_hint`.
 	_ = claims.Set(string(authn.ClaimSID), EncodeSID(s))
-	_ = claims.Set(string(authn.ClaimAuthTime), s.GetAuthenticatedAt().Unix())
-	if amr, ok := s.GetOIDCAMR(); ok && len(amr) > 0 {
+	_ = claims.Set(string(authn.ClaimAuthTime), info.AuthenticatedAt.Unix())
+	if amr := info.AMR; len(amr) > 0 {
 		_ = claims.Set(string(authn.ClaimAMR), amr)
 	}
 

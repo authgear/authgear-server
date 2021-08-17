@@ -479,7 +479,7 @@ func (h *TokenHandler) handleBiometricSetup(
 	var graph *interaction.Graph
 	err := h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
-		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentAddIdentity(s.GetUserID()))
+		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentAddIdentity(s.GetAuthenticationInfo().UserID))
 		if err != nil {
 			return nil, err
 		}

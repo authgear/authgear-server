@@ -256,7 +256,7 @@ func (h *AuthorizationHandler) doHandle(
 	if s := session.GetSession(h.Context); s != nil && s.SessionType() == session.TypeIdentityProvider {
 		idpSession = s
 	}
-	if idpSession == nil || (idToken != nil && idpSession.GetUserID() != idToken.Subject()) {
+	if idpSession == nil || (idToken != nil && idpSession.GetAuthenticationInfo().UserID != idToken.Subject()) {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
@@ -461,7 +461,7 @@ func (h *AuthorizationHandler) handleMaxAgeAndPrompt(
 			} else {
 				// max_age=n implies prompt=login if elapsed time is greater than max_age.
 				// In extreme rare case, elapsed time can be negative.
-				elapsedTime := h.Clock.NowUTC().Sub(sidSession.GetAuthenticatedAt())
+				elapsedTime := h.Clock.NowUTC().Sub(sidSession.GetAuthenticationInfo().AuthenticatedAt)
 				if elapsedTime < 0 || elapsedTime > maxAge {
 					impliesPromptLogin = true
 				}

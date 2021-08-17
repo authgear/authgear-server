@@ -25,9 +25,6 @@ type Session interface {
 	GetDeviceInfo() (map[string]interface{}, bool)
 
 	GetAuthenticationInfo() authenticationinfo.T
-	GetUserID() string
-	GetAuthenticatedAt() time.Time
-	GetOIDCAMR() ([]string, bool)
 
 	ToAPIModel() *model.Session
 }
