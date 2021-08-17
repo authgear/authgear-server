@@ -22,9 +22,3 @@ type CodeGrant struct {
 	OIDCNonce     string `json:"nonce,omitempty"`
 	PKCEChallenge string `json:"challenge,omitempty"`
 }
-
-var _ Grant = &CodeGrant{}
-
-func (g *CodeGrant) Session() (kind GrantSessionKind, id string) {
-	return GrantSessionKindSession, g.IDPSessionID
-}

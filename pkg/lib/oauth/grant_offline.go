@@ -34,12 +34,6 @@ type OfflineGrant struct {
 	DeviceInfo map[string]interface{} `json:"device_info,omitempty"`
 }
 
-var _ Grant = &OfflineGrant{}
-
-func (g *OfflineGrant) Session() (kind GrantSessionKind, id string) {
-	return GrantSessionKindOffline, g.ID
-}
-
 func (g *OfflineGrant) SessionID() string         { return g.ID }
 func (g *OfflineGrant) SessionType() session.Type { return session.TypeOfflineGrant }
 
