@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -53,6 +54,10 @@ type AuthenticationInfoService interface {
 type CookieManager interface {
 	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 	ClearCookie(def *httputil.CookieDef) *http.Cookie
+}
+
+type SessionProvider interface {
+	Get(id string) (*idpsession.IDPSession, error)
 }
 
 type AuthorizationHandlerLogger struct{ *log.Logger }

@@ -15,6 +15,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -121,10 +122,17 @@ func (ti *IDTokenIssuer) sign(token jwt.Token) (string, error) {
 	return string(signed), nil
 }
 
-func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s session.Session, nonce string) (string, error) {
+type IssueIDTokenOptions struct {
+	ClientID           string
+	SID                string
+	Nonce              string
+	AuthenticationInfo authenticationinfo.T
+}
+
+func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) {
 	claims := jwt.New()
 
-	info := s.GetAuthenticationInfo()
+	info := opts.AuthenticationInfo
 
 	// Populate user specific claims
 	err := ti.updateUserClaims(claims, info.UserID)
@@ -133,7 +141,7 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	}
 
 	// Populate client specific claims
-	_ = claims.Set(jwt.AudienceKey, client.ClientID)
+	_ = claims.Set(jwt.AudienceKey, opts.ClientID)
 
 	// Populate Time specific claims
 	ti.updateTimeClaims(claims)
@@ -141,14 +149,16 @@ func (ti *IDTokenIssuer) IssueIDToken(client *config.OAuthClientConfig, s sessio
 	// Populate session specific claims
 	// Note that we MUST NOT include any personal identifiable information (PII) here.
 	// The ID token may be included in the GET request in form of `id_token_hint`.
-	_ = claims.Set(string(authn.ClaimSID), EncodeSID(s))
+	if sid := opts.SID; sid != "" {
+		_ = claims.Set(string(authn.ClaimSID), sid)
+	}
 	_ = claims.Set(string(authn.ClaimAuthTime), info.AuthenticatedAt.Unix())
 	if amr := info.AMR; len(amr) > 0 {
 		_ = claims.Set(string(authn.ClaimAMR), amr)
 	}
 
 	// Populate authorization flow specific claims
-	if nonce != "" {
+	if nonce := opts.Nonce; nonce != "" {
 		_ = claims.Set("nonce", nonce)
 	}
 

@@ -1289,27 +1289,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	storeRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
-	idpsessionRand := _wireRandValue
-	provider := &idpsession.Provider{
-		Context:      contextContext,
-		Request:      request,
-		AppID:        appID,
-		Redis:        redisHandle,
-		Store:        storeRedis,
-		AccessEvents: eventProvider,
-		TrustProxy:   trustProxy,
-		Config:       sessionConfig,
-		Clock:        clockClock,
-		Random:       idpsessionRand,
-	}
 	interactionLogger := interaction.NewLogger(factory)
 	featureConfig := config.FeatureConfig
 	authenticationConfig := appConfig.Authentication
@@ -1336,7 +1315,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	loginidProvider := &loginid.Provider{
+	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -1372,7 +1351,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
 		Store:                 serviceStore,
-		LoginID:               loginidProvider,
+		LoginID:               provider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
@@ -1424,7 +1403,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	storeRedis := &oob.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -1433,7 +1412,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	oobProvider := &oob.Provider{
 		Config:    authenticatorOOBConfig,
 		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+		CodeStore: storeRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
 	}
@@ -1533,10 +1512,18 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:     storeRedis,
+		Store:     idpsessionStoreRedis,
 		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
@@ -1704,6 +1691,19 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   redisHandle,
 		AppID:   appID,
 	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:      contextContext,
+		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
+		Store:        idpsessionStoreRedis,
+		AccessEvents: eventProvider,
+		TrustProxy:   trustProxy,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       idpsessionRand,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -1733,7 +1733,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
-		Sessions:                  provider,
+		Sessions:                  idpsessionProvider,
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
@@ -1773,7 +1773,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessGrants:      store,
 		AppSessionTokens:  store,
 		AccessEvents:      eventProvider,
-		Sessions:          provider,
 		Graphs:            interactionService,
 		IDTokenIssuer:     idTokenIssuer,
 		AccessTokenIssuer: accessTokenEncoding,
@@ -3268,27 +3267,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	storeRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
-	idpsessionRand := _wireRandValue
-	provider := &idpsession.Provider{
-		Context:      contextContext,
-		Request:      request,
-		AppID:        appID,
-		Redis:        redisHandle,
-		Store:        storeRedis,
-		AccessEvents: eventProvider,
-		TrustProxy:   trustProxy,
-		Config:       sessionConfig,
-		Clock:        clockClock,
-		Random:       idpsessionRand,
-	}
 	interactionLogger := interaction.NewLogger(factory)
 	featureConfig := config.FeatureConfig
 	authenticationConfig := appConfig.Authentication
@@ -3315,7 +3293,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	loginidProvider := &loginid.Provider{
+	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
 		Checker:           checker,
@@ -3351,7 +3329,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Identity:              identityConfig,
 		IdentityFeatureConfig: identityFeatureConfig,
 		Store:                 serviceStore,
-		LoginID:               loginidProvider,
+		LoginID:               provider,
 		OAuth:                 oauthProvider,
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
@@ -3403,7 +3381,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	oobStoreRedis := &oob.StoreRedis{
+	storeRedis := &oob.StoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
 		Clock: clockClock,
@@ -3412,7 +3390,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	oobProvider := &oob.Provider{
 		Config:    authenticatorOOBConfig,
 		Store:     oobStore,
-		CodeStore: oobStoreRedis,
+		CodeStore: storeRedis,
 		Clock:     clockClock,
 		Logger:    oobLogger,
 	}
@@ -3512,10 +3490,18 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  redisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:     storeRedis,
+		Store:     idpsessionStoreRedis,
 		Clock:     clockClock,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
@@ -3683,6 +3669,19 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   redisHandle,
 		AppID:   appID,
 	}
+	idpsessionRand := _wireRandValue
+	idpsessionProvider := &idpsession.Provider{
+		Context:      contextContext,
+		Request:      request,
+		AppID:        appID,
+		Redis:        redisHandle,
+		Store:        idpsessionStoreRedis,
+		AccessEvents: eventProvider,
+		TrustProxy:   trustProxy,
+		Config:       sessionConfig,
+		Clock:        clockClock,
+		Random:       idpsessionRand,
+	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                   request,
@@ -3712,7 +3711,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
-		Sessions:                  provider,
+		Sessions:                  idpsessionProvider,
 		SessionManager:            idpsessionManager,
 		SessionCookie:             cookieDef,
 		MFADeviceTokenCookie:      mfaCookieDef,
@@ -3752,7 +3751,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AccessGrants:      store,
 		AppSessionTokens:  store,
 		AccessEvents:      eventProvider,
-		Sessions:          provider,
 		Graphs:            interactionService,
 		IDTokenIssuer:     idTokenIssuer,
 		AccessTokenIssuer: accessTokenEncoding,
