@@ -70,13 +70,20 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	userIDHint := ""
 	webhookState := ""
+	suppressIDPSessionCookie := false
 	prompt := []string{}
 	if s := webapp.GetSession(r.Context()); s != nil {
 		webhookState = s.WebhookState
 		prompt = s.Prompt
+		userIDHint = s.UserIDHint
+		suppressIDPSessionCookie = s.SuppressIDPSessionCookie
 	}
-	intent := intents.NewIntentSignup(webhookState)
-	intent.UserIDHint = userIDHint
+	intent := &intents.IntentAuthenticate{
+		Kind:                     intents.IntentAuthenticateKindSignup,
+		WebhookState:             webhookState,
+		UserIDHint:               userIDHint,
+		SuppressIDPSessionCookie: suppressIDPSessionCookie,
+	}
 
 	ctrl.Get(func() error {
 		graph, err := ctrl.EntryPointGet(opts, intent)

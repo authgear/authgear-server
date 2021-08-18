@@ -69,7 +69,9 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 
 		switch request.Action {
 		case anonymous.RequestActionPromote:
-			intent := intents.NewIntentPromote()
+			intent := &intents.IntentAuthenticate{
+				Kind: intents.IntentAuthenticateKindPromote,
+			}
 			inputer := func() (interface{}, error) {
 				return &anonymousTokenInput{JWT: jwt}, nil
 			}

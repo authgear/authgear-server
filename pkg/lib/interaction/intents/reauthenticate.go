@@ -13,8 +13,9 @@ func init() {
 }
 
 type IntentReauthenticate struct {
-	WebhookState string `json:"webhook_state,omitempty"`
-	UserIDHint   string `json:"user_id_hint,omitempty"`
+	WebhookState             string `json:"webhook_state,omitempty"`
+	UserIDHint               string `json:"user_id_hint,omitempty"`
+	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie"`
 }
 
 func (i *IntentReauthenticate) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
@@ -36,10 +37,14 @@ func (i *IntentReauthenticate) DeriveEdgesForNode(graph *interaction.Graph, node
 			},
 		}, nil
 	case *nodes.NodeDoUseAuthenticator:
+		mode := nodes.EnsureSessionModeUpdateOrCreate
+		if i.SuppressIDPSessionCookie {
+			mode = nodes.EnsureSessionModeNoop
+		}
 		return []interaction.Edge{
 			&nodes.EdgeDoEnsureSession{
 				CreateReason: session.CreateReasonReauthenticate,
-				Mode:         nodes.EnsureSessionModeUpdateOrCreate,
+				Mode:         mode,
 			},
 		}, nil
 	case *nodes.NodeDoEnsureSession:

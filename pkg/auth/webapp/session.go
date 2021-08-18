@@ -30,18 +30,21 @@ type SessionOptions struct {
 	WebhookState               string
 	UpdatedAt                  time.Time
 	CanUseIntentReauthenticate bool
+	SuppressIDPSessionCookie   bool
 }
 
 func NewSessionOptionsFromSession(s *Session) SessionOptions {
 	return SessionOptions{
-		RedirectURI:     s.RedirectURI,
-		ClientID:        s.ClientID,
-		KeepAfterFinish: s.KeepAfterFinish,
-		Prompt:          s.Prompt,
-		Extra:           nil, // Omit extra by default
-		Page:            s.Page,
-		WebhookState:    s.WebhookState,
-		UserIDHint:      s.UserIDHint,
+		RedirectURI:                s.RedirectURI,
+		ClientID:                   s.ClientID,
+		KeepAfterFinish:            s.KeepAfterFinish,
+		Prompt:                     s.Prompt,
+		Extra:                      nil, // Omit extra by default
+		Page:                       s.Page,
+		WebhookState:               s.WebhookState,
+		UserIDHint:                 s.UserIDHint,
+		CanUseIntentReauthenticate: s.CanUseIntentReauthenticate,
+		SuppressIDPSessionCookie:   s.SuppressIDPSessionCookie,
 	}
 }
 
@@ -85,6 +88,9 @@ type Session struct {
 
 	// CanUseIntentReauthenticate indicates whether IntentReauthenticate can be used.
 	CanUseIntentReauthenticate bool `json:"can_use_intent_reauthenticate,omitempty"`
+
+	// SuppressIDPSessionCookie indicates whether IDP session cookie should be suppressed.
+	SuppressIDPSessionCookie bool `json:"suppress_idp_session_cookie,omitempty"`
 }
 
 func newSessionID() string {
@@ -108,6 +114,7 @@ func NewSession(options SessionOptions) *Session {
 		WebhookState:               options.WebhookState,
 		UserIDHint:                 options.UserIDHint,
 		CanUseIntentReauthenticate: options.CanUseIntentReauthenticate,
+		SuppressIDPSessionCookie:   options.SuppressIDPSessionCookie,
 	}
 	for k, v := range options.Extra {
 		s.Extra[k] = v
