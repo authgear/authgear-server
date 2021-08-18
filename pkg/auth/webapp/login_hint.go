@@ -96,8 +96,7 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 	case "app_session_token":
 		token, err := r.resolveAppSessionToken(query.Get("app_session_token"))
 		if err != nil {
-			// If app session token cannot be resolved: ignore and continue.
-			return nil, nil
+			return nil, err
 		}
 
 		cookie := r.Cookies.ValueCookie(r.SessionCookie.Def, token)
