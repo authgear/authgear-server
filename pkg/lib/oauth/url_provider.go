@@ -11,6 +11,6 @@ type URLProvider struct {
 	Endpoints EndpointsProvider
 }
 
-func (p *URLProvider) AuthorizeURL(r protocol.AuthorizationRequest) *url.URL {
-	return urlutil.WithQueryParamsAdded(p.Endpoints.AuthorizeEndpointURL(), r)
+func (p *URLProvider) FromWebAppURL(r protocol.AuthorizationRequest) *url.URL {
+	return urlutil.WithQueryParamsAdded(p.Endpoints.FromWebAppEndpointURL(), r)
 }

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 )
 
@@ -20,13 +21,10 @@ type Session interface {
 
 	GetClientID() string
 	GetCreatedAt() time.Time
-	GetAuthenticatedAt() time.Time
 	GetAccessInfo() *access.Info
 	GetDeviceInfo() (map[string]interface{}, bool)
 
-	GetUserID() string
-
-	GetOIDCAMR() ([]string, bool)
+	GetAuthenticationInfo() authenticationinfo.T
 
 	ToAPIModel() *model.Session
 }

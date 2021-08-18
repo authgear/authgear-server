@@ -11,6 +11,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -50,6 +51,8 @@ func TestAuthorizationHandler(t *testing.T) {
 		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 		authzStore := &mockAuthzStore{}
 		codeGrantStore := &mockCodeGrantStore{}
+		authenticationInfoService := &mockAuthenticationInfoService{}
+		cookieManager := &mockCookieManager{}
 
 		h := &handler.AuthorizationHandler{
 			Context: context.Background(),
@@ -59,13 +62,15 @@ func TestAuthorizationHandler(t *testing.T) {
 				PublicOrigin: "http://accounts.example.com",
 			},
 
-			Authorizations: authzStore,
-			CodeGrants:     codeGrantStore,
-			OAuthURLs:      mockURLsProvider{},
-			WebAppURLs:     mockURLsProvider{},
-			ValidateScopes: func(*config.OAuthClientConfig, []string) error { return nil },
-			CodeGenerator:  func() string { return "authz-code" },
-			Clock:          clock,
+			Authorizations:            authzStore,
+			CodeGrants:                codeGrantStore,
+			OAuthURLs:                 mockURLsProvider{},
+			WebAppURLs:                mockURLsProvider{},
+			ValidateScopes:            func(*config.OAuthClientConfig, []string) error { return nil },
+			CodeGenerator:             func() string { return "authz-code" },
+			Clock:                     clock,
+			AuthenticationInfoService: authenticationInfoService,
+			Cookies:                   cookieManager,
 		}
 		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
 			result := h.Handle(r)
@@ -243,13 +248,16 @@ func TestAuthorizationHandler(t *testing.T) {
 						AppID:           "app-id",
 						AuthorizationID: authzStore.authzs[0].ID,
 						IDPSessionID:    "session-id",
-						CreatedAt:       time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						ExpireAt:        time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
-						Scopes:          []string{"openid"},
-						CodeHash:        "f70a35079d7afc23fc5cff56bcd1430b7ce75cd19eaa41132076715b1cea104a",
-						RedirectURI:     "https://example.com/",
-						OIDCNonce:       "my-nonce",
-						PKCEChallenge:   "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+						AuthenticationInfo: authenticationinfo.T{
+							UserID: "user-id",
+						},
+						CreatedAt:     time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						ExpireAt:      time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
+						Scopes:        []string{"openid"},
+						CodeHash:      "f70a35079d7afc23fc5cff56bcd1430b7ce75cd19eaa41132076715b1cea104a",
+						RedirectURI:   "https://example.com/",
+						OIDCNonce:     "my-nonce",
+						PKCEChallenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 					})
 				})
 
@@ -292,13 +300,16 @@ func TestAuthorizationHandler(t *testing.T) {
 						AppID:           "app-id",
 						AuthorizationID: "authz-id",
 						IDPSessionID:    "session-id",
-						CreatedAt:       time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
-						ExpireAt:        time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
-						Scopes:          []string{"openid", "offline_access"},
-						CodeHash:        "f70a35079d7afc23fc5cff56bcd1430b7ce75cd19eaa41132076715b1cea104a",
-						RedirectURI:     "https://example.com/",
-						OIDCNonce:       "",
-						PKCEChallenge:   "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+						AuthenticationInfo: authenticationinfo.T{
+							UserID: "user-id",
+						},
+						CreatedAt:     time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
+						ExpireAt:      time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
+						Scopes:        []string{"openid", "offline_access"},
+						CodeHash:      "f70a35079d7afc23fc5cff56bcd1430b7ce75cd19eaa41132076715b1cea104a",
+						RedirectURI:   "https://example.com/",
+						OIDCNonce:     "",
+						PKCEChallenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
 					})
 				})
 			})

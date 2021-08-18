@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin/transport"
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -576,6 +577,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
+		Context: contextContext,
+		Redis:   redisHandle,
+		AppID:   appID,
+	}
 	eventStoreRedis := &access.EventStoreRedis{
 		Redis: redisHandle,
 		AppID: appID,
@@ -598,36 +604,37 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
-		Request:                  request,
-		Database:                 sqlExecutor,
-		Clock:                    clockClock,
-		Config:                   appConfig,
-		FeatureConfig:            featureConfig,
-		TrustProxy:               trustProxy,
-		Identities:               identityFacade,
-		Authenticators:           authenticatorFacade,
-		AnonymousIdentities:      anonymousProvider,
-		BiometricIdentities:      biometricProvider,
-		OOBAuthenticators:        oobProvider,
-		OOBCodeSender:            codeSender,
-		OAuthProviderFactory:     oAuthProviderFactory,
-		MFA:                      mfaService,
-		ForgotPassword:           forgotpasswordProvider,
-		ResetPassword:            forgotpasswordProvider,
-		LoginIDNormalizerFactory: normalizerFactory,
-		Verification:             verificationService,
-		VerificationCodeSender:   verificationCodeSender,
-		RateLimiter:              limiter,
-		Nonces:                   nonceService,
-		Search:                   elasticsearchService,
-		Challenges:               challengeProvider,
-		Users:                    userProvider,
-		Events:                   eventService,
-		CookieManager:            cookieManager,
-		Sessions:                 idpsessionProvider,
-		SessionManager:           idpsessionManager,
-		SessionCookie:            cookieDef,
-		MFADeviceTokenCookie:     mfaCookieDef,
+		Request:                   request,
+		Database:                  sqlExecutor,
+		Clock:                     clockClock,
+		Config:                    appConfig,
+		FeatureConfig:             featureConfig,
+		TrustProxy:                trustProxy,
+		Identities:                identityFacade,
+		Authenticators:            authenticatorFacade,
+		AnonymousIdentities:       anonymousProvider,
+		BiometricIdentities:       biometricProvider,
+		OOBAuthenticators:         oobProvider,
+		OOBCodeSender:             codeSender,
+		OAuthProviderFactory:      oAuthProviderFactory,
+		MFA:                       mfaService,
+		ForgotPassword:            forgotpasswordProvider,
+		ResetPassword:             forgotpasswordProvider,
+		LoginIDNormalizerFactory:  normalizerFactory,
+		Verification:              verificationService,
+		VerificationCodeSender:    verificationCodeSender,
+		RateLimiter:               limiter,
+		Nonces:                    nonceService,
+		Search:                    elasticsearchService,
+		Challenges:                challengeProvider,
+		Users:                     userProvider,
+		Events:                    eventService,
+		CookieManager:             cookieManager,
+		AuthenticationInfoService: authenticationinfoStoreRedis,
+		Sessions:                  idpsessionProvider,
+		SessionManager:            idpsessionManager,
+		SessionCookie:             cookieDef,
+		MFADeviceTokenCookie:      mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
 		Redis: redisHandle,

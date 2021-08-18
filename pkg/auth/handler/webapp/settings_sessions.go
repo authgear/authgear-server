@@ -44,7 +44,7 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 	viewmodels.Embed(data, baseViewModel)
 
 	viewModel := SettingsSessionsViewModel{}
-	ss, err := h.Sessions.List(s.GetUserID())
+	ss, err := h.Sessions.List(s.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	})
 
 	ctrl.PostAction("revoke_all", func() error {
-		ss, err := h.Sessions.List(currentSession.GetUserID())
+		ss, err := h.Sessions.List(currentSession.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
 		}
@@ -123,7 +123,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	ctrl.PostAction("revoke_group", func() error {
 		sessionID := r.Form.Get("x_session_id")
 
-		ss, err := h.Sessions.List(currentSession.GetUserID())
+		ss, err := h.Sessions.List(currentSession.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
 		}

@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type (
@@ -14,6 +15,7 @@ type (
 		RedirectURI  *url.URL
 		ResponseMode string
 		Response     protocol.AuthorizationResponse
+		Cookies      []*http.Cookie
 	}
 	authorizationResultError struct {
 		RedirectURI   *url.URL
@@ -24,6 +26,9 @@ type (
 )
 
 func (a authorizationResultCode) WriteResponse(rw http.ResponseWriter, r *http.Request) {
+	for _, cookie := range a.Cookies {
+		httputil.UpdateCookie(rw, cookie)
+	}
 	writeResponse(rw, r, a.RedirectURI, a.ResponseMode, a.Response)
 }
 

@@ -5,14 +5,13 @@ import (
 )
 
 func NewInfo(s Session, isAnonymous bool, isVerified bool) *model.SessionInfo {
-	amr, _ := s.GetOIDCAMR()
-	userID := s.GetUserID()
+	info := s.GetAuthenticationInfo()
 	return &model.SessionInfo{
 		IsValid:         true,
-		UserID:          userID,
+		UserID:          info.UserID,
 		UserAnonymous:   isAnonymous,
 		UserVerified:    isVerified,
-		SessionAMR:      amr,
-		AuthenticatedAt: s.GetAuthenticatedAt(),
+		SessionAMR:      info.AMR,
+		AuthenticatedAt: info.AuthenticatedAt,
 	}
 }

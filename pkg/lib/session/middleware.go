@@ -71,7 +71,7 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 			return
 		}
 
-		u, err := m.Users.GetRaw(s.GetUserID())
+		u, err := m.Users.GetRaw(s.GetAuthenticationInfo().UserID)
 		if err != nil {
 			if errors.Is(err, user.ErrUserNotFound) {
 				err = ErrInvalidSession

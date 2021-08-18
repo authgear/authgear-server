@@ -1,6 +1,9 @@
 package session
 
-import "github.com/authgear/authgear-server/pkg/lib/authn"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+)
 
 type Attrs struct {
 	UserID string                          `json:"user_id"`
@@ -14,24 +17,10 @@ func NewAttrs(userID string) *Attrs {
 	}
 }
 
-// NewBiometricAttrs is the same as NewAttrs.
-// On Android, we cannot tell the exact biometric means used in the authentication.
-// Therefore, we cannot reliably populate AMR.
-//
-// From RFC8176, the AMR values "swk" and "user" may apply.
-//
-// See https://developer.android.com/reference/androidx/biometric/BiometricPrompt#AUTHENTICATION_RESULT_TYPE_BIOMETRIC
-func NewBiometricAttrs(userID string, amr []string) *Attrs {
-	attrs := NewAttrs(userID)
-	attrs.SetAMR(amr)
+func NewAttrsFromAuthenticationInfo(info authenticationinfo.T) *Attrs {
+	attrs := NewAttrs(info.UserID)
+	attrs.SetAMR(info.AMR)
 	return attrs
-}
-
-// NewAnonymousAttrs is the same as NewAttrs.
-//
-// From RFC8176, the AMR value "swk" may apply.
-func NewAnonymousAttrs(userID string) *Attrs {
-	return NewAttrs(userID)
 }
 
 func (a *Attrs) GetAMR() ([]string, bool) {

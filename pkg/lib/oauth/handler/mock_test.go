@@ -1,9 +1,11 @@
 package handler_test
 
 import (
+	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -13,6 +15,11 @@ type mockURLsProvider struct{}
 
 func (mockURLsProvider) AuthorizeURL(r protocol.AuthorizationRequest) *url.URL {
 	u, _ := url.Parse("https://auth/authorize")
+	return u
+}
+
+func (mockURLsProvider) FromWebAppURL(r protocol.AuthorizationRequest) *url.URL {
+	u, _ := url.Parse("https://auth/from_webapp")
 	return u
 }
 
@@ -110,4 +117,22 @@ func (m *mockCodeGrantStore) DeleteCodeGrant(grant *oauth.CodeGrant) error {
 	}
 	m.grants = m.grants[:n]
 	return nil
+}
+
+type mockAuthenticationInfoService struct {
+	Entry *authenticationinfo.Entry
+}
+
+func (m *mockAuthenticationInfoService) Consume(entryID string) (*authenticationinfo.Entry, error) {
+	return m.Entry, nil
+}
+
+type mockCookieManager struct{}
+
+func (m *mockCookieManager) GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error) {
+	return &http.Cookie{}, nil
+}
+
+func (m *mockCookieManager) ClearCookie(def *httputil.CookieDef) *http.Cookie {
+	return &http.Cookie{}
 }

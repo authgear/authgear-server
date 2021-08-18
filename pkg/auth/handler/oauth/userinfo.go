@@ -38,7 +38,7 @@ func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	s := session.GetSession(r.Context())
 	var claims jwt.Token
 	err := h.Database.WithTx(func() (err error) {
-		claims, err = h.UserInfoProvider.LoadUserClaims(s.GetUserID())
+		claims, err = h.UserInfoProvider.LoadUserClaims(s.GetAuthenticationInfo().UserID)
 		return
 	})
 

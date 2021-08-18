@@ -54,7 +54,7 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
 	sessionModel := session.ToAPIModel()
 
-	user, err := m.Users.Get(session.GetUserID())
+	user, err := m.Users.Get(session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
@@ -31,12 +32,6 @@ type OfflineGrant struct {
 	AccessInfo access.Info   `json:"access_info"`
 
 	DeviceInfo map[string]interface{} `json:"device_info,omitempty"`
-}
-
-var _ Grant = &OfflineGrant{}
-
-func (g *OfflineGrant) Session() (kind GrantSessionKind, id string) {
-	return GrantSessionKindOffline, g.ID
 }
 
 func (g *OfflineGrant) SessionID() string         { return g.ID }
@@ -88,4 +83,13 @@ func (g *OfflineGrant) ToAPIModel() *model.Session {
 	}
 
 	return apiModel
+}
+
+func (g *OfflineGrant) GetAuthenticationInfo() authenticationinfo.T {
+	amr, _ := g.GetOIDCAMR()
+	return authenticationinfo.T{
+		UserID:          g.GetUserID(),
+		AuthenticatedAt: g.GetAuthenticatedAt(),
+		AMR:             amr,
+	}
 }
