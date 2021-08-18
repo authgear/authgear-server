@@ -453,7 +453,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessTokenDecoder: accessTokenEncoding,
 		Sessions:           provider,
 		Cookies:            cookieManager,
-		SessionCookieDef:   cookieDef,
 		Clock:              clock,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)

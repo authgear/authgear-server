@@ -46,3 +46,9 @@ func NewSessionCookieDef(sessionCfg *config.SessionConfig) CookieDef {
 		SameSiteStrictDef: strictDef,
 	}
 }
+
+var AppSessionTokenCookieDef = &httputil.CookieDef{
+	NameSuffix: "app_session",
+	Path:       "/",
+	SameSite:   http.SameSiteLaxMode,
+}
