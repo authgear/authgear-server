@@ -37,7 +37,6 @@ type LoginHintHandler struct {
 	AppSessions      oauth.AppSessionStore
 	Clock            clock.Clock
 	Cookies          CookieManager
-	SessionCookie    session.CookieDef
 	Pages            LoginHintPageService
 }
 
@@ -96,11 +95,10 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 	case "app_session_token":
 		token, err := r.resolveAppSessionToken(query.Get("app_session_token"))
 		if err != nil {
-			// If app session token cannot be resolved: ignore and continue.
-			return nil, nil
+			return nil, err
 		}
 
-		cookie := r.Cookies.ValueCookie(r.SessionCookie.Def, token)
+		cookie := r.Cookies.ValueCookie(session.AppSessionTokenCookieDef, token)
 		return &Result{
 			Cookies:     []*http.Cookie{cookie},
 			RedirectURI: options.OriginalRedirectURI,

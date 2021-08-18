@@ -623,7 +623,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppSessions:      store,
 		Clock:            clock,
 		Cookies:          cookieManager,
-		SessionCookie:    cookieDef2,
 		Pages:            webappService2,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
@@ -1209,7 +1208,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		AppSessions:      store,
 		Clock:            clockClock,
 		Cookies:          cookieManager,
-		SessionCookie:    cookieDef2,
 		Pages:            webappService2,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
@@ -25019,7 +25017,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AccessTokenDecoder: accessTokenEncoding,
 		Sessions:           provider,
 		Cookies:            cookieManager,
-		SessionCookieDef:   cookieDef,
 		Clock:              clockClock,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)

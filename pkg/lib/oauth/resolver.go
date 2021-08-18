@@ -35,7 +35,6 @@ type Resolver struct {
 	AccessTokenDecoder AccessTokenDecoder
 	Sessions           ResolverSessionProvider
 	Cookies            ResolverCookieManager
-	SessionCookieDef   session.CookieDef
 	Clock              clock.Clock
 }
 
@@ -141,7 +140,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 }
 
 func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
-	cookie, err := re.Cookies.GetCookie(r, re.SessionCookieDef.Def)
+	cookie, err := re.Cookies.GetCookie(r, session.AppSessionTokenCookieDef)
 	if err != nil {
 		// No session cookie. Simply proceed.
 		return nil, nil
