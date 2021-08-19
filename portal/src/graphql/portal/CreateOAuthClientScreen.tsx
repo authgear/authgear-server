@@ -1,9 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
-  Callout,
   Dialog,
   DialogFooter,
-  DirectionalHint,
   IconButton,
   Label,
   PrimaryButton,
@@ -22,11 +20,11 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import { genRandomHexadecimalString } from "../../util/random";
-import { copyToClipboard } from "../../util/clipboard";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import FormContainer from "../../FormContainer";
 
 import styles from "./CreateOAuthClientScreen.module.scss";
@@ -79,41 +77,18 @@ interface CreateClientSuccessDialogProps {
   clientId: string;
 }
 
-const CALLOUT_VISIBLE_DURATION = 3000;
-
 const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> =
   function CreateClientSuccessDialog(props: CreateClientSuccessDialogProps) {
     const { visible, clientId } = props;
     const navigate = useNavigate();
 
-    const [isCalloutVisible, setIsCalloutVisible] = useState(false);
-    const [calloutActiveCount, setCalloutActiveCount] = useState(0);
-
-    useEffect(() => {
-      if (calloutActiveCount === 0) {
-        // consistent return type in arrow function
-        return () => {};
-      }
-
-      setIsCalloutVisible(true);
-      const handle = setTimeout(
-        () => setIsCalloutVisible(false),
-        CALLOUT_VISIBLE_DURATION
-      );
-      return () => {
-        // clear previous timeout when count is updated
-        clearTimeout(handle);
-      };
-    }, [calloutActiveCount]);
+    const { copyButtonProps, Feedback } = useCopyFeedback({
+      textToCopy: clientId,
+    });
 
     const onConfirmCreateClientSuccess = useCallback(() => {
       navigate("../");
     }, [navigate]);
-
-    const onCopyClick = useCallback(() => {
-      copyToClipboard(clientId);
-      setCalloutActiveCount((c) => c + 1);
-    }, [clientId]);
 
     return (
       <Dialog
@@ -127,24 +102,9 @@ const CreateClientSuccessDialog: React.FC<CreateClientSuccessDialogProps> =
         </Label>
         <div className={styles.dialogClientId}>
           <Text>{clientId}</Text>
-          <IconButton
-            onClick={onCopyClick}
-            className={styles.dialogCopyIcon}
-            iconProps={{ iconName: "Copy" }}
-          />
+          <IconButton {...copyButtonProps} className={styles.dialogCopyIcon} />
         </div>
-        {isCalloutVisible && (
-          <Callout
-            className={styles.copyButtonCallout}
-            target={`.${styles.dialogCopyIcon}`}
-            directionalHint={DirectionalHint.bottomLeftEdge}
-            hideOverflow={true}
-          >
-            <Text>
-              <FormattedMessage id="CreateOAuthClientScreen.success-dialog.copied" />
-            </Text>
-          </Callout>
-        )}
+        <Feedback />
         <DialogFooter>
           <PrimaryButton onClick={onConfirmCreateClientSuccess}>
             <FormattedMessage id="done" />

@@ -16,6 +16,7 @@
   "next": "Next",
   "edit": "Edit",
   "copy": "Copy",
+  "copied-to-clipboard": "Copied to clipboard",
   "save": "Save",
   "send": "Send",
   "saving": "Saving",
@@ -417,14 +418,12 @@
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
-  "ApplicationsConfigurationScreen.client-id-copied": "Copied to clipboard",
   "ApplicationsConfigurationScreen.cors.title": "Allowed Origins",
   "ApplicationsConfigurationScreen.cors.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
 
   "CreateOAuthClientScreen.title": "Create Application",
   "CreateOAuthClientScreen.success-dialog.title": "Created Application Successfully",
   "CreateOAuthClientScreen.success-dialog.client-id-label": "Client ID",
-  "CreateOAuthClientScreen.success-dialog.copied": "Copied!",
 
   "EditOAuthClientScreen.title": "Edit Application",
   "EditOAuthClientScreen.client-id": "Client ID",
