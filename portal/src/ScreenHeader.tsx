@@ -2,8 +2,14 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Context } from "@oursky/react-messageformat";
 import authgear from "@authgear/web";
-import { Icon, IconButton, Text, Link as FluentUILink } from "@fluentui/react";
+import {
+  Icon,
+  Text,
+  Link as FluentUILink,
+  CommandButton,
+} from "@fluentui/react";
 import { useAppAndSecretConfigQuery } from "./graphql/portal/query/appAndSecretConfigQuery";
+import { useViewerQuery } from "./graphql/portal/query/viewerQuery";
 
 import styles from "./ScreenHeader.module.scss";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -11,10 +17,6 @@ import { useSystemConfig } from "./context/SystemConfigContext";
 interface ScreenHeaderAppSectionProps {
   appID: string;
 }
-
-const iconProps = {
-  iconName: "SignOut",
-};
 
 const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> =
   function ScreenHeaderAppSection(props: ScreenHeaderAppSectionProps) {
@@ -50,12 +52,21 @@ const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> =
     );
   };
 
+const commandButtonStyles = {
+  label: {
+    fontSize: "12px",
+  },
+  menuIcon: {
+    fontSize: "12px",
+    color: "white",
+  },
+};
+
 const ScreenHeader: React.FC = function ScreenHeader() {
   const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
+  const { themes, authgearEndpoint } = useSystemConfig();
   const { appID } = useParams();
-
-  const labelSignOut = renderToString("header.sign-out");
+  const { viewer } = useViewerQuery();
 
   const redirectURI = window.location.origin + "/";
 
@@ -76,6 +87,29 @@ const ScreenHeader: React.FC = function ScreenHeader() {
     [themes.main]
   );
 
+  const menuProps = useMemo(() => {
+    return {
+      items: [
+        {
+          key: "settings",
+          text: renderToString("ScreenHeader.settings"),
+          iconProps: {
+            iconName: "PlayerSettings",
+          },
+          href: authgearEndpoint + "/settings",
+        },
+        {
+          key: "logout",
+          text: renderToString("ScreenHeader.sign-out"),
+          iconProps: {
+            iconName: "SignOut",
+          },
+          onClick: onClickLogout,
+        },
+      ],
+    };
+  }, [onClickLogout, renderToString, authgearEndpoint]);
+
   return (
     <header className={styles.header} style={headerStyle}>
       <div className={styles.headerLeft}>
@@ -88,14 +122,15 @@ const ScreenHeader: React.FC = function ScreenHeader() {
         </Link>
         {appID && <ScreenHeaderAppSection appID={appID} />}
       </div>
-      <IconButton
-        type="button"
-        iconProps={iconProps}
-        onClick={onClickLogout}
-        title={labelSignOut}
-        ariaLabel={labelSignOut}
-        theme={themes.inverted}
-      />
+      {viewer != null && (
+        <CommandButton
+          menuProps={menuProps}
+          theme={themes.inverted}
+          styles={commandButtonStyles}
+        >
+          {viewer.email}
+        </CommandButton>
+      )}
     </header>
   );
 };
