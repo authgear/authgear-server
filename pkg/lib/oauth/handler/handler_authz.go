@@ -193,11 +193,12 @@ func (h *AuthorizationHandler) doHandle(
 	}
 
 	sessionOptions := webapp.SessionOptions{
-		ClientID:     r.ClientID(),
-		WebhookState: r.State(),
-		Page:         r.Page(),
-		RedirectURI:  h.OAuthURLs.FromWebAppURL(r).String(),
-		Prompt:       h.handleMaxAgeAndPrompt(r, sidSession),
+		ClientID:                 r.ClientID(),
+		WebhookState:             r.State(),
+		Page:                     r.Page(),
+		RedirectURI:              h.OAuthURLs.FromWebAppURL(r).String(),
+		Prompt:                   h.handleMaxAgeAndPrompt(r, sidSession),
+		SuppressIDPSessionCookie: r.SuppressIDPSessionCookie(),
 	}
 	uiLocales := strings.Join(r.UILocales(), " ")
 

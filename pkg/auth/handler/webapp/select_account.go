@@ -160,12 +160,14 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		fromAuthzEndpoint := false
 		userIDHint := ""
 		canUseIntentReauthenticate := false
+		suppressIDPSessionCookie := false
 
 		if webSession != nil {
 			loginPrompt = slice.ContainsString(webSession.Prompt, "login")
 			fromAuthzEndpoint = webSession.ClientID != ""
 			userIDHint = webSession.UserIDHint
 			canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
+			suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
 		}
 
 		opts := webapp.SessionOptions{
@@ -192,8 +194,9 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				}
 
 				intent := &intents.IntentReauthenticate{
-					WebhookState: webSession.WebhookState,
-					UserIDHint:   userIDHint,
+					WebhookState:             webSession.WebhookState,
+					UserIDHint:               userIDHint,
+					SuppressIDPSessionCookie: suppressIDPSessionCookie,
 				}
 				result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 					return nil, nil

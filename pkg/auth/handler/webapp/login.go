@@ -73,12 +73,22 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	opts := webapp.SessionOptions{
 		RedirectURI: ctrl.RedirectURI(),
 	}
-	intent := intents.NewIntentLogin(false)
 
+	userIDHint := ""
+	webhookState := ""
+	suppressIDPSessionCookie := false
 	prompt := []string{}
 	if s := webapp.GetSession(r.Context()); s != nil {
+		webhookState = s.WebhookState
 		prompt = s.Prompt
-		intent.UserIDHint = s.UserIDHint
+		userIDHint = s.UserIDHint
+		suppressIDPSessionCookie = s.SuppressIDPSessionCookie
+	}
+	intent := &intents.IntentAuthenticate{
+		Kind:                     intents.IntentAuthenticateKindLogin,
+		WebhookState:             webhookState,
+		UserIDHint:               userIDHint,
+		SuppressIDPSessionCookie: suppressIDPSessionCookie,
 	}
 
 	allowLoginOnly := intent.UserIDHint != ""

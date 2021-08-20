@@ -61,6 +61,9 @@ func (r AuthorizationRequest) CodeChallengeMethod() string { return r["code_chal
 func (r AuthorizationRequest) Platform() string          { return r["x_platform"] }
 func (r AuthorizationRequest) WeChatRedirectURI() string { return r["x_wechat_redirect_uri"] }
 func (r AuthorizationRequest) Page() string              { return r["x_page"] }
+func (r AuthorizationRequest) SuppressIDPSessionCookie() bool {
+	return r["x_suppress_idp_session_cookie"] == "true"
+}
 
 type AuthorizationResponse map[string]string
 

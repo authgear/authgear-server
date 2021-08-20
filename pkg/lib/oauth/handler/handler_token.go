@@ -344,7 +344,11 @@ func (h *TokenHandler) handleAnonymousRequest(
 	var graph *interaction.Graph
 	err = h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
-		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin(true))
+		intent := &interactionintents.IntentAuthenticate{
+			Kind:                     interactionintents.IntentAuthenticateKindLogin,
+			SuppressIDPSessionCookie: true,
+		}
+		graph, err = h.Graphs.NewGraph(ctx, intent)
 		if err != nil {
 			return nil, err
 		}
@@ -521,7 +525,11 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	var graph *interaction.Graph
 	err = h.Graphs.DryRun("", func(ctx *interaction.Context) (*interaction.Graph, error) {
 		var err error
-		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentLogin(true))
+		intent := &interactionintents.IntentAuthenticate{
+			Kind:                     interactionintents.IntentAuthenticateKindLogin,
+			SuppressIDPSessionCookie: true,
+		}
+		graph, err = h.Graphs.NewGraph(ctx, intent)
 		if err != nil {
 			return nil, err
 		}

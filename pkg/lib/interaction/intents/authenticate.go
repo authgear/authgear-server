@@ -24,32 +24,10 @@ const (
 )
 
 type IntentAuthenticate struct {
-	Kind              IntentAuthenticateKind `json:"kind"`
-	SkipCreateSession bool                   `json:"skip_create_session"`
-	WebhookState      string                 `json:"webhook_state"`
-	UserIDHint        string                 `json:"user_id_hint,omitempty"`
-}
-
-func NewIntentLogin(skipCreateSession bool) *IntentAuthenticate {
-	return &IntentAuthenticate{
-		Kind:              IntentAuthenticateKindLogin,
-		SkipCreateSession: skipCreateSession,
-	}
-}
-
-func NewIntentSignup(webhookState string) *IntentAuthenticate {
-	return &IntentAuthenticate{
-		Kind:              IntentAuthenticateKindSignup,
-		SkipCreateSession: false,
-		WebhookState:      webhookState,
-	}
-}
-
-func NewIntentPromote() *IntentAuthenticate {
-	return &IntentAuthenticate{
-		Kind:              IntentAuthenticateKindPromote,
-		SkipCreateSession: false,
-	}
+	Kind                     IntentAuthenticateKind `json:"kind"`
+	SuppressIDPSessionCookie bool                   `json:"suppress_idp_session_cookie"`
+	WebhookState             string                 `json:"webhook_state"`
+	UserIDHint               string                 `json:"user_id_hint,omitempty"`
 }
 
 func (i *IntentAuthenticate) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
@@ -325,8 +303,9 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		default:
 			reason = session.CreateReasonLogin
 		}
-		mode := nodes.EnsureSessionModeCreate
-		if i.SkipCreateSession {
+
+		var mode nodes.EnsureSessionMode
+		if i.SuppressIDPSessionCookie {
 			mode = nodes.EnsureSessionModeNoop
 		}
 

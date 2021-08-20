@@ -56,7 +56,10 @@ func (f *UserFacade) SearchPage(searchKeyword string, sortOption user.SortOption
 
 func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (string, error) {
 	graph, err := f.Interaction.Perform(
-		interactionintents.NewIntentSignup(""),
+		&interactionintents.IntentAuthenticate{
+			Kind:                     interactionintents.IntentAuthenticateKindSignup,
+			SuppressIDPSessionCookie: true,
+		},
 		&createUserInput{
 			identityDef: identityDef,
 			password:    password,
