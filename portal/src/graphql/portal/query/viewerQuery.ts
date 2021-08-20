@@ -2,7 +2,7 @@ import { gql, useQuery, QueryResult } from "@apollo/client";
 import { client } from "../../portal/apollo";
 import { ViewerQuery, ViewerQuery_viewer } from "./__generated__/ViewerQuery";
 
-const viewerQuery = gql`
+export const viewerQuery = gql`
   query ViewerQuery {
     viewer {
       id

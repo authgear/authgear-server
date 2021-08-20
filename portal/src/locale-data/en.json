@@ -52,7 +52,8 @@
   "login-id-key.email": "Email",
   "login-id-key.phone": "Phone",
 
-  "header.sign-out": "Sign out",
+  "ScreenHeader.sign-out": "Sign Out",
+  "ScreenHeader.settings": "Account Settings",
 
   "show-error.retry": "Retry",
 

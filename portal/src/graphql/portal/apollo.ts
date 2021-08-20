@@ -1,6 +1,6 @@
 import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
-import { authenticatedQuery } from "./query/authenticatedQuery";
+import { viewerQuery } from "./query/viewerQuery";
 
 const cache = new InMemoryCache({
   typePolicies: {
@@ -46,7 +46,7 @@ export const logoutLink = onError(({ networkError }) => {
     networkError.statusCode === 401
   ) {
     cache.writeQuery({
-      query: authenticatedQuery,
+      query: viewerQuery,
       data: {
         viewer: null,
       },

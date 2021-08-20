@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import authgear from "@authgear/web";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import { useAuthenticatedQuery } from "./query/authenticatedQuery";
+import { useViewerQuery } from "./query/viewerQuery";
 
 interface ShowQueryResultProps {
   isAuthenticated: boolean;
@@ -52,7 +52,7 @@ interface Props {
 
 // CAVEAT: <Authenticated><Route path="/foobar/:id"/></Authenticated> will cause useParams to return empty object :(
 const Authenticated: React.FC<Props> = function Authenticated(ownProps: Props) {
-  const { loading, error, isAuthenticated, refetch } = useAuthenticatedQuery();
+  const { loading, error, viewer, refetch } = useViewerQuery();
 
   if (loading) {
     return <ShowLoading />;
@@ -62,7 +62,7 @@ const Authenticated: React.FC<Props> = function Authenticated(ownProps: Props) {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
-  return <ShowQueryResult isAuthenticated={isAuthenticated} {...ownProps} />;
+  return <ShowQueryResult isAuthenticated={viewer != null} {...ownProps} />;
 };
 
 export async function startReauthentication<S>(state?: S): Promise<void> {
