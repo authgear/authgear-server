@@ -16,3 +16,18 @@
 .messageBar {
   margin: 10px;
 }
+
+.copyButtonGroup {
+  display: flex;
+  flex-direction: row;
+  padding: 5px;
+}
+
+.copyTextField {
+  margin: 5px;
+  flex: 1;
+}
+
+.copyButton {
+  margin: 5px;
+}
