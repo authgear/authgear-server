@@ -14,7 +14,7 @@
   "email.authenticate-primary-oob.subject": "登入 {AppName}",
   "email.authenticate-secondary-oob.subject": "登入 {AppName}",
 
-  "error-login-id-required": "請輸入{variant, select, phone{電話號碼} email {電郵地址} username {使用者名稱} other {電郵地址或使用者名稱}}",
+  "error-login-id-required": "請輸入{variant, select, phone{電話號碼} email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
   "error-password-required": "請輸入密碼",
   "error-oob-otp-code-required": "請輸入你剛收到的一次性密碼",
   "error-totp-code-required": "請輸入驗證器應用程式／裝置所顯示的6位碼",
@@ -98,8 +98,8 @@
   "sso-login-id-separator-both-present": "或",
 
   "phone-number-placeholder": "電話號碼",
-  "login-id-placeholder": "{variant, select, email {電郵地址} username {使用者名稱} other {電郵地址或使用者名稱}}",
-  "use-text-login-id-description": "使用 {variant, select, email {電郵地址} username {使用者名稱} other {電郵地址 or 使用者名稱}} 登入",
+  "login-id-placeholder": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
+  "use-text-login-id-description": "使用 {variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}} 登入",
   "use-email-login-id-description": "使用電郵登入",
   "use-phone-login-id-description": "使用電話號碼登入",
   "forgot-password-button-label": "無法登入你的帳戶?",
@@ -246,9 +246,9 @@
   "settings-oob-otp-sms-title": "以短訊接收驗證碼的渠道",
   "settings-oob-otp-item-description": "新增時間：{time, datetime, long}",
 
-  "enter-login-id-page-title--change": "更改你的{key, select, email {電郵地址} username {使用者名稱} other {電郵地址或使用者名稱}}",
-  "enter-login-id-page-title--add": "輸入你的{key, select, email {電郵地址} username {使用者名稱} other {電郵地址或使用者名稱}}",
-  "enter-login-id-page-description--change": "你現在的{key, select, email {電郵地址} username {使用者名稱} other {電郵地址或使用者名稱}}是 <b>{displayID}</b>。請輸入新的{key, select, email {電郵地址} username {使用者名稱} other {電郵地址或使用者名稱}}。",
+  "enter-login-id-page-title--change": "更改你的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
+  "enter-login-id-page-title--add": "輸入你的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
+  "enter-login-id-page-description--change": "你現在的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}是 <b>{displayID}</b>。請輸入新的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}。",
 
   "setup-totp-instead": "改為使用驗證器應用程式／裝置",
   "setup-oob-otp-email-instead": "改為使用電郵作雙重認證",
