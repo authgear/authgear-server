@@ -33,7 +33,7 @@
   "error-invalid-credentials": "{AuthenticationType, select, password {Incorrect password} otp {Incorrect code} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
-  "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {Email} phone {Phone} username {Username} other {Identity}} already exists, maybe you want to login?} other {The email has been claimed by an existing account, maybe you want to login?}}} other {This identity has been claimed by another user.}}",
+  "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {This email address} phone {This phone number} username {This username} other {This identity}} has been registered. Maybe you want to sign in?} other {This external account has been registered. Maybe you want to sign in?}}} other {This identity has been registered. Maybe you want to sign in?}}",
   "error-duplicated-authenticator": "This authenticator already has been added.",
   "error-mismatched-user": "You need to authenticate with the same account that you are using.",
   "error-no-authenticator": "Your account does not have authenticator.",
