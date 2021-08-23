@@ -202,7 +202,7 @@
   "show-recovery-code-button-label": "顯示代碼",
   "settings-page-trusted-devices-title": "受信任裝置",
   "revoke-all-device-tokens-button-label": "忘記所有受信任裝置",
-  "no-device-tokens-description": "沒有可以略過多重驗證（MFA）的受信任裝置",
+  "no-device-tokens-description": "你沒有任何可以略過多重驗證的受信任裝置",
 
   "settings-my-account-title": "我的帳號",
   "settings-identity-title": "登入方式",

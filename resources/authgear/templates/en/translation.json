@@ -201,8 +201,8 @@
   "settings-page-biometric-section-description": "Manage your biometric logins on your authenticated devices",
   "show-recovery-code-button-label": "Show Codes",
   "settings-page-trusted-devices-title": "Trusted Devices",
-  "revoke-all-device-tokens-button-label": "Forget all trusted devices that could skip MFA",
-  "no-device-tokens-description": "No trusted devices that could skip MFA",
+  "revoke-all-device-tokens-button-label": "Forget all trusted devices that can skip MFA",
+  "no-device-tokens-description": "You do not have any trusted devices that can skip MFA.",
 
   "settings-my-account-title": "My Account",
   "settings-identity-title": "Login Info",
