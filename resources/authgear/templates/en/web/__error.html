@@ -93,9 +93,9 @@
                 {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
                     <li>{{ template "error-duplicated-authenticator" (dict "AuthenticatorType" $cause.AuthenticatorType) }}</li>
                 {{ else if (eq $cause.kind "MismatchedUser") }}
-                    <li>{{ template "error-mismatched-user" }}</li>
+                    <li>{{ template "error-developer-reauthentication" }}</li>
                 {{ else if (eq $cause.kind "NoAuthenticator") }}
-                    <li>{{ template "error-no-authenticator" }}</li>
+                    <li>{{ template "error-developer-reauthentication" }}</li>
                 {{ else }}
                     <li>{{ . }}</li>
                 {{ end }}
