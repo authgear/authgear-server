@@ -98,8 +98,8 @@
 
   "phone-number-placeholder": "電話號碼",
   "login-id-placeholder": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
-  "use-text-login-id-description": "使用 {variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}} 登入",
-  "use-email-login-id-description": "使用電郵登入",
+  "use-text-login-id-description": "使用{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}登入",
+  "use-email-login-id-description": "使用電郵地址登入",
   "use-phone-login-id-description": "使用電話號碼登入",
   "forgot-password-button-label": "無法登入你的帳戶?",
 
@@ -131,7 +131,7 @@
   "verify-user-success-page-title": "帳號驗證",
   "verify-user-success-description": "你的帳號已完成驗證",
 
-  "use-login-id-key": "改為用{key}",
+  "use-login-id-key": "改為用{key, select, email{電郵地址} username{用戶名稱} phone{電話號碼} other{{key}}}",
 
   "create-password-page-title": "建立密碼",
   "create-additional-password-page-title": "創建輔助密碼",

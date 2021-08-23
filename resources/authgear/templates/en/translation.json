@@ -14,7 +14,7 @@
   "email.authenticate-primary-oob.subject": "Logging in to {AppName}",
   "email.authenticate-secondary-oob.subject": "Logging in to {AppName}",
 
-  "error-login-id-required": "Please enter your {variant, select, phone{Phone} email {Email} username {Username} other {Email or username}}.",
+  "error-login-id-required": "Please enter your {variant, select, phone{phone number} email {email address} username {username} other {email address or username}}.",
   "error-password-required": "Please enter your password.",
   "error-oob-otp-code-required": "Please enter the one-time password you just received.",
   "error-totp-code-required": "Please enter the 6-digit code from the authenticator app / device.",
@@ -98,9 +98,9 @@
 
   "phone-number-placeholder": "Phone number",
   "login-id-placeholder": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
-  "use-text-login-id-description": "Use {variant, select, email {email} username {username} other {email or username}} instead",
-  "use-email-login-id-description": "Use email instead",
-  "use-phone-login-id-description": "Use phone instead",
+  "use-text-login-id-description": "Use {variant, select, email {email address} username {username} other {email address or username}} instead",
+  "use-email-login-id-description": "Use email address instead",
+  "use-phone-login-id-description": "Use phone number instead",
   "forgot-password-button-label": "Can''t access your account?",
 
   "enter-password-page-title": "Enter Password",
@@ -131,7 +131,7 @@
   "verify-user-success-page-title": "Account verification",
   "verify-user-success-description": "You have successfully verified your account.",
 
-  "use-login-id-key": "Use {key} instead",
+  "use-login-id-key": "Use {key, select, email{email address} username{username} phone{phone number} other{{key}}} instead",
 
   "create-password-page-title": "Create Password",
   "create-additional-password-page-title": "Create Additional Password",
