@@ -16,7 +16,7 @@
 
   "error-login-id-required": "Please enter your {variant, select, phone{Phone} email {Email} username {Username} other {Email or username}}.",
   "error-password-required": "Please enter your password.",
-  "error-oob-otp-code-required": "Please enter the One-Time-Password you just received.",
+  "error-oob-otp-code-required": "Please enter the one-time password you just received.",
   "error-totp-code-required": "Please enter the 6-digit code from the authenticator app / device.",
   "error-verification-code-required": "Please enter the verification code you just received.",
   "error-recovery-code-required": "Please enter any unused 10-letter recovery code you stored previously.",
@@ -30,7 +30,7 @@
   "error-email-not-allowed": "The email address you entered is disallowed. Please contact the customer support if you think the email address should be valid.",
   "error-username-not-allowed": "The username you entered is disallowed. Please avoid using reserved usernames like `admin`.",
   "error-user-not-found": "The account you entered cannot be found. Please ensure the account is correct.",
-  "error-invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Incorrect SMS One-Time-Password} oob_otp_email{Incorrect Email One-Time-Password} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
+  "error-invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Incorrect SMS one-time password} oob_otp_email{Incorrect Email one-time password} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {This email address} phone {This phone number} username {This username} other {This identity}} has been registered. Maybe you want to sign in?} other {This external account has been registered. Maybe you want to sign in?}}} other {This identity has been registered. Maybe you want to sign in?}}",
@@ -96,8 +96,8 @@
 
   "sso-login-id-separator-both-present": "or",
 
-  "phone-number-placeholder": "phone",
-  "login-id-placeholder": "{variant, select, email {email} username {username} other {email or username}}",
+  "phone-number-placeholder": "Phone number",
+  "login-id-placeholder": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "use-text-login-id-description": "Use {variant, select, email {email} username {username} other {email or username}} instead",
   "use-email-login-id-description": "Use email instead",
   "use-phone-login-id-description": "Use phone instead",
@@ -110,11 +110,11 @@
   "confirm-password-placeholder": "Re-type your new password",
   "forgot-password-button-label--enter-password-page": "Forgot Password?",
 
-  "oob-otp-page-title--sms": "SMS One-Time-Password",
-  "oob-otp-page-title--email": "Email One-Time-Password",
-  "oob-otp-placeholder": "code",
-  "oob-otp-description": "We have sent a {length}-character code to {target}. Please enter the code below to continue",
-  "oob-otp-resend-button-hint": "Didn''t receive the code? ",
+  "oob-otp-page-title--sms": "SMS one-time password",
+  "oob-otp-page-title--email": "Email one-time password",
+  "oob-otp-placeholder": "One-time password",
+  "oob-otp-description": "We have sent a {length}-character one-time password to {target}. Please enter the one-time password below to continue",
+  "oob-otp-resend-button-hint": "Didn''t receive the one-time password? ",
   "oob-otp-resend-button-label": "Resend",
   "oob-otp-resend-button-label--unit": "Resend (%ds)",
   "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
@@ -122,7 +122,7 @@
 
   "verify-user-page-title--sms": "SMS Verification",
   "verify-user-page-title--email": "Email Verification",
-  "verify-user-placeholder": "code",
+  "verify-user-placeholder": "Verification code",
   "verify-user-description": "We have sent a {length}-character code to {target}. Please enter the code below to continue",
   "verify-user-resend-button-hint": "Didn''t receive the code? ",
   "verify-user-resend-button-label": "Resend",
@@ -154,7 +154,7 @@
   "password-policy-password-strength-meter-5": "Extremely unguessable",
 
   "forgot-password-page-title": "Forgot Password",
-  "email-placeholder": "email",
+  "email-placeholder": "Email address",
   "forgot-password-email-description": "Enter your email address to get reset password code",
   "forgot-password-send-to-email-description": "Confirm to send reset password code to the email address below",
   "forgot-password-phone-description": "Enter your phone number to get reset password code",
@@ -265,7 +265,7 @@
   "setup-oob-otp-title--email": "Setup email 2-step verification",
 
   "setup-totp-title": "Setup authenticator",
-  "setup-totp-code-placeholder": "code",
+  "setup-totp-code-placeholder": "6-digit code from the authenticator app / device",
   "setup-totp-description": "Please scan the QR code with your authenticator device / app",
   "setup-totp-fallback-description": "Alternatively, please enter this key\n<b>{secret}</b>\nMake sure that Time based is turned on",
   "setup-totp-get-google-authenticator-description": "If you don''t have any authenticator device / app, you can get the Google Authenticator App from <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> or <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a>",

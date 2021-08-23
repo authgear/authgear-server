@@ -112,9 +112,9 @@
 
   "oob-otp-page-title--sms": "短訊一次性密碼",
   "oob-otp-page-title--email": "電郵一次性密碼",
-  "oob-otp-placeholder": "驗證碼",
-  "oob-otp-description": "我們已發送一段 {length}位的驗證碼到 {target}. 請輸入該驗證碼後繼續下一步",
-  "oob-otp-resend-button-hint": "未收到驗證碼? ",
+  "oob-otp-placeholder": "一次性密碼",
+  "oob-otp-description": "我們已發送一段 {length}位的一次性密碼到 {target}. 請輸入該一次性密碼後繼續下一步",
+  "oob-otp-resend-button-hint": "未收到一次性密碼? ",
   "oob-otp-resend-button-label": "重發",
   "oob-otp-resend-button-label--unit": "重發 (%ds)",
   "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
@@ -265,7 +265,7 @@
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
 
   "setup-totp-title": "設置驗證器",
-  "setup-totp-code-placeholder": "驗證碼",
+  "setup-totp-code-placeholder": "驗證器應用程式／裝置所顯示的6位碼",
   "setup-totp-description": "以你的驗證器應用程式／裝置掃描QR碼",
   "setup-totp-fallback-description": "或者你可輸入此密鑰：\n<b>{secret}</b>\n請確認已選取基於時間的驗證碼",
   "setup-totp-get-google-authenticator-description": "如果你沒有驗證器應用程式／裝置，你可從 <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> 或 <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a> 下載 Google Authenticator 應用程式",
