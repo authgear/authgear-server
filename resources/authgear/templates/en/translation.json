@@ -53,7 +53,7 @@
   "error-disabled-user-reason": "Reason: {reason}",
   "error-disabled-user-no-reason": "Please contact administrator for details.",
   "error-blocked-user": "Your account is blocked from login.",
-  "error-network": "There is a problem with the network.",
+  "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",
 
   "success-resend-code": "Resent code successfully!",

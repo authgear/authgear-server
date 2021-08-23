@@ -53,7 +53,7 @@
   "error-disabled-user-reason": "原因： {reason}",
   "error-disabled-user-no-reason": "請向管理員了解詳情。",
   "error-blocked-user": "你的帳號已被禁止登入。",
-  "error-network": "網絡發生錯誤。",
+  "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
   "error-server": "伺服器內部錯誤。",
 
   "success-resend-code": "成功重發認證碼！",
