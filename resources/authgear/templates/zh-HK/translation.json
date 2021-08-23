@@ -181,8 +181,8 @@
 
   "settings-page-security-section-title": "安全",
   "settings-page-security-section-description": "用於確保登入的是你本人",
-  "settings-page-mfa-section-title": "多重要素驗證",
-  "settings-page-mfa-section-description": "管理你的多重要素驗證器",
+  "settings-page-mfa-section-title": "多重驗證",
+  "settings-page-mfa-section-description": "管理你的多重驗證方法",
   "settings-page-primary-password-title": "密碼",
   "settings-page-primary-password-description": "上次更新時間: {time, datetime, long}",
   "settings-page-primary-oob-otp-title--sms": "以短訊作Passwordless登入",
