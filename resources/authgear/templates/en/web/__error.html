@@ -27,8 +27,6 @@
                             <li>{{ template "error-login-id-required" (dict "variant" $.LoginIDType) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}
                             <li>{{ template "error-password-required" }}</li>
-                        {{ else if (call $.SliceContains .details.missing "x_code" ) }}
-                            <li>{{ template "error-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_oob_otp_code" ) }}
                             <li>{{ template "error-oob-otp-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_totp_code" ) }}

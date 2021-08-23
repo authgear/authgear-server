@@ -16,7 +16,6 @@
 
   "error-login-id-required": "{variant, select, phone{Phone} email {Email} username {Username} other {Email or username}} is required",
   "error-password-required": "Password is required",
-  "error-code-required": "Code is required",
   "error-oob-otp-code-required": "Please enter the One-Time-Password you just received.",
   "error-totp-code-required": "Please enter the 6-digit code from the authenticator app / device.",
   "error-verification-code-required": "Please enter the verification code you just received.",
