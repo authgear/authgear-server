@@ -34,7 +34,7 @@
   "error-max-length": "字串長度須少於或等於{expected, plural, other{#個字}}",
   "error-password-reset-failed": "該重設密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {該電郵地址} phone {該電話號碼} username {該用戶名稱} other {該身份資料}}已被登記。或許你想登入？} other {該外來帳戶已被登記。或許你想登入？}}} other {該身份資料已被登記。或許你想登入？}}",
-  "error-duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{你已設置該電話號碼作認證用途。或許你想設置另一個電話號碼?} oob_otp_email{你已設置該電郵地址作認證用途。或許你想設置另一個電郵地址?} other{你已設置該驗證器。或許你想設置新的一個?}}",
+  "error-duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{你已設置該電話號碼作驗證用途。或許你想設置另一個電話號碼?} oob_otp_email{你已設置該電郵地址作驗證用途。或許你想設置另一個電郵地址?} other{你已設置該驗證器。或許你想設置新的一個?}}",
   "error-developer-reauthentication": "[To Developer] You just triggered reauthentication but the setup is incorrect. Please visit https://docs.authgear.com/integrate/reauthentication",
   "error-verification-code-invalid": "驗證碼無效、已用或失效，請重新請求驗證碼。",
   "error-verification-code-invalid-click-to-resend": "點擊以重發",
@@ -56,7 +56,7 @@
   "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
   "error-server": "伺服器內部錯誤。",
 
-  "success-resend-code": "成功重發認證碼！",
+  "success-resend-code": "成功重發驗證碼！",
 
   "public-signup-disabled-notice": "請聯絡管理員以註冊新帳號。",
 
@@ -73,8 +73,8 @@
   "more-button-label": "更多",
   "more-login-methods-label": "更多登入方法",
   "resend-verification-code-button-label": "發送驗證碼",
-  "verification-status-label--unverified": "未認證",
-  "verification-status-label--verified": "已認證",
+  "verification-status-label--unverified": "未驗證",
+  "verification-status-label--verified": "已驗證",
   "activated-label": "已啟用",
   "inactive-label": "未啟用",
 
@@ -112,19 +112,19 @@
 
   "oob-otp-page-title--sms": "短訊一次性密碼",
   "oob-otp-page-title--email": "電郵一次性密碼",
-  "oob-otp-placeholder": "認證碼",
-  "oob-otp-description": "我們已發送一段 {length}位的認證碼到 {target}. 請輸入該認證碼後繼續下一步",
-  "oob-otp-resend-button-hint": "未收到認證碼? ",
+  "oob-otp-placeholder": "驗證碼",
+  "oob-otp-description": "我們已發送一段 {length}位的驗證碼到 {target}. 請輸入該驗證碼後繼續下一步",
+  "oob-otp-resend-button-hint": "未收到驗證碼? ",
   "oob-otp-resend-button-label": "重發",
   "oob-otp-resend-button-label--unit": "重發 (%ds)",
   "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
   "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請<a class=\"link\" target=\"_blank\" href={customerSupportLink}>聯繫客戶服務</a>",
 
-  "verify-user-page-title--sms": "短訊認證",
-  "verify-user-page-title--email": "認證你的電郵地址",
-  "verify-user-placeholder": "認證碼",
-  "verify-user-description": "我們已發送一段 {length}位的認證碼到 {target}. 請輸入該認證碼後繼續下一步",
-  "verify-user-resend-button-hint": "未收到認證碼？",
+  "verify-user-page-title--sms": "短訊驗證",
+  "verify-user-page-title--email": "驗證你的電郵地址",
+  "verify-user-placeholder": "驗證碼",
+  "verify-user-description": "我們已發送一段 {length}位的驗證碼到 {target}. 請輸入該驗證碼後繼續下一步",
+  "verify-user-resend-button-hint": "未收到驗證碼？",
   "verify-user-resend-button-label": "重發",
   "verify-user-resend-button-label--unit": "重發 (%ds)",
 
@@ -197,8 +197,8 @@
   "settings-page-recovery-code-description": "當你無法使用你的裝置／電郵／電話／應用程式時，你可以這些備用碼登入你的帳號。",
   "settings-page-session-section-title": "已登入的裝置",
   "settings-page-session-section-description": "管理你已登入的裝置",
-  "settings-page-biometric-section-title": "生物認證登入",
-  "settings-page-biometric-section-description": "管理你裝置上的生物認證登入",
+  "settings-page-biometric-section-title": "生物驗證登入",
+  "settings-page-biometric-section-description": "管理你裝置上的生物驗證登入",
   "show-recovery-code-button-label": "顯示代碼",
   "settings-page-trusted-devices-title": "受信任裝置",
   "revoke-all-device-tokens-button-label": "忘記所有受信任裝置",
@@ -218,9 +218,9 @@
   "settings-identity-login-id-phone": "電話號碼",
   "settings-identity-login-id-username": "用戶名稱",
   "settings-identity-login-id-raw": "用戶名稱",
-  "settings-biometric-title": "生物認證登入",
+  "settings-biometric-title": "生物驗證登入",
 
-  "settings-biometric-description": "你已在以下裝置啓用生物認證登入",
+  "settings-biometric-description": "你已在以下裝置啓用生物驗證登入",
   "settings-biometric-identity-unknown-name": "未知的裝置",
   "settings-biometric-identity-description": "新增時間：{time, datetime, long}",
 
@@ -250,8 +250,8 @@
   "enter-login-id-page-description--change": "你現在的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}是 <b>{displayID}</b>。請輸入新的{key, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}。",
 
   "setup-totp-instead": "改為使用驗證器應用程式／裝置",
-  "setup-oob-otp-email-instead": "改為使用電郵作雙重認證",
-  "setup-oob-otp-sms-instead": "改為使用短訊作雙重認證",
+  "setup-oob-otp-email-instead": "改為使用電郵作雙重驗證",
+  "setup-oob-otp-sms-instead": "改為使用短訊作雙重驗證",
   "setup-password-instead": "改為設置密碼",
   "enter-totp-instead": "改為輸入6位驗證器碼",
   "enter-password-instead": "改為輸入密碼",
@@ -261,8 +261,8 @@
   "enter-recovery-code-instead-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button>",
   "enter-recovery-code-instead-with-customer-support-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button> 或 <a class=\"link\" target=\"_blank\" href={customerSupportLink}>聯繫客戶服務</a>",
 
-  "setup-oob-otp-title--sms": "設置短訊雙重認證",
-  "setup-oob-otp-title--email": "設置電郵雙重認證",
+  "setup-oob-otp-title--sms": "設置短訊雙重驗證",
+  "setup-oob-otp-title--email": "設置電郵雙重驗證",
 
   "setup-totp-title": "設置驗證器",
   "setup-totp-code-placeholder": "驗證碼",
@@ -272,16 +272,16 @@
   "setup-totp-use-google-authenticator-description": "在應用程式中選擇<b>新增帳號</b>.\n然後<b>掃描QR碼</b>",
   "setup-totp-code-description": "輸入驗證器應用程式／裝置所顯示的6位碼",
 
-  "enter-totp-title": "雙重認證",
+  "enter-totp-title": "雙重驗證",
   "enter-totp-description": "輸入驗證器應用程式／裝置所顯示的6位碼",
   "enter-totp-code-placeholder": "驗證器應用程式／裝置所顯示的6位碼",
 
-  "enter-recovery-code-title": "雙重認證",
+  "enter-recovery-code-title": "雙重驗證",
   "enter-recovery-code-description": "輸入未使用的備用碼",
   "enter-recovery-code-placeholder": "10位的備用碼",
 
   "recovery-code-title": "備用碼",
-  "recovery-code-storage-description": "當無法使用你的認證裝置時，你可以這些備用碼登入你的帳號，請保存至安全的地方",
+  "recovery-code-storage-description": "當無法使用你的驗證裝置時，你可以這些備用碼登入你的帳號，請保存至安全的地方",
   "recovery-code-consumption-description": "每個備用碼只可使用一次",
 
   "show-password-label": "顯示密碼",
