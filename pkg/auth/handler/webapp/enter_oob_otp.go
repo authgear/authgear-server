@@ -25,9 +25,9 @@ var EnterOOBOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_code": { "type": "string" }
+			"x_oob_otp_code": { "type": "string" }
 		},
-		"required": ["x_code"]
+		"required": ["x_oob_otp_code"]
 	}
 `)
 
@@ -177,7 +177,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			code := r.Form.Get("x_code")
+			code := r.Form.Get("x_oob_otp_code")
 			deviceToken := r.Form.Get("x_device_token") == "true"
 
 			input = &InputAuthOOB{
