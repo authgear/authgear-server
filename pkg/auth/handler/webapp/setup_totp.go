@@ -28,9 +28,9 @@ var SetupTOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_code": { "type": "string" }
+			"x_totp_code": { "type": "string" }
 		},
-		"required": ["x_code"]
+		"required": ["x_totp_code"]
 	}
 `)
 
@@ -166,7 +166,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			displayName := fmt.Sprintf("TOTP @ %s", now.Format(time.RFC3339))
 
 			input = &InputSetupTOTP{
-				Code:        r.Form.Get("x_code"),
+				Code:        r.Form.Get("x_totp_code"),
 				DisplayName: displayName,
 			}
 			return

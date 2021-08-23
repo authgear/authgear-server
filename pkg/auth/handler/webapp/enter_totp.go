@@ -20,9 +20,9 @@ var EnterTOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_code": { "type": "string" }
+			"x_totp_code": { "type": "string" }
 		},
-		"required": ["x_code"]
+		"required": ["x_totp_code"]
 	}
 `)
 
@@ -90,7 +90,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			code := r.Form.Get("x_code")
+			code := r.Form.Get("x_totp_code")
 			deviceToken := r.Form.Get("x_device_token") == "true"
 
 			input = &InputAuthTOTP{

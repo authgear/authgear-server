@@ -31,6 +31,8 @@
                             <li>{{ template "error-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_oob_otp_code" ) }}
                             <li>{{ template "error-oob-otp-code-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_totp_code" ) }}
+                            <li>{{ template "error-totp-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_old_password" ) }}
                             <li>{{ template "error-old-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_new_password" ) }}
