@@ -4,5 +4,5 @@ var templateValidator = NewValidator(
 	AllowRangeNode(true),
 	AllowTemplateNode(true),
 	AllowDeclaration(true),
-	MaxDepth(15),
+	MaxDepth(99),
 )
