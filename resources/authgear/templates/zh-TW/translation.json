@@ -30,7 +30,7 @@
   "error-email-not-allowed": "電郵地址被禁用",
   "error-username-not-allowed": "用戶名稱被禁用",
   "error-user-not-found": "找不到該帳號",
-  "error-invalid-credentials": "登入失敗，帳號資訊或密碼不正確",
+  "error-invalid-credentials": "{AuthenticationType, select, password{密碼不正確} totp{驗證器應用程式／裝置所顯示的6位碼不正確} oob_otp_sms {短訊一次性密碼不正確} oob_otp_email{電郵一次性密碼不正確} recovery_code {10位的備用碼不正確} other {無效的憑証}}",
   "error-max-length": "字串長度須少於或等於{expected, plural, other{#個字}}",
   "error-password-reset-failed": "該重設密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {該電郵地址} phone {該電話號碼} username {該用戶名稱} other {該身份資料}}已被登記。或許你想登入？} other {該外來帳戶已被登記。或許你想登入？}}} other {該身份資料已被登記。或許你想登入？}}",

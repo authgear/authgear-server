@@ -30,7 +30,7 @@
   "error-email-not-allowed": "Email is not allowed",
   "error-username-not-allowed": "Username is not allowed",
   "error-user-not-found": "Cannot find the user",
-  "error-invalid-credentials": "{AuthenticationType, select, password {Incorrect password} otp {Incorrect code} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
+  "error-invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Incorrect SMS One-Time-Password} oob_otp_email{Incorrect Email One-Time-Password} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {This email address} phone {This phone number} username {This username} other {This identity}} has been registered. Maybe you want to sign in?} other {This external account has been registered. Maybe you want to sign in?}}} other {This identity has been registered. Maybe you want to sign in?}}",
