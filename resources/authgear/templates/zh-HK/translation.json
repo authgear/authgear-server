@@ -20,6 +20,7 @@
   "error-oob-otp-code-required": "請輸入你剛收到的一次性密碼",
   "error-totp-code-required": "請輸入驗證器應用程式／裝置所顯示的6位碼",
   "error-verification-code-required": "請輸入你剛收到的驗證碼",
+  "error-recovery-code-required": "請輸入你先前儲存過的任何一個未使用的10位備用碼",
   "error-old-password-required": "請輸入舊密碼",
   "error-new-password-required": "請輸入新密碼",
   "error-confirm-password-required": "請輸入確認密碼",
@@ -279,7 +280,7 @@
 
   "enter-recovery-code-title": "雙重認證",
   "enter-recovery-code-description": "輸入未使用的備用碼",
-  "enter-recovery-code-placeholder": "十位的備用碼",
+  "enter-recovery-code-placeholder": "10位的備用碼",
 
   "recovery-code-title": "備用碼",
   "recovery-code-storage-description": "當無法使用你的認證裝置時，你可以這些備用碼登入你的帳號，請保存至安全的地方",
