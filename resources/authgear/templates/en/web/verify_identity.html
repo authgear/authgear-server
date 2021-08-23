@@ -31,7 +31,7 @@
 	pattern="[0-9]*"
 	autocomplete="one-time-code"
 	autocapitalize="none"
-	name="x_code"
+	name="x_verification_code"
 	placeholder="{{ template "verify-user-placeholder" }}"
 	value="{{ $.VerificationCode }}"
 	{{ if eq $.Action "update_session_step" }}readonly{{ end }}
