@@ -34,7 +34,7 @@
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {This email address} phone {This phone number} username {This username} other {This identity}} has been registered. Maybe you want to sign in?} other {This external account has been registered. Maybe you want to sign in?}}} other {This identity has been registered. Maybe you want to sign in?}}",
-  "error-duplicated-authenticator": "This authenticator already has been added.",
+  "error-duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{You have already set up this phone number for authentication. Maybe you want to set up another phone number?} oob_otp_email{You have already set up this email address for authentication. Maybe you want to set up another email address?} other{You have already set up this authenticator. Maybe want to setup another one?}}",
   "error-mismatched-user": "You need to authenticate with the same account that you are using.",
   "error-no-authenticator": "Your account does not have authenticator.",
   "error-verification-code-invalid": "Verification code is invalid, used or expired. Please request a new one.",
