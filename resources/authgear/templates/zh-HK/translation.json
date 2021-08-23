@@ -41,7 +41,7 @@
   "error-remove-last-identity": "無法移除：你需要保留最少一個可用的登入方式",
   "error-remove-last-primary-authenticator": "無法移除：你需要保留最少一個主要驗證方法",
   "error-remove-last-secondary-authenticator": "無法移除：你需要保留最少一個多重驗證（MFA）方法",
-  "error-new-password-typo": "確認密碼不正確",
+  "error-new-password-typo": "再輸入的新密碼與新密碼不同。請確保兩者相同",
   "error-web-ui-invalid-session-retry": "<p>此頁面已失效 － 這可能是因為你此前在本頁停留太久或切換過瀏覽器。</p><p>請按返回並重試</p>",
   "error-web-ui-invalid-session-return": "<p>閒置過久，請返回以下頁面</p>",
   "error-web-ui-invalid-session-action": "返回",
@@ -107,7 +107,7 @@
   "enter-additional-password-page-title": "請輸入輔助密碼",
   "password-placeholder": "目前密碼",
   "new-password-placeholder": "新密碼",
-  "confirm-password-placeholder": "再次輸入密碼",
+  "confirm-password-placeholder": "再次輸入新密碼",
   "forgot-password-button-label--enter-password-page": "忘記密碼?",
 
   "oob-otp-page-title--sms": "短訊一次性密碼",
