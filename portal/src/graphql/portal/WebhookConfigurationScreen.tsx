@@ -28,11 +28,11 @@ import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import { useFormField } from "../../form";
 import FieldList from "../../FieldList";
 import FormContainer from "../../FormContainer";
 import { clearEmptyObject } from "../../util/misc";
-import { copyToClipboard } from "../../util/clipboard";
 import styles from "./WebhookConfigurationScreen.module.scss";
 import { renderErrors } from "../../error/parse";
 import WidgetDescription from "../../WidgetDescription";
@@ -367,16 +367,9 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
       [state.secret]
     );
 
-    const onClickCopy = useCallback(
-      (e: React.MouseEvent<unknown>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (state.secret != null) {
-          copyToClipboard(state.secret);
-        }
-      },
-      [state.secret]
-    );
+    const { copyButtonProps, Feedback } = useCopyFeedback({
+      textToCopy: state.secret ?? "",
+    });
 
     const blockingHandlerMax = useMemo(() => {
       return hookFeatureConfig?.blocking_handler?.maximum ?? 99;
@@ -563,8 +556,10 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
               readOnly={true}
             />
             <PrimaryButton
+              id={copyButtonProps.id}
               className={styles.secretControlButton}
-              onClick={revealed ? onClickCopy : onClickReveal}
+              onClick={revealed ? copyButtonProps.onClick : onClickReveal}
+              onMouseLeave={revealed ? copyButtonProps.onMouseLeave : undefined}
             >
               {revealed ? (
                 <FormattedMessage id="copy" />
@@ -572,6 +567,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
                 <FormattedMessage id="reveal" />
               )}
             </PrimaryButton>
+            <Feedback />
           </div>
         </Widget>
       </ScreenContent>

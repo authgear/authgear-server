@@ -19,7 +19,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import ErrorDialog from "../../error/ErrorDialog";
 import { Domain, useDomainsQuery } from "./query/domainsQuery";
 import { useVerifyDomainMutation } from "./mutations/verifyDomainMutation";
-import { copyToClipboard } from "../../util/clipboard";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
 
 import styles from "./VerifyDomainScreen.module.scss";
 import { ErrorParseRule } from "../../error/parse";
@@ -94,19 +94,18 @@ const DNSRecordListValueCell: React.FC<DNSRecordListValueCellProps> =
   function DNSRecordListValueCell(props: DNSRecordListValueCellProps) {
     const { value } = props;
 
-    const onCopyClick = useCallback(() => {
-      copyToClipboard(value);
-    }, [value]);
+    const { copyButtonProps, Feedback } = useCopyFeedback({
+      textToCopy: value,
+    });
 
     return (
-      <div className={styles.valueCell}>
-        <span className={styles.valueCellText}>{value}</span>
-        <IconButton
-          className={styles.copyIconButton}
-          onClick={onCopyClick}
-          iconProps={{ iconName: "Copy" }}
-        />
-      </div>
+      <>
+        <div className={styles.valueCell}>
+          <span className={styles.valueCellText}>{value}</span>
+          <IconButton {...copyButtonProps} className={styles.copyIconButton} />
+        </div>
+        <Feedback />
+      </>
     );
   };
 

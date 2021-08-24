@@ -1,23 +1,11 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import {
   ActionButton,
-  Callout,
   DetailsList,
-  DirectionalHint,
   IButtonStyles,
-  ICalloutContentStyleProps,
-  ICalloutContentStyles,
   IColumn,
   ICommandBarItemProps,
   IconButton,
-  IIconProps,
-  IStyleFunctionOrObject,
   MessageBar,
   SelectionMode,
   Text,
@@ -31,13 +19,13 @@ import cn from "classnames";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { OAuthClientConfig, PortalAPIAppConfig } from "../../types";
-import { copyToClipboard } from "../../util/clipboard";
 import { clearEmptyObject } from "../../util/misc";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import FormContainer from "../../FormContainer";
 
 import styles from "./ApplicationsConfigurationScreen.module.scss";
@@ -48,16 +36,11 @@ import Widget from "../../Widget";
 import FormTextFieldList from "../../FormTextFieldList";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
-const COPY_ICON_PROPS: IIconProps = { iconName: "Copy" };
 const COPY_ICON_STLYES: IButtonStyles = {
   root: { margin: 4 },
   rootHovered: { backgroundColor: "#d8d6d3" },
   rootPressed: { backgroundColor: "#c2c0be" },
 };
-const CALLOUT_STYLES: IStyleFunctionOrObject<
-  ICalloutContentStyleProps,
-  ICalloutContentStyles
-> = { root: { padding: 8 } };
 
 interface FormState {
   publicOrigin: string;
@@ -117,76 +100,22 @@ function makeOAuthClientListColumns(
   ];
 }
 
-function useDelayedAction(delayed: () => void): (delay: number) => void {
-  // tuple is used instead of number because we want to trigger the effect even when delay argument is the same
-  const [delay, setDelay] = useState<[number] | null>(null);
-
-  useEffect(() => {
-    if (!delay) {
-      return () => {};
-    }
-    const timer = setTimeout(() => {
-      delayed();
-    }, delay[0]);
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [delay, delayed]);
-
-  return (delay: number) => setDelay([delay]);
-}
-
 interface OAuthClientIdCellProps {
   clientId: string;
-  normalDismissTimeout?: number;
-  quickDismissTimeout?: number;
 }
 
 const OAuthClientIdCell: React.FC<OAuthClientIdCellProps> =
   function OAuthClientIdCell(props) {
-    const { clientId, normalDismissTimeout, quickDismissTimeout } = props;
-    const copyButtonId = `oauth-client-id-copy-button-${clientId}`;
-    const [isCalloutVisible, setIsCalloutVisible] = useState(false);
-    const { renderToString } = useContext(Context);
-    const dismissCallout = useCallback(() => setIsCalloutVisible(false), []);
-    const scheduleCalloutDismiss = useDelayedAction(dismissCallout);
-
-    const onCopyClick = useCallback(() => {
-      copyToClipboard(clientId);
-      setIsCalloutVisible(true);
-      scheduleCalloutDismiss(normalDismissTimeout ?? 2000);
-    }, [clientId, normalDismissTimeout, scheduleCalloutDismiss]);
-
-    const onMouseLeaveCopy = useCallback(() => {
-      scheduleCalloutDismiss(quickDismissTimeout ?? 500);
-    }, [quickDismissTimeout, scheduleCalloutDismiss]);
+    const { clientId } = props;
+    const { copyButtonProps, Feedback } = useCopyFeedback({
+      textToCopy: clientId,
+    });
 
     return (
       <>
         <span className={styles.cellContent}>{clientId}</span>
-        <IconButton
-          id={copyButtonId}
-          onClick={onCopyClick}
-          iconProps={COPY_ICON_PROPS}
-          title={renderToString("copy")}
-          ariaLabel={renderToString("copy")}
-          styles={COPY_ICON_STLYES}
-          onMouseLeave={onMouseLeaveCopy}
-        />
-        {isCalloutVisible && (
-          <Callout
-            target={`#${copyButtonId}`}
-            directionalHint={DirectionalHint.topCenter}
-            onDismiss={dismissCallout}
-            styles={CALLOUT_STYLES}
-          >
-            <Text variant="small">
-              {renderToString(
-                "ApplicationsConfigurationScreen.client-id-copied"
-              )}
-            </Text>
-          </Callout>
-        )}
+        <IconButton {...copyButtonProps} styles={COPY_ICON_STLYES} />
+        <Feedback />
       </>
     );
   };

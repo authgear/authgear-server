@@ -7,6 +7,8 @@ import {
   ActionButton,
   MessageBar,
   MessageBarType,
+  TextField,
+  PrimaryButton,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScreenContent from "../../ScreenContent";
@@ -28,6 +30,7 @@ import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { makeGraphQLEndpoint } from "../adminapi/apollo";
 import styles from "./AdminAPIConfigurationScreen.module.scss";
+import { useCopyFeedback } from "../../hook/useCopyFeedback";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -78,7 +81,18 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
   function AdminAPIConfigurationScreenContent(props) {
     const { appID, queryResult } = props;
     const { locale, renderToString } = useContext(Context);
-    const { themes } = useSystemConfig();
+    const { effectiveAppConfig } = useAppAndSecretConfigQuery(appID);
+    const { appHostSuffix, themes } = useSystemConfig();
+
+    const rawAppID = effectiveAppConfig?.id;
+    const adminAPIEndpoint =
+      rawAppID != null
+        ? "https://" + rawAppID + appHostSuffix + "/_api/admin/graphql"
+        : "";
+
+    const { copyButtonProps, Feedback } = useCopyFeedback({
+      textToCopy: adminAPIEndpoint,
+    });
 
     const graphqlEndpoint = useMemo(() => {
       const base = makeGraphQLEndpoint(appID);
@@ -184,6 +198,28 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="AdminAPIConfigurationScreen.description" />
         </ScreenDescription>
+        <Widget className={styles.widget}>
+          <WidgetTitle>
+            <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.title" />
+          </WidgetTitle>
+          <WidgetDescription>
+            <FormattedMessage id="AdminAPIConfigurationScreen.api-endpoint.description" />
+          </WidgetDescription>
+          <div className={styles.copyButtonGroup}>
+            <TextField
+              type="text"
+              readOnly={true}
+              value={adminAPIEndpoint}
+              className={styles.copyTextField}
+            />
+            <PrimaryButton
+              {...copyButtonProps}
+              className={styles.copyButton}
+              iconProps={undefined}
+            />
+            <Feedback />
+          </div>
+        </Widget>
         <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />

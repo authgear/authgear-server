@@ -16,6 +16,7 @@
   "next": "Next",
   "edit": "Edit",
   "copy": "Copy",
+  "copied-to-clipboard": "Copied to clipboard",
   "save": "Save",
   "send": "Send",
   "saving": "Saving",
@@ -417,14 +418,12 @@
   "ApplicationsConfigurationScreen.add-client-button": "Add Application",
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
-  "ApplicationsConfigurationScreen.client-id-copied": "Copied to clipboard",
   "ApplicationsConfigurationScreen.cors.title": "Allowed Origins",
   "ApplicationsConfigurationScreen.cors.desc": "Configure cross-origin resource sharing (CORS), allowing HTTP requests from the list of domains specified here.",
 
   "CreateOAuthClientScreen.title": "Create Application",
   "CreateOAuthClientScreen.success-dialog.title": "Created Application Successfully",
   "CreateOAuthClientScreen.success-dialog.client-id-label": "Client ID",
-  "CreateOAuthClientScreen.success-dialog.copied": "Copied!",
 
   "EditOAuthClientScreen.title": "Edit Application",
   "EditOAuthClientScreen.client-id": "Client ID",
@@ -638,13 +637,15 @@
   "WebhookConfigurationScreen.signature.secret-key": "Secret Key",
 
   "AdminAPIConfigurationScreen.title": "Admin API",
-  "AdminAPIConfigurationScreen.description": "Use the Admin API keys to manage your project with Admin API.",
+  "AdminAPIConfigurationScreen.description": "The Admin API allows your server to manage your project and users via a GraphQL endpoint.",
   "AdminAPIConfigurationScreen.keys.title": "List of Admin API keys",
   "AdminAPIConfigurationScreen.column.key-id": "Key ID",
   "AdminAPIConfigurationScreen.column.created-at": "Created At",
   "AdminAPIConfigurationScreen.graphiql.title": "GraphiQL Explorer",
-  "AdminAPIConfigurationScreen.graphiql.description": "Inspect the GraphQL schema and build queries with {ExternalLink, react, href{{graphqlEndpoint}} children{GraphiQL}}.",
-  "AdminAPIConfigurationScreen.graphiql.warning": "Please beware this is {strong, react, children{NOT}} a sandbox environment, changes are made to {strong, react, children{REAL DATA}}; Read{ExternalLink, react, href{https://docs.authgear.com/apis/admin-apis} children{the doc}} here.",
+  "AdminAPIConfigurationScreen.graphiql.description": "Inspect the GraphQL schema and build queries with {ExternalLink, react, href{{graphqlEndpoint}} children{GraphiQL}}.{br, react}On your server you should always use the Admin API endpoint and the API keys.",
+  "AdminAPIConfigurationScreen.graphiql.warning": "Please beware this is {strong, react, children{NOT}} a sandbox environment, changes are made to {strong, react, children{REAL DATA}}.",
+  "AdminAPIConfigurationScreen.api-endpoint.title": "API Endpoint",
+  "AdminAPIConfigurationScreen.api-endpoint.description": "Accessing the Admin API GraphQL endpoint requires your server to generate a valid JWT and include it as {code, react, children{Authorization}} HTTP header. Read {ExternalLink, react, href{https://docs.authgear.com/apis/admin-apis} children{the doc}} for more details.",
 
   "PasswordStrengthMeter.password-strength": "Password Strength",
 
