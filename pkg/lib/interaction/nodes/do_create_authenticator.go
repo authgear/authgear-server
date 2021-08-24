@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -38,9 +36,7 @@ func (n *NodeDoCreateAuthenticator) GetEffects() ([]interaction.Effect, error) {
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			for _, a := range n.Authenticators {
 				err := ctx.Authenticators.Create(a)
-				if errors.Is(err, authenticator.ErrAuthenticatorAlreadyExists) {
-					return interaction.ErrDuplicatedAuthenticator
-				} else if err != nil {
+				if err != nil {
 					return err
 				}
 			}

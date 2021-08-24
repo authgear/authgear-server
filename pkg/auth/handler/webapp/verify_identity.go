@@ -28,9 +28,9 @@ var VerifyIdentitySchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_code": { "type": "string" }
+			"x_verification_code": { "type": "string" }
 		},
-		"required": ["x_code"]
+		"required": ["x_verification_code"]
 	}
 `)
 
@@ -92,7 +92,7 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 
 	if code == "" && maybeSession != nil {
 		step := maybeSession.CurrentStep()
-		if c, ok := step.FormData["x_code"].(string); ok {
+		if c, ok := step.FormData["x_verification_code"].(string); ok {
 			code = c
 		}
 	}
@@ -171,7 +171,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		code := r.Form.Get("x_code")
+		code := r.Form.Get("x_verification_code")
 
 		input = &InputVerificationCode{
 			Code: code,
@@ -298,7 +298,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		}
 
 		step := session.CurrentStep()
-		step.FormData["x_code"] = r.Form.Get("x_code")
+		step.FormData["x_verification_code"] = r.Form.Get("x_verification_code")
 		session.Steps[len(session.Steps)-1] = step
 
 		err = ctrl.UpdateSession(session)

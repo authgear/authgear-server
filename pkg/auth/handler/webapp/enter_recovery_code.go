@@ -20,9 +20,9 @@ var EnterRecoveryCodeSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_code": { "type": "string" }
+			"x_recovery_code": { "type": "string" }
 		},
-		"required": ["x_code"]
+		"required": ["x_recovery_code"]
 	}
 `)
 
@@ -98,7 +98,7 @@ func (h *EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 				return
 			}
 
-			code := r.Form.Get("x_code")
+			code := r.Form.Get("x_recovery_code")
 
 			input = &InputAuthRecoveryCode{
 				Code: code,

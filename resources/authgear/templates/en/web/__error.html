@@ -27,8 +27,14 @@
                             <li>{{ template "error-login-id-required" (dict "variant" $.LoginIDType) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}
                             <li>{{ template "error-password-required" }}</li>
-                        {{ else if (call $.SliceContains .details.missing "x_code" ) }}
-                            <li>{{ template "error-code-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_oob_otp_code" ) }}
+                            <li>{{ template "error-oob-otp-code-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_totp_code" ) }}
+                            <li>{{ template "error-totp-code-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_verification_code" ) }}
+                            <li>{{ template "error-verification-code-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_recovery_code" ) }}
+                            <li>{{ template "error-recovery-code-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_old_password" ) }}
                             <li>{{ template "error-old-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_new_password" ) }}
@@ -85,11 +91,11 @@
                 {{ else if (eq $cause.kind "DuplicatedIdentity") }}
                     <li>{{ template "error-duplicated-identity" (dict "IntentKind" $info.IntentKind "IdentityType" $info.IdentityType "LoginIDType" $info.LoginIDType) }}</li>
                 {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
-                    <li>{{ template "error-duplicated-authenticator" }}</li>
+                    <li>{{ template "error-duplicated-authenticator" (dict "AuthenticatorType" $cause.AuthenticatorType) }}</li>
                 {{ else if (eq $cause.kind "MismatchedUser") }}
-                    <li>{{ template "error-mismatched-user" }}</li>
+                    <li>{{ template "error-developer-reauthentication" }}</li>
                 {{ else if (eq $cause.kind "NoAuthenticator") }}
-                    <li>{{ template "error-no-authenticator" }}</li>
+                    <li>{{ template "error-developer-reauthentication" }}</li>
                 {{ else }}
                     <li>{{ . }}</li>
                 {{ end }}

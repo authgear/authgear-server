@@ -237,7 +237,7 @@ func (s *Service) Create(info *authenticator.Info) error {
 
 	for _, a := range ais {
 		if info.Equal(a) {
-			err = authenticator.ErrAuthenticatorAlreadyExists
+			err = authenticator.NewErrDuplicatedAuthenticator(info.Type)
 			return err
 		}
 	}
