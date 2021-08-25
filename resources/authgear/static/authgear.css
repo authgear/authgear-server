@@ -255,6 +255,10 @@ h1, h2, h3, h4, h5, h6 {
   gap: 8px;
 }
 
+.w-full {
+  width: 100%;
+}
+
 .margin-0 {
   margin: 0;
 }
@@ -1211,21 +1215,8 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 20px 0 30px;
 }
 
-.recovery-code-action-section {
-  display: flex;
-  flex-direction: row;
-  flex-flow: wrap;
-  /* space between button */
-  margin: 0 -4px;
-}
-
 .recovery-code-action-section .action {
   flex: 0 0 50%;
-  padding: 0 4px;
-}
-
-.recovery-code-action-section .action > button {
-  width: 100%;
 }
 
 .recovery-codes-container {
