@@ -82,13 +82,11 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
     const { appID, queryResult } = props;
     const { locale, renderToString } = useContext(Context);
     const { effectiveAppConfig } = useAppAndSecretConfigQuery(appID);
-    const { appHostSuffix, themes } = useSystemConfig();
+    const { themes } = useSystemConfig();
 
-    const rawAppID = effectiveAppConfig?.id;
+    const publicOrigin = effectiveAppConfig?.http?.public_origin;
     const adminAPIEndpoint =
-      rawAppID != null
-        ? "https://" + rawAppID + appHostSuffix + "/_api/admin/graphql"
-        : "";
+      publicOrigin != null ? publicOrigin + "/_api/admin/graphql" : "";
 
     const { copyButtonProps, Feedback } = useCopyFeedback({
       textToCopy: adminAPIEndpoint,

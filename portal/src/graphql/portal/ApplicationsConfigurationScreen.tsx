@@ -281,7 +281,12 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
           <FormattedMessage id="SessionConfigurationWidget.title" />
         </WidgetTitle>
         <WidgetDescription>
-          <FormattedMessage id="SessionConfigurationWidget.description" />
+          <FormattedMessage
+            id="SessionConfigurationWidget.description"
+            values={{
+              endpoint: state.publicOrigin,
+            }}
+          />
         </WidgetDescription>
         <Toggle
           className={styles.control}
