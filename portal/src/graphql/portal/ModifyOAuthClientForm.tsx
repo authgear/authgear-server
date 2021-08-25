@@ -1,7 +1,7 @@
 import React, { useCallback, useContext } from "react";
 import cn from "classnames";
 import produce from "immer";
-import { Checkbox, DirectionalHint, TextField } from "@fluentui/react";
+import { Checkbox, DirectionalHint, TextField, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import Widget from "../../Widget";
@@ -284,6 +284,14 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
                 />
               }
             />
+            <Text className={styles.control} block={true}>
+              <FormattedMessage
+                id="ModifyOAuthClientForm.cookie-settings.link-to-cookie-session"
+                values={{
+                  to: "../..#cookie-session",
+                }}
+              />
+            </Text>
           </Widget>
         )}
       </div>

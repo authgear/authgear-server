@@ -277,7 +277,7 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
 
     return (
       <Widget className={cn(styles.widget, styles.controlGroup)}>
-        <WidgetTitle>
+        <WidgetTitle id="cookie-session">
           <FormattedMessage id="SessionConfigurationWidget.title" />
         </WidgetTitle>
         <WidgetDescription>

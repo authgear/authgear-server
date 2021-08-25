@@ -444,6 +444,7 @@
   "ModifyOAuthClientForm.token-settings.description": "For use with {strong, react, children{token-based}} authentication, usually native module apps or single-page apps.",
   "ModifyOAuthClientForm.cookie-settings.title": "Cookie-based authentication",
   "ModifyOAuthClientForm.cookie-settings.description": "For use with {strong, react, children{cookie-based}} authentication, usually websites",
+  "ModifyOAuthClientForm.cookie-settings.link-to-cookie-session": "Change cookie session lifetime and timeout in the {ReactRouterLink, react, to{{to}} children{Cookie Session Settings}}.",
 
   "CustomDomainListScreen.title": "Custom Domains",
   "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is written so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
