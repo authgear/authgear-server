@@ -1,4 +1,4 @@
-Save your recovery codes
+Save your recovery codes for {{ template "app.name" }}
 
 Keep these recovery codes somewhere safe but accessible.
 You can only use each recovery code once.
