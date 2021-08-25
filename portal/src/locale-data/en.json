@@ -615,7 +615,7 @@
   "GeneralSettings.app-id.label": "App ID",
 
   "SessionConfigurationWidget.title": "Cookie Session Settings",
-  "SessionConfigurationWidget.description": "Configure the cookie session settings for {ExternalLink, react, href{{endpoint}} children{{endpoint}}}",
+  "SessionConfigurationWidget.description": "Configure the cookie session settings for {ExternalLink, react, href{{endpoint}} children{{endpoint}}}.{br, react}If you only use token-based authentication, you can simply ignore this section.",
   "SessionConfigurationWidget.persistent-cookie.label": "Persistent Cookie",
   "SessionConfigurationWidget.session-lifetime.label": "Session Lifetime (seconds)",
   "SessionConfigurationWidget.invalidate-session-after-idling.label": "Invalidate session after idling",
