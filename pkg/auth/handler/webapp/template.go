@@ -14,6 +14,7 @@ var TemplateWebPasswordPolicyHTML = template.RegisterHTML("web/__password_policy
 var TemplateWebPageFrameHTML = template.RegisterHTML("web/__page_frame.html")
 var TemplateWebModalHTML = template.RegisterHTML("web/__modal.html")
 var TemplateWebWatermarkHTML = template.RegisterHTML("web/__watermark.html")
+var TemplateWebRecoveryCodeHTML = template.RegisterHTML("web/__recovery_code.html")
 
 var components = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -26,4 +27,11 @@ var components = []*template.HTML{
 	TemplateWebPageFrameHTML,
 	TemplateWebModalHTML,
 	TemplateWebWatermarkHTML,
+	TemplateWebRecoveryCodeHTML,
+}
+
+var TemplateWebRecoveryCodeTXT = template.RegisterPlainText("web/__recovery_code.txt")
+
+var plainTextComponents = []*template.PlainText{
+	TemplateWebRecoveryCodeTXT,
 }
