@@ -17,6 +17,64 @@ window.api.onLoad(() => {
 
 window.api.onLoad(setupIntlTelInput);
 
+function copyToClipboard(str: string): void {
+  const el = document.createElement("textarea");
+  el.value = str;
+  // Set non-editable to avoid focus and move outside of view
+  el.setAttribute("readonly", "");
+  el.setAttribute("style", "position: absolute; left: -9999px");
+  document.body.appendChild(el);
+  // Select text inside element
+  el.select();
+  el.setSelectionRange(0, el.value.length); // for mobile device
+  document.execCommand("copy");
+  // Remove temporary element
+  document.body.removeChild(el);
+}
+
+// Copy button
+window.api.onLoad(() => {
+  function copy(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const button = e.currentTarget as HTMLElement;
+    const targetSelector = button.getAttribute("data-copy-button-target");
+    if (targetSelector == null) {
+      return;
+    }
+
+    const target = document.querySelector(targetSelector);
+    if (target == null) {
+      return;
+    }
+
+    const textContent = target.textContent;
+    if (textContent == null) {
+      return;
+    }
+
+    copyToClipboard(textContent);
+  }
+
+  const elems = document.querySelectorAll("[data-copy-button-target]");
+  const buttons: HTMLElement[] = [];
+  for (let i = 0; i < elems.length; i++) {
+    const elem = elems[i];
+    if (elem instanceof HTMLElement) {
+      buttons.push(elem);
+    }
+  }
+  for (const button of buttons) {
+    button.addEventListener("click", copy);
+  }
+  return () => {
+    for (const button of buttons) {
+      button.removeEventListener("click", copy);
+    }
+  };
+});
+
 // Format date in browser timezone
 window.api.onLoad(() => {
   const dateSpans = document.querySelectorAll("[data-date]");
