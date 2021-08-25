@@ -1,7 +1,7 @@
 import React, { useCallback, useContext } from "react";
 import cn from "classnames";
 import produce from "immer";
-import { Checkbox, DirectionalHint } from "@fluentui/react";
+import { Checkbox, DirectionalHint, TextField } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 
 import LabelWithTooltip from "../../LabelWithTooltip";
@@ -155,7 +155,15 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
     );
 
     return (
-      <section className={cn(styles.root, className)}>
+      <div className={className}>
+        {!isCreation && (
+          <TextField
+            label={renderToString("EditOAuthClientScreen.client-id")}
+            value={clientConfig.client_id}
+            readOnly={true}
+            className={styles.inputField}
+          />
+        )}
         <FormTextField
           parentJSONPointer="/oauth/clients/\d+"
           fieldName="name"
@@ -258,7 +266,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
             />
           }
         />
-      </section>
+      </div>
     );
   };
 
