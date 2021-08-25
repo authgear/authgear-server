@@ -78,6 +78,7 @@ func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, 
 	return data, nil
 }
 
+// nolint: gocyclo
 func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
@@ -87,6 +88,25 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	idpSession := session.GetSession(r.Context())
 	webSession := webapp.GetSession(r.Context())
+
+	loginPrompt := false
+	fromAuthzEndpoint := false
+	userIDHint := ""
+	canUseIntentReauthenticate := false
+	suppressIDPSessionCookie := false
+
+	if webSession != nil {
+		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
+		fromAuthzEndpoint = webSession.ClientID != ""
+		userIDHint = webSession.UserIDHint
+		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
+		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
+	}
+	// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
+	if suppressIDPSessionCookie {
+		idpSession = nil
+	}
+
 	continueWithCurrentAccount := func() error {
 		redirectURI := "/settings"
 
@@ -156,20 +176,6 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
-		loginPrompt := false
-		fromAuthzEndpoint := false
-		userIDHint := ""
-		canUseIntentReauthenticate := false
-		suppressIDPSessionCookie := false
-
-		if webSession != nil {
-			loginPrompt = slice.ContainsString(webSession.Prompt, "login")
-			fromAuthzEndpoint = webSession.ClientID != ""
-			userIDHint = webSession.UserIDHint
-			canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
-			suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
-		}
-
 		opts := webapp.SessionOptions{
 			RedirectURI: ctrl.RedirectURI(),
 		}

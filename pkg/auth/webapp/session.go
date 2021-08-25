@@ -89,7 +89,7 @@ type Session struct {
 	// CanUseIntentReauthenticate indicates whether IntentReauthenticate can be used.
 	CanUseIntentReauthenticate bool `json:"can_use_intent_reauthenticate,omitempty"`
 
-	// SuppressIDPSessionCookie indicates whether IDP session cookie should be suppressed.
+	// SuppressIDPSessionCookie indicates whether IDP session cookie should neither be read or written.
 	SuppressIDPSessionCookie bool `json:"suppress_idp_session_cookie,omitempty"`
 }
 
