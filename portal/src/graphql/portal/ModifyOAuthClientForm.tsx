@@ -2,8 +2,11 @@ import React, { useCallback, useContext } from "react";
 import cn from "classnames";
 import produce from "immer";
 import { Checkbox, DirectionalHint, TextField } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
+import Widget from "../../Widget";
+import WidgetTitle from "../../WidgetTitle";
+import WidgetDescription from "../../WidgetDescription";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import FormTextField from "../../FormTextField";
 import FormTextFieldList from "../../FormTextFieldList";
@@ -155,117 +158,134 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
     );
 
     return (
-      <div className={className}>
-        {!isCreation && (
-          <TextField
-            label={renderToString("EditOAuthClientScreen.client-id")}
-            value={clientConfig.client_id}
-            readOnly={true}
-            className={styles.inputField}
-          />
-        )}
-        <FormTextField
-          parentJSONPointer="/oauth/clients/\d+"
-          fieldName="name"
-          fieldNameMessageID="ModifyOAuthClientForm.name-label"
-          className={styles.inputField}
-          value={clientConfig.name ?? ""}
-          onChange={onClientNameChange}
-          required={true}
-        />
-        {!isCreation && (
-          <FormTextField
-            parentJSONPointer="/oauth/clients/\d+"
-            fieldName="access_token_lifetime_seconds"
-            fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
-            className={styles.inputField}
-            value={clientConfig.access_token_lifetime_seconds?.toString() ?? ""}
-            onChange={onAccessTokenLifetimeChange}
-          />
-        )}
-        {!isCreation && (
-          <FormTextField
-            parentJSONPointer="/oauth/clients/\d+"
-            fieldName="refresh_token_lifetime_seconds"
-            fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
-            className={styles.inputField}
-            value={
-              clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""
-            }
-            onChange={onRefreshTokenLifetimeChange}
-          />
-        )}
-        {!isCreation && (
-          <Checkbox
-            className={styles.inputField}
-            checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
-            onChange={onChangeRefreshTokenIdleTimeoutEnabled}
-            label={renderToString(
-              "ModifyOAuthClientForm.refresh-token-idle-timeout-enabled.label"
-            )}
-            styles={CHECKBOX_STYLES}
-          />
-        )}
-        {!isCreation && (
-          <FormTextField
-            parentJSONPointer="/oauth/clients/\d+"
-            fieldName="refresh_token_idle_timeout_seconds"
-            fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
-            className={styles.inputField}
-            value={
-              clientConfig.refresh_token_idle_timeout_seconds?.toString() ?? ""
-            }
-            onChange={onIdleTimeoutChange}
-            disabled={
-              !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
-            }
-          />
-        )}
-        <div className={cn(styles.inputField, styles.checkboxContainer)}>
-          <Checkbox
-            checked={clientConfig.issue_jwt_access_token}
-            onChange={onIssueJWTAccessTokenChange}
-          />
-          <LabelWithTooltip
-            labelId="ModifyOAuthClientForm.issue-jwt-access-token-label"
-            tooltipHeaderId=""
-            tooltipMessageId="ModifyOAuthClientForm.issue-jwt-access-token-tooltip-message"
-            directionalHint={DirectionalHint.bottomLeftEdge}
-          />
-        </div>
-        <FormTextFieldList
-          className={styles.inputFieldList}
-          parentJSONPointer="/oauth/clients/\d+"
-          fieldName="redirect_uris"
-          list={clientConfig.redirect_uris}
-          onListChange={onRedirectUrisChange}
-          addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
-          label={
-            <LabelWithTooltip
-              labelId="ModifyOAuthClientForm.redirect-uris-label"
-              tooltipHeaderId="ModifyOAuthClientForm.redirect-uris-label"
-              tooltipMessageId="ModifyOAuthClientForm.redirect-uris-tooltip-message"
-              directionalHint={DirectionalHint.bottomLeftEdge}
-              required={true}
+      <div className={cn(styles.root, className)}>
+        <Widget className={styles.widget}>
+          {!isCreation && (
+            <TextField
+              label={renderToString("EditOAuthClientScreen.client-id")}
+              value={clientConfig.client_id}
+              readOnly={true}
+              className={styles.control}
             />
-          }
-        />
-        <FormTextFieldList
-          className={styles.inputFieldList}
-          parentJSONPointer="/oauth/clients/\d+"
-          fieldName="post_logout_redirect_uris"
-          list={clientConfig.post_logout_redirect_uris ?? []}
-          onListChange={onPostLogoutRedirectUrisChange}
-          addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
-          label={
-            <LabelWithTooltip
-              labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
-              tooltipHeaderId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
-              tooltipMessageId="ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message"
-              directionalHint={DirectionalHint.bottomLeftEdge}
+          )}
+          <FormTextField
+            parentJSONPointer="/oauth/clients/\d+"
+            fieldName="name"
+            fieldNameMessageID="ModifyOAuthClientForm.name-label"
+            className={styles.control}
+            value={clientConfig.name ?? ""}
+            onChange={onClientNameChange}
+            required={true}
+          />
+          <FormTextFieldList
+            className={styles.control}
+            parentJSONPointer="/oauth/clients/\d+"
+            fieldName="redirect_uris"
+            list={clientConfig.redirect_uris}
+            onListChange={onRedirectUrisChange}
+            addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
+            label={
+              <LabelWithTooltip
+                labelId="ModifyOAuthClientForm.redirect-uris-label"
+                tooltipHeaderId="ModifyOAuthClientForm.redirect-uris-label"
+                tooltipMessageId="ModifyOAuthClientForm.redirect-uris-tooltip-message"
+                directionalHint={DirectionalHint.bottomLeftEdge}
+                required={true}
+              />
+            }
+          />
+        </Widget>
+        {!isCreation && (
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="ModifyOAuthClientForm.token-settings.title" />
+            </WidgetTitle>
+            <WidgetDescription>
+              <FormattedMessage id="ModifyOAuthClientForm.token-settings.description" />
+            </WidgetDescription>
+            <FormTextField
+              parentJSONPointer="/oauth/clients/\d+"
+              fieldName="access_token_lifetime_seconds"
+              fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
+              className={styles.control}
+              value={
+                clientConfig.access_token_lifetime_seconds?.toString() ?? ""
+              }
+              onChange={onAccessTokenLifetimeChange}
             />
-          }
-        />
+            <FormTextField
+              parentJSONPointer="/oauth/clients/\d+"
+              fieldName="refresh_token_lifetime_seconds"
+              fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
+              className={styles.control}
+              value={
+                clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""
+              }
+              onChange={onRefreshTokenLifetimeChange}
+            />
+            <Checkbox
+              className={styles.control}
+              checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
+              onChange={onChangeRefreshTokenIdleTimeoutEnabled}
+              label={renderToString(
+                "ModifyOAuthClientForm.refresh-token-idle-timeout-enabled.label"
+              )}
+              styles={CHECKBOX_STYLES}
+            />
+            <FormTextField
+              parentJSONPointer="/oauth/clients/\d+"
+              fieldName="refresh_token_idle_timeout_seconds"
+              fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
+              className={styles.control}
+              value={
+                clientConfig.refresh_token_idle_timeout_seconds?.toString() ??
+                ""
+              }
+              onChange={onIdleTimeoutChange}
+              disabled={
+                !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
+              }
+            />
+            <div className={cn(styles.control, styles.checkboxContainer)}>
+              <Checkbox
+                checked={clientConfig.issue_jwt_access_token}
+                onChange={onIssueJWTAccessTokenChange}
+              />
+              <LabelWithTooltip
+                labelId="ModifyOAuthClientForm.issue-jwt-access-token-label"
+                tooltipHeaderId=""
+                tooltipMessageId="ModifyOAuthClientForm.issue-jwt-access-token-tooltip-message"
+                directionalHint={DirectionalHint.bottomLeftEdge}
+              />
+            </div>
+          </Widget>
+        )}
+        {!isCreation && (
+          <Widget className={styles.widget}>
+            <WidgetTitle>
+              <FormattedMessage id="ModifyOAuthClientForm.cookie-settings.title" />
+            </WidgetTitle>
+            <WidgetDescription>
+              <FormattedMessage id="ModifyOAuthClientForm.cookie-settings.description" />
+            </WidgetDescription>
+            <FormTextFieldList
+              className={styles.control}
+              parentJSONPointer="/oauth/clients/\d+"
+              fieldName="post_logout_redirect_uris"
+              list={clientConfig.post_logout_redirect_uris ?? []}
+              onListChange={onPostLogoutRedirectUrisChange}
+              addButtonLabelMessageID="ModifyOAuthClientForm.add-uri"
+              label={
+                <LabelWithTooltip
+                  labelId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
+                  tooltipHeaderId="ModifyOAuthClientForm.post-logout-redirect-uris-label"
+                  tooltipMessageId="ModifyOAuthClientForm.post-logout-redirect-uris-tooltip-message"
+                  directionalHint={DirectionalHint.bottomLeftEdge}
+                />
+              }
+            />
+          </Widget>
+        )}
       </div>
     );
   };

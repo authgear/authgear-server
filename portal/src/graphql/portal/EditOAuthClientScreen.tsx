@@ -5,6 +5,7 @@ import produce, { createDraft } from "immer";
 import { Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
+import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -18,7 +19,6 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
-
 import styles from "./EditOAuthClientScreen.module.scss";
 
 interface FormState {
@@ -111,14 +111,14 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
     }
 
     return (
-      <div className={styles.root}>
+      <ScreenContent className={styles.root}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <ModifyOAuthClientForm
           isCreation={false}
           clientConfig={client}
           onClientConfigChange={onClientConfigChange}
         />
-      </div>
+      </ScreenContent>
     );
   };
 

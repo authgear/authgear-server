@@ -1,11 +1,15 @@
-.inputField {
-  margin-bottom: 15px;
-  width: 600px;
+.root {
+  display: flex;
+  flex-direction: column;
 }
 
-.inputFieldList {
-  margin-bottom: 5px;
-  width: 600px;
+.widget {
+  margin: 10px 15px;
+  max-width: 650px;
+}
+
+.control {
+  margin: 10px;
 }
 
 .checkboxContainer {
