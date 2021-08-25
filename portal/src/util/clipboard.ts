@@ -7,7 +7,7 @@ export function copyToClipboard(str: string): void {
   document.body.appendChild(el);
   // Select text inside element
   el.select();
-  el.setSelectionRange(0, 100); // for mobile device
+  el.setSelectionRange(0, el.value.length); // for mobile device
   document.execCommand("copy");
   // Remove temporary element
   document.body.removeChild(el);
