@@ -94,7 +94,6 @@
   "ScreenNav.password-reset-code": "Password Reset Code",
   "ScreenNav.ui-settings": "UI Settings",
   "ScreenNav.localization": "Localization",
-  "ScreenNav.sessions": "Sessions",
   "ScreenNav.webhooks": "Webhooks",
   "ScreenNav.billing": "Billing",
   "ScreenNav.advanced": "Advanced",
@@ -614,13 +613,12 @@
 
   "GeneralSettings.app-id.label": "App ID",
 
-  "SessionConfigurationScreen.title": "Sessions",
-  "SessionConfigurationScreen.description": "Configure the session configuration of the web UI",
-  "SessionConfigurationScreen.session-settings": "Session Settings",
-  "SessionConfigurationScreen.persistent-cookie.label": "Persistent Cookie",
-  "SessionConfigurationScreen.session-lifetime.label": "Session Lifetime (seconds)",
-  "SessionConfigurationScreen.invalidate-session-after-idling.label": "Invalidate session after idling",
-  "SessionConfigurationScreen.idle-timeout.label": "Idle Timeout (seconds)",
+  "SessionConfigurationWidget.title": "Cookie Session Settings",
+  "SessionConfigurationWidget.description": "Configure the session settings of the Authgear cookie stored for TODO",
+  "SessionConfigurationWidget.persistent-cookie.label": "Persistent Cookie",
+  "SessionConfigurationWidget.session-lifetime.label": "Session Lifetime (seconds)",
+  "SessionConfigurationWidget.invalidate-session-after-idling.label": "Invalidate session after idling",
+  "SessionConfigurationWidget.idle-timeout.label": "Idle Timeout (seconds)",
 
   "WebhookConfigurationScreen.title": "Webhooks",
   "WebhookConfigurationScreen.description": "Authgear can deliver webhook events to your server when important events such as new user signup happen.",

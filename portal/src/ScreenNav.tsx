@@ -119,10 +119,6 @@ const ScreenNav: React.FC = function ScreenNav() {
         url: "advanced",
         children: [
           {
-            textKey: "ScreenNav.sessions",
-            url: "advanced/sessions",
-          },
-          {
             textKey: "ScreenNav.password-reset-code",
             url: "advanced/password-reset-code",
           },
