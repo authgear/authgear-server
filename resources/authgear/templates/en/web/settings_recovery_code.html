@@ -31,7 +31,12 @@
 				</button>
 			</form>
 			{{ if $.IsSupportedMobilePlatform }}
-				<button class="btn primary-btn margin-h-4 w-full action" type="button" data-copy-button-target="#recovery-code-content">
+				<button
+					class="btn primary-btn margin-h-4 w-full action"
+					type="button"
+					data-copy-button-target="#recovery-code-content"
+					data-copy-button-copy-label="{{ template "copy-button-label" }}"
+					data-copy-button-copied-label="{{ template "copied-button-label" }}">
 					{{ template "copy-button-label" }}
 				</button>
 			{{ else }}

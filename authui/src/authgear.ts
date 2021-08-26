@@ -44,6 +44,12 @@ window.api.onLoad(() => {
       return;
     }
 
+    const copyLabel = button.getAttribute("data-copy-button-copy-label");
+    const copiedLabel = button.getAttribute("data-copy-button-copied-label");
+    if (copyLabel == null || copiedLabel == null) {
+      return;
+    }
+
     const target = document.querySelector(targetSelector);
     if (target == null) {
       return;
@@ -55,6 +61,24 @@ window.api.onLoad(() => {
     }
 
     copyToClipboard(textContent);
+
+    // Show feedback
+    const currentHandle = button.getAttribute(
+      "data-copy-button-timeout-handle"
+    );
+    // Clear scheduled timeout if the timeout function has NOT been executed yet.
+    if (currentHandle != null) {
+      window.clearTimeout(Number(currentHandle));
+      button.removeAttribute("data-copy-button-timeout-handle");
+    }
+    button.textContent = copiedLabel;
+    button.classList.add("outline");
+    const newHandle = window.setTimeout(() => {
+      button.textContent = copyLabel;
+      button.classList.remove("outline");
+      button.removeAttribute("data-copy-button-timeout-handle");
+    }, 1000);
+    button.setAttribute("data-copy-button-timeout-handle", String(newHandle));
   }
 
   const elems = document.querySelectorAll("[data-copy-button-target]");
