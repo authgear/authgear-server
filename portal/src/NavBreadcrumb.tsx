@@ -22,6 +22,17 @@ interface FuncLinkProps {
   renderFunc: IRenderFunction<IBreadcrumbItem>;
 }
 
+const breadcrumbStyles = {
+  itemLink: {
+    fontSize: "28px",
+    margin: "0px",
+  },
+  item: {
+    fontSize: "28px",
+    margin: "0px",
+  },
+};
+
 const FuncLink: React.FC<FuncLinkProps> = function FuncLink(
   props: FuncLinkProps
 ) {
@@ -89,6 +100,7 @@ const NavBreadcrumb: React.FC<Props> = function NavBreadcrumb(props: Props) {
 
   return (
     <Breadcrumb
+      styles={breadcrumbStyles}
       ariaLabel={label}
       className={cn(className, styles.root)}
       items={breadcrumbItems}
