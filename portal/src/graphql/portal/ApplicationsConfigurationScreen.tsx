@@ -10,6 +10,8 @@ import {
   SelectionMode,
   Text,
   VerticalDivider,
+  Toggle,
+  TextField,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
@@ -33,6 +35,7 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
+import WidgetDescription from "../../WidgetDescription";
 import FormTextFieldList from "../../FormTextFieldList";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
@@ -46,6 +49,10 @@ interface FormState {
   publicOrigin: string;
   clients: OAuthClientConfig[];
   allowedOrigins: string[];
+  persistentCookie: boolean;
+  sessionLifetimeSeconds: number;
+  idleTimeoutEnabled: boolean;
+  idleTimeoutSeconds: number;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -53,12 +60,16 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     publicOrigin: config.http?.public_origin ?? "",
     clients: config.oauth?.clients ?? [],
     allowedOrigins: config.http?.allowed_origins ?? [],
+    persistentCookie: !(config.session?.cookie_non_persistent ?? false),
+    sessionLifetimeSeconds: config.session?.lifetime_seconds ?? 0,
+    idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
+    idleTimeoutSeconds: config.session?.idle_timeout_seconds ?? 0,
   };
 }
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  _initialState: FormState,
+  initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
@@ -66,6 +77,25 @@ function constructConfig(
     config.oauth.clients = currentState.clients;
     config.http ??= {};
     config.http.allowed_origins = currentState.allowedOrigins;
+    config.session = config.session ?? {};
+    if (initialState.persistentCookie !== currentState.persistentCookie) {
+      config.session.cookie_non_persistent = !currentState.persistentCookie;
+    }
+    if (
+      initialState.sessionLifetimeSeconds !==
+      currentState.sessionLifetimeSeconds
+    ) {
+      config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
+    }
+    if (initialState.idleTimeoutEnabled !== currentState.idleTimeoutEnabled) {
+      config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
+      if (
+        currentState.idleTimeoutEnabled &&
+        initialState.idleTimeoutSeconds !== currentState.idleTimeoutSeconds
+      ) {
+        config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
+      }
+    }
     clearEmptyObject(config);
   });
 }
@@ -195,6 +225,114 @@ const CORSConfigurationWidget: React.FC<CORSConfigurationWidgetProps> =
     );
   };
 
+interface SessionConfigurationWidgetProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
+  function SessionConfigurationWidget(props: SessionConfigurationWidgetProps) {
+    const { state, setState } = props.form;
+
+    const { renderToString } = useContext(Context);
+
+    const onPersistentCookieChange = useCallback(
+      (_, value?: boolean) => {
+        setState((state) => ({
+          ...state,
+          persistentCookie: value ?? false,
+        }));
+      },
+      [setState]
+    );
+
+    const onSessionLifetimeSecondsChange = useCallback(
+      (_, value?: string) => {
+        setState((state) => ({
+          ...state,
+          sessionLifetimeSeconds: Number(value),
+        }));
+      },
+      [setState]
+    );
+
+    const onIdleTimeoutEnabledChange = useCallback(
+      (_, value?: boolean) => {
+        setState((state) => ({
+          ...state,
+          idleTimeoutEnabled: value ?? false,
+        }));
+      },
+      [setState]
+    );
+
+    const onIdleTimeoutSecondsChange = useCallback(
+      (_, value?: string) => {
+        setState((state) => ({
+          ...state,
+          idleTimeoutSeconds: Number(value),
+        }));
+      },
+      [setState]
+    );
+
+    return (
+      <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <WidgetTitle id="cookie-session">
+          <FormattedMessage id="SessionConfigurationWidget.title" />
+        </WidgetTitle>
+        <WidgetDescription>
+          <FormattedMessage
+            id="SessionConfigurationWidget.description"
+            values={{
+              endpoint: state.publicOrigin,
+            }}
+          />
+        </WidgetDescription>
+        <Toggle
+          className={styles.control}
+          inlineLabel={true}
+          label={renderToString(
+            "SessionConfigurationWidget.persistent-cookie.label"
+          )}
+          checked={state.persistentCookie}
+          onChange={onPersistentCookieChange}
+        />
+        <TextField
+          className={styles.control}
+          type="number"
+          min="1"
+          step="1"
+          label={renderToString(
+            "SessionConfigurationWidget.session-lifetime.label"
+          )}
+          value={String(state.sessionLifetimeSeconds)}
+          onChange={onSessionLifetimeSecondsChange}
+        />
+        <Toggle
+          className={styles.control}
+          inlineLabel={true}
+          label={renderToString(
+            "SessionConfigurationWidget.invalidate-session-after-idling.label"
+          )}
+          checked={state.idleTimeoutEnabled}
+          onChange={onIdleTimeoutEnabledChange}
+        />
+        <TextField
+          className={styles.control}
+          type="number"
+          min="1"
+          step="1"
+          disabled={!state.idleTimeoutEnabled}
+          label={renderToString(
+            "SessionConfigurationWidget.idle-timeout.label"
+          )}
+          value={String(state.idleTimeoutSeconds)}
+          onChange={onIdleTimeoutSecondsChange}
+        />
+      </Widget>
+    );
+  };
+
 interface OAuthClientConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
   oauthClientsMaximum: number;
@@ -288,6 +426,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
           />
         </Widget>
         <CORSConfigurationWidget form={form} />
+        <SessionConfigurationWidget form={form} />
       </ScreenContent>
     );
   };

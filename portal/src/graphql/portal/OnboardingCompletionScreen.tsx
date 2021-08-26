@@ -15,7 +15,6 @@ import SignupScreenImg from "../../images/onboarding_signup_screen.png";
 import SettingScreenImg from "../../images/onboarding_settings_screen.png";
 import SSOLogoImg from "../../images/onboarding_sso_logo.png";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import ShowLoading from "../../ShowLoading";
 import { PortalAPIAppConfig } from "../../types";
 
@@ -103,14 +102,10 @@ interface OnboardingCompletionContentProps {
 const OnboardingCompletionContent: React.FC<OnboardingCompletionContentProps> =
   function OnboardingCompletionContent(props) {
     const { appID } = useParams();
-    const { appHostSuffix } = useSystemConfig();
 
     const { config } = props;
 
-    const rawAppID = config.id;
-    const endpoint = rawAppID
-      ? "https://" + rawAppID + appHostSuffix
-      : undefined;
+    const endpoint = config.http?.public_origin;
 
     const portalAppEndpoint = `/project/${encodeURIComponent(appID)}`;
     const portalSSOEndpoint = `/project/${encodeURIComponent(

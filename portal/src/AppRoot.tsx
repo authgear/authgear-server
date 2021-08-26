@@ -30,7 +30,6 @@ import UISettingsScreen from "./graphql/portal/UISettingsScreen";
 import LocalizationConfigurationScreen from "./graphql/portal/LocalizationConfigurationScreen";
 import InviteAdminScreen from "./graphql/portal/InviteAdminScreen";
 import PortalAdminsSettings from "./graphql/portal/PortalAdminsSettings";
-import SessionConfigurationScreen from "./graphql/portal/SessionConfigurationScreen";
 import WebhookConfigurationScreen from "./graphql/portal/WebhookConfigurationScreen";
 import AdminAPIConfigurationScreen from "./graphql/portal/AdminAPIConfigurationScreen";
 import LoginIDConfigurationScreen from "./graphql/portal/LoginIDConfigurationScreen";
@@ -156,10 +155,6 @@ const AppRoot: React.FC = function AppRoot() {
           />
           <Route path="/portal-admins" element={<PortalAdminsSettings />} />
           <Route path="/portal-admins/invite" element={<InviteAdminScreen />} />
-          <Route
-            path="/advanced/sessions"
-            element={<SessionConfigurationScreen />}
-          />
           <Route
             path="/advanced/webhooks"
             element={<WebhookConfigurationScreen />}

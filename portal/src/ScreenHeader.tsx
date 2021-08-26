@@ -22,15 +22,14 @@ const ScreenHeaderAppSection: React.FC<ScreenHeaderAppSectionProps> =
   function ScreenHeaderAppSection(props: ScreenHeaderAppSectionProps) {
     const { appID } = props;
     const { effectiveAppConfig, loading } = useAppAndSecretConfigQuery(appID);
-    const { appHostSuffix, themes } = useSystemConfig();
-
-    const rawAppID = effectiveAppConfig?.id;
-    const endpoint =
-      rawAppID != null ? "https://" + rawAppID + appHostSuffix : null;
+    const { themes } = useSystemConfig();
 
     if (loading) {
       return null;
     }
+
+    const rawAppID = effectiveAppConfig?.id;
+    const endpoint = effectiveAppConfig?.http?.public_origin;
 
     return (
       <>

@@ -1,14 +1,4 @@
 .root {
-  margin: 0 32px;
-}
-
-.clientIdField {
   display: flex;
-  margin-bottom: 15px;
-  width: 500px;
-  background-color: #f3f2f1;
-  padding: 0 8px;
-  height: 33px;
-  border-radius: 2px;
-  align-items: center;
+  flex-direction: column;
 }
