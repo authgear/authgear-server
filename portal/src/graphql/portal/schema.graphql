@@ -255,6 +255,9 @@ type Domain {
   apexDomain: String!
 
   """"""
+  cookieDomain: String!
+
+  """"""
   createdAt: DateTime!
 
   """"""

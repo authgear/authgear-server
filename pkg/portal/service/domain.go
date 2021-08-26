@@ -20,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -408,12 +409,21 @@ func (d *domain) toModel(isVerified bool) *model.Domain {
 		prefix = "pending:"
 	}
 
+	// for default domain, original domain will be used for cookie domain
+	// for custom domain, cookie domain is derived from the
+	// CookieDomainWithoutPort function
+	cookieDomain := d.Domain
+	if d.IsCustom {
+		cookieDomain = httputil.CookieDomainWithoutPort(d.Domain)
+	}
+
 	return &model.Domain{
 		// Base64-encoded to avoid invalid k8s resource label invalid chars
 		ID:                    base64.RawURLEncoding.EncodeToString([]byte(prefix + d.ID)),
 		AppID:                 d.AppID,
 		CreatedAt:             d.CreatedAt,
 		Domain:                d.Domain,
+		CookieDomain:          cookieDomain,
 		ApexDomain:            d.ApexDomain,
 		VerificationDNSRecord: domainVerificationDNSRecord(d.VerificationNonce),
 		IsCustom:              d.IsCustom,

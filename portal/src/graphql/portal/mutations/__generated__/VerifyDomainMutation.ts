@@ -12,6 +12,7 @@ export interface VerifyDomainMutation_verifyDomain_app_domains {
   id: string;
   createdAt: GQL_DateTime;
   domain: string;
+  cookieDomain: string;
   apexDomain: string;
   isCustom: boolean;
   isVerified: boolean;
@@ -32,6 +33,7 @@ export interface VerifyDomainMutation_verifyDomain_domain {
   id: string;
   createdAt: GQL_DateTime;
   domain: string;
+  cookieDomain: string;
   apexDomain: string;
   isCustom: boolean;
   isVerified: boolean;

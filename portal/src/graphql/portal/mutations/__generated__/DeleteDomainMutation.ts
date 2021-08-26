@@ -12,6 +12,7 @@ export interface DeleteDomainMutation_deleteDomain_app_domains {
   id: string;
   createdAt: GQL_DateTime;
   domain: string;
+  cookieDomain: string;
   apexDomain: string;
   isCustom: boolean;
   isVerified: boolean;

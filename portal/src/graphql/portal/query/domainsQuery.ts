@@ -17,6 +17,7 @@ export const domainsQuery = gql`
           createdAt
           apexDomain
           domain
+          cookieDomain
           isCustom
           isVerified
           verificationDNSRecord

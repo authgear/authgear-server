@@ -17,6 +17,7 @@ export interface DomainsQuery_node_App_domains {
   createdAt: GQL_DateTime;
   apexDomain: string;
   domain: string;
+  cookieDomain: string;
   isCustom: boolean;
   isVerified: boolean;
   verificationDNSRecord: string;
