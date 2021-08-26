@@ -106,10 +106,10 @@ func TestUpdateCookie(t *testing.T) {
 	})
 }
 
-func TestCookieDomainFromETLDPlusOneWithoutPort(t *testing.T) {
-	Convey("CookieDomainFromETLDPlusOneWithoutPort", t, func() {
+func TestCookieDomainWithoutPort(t *testing.T) {
+	Convey("CookieDomainWithoutPort", t, func() {
 		check := func(in string, out string) {
-			actual := httputil.CookieDomainFromETLDPlusOneWithoutPort(in)
+			actual := httputil.CookieDomainWithoutPort(in)
 			So(out, ShouldEqual, actual)
 		}
 		check("localhost", "")
@@ -139,5 +139,9 @@ func TestCookieDomainFromETLDPlusOneWithoutPort(t *testing.T) {
 		check("www.example.co.jp", "example.co.jp")
 		check("www.example.co.jp:80", "example.co.jp")
 		check("www.example.co.jp:8080", "example.co.jp")
+
+		check("auth.app.example.co.jp", "app.example.co.jp")
+		check("auth.app.example.co.jp:80", "app.example.co.jp")
+		check("auth.app.example.co.jp:8080", "app.example.co.jp")
 	})
 }
