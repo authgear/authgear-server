@@ -69,6 +69,7 @@ function getHostFromOrigin(urlOrigin: string): string {
 interface DomainListItem {
   id?: string;
   domain: string;
+  cookieDomain: string;
   urlOrigin: string;
   isVerified: boolean;
   isCustom: boolean;
@@ -214,16 +215,13 @@ const AddDomainSection: React.FC = function AddDomainSection() {
 interface DomainListActionButtonsProps {
   domainID?: string;
   domain: string;
+  cookieDomain: string;
   urlOrigin: string;
   isCustomDomain: boolean;
   isVerified: boolean;
   isPublicOrigin: boolean;
   onDeleteClick: (domainID: string, domain: string) => void;
-  onDomainActivate: (
-    urlOrigin: string,
-    domain: string,
-    isCustom: boolean
-  ) => void;
+  onDomainActivate: (urlOrigin: string, cookieDomain: string) => void;
 }
 
 const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
@@ -232,6 +230,7 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
     const {
       domainID,
       domain,
+      cookieDomain,
       urlOrigin,
       isCustomDomain,
       isVerified,
@@ -248,8 +247,8 @@ const DomainListActionButtons: React.FC<DomainListActionButtonsProps> =
     const showActivate = domainID && isVerified && !isPublicOrigin;
 
     const onActivateClick = useCallback(() => {
-      onDomainActivateProps(urlOrigin, domain, isCustomDomain);
-    }, [urlOrigin, domain, isCustomDomain, onDomainActivateProps]);
+      onDomainActivateProps(urlOrigin, cookieDomain);
+    }, [urlOrigin, cookieDomain, onDomainActivateProps]);
 
     const onVerifyClicked = useCallback(() => {
       navigate(`./${domainID}/verify`);
@@ -539,6 +538,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
         return {
           id: domain.id,
           domain: domain.domain,
+          cookieDomain: domain.cookieDomain,
           urlOrigin: urlOrigin,
           isVerified: domain.isVerified,
           isCustom: domain.isCustom,
@@ -548,9 +548,12 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
       const found = list.find((domain) => domain.isPublicOrigin);
 
       if (!found) {
+        // cannot found a domain that match the public origin
+        // should only happen in local development
         list.unshift({
           domain:
             getHostFromOrigin(prevSavedPublicOrigin) || prevSavedPublicOrigin,
+          cookieDomain: "",
           urlOrigin: prevSavedPublicOrigin,
           isCustom: false,
           isVerified: false,
@@ -569,20 +572,12 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
     }, []);
 
     const onDomainActivate = useCallback(
-      (urlOrigin: string, domain: string, isCustom: boolean) => {
-        // if the domain is the default app domain
-        // set cookie_domain to the domain
-        // to ensure the cookies are isolated between apps
-
-        // if the domain is a custom domain
-        // clear the cookie_domain config
-        // if the cookie_domain config is not provided, auth server will
-        // set cookie to the eTLD+1 domain
-        const cookieDomain = isCustom ? undefined : domain;
+      (urlOrigin: string, cookieDomain: string) => {
+        // set cookieDomain to the domain's cookieDomain
         setState((state) => ({
           ...state,
           publicOrigin: urlOrigin,
-          cookieDomain: cookieDomain,
+          cookieDomain: cookieDomain === "" ? undefined : cookieDomain,
         }));
       },
       [setState]
@@ -635,6 +630,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
               <DomainListActionButtons
                 domainID={item.id}
                 domain={item.domain}
+                cookieDomain={item.cookieDomain}
                 urlOrigin={item.urlOrigin}
                 isVerified={item.isVerified}
                 isCustomDomain={item.isCustom}
