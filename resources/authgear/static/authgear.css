@@ -778,7 +778,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn.primary-btn, .btn.light-btn {
   height: 36px;
   border-radius: 2px;
-  padding: 0 24px;
+  padding: 0 20px;
 }
 
 .btn.action-btn {
