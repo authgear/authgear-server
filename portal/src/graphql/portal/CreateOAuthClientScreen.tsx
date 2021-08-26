@@ -11,6 +11,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import produce, { createDraft } from "immer";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
+import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import ModifyOAuthClientForm, {
@@ -153,7 +154,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
     );
 
     return (
-      <div className={styles.root}>
+      <ScreenContent className={styles.root}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <ModifyOAuthClientForm
           isCreation={true}
@@ -164,7 +165,7 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
           visible={isSuccessDialogVisible}
           clientId={clientId}
         />
-      </div>
+      </ScreenContent>
     );
   };
 
