@@ -13,6 +13,7 @@ type Domain struct {
 	AppID                 string    `json:"appID"`
 	CreatedAt             time.Time `json:"createdAt"`
 	Domain                string    `json:"domain"`
+	CookieDomain          string    `json:"cookieDomain"`
 	ApexDomain            string    `json:"apexDomain"`
 	VerificationDNSRecord string    `json:"verificationDNSRecord"`
 	IsCustom              bool      `json:"isCustom"`

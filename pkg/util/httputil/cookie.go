@@ -41,11 +41,12 @@ func UpdateCookie(w http.ResponseWriter, cookie *http.Cookie) {
 	header["Set-Cookie"] = setCookies
 }
 
-// CookieDomainFromETLDPlusOneWithoutPort derives host from r.
+// CookieDomainWithoutPort derives host from r.
 // If host has port, the port is removed.
+// If host-1 is longer than ETLD+1, host-1 is returned.
 // If ETLD+1 cannot be derived, an empty string is returned.
 // The return value never have port.
-func CookieDomainFromETLDPlusOneWithoutPort(host string) string {
+func CookieDomainWithoutPort(host string) string {
 	// Trim the port if it is present.
 	// We have to trim the port first.
 	// Passing host:port to EffectiveTLDPlusOne confuses it.
@@ -64,12 +65,18 @@ func CookieDomainFromETLDPlusOneWithoutPort(host string) string {
 		return ""
 	}
 
-	host, err := publicsuffix.EffectiveTLDPlusOne(host)
+	eTLDPlusOne, err := publicsuffix.EffectiveTLDPlusOne(host)
 	if err != nil {
 		return ""
 	}
 
-	return host
+	// host has a valid ETLDPlusOne, it's safe to split the domain with .
+	hostMinusOne := host[1+strings.Index(host, "."):]
+	if len(hostMinusOne) > len(eTLDPlusOne) {
+		return hostMinusOne
+	}
+
+	return eTLDPlusOne
 }
 
 type CookieManager struct {
@@ -85,7 +92,7 @@ func (f *CookieManager) fixupCookie(cookie *http.Cookie) {
 
 	cookie.Secure = proto == "https"
 	if cookie.Domain == "" {
-		cookie.Domain = CookieDomainFromETLDPlusOneWithoutPort(host)
+		cookie.Domain = CookieDomainWithoutPort(host)
 	}
 
 	if cookie.SameSite == http.SameSiteNoneMode &&

@@ -467,7 +467,7 @@
   "CustomDomainListScreen.verify-success-message": "Verified domain successfully",
 
   "VerifyDomainScreen.title": "Verify Domain",
-  "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own ",
+  "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own {b, react, children{{domain}}}",
   "VerifyDomainScreen.error.domain-not-found": "Requested domain is not found",
   "VerifyDomainScreen.error.non-custom-verified-domain-not-found": "Cannot find domain which is non-custom and verified",
   "VerifyDomainScreen.list.header.record-type": "Type",
@@ -615,7 +615,7 @@
   "GeneralSettings.app-id.label": "App ID",
 
   "SessionConfigurationWidget.title": "Cookie Session Settings",
-  "SessionConfigurationWidget.description": "Configure the cookie session settings for {ExternalLink, react, href{{endpoint}} children{{endpoint}}}.{br, react}If you only use token-based authentication, you can simply ignore this section.",
+  "SessionConfigurationWidget.description": "Configure the cookie session settings for {b, react, children{{domain}}}.{br, react}If you only use token-based authentication, you can simply ignore this section.",
   "SessionConfigurationWidget.persistent-cookie.label": "Persistent Cookie",
   "SessionConfigurationWidget.session-lifetime.label": "Session Lifetime (seconds)",
   "SessionConfigurationWidget.invalidate-session-after-idling.label": "Invalidate session after idling",

@@ -13,6 +13,7 @@ const createDomainMutation = gql`
           id
           createdAt
           domain
+          cookieDomain
           apexDomain
           isCustom
           isVerified
@@ -23,6 +24,7 @@ const createDomainMutation = gql`
         id
         createdAt
         domain
+        cookieDomain
         apexDomain
         isCustom
         isVerified

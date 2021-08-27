@@ -13,6 +13,7 @@ const deleteDomainMutation = gql`
           id
           createdAt
           domain
+          cookieDomain
           apexDomain
           isCustom
           isVerified

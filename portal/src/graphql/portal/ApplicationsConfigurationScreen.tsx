@@ -47,6 +47,7 @@ const COPY_ICON_STLYES: IButtonStyles = {
 
 interface FormState {
   publicOrigin: string;
+  cookieDomain?: string;
   clients: OAuthClientConfig[];
   allowedOrigins: string[];
   persistentCookie: boolean;
@@ -58,6 +59,7 @@ interface FormState {
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     publicOrigin: config.http?.public_origin ?? "",
+    cookieDomain: config.http?.cookie_domain,
     clients: config.oauth?.clients ?? [],
     allowedOrigins: config.http?.allowed_origins ?? [],
     persistentCookie: !(config.session?.cookie_non_persistent ?? false),
@@ -284,7 +286,8 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
           <FormattedMessage
             id="SessionConfigurationWidget.description"
             values={{
-              endpoint: state.publicOrigin,
+              // cookieDomain wil be empty only if authgear.yaml is updated manually
+              domain: state.cookieDomain ?? state.publicOrigin,
             }}
           />
         </WidgetDescription>

@@ -1,21 +1,19 @@
 .root {
-  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  // to align with the custom domain list page
+  // the height of hidden message bar
+  margin-top: 32px;
 }
 
-.header {
-  margin: 0 32px;
+.widget {
+  margin: 10px 15px;
+  max-width: 750px;
 }
 
 .description {
   display: block;
-  margin: 0 32px 15px;
-  width: 650px;
-  font-size: 13px;
-  line-height: 1.3;
-
-  .domainName {
-    font-weight: 800;
-  }
+  margin: 16px 8px;
 }
 
 .dnsRecordListColumn {
@@ -41,5 +39,5 @@
 }
 
 .controlButtons {
-  margin: 25px 32px 0;
+  margin: 25px 12px;
 }
