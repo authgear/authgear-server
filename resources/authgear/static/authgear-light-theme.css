@@ -187,7 +187,10 @@
   color: var(--color-white-shaded-8);
   background-color: var(--color-primary-unshaded);
 }
-.primary-btn:hover, .primary-btn:focus {
+.primary-btn:focus {
+  background-color: var(--color-primary-unshaded);
+}
+.primary-btn:hover {
   background-color: var(--color-primary-shaded-4);
 }
 .primary-btn:active {
@@ -203,7 +206,11 @@
   border-width: 1px;
   border-style: solid;
 }
-.primary-btn.outline:hover, .primary-btn.outline:focus {
+.primary-btn.outline:focus {
+  color: var(--color-primary-unshaded);
+  border-color: var(--color-primary-unshaded);
+}
+.primary-btn.outline:hover {
   color: var(--color-primary-shaded-4);
   border-color: var(--color-primary-shaded-4);
 }
@@ -220,7 +227,10 @@
   color: var(--color-primary-unshaded);
   background-color: transparent;
 }
-.secondary-btn:hover, .secondary-btn:focus {
+.secondary-btn:focus {
+  color: var(--color-primary-unshaded);
+}
+.secondary-btn:hover {
   color: var(--color-primary-shaded-4);
 }
 .secondary-btn:active {
@@ -234,7 +244,10 @@
   color: var(--color-text-unshaded);
   background-color: transparent;
 }
-.icon-btn:hover, .icon-btn:focus {
+.icon-btn:focus {
+  color: var(--color-text-unshaded);
+}
+.icon-btn:hover {
   color: var(--color-text-shaded-3);
 }
 .icon-btn:active {
@@ -249,7 +262,11 @@
   background-color: transparent;
   border: 1px solid var(--color-text-unshaded);
 }
-.light-btn:hover, .light-btn:focus {
+.light-btn:focus {
+  color: var(--color-text-unshaded);
+  border: 1px solid var(--color-text-unshaded);
+}
+.light-btn:hover {
   color: var(--color-text-shaded-4);
   border: 1px solid var(--color-text-shaded-4);
 }
@@ -267,7 +284,11 @@
   background-color: transparent;
   border: 1px solid var(--color-separator);
 }
-.action-btn:hover, .action-btn:focus {
+.action-btn:focus {
+  color: var(--color-text-unshaded);
+  background-color: transparent;
+}
+.action-btn:hover {
   color: var(--color-text-shaded-4);
   border-color: var(--color-primary-unshaded);
 }
@@ -284,21 +305,23 @@
   border-color: var(--color-white-shaded-8);
   background-color: var(--color-white-shaded-8);
 }
-
-.settings-security-item:hover, .settings-security-item:focus {
+.settings-security-item:focus {
+  border-color: var(--color-white-shaded-8);
+  background-color: var(--color-white-shaded-8);
+}
+.settings-security-item:hover {
   border-color: var(--color-primary-unshaded);
 }
-
 .settings-security-item:active {
   background-color: var(--color-white-shaded-6);
 }
 
 /* <a> does not have disabled attribute */
-a:not(.not-a), a:not(.not-a):visited, .link, .link:visited {
+a:not(.not-a), a:not(.not-a):visited, .link, .link:visited, a:not(.not-a):focus, .link:focus {
   color: var(--color-primary-unshaded);
   background-color: transparent;
 }
-a:not(.not-a):hover, .link:hover, a:not(.not-a):focus, .link:focus {
+a:not(.not-a):hover, .link:hover {
   color: var(--color-primary-shaded-4);
 }
 a:not(.not-a):active, .link:active {
@@ -309,7 +332,10 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-apple-unshaded);
 }
-.apple:hover, .apple:focus {
+.apple:focus {
+  background-color: var(--color-apple-unshaded);
+}
+.apple:hover {
   background-color: var(--color-apple-shaded-4);
 }
 .apple:active {
@@ -326,7 +352,10 @@ a:not(.not-a):active, .link:active {
   color: var(--color-black-unshaded);
   background-color: var(--color-google-unshaded);
 }
-.google:hover, .google:focus {
+.google:focus {
+  background-color: var(--color-google-unshaded);
+}
+.google:hover {
   background-color: var(--color-google-shaded-4);
 }
 .google:active {
@@ -340,7 +369,10 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-facebook-unshaded);
 }
-.facebook:hover, .facebook:focus {
+.facebook:focus {
+  background-color: var(--color-facebook-unshaded);
+}
+.facebook:hover {
   background-color: var(--color-facebook-shaded-4);
 }
 .facebook:active {
@@ -354,7 +386,10 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-linkedin-unshaded);
 }
-.linkedin:hover, .linkedin:focus {
+.linkedin:focus {
+  background-color: var(--color-linkedin-unshaded);
+}
+.linkedin:hover {
   background-color: var(--color-linkedin-shaded-4);
 }
 .linkedin:active {
@@ -371,7 +406,10 @@ a:not(.not-a):active, .link:active {
   color: var(--color-black-unshaded);
   background-color: var(--color-azureadv2-unshaded);
 }
-.azureadv2:hover, .azureadv2:focus {
+.azureadv2:focus {
+  background-color: var(--color-azureadv2-unshaded);
+}
+.azureadv2:hover {
   background-color: var(--color-azureadv2-shaded-4);
 }
 .azureadv2:active {
@@ -388,7 +426,10 @@ a:not(.not-a):active, .link:active {
   color: var(--color-black-unshaded);
   background-color: var(--color-adfs-unshaded);
 }
-.adfs:hover, .adfs:focus {
+.adfs:focus {
+  background-color: var(--color-adfs-unshaded);
+}
+.adfs:hover {
   background-color: var(--color-adfs-shaded-4);
 }
 .adfs:active {
@@ -403,7 +444,10 @@ a:not(.not-a):active, .link:active {
   color: var(--color-white-unshaded);
   background-color: var(--color-wechat-unshaded);
 }
-.wechat:hover, .wechat:focus {
+.wechat:focus {
+  background-color: var(--color-wechat-unshaded);
+}
+.wechat:hover {
   background-color: var(--color-wechat-shaded-4);
 }
 .wechat:active {
