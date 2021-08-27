@@ -64,3 +64,8 @@ var ArgPlanNameForAppUpdate = &cobraviper.StringArgument{
 	Usage:        "Plan name",
 	DefaultValue: "custom",
 }
+
+var ArgAppHostSuffix = &cobraviper.StringArgument{
+	ArgumentName: "app-host-suffix",
+	Usage:        "App host suffix",
+}
