@@ -19,6 +19,7 @@ var TemplateWebSetupRecoveryCodeHTML = template.RegisterHTML(
 
 var TemplateWebDownloadRecoveryCodeTXT = template.RegisterPlainText(
 	"web/download_recovery_code.txt",
+	plainTextComponents...,
 )
 
 func ConfigureSetupRecoveryCodeRoute(route httproute.Route) httproute.Route {

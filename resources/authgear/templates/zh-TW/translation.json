@@ -65,6 +65,8 @@
   "back-button-title": "返回",
   "back-to-app-label": "返回我的App",
   "next-button-label": "繼續",
+  "copy-button-label": "複製",
+  "copied-button-label": "已複製",
   "get-new-code-button-label": "取得新的驗證碼",
   "download-button-label": "下載",
   "disconnect-button-label": "移除連結",

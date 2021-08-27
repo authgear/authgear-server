@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/csrf"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -50,6 +51,8 @@ type BaseViewModel struct {
 	IsNativePlatform      bool
 	FlashMessageType      string
 	ResolvedLanguageTag   string
+	// IsSupportedMobilePlatform is true when the user agent is iOS or Android.
+	IsSupportedMobilePlatform bool
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -201,6 +204,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 	}
 	model.IsNativePlatform = (platform == "ios" ||
 		platform == "android")
+
+	ua := apimodel.ParseUserAgent(r.UserAgent())
+	model.IsSupportedMobilePlatform = ua.OS == "iOS" || ua.OS == "Android"
 
 	return model
 }
