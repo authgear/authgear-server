@@ -778,7 +778,7 @@ h1, h2, h3, h4, h5, h6 {
 .btn.primary-btn, .btn.light-btn {
   height: 36px;
   border-radius: 2px;
-  padding: 0 24px;
+  padding: 0 20px;
 }
 
 .btn.action-btn {
@@ -1215,8 +1215,8 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 20px 0 30px;
 }
 
-.recovery-code-action-section .action {
-  flex: 0 0 50%;
+.recovery-code-action-section {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .recovery-codes-container {

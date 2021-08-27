@@ -23,24 +23,26 @@
 			<p class="text-sm primary-txt text-center margin-t-0 margin-b-20">{{ template "recovery-code-consumption-description" }}</p>
 		</section>
 
-		<section class="margin-b-20 flex flex-row recovery-code-action-section">
-			<form method="post" class="action margin-h-4" novalidate>
+		<section class="margin-b-20 grid gap-8 recovery-code-action-section">
+			<form method="post" novalidate>
 				{{ $.CSRFField }}
 				<button class="btn primary-btn w-full" type="submit" name="x_action" value="regenerate">
 					{{ template "get-new-code-button-label" }}
 				</button>
 			</form>
 			{{ if $.IsSupportedMobilePlatform }}
-				<button
-					class="btn primary-btn margin-h-4 w-full action"
-					type="button"
-					data-copy-button-target="#recovery-code-content"
-					data-copy-button-copy-label="{{ template "copy-button-label" }}"
-					data-copy-button-copied-label="{{ template "copied-button-label" }}">
-					{{ template "copy-button-label" }}
-				</button>
+				<div>
+					<button
+						class="btn primary-btn w-full"
+						type="button"
+						data-copy-button-target="#recovery-code-content"
+						data-copy-button-copy-label="{{ template "copy-button-label" }}"
+						data-copy-button-copied-label="{{ template "copied-button-label" }}">
+						{{ template "copy-button-label" }}
+					</button>
+				</div>
 			{{ else }}
-				<form method="post" class="action margin-h-4" novalidate target="_blank">
+				<form method="post" novalidate target="_blank">
 					{{ $.CSRFField }}
 					<button class="btn primary-btn w-full" type="submit" name="x_action" value="download" data-form-xhr="false">
 						{{ template "download-button-label" }}
