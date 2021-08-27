@@ -21,8 +21,12 @@
             {{ if eq .Error.reason "ValidationFailed" }}
                 {{ range .Error.info.causes }}
                     {{ if (eq .kind "required") }}
-                        {{ if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginPageTextLoginIDVariant)) }}
-                            <li>{{ template "error-login-id-required" (dict "variant" $.LoginPageTextLoginIDVariant) }}</li>
+                        {{ if (and (call $.SliceContains .details.missing "x_login_id" ) ($.x_login_id_input_type)) }}
+                            {{ if (eq $.x_login_id_input_type "phone") }}
+                                <li>{{ template "error-login-id-required" (dict "variant" $.x_login_id_input_type) }}</li>
+                            {{ else }}
+                                <li>{{ template "error-login-id-required" (dict "variant" $.LoginIDInputVariant) }}</li>
+                            {{ end }}
                         {{ else if (and (call $.SliceContains .details.missing "x_login_id" ) ($.LoginIDType)) }}
                             <li>{{ template "error-login-id-required" (dict "variant" $.LoginIDType) }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_password" ) }}

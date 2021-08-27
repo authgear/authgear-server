@@ -6,32 +6,19 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
-// Ideally we should use type alias to present
-// LoginPageTextLoginIDVariant and LoginPageTextLoginIDInputType
-// But they may be passed to localize which does not support type alias of builtin types.
-
-const (
-	LoginPageTextLoginIDVariantNone            = "none"
-	LoginPageTextLoginIDVariantEamilOrUsername = "email_or_username"
-	LoginPageTextLoginIDVariantEmail           = "email"
-	LoginPageTextLoginIDVariantUsername        = "username"
-)
-
-const (
-	LoginPageTextLoginIDInputTypeText  = "text"
-	LoginPageTextLoginIDInputTypeEmail = "email"
-)
-
 type IdentityCandidatesGetter interface {
 	GetIdentityCandidates() []identity.Candidate
 }
 
 type AuthenticationViewModel struct {
-	IdentityCandidates            []identity.Candidate
-	IdentityCount                 int
-	LoginPageLoginIDHasPhone      bool
-	LoginPageTextLoginIDVariant   string
-	LoginPageTextLoginIDInputType string
+	IdentityCandidates     []identity.Candidate
+	IdentityCount          int
+	LoginIDInputVariant    string
+	LoginIDDisabled        bool
+	PhoneLoginIDEnabled    bool
+	EmailLoginIDEnabled    bool
+	UsernameLoginIDEnabled bool
+	TextLoginIDInputType   string
 }
 
 func NewAuthenticationViewModelWithGraph(graph *interaction.Graph) AuthenticationViewModel {
@@ -72,31 +59,36 @@ func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) A
 		}
 	}
 
-	var loginPageTextLoginIDVariant string
-	var loginPageTextLoginIDInputType string
+	textLoginIDInputType := "text"
+	if hasEmail && !hasUsername {
+		textLoginIDInputType = "email"
+	}
+
+	loginIDDisabled := !hasEmail && !hasUsername && !hasPhone
+
+	var variant string
 	if hasEmail {
 		if hasUsername {
-			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantEamilOrUsername
-			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
+			variant = "email_or_username"
 		} else {
-			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantEmail
-			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeEmail
+			variant = "email"
 		}
 	} else {
 		if hasUsername {
-			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantUsername
-			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
+			variant = "username"
 		} else {
-			loginPageTextLoginIDVariant = LoginPageTextLoginIDVariantNone
-			loginPageTextLoginIDInputType = LoginPageTextLoginIDInputTypeText
+			variant = "none"
 		}
 	}
 
 	return AuthenticationViewModel{
-		IdentityCandidates:            candidates,
-		IdentityCount:                 identityCount,
-		LoginPageLoginIDHasPhone:      hasPhone,
-		LoginPageTextLoginIDVariant:   loginPageTextLoginIDVariant,
-		LoginPageTextLoginIDInputType: loginPageTextLoginIDInputType,
+		IdentityCandidates:     candidates,
+		IdentityCount:          identityCount,
+		LoginIDInputVariant:    variant,
+		LoginIDDisabled:        loginIDDisabled,
+		PhoneLoginIDEnabled:    hasPhone,
+		EmailLoginIDEnabled:    hasEmail,
+		UsernameLoginIDEnabled: hasUsername,
+		TextLoginIDInputType:   textLoginIDInputType,
 	}
 }
