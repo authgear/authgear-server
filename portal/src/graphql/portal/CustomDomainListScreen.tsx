@@ -51,6 +51,8 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
+import ScreenContent from "../../ScreenContent";
+import Widget from "../../Widget";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme
@@ -666,28 +668,30 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
     );
 
     return (
-      <div className={styles.content}>
+      <ScreenContent className={styles.root}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <Text className={styles.description}>
-          <FormattedMessage id="CustomDomainListScreen.desc" />
-        </Text>
-        {customDomainDisabled && (
-          <MessageBar>
-            <FormattedMessage
-              id="FeatureConfig.custom-domain.disabled"
-              values={{
-                planPagePath: "../billing",
-              }}
-            />
-          </MessageBar>
-        )}
-        <DetailsList
-          columns={domainListColumns}
-          items={domainListItems}
-          selectionMode={SelectionMode.none}
-          onRenderItemColumn={renderDomainListColumn}
-          onRenderDetailsHeader={renderDomainListHeader}
-        />
+        <Widget className={cn(styles.widget, styles.controlGroup)}>
+          <Text className={styles.description}>
+            <FormattedMessage id="CustomDomainListScreen.desc" />
+          </Text>
+          {customDomainDisabled && (
+            <MessageBar>
+              <FormattedMessage
+                id="FeatureConfig.custom-domain.disabled"
+                values={{
+                  planPagePath: "../billing",
+                }}
+              />
+            </MessageBar>
+          )}
+          <DetailsList
+            columns={domainListColumns}
+            items={domainListItems}
+            selectionMode={SelectionMode.none}
+            onRenderItemColumn={renderDomainListColumn}
+            onRenderDetailsHeader={renderDomainListHeader}
+          />
+        </Widget>
 
         <DeleteDomainDialog
           domain={deleteDomainDialogData.domain}
@@ -704,7 +708,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
           onConfirmClick={confirmUpdatePublicOrigin}
           dismissDialog={dismissUpdatePublicOriginDialog}
         />
-      </div>
+      </ScreenContent>
     );
   };
 

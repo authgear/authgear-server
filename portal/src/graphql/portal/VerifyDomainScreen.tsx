@@ -23,6 +23,8 @@ import { useCopyFeedback } from "../../hook/useCopyFeedback";
 
 import styles from "./VerifyDomainScreen.module.scss";
 import { ErrorParseRule } from "../../error/parse";
+import ScreenContent from "../../ScreenContent";
+import Widget from "../../Widget";
 
 interface VerifyDomainProps {
   domain: Domain;
@@ -197,37 +199,41 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
   }, []);
 
   return (
-    <section className={styles.content}>
-      <NavBreadcrumb className={styles.header} items={navBreadcrumbItems} />
-      <Text className={styles.description}>
-        <span>
-          <FormattedMessage id="VerifyDomainScreen.desc-main" />
-        </span>
-        <span className={styles.domainName}>{domain.domain}</span>
-      </Text>
-      <DetailsList
-        columns={dnsRecordListColumns}
-        items={dnsRecordListItems}
-        selectionMode={SelectionMode.none}
-        onRenderItemColumn={renderDNSRecordListColumn}
-      />
-      <Stack
-        className={styles.controlButtons}
-        horizontal={true}
-        tokens={{ childrenGap: 10 }}
-      >
-        <ButtonWithLoading
-          labelId="verify"
-          loading={verifyingDomain}
-          onClick={onVerifyClick}
+    <ScreenContent className={styles.root}>
+      <NavBreadcrumb items={navBreadcrumbItems} />
+      <Widget className={styles.widget}>
+        <Text className={styles.description}>
+          <FormattedMessage
+            id="VerifyDomainScreen.desc-main"
+            values={{
+              domain: domain.domain,
+            }}
+          />
+        </Text>
+        <DetailsList
+          columns={dnsRecordListColumns}
+          items={dnsRecordListItems}
+          selectionMode={SelectionMode.none}
+          onRenderItemColumn={renderDNSRecordListColumn}
         />
-        <DefaultButton onClick={onCancelClick}>
-          <FormattedMessage id="cancel" />
-        </DefaultButton>
-      </Stack>
+        <Stack
+          className={styles.controlButtons}
+          horizontal={true}
+          tokens={{ childrenGap: 10 }}
+        >
+          <ButtonWithLoading
+            labelId="verify"
+            loading={verifyingDomain}
+            onClick={onVerifyClick}
+          />
+          <DefaultButton onClick={onCancelClick}>
+            <FormattedMessage id="cancel" />
+          </DefaultButton>
+        </Stack>
 
-      <ErrorDialog error={verifyDomainError} rules={errorRules} />
-    </section>
+        <ErrorDialog error={verifyDomainError} rules={errorRules} />
+      </Widget>
+    </ScreenContent>
   );
 };
 
@@ -286,7 +292,7 @@ const VerifyDomainScreen: React.FC = function VerifyDomainScreen() {
   }
 
   return (
-    <main className={styles.root}>
+    <main>
       <VerifyDomain
         domain={domain}
         nonCustomVerifiedDomain={nonCustomVerifiedDomain}

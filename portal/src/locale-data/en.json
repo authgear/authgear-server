@@ -467,7 +467,7 @@
   "CustomDomainListScreen.verify-success-message": "Verified domain successfully",
 
   "VerifyDomainScreen.title": "Verify Domain",
-  "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own ",
+  "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own {b, react, children{{domain}}}",
   "VerifyDomainScreen.error.domain-not-found": "Requested domain is not found",
   "VerifyDomainScreen.error.non-custom-verified-domain-not-found": "Cannot find domain which is non-custom and verified",
   "VerifyDomainScreen.list.header.record-type": "Type",
