@@ -2,7 +2,6 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
-  DefaultButton,
   DetailsList,
   IColumn,
   IconButton,
@@ -169,10 +168,6 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
       .catch(() => {});
   }, [verifyDomain, domain, navigate]);
 
-  const onCancelClick = useCallback(() => {
-    navigate("../..");
-  }, [navigate]);
-
   const errorRules: ErrorParseRule[] = useMemo(() => {
     return [
       {
@@ -226,9 +221,6 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
             loading={verifyingDomain}
             onClick={onVerifyClick}
           />
-          <DefaultButton onClick={onCancelClick}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
         </Stack>
 
         <ErrorDialog error={verifyDomainError} rules={errorRules} />
