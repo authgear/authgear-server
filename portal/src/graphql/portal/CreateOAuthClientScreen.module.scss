@@ -1,5 +1,6 @@
 .root {
-  margin: 0 32px;
+  display: flex;
+  flex-direction: column;
 }
 
 .dialogClientId {
@@ -15,8 +16,4 @@
 
 .dialogCopyIcon {
   padding: 0;
-}
-
-.copyButtonCallout {
-  padding: 10px;
 }

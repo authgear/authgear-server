@@ -108,7 +108,7 @@ function makeOAuthClientListColumns(
       key: "name",
       fieldName: "name",
       name: renderToString("ApplicationsConfigurationScreen.client-list.name"),
-      minWidth: 150,
+      minWidth: 100,
       className: styles.columnHeader,
     },
 
@@ -118,14 +118,14 @@ function makeOAuthClientListColumns(
       name: renderToString(
         "ApplicationsConfigurationScreen.client-list.client-id"
       ),
-      minWidth: 300,
+      minWidth: 250,
       className: styles.columnHeader,
     },
     {
       key: "action",
       name: renderToString("action"),
       className: styles.columnHeader,
-      minWidth: 200,
+      minWidth: 150,
     },
   ];
 }
