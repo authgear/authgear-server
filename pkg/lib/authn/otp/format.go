@@ -3,7 +3,6 @@ package otp
 import (
 	"crypto/subtle"
 
-	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
@@ -16,10 +15,6 @@ var (
 	FormatNumeric = &Format{
 		Alphabet: "0123456789",
 		Length:   6,
-	}
-	FormatComplex = &Format{
-		Alphabet: base32.Alphabet,
-		Length:   8,
 	}
 )
 
