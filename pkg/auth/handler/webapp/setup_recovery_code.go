@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -122,7 +122,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 func formatRecoveryCodes(recoveryCodes []string) []string {
 	out := make([]string, len(recoveryCodes))
 	for i, code := range recoveryCodes {
-		out[i] = mfa.FormatRecoveryCode(code)
+		out[i] = secretcode.RecoveryCode.FormatForHuman(code)
 	}
 	return out
 }

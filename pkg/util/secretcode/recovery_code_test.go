@@ -1,20 +1,18 @@
-package mfa_test
+package secretcode
 
 import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 )
 
 func TestRecoveryCode(t *testing.T) {
 	Convey("RecoveryCode", t, func() {
 		Convey("Generate -> Format -> Normalize", func() {
-			code := mfa.GenerateRecoveryCode()
-			formatted := mfa.FormatRecoveryCode(code)
+			code := RecoveryCode.Generate()
+			formatted := RecoveryCode.FormatForHuman(code)
 
-			normalized, err := mfa.NormalizeRecoveryCode(formatted)
+			normalized, err := RecoveryCode.FormatForComparison(formatted)
 			So(err, ShouldBeNil)
 			So(normalized, ShouldEqual, code)
 		})

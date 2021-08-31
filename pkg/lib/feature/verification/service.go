@@ -7,12 +7,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -235,7 +235,7 @@ func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID str
 
 	loginIDType := config.LoginIDKeyType(info.Claims[identity.IdentityClaimLoginIDType].(string))
 
-	code := otp.FormatNumeric.Generate()
+	code := secretcode.OOBOTPSecretCode.Generate()
 	codeModel := &Code{
 		ID:              id,
 		UserID:          info.UserID,
@@ -274,7 +274,7 @@ func (s *Service) VerifyCode(id string, code string) (*Code, error) {
 		return nil, err
 	}
 
-	if !otp.ValidateOTP(code, codeModel.Code) {
+	if !secretcode.OOBOTPSecretCode.Compare(code, codeModel.Code) {
 		return nil, ErrInvalidVerificationCode
 	}
 

@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
-	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -86,7 +86,7 @@ func (p *Provider) GetCode(authenticatorID string) (*Code, error) {
 }
 
 func (p *Provider) CreateCode(authenticatorID string) (*Code, error) {
-	code := otp.FormatNumeric.Generate()
+	code := secretcode.OOBOTPSecretCode.Generate()
 	codeModel := &Code{
 		AuthenticatorID: authenticatorID,
 		Code:            code,
@@ -110,7 +110,7 @@ func (p *Provider) VerifyCode(authenticatorID string, code string) (*Code, error
 		return nil, err
 	}
 
-	if !otp.ValidateOTP(code, codeModel.Code) {
+	if !secretcode.OOBOTPSecretCode.Compare(code, codeModel.Code) {
 		return nil, ErrInvalidCode
 	}
 
