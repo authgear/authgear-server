@@ -441,7 +441,7 @@
   "ModifyOAuthClientForm.issue-jwt-access-token-tooltip-message": "Using JWT as access token allows easier access token decoding",
   "ModifyOAuthClientForm.add-uri": "Add URI",
   "ModifyOAuthClientForm.token-settings.title": "Token Settings",
-  "ModifyOAuthClientForm.token-settings.description": "For use with {strong, react, children{token-based}} authentication, usually native module apps or single-page apps.",
+  "ModifyOAuthClientForm.token-settings.description": "For use with {strong, react, children{token-based}} authentication, usually native mobile apps or single-page apps.",
   "ModifyOAuthClientForm.cookie-settings.title": "Cookie-based authentication",
   "ModifyOAuthClientForm.cookie-settings.description": "For use with {strong, react, children{cookie-based}} authentication, usually websites",
   "ModifyOAuthClientForm.cookie-settings.link-to-cookie-session": "Change cookie session lifetime and timeout in the {ReactRouterLink, react, to{{to}} children{Cookie Session Settings}}.",
