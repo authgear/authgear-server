@@ -12,6 +12,7 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/util/phone"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 func init() {
@@ -22,6 +23,10 @@ func init() {
 	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
+	jsonschemaformat.DefaultChecker["x_totp_code"] = secretcode.OOBOTPSecretCode
+	jsonschemaformat.DefaultChecker["x_oob_otp_code"] = secretcode.OOBOTPSecretCode
+	jsonschemaformat.DefaultChecker["x_verification_code"] = secretcode.OOBOTPSecretCode
+	jsonschemaformat.DefaultChecker["x_recovery_code"] = secretcode.RecoveryCode
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.

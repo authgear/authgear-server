@@ -52,11 +52,19 @@
                         {{ end }}
                     {{ else if (eq .kind "format") }}
                         {{ if (eq .details.format "phone") }}
-                            <li>{{ template "error-phone-number-format" (dict "IntentKind" $info.IntentKind) }}</li>
+                            <li>{{ template "error-phone-number-format" }}</li>
                         {{ else if (eq .details.format "email") }}
-                            <li>{{ template "error-invalid-email" (dict "IntentKind" $info.IntentKind) }}</li>
+                            <li>{{ template "error-invalid-email" }}</li>
                         {{ else if (eq .details.format "username") }}
-                            <li>{{ template "error-invalid-username" (dict "IntentKind" $info.IntentKind) }}</li>
+                            <li>{{ template "error-invalid-username" }}</li>
+                        {{ else if (eq .details.format "x_totp_code") }}
+                            <li>{{ template "error-totp-code-format" }}</li>
+                        {{ else if (eq .details.format "x_oob_otp_code") }}
+                            <li>{{ template "error-oob-otp-code-format" }}</li>
+                        {{ else if (eq .details.format "x_verification_code") }}
+                            <li>{{ template "error-verification-code-format" }}</li>
+                        {{ else if (eq .details.format "x_recovery_code") }}
+                            <li>{{ template "error-recovery-code-format" }}</li>
                         {{ else }}
                             <li>{{ . }}</li>
                         {{ end }}

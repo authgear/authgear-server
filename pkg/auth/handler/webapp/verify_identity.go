@@ -28,7 +28,10 @@ var VerifyIdentitySchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_verification_code": { "type": "string" }
+			"x_verification_code": {
+				"type": "string",
+				"format": "x_verification_code"
+			}
 		},
 		"required": ["x_verification_code"]
 	}
