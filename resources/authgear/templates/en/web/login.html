@@ -36,7 +36,7 @@
 					{{ end }}
 				</h1>
 
-				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.LoginPageLoginIDHasPhone }}
+				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if $.PhoneLoginIDEnabled }}
 				<input
 					data-intl-tel-input="true"
 					data-intl-tel-input-class="margin-b-20 flex flex-col"
@@ -52,30 +52,30 @@
 				>
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
+				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
 				<input
 					tabindex="0"
 					autofocus
 					class="margin-b-20 input text-input primary-txt"
-					type="{{ $.LoginPageTextLoginIDInputType }}"
+					type="{{ $.TextLoginIDInputType }}"
 					autocomplete="username"
 					autocapitalize="none"
 					name="x_login_id"
-					placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginPageTextLoginIDVariant) }}"
+					placeholder="{{ template "login-id-placeholder" (dict "variant" $.LoginIDInputVariant) }}"
 				>
 				<!-- This field is for Chrome and Safari to consider the above field as username for autocomplete -->
 				<input style="display: none" aria-hidden="true" type="password" autocomplete="current-password" name="">
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (not (eq $.LoginPageTextLoginIDVariant "none")) }}
-				<a class="link text-sm self-start block margin-b-10" href="{{ call $.MakeURL "" "x_login_id_input_type" $.LoginPageTextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginPageTextLoginIDVariant) }}</a>
+				{{ if $.x_login_id_input_type }}{{ if eq $.x_login_id_input_type "phone" }}{{ if (or $.EmailLoginIDEnabled $.UsernameLoginIDEnabled) }}
+				<a class="link text-sm self-start block margin-b-10" href="{{ call $.MakeURL "" "x_login_id_input_type" $.TextLoginIDInputType }}" data-turbolinks-action="replace">{{ template "use-text-login-id-description" (dict "variant" $.LoginIDInputVariant) }}</a>
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.LoginPageLoginIDHasPhone }}
+				{{ if $.x_login_id_input_type }}{{ if not (eq $.x_login_id_input_type "phone") }}{{ if $.PhoneLoginIDEnabled }}
 				<a class="link text-sm self-start block margin-b-10" href="{{ call $.MakeURL "" "x_login_id_input_type" "phone" }}" data-turbolinks-action="replace">{{ template "use-phone-login-id-description" }}</a>
 				{{ end }}{{ end }}{{ end }}
 
-				{{ if or $.LoginPageLoginIDHasPhone (not (eq $.LoginPageTextLoginIDVariant "none")) }}
+				{{ if not $.LoginIDDisabled }}
 				<button class="btn primary-btn margin-t-10 margin-b-20" type="submit" name="x_action" value="login_id">{{ template "next-button-label" }}</button>
 				{{ end }}
 
