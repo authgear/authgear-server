@@ -29,3 +29,22 @@ func (RecoveryCodeType) FormatForComparison(code string) (formatted string, err 
 	}
 	return
 }
+
+func (t RecoveryCodeType) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	formatted, err := t.FormatForComparison(str)
+	if err != nil {
+		return fmt.Errorf("invalid recovery code: %w", err)
+	}
+
+	codeLength := len(formatted)
+	if codeLength != 10 {
+		return fmt.Errorf("unexpected recovery code length: %v", codeLength)
+	}
+
+	return nil
+}
