@@ -1,6 +1,8 @@
 package welcomemessage
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -23,11 +25,16 @@ type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
 }
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type Provider struct {
 	Translation          TranslationService
 	RateLimiter          RateLimiter
 	WelcomeMessageConfig *config.WelcomeMessageConfig
 	TaskQueue            task.Queue
+	Events               EventService
 }
 
 func (p *Provider) send(emails []string) error {
@@ -72,6 +79,17 @@ func (p *Provider) send(emails []string) error {
 	p.TaskQueue.Enqueue(&tasks.SendMessagesParam{
 		EmailMessages: emailMessages,
 	})
+
+	for _, emailMessage := range emailMessages {
+		err := p.Events.DispatchEvent(&nonblocking.EmailSentEventPayload{
+			Sender:    emailMessage.Sender,
+			Recipient: emailMessage.Recipient,
+			Type:      nonblocking.MessageTypeWelcome,
+		})
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
