@@ -61,6 +61,9 @@ enum AuditLogActivityType {
   AUTHENTICATION_SECONDARY_TOTP_FAILED
 
   """"""
+  EMAIL_SENT
+
+  """"""
   IDENTITY_EMAIL_ADDED
 
   """"""
@@ -92,6 +95,9 @@ enum AuditLogActivityType {
 
   """"""
   IDENTITY_USERNAME_UPDATED
+
+  """"""
+  SMS_SENT
 
   """"""
   USER_ANONYMOUS_PROMOTED

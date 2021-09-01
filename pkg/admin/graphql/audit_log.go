@@ -1,7 +1,7 @@
 package graphql
 
 import (
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -88,6 +88,12 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		},
 		"IDENTITY_OAUTH_DISCONNECTED": &graphql.EnumValueConfig{
 			Value: "identity.oauth.disconnected",
+		},
+		"EMAIL_SENT": &graphql.EnumValueConfig{
+			Value: "email.sent",
+		},
+		"SMS_SENT": &graphql.EnumValueConfig{
+			Value: "sms.sent",
 		},
 	},
 })
