@@ -526,6 +526,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Endpoints:   webEndpoints,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,

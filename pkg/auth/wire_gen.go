@@ -423,11 +423,58 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -495,52 +542,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -1008,11 +1009,58 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1080,52 +1128,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -1557,11 +1559,58 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -1629,52 +1678,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -3535,11 +3538,58 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -3607,52 +3657,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -4105,11 +4109,58 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4177,52 +4228,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -4681,11 +4686,58 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -4753,52 +4805,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -5257,11 +5263,58 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5329,52 +5382,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -5833,11 +5840,58 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -5905,52 +5959,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -6410,11 +6418,58 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -6482,52 +6537,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -6979,11 +6988,58 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7051,52 +7107,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -7551,11 +7561,58 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -7623,52 +7680,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -8126,11 +8137,58 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8198,52 +8256,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -8698,11 +8710,58 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -8770,52 +8829,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -9269,11 +9282,58 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9341,52 +9401,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -9841,11 +9855,58 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -9913,52 +9974,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -10414,11 +10429,58 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -10486,52 +10548,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -10985,11 +11001,58 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11057,52 +11120,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -11556,11 +11573,58 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -11628,52 +11692,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -12129,11 +12147,58 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12201,52 +12266,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -12700,11 +12719,58 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -12772,52 +12838,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -13271,11 +13291,58 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13343,52 +13410,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -13845,11 +13866,58 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -13917,52 +13985,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -14416,11 +14438,58 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -14488,52 +14557,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -14992,11 +15015,58 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -15064,52 +15134,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -15563,11 +15587,58 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -15635,52 +15706,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -16135,11 +16160,58 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -16207,52 +16279,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -16706,11 +16732,58 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -16778,52 +16851,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -17296,11 +17323,58 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -17368,52 +17442,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -17869,11 +17897,58 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -17941,52 +18016,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -18441,11 +18470,58 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -18513,52 +18589,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -19022,11 +19052,58 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -19094,52 +19171,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -19594,11 +19625,58 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -19666,52 +19744,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -20166,11 +20198,58 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -20238,52 +20317,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -20739,11 +20772,58 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -20811,52 +20891,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -21317,11 +21351,58 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -21389,52 +21470,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -21889,11 +21924,58 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -21961,52 +22043,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -22461,11 +22497,58 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -22533,52 +22616,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -23032,11 +23069,58 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -23104,52 +23188,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -23623,11 +23661,58 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -23695,52 +23780,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
@@ -24194,11 +24233,58 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	endpointsProvider := &EndpointsProvider{
 		OriginProvider: mainOriginProvider,
 	}
+	eventLogger := event.NewLogger(factory)
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
+	}
+	rawProvider := &user.RawProvider{
+		RawCommands: rawCommands,
+		Queries:     queries,
+	}
+	storeImpl := &event.StoreImpl{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	hookLogger := hook.NewLogger(factory)
+	hookConfig := appConfig.Hook
+	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
+	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
+	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	deliverer := &hook.Deliverer{
+		Config:    hookConfig,
+		Secret:    webhookKeyMaterials,
+		Clock:     clockClock,
+		SyncHTTP:  syncHTTPClient,
+		AsyncHTTP: asyncHTTPClient,
+	}
+	sink := &hook.Sink{
+		Logger:    hookLogger,
+		Deliverer: deliverer,
+	}
+	auditLogger := audit.NewLogger(factory)
+	writeHandle := appProvider.AuditWriteDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeStore := &audit.WriteStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	auditSink := &audit.Sink{
+		Logger:   auditLogger,
+		Database: writeHandle,
+		Store:    writeStore,
+	}
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
 		RateLimiter: limiter,
 		TaskQueue:   queue,
+		Events:      eventService,
 	}
 	codeSender := &oob.CodeSender{
 		OTPMessageSender: messageSender,
@@ -24266,52 +24352,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,
