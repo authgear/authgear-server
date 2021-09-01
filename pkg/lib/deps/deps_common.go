@@ -77,6 +77,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.EventService), new(*event.Service)),
 		wire.Bind(new(session.EventService), new(*event.Service)),
 		wire.Bind(new(otp.EventService), new(*event.Service)),
+		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(

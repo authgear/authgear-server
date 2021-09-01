@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -56,6 +58,10 @@ func NewProviderLogger(lf *log.Factory) ProviderLogger {
 	return ProviderLogger{lf.New("forgotpassword")}
 }
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type Provider struct {
 	Request     *http.Request
 	Translation TranslationService
@@ -73,6 +79,7 @@ type Provider struct {
 	Authenticators AuthenticatorService
 	RateLimiter    RateLimiter
 	FeatureConfig  *config.FeatureConfig
+	Events         EventService
 }
 
 // SendCode checks if loginID is an existing login ID.
@@ -189,6 +196,15 @@ func (p *Provider) sendEmail(email string, code string) error {
 		}},
 	})
 
+	err = p.Events.DispatchEvent(&nonblocking.EmailSentEventPayload{
+		Sender:    msg.Sender,
+		Recipient: email,
+		Type:      nonblocking.MessageTypeForgotPassword,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -222,6 +238,15 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 			Body:   msg.Body,
 		}},
 	})
+
+	err = p.Events.DispatchEvent(&nonblocking.SMSSentEventPayload{
+		Sender:    msg.Sender,
+		Recipient: phone,
+		Type:      nonblocking.MessageTypeForgotPassword,
+	})
+	if err != nil {
+		return err
+	}
 
 	return
 }

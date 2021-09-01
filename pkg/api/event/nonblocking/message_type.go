@@ -8,4 +8,5 @@ const (
 	MessageTypeSetupSecondaryOOB        MessageType = "setup-secondary-oob"
 	MessageTypeAuthenticatePrimaryOOB   MessageType = "authenticate-primary-oob"
 	MessageTypeAuthenticateSecondaryOOB MessageType = "authenticate-secondary-oob"
+	MessageTypeForgotPassword           MessageType = "forgot-password"
 )
