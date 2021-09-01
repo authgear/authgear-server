@@ -20,7 +20,10 @@ var EnterRecoveryCodeSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_recovery_code": { "type": "string" }
+			"x_recovery_code": {
+				"type": "string",
+				"format": "x_recovery_code"
+			}
 		},
 		"required": ["x_recovery_code"]
 	}

@@ -25,7 +25,10 @@ var EnterOOBOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_oob_otp_code": { "type": "string" }
+			"x_oob_otp_code": {
+				"type": "string",
+				"format": "x_oob_otp_code"
+			}
 		},
 		"required": ["x_oob_otp_code"]
 	}

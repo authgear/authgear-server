@@ -20,7 +20,10 @@ var EnterTOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_totp_code": { "type": "string" }
+			"x_totp_code": {
+				"type": "string",
+				"format": "x_totp_code"
+			}
 		},
 		"required": ["x_totp_code"]
 	}

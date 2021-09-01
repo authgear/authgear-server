@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -74,7 +75,7 @@ func (s *Service) HasDeviceTokens(userID string) (bool, error) {
 func (s *Service) GenerateRecoveryCodes() []string {
 	codes := make([]string, s.Config.RecoveryCode.Count)
 	for i := range codes {
-		codes[i] = GenerateRecoveryCode()
+		codes[i] = secretcode.RecoveryCode.Generate()
 	}
 	return codes
 }
@@ -113,7 +114,7 @@ func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode,
 		return nil, err
 	}
 
-	code, err = NormalizeRecoveryCode(code)
+	code, err = secretcode.RecoveryCode.FormatForComparison(code)
 	if err != nil {
 		err = ErrRecoveryCodeNotFound
 		return nil, err
