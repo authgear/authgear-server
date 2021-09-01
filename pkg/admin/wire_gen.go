@@ -469,10 +469,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	eventLogger := event.NewLogger(factory)
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -505,7 +501,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	commands := &user.Commands{
 		Raw:          rawCommands,
 		Events:       eventService,

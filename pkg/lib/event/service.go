@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -18,10 +17,6 @@ import (
 )
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package event
-
-type UserService interface {
-	Get(id string) (*model.User, error)
-}
 
 type Database interface {
 	UseHook(hook db.TransactionHook)
@@ -47,7 +42,6 @@ type Service struct {
 	Logger       Logger
 	Database     Database
 	Clock        clock.Clock
-	Users        UserService
 	Localization *config.LocalizationConfig
 	Store        Store
 	Sinks        []Sink

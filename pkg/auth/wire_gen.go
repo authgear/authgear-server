@@ -424,16 +424,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -468,7 +458,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -547,6 +537,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1011,16 +1007,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1055,7 +1041,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -1134,6 +1120,12 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1562,16 +1554,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -1606,7 +1588,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -1685,6 +1667,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -2095,10 +2083,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:   verificationService,
 	}
 	eventLogger := event.NewLogger(factory)
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -2133,7 +2117,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
@@ -3139,10 +3123,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Verification:   verificationService,
 	}
 	eventLogger := event.NewLogger(factory)
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -3177,7 +3157,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
@@ -3542,16 +3522,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -3586,7 +3556,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -3665,6 +3635,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4114,16 +4090,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4158,7 +4124,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -4237,6 +4203,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4692,16 +4664,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -4736,7 +4698,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -4815,6 +4777,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -5270,16 +5238,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5314,7 +5272,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -5393,6 +5351,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -5848,16 +5812,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -5892,7 +5846,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -5971,6 +5925,12 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -6427,16 +6387,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -6471,7 +6421,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -6550,6 +6500,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -6998,16 +6954,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -7042,7 +6988,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -7121,6 +7067,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -7572,16 +7524,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -7616,7 +7558,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -7695,6 +7637,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -8149,16 +8097,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -8193,7 +8131,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -8272,6 +8210,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -8723,16 +8667,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -8767,7 +8701,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -8846,6 +8780,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -9296,16 +9236,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -9340,7 +9270,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -9419,6 +9349,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -9870,16 +9806,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -9914,7 +9840,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -9993,6 +9919,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -10445,16 +10377,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -10489,7 +10411,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -10568,6 +10490,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -11018,16 +10946,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -11062,7 +10980,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -11141,6 +11059,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -11591,16 +11515,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -11635,7 +11549,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -11714,6 +11628,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -12166,16 +12086,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -12210,7 +12120,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -12289,6 +12199,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -12739,16 +12655,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -12783,7 +12689,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -12862,6 +12768,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -13312,16 +13224,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -13356,7 +13258,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -13435,6 +13337,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -13888,16 +13796,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -13932,7 +13830,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -14011,6 +13909,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -14461,16 +14365,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -14505,7 +14399,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -14584,6 +14478,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -15039,16 +14939,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -15083,7 +14973,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -15162,6 +15052,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -15612,16 +15508,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -15656,7 +15542,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -15735,6 +15621,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -16186,16 +16078,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -16230,7 +16112,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -16309,6 +16191,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -16759,16 +16647,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -16803,7 +16681,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -16882,6 +16760,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -17351,16 +17235,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -17395,7 +17269,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -17474,6 +17348,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -17926,16 +17806,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -17970,7 +17840,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -18049,6 +17919,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -18500,16 +18376,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -18544,7 +18410,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -18623,6 +18489,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -19083,16 +18955,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -19127,7 +18989,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -19206,6 +19068,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -19657,16 +19525,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -19701,7 +19559,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -19780,6 +19638,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -20231,16 +20095,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -20275,7 +20129,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -20354,6 +20208,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -20806,16 +20666,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -20850,7 +20700,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -20929,6 +20779,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -21386,16 +21242,6 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -21430,7 +21276,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -21509,6 +21355,12 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -21960,16 +21812,6 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -22004,7 +21846,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -22083,6 +21925,12 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -22534,16 +22382,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -22578,7 +22416,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -22657,6 +22495,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -23107,16 +22951,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -23151,7 +22985,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -23230,6 +23064,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -23700,16 +23540,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -23744,7 +23574,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -23823,6 +23653,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -24273,16 +24109,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		OriginProvider: mainOriginProvider,
 	}
 	eventLogger := event.NewLogger(factory)
-	queries := &user.Queries{
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	rawProvider := &user.RawProvider{
-		RawCommands: rawCommands,
-		Queries:     queries,
-	}
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -24317,7 +24143,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, rawProvider, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
 		Endpoints:   endpointsProvider,
@@ -24396,6 +24222,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Raw:          rawCommands,
 		Events:       eventService,
 		Verification: verificationService,
+	}
+	queries := &user.Queries{
+		Store:          userStore,
+		Identities:     identityFacade,
+		Authenticators: authenticatorFacade,
+		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
