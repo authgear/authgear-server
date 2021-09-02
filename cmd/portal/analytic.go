@@ -52,10 +52,16 @@ var cmdAnalyticReport = &cobra.Command{
 		reportType := args[0]
 		switch reportType {
 		case reportTypeUserWeeklyReport:
+			// TODO: support command flags
 			now := time.Now().UTC()
+			lastWeek := now.AddDate(0, 0, -7)
 			report := analytic.NewUserWeeklyReport(context.Background(), dbPool, dbCredentials)
-			year, week := now.ISOWeek()
-			report.Run(year, week)
+			year, week := lastWeek.ISOWeek()
+			report.Run(&analytic.UserWeeklyReportOptions{
+				Year:        year,
+				Week:        week,
+				PortalAppID: "accounts",
+			})
 		case reportTypeProjectWeeklyReport:
 			log.Printf("TODO")
 		case reportTypeProjectMonthlyReport:

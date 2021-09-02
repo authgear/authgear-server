@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 )
 
@@ -26,9 +27,25 @@ func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	appID := NewEmptyAppID()
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
+	appDBStore := &analytic.AppDBStore{
+		SQLBuilder:  appdbSQLBuilder,
+		SQLExecutor: appdbSQLExecutor,
+	}
 	userWeeklyReport := &UserWeeklyReport{
-		Handle:        handle,
+		GlobalHandle:  handle,
 		GlobalDBStore: globalDBStore,
+		AppDBHandle:   appdbHandle,
+		AppDBStore:    appDBStore,
 	}
 	return userWeeklyReport
+}
+
+// wire.go:
+
+func NewEmptyAppID() config.AppID {
+	return config.AppID("")
 }
