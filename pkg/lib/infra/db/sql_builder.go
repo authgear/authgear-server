@@ -48,6 +48,14 @@ func (b SQLBuilder) Global() SQLStatementBuilder {
 	}
 }
 
+func (b SQLBuilder) WithAppID(appID string) SQLStatementBuilder {
+	return SQLStatementBuilder{
+		builder:   b.StatementBuilderType,
+		forTenant: true,
+		appID:     appID,
+	}
+}
+
 type SQLStatementBuilder struct {
 	builder sq.StatementBuilderType
 
