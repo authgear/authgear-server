@@ -26,7 +26,6 @@ func TestServiceDispatchEvent(t *testing.T) {
 
 		ctx := context.Background()
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
-		users := NewMockUserService(ctrl)
 		database := NewMockDatabase(ctrl)
 		sink := NewMockSink(ctrl)
 		store := NewMockStore(ctrl)
@@ -45,7 +44,6 @@ func TestServiceDispatchEvent(t *testing.T) {
 			Logger:       logger,
 			Database:     database,
 			Clock:        clock,
-			Users:        users,
 			Localization: localization,
 			Store:        store,
 			Sinks:        []Sink{sink},

@@ -3,6 +3,8 @@ package otp
 import (
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -30,11 +32,16 @@ type RateLimiter interface {
 	TakeToken(bucket ratelimit.Bucket) error
 }
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type MessageSender struct {
 	Translation TranslationService
 	Endpoints   EndpointsProvider
 	RateLimiter RateLimiter
 	TaskQueue   task.Queue
+	Events      EventService
 }
 
 func (s *MessageSender) makeData(opts SendOptions) (*MessageTemplateContext, error) {
@@ -58,17 +65,23 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 	data.Email = email
 
 	var spec *translation.MessageSpec
+	var emailType nonblocking.MessageType
 	switch opts.MessageType {
 	case MessageTypeVerification:
 		spec = messageVerification
+		emailType = nonblocking.MessageTypeVerification
 	case MessageTypeSetupPrimaryOOB:
 		spec = messageSetupPrimaryOOB
+		emailType = nonblocking.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
 		spec = messageSetupSecondaryOOB
+		emailType = nonblocking.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
 		spec = messageAuthenticatePrimaryOOB
+		emailType = nonblocking.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
 		spec = messageAuthenticateSecondaryOOB
+		emailType = nonblocking.MessageTypeAuthenticateSecondaryOOB
 	default:
 		panic("otp: unknown message type: " + opts.MessageType)
 	}
@@ -94,6 +107,15 @@ func (s *MessageSender) SendEmail(email string, opts SendOptions) error {
 		}},
 	})
 
+	err = s.Events.DispatchEvent(&nonblocking.EmailSentEventPayload{
+		Sender:    msg.Sender,
+		Recipient: email,
+		Type:      emailType,
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -105,17 +127,23 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 	data.Phone = phone
 
 	var spec *translation.MessageSpec
+	var smsType nonblocking.MessageType
 	switch opts.MessageType {
 	case MessageTypeVerification:
 		spec = messageVerification
+		smsType = nonblocking.MessageTypeVerification
 	case MessageTypeSetupPrimaryOOB:
 		spec = messageSetupPrimaryOOB
+		smsType = nonblocking.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
 		spec = messageSetupSecondaryOOB
+		smsType = nonblocking.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
 		spec = messageAuthenticatePrimaryOOB
+		smsType = nonblocking.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
 		spec = messageAuthenticateSecondaryOOB
+		smsType = nonblocking.MessageTypeAuthenticateSecondaryOOB
 	default:
 		panic("otp: unknown message type: " + opts.MessageType)
 	}
@@ -137,6 +165,15 @@ func (s *MessageSender) SendSMS(phone string, opts SendOptions) (err error) {
 			Body:   msg.Body,
 		}},
 	})
+
+	err = s.Events.DispatchEvent(&nonblocking.SMSSentEventPayload{
+		Sender:    msg.Sender,
+		Recipient: phone,
+		Type:      smsType,
+	})
+	if err != nil {
+		return err
+	}
 
 	return
 }

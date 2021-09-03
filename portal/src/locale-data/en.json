@@ -764,6 +764,8 @@
   "AuditLogActivityType.USER_AUTHENTICATED": "Logged in",
   "AuditLogActivityType.USER_CREATED": "Signed up",
   "AuditLogActivityType.USER_SIGNED_OUT": "Signed out",
+  "AuditLogActivityType.EMAIL_SENT": "Email sent",
+  "AuditLogActivityType.SMS_SENT": "SMS sent",
 
   "FeatureConfig.disabled": "The grayed out features are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan} target{_blank}}.",
   "FeatureConfig.custom-domain.disabled": "Custom domains are not available for your project plan. {ReactRouterLink, react, to{{planPagePath}} children{Upgrade your project plan}}.",
