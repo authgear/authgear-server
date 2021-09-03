@@ -8,23 +8,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type StringValue string
-
-func NewStringValue(val string) *StringValue {
-	p := val
-	return (*StringValue)(&p)
-}
-
-func (s *StringValue) Set(val string) error {
-	*s = StringValue(val)
-	return nil
-}
-func (s *StringValue) Type() string {
-	return "string"
-}
-
-func (s *StringValue) String() string { return string(*s) }
-
 func NewBinder() *Binder {
 	return &Binder{
 		Viper: viper.New(),
@@ -61,12 +44,4 @@ func (b *Binder) GetRequiredString(cmd *cobra.Command, arg *StringArgument) (str
 		return val, nil
 	}
 	return "", fmt.Errorf("%s is required", arg.ArgumentName)
-}
-
-type StringArgument struct {
-	ArgumentName string
-	EnvName      string
-	Short        string
-	Usage        string
-	DefaultValue string
 }
