@@ -93,3 +93,14 @@ var ArgAnalyticISOWeek = &cobraviper.IntArgument{
 	Max:          newInt(53),
 }
 
+var ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath = &cobraviper.StringArgument{
+	ArgumentName: "google-client-credentials-file",
+	Usage:        "File path of client_credentials.json, the file can be downloaded from https://console.developers.google.com, under \"Credentials\"",
+	DefaultValue: "./client_credentials.json",
+}
+
+var ArgAnalyticGoogleOAuthTokenFilePath = &cobraviper.StringArgument{
+	ArgumentName: "google-token-file",
+	Usage:        "File path of oauth token file in json format",
+	DefaultValue: "./token.json",
+}
