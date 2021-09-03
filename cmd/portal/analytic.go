@@ -11,10 +11,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const reportTypeUserWeeklyReport = "user-weekly-report"
-const reportTypeProjectWeeklyReport = "project-weekly-report"
-const reportTypeProjectMonthlyReport = "project-monthly-report"
-
 func init() {
 	binder := getBinder()
 	cmdAnalytic.AddCommand(cmdAnalyticReport)
@@ -119,7 +115,7 @@ var cmdAnalyticReport = &cobra.Command{
 		dbPool := db.NewPool()
 		reportType := args[0]
 		switch reportType {
-		case reportTypeUserWeeklyReport:
+		case analytic.ReportTypeUserWeeklyReport:
 			year, week, err := getISOWeek()
 			if err != nil {
 				return err
@@ -133,9 +129,9 @@ var cmdAnalyticReport = &cobra.Command{
 			if err != nil {
 				return err
 			}
-		case reportTypeProjectWeeklyReport:
+		case analytic.ReportTypeProjectWeeklyReport:
 			log.Printf("TODO")
-		case reportTypeProjectMonthlyReport:
+		case analytic.ReportTypeProjectMonthlyReport:
 			log.Printf("TODO")
 		default:
 			log.Fatalf("unknown report type: %s", reportType)
