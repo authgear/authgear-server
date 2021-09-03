@@ -20,6 +20,11 @@ func init() {
 	cmdAnalytic.AddCommand(cmdAnalyticReport)
 	binder.BindString(cmdAnalyticReport.Flags(), ArgDatabaseURL)
 	binder.BindString(cmdAnalyticReport.Flags(), ArgDatabaseSchema)
+
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticPortalAppID)
+	binder.BindInt(cmdAnalyticReport.Flags(), ArgAnalyticYear)
+	binder.BindInt(cmdAnalyticReport.Flags(), ArgAnalyticISOWeek)
+
 }
 
 var cmdAnalytic = &cobra.Command{
@@ -48,19 +53,45 @@ var cmdAnalyticReport = &cobra.Command{
 			DatabaseSchema: dbSchema,
 		}
 
+		portalAppID, err := binder.GetRequiredString(cmd, ArgAnalyticPortalAppID)
+		if err != nil {
+			return err
+		}
+
+		getISOWeek := func() (year int, week int, err error) {
+			y, err := binder.GetInt(cmd, ArgAnalyticYear)
+			if err != nil {
+				return
+			}
+			w, err := binder.GetInt(cmd, ArgAnalyticISOWeek)
+			if err != nil {
+				return
+			}
+			if y == nil || w == nil {
+				// if year and week are not provided
+				// use last week as default
+				now := time.Now().UTC()
+				lastWeek := now.AddDate(0, 0, -7)
+				year, week = lastWeek.ISOWeek()
+			} else {
+				year, week = *y, *w
+			}
+			return
+		}
+
 		dbPool := db.NewPool()
 		reportType := args[0]
 		switch reportType {
 		case reportTypeUserWeeklyReport:
-			// TODO: support command flags
-			now := time.Now().UTC()
-			lastWeek := now.AddDate(0, 0, -7)
+			year, week, err := getISOWeek()
+			if err != nil {
+				return err
+			}
 			report := analytic.NewUserWeeklyReport(context.Background(), dbPool, dbCredentials)
-			year, week := lastWeek.ISOWeek()
 			report.Run(&analytic.UserWeeklyReportOptions{
 				Year:        year,
 				Week:        week,
-				PortalAppID: "accounts",
+				PortalAppID: portalAppID,
 			})
 		case reportTypeProjectWeeklyReport:
 			log.Printf("TODO")
