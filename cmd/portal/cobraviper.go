@@ -93,6 +93,12 @@ var ArgAnalyticISOWeek = &cobraviper.IntArgument{
 	Max:          newInt(53),
 }
 
+var ArgAnalyticOutputType = &cobraviper.StringArgument{
+	ArgumentName: "output-type",
+	Usage:        "Output format of the report, currently supports stdout and google-sheets",
+	DefaultValue: "stdout",
+}
+
 var ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath = &cobraviper.StringArgument{
 	ArgumentName: "google-client-credentials-file",
 	Usage:        "File path of client_credentials.json, the file can be downloaded from https://console.developers.google.com, under \"Credentials\"",
@@ -103,4 +109,14 @@ var ArgAnalyticGoogleOAuthTokenFilePath = &cobraviper.StringArgument{
 	ArgumentName: "google-token-file",
 	Usage:        "File path of oauth token file in json format",
 	DefaultValue: "./token.json",
+}
+
+var ArgAnalyticGoogleSpreadsheetID = &cobraviper.StringArgument{
+	ArgumentName: "google-spreadsheet-id",
+	Usage:        "The ID of the spreadsheet to update",
+}
+
+var ArgAnalyticGoogleSpreadsheetRange = &cobraviper.StringArgument{
+	ArgumentName: "google-spreadsheet-range",
+	Usage:        "The A1 notation of a range to search for a logical table of data.",
 }

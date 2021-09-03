@@ -25,6 +25,11 @@ func init() {
 	binder.BindInt(cmdAnalyticReport.Flags(), ArgAnalyticYear)
 	binder.BindInt(cmdAnalyticReport.Flags(), ArgAnalyticISOWeek)
 
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticOutputType)
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleOAuthTokenFilePath)
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleSpreadsheetID)
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleSpreadsheetRange)
 }
 
 var cmdAnalytic = &cobra.Command{
@@ -58,6 +63,37 @@ var cmdAnalyticReport = &cobra.Command{
 			return err
 		}
 
+		outputType, err := binder.GetRequiredString(cmd, ArgAnalyticOutputType)
+		if err != nil {
+			return err
+		}
+
+		clientCredentialsJSONFilePath := ""
+		tokenJSONFilePath := ""
+		googleSpreadsheetID := ""
+		googleSpreadsheetRange := ""
+		if outputType == analytic.ReportOutputTypeGoogleSheets {
+			clientCredentialsJSONFilePath, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
+			if err != nil {
+				return err
+			}
+
+			tokenJSONFilePath, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleOAuthTokenFilePath)
+			if err != nil {
+				return err
+			}
+
+			googleSpreadsheetID, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleSpreadsheetID)
+			if err != nil {
+				return err
+			}
+
+			googleSpreadsheetRange, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleSpreadsheetRange)
+			if err != nil {
+				return err
+			}
+		}
+
 		getISOWeek := func() (year int, week int, err error) {
 			y, err := binder.GetInt(cmd, ArgAnalyticYear)
 			if err != nil {
@@ -79,6 +115,7 @@ var cmdAnalyticReport = &cobra.Command{
 			return
 		}
 
+		var data *analytic.ReportData
 		dbPool := db.NewPool()
 		reportType := args[0]
 		switch reportType {
@@ -88,11 +125,14 @@ var cmdAnalyticReport = &cobra.Command{
 				return err
 			}
 			report := analytic.NewUserWeeklyReport(context.Background(), dbPool, dbCredentials)
-			report.Run(&analytic.UserWeeklyReportOptions{
+			data, err = report.Run(&analytic.UserWeeklyReportOptions{
 				Year:        year,
 				Week:        week,
 				PortalAppID: portalAppID,
 			})
+			if err != nil {
+				return err
+			}
 		case reportTypeProjectWeeklyReport:
 			log.Printf("TODO")
 		case reportTypeProjectMonthlyReport:
@@ -101,6 +141,16 @@ var cmdAnalyticReport = &cobra.Command{
 			log.Fatalf("unknown report type: %s", reportType)
 		}
 
-		return
+		return analytic.OutputReport(
+			context.Background(),
+			&analytic.OutputReportOptions{
+				OutputType:                               outputType,
+				GoogleOAuthClientCredentialsJSONFilePath: clientCredentialsJSONFilePath,
+				GoogleOAuthTokenFilePath:                 tokenJSONFilePath,
+				SpreadsheetID:                            googleSpreadsheetID,
+				SpreadsheetRange:                         googleSpreadsheetRange,
+			},
+			data,
+		)
 	},
 }

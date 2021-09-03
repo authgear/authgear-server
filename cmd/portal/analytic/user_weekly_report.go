@@ -23,7 +23,7 @@ type UserWeeklyReport struct {
 	AppDBStore    *analytic.AppDBStore
 }
 
-func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (err error) {
+func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (data *ReportData, err error) {
 	rangeFrom := timeutil.FirstDayOfISOWeek(options.Year, options.Week, time.UTC)
 	rangeTo := rangeFrom.AddDate(0, 0, 7)
 
@@ -68,8 +68,19 @@ func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (err error) {
 		haveCreatedAppCount,
 	}
 
-	// TODO: support output type
-	fmt.Println("entry", entry)
+	data = &ReportData{
+		Header: []interface{}{
+			"Year",
+			"Week",
+			"Range From",
+			"Range To",
+			"Number of new users",
+			"Number of new users who have created project",
+		},
+		Values: [][]interface{}{
+			entry,
+		},
+	}
 
-	return nil
+	return
 }
