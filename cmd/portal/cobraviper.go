@@ -95,8 +95,13 @@ var ArgAnalyticISOWeek = &cobraviper.IntArgument{
 
 var ArgAnalyticOutputType = &cobraviper.StringArgument{
 	ArgumentName: "output-type",
-	Usage:        "Output format of the report, currently supports stdout and google-sheets",
-	DefaultValue: "stdout",
+	Usage:        "Output format of the report, currently supports csv and google-sheets",
+	DefaultValue: "csv",
+}
+
+var ArgAnalyticCSVOutputFilePath = &cobraviper.StringArgument{
+	ArgumentName: "csv-file",
+	Usage:        "File path of the output csv file",
 }
 
 var ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath = &cobraviper.StringArgument{

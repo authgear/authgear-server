@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -23,6 +24,7 @@ func init() {
 	binder.BindInt(cmdAnalyticReport.Flags(), ArgAnalyticISOWeek)
 
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticOutputType)
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticCSVOutputFilePath)
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleOAuthTokenFilePath)
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticGoogleSpreadsheetID)
@@ -66,10 +68,21 @@ var cmdAnalyticReport = &cobra.Command{
 		}
 
 		clientCredentialsJSONFilePath := ""
+		csvOutputFilePath := ""
 		tokenJSONFilePath := ""
 		googleSpreadsheetID := ""
 		googleSpreadsheetRange := ""
-		if outputType == analytic.ReportOutputTypeGoogleSheets {
+		reportType := args[0]
+
+		switch outputType {
+		case analytic.ReportOutputTypeCSV:
+			csvOutputFilePath = binder.GetString(cmd, ArgAnalyticCSVOutputFilePath)
+			// if the csv output file path is not provided
+			// use the report type as the default file name
+			if csvOutputFilePath == "" {
+				csvOutputFilePath = fmt.Sprintf("%s.csv", reportType)
+			}
+		case analytic.ReportOutputTypeGoogleSheets:
 			clientCredentialsJSONFilePath, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
 			if err != nil {
 				return err
@@ -89,6 +102,8 @@ var cmdAnalyticReport = &cobra.Command{
 			if err != nil {
 				return err
 			}
+		default:
+			log.Fatalf("unknown output type: %s", outputType)
 		}
 
 		getISOWeek := func() (year int, week int, err error) {
@@ -114,7 +129,6 @@ var cmdAnalyticReport = &cobra.Command{
 
 		var data *analyticlib.ReportData
 		dbPool := db.NewPool()
-		reportType := args[0]
 		switch reportType {
 		case analytic.ReportTypeUserWeeklyReport:
 			year, week, err := getISOWeek()
@@ -142,6 +156,7 @@ var cmdAnalyticReport = &cobra.Command{
 			context.Background(),
 			&analytic.OutputReportOptions{
 				OutputType:                               outputType,
+				CSVOutputFilePath:                        csvOutputFilePath,
 				GoogleOAuthClientCredentialsJSONFilePath: clientCredentialsJSONFilePath,
 				GoogleOAuthTokenFilePath:                 tokenJSONFilePath,
 				SpreadsheetID:                            googleSpreadsheetID,
