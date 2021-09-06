@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
@@ -18,16 +17,16 @@ type UserWeeklyReportOptions struct {
 
 type UserWeeklyReport struct {
 	GlobalHandle  *globaldb.Handle
-	GlobalDBStore *analytic.GlobalDBStore
+	GlobalDBStore *GlobalDBStore
 	AppDBHandle   *appdb.Handle
-	AppDBStore    *analytic.AppDBStore
+	AppDBStore    *AppDBStore
 }
 
 func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (data *ReportData, err error) {
 	rangeFrom := timeutil.FirstDayOfISOWeek(options.Year, options.Week, time.UTC)
 	rangeTo := rangeFrom.AddDate(0, 0, 7)
 
-	var appOwners []*analytic.AppCollaborator
+	var appOwners []*AppCollaborator
 	if err = r.GlobalHandle.WithTx(func() (e error) {
 		appOwners, err = r.GlobalDBStore.GetNewAppOwners(&rangeFrom, &rangeTo)
 		return err

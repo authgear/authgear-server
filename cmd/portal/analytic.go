@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
+	analyticlib "github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/spf13/cobra"
@@ -111,7 +112,7 @@ var cmdAnalyticReport = &cobra.Command{
 			return
 		}
 
-		var data *analytic.ReportData
+		var data *analyticlib.ReportData
 		dbPool := db.NewPool()
 		reportType := args[0]
 		switch reportType {
@@ -121,7 +122,7 @@ var cmdAnalyticReport = &cobra.Command{
 				return err
 			}
 			report := analytic.NewUserWeeklyReport(context.Background(), dbPool, dbCredentials)
-			data, err = report.Run(&analytic.UserWeeklyReportOptions{
+			data, err = report.Run(&analyticlib.UserWeeklyReportOptions{
 				Year:        year,
 				Week:        week,
 				PortalAppID: portalAppID,

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/authgear/authgear-server/cmd/portal/util/google"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"google.golang.org/api/sheets/v4"
 )
 
@@ -17,7 +18,7 @@ type OutputReportOptions struct {
 	SpreadsheetRange                         string
 }
 
-func OutputReport(ctx context.Context, options *OutputReportOptions, data *ReportData) error {
+func OutputReport(ctx context.Context, options *OutputReportOptions, data *analytic.ReportData) error {
 	switch options.OutputType {
 	case ReportOutputTypeStdout:
 		fmt.Println(data.Header)

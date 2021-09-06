@@ -38,5 +38,4 @@ var DependencySet = wire.NewSet(
 	appdb.NewHandle,
 	appdb.DependencySet,
 	analytic.DependencySet,
-	wire.Struct(new(UserWeeklyReport), "*"),
 )

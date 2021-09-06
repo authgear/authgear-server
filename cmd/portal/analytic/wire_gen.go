@@ -16,7 +16,7 @@ import (
 
 // Injectors from wire.go:
 
-func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *UserWeeklyReport {
+func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *analytic.UserWeeklyReport {
 	databaseConfig := NewDatabaseConfig()
 	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
 	factory := NewLoggerFactory()
@@ -35,7 +35,7 @@ func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
-	userWeeklyReport := &UserWeeklyReport{
+	userWeeklyReport := &analytic.UserWeeklyReport{
 		GlobalHandle:  handle,
 		GlobalDBStore: globalDBStore,
 		AppDBHandle:   appdbHandle,
