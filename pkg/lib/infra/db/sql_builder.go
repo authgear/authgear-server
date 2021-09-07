@@ -160,7 +160,7 @@ func (b SelectBuilder) Join(from string, alias string, pred string, args ...inte
 	return b
 }
 
-func (b SelectBuilder) Where(pred string, args ...interface{}) SelectBuilder {
+func (b SelectBuilder) Where(pred interface{}, args ...interface{}) SelectBuilder {
 	b.builder = b.builder.Where(pred, args...)
 	return b
 }
