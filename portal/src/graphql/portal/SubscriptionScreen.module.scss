@@ -33,11 +33,13 @@
 }
 
 .planBlockList {
-  width: 1015px;
+  width: calc(3 * 325px + 2 * 20px + 2 * 20px);
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 325px);
   grid-auto-rows: auto;
   gap: 20px;
+  padding: 0 20px;
+  margin: 0 -20px;
 
   .planBlockItem {
     display: flex;
