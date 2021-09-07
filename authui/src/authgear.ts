@@ -154,19 +154,35 @@ window.api.onLoad(() => {
 window.api.onLoad(() => {
   const wrappers = document.querySelectorAll(".messages-bar");
   const disposers: Array<() => void> = [];
+
   for (let i = 0; i < wrappers.length; i++) {
     const wrapper = wrappers[i];
     const close = wrapper.querySelector(".close");
     if (!close) {
       continue;
     }
+
     const onCloseButtonClick = (e: Event) => {
+      e.preventDefault();
+      e.stopPropagation();
       wrapper.classList.remove("flex");
       wrapper.classList.add("hidden");
     };
+
+    // Close the message bar before cache the page.
+    // So that the cached page does not have the message bar shown.
+    // See https://github.com/authgear/authgear-server/issues/1424
+    const beforeCache = () => {
+      if (close instanceof HTMLElement) {
+        close.click();
+      }
+    };
+
     close.addEventListener("click", onCloseButtonClick);
+    document.addEventListener("turbolinks:before-cache", beforeCache);
     disposers.push(() => {
       close.removeEventListener("click", onCloseButtonClick);
+      document.removeEventListener("turbolinks:before-cache", beforeCache);
     });
   }
 
