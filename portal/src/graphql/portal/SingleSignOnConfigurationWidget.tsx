@@ -6,13 +6,7 @@ import React, {
   useState,
 } from "react";
 import cn from "classnames";
-import {
-  Checkbox,
-  DirectionalHint,
-  Label,
-  Toggle,
-  MessageBar,
-} from "@fluentui/react";
+import { Checkbox, DirectionalHint, Toggle, MessageBar } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ExtendableWidget from "../../ExtendableWidget";
@@ -186,19 +180,6 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
   },
 };
 
-const WidgetHeaderLabel: React.FC<WidgetHeaderLabelProps> =
-  function WidgetHeaderLabel(props: WidgetHeaderLabelProps) {
-    const { icon, messageID } = props;
-    return (
-      <div className={styles.widgetLabel}>
-        {icon}
-        <Label className={styles.widgetLabelText}>
-          <FormattedMessage id={messageID} />
-        </Label>
-      </div>
-    );
-  };
-
 const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
   props: WidgetHeaderProps
 ) {
@@ -238,7 +219,12 @@ const WidgetHeader: React.FC<WidgetHeaderProps> = function WidgetHeader(
         checked={isEnabled}
         onChange={onChange}
         inlineLabel={true}
-        label={<WidgetHeaderLabel icon={icon} messageID={messageID} />}
+        label={
+          <>
+            {icon}
+            <FormattedMessage id={messageID} />
+          </>
+        }
         disabled={!isEnabled && (disabled || disabledByLimitReached)}
       ></Toggle>
       {messageBar}
