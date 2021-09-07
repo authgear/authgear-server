@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/google/wire"
@@ -37,5 +38,7 @@ var DependencySet = wire.NewSet(
 	globaldb.DependencySet,
 	appdb.NewHandle,
 	appdb.DependencySet,
+	auditdb.NewReadHandle,
+	auditdb.DependencySet,
 	analytic.DependencySet,
 )

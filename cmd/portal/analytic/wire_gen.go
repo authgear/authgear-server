@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 )
 
@@ -44,7 +45,7 @@ func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials
 	return userWeeklyReport
 }
 
-func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *analytic.ProjectWeeklyReport {
+func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectWeeklyReport {
 	databaseConfig := NewDatabaseConfig()
 	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
 	factory := NewLoggerFactory()
@@ -63,11 +64,20 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
+	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
+	auditDBStore := &analytic.AuditDBStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
 	projectWeeklyReport := &analytic.ProjectWeeklyReport{
 		GlobalHandle:  handle,
 		GlobalDBStore: globalDBStore,
 		AppDBHandle:   appdbHandle,
 		AppDBStore:    appDBStore,
+		AuditDBHandle: readHandle,
+		AuditDBStore:  auditDBStore,
 	}
 	return projectWeeklyReport
 }

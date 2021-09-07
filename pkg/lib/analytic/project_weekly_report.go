@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
@@ -26,6 +27,8 @@ type ProjectWeeklyReport struct {
 	GlobalDBStore *GlobalDBStore
 	AppDBHandle   *appdb.Handle
 	AppDBStore    *AppDBStore
+	AuditDBHandle *auditdb.ReadHandle
+	AuditDBStore  *AuditDBStore
 }
 
 func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *ReportData, err error) {
