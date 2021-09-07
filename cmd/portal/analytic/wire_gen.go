@@ -44,8 +44,37 @@ func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials
 	return userWeeklyReport
 }
 
+func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *analytic.ProjectWeeklyReport {
+	databaseConfig := NewDatabaseConfig()
+	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	factory := NewLoggerFactory()
+	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	globalDBStore := &analytic.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	appID := NewEmptyAppID()
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
+	appDBStore := &analytic.AppDBStore{
+		SQLBuilder:  appdbSQLBuilder,
+		SQLExecutor: appdbSQLExecutor,
+	}
+	projectWeeklyReport := &analytic.ProjectWeeklyReport{
+		GlobalHandle:  handle,
+		GlobalDBStore: globalDBStore,
+		AppDBHandle:   appdbHandle,
+		AppDBStore:    appDBStore,
+	}
+	return projectWeeklyReport
+}
+
 // wire.go:
 
 func NewEmptyAppID() config.AppID {
+
 	return config.AppID("")
 }

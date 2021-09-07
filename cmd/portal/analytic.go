@@ -145,7 +145,19 @@ var cmdAnalyticReport = &cobra.Command{
 				return err
 			}
 		case analytic.ReportTypeProjectWeeklyReport:
-			log.Printf("TODO")
+			year, week, err := getISOWeek()
+			if err != nil {
+				return err
+			}
+			report := analytic.NewProjectWeeklyReport(context.Background(), dbPool, dbCredentials)
+			data, err = report.Run(&analyticlib.ProjectWeeklyReportOptions{
+				Year:        year,
+				Week:        week,
+				PortalAppID: portalAppID,
+			})
+			if err != nil {
+				return err
+			}
 		case analytic.ReportTypeProjectMonthlyReport:
 			log.Printf("TODO")
 		default:

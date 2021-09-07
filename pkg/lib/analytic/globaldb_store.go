@@ -48,3 +48,30 @@ func (s *GlobalDBStore) GetAppOwners(rangeFrom *time.Time, rangeTo *time.Time) (
 	}
 	return result, nil
 }
+
+func (s *GlobalDBStore) GetAppIDs() (appIDs []string, err error) {
+	builder := s.SQLBuilder.Global().
+		Select(
+			"app_id",
+		).
+		From(s.SQLBuilder.TableName("_portal_config_source")).
+		OrderBy("created_at ASC")
+
+	rows, e := s.SQLExecutor.QueryWith(builder)
+	if e != nil {
+		err = e
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var appID string
+		err = rows.Scan(
+			&appID,
+		)
+		if err != nil {
+			return
+		}
+		appIDs = append(appIDs, appID)
+	}
+	return
+}
