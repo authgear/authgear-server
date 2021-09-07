@@ -27,6 +27,18 @@ var ArgDatabaseSchema = &cobraviper.StringArgument{
 	Usage:        "Database schema",
 }
 
+var ArgAuditDatabaseURL = &cobraviper.StringArgument{
+	ArgumentName: "audit-database-url",
+	EnvName:      "AUDIT_DATABASE_URL",
+	Usage:        "Audit Database URL",
+}
+
+var ArgAuditDatabaseSchema = &cobraviper.StringArgument{
+	ArgumentName: "audit-database-schema",
+	EnvName:      "AUDIT_DATABASE_SCHEMA",
+	Usage:        "Audit Database schema",
+}
+
 var ArgKubeconfig = &cobraviper.StringArgument{
 	ArgumentName: "kubeconfig",
 	EnvName:      "KUBECONFIG",

@@ -4,17 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
-
-type projectWeeklyReportRecord struct {
-	AppID       string
-	OwnerUserID string
-	OwnerEmail  string
-}
 
 type ProjectWeeklyReportOptions struct {
 	Year        int
@@ -77,25 +72,45 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 		return
 	}
 
-	values := [][]interface{}{}
-	records := make([]*projectWeeklyReportRecord, len(appIDs))
+	values := make([][]interface{}, len(appIDs))
 	for i, appID := range appIDs {
 		ownerID := appToOwnerUserIDMap[appID]
 		email := userIDToEmailMap[ownerID]
-		records[i] = &projectWeeklyReportRecord{
-			AppID:       appID,
-			OwnerUserID: ownerID,
-			OwnerEmail:  email,
+
+		countMap := map[string]int{
+			string(nonblocking.UserAuthenticated): 0,
+			string(nonblocking.UserCreated):       0,
+			string(nonblocking.EmailSent):         0,
+			string(nonblocking.SMSSent):           0,
 		}
 
-		values = append(values, []interface{}{
+		err = r.AuditDBHandle.ReadOnly(func() (e error) {
+			for activityType := range countMap {
+				countMap[activityType], err = r.AuditDBStore.GetCountByActivityType(
+					appID, activityType, &rangeFrom, &rangeTo)
+				if err != nil {
+					err = fmt.Errorf("failed to fetch count for activityType %s: %w", activityType, err)
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return
+		}
+
+		values[i] = []interface{}{
 			options.Year,
 			options.Week,
 			rangeFrom.UTC().Format(time.RFC3339),
 			rangeTo.UTC().Format(time.RFC3339),
 			appID,
 			email,
-		})
+			countMap[string(nonblocking.UserCreated)],
+			countMap[string(nonblocking.UserAuthenticated)],
+			countMap[string(nonblocking.EmailSent)],
+			countMap[string(nonblocking.SMSSent)],
+		}
 	}
 
 	data = &ReportData{
@@ -106,6 +121,10 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 			"Range To",
 			"Project ID",
 			"Owner email",
+			"Number of signup",
+			"Number of login",
+			"Email sent",
+			"SMS sent",
 		},
 		Values: values,
 	}

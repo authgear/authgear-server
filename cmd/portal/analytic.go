@@ -18,6 +18,8 @@ func init() {
 	cmdAnalytic.AddCommand(cmdAnalyticReport)
 	binder.BindString(cmdAnalyticReport.Flags(), ArgDatabaseURL)
 	binder.BindString(cmdAnalyticReport.Flags(), ArgDatabaseSchema)
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAuditDatabaseURL)
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAuditDatabaseSchema)
 
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticPortalAppID)
 	binder.BindInt(cmdAnalyticReport.Flags(), ArgAnalyticYear)
@@ -127,6 +129,23 @@ var cmdAnalyticReport = &cobra.Command{
 			return
 		}
 
+		getAuditDBCredentials := func() (*config.AuditDatabaseCredentials, error) {
+			dbURL, err := binder.GetRequiredString(cmd, ArgAuditDatabaseURL)
+			if err != nil {
+				return nil, err
+			}
+
+			dbSchema, err := binder.GetRequiredString(cmd, ArgAuditDatabaseSchema)
+			if err != nil {
+				return nil, err
+			}
+
+			return &config.AuditDatabaseCredentials{
+				DatabaseURL:    dbURL,
+				DatabaseSchema: dbSchema,
+			}, nil
+		}
+
 		var data *analyticlib.ReportData
 		dbPool := db.NewPool()
 		switch reportType {
@@ -145,11 +164,20 @@ var cmdAnalyticReport = &cobra.Command{
 				return err
 			}
 		case analytic.ReportTypeProjectWeeklyReport:
+			auditDBCredentials, err := getAuditDBCredentials()
+			if err != nil {
+				return err
+			}
 			year, week, err := getISOWeek()
 			if err != nil {
 				return err
 			}
-			report := analytic.NewProjectWeeklyReport(context.Background(), dbPool, dbCredentials)
+			report := analytic.NewProjectWeeklyReport(
+				context.Background(),
+				dbPool,
+				dbCredentials,
+				auditDBCredentials,
+			)
 			data, err = report.Run(&analyticlib.ProjectWeeklyReportOptions{
 				Year:        year,
 				Week:        week,
