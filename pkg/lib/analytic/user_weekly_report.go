@@ -33,7 +33,7 @@ func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (data *ReportDa
 
 	var appOwners []*AppCollaborator
 	if err = r.GlobalHandle.WithTx(func() (e error) {
-		appOwners, err = r.GlobalDBStore.GetNewAppOwners(&rangeFrom, &rangeTo)
+		appOwners, err = r.GlobalDBStore.GetAppOwners(&rangeFrom, &rangeTo)
 		return err
 	}); err != nil {
 		err = fmt.Errorf("failed to fetch new apps: %w", err)

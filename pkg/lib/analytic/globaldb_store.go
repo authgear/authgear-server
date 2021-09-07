@@ -11,16 +11,24 @@ type GlobalDBStore struct {
 	SQLExecutor *globaldb.SQLExecutor
 }
 
-func (s *GlobalDBStore) GetNewAppOwners(rangeFrom *time.Time, rangeTo *time.Time) ([]*AppCollaborator, error) {
+func (s *GlobalDBStore) GetAppOwners(rangeFrom *time.Time, rangeTo *time.Time) ([]*AppCollaborator, error) {
 	builder := s.SQLBuilder.Global().
 		Select(
 			"app_id",
 			"user_id",
 		).
-		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
-		Where("created_at >= ?", rangeFrom).
-		Where("created_at < ?", rangeTo).
+		From(s.SQLBuilder.TableName("_portal_app_collaborator"))
+
+	if rangeFrom != nil {
+		builder = builder.Where("created_at >= ?", rangeFrom)
+	}
+	if rangeTo != nil {
+		builder = builder.Where("created_at < ?", rangeTo)
+	}
+
+	builder = builder.
 		Where("role = ?", "owner")
+
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {
 		return nil, err
@@ -39,4 +47,31 @@ func (s *GlobalDBStore) GetNewAppOwners(rangeFrom *time.Time, rangeTo *time.Time
 		result = append(result, r)
 	}
 	return result, nil
+}
+
+func (s *GlobalDBStore) GetAppIDs() (appIDs []string, err error) {
+	builder := s.SQLBuilder.Global().
+		Select(
+			"app_id",
+		).
+		From(s.SQLBuilder.TableName("_portal_config_source")).
+		OrderBy("created_at ASC")
+
+	rows, e := s.SQLExecutor.QueryWith(builder)
+	if e != nil {
+		err = e
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var appID string
+		err = rows.Scan(
+			&appID,
+		)
+		if err != nil {
+			return
+		}
+		appIDs = append(appIDs, appID)
+	}
+	return
 }
