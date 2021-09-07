@@ -2,28 +2,12 @@ package cobraviper
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
-
-type StringValue string
-
-func NewStringValue(val string) *StringValue {
-	p := val
-	return (*StringValue)(&p)
-}
-
-func (s *StringValue) Set(val string) error {
-	*s = StringValue(val)
-	return nil
-}
-func (s *StringValue) Type() string {
-	return "string"
-}
-
-func (s *StringValue) String() string { return string(*s) }
 
 func NewBinder() *Binder {
 	return &Binder{
@@ -42,9 +26,63 @@ func (b *Binder) BindString(flagSet *pflag.FlagSet, arg *StringArgument) {
 	}
 }
 
+func (b *Binder) BindInt(flagSet *pflag.FlagSet, arg *IntArgument) {
+	_ = flagSet.VarPF(NewIntValue(arg.DefaultValue), arg.ArgumentName, arg.Short, arg.Usage)
+	if arg.EnvName != "" {
+		_ = b.Viper.BindEnv(arg.ArgumentName, arg.EnvName)
+	}
+}
+
 func (b *Binder) GetString(cmd *cobra.Command, arg *StringArgument) string {
 	val, _ := b.GetRequiredString(cmd, arg)
 	return val
+}
+
+func (b *Binder) GetInt(cmd *cobra.Command, arg *IntArgument) (*int, error) {
+	validate := func(val int) error {
+		if arg.Max != nil && val > *arg.Max {
+			return fmt.Errorf(
+				"%s should be smaller than or equal to %d",
+				arg.ArgumentName,
+				*arg.Max,
+			)
+		}
+
+		if arg.Min != nil && val < *arg.Min {
+			return fmt.Errorf(
+				"%s should be larger than or equal to %d",
+				arg.ArgumentName,
+				*arg.Min)
+		}
+		return nil
+	}
+
+	flag := cmd.Flags().Lookup(arg.ArgumentName)
+	if flag == nil {
+		return nil, fmt.Errorf("flag not found")
+	}
+
+	intVal, ok := flag.Value.(*IntValue)
+	if ok && intVal.Val != nil {
+		if err := validate(*intVal.Val); err != nil {
+			return nil, err
+		}
+		return intVal.Val, nil
+	}
+
+	strVal := b.Viper.GetString(arg.ArgumentName)
+	if strVal != "" {
+		intVal, err := strconv.Atoi(strVal)
+		if err != nil {
+			return nil, fmt.Errorf("%s is not an integer", arg.ArgumentName)
+		}
+		if err := validate(intVal); err != nil {
+			return nil, err
+		}
+		return &intVal, nil
+	}
+
+	return nil, nil
 }
 
 func (b *Binder) GetRequiredString(cmd *cobra.Command, arg *StringArgument) (string, error) {
@@ -63,10 +101,13 @@ func (b *Binder) GetRequiredString(cmd *cobra.Command, arg *StringArgument) (str
 	return "", fmt.Errorf("%s is required", arg.ArgumentName)
 }
 
-type StringArgument struct {
-	ArgumentName string
-	EnvName      string
-	Short        string
-	Usage        string
-	DefaultValue string
+func (b *Binder) GetRequiredInt(cmd *cobra.Command, arg *IntArgument) (int, error) {
+	val, err := b.GetInt(cmd, arg)
+	if err != nil {
+		return 0, err
+	}
+	if val == nil {
+		return 0, fmt.Errorf("%s is required", arg.ArgumentName)
+	}
+	return *val, nil
 }

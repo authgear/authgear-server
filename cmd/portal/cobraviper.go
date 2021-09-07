@@ -4,6 +4,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/cobraviper"
 )
 
+func newInt(v int) *int { return &v }
+
 var cvbinder *cobraviper.Binder
 
 func getBinder() *cobraviper.Binder {
@@ -68,4 +70,58 @@ var ArgPlanNameForAppUpdate = &cobraviper.StringArgument{
 var ArgAppHostSuffix = &cobraviper.StringArgument{
 	ArgumentName: "app-host-suffix",
 	Usage:        "App host suffix",
+}
+
+var ArgAnalyticPortalAppID = &cobraviper.StringArgument{
+	ArgumentName: "portal-app-id",
+	Usage:        "The portal authgear app id",
+	DefaultValue: "accounts",
+}
+
+var ArgAnalyticYear = &cobraviper.IntArgument{
+	ArgumentName: "year",
+	Usage:        "Year of the report",
+	EnvName:      "YEAR",
+	Min:          newInt(1900),
+	Max:          newInt(3000),
+}
+
+var ArgAnalyticISOWeek = &cobraviper.IntArgument{
+	ArgumentName: "week",
+	Usage:        "ISO week of the weekly report",
+	Min:          newInt(1),
+	Max:          newInt(53),
+}
+
+var ArgAnalyticOutputType = &cobraviper.StringArgument{
+	ArgumentName: "output-type",
+	Usage:        "Output format of the report, currently supports csv and google-sheets",
+	DefaultValue: "csv",
+}
+
+var ArgAnalyticCSVOutputFilePath = &cobraviper.StringArgument{
+	ArgumentName: "csv-file",
+	Usage:        "File path of the output csv file",
+}
+
+var ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath = &cobraviper.StringArgument{
+	ArgumentName: "google-client-credentials-file",
+	Usage:        "File path of client_credentials.json, the file can be downloaded from https://console.developers.google.com, under \"Credentials\"",
+	DefaultValue: "./client_credentials.json",
+}
+
+var ArgAnalyticGoogleOAuthTokenFilePath = &cobraviper.StringArgument{
+	ArgumentName: "google-token-file",
+	Usage:        "File path of oauth token file in json format",
+	DefaultValue: "./token.json",
+}
+
+var ArgAnalyticGoogleSpreadsheetID = &cobraviper.StringArgument{
+	ArgumentName: "google-spreadsheet-id",
+	Usage:        "The ID of the spreadsheet to update",
+}
+
+var ArgAnalyticGoogleSpreadsheetRange = &cobraviper.StringArgument{
+	ArgumentName: "google-spreadsheet-range",
+	Usage:        "The A1 notation of a range to search for a logical table of data.",
 }
