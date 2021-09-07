@@ -11,16 +11,24 @@ type GlobalDBStore struct {
 	SQLExecutor *globaldb.SQLExecutor
 }
 
-func (s *GlobalDBStore) GetNewAppOwners(rangeFrom *time.Time, rangeTo *time.Time) ([]*AppCollaborator, error) {
+func (s *GlobalDBStore) GetAppOwners(rangeFrom *time.Time, rangeTo *time.Time) ([]*AppCollaborator, error) {
 	builder := s.SQLBuilder.Global().
 		Select(
 			"app_id",
 			"user_id",
 		).
-		From(s.SQLBuilder.TableName("_portal_app_collaborator")).
-		Where("created_at >= ?", rangeFrom).
-		Where("created_at < ?", rangeTo).
+		From(s.SQLBuilder.TableName("_portal_app_collaborator"))
+
+	if rangeFrom != nil {
+		builder = builder.Where("created_at >= ?", rangeFrom)
+	}
+	if rangeTo != nil {
+		builder = builder.Where("created_at < ?", rangeTo)
+	}
+
+	builder = builder.
 		Where("role = ?", "owner")
+
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {
 		return nil, err
