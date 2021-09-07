@@ -29,7 +29,10 @@ declare interface IntlTelInputInitOptions {
   autoPlaceholder?: "polite" | "aggressive" | "off";
   placeholderNumberType?: IntlTelInputPlaceholderNumberType;
   customContainer?: string;
-  customPlaceholder?: (selectedCountryPlaceholder: string, selectedCountryData: IntlTelInputCountryData) => string;
+  customPlaceholder?: (
+    selectedCountryPlaceholder: string,
+    selectedCountryData: IntlTelInputCountryData
+  ) => string;
   dropdownContainer?: HTMLElement;
 
   // Functionality
@@ -39,7 +42,10 @@ declare interface IntlTelInputInitOptions {
   separateDialCode?: boolean;
   allowDropdown?: boolean;
   formatOnDisplay?: boolean;
-  geoIpLookup?: (success: (alpha2: IntlTelInputAlpha2) => void, failure: (err: unknown) => void) => void;
+  geoIpLookup?: (
+    success: (alpha2: IntlTelInputAlpha2) => void,
+    failure: (err: unknown) => void
+  ) => void;
   initialCountry?: "auto" | IntlTelInputAlpha2;
   excludeCountries?: IntlTelInputAlpha2[];
   onlyCountries?: IntlTelInputAlpha2[];
@@ -53,7 +59,10 @@ declare interface IntlTelInputInitOptions {
 }
 
 declare interface IntlTelInputInitFunction {
-  (element: HTMLElement, options?: IntlTelInputInitOptions): IntlTelInputInstance;
+  (
+    element: HTMLElement,
+    options?: IntlTelInputInitOptions
+  ): IntlTelInputInstance;
 }
 
 declare interface IntlTelInputGlobals {

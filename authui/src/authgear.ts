@@ -116,14 +116,18 @@ window.api.onLoad(() => {
     const rfc3339 = dateSpan.getAttribute("data-date");
     if (typeof rfc3339 === "string") {
       const luxonDatetime = DateTime.fromISO(rfc3339);
-      const abs = hasAbs ? luxonDatetime.toLocaleString({
-          locale: lang,
-          dateStyle: "medium",
-          timeStyle: "short",
-        } as any) : null;
-      const rel = hasRel ? luxonDatetime.toRelative({
-          locale: lang,
-        }) : null;
+      const abs = hasAbs
+        ? luxonDatetime.toLocaleString({
+            locale: lang,
+            dateStyle: "medium",
+            timeStyle: "short",
+          } as any)
+        : null;
+      const rel = hasRel
+        ? luxonDatetime.toRelative({
+            locale: lang,
+          })
+        : null;
 
       // Store the original textContent.
       const textContent = dateSpan.textContent;
@@ -261,12 +265,12 @@ window.api.onLoad(() => {
       method: form.method,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-        "X-Authgear-XHR": "true"
+        "X-Authgear-XHR": "true",
       },
       credentials: "same-origin",
-      body: params
+      body: params,
     })
-      .then(resp => {
+      .then((resp) => {
         if (resp.status < 200 || resp.status >= 300) {
           isSubmitting = false;
           setServerError();
@@ -617,7 +621,7 @@ window.api.onLoad(() => {
       sessionUpdatedAfter = "";
     };
 
-    ws.onclose = function(e) {
+    ws.onclose = function (e) {
       console.log("ws onclose", e);
       // Close code 1000 means we do not need to reconnect.
       if (e.code === 1000) {
@@ -628,7 +632,7 @@ window.api.onLoad(() => {
       connect();
     };
 
-    ws.onerror = function(e) {
+    ws.onerror = function (e) {
       console.error("ws onerror", e);
     };
 
