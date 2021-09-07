@@ -8,11 +8,11 @@ import {
   Label,
   TagPicker,
   TextField,
+  Toggle,
 } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import produce from "immer";
 import cn from "classnames";
-import ToggleWithContent from "../../ToggleWithContent";
 import { clearEmptyObject } from "../../util/misc";
 import {
   isPasswordPolicyGuessableLevel,
@@ -344,40 +344,39 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             selectedKey={state.policy.minimum_guessable_level}
             onChange={onMinimumGuessableLevelChange}
           />
-          <ToggleWithContent
+          <Toggle
             className={styles.control}
             checked={state.isPreventPasswordReuseEnabled}
             inlineLabel={true}
-            onChange={onPreventReuseChange}
-          >
-            <Label className={styles.toggleLabel}>
+            label={
               <FormattedMessage id="PasswordPolicyConfigurationScreen.prevent-reuse.label" />
-            </Label>
-            <TextField
-              className={styles.control}
-              type="number"
-              min="0"
-              step="1"
-              disabled={!state.isPreventPasswordReuseEnabled}
-              label={renderToString(
-                "PasswordPolicyConfigurationScreen.history-days.label"
-              )}
-              value={String(state.policy.history_days)}
-              onChange={onHistoryDaysChange}
-            />
-            <TextField
-              className={styles.control}
-              type="number"
-              min="0"
-              step="1"
-              disabled={!state.isPreventPasswordReuseEnabled}
-              label={renderToString(
-                "PasswordPolicyConfigurationScreen.history-size.label"
-              )}
-              value={String(state.policy.history_size)}
-              onChange={onHistorySizeChange}
-            />
-          </ToggleWithContent>
+            }
+            onChange={onPreventReuseChange}
+          />
+          <TextField
+            className={styles.control}
+            type="number"
+            min="0"
+            step="1"
+            disabled={!state.isPreventPasswordReuseEnabled}
+            label={renderToString(
+              "PasswordPolicyConfigurationScreen.history-days.label"
+            )}
+            value={String(state.policy.history_days)}
+            onChange={onHistoryDaysChange}
+          />
+          <TextField
+            className={styles.control}
+            type="number"
+            min="0"
+            step="1"
+            disabled={!state.isPreventPasswordReuseEnabled}
+            label={renderToString(
+              "PasswordPolicyConfigurationScreen.history-size.label"
+            )}
+            value={String(state.policy.history_size)}
+            onChange={onHistorySizeChange}
+          />
           <div className={styles.control}>
             <Label>
               <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
