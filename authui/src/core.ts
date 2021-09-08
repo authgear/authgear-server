@@ -24,7 +24,7 @@ export function init() {
           onLoadDisposers.push(disposer);
         }
       }
-    }
+    },
   };
 
   Turbolinks.start();

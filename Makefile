@@ -97,6 +97,7 @@ html-email:
 authui:
 	# Build Auth UI
 	npm run --silent --prefix ./authui typecheck
+	npm run --silent --prefix ./authui format
 	npm run --silent --prefix ./authui build
 
 .PHONY: export-schemas
