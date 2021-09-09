@@ -9,7 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
@@ -17,7 +17,7 @@ const ttl = duration.Short
 
 type StoreRedis struct {
 	Context context.Context
-	Redis   *redis.Handle
+	Redis   *appredis.Handle
 	AppID   config.AppID
 }
 

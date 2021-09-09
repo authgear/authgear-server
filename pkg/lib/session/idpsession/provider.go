@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -34,7 +34,7 @@ type Provider struct {
 	Context      context.Context
 	Request      *http.Request
 	AppID        config.AppID
-	Redis        *redis.Handle
+	Redis        *appredis.Handle
 	Store        Store
 	AccessEvents AccessEventProvider
 	TrustProxy   config.TrustProxy

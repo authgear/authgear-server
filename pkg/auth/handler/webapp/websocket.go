@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/pubsub"
@@ -23,7 +23,7 @@ func ConfigureWebsocketRoute(route httproute.Route) httproute.Route {
 type WebsocketHandler struct {
 	AppID         config.AppID
 	LoggerFactory *log.Factory
-	RedisHandle   *redis.Handle
+	RedisHandle   *appredis.Handle
 	Publisher     *Publisher
 }
 

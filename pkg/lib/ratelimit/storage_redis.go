@@ -10,12 +10,12 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 )
 
 type StorageRedis struct {
 	AppID config.AppID
-	Redis *redis.Handle
+	Redis *appredis.Handle
 }
 
 func (s *StorageRedis) WithConn(fn func(StorageConn) error) error {

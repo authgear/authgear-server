@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -24,7 +24,7 @@ func NewStoreRedisLogger(lf *log.Factory) StoreRedisLogger {
 }
 
 type StoreRedis struct {
-	Redis  *redis.Handle
+	Redis  *appredis.Handle
 	AppID  config.AppID
 	Clock  clock.Clock
 	Logger StoreRedisLogger

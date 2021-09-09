@@ -272,9 +272,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -289,7 +289,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -309,7 +309,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -328,7 +328,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -424,7 +424,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -442,7 +442,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -542,7 +542,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -572,17 +572,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ResponseWriter: responseWriter,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -593,7 +593,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -636,7 +636,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{

@@ -12,7 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -27,7 +27,7 @@ func NewLogger(lf *log.Factory) Logger {
 
 type Store struct {
 	Context     context.Context
-	Redis       *redis.Handle
+	Redis       *appredis.Handle
 	AppID       config.AppID
 	Logger      Logger
 	SQLBuilder  *appdb.SQLBuilder

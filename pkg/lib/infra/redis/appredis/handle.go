@@ -1,26 +1,27 @@
-package redis
+package appredis
 
 import (
 	"context"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	goredis "github.com/go-redis/redis/v8"
 	"github.com/go-redsync/redsync/v4"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type Handle struct {
-	pool *Pool
-	hub  *Hub
+	pool *redis.Pool
+	hub  *redis.Hub
 
 	cfg         *config.RedisConfig
 	credentials *config.RedisCredentials
 	logger      *log.Logger
 }
 
-func NewHandle(pool *Pool, hub *Hub, cfg *config.RedisConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
+func NewHandle(pool *redis.Pool, hub *redis.Hub, cfg *config.RedisConfig, credentials *config.RedisCredentials, lf *log.Factory) *Handle {
 	return &Handle{
 		pool:        pool,
 		hub:         hub,
@@ -30,7 +31,7 @@ func NewHandle(pool *Pool, hub *Hub, cfg *config.RedisConfig, credentials *confi
 	}
 }
 
-func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
+func (h *Handle) WithConn(f func(conn *goredis.Conn) error) error {
 	h.logger.WithFields(map[string]interface{}{
 		"max_open_connection":             *h.cfg.MaxOpenConnection,
 		"max_idle_connection":             *h.cfg.MaxIdleConnection,
@@ -50,17 +51,17 @@ func (h *Handle) WithConn(f func(conn *redis.Conn) error) error {
 	return f(conn)
 }
 
-func (h *Handle) Subscribe(channelName string) (chan *redis.Message, func()) {
+func (h *Handle) Subscribe(channelName string) (chan *goredis.Message, func()) {
 	sub := h.hub.Subscribe(h.cfg, h.credentials, channelName)
 	return sub.MessageChannel, sub.Cancel
 }
 
-func (h *Handle) Client() *redis.Client {
+func (h *Handle) Client() *goredis.Client {
 	return h.pool.Client(h.cfg, h.credentials)
 }
 
 func (h *Handle) NewMutex(name string) *redsync.Mutex {
-	redsyncInstance := h.pool.instance(h.cfg, h.credentials).Redsync
+	redsyncInstance := h.pool.Instance(h.cfg, h.credentials).Redsync
 	mutex := redsyncInstance.NewMutex(
 		name,
 		redsync.WithExpiry(5*time.Second),

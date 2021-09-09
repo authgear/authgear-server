@@ -95,17 +95,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	clock := _wireSystemClockValue
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clock,
 		Logger: storeRedisLogger,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -120,7 +120,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -139,7 +139,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	store := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      logger,
 		SQLBuilder:  sqlBuilder,
@@ -159,7 +159,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	serviceLogger := webapp.NewServiceLogger(factory)
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -285,7 +285,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobStoreRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clock,
 	}
@@ -300,7 +300,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -317,7 +317,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clock,
 	}
@@ -336,7 +336,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clock,
 	}
@@ -490,7 +490,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -530,7 +530,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clock,
 	}
@@ -551,7 +551,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	interactionContext := &interaction.Context{
@@ -588,7 +588,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -679,17 +679,17 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	oAuthConfig := appConfig.OAuth
 	httpConfig := appConfig.HTTP
 	authorizationHandlerLogger := handler.NewAuthorizationHandlerLogger(factory)
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	storeRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -704,7 +704,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        storeRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -723,7 +723,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	logger := redis.NewLogger(factory)
 	store := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      logger,
 		SQLBuilder:  sqlBuilder,
@@ -743,7 +743,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	serviceLogger := webapp.NewServiceLogger(factory)
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -869,7 +869,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	oobStoreRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -884,7 +884,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -901,7 +901,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -920,7 +920,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1074,7 +1074,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -1114,7 +1114,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1135,7 +1135,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	interactionContext := &interaction.Context{
@@ -1172,7 +1172,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -1266,12 +1266,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	logger := redis.NewLogger(factory)
 	clockClock := _wireSystemClockValue
 	store := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      logger,
 		SQLBuilder:  sqlBuilder,
@@ -1279,7 +1279,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -1400,7 +1400,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1415,7 +1415,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -1432,7 +1432,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1451,7 +1451,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1547,7 +1547,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -1622,7 +1622,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -1662,7 +1662,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1683,7 +1683,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	idpsessionRand := _wireRandValue
@@ -1691,7 +1691,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -1734,7 +1734,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -1915,9 +1915,9 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1932,7 +1932,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -1952,7 +1952,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -1971,7 +1971,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -2067,7 +2067,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -2085,7 +2085,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -2310,9 +2310,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -2327,7 +2327,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -2344,7 +2344,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -2363,7 +2363,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -2459,7 +2459,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -2477,7 +2477,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -2670,9 +2670,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -2687,7 +2687,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -2704,7 +2704,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -2723,7 +2723,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -2819,7 +2819,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -2837,7 +2837,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -3034,9 +3034,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -3051,7 +3051,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -3068,7 +3068,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -3087,7 +3087,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -3183,7 +3183,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -3201,7 +3201,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -3262,13 +3262,13 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 func newOAuthChallengeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	clockClock := _wireSystemClockValue
 	provider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -3311,12 +3311,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	logger := redis.NewLogger(factory)
 	clockClock := _wireSystemClockValue
 	store := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      logger,
 		SQLBuilder:  sqlBuilder,
@@ -3324,7 +3324,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:       clockClock,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -3445,7 +3445,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -3460,7 +3460,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -3477,7 +3477,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -3496,7 +3496,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -3592,7 +3592,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -3667,7 +3667,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -3707,7 +3707,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -3728,7 +3728,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	idpsessionRand := _wireRandValue
@@ -3736,7 +3736,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -3779,7 +3779,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      mfaCookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -3857,7 +3857,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -3865,7 +3865,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -4001,7 +4001,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -4016,7 +4016,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -4033,7 +4033,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -4052,7 +4052,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -4151,7 +4151,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -4168,7 +4168,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -4236,7 +4236,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -4276,7 +4276,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -4297,11 +4297,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -4312,7 +4312,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -4354,7 +4354,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -4398,10 +4398,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -4432,7 +4432,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -4440,7 +4440,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -4576,7 +4576,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -4591,7 +4591,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -4608,7 +4608,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -4627,7 +4627,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -4726,7 +4726,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -4743,7 +4743,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -4811,7 +4811,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -4851,7 +4851,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -4872,11 +4872,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -4887,7 +4887,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -4929,7 +4929,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -4973,10 +4973,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -5007,7 +5007,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -5015,7 +5015,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -5151,7 +5151,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5166,7 +5166,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -5183,7 +5183,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5202,7 +5202,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5301,7 +5301,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -5318,7 +5318,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -5386,7 +5386,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -5426,7 +5426,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5447,11 +5447,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -5462,7 +5462,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -5504,7 +5504,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -5548,10 +5548,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -5582,7 +5582,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -5590,7 +5590,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -5726,7 +5726,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5741,7 +5741,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -5758,7 +5758,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5777,7 +5777,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -5876,7 +5876,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -5893,7 +5893,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -5961,7 +5961,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -6001,7 +6001,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -6022,11 +6022,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -6037,7 +6037,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -6079,7 +6079,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -6123,10 +6123,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -6158,7 +6158,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -6166,7 +6166,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -6302,7 +6302,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -6317,7 +6317,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -6334,7 +6334,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -6353,7 +6353,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -6452,7 +6452,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -6469,7 +6469,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -6537,7 +6537,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -6577,7 +6577,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -6598,11 +6598,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -6613,7 +6613,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -6655,7 +6655,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -6699,10 +6699,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -6726,7 +6726,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -6734,7 +6734,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -6870,7 +6870,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -6885,7 +6885,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -6902,7 +6902,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -6921,7 +6921,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -7020,7 +7020,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -7037,7 +7037,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -7105,7 +7105,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -7145,7 +7145,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -7166,11 +7166,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -7181,7 +7181,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -7223,7 +7223,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -7267,10 +7267,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -7297,7 +7297,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -7305,7 +7305,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -7441,7 +7441,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -7456,7 +7456,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -7473,7 +7473,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -7492,7 +7492,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -7591,7 +7591,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -7608,7 +7608,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -7676,7 +7676,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -7716,7 +7716,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -7737,11 +7737,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -7752,7 +7752,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -7794,7 +7794,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -7838,10 +7838,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -7871,7 +7871,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -7879,7 +7879,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -8015,7 +8015,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -8030,7 +8030,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -8047,7 +8047,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -8066,7 +8066,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -8165,7 +8165,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -8182,7 +8182,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -8250,7 +8250,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -8290,7 +8290,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -8311,11 +8311,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -8326,7 +8326,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -8368,7 +8368,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -8412,10 +8412,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -8442,7 +8442,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -8450,7 +8450,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -8586,7 +8586,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -8601,7 +8601,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -8618,7 +8618,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -8637,7 +8637,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -8736,7 +8736,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -8753,7 +8753,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -8821,7 +8821,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -8861,7 +8861,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -8882,11 +8882,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -8897,7 +8897,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -8939,7 +8939,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -8983,10 +8983,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -9012,7 +9012,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -9020,7 +9020,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -9156,7 +9156,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -9171,7 +9171,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -9188,7 +9188,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -9207,7 +9207,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -9306,7 +9306,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -9323,7 +9323,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -9391,7 +9391,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -9431,7 +9431,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -9452,11 +9452,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -9467,7 +9467,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -9509,7 +9509,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -9553,10 +9553,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -9583,7 +9583,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -9591,7 +9591,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -9727,7 +9727,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -9742,7 +9742,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -9759,7 +9759,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -9778,7 +9778,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -9877,7 +9877,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -9894,7 +9894,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -9962,7 +9962,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -10002,7 +10002,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -10023,11 +10023,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -10038,7 +10038,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -10080,7 +10080,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -10124,10 +10124,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -10155,7 +10155,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -10163,7 +10163,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -10299,7 +10299,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -10314,7 +10314,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -10331,7 +10331,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -10350,7 +10350,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -10449,7 +10449,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -10466,7 +10466,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -10534,7 +10534,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -10574,7 +10574,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -10595,11 +10595,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -10610,7 +10610,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -10652,7 +10652,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -10696,10 +10696,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -10725,7 +10725,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -10733,7 +10733,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -10869,7 +10869,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -10884,7 +10884,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -10901,7 +10901,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -10920,7 +10920,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -11019,7 +11019,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -11036,7 +11036,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -11104,7 +11104,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -11144,7 +11144,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -11165,11 +11165,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -11180,7 +11180,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -11222,7 +11222,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -11266,10 +11266,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -11295,7 +11295,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -11303,7 +11303,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -11439,7 +11439,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -11454,7 +11454,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -11471,7 +11471,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -11490,7 +11490,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -11589,7 +11589,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -11606,7 +11606,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -11674,7 +11674,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -11714,7 +11714,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -11735,11 +11735,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -11750,7 +11750,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -11792,7 +11792,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -11836,10 +11836,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -11867,7 +11867,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -11875,7 +11875,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -12011,7 +12011,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -12026,7 +12026,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -12043,7 +12043,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -12062,7 +12062,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -12161,7 +12161,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -12178,7 +12178,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -12246,7 +12246,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -12286,7 +12286,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -12307,11 +12307,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -12322,7 +12322,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -12364,7 +12364,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -12408,10 +12408,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -12437,7 +12437,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -12445,7 +12445,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -12581,7 +12581,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -12596,7 +12596,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -12613,7 +12613,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -12632,7 +12632,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -12731,7 +12731,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -12748,7 +12748,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -12816,7 +12816,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -12856,7 +12856,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -12877,11 +12877,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -12892,7 +12892,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -12934,7 +12934,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -12978,10 +12978,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -13007,7 +13007,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -13015,7 +13015,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -13151,7 +13151,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -13166,7 +13166,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -13183,7 +13183,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -13202,7 +13202,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -13301,7 +13301,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -13318,7 +13318,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -13386,7 +13386,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -13426,7 +13426,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -13447,11 +13447,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -13462,7 +13462,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -13504,7 +13504,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -13548,10 +13548,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -13580,7 +13580,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -13588,7 +13588,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -13724,7 +13724,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -13739,7 +13739,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -13756,7 +13756,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -13775,7 +13775,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -13874,7 +13874,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -13891,7 +13891,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -13959,7 +13959,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -13999,7 +13999,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -14020,11 +14020,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -14035,7 +14035,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -14077,7 +14077,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -14121,10 +14121,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -14150,7 +14150,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -14158,7 +14158,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -14294,7 +14294,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -14309,7 +14309,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -14326,7 +14326,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -14345,7 +14345,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -14444,7 +14444,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -14461,7 +14461,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -14529,7 +14529,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -14569,7 +14569,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -14590,11 +14590,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -14605,7 +14605,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -14647,7 +14647,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -14691,10 +14691,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -14725,7 +14725,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -14733,7 +14733,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -14869,7 +14869,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -14884,7 +14884,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -14901,7 +14901,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -14920,7 +14920,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -15019,7 +15019,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -15036,7 +15036,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -15104,7 +15104,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -15144,7 +15144,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -15165,11 +15165,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -15180,7 +15180,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -15222,7 +15222,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -15266,10 +15266,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -15295,7 +15295,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -15303,7 +15303,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -15439,7 +15439,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -15454,7 +15454,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -15471,7 +15471,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -15490,7 +15490,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -15589,7 +15589,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -15606,7 +15606,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -15674,7 +15674,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -15714,7 +15714,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -15735,11 +15735,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -15750,7 +15750,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -15792,7 +15792,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -15836,10 +15836,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -15866,7 +15866,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -15874,7 +15874,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -16010,7 +16010,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -16025,7 +16025,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -16042,7 +16042,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -16061,7 +16061,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -16160,7 +16160,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -16177,7 +16177,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -16245,7 +16245,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -16285,7 +16285,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -16306,11 +16306,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -16321,7 +16321,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -16363,7 +16363,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -16407,10 +16407,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -16436,7 +16436,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -16444,7 +16444,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -16580,7 +16580,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -16595,7 +16595,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -16612,7 +16612,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -16631,7 +16631,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -16730,7 +16730,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -16747,7 +16747,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -16815,7 +16815,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -16855,7 +16855,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -16876,11 +16876,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -16891,7 +16891,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -16933,7 +16933,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -16977,10 +16977,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -17025,7 +17025,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -17033,7 +17033,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -17169,7 +17169,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -17184,7 +17184,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -17201,7 +17201,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -17220,7 +17220,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -17319,7 +17319,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -17336,7 +17336,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -17404,7 +17404,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -17444,7 +17444,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -17465,11 +17465,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -17480,7 +17480,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -17522,7 +17522,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -17566,10 +17566,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -17597,7 +17597,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -17605,7 +17605,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -17741,7 +17741,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -17756,7 +17756,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -17773,7 +17773,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -17792,7 +17792,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -17891,7 +17891,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -17908,7 +17908,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -17976,7 +17976,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -18016,7 +18016,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -18037,11 +18037,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -18052,7 +18052,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -18094,7 +18094,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -18138,10 +18138,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -18168,7 +18168,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -18176,7 +18176,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -18312,7 +18312,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -18327,7 +18327,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -18344,7 +18344,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -18363,7 +18363,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -18462,7 +18462,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -18479,7 +18479,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -18547,7 +18547,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -18587,7 +18587,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -18608,11 +18608,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -18623,7 +18623,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -18665,7 +18665,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -18709,10 +18709,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -18748,7 +18748,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -18756,7 +18756,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -18892,7 +18892,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -18907,7 +18907,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -18924,7 +18924,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -18943,7 +18943,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -19042,7 +19042,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -19059,7 +19059,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -19127,7 +19127,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -19167,7 +19167,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -19188,11 +19188,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -19203,7 +19203,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -19245,7 +19245,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -19289,10 +19289,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -19319,7 +19319,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -19327,7 +19327,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -19463,7 +19463,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -19478,7 +19478,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -19495,7 +19495,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -19514,7 +19514,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -19613,7 +19613,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -19630,7 +19630,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -19698,7 +19698,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -19738,7 +19738,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -19759,11 +19759,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -19774,7 +19774,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -19816,7 +19816,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -19860,10 +19860,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -19890,7 +19890,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -19898,7 +19898,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -20034,7 +20034,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -20049,7 +20049,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -20066,7 +20066,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -20085,7 +20085,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -20184,7 +20184,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -20201,7 +20201,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -20269,7 +20269,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -20309,7 +20309,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -20330,11 +20330,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -20345,7 +20345,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -20387,7 +20387,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -20431,10 +20431,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -20462,7 +20462,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -20470,7 +20470,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -20606,7 +20606,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -20621,7 +20621,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -20638,7 +20638,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -20657,7 +20657,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -20756,7 +20756,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -20773,7 +20773,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -20841,7 +20841,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -20881,7 +20881,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -20902,11 +20902,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -20917,7 +20917,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -20959,7 +20959,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -21003,10 +21003,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -21039,7 +21039,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -21047,7 +21047,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -21183,7 +21183,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -21198,7 +21198,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -21215,7 +21215,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -21234,7 +21234,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -21333,7 +21333,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -21350,7 +21350,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -21418,7 +21418,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -21458,7 +21458,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -21479,11 +21479,11 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -21494,7 +21494,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -21536,7 +21536,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -21580,10 +21580,10 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -21610,7 +21610,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -21618,7 +21618,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -21754,7 +21754,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -21769,7 +21769,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -21786,7 +21786,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -21805,7 +21805,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -21904,7 +21904,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -21921,7 +21921,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -21989,7 +21989,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -22029,7 +22029,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -22050,11 +22050,11 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -22065,7 +22065,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -22107,7 +22107,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -22151,10 +22151,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -22181,7 +22181,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -22189,7 +22189,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -22325,7 +22325,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -22340,7 +22340,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -22357,7 +22357,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -22376,7 +22376,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -22475,7 +22475,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -22492,7 +22492,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -22560,7 +22560,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -22600,7 +22600,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -22621,11 +22621,11 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -22636,7 +22636,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -22678,7 +22678,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -22722,10 +22722,10 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -22751,7 +22751,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -22759,7 +22759,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -22895,7 +22895,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -22910,7 +22910,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -22927,7 +22927,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -22946,7 +22946,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -23045,7 +23045,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -23062,7 +23062,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -23130,7 +23130,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -23170,7 +23170,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -23191,11 +23191,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -23206,7 +23206,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -23248,7 +23248,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -23292,10 +23292,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -23341,7 +23341,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -23349,7 +23349,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -23485,7 +23485,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -23500,7 +23500,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -23517,7 +23517,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -23536,7 +23536,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -23635,7 +23635,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -23652,7 +23652,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -23720,7 +23720,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -23760,7 +23760,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -23781,11 +23781,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -23796,7 +23796,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -23838,7 +23838,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -23882,10 +23882,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,
@@ -23911,7 +23911,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
@@ -23919,7 +23919,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	sessionStoreRedis := &webapp.SessionStoreRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	sessionCookieDef := webapp.NewSessionCookieDef()
 	signedUpCookieDef := webapp.NewSignedUpCookieDef()
@@ -24055,7 +24055,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -24070,7 +24070,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
@@ -24087,7 +24087,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	verificationStoreRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -24106,7 +24106,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter: limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -24205,7 +24205,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  redisHandle,
+		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
 		Logger: storeRedisLogger,
@@ -24222,7 +24222,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
 		Context:     contextContext,
-		Redis:       redisHandle,
+		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilder,
@@ -24290,7 +24290,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	forgotpasswordStore := &forgotpassword.Store{
 		Context: contextContext,
 		AppID:   appID,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
@@ -24330,7 +24330,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		TaskQueue: queue,
 	}
 	challengeProvider := &challenge.Provider{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -24351,11 +24351,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
 		Context: contextContext,
-		Redis:   redisHandle,
+		Redis:   appredisHandle,
 		AppID:   appID,
 	}
 	eventStoreRedis := &access.EventStoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	eventProvider := &access.EventProvider{
@@ -24366,7 +24366,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Context:      contextContext,
 		Request:      request,
 		AppID:        appID,
-		Redis:        redisHandle,
+		Redis:        appredisHandle,
 		Store:        idpsessionStoreRedis,
 		AccessEvents: eventProvider,
 		TrustProxy:   trustProxy,
@@ -24408,7 +24408,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		MFADeviceTokenCookie:      cookieDef,
 	}
 	interactionStoreRedis := &interaction.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 	}
 	interactionService := &interaction.Service{
@@ -24452,10 +24452,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
-	publisher := webapp2.NewPublisher(appID, redisHandle)
+	publisher := webapp2.NewPublisher(appID, appredisHandle)
 	controllerDeps := webapp2.ControllerDeps{
 		Database:      handle,
-		RedisHandle:   redisHandle,
+		RedisHandle:   appredisHandle,
 		AppID:         appID,
 		Page:          webappService2,
 		BaseViewModel: baseViewModeler,

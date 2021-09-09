@@ -30,7 +30,7 @@ func NewPool() *Pool {
 	return p
 }
 
-func (p *Pool) instance(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redisInstance {
+func (p *Pool) Instance(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redisInstance {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
@@ -57,7 +57,7 @@ func (p *Pool) instance(cfg *config.RedisConfig, credentials *config.RedisCreden
 }
 
 func (p *Pool) Client(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
-	return p.instance(cfg, credentials).Client
+	return p.Instance(cfg, credentials).Client
 }
 
 func (p *Pool) Close() (err error) {

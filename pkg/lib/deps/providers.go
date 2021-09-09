@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -111,7 +112,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		auditDatabaseCredentials,
 		loggerFactory,
 	)
-	redis := redis.NewHandle(
+	redis := appredis.NewHandle(
 		p.RedisPool,
 		p.RedisHub,
 		cfg.AppConfig.Redis,
@@ -181,7 +182,7 @@ type AppProvider struct {
 	AppDatabase        *appdb.Handle
 	AuditReadDatabase  *auditdb.ReadHandle
 	AuditWriteDatabase *auditdb.WriteHandle
-	Redis              *redis.Handle
+	Redis              *appredis.Handle
 	TaskQueue          task.Queue
 	Resources          *resource.Manager
 }

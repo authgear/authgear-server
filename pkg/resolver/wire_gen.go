@@ -600,9 +600,9 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
-	redisHandle := appProvider.Redis
+	appredisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
-		Redis: redisHandle,
+		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
 	}
@@ -613,7 +613,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
 		AppID: appID,
-		Redis: redisHandle,
+		Redis: appredisHandle,
 	}
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
