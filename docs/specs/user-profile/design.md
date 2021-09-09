@@ -4,22 +4,21 @@ User profile consists of standard attributes and custom attributes.
 
 ## Standard attributes
 
-Standard attributes is a subset of [OIDC standard claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims).
+Standard attributes are [OIDC standard claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims).
 All standard attributes are optional.
-All standard attributes are readable and writable via the Admin API.
-All standard attributes are readable and writable in the portal.
 
-### Access control on standard attributes
+## Access control on standard attributes
 
 The Admin API and the portal always have full access to all standard attributes.
 
 ```yaml
 user_profile:
   standard_attributes:
-  - pointer: /given_name
-    access_control: hidden
-  - pointer: /zoneinfo
-    access_control: readonly
+    access_control:
+    - pointer: /given_name
+      access_control: hidden
+    - pointer: /zoneinfo
+      access_control: readonly
 ```
 
 Possible values of `access_control` are:
@@ -31,38 +30,68 @@ Possible values of `access_control` are:
 
 The default value of `access_control` of all standard attributes is `readwrite`.
 
-### email
+## Standard attributes population
 
-The primary email address of the end-user.
-The value always comes from one of the identity the end-user has.
-Therefore, the input control is a dropdown.
-It is subject to [automatic population](#automatic-population).
+Most of the standard attributes are subject to population.
 
-### email\_verified
+```yaml
+user_profile:
+  standard_attributes:
+    population:
+      strategy: on_signup
+```
 
-Whether the primary email address is verified.
-This attribute is present when `email` is present.
-It is NOT writable.
+Possible values of `strategy` are
 
-### phone\_number
+- `none`: No population.
+- `on_signup`: Populate from the identity being used in sign up.
 
-The primary phone number of the end-user.
-The value always from from one of the identity the end-user has.
-Therefore, the input control is a dropdown.
-It is subject to [automatic population](#automatic-population).
+## List of standard attributes subject to population
 
-### phone\_number\_verified
+- `name`
+- `given_name`
+- `family_name`
+- `middle_name`
+- `nickname`
+- `profile`
+- `picture`
+- `website`
+- `gender`
+- `birthdate`
+- `zoneinfo`
+- `locale`
+- `address.formatted`
+- `address.street_address`
+- `address.locality`
+- `address.region`
+- `address.postal_code`
+- `address.country`
 
-Whether the primary phone number is verified.
-This attribute is present when `phone_number` is present.
-It is NOT writable.
+### Single-line string standard attributes
 
-### preferred\_username
+- `name`
+- `given_name`
+- `family_name`
+- `middle_name`
+- `nickname`
+- `address.locality`
+- `address.region`
+- `address.postal_code`
 
-The primary username of the end-user.
-The value always comes from one of the identity the end-user has.
-Therefore, the input control is a dropdown.
-It is subject to [automatic population](#automatic-population).
+### Multi-line string standard attributes
+
+- `address.formatted`
+- `address.street_address`
+
+### URL standard attributes
+
+- `profile`
+- `picture`
+- `website`
+
+### gender
+
+The predefined values are `male` and `female`. It is possible to use other values.
 
 ### zoneinfo
 
@@ -73,6 +102,7 @@ The list of tz database names are constants, so the input control is a dropdown.
 
 The preferred BCP47 tag, e.g. `zh-HK`.
 The input control is a dropdown, and the options are the supported languages of the project.
+When it is populated, the supported languages are taken into account.
 
 ### birthdate
 
@@ -81,48 +111,62 @@ The supported format is `YYYY-MM-DD`, representing the birthdate, e.g. 1 Jan 199
 > The OIDC spec also allows `0000-MM-DD` for birthday and `YYYY` for year of birth.
 > We only support `YYYY-MM-DD` for simplicity.
 
-### given\_name
+## List of standard attributes that are coupled with identities
 
-The given name of the first name of the end-user.
-The input control is a simple text input without validation.
-It is subject to [automatic population](#automatic-population).
+- `email`
+- `email_verified`
+- `phone_number`
+- `phone_number_verified`
+- `preferred_username`
 
-### family\_name
-
-The family name or the last name of the end-user.
-The input control is a simple text input without validation.
-It is subject to [automatic population](#automatic-population).
-
-## Automatic population
-
-> Automatic population CANNOT be turned off!
-
-Some of the standard attributes are subject to automatic population.
-
-The automatic population runs when one of the following situation happens:
-
-- When the end-user signs up.
-- When the end-user adds an identity.
-- When the end-user updates an identity.
-- When the end-user removes an identity.
-
-The steps of the automatic population are:
+When the identities of the end-user have been changed, the following steps are taken to compute the above attributes:
 
 1. Generate a list of email address candidates from the identities, candidates from newer identities are ordered first.
 1. Generate a list of phone number candidates from the identities, candidates from newer identities are ordered first.
 1. Generate a list of username candidates from the identities, candidates from newer identities are ordered first.
-1. Generate a list of given name and family name candidates from the identities, candidates from newer identities are ordered first.
 1. If the `email` standard attribute does not refer to a candidate in the list, clear it.
 1. If the `phone_number` standard attribute does not refer to a candidate in the list, clear it.
 1. If the `preferred_username` standard attribute does not refer to a candidate in the list, clear it.
 1. If the `email` standard attribute is absent and the list of candidate is non-empty, set it to the first candidate in the list.
 1. If the `phone_number` standard attribute is absent and the list of candidate is non-empty, set it to the first candidate in the list.
 1. If the `preferred_username` standard attribute is absent and the list of candidate is non-empty, set it to the first candidate in the list.
-1. If both the `given_name` and the `family_name` standard attribute are absent and the list of candidate is non-empty, set it to the first candidate in the list.
+
+### email
+
+The primary email address of the end-user.
+The value always comes from one of the identity the end-user has.
+Therefore, the input control is a dropdown.
+
+### email\_verified
+
+Whether the primary email address is verified.
+This attribute is present when `email` is present.
+This attribute is read-only.
+
+### phone\_number
+
+The primary phone number of the end-user.
+The value always from from one of the identity the end-user has.
+Therefore, the input control is a dropdown.
+
+### phone\_number\_verified
+
+Whether the primary phone number is verified.
+This attribute is present when `phone_number` is present.
+This attribute is read-only.
+
+### preferred\_username
+
+The primary username of the end-user.
+The value always comes from one of the identity the end-user has.
+Therefore, the input control is a dropdown.
 
 ## Custom attributes
 
 In addition to standard attributes, the developer can define their own custom attributes.
+
+> Role based access control should be done with the roles feature!
+> Custom attributes should not be used!
 
 ### Defining custom attributes
 
@@ -130,18 +174,15 @@ The custom attributes are defined as a single JSON schema written against a subs
 
 Here is an example of the schema of the custom attributes.
 
-```JSON
-{
-  "properties": {
-    "app_user_role": {
-      "type": "string",
-      "enum": ["owner", "editor", "viewer"]
-    },
-    "stripe_customer_id": {
-      "type": "string"
-    }
-  }
-}
+```yaml
+user_profile:
+  custom_attributes:
+    schema:
+      properties:
+        stripe_customer_id:
+          type: string
+        hobby:
+          type: string
 ```
 
 All changes made to custom attributes must be valid against the schema.
@@ -149,6 +190,7 @@ All changes made to custom attributes must be valid against the schema.
 #### Supported subset of JSON schema 2019-09
 
 - `type`: `boolean`, `string`, `number`, `integer`
+- `format`: `email`, `phone`, `uri`, `date-time`
 - `enum`
 - `multipleOf`
 - `maximum`
@@ -159,16 +201,6 @@ All changes made to custom attributes must be valid against the schema.
 - `minLength`
 - `properties`
 
-### Custom attributes and the resolver
-
-The resolver originally can tell whether the request is authenticated.
-If the developer has defined a custom attribute to store the role of the user,
-the developer will want to know the role of the user as well.
-Then the backend server can do authentication and authorization by forwarding a subrequest to the resolver, without the overhead of calling the Admin API.
-
-The resolver includes the custom attributes of the end-user as
-a base64URL encoded JSON under the header `x-authgear-user-custom-attributes`.
-
 ### Access control on custom attributes
 
 The Admin API and the portal always have full access to all custom attributes.
@@ -176,10 +208,11 @@ The Admin API and the portal always have full access to all custom attributes.
 ```yaml
 user_profile:
   custom_attributes:
-  - pointer: /app_user_role
-    access_control: internal
-  - pointer: /hobby
-    access_control: readwrite
+    access_control:
+    - pointer: /app_user_role
+      access_control: internal
+    - pointer: /hobby
+      access_control: readwrite
 ```
 
 Possible values of `access_control` are:
@@ -193,11 +226,16 @@ The default value of `access_control` of all custom attributes is `internal`.
 
 ### Editing custom attributes in the settings page and in the portal
 
-- Custom attributes without `type` are ignored.
-- Custom attributes of `type` `boolean` is a `<input type="checkbox">`
-- Custom attributes of `type` `string` is a `<input type="text">`
-- Custom attributes of `type` `number` is a `<input type="text">`
-- Custom attributes of `type` `integer` is a `<input type="text">`
+The UI control of the custom attribute is determined by the `type` and the `format`.
+
+- `type: string` is `<input type="text">`.
+- `type: boolean` is `<input type="checkbox">`.
+- `type: number` is `<input type="text">` but restricted to be a number.
+- `type: integer` is `<input type="text">` but restricted to be an integer.
+- `type: string` and `format: email` is `<input type="email">`.
+- `type: string` and `format: phone` is rendered using a phone input library.
+- `type: string` and `format: uri` is `<input type="text">` with validation.
+- `type: string` and `format: date-time` is rendered using a library.
 
 ## ID Token
 
@@ -226,19 +264,7 @@ Here is an example of the response.
 
 ## Synchronization of user profile between Authgear and the backend server
 
-There is NO blocking nor non-blocking webhook when standard attributes and custom attributes
-are changed by the end-user.
-
-If the developer needs to share some of the attributes,
-they should store the attributes themselves and only synchronize some essential attributes back to Authgear.
-
-Custom attributes are opaque to Authgear so the developer never need to synchronize custom attributes back to Authgear.
-
-Essential standard attributes are `zoneinfo` and `locale`.
-When the developer is aware of localization, then they will want
-to display a consistent UI in the SAME language to the end-user.
-In this case, the developer should store `zoneinfo` and `locale` in their backend,
-and when `zoneinfo` and `locale` changes, update them with the Admin API.
+See [user.profile.updated](../event.md#userprofileupdated).
 
 ## Rationale on access control
 
@@ -262,48 +288,31 @@ The developer have to manually opt-out standard attributes by hiding them.
 ```yaml
 user_profile:
   standard_attributes:
-  - pointer: /email
-    access_control: hidden
-  - pointer: /phone_number
-    access_control: hidden
-  - pointer: /preferred_username
-    access_control: hidden
-  - pointer: /given_name
-    access_control: hidden
-  - pointer: /family_name
-    access_control: hidden
-  - pointer: /zoneinfo
-    access_control: hidden
-  - pointer: /locale
-    access_control: hidden
-  - pointer: /birthdate
-    access_control: hidden
+    access_control:
+    - pointer: /email
+      access_control: hidden
+    - pointer: /phone_number
+      access_control: hidden
+    - pointer: /preferred_username
+      access_control: hidden
+    - pointer: /given_name
+      access_control: hidden
+    - pointer: /family_name
+      access_control: hidden
+    - pointer: /zoneinfo
+      access_control: hidden
+    - pointer: /locale
+      access_control: hidden
+    - pointer: /birthdate
+      access_control: hidden
 ```
 
 The developer can still update `zoneinfo` and `locale` via the Admin API
 so that Authgear can present localized content to the end-user.
 
-### Using Authgear for authentication and authorization
+### Using Authgear for storing additional user information
 
-The developer can define custom attributes for authorization.
-
-```JSON
-{
-  "properties": {
-    "app_user_role": {
-      "type": "string"
-    }
-  }
-}
-```
-
-Later on the developer can set `app_user_role` via the Admin API.
-The resolver will include `app_user_role` in the response header.
-The backend server then can use `app_user_role` to do authorization.
-
-### Using Authgear for an very simple demo application
-
-The developer can define custom attributes for storing user profile.
+The developer can define custom attributes for storing additional user information.
 
 ```JSON
 {
@@ -315,10 +324,8 @@ The developer can define custom attributes for storing user profile.
 }
 ```
 
-The developer directs the end-user to the settings page to edit
-standard attributes, as well as the custom attributes.
+The developer directs the end-user to the settings page to edit standard attributes, as well as the custom attributes.
 
-The developer calls the User Info endpoint to retrieve the standard attributes,
-and the custom attributes.
+The developer calls the User Info endpoint to retrieve the standard attributes, and the custom attributes.
 
 Finally, the developer can display the attributes in their application.

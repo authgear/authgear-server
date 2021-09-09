@@ -8,6 +8,7 @@
       - [user.pre_create](#userpre-create)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
+      - [user.profile.updated](#userprofileupdated)
       - [user.authenticated](#userauthenticated)
       - [user.signed_out](#usersigned-out)
       - [user.anonymous.promoted](#useranonymouspromoted)
@@ -111,6 +112,7 @@ Occurs right before the user creation. User can be created by user signup, user 
 ### Non-blocking Events
 
 - [user.created](#usercreated)
+- [user.profile.updated](#userprofileupdated)
 - [user.authenticated](#userauthenticated)
 - [user.signed_out](#usersigned-out)
 - [user.anonymous.promoted](#useranonymouspromoted)
@@ -146,6 +148,19 @@ Occurs after a new user is created. User can be created by user signup, user sig
   "payload": {
     "user": { /* ... */ },
     "identities": [ { /* ... */ } ]
+  }
+}
+```
+
+#### user.profile.updated
+
+Occurs when the user profile is updated.
+
+```json5
+{
+  "payload": {
+    "old_user": { /* ... */ },
+    "new_user": { /* ... */ }
   }
 }
 ```
