@@ -3,6 +3,7 @@ package deps
 import (
 	"github.com/google/wire"
 
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -260,5 +261,10 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(welcomemessage.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(verification.RateLimiter), new(*ratelimit.Limiter)),
+	),
+
+	wire.NewSet(
+		analytic.DependencySet,
+		wire.Bind(new(session.AnalyticService), new(*analytic.Service)),
 	),
 )

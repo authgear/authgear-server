@@ -26,6 +26,10 @@ func NewMiddlewareLogger(lf *log.Factory) MiddlewareLogger {
 	return MiddlewareLogger{lf.New("session-middleware")}
 }
 
+type AnalyticService interface {
+	TrackActiveUser(userID string) error
+}
+
 type Middleware struct {
 	SessionCookie              CookieDef
 	Cookies                    CookieManager
@@ -35,6 +39,7 @@ type Middleware struct {
 	Users                      UserQuery
 	Database                   *appdb.Handle
 	Logger                     MiddlewareLogger
+	AnalyticService            AnalyticService
 }
 
 func (m *Middleware) Handle(next http.Handler) http.Handler {
@@ -88,6 +93,12 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 		if err != nil {
 			return
 		}
+
+		err = m.AnalyticService.TrackActiveUser(u.ID)
+		if err != nil {
+			return
+		}
+
 		return
 	})
 	return

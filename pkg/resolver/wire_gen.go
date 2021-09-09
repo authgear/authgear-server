@@ -7,6 +7,7 @@ package resolver
 
 import (
 	"context"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
@@ -497,6 +498,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:              clock,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
+	analyticStoreRedis := &analytic.StoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clock,
+		Logger:  analyticStoreRedisLogger,
+	}
+	analyticService := &analytic.Service{
+		Counter: analyticStoreRedis,
+	}
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		Cookies:                    cookieManager,
@@ -506,6 +519,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Users:                      queries,
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
+		AnalyticService:            analyticService,
 	}
 	return sessionMiddleware
 }

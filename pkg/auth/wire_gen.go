@@ -11,6 +11,7 @@ import (
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -25085,6 +25086,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:              clockClock,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
+	analyticStoreRedis := &analytic.StoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  analyticStoreRedisLogger,
+	}
+	analyticService := &analytic.Service{
+		Counter: analyticStoreRedis,
+	}
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		Cookies:                    cookieManager,
@@ -25094,6 +25107,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Users:                      queries,
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
+		AnalyticService:            analyticService,
 	}
 	return sessionMiddleware
 }
