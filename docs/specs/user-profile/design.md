@@ -9,17 +9,27 @@ All standard attributes are optional.
 All standard attributes are readable and writable via the Admin API.
 All standard attributes are readable and writable in the portal.
 
-All standard attributes are by default readable and writable by the end-user in the settings page.
-The developer can restrict access to individual standard attribute.
+### Access control on standard attributes
+
+The Admin API and the portal always have full access to all standard attributes.
 
 ```yaml
-ui:
+user_profile:
   standard_attributes:
   - pointer: /given_name
     access_control: hidden
-  - pointer: /family_name
-    access_control: hidden
+  - pointer: /zoneinfo
+    access_control: readonly
 ```
+
+Possible values of `access_control` are:
+
+- `hidden`: The standard attribute is hidden from the end-user, the User Info endpoint and the resolver.
+- `internal`: The standard attribute is hidden in the settings page. But it is visible to the User Info endpoint and the resolver.
+- `readonly`: The standard attribute is visible to the end-user, the User Info endpoint and the resolver. The end-user can view but cannot edit it in the settings page.
+- `readwrite`: The standard attribute is visible to the end-user, the User Info endpoint and the resolver. The end-user can view and edit it in the settings page.
+
+The default value of `access_control` of all standard attributes is `readwrite`.
 
 ### email
 
@@ -161,51 +171,25 @@ a base64URL encoded JSON under the header `x-authgear-user-custom-attributes`.
 
 ### Access control on custom attributes
 
-#### Access control on custom attributes for Admin API and the portal
-
-The Admin API and the portal always have full access to custom attributes.
-
-#### Access control on custom attributes for the resolver
-
-The resolver first checks if the session has client ID.
-If a client ID is present, then the access control of the client application is applied.
-If a client ID is absent, then the full custom attributes are included in the response header.
-
-#### Access control on custom attributes for client application
-
-Client application can access the custom attributes via the User Info endpoint.
-Client application does NOT have write access to custom attributes because the User Info endpoint is not a mutation.
-Client application by default has read access to all custom attributes via the User Info endpoint.
-The developer can restrict access by declaring which custom attribute the client application has access to.
+The Admin API and the portal always have full access to all custom attributes.
 
 ```yaml
-oauth:
-  clients:
-  - client_id: my_client
-    allowed_custom_attributes:
-    # Other custom attributes not listed here are not visible to this client.
-    # Each entry is a JSON pointer in JSON string representation.
-    - /app_user_role
-```
-
-#### Access control on custom attributes for end-user
-
-The end-user can interact with custom attributes via 2 means.
-
-Depending on which client application is being used, the end-user can see different set of custom attributes.
-Thus the access control for client application also affects the end-user.
-
-Custom attributes can also be configured to be read-only or read-write in the settings page.
-Undeclared custom attributes are hidden in the settings page.
-
-```yaml
-ui:
+user_profile:
   custom_attributes:
   - pointer: /app_user_role
-    access_control: readonly
+    access_control: internal
   - pointer: /hobby
     access_control: readwrite
 ```
+
+Possible values of `access_control` are:
+
+- `hidden`: The custom attribute is hidden from the end-user, the User Info endpoint and the resolver.
+- `internal`: The custom attribute is hidden from the settings page. But it is visible to the User Info endpoint and the resolver. This value is for custom attributes that are for internal use, like role.
+- `readonly`: The custom attribute is visible to the end-user, the User Info endpoint and the resolver. The end-user can view but cannot edit it in the settings page.
+- `readwrite`: The custom attribute is visible to the end-user, the User Info endpoint and the resolver. The end-user can view and edit it in the settings page.
+
+The default value of `access_control` of all custom attributes is `internal`.
 
 ### Editing custom attributes in the settings page and in the portal
 
@@ -256,6 +240,17 @@ to display a consistent UI in the SAME language to the end-user.
 In this case, the developer should store `zoneinfo` and `locale` in their backend,
 and when `zoneinfo` and `locale` changes, update them with the Admin API.
 
+## Rationale on access control
+
+The User Info endpoint is visible to all clients.
+The resolver endpoint is public, as long as someone has a valid access token or IDP session, they can call the resolver endpoint.
+The end-user and the client can access the User Info endpoint with an access token.
+The end-user and the client can also access the User Info endpoint with an IDP session.
+
+The User Info endpoint and the resolver endpoint should share the same level of access control.
+Imagine if the resolver endpoint has more privilege than the User Info endpoint,
+there is a loophole to call the resolver endpoint instead of the User Info endpoint to access more information.
+
 ## Use case examples
 
 ### Using Authgear just for authentication.
@@ -265,7 +260,7 @@ The developer can just ignore custom attributes.
 The developer have to manually opt-out standard attributes by hiding them.
 
 ```yaml
-ui:
+user_profile:
   standard_attributes:
   - pointer: /email
     access_control: hidden
