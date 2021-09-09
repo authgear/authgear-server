@@ -102,6 +102,25 @@ func (c *RedisCredentials) SensitiveStrings() []string {
 	return []string{c.RedisURL}
 }
 
+var _ = SecretConfigSchema.Add("AnalyticRedisCredentials", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"redis_url": { "type": "string" }
+	},
+	"required": ["redis_url"]
+}
+`)
+
+type AnalyticRedisCredentials struct {
+	RedisURL string `json:"redis_url,omitempty"`
+}
+
+func (c *AnalyticRedisCredentials) SensitiveStrings() []string {
+	return []string{c.RedisURL}
+}
+
 var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
 {
 	"type": "object",

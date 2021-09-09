@@ -59,6 +59,7 @@ var secretDeps = wire.NewSet(
 	ProvideAuditDatabaseCredentials,
 	ProvideElasticsearchCredentials,
 	ProvideRedisCredentials,
+	ProvideAnalyticRedisCredentials,
 	ProvideAdminAPIAuthKeyMaterials,
 	ProvideOAuthClientCredentials,
 	ProvideSMTPServerCredentials,
@@ -86,6 +87,11 @@ func ProvideElasticsearchCredentials(c *config.SecretConfig) *config.Elasticsear
 
 func ProvideRedisCredentials(c *config.SecretConfig) *config.RedisCredentials {
 	s, _ := c.LookupData(config.RedisCredentialsKey).(*config.RedisCredentials)
+	return s
+}
+
+func ProvideAnalyticRedisCredentials(c *config.SecretConfig) *config.AnalyticRedisCredentials {
+	s, _ := c.LookupData(config.AnalyticRedisCredentialsKey).(*config.AnalyticRedisCredentials)
 	return s
 }
 
