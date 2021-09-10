@@ -5,24 +5,25 @@
     + [Event Context](#event-context)
   * [Event List](#event-list)
     + [Blocking Events](#blocking-events)
-      - [user.pre_create](#userpre-create)
+      - [user.pre_create](#userpre_create)
+      - [user.profile.pre_update](#userprofilepre_update)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
       - [user.profile.updated](#userprofileupdated)
       - [user.authenticated](#userauthenticated)
-      - [user.signed_out](#usersigned-out)
+      - [user.signed_out](#usersigned_out)
       - [user.anonymous.promoted](#useranonymouspromoted)
-      - [authentication.identity.login_id.failed](#authenticationidentitylogin-idfailed)
+      - [authentication.identity.login_id.failed](#authenticationidentitylogin_idfailed)
       - [authentication.identity.anonymous.failed](#authenticationidentityanonymousfailed)
       - [authentication.identity.biometric.failed](#authenticationidentitybiometricfailed)
       - [authentication.primary.password.failed](#authenticationprimarypasswordfailed)
-      - [authentication.primary.oob_otp_email.failed](#authenticationprimaryoob-otp-emailfailed)
-      - [authentication.primary.oob_otp_sms.failed](#authenticationprimaryoob-otp-smsfailed)
+      - [authentication.primary.oob_otp_email.failed](#authenticationprimaryoob_otp_emailfailed)
+      - [authentication.primary.oob_otp_sms.failed](#authenticationprimaryoob_otp_smsfailed)
       - [authentication.secondary.password.failed](#authenticationsecondarypasswordfailed)
       - [authentication.secondary.totp.failed](#authenticationsecondarytotpfailed)
-      - [authentication.secondary.oob_otp_email.failed](#authenticationsecondaryoob-otp-emailfailed)
-      - [authentication.secondary.oob_otp_sms.failed](#authenticationsecondaryoob-otp-smsfailed)
-      - [authentication.secondary.recovery_code.failed](#authenticationsecondaryrecovery-codefailed)
+      - [authentication.secondary.oob_otp_email.failed](#authenticationsecondaryoob_otp_emailfailed)
+      - [authentication.secondary.oob_otp_sms.failed](#authenticationsecondaryoob_otp_smsfailed)
+      - [authentication.secondary.recovery_code.failed](#authenticationsecondaryrecovery_codefailed)
       - [identity.email.added](#identityemailadded)
       - [identity.email.removed](#identityemailremoved)
       - [identity.email.updated](#identityemailupdated)
@@ -87,6 +88,7 @@ All fields are guaranteed that only backward-compatible changes would be made.
 ### Blocking Events
 
 - [user.pre_create](#userpre_create)
+- [user.profile.pre_update](#userprofilepre_update)
 
 #### user.pre_create
 
@@ -108,6 +110,18 @@ Occurs right before the user creation. User can be created by user signup, user 
 ```
 
 - `oauth.state`: OAuth state if the signup is triggered through authorize endpoint with state parameter.
+
+#### user.profile.pre_update
+
+Occurs right before the update of user profile.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
 
 ### Non-blocking Events
 

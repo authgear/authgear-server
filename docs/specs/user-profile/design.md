@@ -296,9 +296,11 @@ Here is an example of the response.
 }
 ```
 
-## Synchronization of user profile between Authgear and the backend server
+## Webhook
 
-See [user.profile.updated](../event.md#userprofileupdated).
+The blocking event [user.profile.pre_update](../event.md#userprofilepre-update) fires before an update on the user profile.
+
+The non-blocking event [user.profile.updated](../event.md#userprofileupdated) notifies an update on the user profile.
 
 ## Use case examples
 
