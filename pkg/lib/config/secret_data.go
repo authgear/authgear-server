@@ -102,10 +102,6 @@ func (c *RedisCredentials) SensitiveStrings() []string {
 	return []string{c.RedisURL}
 }
 
-func (c *RedisCredentials) ConnKey() string {
-	return c.RedisURL
-}
-
 var _ = SecretConfigSchema.Add("OAuthClientCredentials", `
 {
 	"type": "object",

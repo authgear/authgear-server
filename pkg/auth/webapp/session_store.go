@@ -9,7 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -17,7 +17,7 @@ const SessionExpiryDuration = interaction.GraphLifetime
 
 type SessionStoreRedis struct {
 	AppID config.AppID
-	Redis *redis.Handle
+	Redis *appredis.Handle
 }
 
 func (s *SessionStoreRedis) Create(session *Session) (err error) {

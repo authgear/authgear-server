@@ -8,7 +8,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 )
 
 const maxEventStreamLength = 10
@@ -16,7 +16,7 @@ const maxEventStreamLength = 10
 const eventTypeAccessEvent = "access"
 
 type EventStoreRedis struct {
-	Redis *redis.Handle
+	Redis *appredis.Handle
 	AppID config.AppID
 }
 

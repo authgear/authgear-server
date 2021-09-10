@@ -8,7 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -34,7 +34,7 @@ type PageService interface {
 
 type ControllerDeps struct {
 	Database      *appdb.Handle
-	RedisHandle   *redis.Handle
+	RedisHandle   *appredis.Handle
 	AppID         config.AppID
 	Page          PageService
 	BaseViewModel *viewmodels.BaseViewModeler

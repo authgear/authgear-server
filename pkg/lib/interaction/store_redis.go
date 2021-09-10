@@ -9,11 +9,11 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 )
 
 type StoreRedis struct {
-	Redis *redis.Handle
+	Redis *appredis.Handle
 	AppID config.AppID
 }
 

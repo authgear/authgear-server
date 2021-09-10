@@ -6,8 +6,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/go-redsync/redsync/v4"
 	redsyncgoredis "github.com/go-redsync/redsync/v4/redis/goredis/v8"
-
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type redisInstance struct {
@@ -30,13 +28,13 @@ func NewPool() *Pool {
 	return p
 }
 
-func (p *Pool) instance(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redisInstance {
+func (p *Pool) instance(connectionOptions *ConnectionOptions) *redisInstance {
 	p.closeMutex.RLock()
 	defer func() { p.closeMutex.RUnlock() }()
 	if p.closed {
 		panic("redis: pool is closed")
 	}
-	connKey := credentials.ConnKey()
+	connKey := connectionOptions.ConnKey()
 
 	p.cachedInstanceMutex.RLock()
 	instance, exists := p.cachedInstance[connKey]
@@ -48,7 +46,7 @@ func (p *Pool) instance(cfg *config.RedisConfig, credentials *config.RedisCreden
 	p.cachedInstanceMutex.Lock()
 	instance, exists = p.cachedInstance[connKey]
 	if !exists {
-		instance = p.openInstance(cfg, credentials)
+		instance = p.openInstance(connectionOptions)
 		p.cachedInstance[connKey] = instance
 	}
 	p.cachedInstanceMutex.Unlock()
@@ -56,8 +54,8 @@ func (p *Pool) instance(cfg *config.RedisConfig, credentials *config.RedisCreden
 	return instance
 }
 
-func (p *Pool) Client(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redis.Client {
-	return p.instance(cfg, credentials).Client
+func (p *Pool) Client(connectionOptions *ConnectionOptions) *redis.Client {
+	return p.instance(connectionOptions).Client
 }
 
 func (p *Pool) Close() (err error) {
@@ -74,15 +72,15 @@ func (p *Pool) Close() (err error) {
 	return
 }
 
-func (p *Pool) openInstance(cfg *config.RedisConfig, credentials *config.RedisCredentials) *redisInstance {
-	opts, err := redis.ParseURL(credentials.RedisURL)
+func (p *Pool) openInstance(connectionOptions *ConnectionOptions) *redisInstance {
+	opts, err := redis.ParseURL(connectionOptions.RedisURL)
 	if err != nil {
 		panic(err)
 	}
 	// FIXME(redis): MaxIdleConnection is not supported.
-	opts.PoolSize = *cfg.MaxOpenConnection
-	opts.IdleTimeout = cfg.IdleConnectionTimeout.Duration()
-	opts.MaxConnAge = cfg.MaxConnectionLifetime.Duration()
+	opts.PoolSize = *connectionOptions.MaxOpenConnection
+	opts.IdleTimeout = connectionOptions.IdleConnectionTimeout.Duration()
+	opts.MaxConnAge = connectionOptions.MaxConnectionLifetime.Duration()
 	client := redis.NewClient(opts)
 	redsyncPool := redsyncgoredis.NewPool(client)
 	redsyncInstance := redsync.New(redsyncPool)

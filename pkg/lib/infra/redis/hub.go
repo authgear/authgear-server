@@ -6,7 +6,6 @@ import (
 
 	"github.com/go-redis/redis/v8"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -178,10 +177,9 @@ func NewPubSub(logger *log.Logger, client *redis.Client, connKey string, supervi
 }
 
 type HubMessageSubscribe struct {
-	Config      *config.RedisConfig
-	Credentials *config.RedisCredentials
-	ChannelName string
-	Result      chan Subscription
+	ConnectionOptions *ConnectionOptions
+	ChannelName       string
+	Result            chan Subscription
 }
 
 type HubMessagePubSubDead struct {
@@ -222,10 +220,10 @@ func NewHub(pool *Pool, lf *log.Factory) *Hub {
 		for n := range h.Mailbox {
 			switch n := n.(type) {
 			case HubMessageSubscribe:
-				connKey := n.Credentials.ConnKey()
+				connKey := n.ConnectionOptions.ConnKey()
 				pubsub, ok := h.PubSub[connKey]
 				if !ok {
-					client := h.Pool.Client(n.Config, n.Credentials)
+					client := h.Pool.Client(n.ConnectionOptions)
 					pubsub = NewPubSub(
 						h.Logger,
 						client,
@@ -279,16 +277,14 @@ func NewHub(pool *Pool, lf *log.Factory) *Hub {
 }
 
 func (h *Hub) Subscribe(
-	cfg *config.RedisConfig,
-	credentials *config.RedisCredentials,
+	ConnectionOptions *ConnectionOptions,
 	channelName string,
 ) Subscription {
 	result := make(chan Subscription)
 	h.Mailbox <- HubMessageSubscribe{
-		Config:      cfg,
-		Credentials: credentials,
-		ChannelName: channelName,
-		Result:      result,
+		ConnectionOptions: ConnectionOptions,
+		ChannelName:       channelName,
+		Result:            result,
 	}
 	return <-result
 }

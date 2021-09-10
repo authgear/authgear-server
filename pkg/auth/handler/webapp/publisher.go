@@ -7,17 +7,17 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/pubsub"
 )
 
 type Publisher struct {
 	AppID       config.AppID
-	RedisHandle *redis.Handle
+	RedisHandle *appredis.Handle
 	Publisher   *pubsub.Publisher
 }
 
-func NewPublisher(appID config.AppID, handle *redis.Handle) *Publisher {
+func NewPublisher(appID config.AppID, handle *appredis.Handle) *Publisher {
 	p := &Publisher{
 		AppID:       appID,
 		RedisHandle: handle,
