@@ -9,5 +9,5 @@ import (
 var CookieDef = &httputil.CookieDef{
 	NameSuffix: "authentication_info",
 	Path:       "/",
-	SameSite:   http.SameSiteStrictMode,
+	SameSite:   http.SameSiteNoneMode,
 }
