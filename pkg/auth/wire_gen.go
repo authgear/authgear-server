@@ -4420,11 +4420,24 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
+	analyticStoreRedis := &analytic.StoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  analyticStoreRedisLogger,
+	}
+	analyticService := &analytic.Service{
+		Counter: analyticStoreRedis,
+	}
 	loginHandler := &webapp2.LoginHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
+		AnalyticService:   analyticService,
 	}
 	return loginHandler
 }
@@ -4995,11 +5008,24 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
+	analyticStoreRedis := &analytic.StoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  analyticStoreRedisLogger,
+	}
+	analyticService := &analytic.Service{
+		Counter: analyticStoreRedis,
+	}
 	signupHandler := &webapp2.SignupHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
+		AnalyticService:   analyticService,
 	}
 	return signupHandler
 }

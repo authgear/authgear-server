@@ -13,6 +13,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
+type PageType string
+
+const (
+	PageTypeSignup PageType = "signup"
+	PageTypeLogin  PageType = "login"
+)
+
 type StoreRedisLogger struct{ *log.Logger }
 
 func NewStoreRedisLogger(lf *log.Factory) StoreRedisLogger {
@@ -52,6 +59,31 @@ func (s *StoreRedis) TrackActiveUser(userID string) (err error) {
 	return
 }
 
+func (s *StoreRedis) TrackPageView(visitorID string, pageType PageType) (err error) {
+	if s.Redis == nil {
+		return nil
+	}
+	now := s.Clock.NowUTC()
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		uniquePageViewKey := dailyUniquePageView(s.AppID, pageType, &now)
+		_, err := conn.PFAdd(s.Context, uniquePageViewKey, visitorID).Result()
+		if err != nil {
+			err = fmt.Errorf("failed to track unique page view: %w", err)
+			return err
+		}
+
+		pageViewKey := dailyPageView(s.AppID, pageType, &now)
+		_, err = conn.Incr(s.Context, pageViewKey).Result()
+		if err != nil {
+			err = fmt.Errorf("failed to track page view: %w", err)
+			return err
+		}
+
+		return nil
+	})
+	return
+}
+
 func monthlyActiveUserCount(appID config.AppID, year int, month int) string {
 	return fmt.Sprintf("app:%s:monthly-active-user:%d-%d", appID, year, month)
 }
@@ -62,4 +94,12 @@ func weeklyActiveUserCount(appID config.AppID, year int, week int) string {
 
 func dailyActiveUserCount(appID config.AppID, date *time.Time) string {
 	return fmt.Sprintf("app:%s:daily-active-user:%s", appID, date.Format("2006-01-02"))
+}
+
+func dailyUniquePageView(appID config.AppID, page PageType, date *time.Time) string {
+	return fmt.Sprintf("app:%s:daily-unique-page-view:%s:%s", appID, page, date.Format("2006-01-02"))
+}
+
+func dailyPageView(appID config.AppID, page PageType, date *time.Time) string {
+	return fmt.Sprintf("app:%s:daily-page-view:%s:%s", appID, page, date.Format("2006-01-02"))
 }
