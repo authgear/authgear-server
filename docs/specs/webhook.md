@@ -2,6 +2,7 @@
   * [Webhook Delivery](#webhook-delivery)
   * [Webhook Event Lifecycle](#webhook-event-lifecycle)
   * [Webhook Blocking Events](#webhook-blocking-events)
+    + [Webhook Blocking Event Mutations](#webhook-blocking-event-mutations)
   * [Webhook Non-blocking Events](#webhook-non-blocking-events)
     + [Future works of non-blocking events](#future-works-of-non-blocking-events)
   * [Webhook Event Management](#webhook-event-management)
@@ -42,6 +43,7 @@ Webhook handler must return a status code within the 2xx range. Other status cod
 1. Perform operation
 1. Deliver blocking events to webhook handlers
 1. If failed, rollback the transaction.
+1. Perform mutations
 1. Commit transaction
 1. Deliver non-blocking events to webhook handlers
 
@@ -91,6 +93,54 @@ If any handler fails the operation, the operation is failed. The operation fails
 The time spent in a blocking event delivery must not exceed 5 seconds, otherwise it would be considered as a failed delivery. Also, the total time spent in all deliveries of the event must not exceed 10 seconds, otherwise it would also be considered as a failed delivery. Both timeouts are configurable.
 
 Blocking events are not persisted, and their failed deliveries are not retried.
+
+### Webhook Blocking Event Mutations
+
+Webhook handler can optionally mutate the object in the payload.
+
+Webhook handler cannot request mutation if the operation is failed by the handler.
+
+Webhook handler specify the mutations in its response.
+
+Given the event
+
+```json
+{
+  "payload": {
+    "user": {
+      "standard_attributes": {
+        "name": "John"
+      }
+    }
+  }
+}
+```
+
+The webhook handler can mutate the user with the following response.
+
+```json
+{
+  "is_allowed": true,
+  "mutations": {
+    "user": {
+      "standard_attributes": {
+        "name": "Jane"
+      }
+    }
+  }
+}
+```
+
+Objects not appearing in `mutations` are left intact.
+
+The mutated objects do NOT merge with the original ones.
+
+The mutated payload are NOT validated and are propagated along the handler chain.
+The payload will only be validated after traversing the handler chain.
+
+Mutations do NOT generate extra events to avoid infinite loop.
+
+Currently, only some fields of the user object are mutable.
 
 ## Webhook Non-blocking Events
 
