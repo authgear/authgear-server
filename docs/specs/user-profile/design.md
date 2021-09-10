@@ -7,29 +7,6 @@ User profile consists of standard attributes and custom attributes.
 Standard attributes are [OIDC standard claims](https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims).
 All standard attributes are optional.
 
-## Access control on standard attributes
-
-The Admin API and the portal always have full access to all standard attributes.
-
-```yaml
-user_profile:
-  standard_attributes:
-    access_control:
-    - pointer: /given_name
-      access_control: hidden
-    - pointer: /zoneinfo
-      access_control: readonly
-```
-
-Possible values of `access_control` are:
-
-- `hidden`: The standard attribute is hidden from the end-user, the User Info endpoint and the resolver.
-- `internal`: The standard attribute is hidden in the settings page. But it is visible to the User Info endpoint and the resolver.
-- `readonly`: The standard attribute is visible to the end-user, the User Info endpoint and the resolver. The end-user can view but cannot edit it in the settings page.
-- `readwrite`: The standard attribute is visible to the end-user, the User Info endpoint and the resolver. The end-user can view and edit it in the settings page.
-
-The default value of `access_control` of all standard attributes is `readwrite`.
-
 ## Standard attributes population
 
 Most of the standard attributes are subject to population.
@@ -201,29 +178,6 @@ All changes made to custom attributes must be valid against the schema.
 - `minLength`
 - `properties`
 
-### Access control on custom attributes
-
-The Admin API and the portal always have full access to all custom attributes.
-
-```yaml
-user_profile:
-  custom_attributes:
-    access_control:
-    - pointer: /app_user_role
-      access_control: internal
-    - pointer: /hobby
-      access_control: readwrite
-```
-
-Possible values of `access_control` are:
-
-- `hidden`: The custom attribute is hidden from the end-user, the User Info endpoint and the resolver.
-- `internal`: The custom attribute is hidden from the settings page. But it is visible to the User Info endpoint and the resolver. This value is for custom attributes that are for internal use, like role.
-- `readonly`: The custom attribute is visible to the end-user, the User Info endpoint and the resolver. The end-user can view but cannot edit it in the settings page.
-- `readwrite`: The custom attribute is visible to the end-user, the User Info endpoint and the resolver. The end-user can view and edit it in the settings page.
-
-The default value of `access_control` of all custom attributes is `internal`.
-
 ### Editing custom attributes in the settings page and in the portal
 
 The UI control of the custom attribute is determined by the `type` and the `format`.
@@ -236,6 +190,86 @@ The UI control of the custom attribute is determined by the `type` and the `form
 - `type: string` and `format: phone` is rendered using a phone input library.
 - `type: string` and `format: uri` is `<input type="text">` with validation.
 - `type: string` and `format: date-time` is rendered using a library.
+
+## Access control
+
+Access control on standard attributes and custom attributes are defined per party.
+There are 4 parties.
+
+### The end-user
+
+The end-user can view or edit the standard attributes and the custom attributes via the settings page.
+
+### The session bearer
+
+The session bearer is someone who has a valid IDP session cookie or a valid access token.
+The session bearer can then access the User Info endpoint and the resolver endpoint.
+
+Behind the session bearer, it is the end-user, the mobile app or the website.
+
+### The admin user
+
+The admin user can view or edit the standard attributes and the custom attributes via the portal.
+Behind the scene, the portal uses the Admin API.
+
+### The Admin API
+
+The Admin API allows the developer to view or edit the standard attributes and the custom attributes.
+The admin API always have full access to all standard attributes and the custom attributes.
+
+### Available access control levels
+
+The access control levels are defined as follows.
+They are ordered by in increasing order.
+
+- `hidden`: Hidden from the party.
+- `readonly`: Read-only to the party.
+- `readwrite`: Read-write to the party.
+
+### Access control configuration
+
+- The default access control level for `admin_user` is `readwrite`.
+- The default access control level is `bearer` is `readwrite`.
+- The access control level `readwrite` is equivalent to `readonly` for `bearer`.
+- The default access control level of standard attribute for `end_user` is `readwrite`.
+- The default access control level of custom attribute for `end_user` is `hidden`.
+- The access control level for `end_user` must be equal or less than that that for `bearer`.
+- The access control level for `bearer` must be equal or less than that for `admin_user`.
+
+Here is an example with default values shown.
+
+```yaml
+user_profile:
+  standard_attributes:
+    access_control:
+    - pointer: /given_name
+      access_control:
+        end_user: readwrite
+        bearer: readwrite
+        admin_user: readwrite
+  custom_attributes:
+    access_control:
+    - pointer: /hobby
+      access_control:
+        end_user: hidden
+        bearer: readwrite
+        admin_user: readwrite
+```
+
+### Exhaustive list of access control combination
+
+|end\_user|bearer|admin\_user|
+|---------|------|-----------|
+|hidden|hidden|hidden|
+|hidden|hidden|readonly|
+|hidden|hidden|readwrite|
+|hidden|readonly|readonly|
+|hidden|readonly|readwrite|
+|hidden|readwrite|readwrite|
+|readonly|readonly|readonly|
+|readonly|readonly|readwrite|
+|readonly|readwrite|readwrite|
+|readwrite|readwrite|readwrite|
 
 ## ID Token
 
@@ -266,17 +300,6 @@ Here is an example of the response.
 
 See [user.profile.updated](../event.md#userprofileupdated).
 
-## Rationale on access control
-
-The User Info endpoint is visible to all clients.
-The resolver endpoint is public, as long as someone has a valid access token or IDP session, they can call the resolver endpoint.
-The end-user and the client can access the User Info endpoint with an access token.
-The end-user and the client can also access the User Info endpoint with an IDP session.
-
-The User Info endpoint and the resolver endpoint should share the same level of access control.
-Imagine if the resolver endpoint has more privilege than the User Info endpoint,
-there is a loophole to call the resolver endpoint instead of the User Info endpoint to access more information.
-
 ## Use case examples
 
 ### Using Authgear just for authentication.
@@ -290,21 +313,31 @@ user_profile:
   standard_attributes:
     access_control:
     - pointer: /email
-      access_control: hidden
+      access_control:
+        end_user: hidden
+        bearer: hidden
+        admin_user: hidden
     - pointer: /phone_number
-      access_control: hidden
+      access_control:
+        end_user: hidden
+        bearer: hidden
+        admin_user: hidden
     - pointer: /preferred_username
-      access_control: hidden
+      access_control:
+        end_user: hidden
+        bearer: hidden
+        admin_user: hidden
     - pointer: /given_name
-      access_control: hidden
+      access_control:
+        end_user: hidden
+        bearer: hidden
+        admin_user: hidden
     - pointer: /family_name
-      access_control: hidden
-    - pointer: /zoneinfo
-      access_control: hidden
-    - pointer: /locale
-      access_control: hidden
-    - pointer: /birthdate
-      access_control: hidden
+      access_control:
+        end_user: hidden
+        bearer: hidden
+        admin_user: hidden
+    # List out other standard attribute you want to hide.
 ```
 
 The developer can still update `zoneinfo` and `locale` via the Admin API
