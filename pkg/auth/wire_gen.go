@@ -25196,6 +25196,22 @@ func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Mid
 	return weChatRedirectURIMiddleware
 }
 
+func newWebAppVisitorIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	visitorIDMiddleware := &webapp.VisitorIDMiddleware{
+		Cookies: cookieManager,
+	}
+	return visitorIDMiddleware
+}
+
 // wire_middleware.go:
 
 func provideSecHeadersMiddleware(http2 *config.HTTPConfig) *web.SecHeadersMiddleware {
