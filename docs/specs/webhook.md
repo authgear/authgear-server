@@ -140,7 +140,7 @@ The payload will only be validated after traversing the handler chain.
 
 Mutations do NOT generate extra events to avoid infinite loop.
 
-Currently, only some fields of the user object are mutable.
+Currently, only `standard_attributes`, `custom_attributes` and `roles` of the user object are mutable.
 
 ## Webhook Non-blocking Events
 

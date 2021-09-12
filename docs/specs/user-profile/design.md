@@ -1,6 +1,6 @@
 # User profile
 
-User profile consists of standard attributes and custom attributes.
+User profile consists of standard attributes, custom attributes and roles.
 
 ## Standard attributes
 
@@ -191,10 +191,34 @@ The UI control of the custom attribute is determined by the `type` and the `form
 - `type: string` and `format: uri` is `<input type="text">` with validation.
 - `type: string` and `format: date-time` is rendered using a library.
 
+## Roles
+
+A role is an opaque string defined by the developer.
+
+The Admin API is the only way to manipulate roles.
+The portal uses the Admin API to offer a GUI to manage roles.
+
+The developer can:
+
+- Create a role
+- Delete a role
+- Rename a role
+- Add a role to an end-user
+- Remove a role from an end-user
+
+A role internally is referenced by an ID, however, it is referenced by its name externally.
+
+An end-user has zero or more roles.
+
+The name of a role must only consist of alphanumeric characters, hyphen, dot and underscore.
+The name of a role must be non-empty.
+
 ## Access control
 
 Access control on standard attributes and custom attributes are defined per party.
 There are 4 parties.
+
+Roles are always publicly readable.
 
 ### The end-user
 
@@ -280,6 +304,7 @@ This is because ID token can be used as `id_token_hint` and can appear in URL qu
 
 The standard attributes appear in the root of the user info response.
 The custom attributes appear under the key `custom_attributes`.
+The roles appear under the key `roles`.
 
 Here is an example of the response.
 
@@ -292,7 +317,8 @@ Here is an example of the response.
   "family_name": "Doe",
   "custom_attributes": {
     "hobby": "reading"
-  }
+  },
+  "roles": ["manager"]
 }
 ```
 
