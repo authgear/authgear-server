@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/spf13/cobra"
 )
 
@@ -54,11 +57,19 @@ var cmdAnalyticCollectCount = &cobra.Command{
 			DatabaseSchema: auditDBSchema,
 		}
 
+		dbPool := db.NewPool()
+		countCollector := analytic.NewCountCollector(context.Background(), dbPool, dbCredentials, auditDBCredentials)
+
 		interval := args[0]
 		switch interval {
 		case analytic.CollectIntervalTypeDaily:
-			fmt.Println(dbCredentials, auditDBCredentials)
-			return fmt.Errorf("TODO: collect analytic count daily")
+			log.Println("Start collecting daily analytic count")
+			yesterday := time.Now().UTC().AddDate(0, 0, -1)
+			updatedCount, err := countCollector.CollectDaily(&yesterday)
+			if err != nil {
+				return err
+			}
+			log.Printf("Number of counts have been updated: %d", updatedCount)
 		case analytic.CollectIntervalTypeWeekly:
 			return fmt.Errorf("TODO: collect analytic count weekly")
 		case analytic.CollectIntervalTypeMonthly:

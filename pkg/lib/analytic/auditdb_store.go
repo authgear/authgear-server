@@ -8,7 +8,7 @@ import (
 
 type AuditDBStore struct {
 	SQLBuilder  *auditdb.SQLBuilder
-	SQLExecutor *auditdb.ReadSQLExecutor
+	SQLExecutor *auditdb.WriteSQLExecutor
 }
 
 func (s *AuditDBStore) GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error) {
@@ -28,4 +28,32 @@ func (s *AuditDBStore) GetCountByActivityType(appID string, activityType string,
 		return 0, err
 	}
 	return count, nil
+}
+
+func (s *AuditDBStore) CreateCounts(counts []*Count) error {
+	builder := s.SQLBuilder.Global().
+		Insert(s.SQLBuilder.TableName("_audit_analytic_count")).
+		Columns(
+			"id",
+			"app_id",
+			"type",
+			"count",
+			"date",
+		)
+
+	for _, count := range counts {
+		builder = builder.Values(
+			count.ID,
+			count.AppID,
+			count.Type,
+			count.Count,
+			count.Date,
+		)
+	}
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
