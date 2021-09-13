@@ -231,7 +231,7 @@ The session bearer can then access the User Info endpoint and the resolver endpo
 
 Behind the session bearer, it is the end-user, the mobile app or the website.
 
-### The admin user
+### The portal
 
 The admin user can view or edit the standard attributes and the custom attributes via the portal.
 Behind the scene, the portal uses the Admin API.
@@ -252,13 +252,13 @@ They are ordered by in increasing order.
 
 ### Access control configuration
 
-- The default access control level for `admin_user` is `readwrite`.
+- The default access control level for `portal_ui` is `readwrite`.
 - The default access control level is `bearer` is `readwrite`.
 - The access control level `readwrite` is equivalent to `readonly` for `bearer`.
 - The default access control level of standard attribute for `end_user` is `readwrite`.
 - The default access control level of custom attribute for `end_user` is `hidden`.
 - The access control level for `end_user` must be equal or less than that that for `bearer`.
-- The access control level for `bearer` must be equal or less than that for `admin_user`.
+- The access control level for `bearer` must be equal or less than that for `portal_ui`.
 
 Here is an example with default values shown.
 
@@ -270,14 +270,14 @@ user_profile:
       access_control:
         end_user: readwrite
         bearer: readwrite
-        admin_user: readwrite
+        portal_ui: readwrite
   custom_attributes:
     access_control:
     - pointer: /hobby
       access_control:
         end_user: hidden
         bearer: readwrite
-        admin_user: readwrite
+        portal_ui: readwrite
 ```
 
 ### Exhaustive list of access control combination
@@ -344,27 +344,27 @@ user_profile:
       access_control:
         end_user: hidden
         bearer: hidden
-        admin_user: hidden
+        portal_ui: hidden
     - pointer: /phone_number
       access_control:
         end_user: hidden
         bearer: hidden
-        admin_user: hidden
+        portal_ui: hidden
     - pointer: /preferred_username
       access_control:
         end_user: hidden
         bearer: hidden
-        admin_user: hidden
+        portal_ui: hidden
     - pointer: /given_name
       access_control:
         end_user: hidden
         bearer: hidden
-        admin_user: hidden
+        portal_ui: hidden
     - pointer: /family_name
       access_control:
         end_user: hidden
         bearer: hidden
-        admin_user: hidden
+        portal_ui: hidden
     # List out other standard attribute you want to hide.
 ```
 
