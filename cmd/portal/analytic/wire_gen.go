@@ -66,10 +66,11 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 	}
 	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
-	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
+	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
 	auditDBStore := &analytic.AuditDBStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: readSQLExecutor,
+		SQLExecutor: writeSQLExecutor,
 	}
 	projectWeeklyReport := &analytic.ProjectWeeklyReport{
 		GlobalHandle:  handle,
@@ -80,6 +81,43 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 		AuditDBStore:  auditDBStore,
 	}
 	return projectWeeklyReport
+}
+
+func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.CountCollector {
+	databaseConfig := NewDatabaseConfig()
+	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	factory := NewLoggerFactory()
+	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	globalDBStore := &analytic.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
+	appID := NewEmptyAppID()
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
+	appDBStore := &analytic.AppDBStore{
+		SQLBuilder:  appdbSQLBuilder,
+		SQLExecutor: appdbSQLExecutor,
+	}
+	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
+	auditDBStore := &analytic.AuditDBStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: writeSQLExecutor,
+	}
+	countCollector := &analytic.CountCollector{
+		GlobalHandle:  handle,
+		GlobalDBStore: globalDBStore,
+		AppDBHandle:   appdbHandle,
+		AppDBStore:    appDBStore,
+		AuditDBHandle: writeHandle,
+		AuditDBStore:  auditDBStore,
+	}
+	return countCollector
 }
 
 // wire.go:

@@ -41,3 +41,15 @@ func NewProjectWeeklyReport(
 		DependencySet,
 	))
 }
+
+func NewCountCollector(
+	ctx context.Context,
+	pool *db.Pool,
+	databaseCredentials *config.DatabaseCredentials,
+	auditDatabaseCredentials *config.AuditDatabaseCredentials,
+) *analytic.CountCollector {
+	panic(wire.Build(
+		NewEmptyAppID,
+		DependencySet,
+	))
+}

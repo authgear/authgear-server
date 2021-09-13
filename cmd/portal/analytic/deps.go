@@ -39,6 +39,7 @@ var DependencySet = wire.NewSet(
 	appdb.NewHandle,
 	appdb.DependencySet,
 	auditdb.NewReadHandle,
+	auditdb.NewWriteHandle,
 	auditdb.DependencySet,
 	analytic.DependencySet,
 )
