@@ -384,6 +384,20 @@ func (mr *MockOAuthIdentityProviderMockRecorder) Update(i interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Update), i)
 }
 
+// WithUpdate mocks base method.
+func (m *MockOAuthIdentityProvider) WithUpdate(iden *oauth.Identity, rawProfile, claims map[string]interface{}) *oauth.Identity {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithUpdate", iden, rawProfile, claims)
+	ret0, _ := ret[0].(*oauth.Identity)
+	return ret0
+}
+
+// WithUpdate indicates an expected call of WithUpdate.
+func (mr *MockOAuthIdentityProviderMockRecorder) WithUpdate(iden, rawProfile, claims interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithUpdate", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).WithUpdate), iden, rawProfile, claims)
+}
+
 // MockAnonymousIdentityProvider is a mock of AnonymousIdentityProvider interface.
 type MockAnonymousIdentityProvider struct {
 	ctrl     *gomock.Controller
