@@ -139,3 +139,10 @@ func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Mid
 		wire.Bind(new(httproute.Middleware), new(*webapp.WeChatRedirectURIMiddleware)),
 	))
 }
+
+func newWebAppVisitorIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*webapp.VisitorIDMiddleware)),
+	))
+}

@@ -236,6 +236,7 @@ const (
 	AuditDatabaseCredentialsKey SecretKey = "audit.db"
 	ElasticsearchCredentialsKey SecretKey = "elasticsearch"
 	RedisCredentialsKey         SecretKey = "redis"
+	AnalyticRedisCredentialsKey SecretKey = "analytic.redis"
 	AdminAPIAuthKeyKey          SecretKey = "admin-api.auth"
 	OAuthClientCredentialsKey   SecretKey = "sso.oauth.client"
 	SMTPServerCredentialsKey    SecretKey = "mail.smtp"
@@ -270,6 +271,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	AuditDatabaseCredentialsKey: {"AuditDatabaseCredentials", func() SecretItemData { return &AuditDatabaseCredentials{} }},
 	ElasticsearchCredentialsKey: {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
 	RedisCredentialsKey:         {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
+	AnalyticRedisCredentialsKey: {"AnalyticRedisCredentials", func() SecretItemData { return &AnalyticRedisCredentials{} }},
 	AdminAPIAuthKeyKey:          {"AdminAPIAuthKey", func() SecretItemData { return &AdminAPIAuthKey{} }},
 	OAuthClientCredentialsKey:   {"OAuthClientCredentials", func() SecretItemData { return &OAuthClientCredentials{} }},
 	SMTPServerCredentialsKey:    {"SMTPServerCredentials", func() SecretItemData { return &SMTPServerCredentials{} }},

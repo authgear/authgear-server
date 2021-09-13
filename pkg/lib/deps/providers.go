@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -120,6 +121,17 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		loggerFactory,
 	)
 
+	var analyticRedisCredentials *config.AnalyticRedisCredentials
+	if c := cfg.SecretConfig.LookupData(config.AnalyticRedisCredentialsKey); c != nil {
+		analyticRedisCredentials = c.(*config.AnalyticRedisCredentials)
+	}
+	analyticRedis := analyticredis.NewHandle(
+		p.RedisPool,
+		cfg.AppConfig.Redis,
+		analyticRedisCredentials,
+		loggerFactory,
+	)
+
 	provider := &AppProvider{
 		RootProvider:       p,
 		Context:            ctx,
@@ -129,6 +141,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		AuditReadDatabase:  auditReadDatabase,
 		AuditWriteDatabase: auditWriteDatabase,
 		Redis:              redis,
+		AnalyticRedis:      analyticRedis,
 		Resources:          appCtx.Resources,
 	}
 	provider.TaskQueue = p.TaskQueueFactory(provider)
@@ -183,6 +196,7 @@ type AppProvider struct {
 	AuditReadDatabase  *auditdb.ReadHandle
 	AuditWriteDatabase *auditdb.WriteHandle
 	Redis              *appredis.Handle
+	AnalyticRedis      *analyticredis.Handle
 	TaskQueue          task.Queue
 	Resources          *resource.Manager
 }

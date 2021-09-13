@@ -394,6 +394,9 @@ func (s *Service2) afterPost(
 			return err
 		}
 		result.Cookies = append(result.Cookies, s.Cookies.ClearCookie(s.SessionCookie.Def))
+		// reset visitor id after completing interaction
+		// visit signup / login page again after signup should treat as a new visit
+		result.Cookies = append(result.Cookies, s.Cookies.ClearCookie(VisitorIDCookieDef))
 	} else if isNewGraph {
 		err := s.Sessions.Create(session)
 		if err != nil {

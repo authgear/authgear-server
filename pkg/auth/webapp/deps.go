@@ -23,6 +23,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(UILocalesMiddleware), "*"),
 	wire.Struct(new(WeChatRedirectURIMiddleware), "*"),
 	wire.Struct(new(ClientIDMiddleware), "*"),
+	wire.Struct(new(VisitorIDMiddleware), "*"),
 
 	NewPublicOriginMiddlewareLogger,
 	wire.Struct(new(PublicOriginMiddleware), "*"),

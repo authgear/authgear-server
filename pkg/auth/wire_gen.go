@@ -11,6 +11,7 @@ import (
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -4419,11 +4420,24 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
+	analyticStoreRedis := &analytic.StoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  analyticStoreRedisLogger,
+	}
+	analyticService := &analytic.Service{
+		Counter: analyticStoreRedis,
+	}
 	loginHandler := &webapp2.LoginHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
+		AnalyticService:   analyticService,
 	}
 	return loginHandler
 }
@@ -4994,11 +5008,24 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		LoginID: loginIDConfig,
 		UI:      uiConfig,
 	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
+	analyticStoreRedis := &analytic.StoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  analyticStoreRedisLogger,
+	}
+	analyticService := &analytic.Service{
+		Counter: analyticStoreRedis,
+	}
 	signupHandler := &webapp2.SignupHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		FormPrefiller:     formPrefiller,
 		Renderer:          responseRenderer,
+		AnalyticService:   analyticService,
 	}
 	return signupHandler
 }
@@ -25085,6 +25112,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:              clockClock,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
+	analyticredisHandle := appProvider.AnalyticRedis
+	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
+	analyticStoreRedis := &analytic.StoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  analyticStoreRedisLogger,
+	}
+	analyticService := &analytic.Service{
+		Counter: analyticStoreRedis,
+	}
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		Cookies:                    cookieManager,
@@ -25094,6 +25133,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Users:                      queries,
 		Database:                   appdbHandle,
 		Logger:                     middlewareLogger,
+		AnalyticService:            analyticService,
 	}
 	return sessionMiddleware
 }
@@ -25180,6 +25220,22 @@ func newWebAppWeChatRedirectURIMiddleware(p *deps.RequestProvider) httproute.Mid
 		Cookies: cookieManager,
 	}
 	return weChatRedirectURIMiddleware
+}
+
+func newWebAppVisitorIDMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	request := p.Request
+	appProvider := p.AppProvider
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	visitorIDMiddleware := &webapp.VisitorIDMiddleware{
+		Cookies: cookieManager,
+	}
+	return visitorIDMiddleware
 }
 
 // wire_middleware.go:

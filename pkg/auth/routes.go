@@ -95,6 +95,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappAuthEntrypointChain := httproute.Chain(
 		webappPageChain,
 		p.Middleware(newAuthEntryPointMiddleware),
+		// A unique visit is started when the user visit auth entry point
+		p.Middleware(newWebAppVisitorIDMiddleware),
 	)
 	webappAuthenticatedChain := httproute.Chain(
 		webappPageChain,
