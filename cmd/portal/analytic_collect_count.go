@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
+	"github.com/authgear/authgear-server/cmd/portal/util/periodical"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -78,22 +78,24 @@ var cmdAnalyticCollectCount = &cobra.Command{
 			analyticRedisCredentials,
 		)
 
-		interval := args[0]
-		switch interval {
-		case analytic.CollectIntervalTypeDaily:
-			log.Println("Start collecting daily analytic count")
-			yesterday := time.Now().UTC().AddDate(0, 0, -1)
-			updatedCount, err := countCollector.CollectDaily(&yesterday)
+		periodicalInput := args[0]
+		parser := analytic.NewPeriodicalArgumentParser()
+		periodicalType, date, err := parser.Parse(periodicalInput)
+		if err != nil {
+			return err
+		}
+		switch periodicalType {
+		case periodical.Daily:
+			log.Println("Start collecting daily analytic count", date.Format("2006-01-02"))
+			updatedCount, err := countCollector.CollectDaily(date)
 			if err != nil {
 				return err
 			}
 			log.Printf("Number of counts have been updated: %d", updatedCount)
-		case analytic.CollectIntervalTypeWeekly:
+		case periodical.Weekly:
 			return fmt.Errorf("TODO: collect analytic count weekly")
-		case analytic.CollectIntervalTypeMonthly:
+		case periodical.Monthly:
 			return fmt.Errorf("TODO: collect analytic count monthly")
-		default:
-			log.Fatalf("unknown interval: %s", interval)
 		}
 
 		return nil

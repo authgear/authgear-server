@@ -7,6 +7,7 @@ package analytic
 
 import (
 	"context"
+	"github.com/authgear/authgear-server/cmd/portal/util/periodical"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -15,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 // Injectors from wire.go:
@@ -128,6 +130,18 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 	}
 	return countCollector
 }
+
+func NewPeriodicalArgumentParser() *periodical.ArgumentParser {
+	clock := _wireSystemClockValue
+	argumentParser := &periodical.ArgumentParser{
+		Clock: clock,
+	}
+	return argumentParser
+}
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
 
 // wire.go:
 

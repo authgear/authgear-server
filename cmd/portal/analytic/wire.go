@@ -5,10 +5,12 @@ package analytic
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/cmd/portal/util/periodical"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/google/wire"
 )
 
@@ -54,5 +56,12 @@ func NewCountCollector(
 	panic(wire.Build(
 		NewEmptyAppID,
 		DependencySet,
+	))
+}
+
+func NewPeriodicalArgumentParser() *periodical.ArgumentParser {
+	panic(wire.Build(
+		clock.DependencySet,
+		periodical.DependencySet,
 	))
 }
