@@ -67,7 +67,7 @@ func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err er
 	if len(counts) > 0 {
 		err = c.AuditDBHandle.WithTx(func() error {
 			// Store the counts to audit db
-			err = c.AuditDBStore.CreateCounts(counts)
+			err = c.AuditDBStore.UpsertCounts(counts)
 			if err != nil {
 				return err
 			}

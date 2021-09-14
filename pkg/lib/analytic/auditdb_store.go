@@ -34,7 +34,26 @@ func (s *AuditDBStore) GetCountByActivityType(appID string, activityType string,
 	return count, nil
 }
 
-func (s *AuditDBStore) CreateCounts(counts []*Count) error {
+// UpsertCounts upsert counts in batches
+func (s *AuditDBStore) UpsertCounts(counts []*Count) error {
+	batchSize := 100
+	for i := 0; i < len(counts); i += batchSize {
+		j := i + batchSize
+		if j > len(counts) {
+			j = len(counts)
+		}
+		batch := counts[i:j]
+
+		err := s.upsertCounts(batch)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *AuditDBStore) upsertCounts(counts []*Count) error {
 	builder := s.SQLBuilder.Global().
 		Insert(s.SQLBuilder.TableName("_audit_analytic_count")).
 		Columns(
@@ -54,6 +73,8 @@ func (s *AuditDBStore) CreateCounts(counts []*Count) error {
 			count.Date,
 		)
 	}
+
+	builder = builder.Suffix("ON CONFLICT (app_id, type, date) DO UPDATE SET count = excluded.count")
 	_, err := s.SQLExecutor.ExecWith(builder)
 	if err != nil {
 		return err
