@@ -32,6 +32,28 @@ function copyToClipboard(str: string): void {
   document.body.removeChild(el);
 }
 
+// Disable double tap zoom
+// There are rumours on the web claiming that touch-action: manipulation can do that.
+// However, I tried
+// * {
+//   touch-action: manipulation;
+// }
+// and
+// * {
+//   touch-action: pan-y;
+// }
+// None of them work.
+window.api.onLoad(() => {
+  function listener(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  document.addEventListener("dblclick", listener);
+  return () => {
+    document.removeEventListener("dblclick", listener);
+  };
+});
+
 // Copy button
 window.api.onLoad(() => {
   function copy(e: Event) {
