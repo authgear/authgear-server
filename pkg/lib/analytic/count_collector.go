@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -33,6 +34,7 @@ type CountCollector struct {
 	AppDBStore    *AppDBStore
 	AuditDBHandle *auditdb.WriteHandle
 	AuditDBStore  *AuditDBStore
+	CounterStore  *ReadStoreRedis
 }
 
 func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err error) {
@@ -153,6 +155,57 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 	})
 	if err != nil {
 		return
+	}
+
+	// Collect counts from redis
+	dailyCount, err := c.CounterStore.GetDailyCountResult(config.AppID(appID), &date)
+	if err != nil {
+		return
+	}
+
+	if dailyCount.ActiveUser != 0 {
+		counts = append(counts, NewCount(
+			appID,
+			dailyCount.ActiveUser,
+			date,
+			DailyActiveUserCountType,
+		))
+	}
+
+	if dailyCount.LoginPageView != 0 {
+		counts = append(counts, NewCount(
+			appID,
+			dailyCount.LoginPageView,
+			date,
+			DailyLoginPageViewCountType,
+		))
+	}
+
+	if dailyCount.LoginUniquePageView != 0 {
+		counts = append(counts, NewCount(
+			appID,
+			dailyCount.LoginUniquePageView,
+			date,
+			DailyLoginUniquePageViewCountType,
+		))
+	}
+
+	if dailyCount.SignupPageView != 0 {
+		counts = append(counts, NewCount(
+			appID,
+			dailyCount.SignupPageView,
+			date,
+			DailySignupPageViewCountType,
+		))
+	}
+
+	if dailyCount.SignupUniquePageView != 0 {
+		counts = append(counts, NewCount(
+			appID,
+			dailyCount.SignupUniquePageView,
+			date,
+			DailySignupUniquePageViewCountType,
+		))
 	}
 
 	return

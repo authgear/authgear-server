@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/google/wire"
 )
 
@@ -47,6 +48,8 @@ func NewCountCollector(
 	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 	auditDatabaseCredentials *config.AuditDatabaseCredentials,
+	redisPool *redis.Pool,
+	credentials *config.AnalyticRedisCredentials,
 ) *analytic.CountCollector {
 	panic(wire.Build(
 		NewEmptyAppID,

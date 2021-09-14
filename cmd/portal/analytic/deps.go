@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/google/wire"
 )
@@ -31,15 +32,23 @@ func NewDatabaseEnvironmentConfig(dbCredentials *config.DatabaseCredentials, dbC
 	}
 }
 
+func NewRedisConfig() *config.RedisConfig {
+	cfg := &config.RedisConfig{}
+	cfg.SetDefaults()
+	return cfg
+}
+
 var DependencySet = wire.NewSet(
 	NewLoggerFactory,
 	NewDatabaseConfig,
 	NewDatabaseEnvironmentConfig,
+	NewRedisConfig,
 	globaldb.DependencySet,
 	appdb.NewHandle,
 	appdb.DependencySet,
 	auditdb.NewReadHandle,
 	auditdb.NewWriteHandle,
 	auditdb.DependencySet,
+	analyticredis.NewHandle,
 	analytic.DependencySet,
 )

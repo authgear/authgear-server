@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,7 @@ func init() {
 	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgDatabaseSchema)
 	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgAuditDatabaseURL)
 	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgAuditDatabaseSchema)
+	binder.BindString(cmdAnalyticCollectCount.Flags(), ArgAnalyticRedisURL)
 }
 
 var cmdAnalyticCollectCount = &cobra.Command{
@@ -57,8 +59,24 @@ var cmdAnalyticCollectCount = &cobra.Command{
 			DatabaseSchema: auditDBSchema,
 		}
 
+		var analyticRedisCredentials *config.AnalyticRedisCredentials
+		analyticRedisURL := binder.GetString(cmd, ArgAnalyticRedisURL)
+		if analyticRedisURL != "" {
+			analyticRedisCredentials = &config.AnalyticRedisCredentials{
+				RedisURL: analyticRedisURL,
+			}
+		}
+
 		dbPool := db.NewPool()
-		countCollector := analytic.NewCountCollector(context.Background(), dbPool, dbCredentials, auditDBCredentials)
+		redisPool := redis.NewPool()
+		countCollector := analytic.NewCountCollector(
+			context.Background(),
+			dbPool,
+			dbCredentials,
+			auditDBCredentials,
+			redisPool,
+			analyticRedisCredentials,
+		)
 
 		interval := args[0]
 		switch interval {

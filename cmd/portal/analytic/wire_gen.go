@@ -13,6 +13,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 )
 
 // Injectors from wire.go:
@@ -83,7 +85,7 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 	return projectWeeklyReport
 }
 
-func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.CountCollector {
+func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials) *analytic.CountCollector {
 	databaseConfig := NewDatabaseConfig()
 	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
 	factory := NewLoggerFactory()
@@ -109,6 +111,12 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
 	}
+	redisConfig := NewRedisConfig()
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisConfig, credentials, factory)
+	readStoreRedis := &analytic.ReadStoreRedis{
+		Context: ctx,
+		Redis:   analyticredisHandle,
+	}
 	countCollector := &analytic.CountCollector{
 		GlobalHandle:  handle,
 		GlobalDBStore: globalDBStore,
@@ -116,6 +124,7 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		AppDBStore:    appDBStore,
 		AuditDBHandle: writeHandle,
 		AuditDBStore:  auditDBStore,
+		CounterStore:  readStoreRedis,
 	}
 	return countCollector
 }

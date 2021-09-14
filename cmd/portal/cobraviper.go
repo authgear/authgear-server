@@ -39,6 +39,12 @@ var ArgAuditDatabaseSchema = &cobraviper.StringArgument{
 	Usage:        "Audit Database schema",
 }
 
+var ArgAnalyticRedisURL = &cobraviper.StringArgument{
+	ArgumentName: "analytic-redis-url",
+	EnvName:      "ANALYTIC_REDIS_URL",
+	Usage:        "Analytic Redis URL",
+}
+
 var ArgKubeconfig = &cobraviper.StringArgument{
 	ArgumentName: "kubeconfig",
 	EnvName:      "KUBECONFIG",
