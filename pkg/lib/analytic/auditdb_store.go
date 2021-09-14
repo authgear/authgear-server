@@ -1,9 +1,13 @@
 package analytic
 
 import (
+	"encoding/json"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type AuditDBStore struct {
@@ -56,4 +60,78 @@ func (s *AuditDBStore) CreateCounts(counts []*Count) error {
 	}
 
 	return nil
+}
+
+// QueryPage is copied from pkg/lib/audit/read_store.go
+// The ReadStore cannot be used here as it requires appID during initialization through injection
+func (s *AuditDBStore) QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error) {
+	query := s.selectQuery(appID)
+
+	query = opts.Apply(query)
+
+	query = query.OrderBy("created_at ASC")
+
+	query, offset, err := db.ApplyPageArgs(query, pageArgs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := s.SQLExecutor.QueryWith(query)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var logs []*audit.Log
+	for rows.Next() {
+		l, err := s.scan(rows)
+		if err != nil {
+			return nil, 0, err
+		}
+		logs = append(logs, l)
+	}
+
+	return logs, offset, nil
+}
+
+func (s *AuditDBStore) selectQuery(appID string) db.SelectBuilder {
+	return s.SQLBuilder.WithAppID(appID).
+		Select(
+			"id",
+			"created_at",
+			"user_id",
+			"activity_type",
+			"ip_address",
+			"user_agent",
+			"client_id",
+			"data",
+		).
+		From(s.SQLBuilder.TableName("_audit_log"))
+}
+
+func (s *AuditDBStore) scan(scn db.Scanner) (*audit.Log, error) {
+	l := &audit.Log{}
+
+	var data []byte
+
+	err := scn.Scan(
+		&l.ID,
+		&l.CreatedAt,
+		&l.UserID,
+		&l.ActivityType,
+		&l.IPAddress,
+		&l.UserAgent,
+		&l.ClientID,
+		&data,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(data, &l.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return l, nil
 }

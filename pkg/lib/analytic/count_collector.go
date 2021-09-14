@@ -1,13 +1,30 @@
 package analytic
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
+
+type SignupCountResult struct {
+	TotalCount           int
+	CountByLoginID       map[string]int
+	CountByOAuthProvider map[string]int
+	AnonymousCount       int
+}
 
 type CountCollector struct {
 	GlobalHandle  *globaldb.Handle
@@ -87,5 +104,145 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 		return
 	}
 
+	// Signup count
+	err = c.AuditDBHandle.ReadOnly(func() error {
+		signupCountResult, err := c.querySignupCount(appID, &date, &nextDay)
+		if err != nil {
+			err = fmt.Errorf("failed to calculate signup count: %w", err)
+			return err
+		}
+		if signupCountResult.TotalCount == 0 {
+			// no new signup for the app, skip the signup count
+			return nil
+		}
+
+		counts = append(counts, NewCount(
+			appID,
+			signupCountResult.TotalCount,
+			date,
+			DailySignupCountType,
+		))
+
+		for loginIDType, count := range signupCountResult.CountByLoginID {
+			counts = append(counts, NewDailySignupWithLoginID(
+				appID,
+				count,
+				date,
+				loginIDType,
+			))
+		}
+
+		for provider, count := range signupCountResult.CountByOAuthProvider {
+			counts = append(counts, NewDailySignupWithOAuth(
+				appID,
+				count,
+				date,
+				provider,
+			))
+		}
+
+		if signupCountResult.AnonymousCount != 0 {
+			counts = append(counts, NewCount(
+				appID,
+				signupCountResult.AnonymousCount,
+				date,
+				DailySignupAnonymouslyCountType,
+			))
+		}
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
 	return
+}
+
+func (c *CountCollector) querySignupCount(appID string, rangeFrom *time.Time, rangeTo *time.Time) (*SignupCountResult, error) {
+	var first uint64 = 100
+	var after model.PageCursor = ""
+
+	result := &SignupCountResult{
+		CountByLoginID:       map[string]int{},
+		CountByOAuthProvider: map[string]int{},
+	}
+	for {
+		events, lastCursor, err := c.queryUserCreatedEvents(appID, rangeFrom, rangeTo, first, after)
+		if err != nil {
+			return nil, err
+		}
+
+		// Termination condition
+		if len(events) == 0 {
+			return result, nil
+		}
+
+		after = lastCursor
+		for _, e := range events {
+			result.TotalCount++
+			payload := e.Payload.(*nonblocking.UserCreatedEventPayload)
+			if len(payload.Identities) < 1 {
+				log.Fatal("missing user identities")
+			}
+			iden := payload.Identities[0]
+			switch authn.IdentityType(iden.Type) {
+			case authn.IdentityTypeLoginID:
+				loginIDType := iden.Claims[identity.IdentityClaimLoginIDType].(string)
+				if loginIDType == "" {
+					log.Fatal("missing type in login id identity claims")
+				}
+				result.CountByLoginID[loginIDType]++
+			case authn.IdentityTypeOAuth:
+				provider := iden.Claims[identity.IdentityClaimOAuthProviderType].(string)
+				if provider == "" {
+					log.Fatal("missing provider in oauth identity claims")
+				}
+				result.CountByOAuthProvider[provider]++
+			case authn.IdentityTypeAnonymous:
+				result.AnonymousCount++
+			}
+		}
+	}
+}
+
+func (c *CountCollector) queryUserCreatedEvents(appID string, rangeFrom *time.Time, rangeTo *time.Time, first uint64, after model.PageCursor) (events []*event.Event, lastCursor model.PageCursor, err error) {
+	options := audit.QueryPageOptions{
+		RangeFrom:     rangeFrom,
+		RangeTo:       rangeTo,
+		ActivityTypes: []string{string(nonblocking.UserCreated)},
+	}
+
+	logs, offset, err := c.AuditDBStore.QueryPage(appID, options, graphqlutil.PageArgs{
+		First: &first,
+		After: graphqlutil.Cursor(after),
+	})
+	if err != nil {
+		return
+	}
+	events = make([]*event.Event, len(logs))
+	for i, log := range logs {
+		b, e := json.Marshal(log.Data)
+		if e != nil {
+			err = e
+			return
+		}
+		eventObj := event.Event{
+			Payload: &nonblocking.UserCreatedEventPayload{},
+		}
+		e = json.Unmarshal(b, &eventObj)
+		if e != nil {
+			err = e
+			return
+		}
+		events[i] = &eventObj
+	}
+
+	pageKey := db.PageKey{Offset: offset + uint64(len(logs)) - 1}
+	cursor, err := pageKey.ToPageCursor()
+	if err != nil {
+		return
+	}
+	after = cursor
+
+	return events, after, nil
 }
