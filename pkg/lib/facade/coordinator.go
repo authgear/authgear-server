@@ -117,29 +117,9 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 		return err
 	}
 
-	if is.Type == authn.IdentityTypeOAuth {
-		providerID := config.NewProviderID(
-			is.Claims[identity.IdentityClaimOAuthProviderKeys].(map[string]interface{}),
-		)
-		var cfg *config.OAuthSSOProviderConfig
-		for _, c := range c.IdentityConfig.OAuth.Providers {
-			if c.ProviderID().Equal(&providerID) {
-				c := c
-				cfg = &c
-				break
-			}
-		}
-
-		email, ok := is.Claims[identity.StandardClaimEmail].(string)
-		if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
-			// Mark as verified if OAuth email is assumed to be verified
-			err = c.markVerified(is.UserID, map[authn.ClaimName]string{
-				authn.ClaimEmail: email,
-			})
-			if err != nil {
-				return err
-			}
-		}
+	err = c.markOAuthEmailAsVerified(is)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -147,6 +127,11 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 
 func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
 	err := c.Identities.Update(info)
+	if err != nil {
+		return err
+	}
+
+	err = c.markOAuthEmailAsVerified(info)
 	if err != nil {
 		return err
 	}
@@ -355,5 +340,37 @@ func (c *Coordinator) markVerified(userID string, claims map[authn.ClaimName]str
 			return err
 		}
 	}
+	return nil
+}
+
+func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
+	if info.Type != authn.IdentityTypeOAuth {
+		return nil
+	}
+
+	providerID := config.NewProviderID(
+		info.Claims[identity.IdentityClaimOAuthProviderKeys].(map[string]interface{}),
+	)
+
+	var cfg *config.OAuthSSOProviderConfig
+	for _, c := range c.IdentityConfig.OAuth.Providers {
+		if c.ProviderID().Equal(&providerID) {
+			c := c
+			cfg = &c
+			break
+		}
+	}
+
+	email, ok := info.Claims[identity.StandardClaimEmail].(string)
+	if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
+		// Mark as verified if OAuth email is assumed to be verified
+		err := c.markVerified(info.UserID, map[authn.ClaimName]string{
+			authn.ClaimEmail: email,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
