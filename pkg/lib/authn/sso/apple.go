@@ -148,7 +148,6 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 
 	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
-	authInfo.ProviderAccessTokenResp = tokenResp
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID:    sub,
 		Email: email,

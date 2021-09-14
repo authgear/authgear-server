@@ -7,10 +7,9 @@ import (
 
 // AuthInfo contains auth info from HandleAuthzResp
 type AuthInfo struct {
-	ProviderConfig          config.OAuthSSOProviderConfig
-	ProviderRawProfile      map[string]interface{}
-	ProviderAccessTokenResp interface{}
-	ProviderUserInfo        ProviderUserInfo
+	ProviderConfig     config.OAuthSSOProviderConfig
+	ProviderRawProfile map[string]interface{}
+	ProviderUserInfo   ProviderUserInfo
 }
 
 type ProviderUserInfo struct {

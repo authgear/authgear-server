@@ -60,7 +60,6 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	if err != nil {
 		return
 	}
-	authInfo.ProviderAccessTokenResp = accessTokenResp
 
 	userProfileURL, err := url.Parse(facebookUserInfoURL)
 	if err != nil {

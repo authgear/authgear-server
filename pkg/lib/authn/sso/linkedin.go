@@ -82,7 +82,6 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	}
 
 	authInfo.ProviderConfig = f.ProviderConfig
-	authInfo.ProviderAccessTokenResp = accessTokenResp
 	authInfo.ProviderRawProfile = combinedResponse
 	authInfo.ProviderUserInfo = providerUserInfo
 	return
