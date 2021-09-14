@@ -57,15 +57,18 @@ func TestNormalizer(t *testing.T) {
 			"name":        "",
 			"family_name": "",
 			"given_name":  "",
+			"nickname":    "",
 		}, T{})
 		test(T{
 			"name":        "John Doe",
 			"family_name": "Doe",
 			"given_name":  "John",
+			"nickname":    "John",
 		}, T{
 			"name":        "John Doe",
 			"family_name": "Doe",
 			"given_name":  "John",
+			"nickname":    "John",
 		})
 
 		// Omit invalid URLs

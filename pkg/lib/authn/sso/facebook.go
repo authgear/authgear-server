@@ -69,6 +69,25 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	q.Set("appsecret_proof", appSecretProof)
 	userProfileURL.RawQuery = q.Encode()
 
+	// Here is the refacted user profile of Louis' facebook account.
+	// {
+	//   "id": "redacted",
+	//   "email": "redacted",
+	//   "first_name": "Jonathan",
+	//   "last_name": "Doe",
+	//   "name": "Johnathan Doe",
+	//   "name_format": "{first} {last}",
+	//   "picture": {
+	//     "data": {
+	//       "height": 50,
+	//       "is_silhouette": true,
+	//       "url": "http://example.com",
+	//       "width": 50
+	//     }
+	//   },
+	//   "short_name": "John"
+	// }
+
 	userProfile, err := fetchUserProfile(accessTokenResp, userProfileURL.String())
 	if err != nil {
 		return
@@ -77,10 +96,27 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 
 	id, _ := userProfile["id"].(string)
 	email, _ := userProfile["email"].(string)
+	firstName, _ := userProfile["first_name"].(string)
+	lastName, _ := userProfile["last_name"].(string)
+	name, _ := userProfile["name"].(string)
+	shortName, _ := userProfile["short_name"].(string)
+	var picture string
+	if pictureObj, ok := userProfile["picture"].(map[string]interface{}); ok {
+		if data, ok := pictureObj["data"].(map[string]interface{}); ok {
+			if url, ok := data["url"].(string); ok {
+				picture = url
+			}
+		}
+	}
 
 	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Sub:   id,
-		stdattrs.Email: email,
+		stdattrs.Sub:        id,
+		stdattrs.Email:      email,
+		stdattrs.GivenName:  firstName,
+		stdattrs.FamilyName: lastName,
+		stdattrs.Name:       name,
+		stdattrs.Nickname:   shortName,
+		stdattrs.Picture:    picture,
 	}
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)

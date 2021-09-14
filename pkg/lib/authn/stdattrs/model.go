@@ -19,6 +19,7 @@ const (
 	FamilyName        = "family_name"
 	GivenName         = "given_name"
 	Name              = "name"
+	Nickname          = "nickname"
 	Picture           = "picture"
 	Profile           = "profile"
 	Locale            = "locale"

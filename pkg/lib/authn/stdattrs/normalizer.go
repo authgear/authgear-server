@@ -57,6 +57,11 @@ func (n *Normalizer) Normalize(t T) error {
 	} else {
 		delete(t, Name)
 	}
+	if nickname, ok := t[Nickname].(string); ok && nickname != "" {
+		// noop
+	} else {
+		delete(t, Nickname)
+	}
 
 	// Verify picture and profile are URL.
 	if picture, ok := t[Picture].(string); ok && picture != "" {
