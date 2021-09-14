@@ -46,9 +46,7 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 }
 
 func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	authInfo = AuthInfo{
-		ProviderConfig: f.ProviderConfig,
-	}
+	authInfo = AuthInfo{}
 
 	accessTokenResp, err := fetchAccessTokenResp(
 		r.Code,

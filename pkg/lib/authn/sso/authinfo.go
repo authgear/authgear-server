@@ -2,12 +2,10 @@ package sso
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 // AuthInfo contains auth info from HandleAuthzResp
 type AuthInfo struct {
-	ProviderConfig     config.OAuthSSOProviderConfig
 	ProviderRawProfile map[string]interface{}
 	ProviderUserInfo   ProviderUserInfo
 }

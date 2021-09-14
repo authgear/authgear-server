@@ -106,7 +106,6 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 		}
 	}
 
-	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID:    sub,

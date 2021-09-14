@@ -85,7 +85,6 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		return
 	}
 
-	authInfo.ProviderConfig = w.ProviderConfig
 	authInfo.ProviderRawProfile = rawProfile
 	authInfo.ProviderUserInfo = ProviderUserInfo{
 		ID: userID,
