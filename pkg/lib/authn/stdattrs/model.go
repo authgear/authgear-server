@@ -16,4 +16,10 @@ const (
 	Email             = "email"
 	PhoneNumber       = "phone_number"
 	PreferredUsername = "preferred_username"
+	FamilyName        = "family_name"
+	GivenName         = "given_name"
+	Name              = "name"
+	Picture           = "picture"
+	Profile           = "profile"
+	Locale            = "locale"
 )
