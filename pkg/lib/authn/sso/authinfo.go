@@ -35,9 +35,3 @@ func (i ProviderUserInfo) ClaimsValue() map[string]interface{} {
 	}
 	return claimsValue
 }
-
-type OAuthAuthorizationResponse struct {
-	Code  string
-	State string
-	Scope string
-}

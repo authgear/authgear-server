@@ -18,6 +18,12 @@ type GetAuthInfoParam struct {
 	Nonce string
 }
 
+type OAuthAuthorizationResponse struct {
+	Code  string
+	State string
+	Scope string
+}
+
 // OAuthProvider is OAuth 2.0 based provider.
 type OAuthProvider interface {
 	Type() config.OAuthSSOProviderType
