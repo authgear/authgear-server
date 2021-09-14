@@ -295,14 +295,13 @@ type OAuthSSOProviderType string
 func (t OAuthSSOProviderType) Scope() string {
 	switch t {
 	case OAuthSSOProviderTypeGoogle:
-		// https://developers.google.com/identity/protocols/googlescopes#google_sign-in
+		// https://developers.google.com/identity/protocols/oauth2/openid-connect
 		return "openid profile email"
 	case OAuthSSOProviderTypeFacebook:
-		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-default
-		// https://developers.facebook.com/docs/facebook-login/permissions/#reference-email
-		return "email"
+		// https://developers.facebook.com/docs/permissions/reference
+		return "email public_profile"
 	case OAuthSSOProviderTypeLinkedIn:
-		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/profile-api?context=linkedin/compliance/context
+		// https://docs.microsoft.com/en-us/linkedin/shared/references/v2/profile/lite-profile
 		// https://docs.microsoft.com/en-us/linkedin/shared/integrations/people/primary-contact-api?context=linkedin/compliance/context
 		return "r_liteprofile r_emailaddress"
 	case OAuthSSOProviderTypeAzureADv2:
@@ -312,7 +311,8 @@ func (t OAuthSSOProviderType) Scope() string {
 		// The supported scopes are observed from a AD FS server.
 		return "openid profile email"
 	case OAuthSSOProviderTypeApple:
-		return "email"
+		// https://developer.apple.com/documentation/sign_in_with_apple/sign_in_with_apple_js/incorporating_sign_in_with_apple_into_other_platforms
+		return "name email"
 	case OAuthSSOProviderTypeWechat:
 		// https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html
 		return "snsapi_userinfo"
