@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type Azureadv2Impl struct {
-	Clock                    clock.Clock
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Clock                        clock.Clock
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (f *Azureadv2Impl) getOpenIDConfiguration() (*OIDCDiscoveryDocument, error) {
@@ -131,18 +132,16 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 	// For "AD guest user", email usually exists because to invite an user, the inviter must provide email.
 	// For "AD user", email never exists even one is provided in "Authentication Methods".
 	email, _ := claims["email"].(string)
-	if email != "" {
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(email)
-		if err != nil {
-			return
-		}
-	}
 
 	authInfo.ProviderRawProfile = claims
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:    oid,
-		Email: email,
+	authInfo.StandardAttributes = stdattrs.T{
+		stdattrs.Sub:   oid,
+		stdattrs.Email: email,
+	}
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
 	return

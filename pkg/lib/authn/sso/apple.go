@@ -9,6 +9,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
@@ -23,11 +24,11 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 }
 
 type AppleImpl struct {
-	Clock                    clock.Clock
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Clock                        clock.Clock
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
@@ -138,18 +139,16 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 	}
 
 	email, _ := claims["email"].(string)
-	if email != "" {
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(email)
-		if err != nil {
-			return
-		}
-	}
 
 	authInfo.ProviderRawProfile = claims
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:    sub,
-		Email: email,
+	authInfo.StandardAttributes = stdattrs.T{
+		stdattrs.Sub:   sub,
+		stdattrs.Email: email,
+	}
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
 	return

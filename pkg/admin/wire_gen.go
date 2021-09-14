@@ -28,6 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -530,14 +531,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	oAuthProviderFactory := &sso.OAuthProviderFactory{
-		Endpoints:                webEndpoints,
-		IdentityConfig:           identityConfig,
-		Credentials:              oAuthClientCredentials,
-		RedirectURL:              webEndpoints,
-		Clock:                    clockClock,
+	normalizer := &stdattrs.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
-		WechatURLProvider:        webEndpoints,
+	}
+	oAuthProviderFactory := &sso.OAuthProviderFactory{
+		Endpoints:                    webEndpoints,
+		IdentityConfig:               identityConfig,
+		Credentials:                  oAuthClientCredentials,
+		RedirectURL:                  webEndpoints,
+		Clock:                        clockClock,
+		WechatURLProvider:            webEndpoints,
+		StandardAttributesNormalizer: normalizer,
 	}
 	forgotPasswordConfig := appConfig.ForgotPassword
 	forgotpasswordStore := &forgotpassword.Store{

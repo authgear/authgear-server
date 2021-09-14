@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -13,10 +14,10 @@ const (
 )
 
 type LinkedInImpl struct {
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (*LinkedInImpl) Type() config.OAuthSSOProviderType {
@@ -70,19 +71,14 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		"primary_contact": contactResponse,
 	}
 
-	providerUserInfo := decodeLinkedIn(combinedResponse)
-	if providerUserInfo.Email != "" {
-		var email string
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(providerUserInfo.Email)
-		if err != nil {
-			return
-		}
-		providerUserInfo.Email = email
+	authInfo.ProviderRawProfile = combinedResponse
+	authInfo.StandardAttributes = decodeLinkedIn(combinedResponse)
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
-	authInfo.ProviderRawProfile = combinedResponse
-	authInfo.ProviderUserInfo = providerUserInfo
 	return
 }
 
@@ -92,7 +88,7 @@ func (f *LinkedInImpl) GetPrompt(prompt []string) []string {
 	return []string{}
 }
 
-func decodeLinkedIn(userInfo map[string]interface{}) ProviderUserInfo {
+func decodeLinkedIn(userInfo map[string]interface{}) stdattrs.T {
 	profile := userInfo["profile"].(map[string]interface{})
 	id := profile["id"].(string)
 
@@ -114,9 +110,9 @@ func decodeLinkedIn(userInfo map[string]interface{}) ProviderUserInfo {
 		email, _ = handleTilde["emailAddress"].(string)
 	}
 
-	return ProviderUserInfo{
-		ID:    id,
-		Email: email,
+	return stdattrs.T{
+		stdattrs.Sub:   id,
+		stdattrs.Email: email,
 	}
 }
 

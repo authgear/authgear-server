@@ -3,7 +3,7 @@ package sso
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -60,18 +60,18 @@ type RedirectURLProvider interface {
 	SSOCallbackURL(providerConfig config.OAuthSSOProviderConfig) *url.URL
 }
 
-type LoginIDNormalizerFactory interface {
-	NormalizerWithLoginIDType(loginIDKeyType config.LoginIDKeyType) loginid.Normalizer
+type StandardAttributesNormalizer interface {
+	Normalize(stdattrs.T) error
 }
 
 type OAuthProviderFactory struct {
-	Endpoints                EndpointsProvider
-	IdentityConfig           *config.IdentityConfig
-	Credentials              *config.OAuthClientCredentials
-	RedirectURL              RedirectURLProvider
-	Clock                    clock.Clock
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
-	WechatURLProvider        WechatURLProvider
+	Endpoints                    EndpointsProvider
+	IdentityConfig               *config.IdentityConfig
+	Credentials                  *config.OAuthClientCredentials
+	RedirectURL                  RedirectURLProvider
+	Clock                        clock.Clock
+	WechatURLProvider            WechatURLProvider
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
@@ -87,55 +87,56 @@ func (p *OAuthProviderFactory) NewOAuthProvider(alias string) OAuthProvider {
 	switch providerConfig.Type {
 	case config.OAuthSSOProviderTypeGoogle:
 		return &GoogleImpl{
-			Clock:                    p.Clock,
-			RedirectURL:              p.RedirectURL,
-			ProviderConfig:           *providerConfig,
-			Credentials:              *credentials,
-			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
+			Clock:                        p.Clock,
+			RedirectURL:                  p.RedirectURL,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeFacebook:
 		return &FacebookImpl{
-			RedirectURL:              p.RedirectURL,
-			ProviderConfig:           *providerConfig,
-			Credentials:              *credentials,
-			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
+			RedirectURL:                  p.RedirectURL,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeLinkedIn:
 		return &LinkedInImpl{
-			RedirectURL:              p.RedirectURL,
-			ProviderConfig:           *providerConfig,
-			Credentials:              *credentials,
-			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
+			RedirectURL:                  p.RedirectURL,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeAzureADv2:
 		return &Azureadv2Impl{
-			Clock:                    p.Clock,
-			RedirectURL:              p.RedirectURL,
-			ProviderConfig:           *providerConfig,
-			Credentials:              *credentials,
-			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
+			Clock:                        p.Clock,
+			RedirectURL:                  p.RedirectURL,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeADFS:
 		return &ADFSImpl{
-			Clock:                    p.Clock,
-			RedirectURL:              p.RedirectURL,
-			ProviderConfig:           *providerConfig,
-			Credentials:              *credentials,
-			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
+			Clock:                        p.Clock,
+			RedirectURL:                  p.RedirectURL,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeApple:
 		return &AppleImpl{
-			Clock:                    p.Clock,
-			RedirectURL:              p.RedirectURL,
-			ProviderConfig:           *providerConfig,
-			Credentials:              *credentials,
-			LoginIDNormalizerFactory: p.LoginIDNormalizerFactory,
+			Clock:                        p.Clock,
+			RedirectURL:                  p.RedirectURL,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	case config.OAuthSSOProviderTypeWechat:
 		return &WechatImpl{
-			ProviderConfig: *providerConfig,
-			Credentials:    *credentials,
-			URLProvider:    p.WechatURLProvider,
+			ProviderConfig:               *providerConfig,
+			Credentials:                  *credentials,
+			URLProvider:                  p.WechatURLProvider,
+			StandardAttributesNormalizer: p.StandardAttributesNormalizer,
 		}
 	}
 	return nil

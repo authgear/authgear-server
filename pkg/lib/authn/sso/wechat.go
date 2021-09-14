@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -17,9 +18,10 @@ type WechatURLProvider interface {
 }
 
 type WechatImpl struct {
-	ProviderConfig config.OAuthSSOProviderConfig
-	Credentials    config.OAuthClientCredentialsItem
-	URLProvider    WechatURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	URLProvider                  WechatURLProvider
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (*WechatImpl) Type() config.OAuthSSOProviderType {
@@ -86,9 +88,15 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 	}
 
 	authInfo.ProviderRawProfile = rawProfile
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID: userID,
+	authInfo.StandardAttributes = stdattrs.T{
+		stdattrs.Sub: userID,
 	}
+
+	err = w.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
+	}
+
 	return
 }
 

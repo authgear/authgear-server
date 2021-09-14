@@ -3,6 +3,7 @@ package sso
 import (
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
@@ -15,10 +16,10 @@ const (
 )
 
 type FacebookImpl struct {
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (*FacebookImpl) Type() config.OAuthSSOProviderType {
@@ -76,16 +77,15 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 
 	id, _ := userProfile["id"].(string)
 	email, _ := userProfile["email"].(string)
-	if email != "" {
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(email)
-		if err != nil {
-			return
-		}
+
+	authInfo.StandardAttributes = stdattrs.T{
+		stdattrs.Sub:   id,
+		stdattrs.Email: email,
 	}
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:    id,
-		Email: email,
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
 	return

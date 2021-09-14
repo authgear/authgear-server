@@ -4,17 +4,18 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type ADFSImpl struct {
-	Clock                    clock.Clock
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Clock                        clock.Clock
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (*ADFSImpl) Type() config.OAuthSSOProviderType {
@@ -100,18 +101,19 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 	var email string
 	if emailErr := (validation.FormatEmail{}).CheckFormat(upn); emailErr == nil {
 		// upn looks like an email address.
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(upn)
-		if err != nil {
-			return
-		}
+		email = upn
 	}
 
 	authInfo.ProviderRawProfile = claims
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:                sub,
-		Email:             email,
-		PreferredUsername: preferredUsername,
+	authInfo.StandardAttributes = stdattrs.T{
+		stdattrs.Sub:               sub,
+		stdattrs.Email:             email,
+		stdattrs.PreferredUsername: preferredUsername,
+	}
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
 	return

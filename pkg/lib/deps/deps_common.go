@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
@@ -134,8 +135,13 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
+		stdattrs.DependencySet,
+		wire.Bind(new(sso.StandardAttributesNormalizer), new(*stdattrs.Normalizer)),
+	),
+
+	wire.NewSet(
 		identityloginid.DependencySet,
-		wire.Bind(new(sso.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
+		wire.Bind(new(stdattrs.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(interaction.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		identityoauth.DependencySet,
 		identityanonymous.DependencySet,
