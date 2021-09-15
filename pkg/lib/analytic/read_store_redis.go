@@ -20,6 +20,10 @@ type DailyCountResult struct {
 	LoginUniquePageView  int
 }
 
+type WeeklyCountResult struct {
+	ActiveUser int
+}
+
 type ReadStoreRedis struct {
 	Context context.Context
 	Redis   *analyticredis.Handle
@@ -63,6 +67,29 @@ func (s *ReadStoreRedis) GetDailyCountResult(appID config.AppID, date *time.Time
 		return nil, err
 	}
 
+	return result, nil
+}
+
+func (s *ReadStoreRedis) GetWeeklyCountResult(appID config.AppID, year int, week int) (*WeeklyCountResult, error) {
+	var result *WeeklyCountResult
+	if s.Redis == nil {
+		// redis is not configured, give empty result
+		result = &WeeklyCountResult{}
+		return result, nil
+	}
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		activeUserCount, err := s.getPFCount(conn, weeklyActiveUserCount(appID, year, week))
+		if err != nil {
+			return err
+		}
+		result = &WeeklyCountResult{
+			ActiveUser: activeUserCount,
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
 	return result, nil
 }
 

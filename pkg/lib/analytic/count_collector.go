@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 type SignupCountResult struct {
@@ -42,14 +43,7 @@ func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err er
 	rangeFrom := time.Date(utc.Year(), utc.Month(), utc.Day(), 0, 0, 0, 0, time.UTC)
 	rangeTo := rangeFrom.AddDate(0, 0, 1)
 
-	var appIDs []string
-	err = c.GlobalHandle.WithTx(func() error {
-		appIDs, err = c.GlobalDBStore.GetAppIDs()
-		if err != nil {
-			return fmt.Errorf("failed to fetch app ids: %w", err)
-		}
-		return nil
-	})
+	appIDs, err := c.getAppIDs()
 	if err != nil {
 		return
 	}
@@ -64,22 +58,28 @@ func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err er
 		counts = append(counts, appCounts...)
 	}
 
-	if len(counts) > 0 {
-		err = c.AuditDBHandle.WithTx(func() error {
-			// Store the counts to audit db
-			err = c.AuditDBStore.UpsertCounts(counts)
-			if err != nil {
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return 0, fmt.Errorf("failed to store count: %w", err)
-		}
+	updatedCount, err = c.saveCounts(counts)
+	return
+}
+
+func (c *CountCollector) CollectWeekly(date *time.Time) (updatedCount int, err error) {
+	appIDs, err := c.getAppIDs()
+	if err != nil {
+		return
 	}
 
-	updatedCount = len(counts)
-	return updatedCount, nil
+	var counts []*Count
+	for _, appID := range appIDs {
+		appCounts, e := c.CollectWeeklyForApp(appID, date)
+		if e != nil {
+			err = e
+			return
+		}
+		counts = append(counts, appCounts...)
+	}
+
+	updatedCount, err = c.saveCounts(counts)
+	return
 }
 
 func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, nextDay time.Time) (counts []*Count, err error) {
@@ -211,6 +211,25 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 	return
 }
 
+func (c *CountCollector) CollectWeeklyForApp(appID string, date *time.Time) (counts []*Count, err error) {
+	utc := date.UTC()
+	year, week := utc.ISOWeek()
+	monday, err := timeutil.FirstDayOfISOWeek(year, week, time.UTC)
+	if err != nil {
+		return
+	}
+	weeklyCount, err := c.CounterStore.GetWeeklyCountResult(config.AppID(appID), year, week)
+	if err != nil {
+		return
+	}
+
+	if weeklyCount.ActiveUser != 0 {
+		counts = append(counts, NewCount(appID, weeklyCount.ActiveUser, *monday, WeeklyActiveUserCountType))
+	}
+
+	return counts, nil
+}
+
 func (c *CountCollector) querySignupCount(appID string, rangeFrom *time.Time, rangeTo *time.Time) (*SignupCountResult, error) {
 	var first uint64 = 100
 	var after model.PageCursor = ""
@@ -298,4 +317,34 @@ func (c *CountCollector) queryUserCreatedEvents(appID string, rangeFrom *time.Ti
 	after = cursor
 
 	return events, after, nil
+}
+
+func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
+	err = c.GlobalHandle.WithTx(func() error {
+		appIDs, err = c.GlobalDBStore.GetAppIDs()
+		if err != nil {
+			return fmt.Errorf("failed to fetch app ids: %w", err)
+		}
+		return nil
+	})
+	return
+}
+
+func (c *CountCollector) saveCounts(counts []*Count) (updatedCount int, err error) {
+	if len(counts) > 0 {
+		err = c.AuditDBHandle.WithTx(func() error {
+			// Store the counts to audit db
+			err = c.AuditDBStore.UpsertCounts(counts)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			err = fmt.Errorf("failed to store count: %w", err)
+			return
+		}
+		updatedCount = len(counts)
+	}
+	return
 }
