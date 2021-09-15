@@ -82,6 +82,26 @@ func (c *CountCollector) CollectWeekly(date *time.Time) (updatedCount int, err e
 	return
 }
 
+func (c *CountCollector) CollectMonthly(date *time.Time) (updatedCount int, err error) {
+	appIDs, err := c.getAppIDs()
+	if err != nil {
+		return
+	}
+
+	var counts []*Count
+	for _, appID := range appIDs {
+		appCounts, e := c.CollectMonthlyForApp(appID, date)
+		if e != nil {
+			err = e
+			return
+		}
+		counts = append(counts, appCounts...)
+	}
+
+	updatedCount, err = c.saveCounts(counts)
+	return
+}
+
 func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, nextDay time.Time) (counts []*Count, err error) {
 	// Cumulative number of user count
 	err = c.AppDBHandle.WithTx(func() error {
@@ -225,6 +245,24 @@ func (c *CountCollector) CollectWeeklyForApp(appID string, date *time.Time) (cou
 
 	if weeklyCount.ActiveUser != 0 {
 		counts = append(counts, NewCount(appID, weeklyCount.ActiveUser, *monday, WeeklyActiveUserCountType))
+	}
+
+	return counts, nil
+}
+
+func (c *CountCollector) CollectMonthlyForApp(appID string, date *time.Time) (counts []*Count, err error) {
+	utc := date.UTC()
+	firstDayOfTheMonth := time.Date(utc.Year(), utc.Month(), 1, 0, 0, 0, 0, time.UTC)
+	if err != nil {
+		return
+	}
+	monthlyCount, err := c.CounterStore.GetMonthlyCountResult(config.AppID(appID), firstDayOfTheMonth.Year(), int(firstDayOfTheMonth.Month()))
+	if err != nil {
+		return
+	}
+
+	if monthlyCount.ActiveUser != 0 {
+		counts = append(counts, NewCount(appID, monthlyCount.ActiveUser, firstDayOfTheMonth, MonthlyActiveUserCountType))
 	}
 
 	return counts, nil

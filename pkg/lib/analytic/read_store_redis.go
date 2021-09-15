@@ -24,6 +24,9 @@ type WeeklyCountResult struct {
 	ActiveUser int
 }
 
+type MonthlyCountResult struct {
+	ActiveUser int
+}
 type ReadStoreRedis struct {
 	Context context.Context
 	Redis   *analyticredis.Handle
@@ -83,6 +86,29 @@ func (s *ReadStoreRedis) GetWeeklyCountResult(appID config.AppID, year int, week
 			return err
 		}
 		result = &WeeklyCountResult{
+			ActiveUser: activeUserCount,
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s *ReadStoreRedis) GetMonthlyCountResult(appID config.AppID, year int, month int) (*MonthlyCountResult, error) {
+	var result *MonthlyCountResult
+	if s.Redis == nil {
+		// redis is not configured, give empty result
+		result = &MonthlyCountResult{}
+		return result, nil
+	}
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		activeUserCount, err := s.getPFCount(conn, monthlyActiveUserCount(appID, year, month))
+		if err != nil {
+			return err
+		}
+		result = &MonthlyCountResult{
 			ActiveUser: activeUserCount,
 		}
 		return nil

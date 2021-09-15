@@ -105,7 +105,15 @@ var cmdAnalyticCollectCount = &cobra.Command{
 			}
 			log.Printf("Number of counts have been updated: %d", updatedCount)
 		case periodical.Monthly:
-			return fmt.Errorf("TODO: collect analytic count monthly")
+			log.Println(
+				"Start collecting monthly analytic count",
+				date.Format("2006-01"),
+			)
+			updatedCount, err := countCollector.CollectMonthly(date)
+			if err != nil {
+				return err
+			}
+			log.Printf("Number of counts have been updated: %d", updatedCount)
 		}
 
 		return nil
