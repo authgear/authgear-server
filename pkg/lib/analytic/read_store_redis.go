@@ -12,7 +12,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 )
 
+// CountResult includes the redis keys of the report
+// Expiration should be set to those keys after storing the count to the db
+type CountResult struct {
+	RedisKeys []string
+}
+
 type DailyCountResult struct {
+	*CountResult
 	ActiveUser           int
 	SignupPageView       int
 	SignupUniquePageView int
@@ -21,12 +28,17 @@ type DailyCountResult struct {
 }
 
 type WeeklyCountResult struct {
+	*CountResult
 	ActiveUser int
 }
 
 type MonthlyCountResult struct {
+	*CountResult
 	ActiveUser int
 }
+
+// ReadStoreRedis provides methods to get analytic counts and set expiry to the
+// keys after those count are collected
 type ReadStoreRedis struct {
 	Context context.Context
 	Redis   *analyticredis.Handle
@@ -40,20 +52,25 @@ func (s *ReadStoreRedis) GetDailyCountResult(appID config.AppID, date *time.Time
 		return result, nil
 	}
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		signupPageView, signupUniquePageView, err := s.getDailyPageViewCount(conn, appID, PageTypeSignup, date)
+		redisKeys := []string{}
+		signupPageView, signupUniquePageView, keys, err := s.getDailyPageViewCount(conn, appID, PageTypeSignup, date)
 		if err != nil {
 			return err
 		}
+		redisKeys = append(redisKeys, keys...)
 
-		loginPageView, loginUniquePageView, err := s.getDailyPageViewCount(conn, appID, PageTypeLogin, date)
+		loginPageView, loginUniquePageView, keys, err := s.getDailyPageViewCount(conn, appID, PageTypeLogin, date)
 		if err != nil {
 			return err
 		}
+		redisKeys = append(redisKeys, keys...)
 
-		activeUserCount, err := s.getPFCount(conn, dailyActiveUserCount(appID, date))
+		dailyActiveUserKey := dailyActiveUserCount(appID, date)
+		activeUserCount, err := s.getPFCount(conn, dailyActiveUserKey)
 		if err != nil {
 			return err
 		}
+		redisKeys = append(redisKeys, dailyActiveUserKey)
 
 		result = &DailyCountResult{
 			ActiveUser:           activeUserCount,
@@ -61,6 +78,9 @@ func (s *ReadStoreRedis) GetDailyCountResult(appID config.AppID, date *time.Time
 			SignupUniquePageView: signupUniquePageView,
 			LoginPageView:        loginPageView,
 			LoginUniquePageView:  loginUniquePageView,
+			CountResult: &CountResult{
+				RedisKeys: redisKeys,
+			},
 		}
 
 		return nil
@@ -81,12 +101,16 @@ func (s *ReadStoreRedis) GetWeeklyCountResult(appID config.AppID, year int, week
 		return result, nil
 	}
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		activeUserCount, err := s.getPFCount(conn, weeklyActiveUserCount(appID, year, week))
+		weeklyActiveUserKey := weeklyActiveUserCount(appID, year, week)
+		activeUserCount, err := s.getPFCount(conn, weeklyActiveUserKey)
 		if err != nil {
 			return err
 		}
 		result = &WeeklyCountResult{
 			ActiveUser: activeUserCount,
+			CountResult: &CountResult{
+				RedisKeys: []string{weeklyActiveUserKey},
+			},
 		}
 		return nil
 	})
@@ -104,12 +128,16 @@ func (s *ReadStoreRedis) GetMonthlyCountResult(appID config.AppID, year int, mon
 		return result, nil
 	}
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		activeUserCount, err := s.getPFCount(conn, monthlyActiveUserCount(appID, year, month))
+		monthlyActiveUserKey := monthlyActiveUserCount(appID, year, month)
+		activeUserCount, err := s.getPFCount(conn, monthlyActiveUserKey)
 		if err != nil {
 			return err
 		}
 		result = &MonthlyCountResult{
 			ActiveUser: activeUserCount,
+			CountResult: &CountResult{
+				RedisKeys: []string{monthlyActiveUserKey},
+			},
 		}
 		return nil
 	})
@@ -119,20 +147,49 @@ func (s *ReadStoreRedis) GetMonthlyCountResult(appID config.AppID, year int, mon
 	return result, nil
 }
 
+func (s *ReadStoreRedis) SetKeysExpire(keys []string, expiration time.Duration) error {
+	if s.Redis == nil {
+		return nil
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+		for _, key := range keys {
+			_, err := conn.Expire(s.Context, key, expiration).Result()
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *ReadStoreRedis) getDailyPageViewCount(
 	conn *goredis.Conn,
 	appID config.AppID,
 	pageType PageType,
 	date *time.Time,
-) (pageView int, uniquePageView int, err error) {
-	pageView, err = s.getCount(conn, dailyPageView(appID, pageType, date))
+) (pageView int, uniquePageView int, redisKeys []string, err error) {
+	pageViewKey := dailyPageView(appID, pageType, date)
+	pageView, err = s.getCount(conn, pageViewKey)
 	if err != nil {
 		return
 	}
 
-	uniquePageView, err = s.getPFCount(conn, dailyUniquePageView(appID, pageType, date))
+	uniquePageViewKey := dailyUniquePageView(appID, pageType, date)
+	uniquePageView, err = s.getPFCount(conn, uniquePageViewKey)
 	if err != nil {
 		return
+	}
+
+	redisKeys = []string{
+		pageViewKey,
+		uniquePageViewKey,
 	}
 
 	return
