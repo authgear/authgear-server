@@ -263,8 +263,14 @@ func (s *Store) Update(i *Identity) error {
 	if err != nil {
 		return err
 	}
+	claims, err := json.Marshal(i.Claims)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.Tenant().
 		Update(s.SQLBuilder.TableName("_auth_identity_oauth")).
+		Set("claims", claims).
 		Set("profile", profile).
 		Where("id = ?", i.ID)
 

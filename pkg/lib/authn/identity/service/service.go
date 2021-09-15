@@ -43,6 +43,7 @@ type OAuthIdentityProvider interface {
 		profile map[string]interface{},
 		claims map[string]interface{},
 	) *oauth.Identity
+	WithUpdate(iden *oauth.Identity, rawProfile map[string]interface{}, claims map[string]interface{}) *oauth.Identity
 	Create(i *oauth.Identity) error
 	Update(i *oauth.Identity) error
 	Delete(i *oauth.Identity) error
@@ -315,16 +316,8 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		return loginIDToIdentityInfo(l), nil
 	case authn.IdentityTypeOAuth:
 		providerID, subjectID := extractOAuthClaims(spec.Claims)
-		var profile, oidcClaims map[string]interface{}
-		var ok bool
-		if profile, ok = spec.Claims[identity.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
-			profile = map[string]interface{}{}
-		}
-		if oidcClaims, ok = spec.Claims[identity.IdentityClaimOAuthClaims].(map[string]interface{}); !ok {
-			oidcClaims = map[string]interface{}{}
-		}
-
-		o := s.OAuth.New(userID, providerID, subjectID, profile, oidcClaims)
+		rawProfile, standardClaims := extractOAuthProfile(spec.Claims)
+		o := s.OAuth.New(userID, providerID, subjectID, rawProfile, standardClaims)
 		return s.toIdentityInfo(o), nil
 	case authn.IdentityTypeAnonymous:
 		keyID, key := extractAnonymousClaims(spec.Claims)
@@ -386,10 +379,17 @@ func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, optio
 			return nil, err
 		}
 		return loginIDToIdentityInfo(i), nil
+	case authn.IdentityTypeOAuth:
+		rawProfile, standardClaims := extractOAuthProfile(spec.Claims)
+		i := s.OAuth.WithUpdate(
+			oauthFromIdentityInfo(info),
+			rawProfile,
+			standardClaims,
+		)
+		return s.toIdentityInfo(i), nil
 	default:
 		panic("identity: cannot update identity type " + info.Type)
 	}
-
 }
 
 func (s *Service) Update(info *identity.Info) error {
@@ -634,6 +634,17 @@ func extractOAuthClaims(claims map[string]interface{}) (providerID config.Provid
 		panic(fmt.Sprintf("identity: expect string subject ID claim, got %T", claims[identity.IdentityClaimOAuthSubjectID]))
 	}
 
+	return
+}
+
+func extractOAuthProfile(claims map[string]interface{}) (rawProfile map[string]interface{}, standardClaims map[string]interface{}) {
+	var ok bool
+	if rawProfile, ok = claims[identity.IdentityClaimOAuthProfile].(map[string]interface{}); !ok {
+		rawProfile = make(map[string]interface{})
+	}
+	if standardClaims, ok = claims[identity.IdentityClaimOAuthClaims].(map[string]interface{}); !ok {
+		standardClaims = make(map[string]interface{})
+	}
 	return
 }
 

@@ -65,6 +65,14 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 		return nil, err
 	}
 
+	// Ensure info is up-to-date.
+	if info != nil && info.Type == authn.IdentityTypeOAuth {
+		info, err = ctx.Identities.UpdateWithSpec(info, e.IdentitySpec, identity.NewIdentityOptions{})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &NodeSelectIdentityEnd{
 		IdentitySpec: e.IdentitySpec,
 		IdentityInfo: info,
@@ -81,7 +89,32 @@ func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interac
 }
 
 func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
-	return nil, nil
+	// Update OAuth identity
+	eff := func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		if n.IdentityInfo != nil && n.IdentityInfo.Type == authn.IdentityTypeOAuth {
+			_, err := ctx.Identities.CheckDuplicated(n.IdentityInfo)
+			if err != nil {
+				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+					return n.IdentityInfo.FillDetails(interaction.ErrDuplicatedIdentity)
+				}
+				return err
+			}
+
+			err = ctx.Identities.Update(n.IdentityInfo)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	// We declare two effects here so that
+	// 1. When the interaction is still ongoing, we will see the updated identity.
+	// 2. When the interaction finishes, the identity will be updated.
+	return []interaction.Effect{
+		interaction.EffectRun(eff),
+		interaction.EffectOnCommit(eff),
+	}, nil
 }
 
 func (n *NodeSelectIdentityEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {

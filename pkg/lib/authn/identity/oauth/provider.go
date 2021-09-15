@@ -69,6 +69,24 @@ func (p *Provider) New(
 	return i
 }
 
+func (p *Provider) WithUpdate(
+	iden *Identity,
+	rawProfile map[string]interface{},
+	claims map[string]interface{},
+) *Identity {
+	labels := make(map[string]interface{}, len(iden.Labels))
+	for key, value := range iden.Labels {
+		labels[key] = value
+	}
+
+	newIden := *iden
+	newIden.Labels = labels
+	newIden.UserProfile = rawProfile
+	newIden.Claims = claims
+
+	return &newIden
+}
+
 func (p *Provider) CheckDuplicated(standardClaims map[string]string, userID string) (*Identity, error) {
 	// check duplication with standard claims
 	for name, value := range standardClaims {
