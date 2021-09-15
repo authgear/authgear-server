@@ -131,12 +131,17 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 	// For "Microsoft Account", email usually exists.
 	// For "AD guest user", email usually exists because to invite an user, the inviter must provide email.
 	// For "AD user", email never exists even one is provided in "Authentication Methods".
-	email, _ := claims["email"].(string)
+	email, _ := claims[stdattrs.Email].(string)
+
+	preferredUsername, _ := claims[stdattrs.PreferredUsername].(string)
+	name, _ := claims[stdattrs.Name].(string)
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Sub:   oid,
-		stdattrs.Email: email,
+		stdattrs.Sub:               oid,
+		stdattrs.Email:             email,
+		stdattrs.PreferredUsername: preferredUsername,
+		stdattrs.Name:              name,
 	}
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
