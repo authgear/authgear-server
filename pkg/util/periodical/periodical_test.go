@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/authgear/authgear-server/cmd/portal/util/periodical"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/periodical"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

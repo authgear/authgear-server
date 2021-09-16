@@ -6,10 +6,10 @@ import (
 	"log"
 
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
-	"github.com/authgear/authgear-server/cmd/portal/util/periodical"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
+	"github.com/authgear/authgear-server/pkg/util/periodical"
 	"github.com/spf13/cobra"
 )
 
