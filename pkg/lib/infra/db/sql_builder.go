@@ -24,10 +24,6 @@ type SQLBuilder struct {
 	sqlBuilderSchema
 }
 
-func (b SQLBuilder) WithAppID(appID string) SQLBuilderApp {
-	return NewSQLBuilderApp(b.Schema, appID)
-}
-
 func NewSQLBuilder(schema string) SQLBuilder {
 	return SQLBuilder{
 		StatementBuilderType: newStatementBuilderType(),

@@ -17,12 +17,27 @@ var DependencySet = wire.NewSet(
 )
 
 type SQLBuilder struct {
-	db.SQLBuilder
+	builder *db.SQLBuilder
+}
+
+func (b SQLBuilder) WithoutAppID() *db.SQLBuilder {
+	return b.builder
+}
+
+func (b SQLBuilder) WithAppID(appID string) *SQLBuilderApp {
+	return &SQLBuilderApp{
+		SQLBuilderApp: db.NewSQLBuilderApp(b.builder.Schema, appID),
+	}
+}
+
+func (b SQLBuilder) TableName(table string) string {
+	return b.builder.TableName(table)
 }
 
 func NewSQLBuilder(c *config.DatabaseCredentials) *SQLBuilder {
+	builder := db.NewSQLBuilder(c.DatabaseSchema)
 	return &SQLBuilder{
-		db.NewSQLBuilder(c.DatabaseSchema),
+		builder: &builder,
 	}
 }
 
