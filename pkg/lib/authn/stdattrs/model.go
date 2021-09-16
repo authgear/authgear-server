@@ -2,17 +2,14 @@ package stdattrs
 
 type T map[string]interface{}
 
-func (t T) Sub() string {
-	sub, _ := t[Sub].(string)
-	return sub
-}
-
 func (t T) ToClaims() map[string]interface{} {
 	return map[string]interface{}(t)
 }
 
 const (
-	Sub               = "sub"
+	// Sub is not used because we do not always use sub as the unique identifier for
+	// an user from the identity provider.
+	// Sub = "sub"
 	Email             = "email"
 	PhoneNumber       = "phone_number"
 	PreferredUsername = "preferred_username"

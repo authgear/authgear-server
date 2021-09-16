@@ -92,7 +92,7 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 	}
 
 	// Ensure sub exists
-	sub, ok := claims[stdattrs.Sub].(string)
+	sub, ok := claims["sub"].(string)
 	if !ok {
 		err = OAuthProtocolError.New("sub not found in ID token")
 		return
@@ -107,8 +107,8 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 	profile, _ := claims[stdattrs.Profile].(string)
 
 	authInfo.ProviderRawProfile = claims
+	authInfo.ProviderUserID = sub
 	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Sub:        sub,
 		stdattrs.Email:      email,
 		stdattrs.FamilyName: familyName,
 		stdattrs.GivenName:  givenName,

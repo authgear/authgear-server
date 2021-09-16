@@ -109,8 +109,8 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 		}
 	}
 
+	authInfo.ProviderUserID = id
 	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Sub:        id,
 		stdattrs.Email:      email,
 		stdattrs.GivenName:  firstName,
 		stdattrs.FamilyName: lastName,

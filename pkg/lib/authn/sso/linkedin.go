@@ -271,7 +271,9 @@ func (f *LinkedInImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	}
 
 	authInfo.ProviderRawProfile = combinedResponse
-	authInfo.StandardAttributes = decodeLinkedIn(combinedResponse)
+	id, attrs := decodeLinkedIn(combinedResponse)
+	authInfo.ProviderUserID = id
+	authInfo.StandardAttributes = attrs
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {
@@ -287,7 +289,7 @@ func (f *LinkedInImpl) GetPrompt(prompt []string) []string {
 	return []string{}
 }
 
-func decodeLinkedIn(userInfo map[string]interface{}) stdattrs.T {
+func decodeLinkedIn(userInfo map[string]interface{}) (string, stdattrs.T) {
 	profile := userInfo["profile"].(map[string]interface{})
 	id := profile["id"].(string)
 
@@ -334,8 +336,7 @@ func decodeLinkedIn(userInfo map[string]interface{}) stdattrs.T {
 		}
 	}
 
-	return stdattrs.T{
-		stdattrs.Sub:        id,
+	return id, stdattrs.T{
 		stdattrs.Email:      email,
 		stdattrs.GivenName:  firstName,
 		stdattrs.FamilyName: lastName,

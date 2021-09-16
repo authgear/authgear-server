@@ -137,8 +137,8 @@ func (f *Azureadv2Impl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, p
 	name, _ := claims[stdattrs.Name].(string)
 
 	authInfo.ProviderRawProfile = claims
+	authInfo.ProviderUserID = oid
 	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Sub:               oid,
 		stdattrs.Email:             email,
 		stdattrs.PreferredUsername: preferredUsername,
 		stdattrs.Name:              name,

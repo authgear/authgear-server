@@ -88,9 +88,8 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 	}
 
 	authInfo.ProviderRawProfile = rawProfile
-	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Sub: userID,
-	}
+	authInfo.ProviderUserID = userID
+	authInfo.StandardAttributes = stdattrs.T{}
 
 	err = w.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {

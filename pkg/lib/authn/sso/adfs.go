@@ -105,8 +105,8 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 	}
 
 	authInfo.ProviderRawProfile = claims
+	authInfo.ProviderUserID = sub
 	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Sub:               sub,
 		stdattrs.Email:             email,
 		stdattrs.PreferredUsername: preferredUsername,
 	}

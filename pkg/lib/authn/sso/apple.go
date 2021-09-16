@@ -132,7 +132,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 	}
 
 	// Ensure sub exists
-	sub, ok := claims[stdattrs.Sub].(string)
+	sub, ok := claims["sub"].(string)
 	if !ok {
 		err = OAuthProtocolError.New("sub not found in ID Token")
 		return
@@ -146,8 +146,8 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 	name, _ := claims[stdattrs.Name].(string)
 
 	authInfo.ProviderRawProfile = claims
+	authInfo.ProviderUserID = sub
 	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Sub:   sub,
 		stdattrs.Email: email,
 		stdattrs.Name:  name,
 	}

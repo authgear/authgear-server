@@ -91,7 +91,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		Type: authn.IdentityTypeOAuth,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
-			identity.IdentityClaimOAuthSubjectID:    userInfo.StandardAttributes.Sub(),
+			identity.IdentityClaimOAuthSubjectID:    userInfo.ProviderUserID,
 			identity.IdentityClaimOAuthProfile:      userInfo.ProviderRawProfile,
 			identity.IdentityClaimOAuthClaims:       userInfo.StandardAttributes.ToClaims(),
 		},
