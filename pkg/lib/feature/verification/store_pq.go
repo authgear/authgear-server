@@ -9,12 +9,12 @@ import (
 )
 
 type StorePQ struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *StorePQ) selectQuery() db.SelectBuilder {
-	return s.SQLBuilder.Tenant().
+	return s.SQLBuilder.
 		Select(
 			"id",
 			"user_id",
@@ -97,7 +97,7 @@ func (s *StorePQ) Get(userID string, claimName string, claimValue string) (*Clai
 }
 
 func (s *StorePQ) Create(claim *Claim) error {
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Columns(
 			"id",
@@ -122,7 +122,7 @@ func (s *StorePQ) Create(claim *Claim) error {
 }
 
 func (s *StorePQ) Delete(id string) error {
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Where("id = ?", id)
 	_, err := s.SQLExecutor.ExecWith(q)
@@ -134,7 +134,7 @@ func (s *StorePQ) Delete(id string) error {
 }
 
 func (s *StorePQ) DeleteAll(userID string) error {
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Where("user_id = ?", userID)
 	_, err := s.SQLExecutor.ExecWith(q)

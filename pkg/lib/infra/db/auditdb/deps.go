@@ -14,19 +14,34 @@ var DependencySet = wire.NewSet(
 	NewReadSQLExecutor,
 	NewWriteSQLExecutor,
 	NewSQLBuilder,
+	NewSQLBuilderApp,
 )
 
 type SQLBuilder struct {
 	db.SQLBuilder
 }
 
-func NewSQLBuilder(c *config.AuditDatabaseCredentials, id config.AppID) *SQLBuilder {
+func NewSQLBuilder(c *config.AuditDatabaseCredentials) *SQLBuilder {
 	if c == nil {
 		return nil
 	}
 
 	return &SQLBuilder{
-		db.NewSQLBuilder(c.DatabaseSchema, string(id)),
+		db.NewSQLBuilder(c.DatabaseSchema),
+	}
+}
+
+type SQLBuilderApp struct {
+	db.SQLBuilderApp
+}
+
+func NewSQLBuilderApp(c *config.AuditDatabaseCredentials, id config.AppID) *SQLBuilderApp {
+	if c == nil {
+		return nil
+	}
+
+	return &SQLBuilderApp{
+		db.NewSQLBuilderApp(c.DatabaseSchema, string(id)),
 	}
 }
 

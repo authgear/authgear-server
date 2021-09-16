@@ -7,7 +7,7 @@ import (
 )
 
 type WriteStore struct {
-	SQLBuilder  *auditdb.SQLBuilder
+	SQLBuilder  *auditdb.SQLBuilderApp
 	SQLExecutor *auditdb.WriteSQLExecutor
 }
 
@@ -17,7 +17,7 @@ func (s *WriteStore) PersistLog(logEntry *Log) (err error) {
 		return
 	}
 
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_audit_log")).
 		Columns(
 			"id",

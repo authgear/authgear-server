@@ -12,7 +12,7 @@ type GlobalDBStore struct {
 }
 
 func (s *GlobalDBStore) GetAppOwners(rangeFrom *time.Time, rangeTo *time.Time) ([]*AppCollaborator, error) {
-	builder := s.SQLBuilder.Global().
+	builder := s.SQLBuilder.
 		Select(
 			"app_id",
 			"user_id",
@@ -50,7 +50,7 @@ func (s *GlobalDBStore) GetAppOwners(rangeFrom *time.Time, rangeTo *time.Time) (
 }
 
 func (s *GlobalDBStore) GetAppIDs() (appIDs []string, err error) {
-	builder := s.SQLBuilder.Global().
+	builder := s.SQLBuilder.
 		Select(
 			"app_id",
 		).

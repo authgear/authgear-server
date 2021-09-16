@@ -16,12 +16,12 @@ import (
 )
 
 type Store struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
-	return s.SQLBuilder.Tenant().
+	return s.SQLBuilder.
 		Select(
 			"p.id",
 			"p.labels",
@@ -194,7 +194,7 @@ func (s *Store) Create(i *Identity) error {
 		return err
 	}
 
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
 			"id",
@@ -231,7 +231,7 @@ func (s *Store) Create(i *Identity) error {
 		return err
 	}
 
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity_oauth")).
 		Columns(
 			"id",
@@ -268,7 +268,7 @@ func (s *Store) Update(i *Identity) error {
 		return err
 	}
 
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_identity_oauth")).
 		Set("claims", claims).
 		Set("profile", profile).
@@ -290,7 +290,7 @@ func (s *Store) Update(i *Identity) error {
 		panic(fmt.Sprintf("identity_oauth: want 1 row updated, got %v", rowsAffected))
 	}
 
-	q = s.SQLBuilder.Tenant().
+	q = s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_identity")).
 		Set("updated_at", i.UpdatedAt).
 		Where("id = ?", i.ID)
@@ -304,7 +304,7 @@ func (s *Store) Update(i *Identity) error {
 }
 
 func (s *Store) Delete(i *Identity) error {
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity_oauth")).
 		Where("id = ?", i.ID)
 
@@ -313,7 +313,7 @@ func (s *Store) Delete(i *Identity) error {
 		return err
 	}
 
-	q = s.SQLBuilder.Tenant().
+	q = s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity")).
 		Where("id = ?", i.ID)
 

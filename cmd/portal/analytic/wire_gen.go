@@ -33,8 +33,7 @@ func NewUserWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredentials
 		SQLExecutor: sqlExecutor,
 	}
 	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
-	appID := NewEmptyAppID()
-	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
 	appDBStore := &analytic.AppDBStore{
 		SQLBuilder:  appdbSQLBuilder,
@@ -61,15 +60,14 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 		SQLExecutor: sqlExecutor,
 	}
 	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
-	appID := NewEmptyAppID()
-	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
 	appDBStore := &analytic.AppDBStore{
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
 	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
 	auditDBStore := &analytic.AuditDBStore{
@@ -99,15 +97,14 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		SQLExecutor: sqlExecutor,
 	}
 	appdbHandle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
-	appID := NewEmptyAppID()
-	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	appdbSQLExecutor := appdb.NewSQLExecutor(ctx, appdbHandle)
 	appDBStore := &analytic.AppDBStore{
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
 	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
 	auditDBStore := &analytic.AuditDBStore{
 		SQLBuilder:  auditdbSQLBuilder,
@@ -142,10 +139,3 @@ func NewPeriodicalArgumentParser() *periodical.ArgumentParser {
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
-
-// wire.go:
-
-func NewEmptyAppID() config.AppID {
-
-	return config.AppID("")
-}

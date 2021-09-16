@@ -7,12 +7,12 @@ import (
 )
 
 type StoreImpl struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *StoreImpl) NextSequenceNumber() (seq int64, err error) {
-	builder := s.SQLBuilder.Global().
+	builder := s.SQLBuilder.
 		Select(fmt.Sprintf("nextval('%s')", s.SQLBuilder.TableName("_auth_event_sequence")))
 	row, err := s.SQLExecutor.QueryRowWith(builder)
 	if err != nil {

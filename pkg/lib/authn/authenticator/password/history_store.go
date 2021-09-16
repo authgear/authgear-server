@@ -15,7 +15,7 @@ import (
 
 type HistoryStore struct {
 	Clock       clock.Clock
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
@@ -78,7 +78,7 @@ func (p *HistoryStore) RemovePasswordHistory(userID string, historySize int, his
 		ids = append(ids, h.ID)
 	}
 
-	builder := p.SQLBuilder.Tenant().
+	builder := p.SQLBuilder.
 		Delete(p.SQLBuilder.TableName("_auth_password_history")).
 		Where("user_id = ?", userID).
 		Where("id != ALL (?)", pq.Array(ids)).
@@ -89,7 +89,7 @@ func (p *HistoryStore) RemovePasswordHistory(userID string, historySize int, his
 }
 
 func (p *HistoryStore) ResetPasswordHistory(userID string) error {
-	builder := p.SQLBuilder.Tenant().
+	builder := p.SQLBuilder.
 		Delete(p.SQLBuilder.TableName("_auth_password_history")).
 		Where("user_id = ?", userID)
 
@@ -98,7 +98,7 @@ func (p *HistoryStore) ResetPasswordHistory(userID string) error {
 }
 
 func (p *HistoryStore) basePasswordHistoryBuilder(userID string) db.SelectBuilder {
-	return p.SQLBuilder.Tenant().
+	return p.SQLBuilder.
 		Select("id", "user_id", "password", "created_at").
 		From(p.SQLBuilder.TableName("_auth_password_history")).
 		Where("user_id = ?", userID).
@@ -106,7 +106,7 @@ func (p *HistoryStore) basePasswordHistoryBuilder(userID string) db.SelectBuilde
 }
 
 func (p *HistoryStore) insertPasswordHistoryBuilder(userID string, hashedPassword []byte, createdAt time.Time) db.InsertBuilder {
-	return p.SQLBuilder.Tenant().
+	return p.SQLBuilder.
 		Insert(p.SQLBuilder.TableName("_auth_password_history")).
 		Columns(
 			"id",

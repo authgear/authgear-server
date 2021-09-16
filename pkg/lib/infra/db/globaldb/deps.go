@@ -23,7 +23,7 @@ type SQLBuilder struct {
 
 func NewSQLBuilder(c *config.DatabaseEnvironmentConfig) *SQLBuilder {
 	return &SQLBuilder{
-		db.NewSQLBuilder(c.DatabaseSchema, ""),
+		db.NewSQLBuilder(c.DatabaseSchema),
 	}
 }
 

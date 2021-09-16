@@ -158,11 +158,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oAuthConfig := appConfig.OAuth
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	appdbHandle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
@@ -171,7 +171,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
@@ -180,7 +180,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		HTTP: httpConfig,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
@@ -188,11 +188,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -216,7 +216,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:             clock,
 	}
 	oauthStore := &oauth.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth.Provider{
@@ -224,7 +224,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -232,7 +232,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -250,11 +250,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -262,7 +262,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -282,7 +282,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -293,7 +293,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oobStoreRedis := &oob.StoreRedis{
@@ -334,7 +334,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -353,7 +353,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -391,7 +391,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -413,10 +413,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -541,16 +541,16 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -575,7 +575,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth.Provider{
@@ -583,7 +583,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -591,7 +591,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -621,7 +621,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)

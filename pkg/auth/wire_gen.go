@@ -131,10 +131,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
@@ -143,7 +143,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      logger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 	}
@@ -177,11 +177,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -205,7 +205,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -213,7 +213,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -221,7 +221,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -239,11 +239,11 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -251,7 +251,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -271,7 +271,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -282,7 +282,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oobStoreRedis := &oob.StoreRedis{
@@ -323,7 +323,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -342,7 +342,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -353,7 +353,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -384,7 +384,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -406,10 +406,10 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -715,10 +715,10 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	}
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
@@ -727,7 +727,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      logger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -761,11 +761,11 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -789,7 +789,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -797,7 +797,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -805,7 +805,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -823,11 +823,11 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -835,7 +835,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -855,7 +855,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -866,7 +866,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oobStoreRedis := &oob.StoreRedis{
@@ -907,7 +907,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -926,7 +926,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -937,7 +937,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -968,7 +968,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -990,10 +990,10 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -1260,11 +1260,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	handlerTokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	appredisHandle := appProvider.Redis
@@ -1275,7 +1275,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      logger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -1292,11 +1292,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -1320,7 +1320,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -1328,7 +1328,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -1336,7 +1336,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -1354,11 +1354,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -1366,7 +1366,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -1386,7 +1386,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -1397,7 +1397,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -1438,7 +1438,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -1457,7 +1457,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -1468,7 +1468,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -1500,7 +1500,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -1522,10 +1522,10 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -1794,12 +1794,12 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
@@ -1807,11 +1807,11 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -1836,7 +1836,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -1844,7 +1844,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -1852,7 +1852,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -1870,11 +1870,11 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -1882,7 +1882,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -1902,7 +1902,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -1913,7 +1913,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	appredisHandle := appProvider.Redis
@@ -1958,7 +1958,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -1977,7 +1977,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -2016,7 +2016,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -2038,10 +2038,10 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -2063,7 +2063,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -2089,7 +2089,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -2189,12 +2189,12 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
@@ -2202,11 +2202,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -2231,7 +2231,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -2239,7 +2239,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -2247,7 +2247,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -2265,11 +2265,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -2277,7 +2277,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -2297,7 +2297,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -2308,7 +2308,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	appredisHandle := appProvider.Redis
@@ -2350,7 +2350,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -2369,7 +2369,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -2408,7 +2408,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -2430,10 +2430,10 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -2455,7 +2455,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -2481,7 +2481,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -2550,11 +2550,11 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := config.AppConfig
 	appID := appConfig.ID
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
@@ -2562,11 +2562,11 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -2591,7 +2591,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -2599,7 +2599,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -2607,7 +2607,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -2625,11 +2625,11 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -2637,7 +2637,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -2657,7 +2657,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -2668,7 +2668,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	appredisHandle := appProvider.Redis
@@ -2710,7 +2710,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -2729,7 +2729,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -2768,7 +2768,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -2790,10 +2790,10 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -2815,7 +2815,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -2841,7 +2841,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -2914,11 +2914,11 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
@@ -2926,11 +2926,11 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -2955,7 +2955,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -2963,7 +2963,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -2971,7 +2971,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -2989,11 +2989,11 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -3001,7 +3001,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	logger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -3021,7 +3021,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -3032,7 +3032,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	appredisHandle := appProvider.Redis
@@ -3074,7 +3074,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -3093,7 +3093,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -3132,7 +3132,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -3154,10 +3154,10 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -3179,7 +3179,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -3205,7 +3205,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -3305,11 +3305,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	appredisHandle := appProvider.Redis
@@ -3320,7 +3320,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      logger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -3337,11 +3337,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -3365,7 +3365,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -3373,7 +3373,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -3381,7 +3381,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -3399,11 +3399,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -3411,7 +3411,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -3431,7 +3431,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -3442,7 +3442,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -3483,7 +3483,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -3502,7 +3502,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -3513,7 +3513,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -3545,7 +3545,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -3567,10 +3567,10 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -3891,13 +3891,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -3921,7 +3921,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -3929,7 +3929,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -3937,7 +3937,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -3955,11 +3955,11 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -3967,7 +3967,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -3987,7 +3987,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -3998,7 +3998,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -4039,7 +4039,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -4058,7 +4058,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -4069,7 +4069,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -4100,7 +4100,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -4122,10 +4122,10 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -4147,7 +4147,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -4172,7 +4172,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -4479,13 +4479,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -4509,7 +4509,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -4517,7 +4517,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -4525,7 +4525,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -4543,11 +4543,11 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -4555,7 +4555,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -4575,7 +4575,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -4586,7 +4586,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -4627,7 +4627,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -4646,7 +4646,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -4657,7 +4657,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -4688,7 +4688,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -4710,10 +4710,10 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -4735,7 +4735,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -4760,7 +4760,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -5067,13 +5067,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -5097,7 +5097,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -5105,7 +5105,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -5113,7 +5113,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -5131,11 +5131,11 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -5143,7 +5143,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -5163,7 +5163,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -5174,7 +5174,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -5215,7 +5215,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -5234,7 +5234,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -5245,7 +5245,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -5276,7 +5276,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -5298,10 +5298,10 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -5323,7 +5323,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -5348,7 +5348,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -5642,13 +5642,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -5672,7 +5672,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -5680,7 +5680,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -5688,7 +5688,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -5706,11 +5706,11 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -5718,7 +5718,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -5738,7 +5738,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -5749,7 +5749,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -5790,7 +5790,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -5809,7 +5809,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -5820,7 +5820,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -5851,7 +5851,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -5873,10 +5873,10 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -5898,7 +5898,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -5923,7 +5923,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -6218,13 +6218,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -6248,7 +6248,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -6256,7 +6256,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -6264,7 +6264,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -6282,11 +6282,11 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -6294,7 +6294,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -6314,7 +6314,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -6325,7 +6325,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -6366,7 +6366,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -6385,7 +6385,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -6396,7 +6396,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -6427,7 +6427,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -6449,10 +6449,10 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -6474,7 +6474,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -6499,7 +6499,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -6786,13 +6786,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -6816,7 +6816,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -6824,7 +6824,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -6832,7 +6832,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -6850,11 +6850,11 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -6862,7 +6862,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -6882,7 +6882,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -6893,7 +6893,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -6934,7 +6934,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -6953,7 +6953,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -6964,7 +6964,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -6995,7 +6995,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -7017,10 +7017,10 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -7042,7 +7042,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -7067,7 +7067,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -7357,13 +7357,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -7387,7 +7387,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -7395,7 +7395,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -7403,7 +7403,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -7421,11 +7421,11 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -7433,7 +7433,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -7453,7 +7453,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -7464,7 +7464,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -7505,7 +7505,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -7524,7 +7524,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -7535,7 +7535,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -7566,7 +7566,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -7588,10 +7588,10 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -7613,7 +7613,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -7638,7 +7638,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -7931,13 +7931,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -7961,7 +7961,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -7969,7 +7969,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -7977,7 +7977,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -7995,11 +7995,11 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -8007,7 +8007,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -8027,7 +8027,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -8038,7 +8038,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -8079,7 +8079,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -8098,7 +8098,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -8109,7 +8109,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -8140,7 +8140,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -8162,10 +8162,10 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -8187,7 +8187,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -8212,7 +8212,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -8502,13 +8502,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -8532,7 +8532,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -8540,7 +8540,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -8548,7 +8548,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -8566,11 +8566,11 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -8578,7 +8578,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -8598,7 +8598,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -8609,7 +8609,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -8650,7 +8650,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -8669,7 +8669,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -8680,7 +8680,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -8711,7 +8711,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -8733,10 +8733,10 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -8758,7 +8758,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -8783,7 +8783,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -9072,13 +9072,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -9102,7 +9102,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -9110,7 +9110,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -9118,7 +9118,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -9136,11 +9136,11 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -9148,7 +9148,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -9168,7 +9168,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -9179,7 +9179,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -9220,7 +9220,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -9239,7 +9239,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -9250,7 +9250,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -9281,7 +9281,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -9303,10 +9303,10 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -9328,7 +9328,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -9353,7 +9353,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -9643,13 +9643,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -9673,7 +9673,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -9681,7 +9681,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -9689,7 +9689,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -9707,11 +9707,11 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -9719,7 +9719,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -9739,7 +9739,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -9750,7 +9750,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -9791,7 +9791,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -9810,7 +9810,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -9821,7 +9821,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -9852,7 +9852,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -9874,10 +9874,10 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -9899,7 +9899,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -9924,7 +9924,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -10215,13 +10215,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -10245,7 +10245,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -10253,7 +10253,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -10261,7 +10261,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -10279,11 +10279,11 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -10291,7 +10291,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -10311,7 +10311,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -10322,7 +10322,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -10363,7 +10363,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -10382,7 +10382,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -10393,7 +10393,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -10424,7 +10424,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -10446,10 +10446,10 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -10471,7 +10471,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -10496,7 +10496,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -10785,13 +10785,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -10815,7 +10815,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -10823,7 +10823,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -10831,7 +10831,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -10849,11 +10849,11 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -10861,7 +10861,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -10881,7 +10881,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -10892,7 +10892,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -10933,7 +10933,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -10952,7 +10952,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -10963,7 +10963,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -10994,7 +10994,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -11016,10 +11016,10 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -11041,7 +11041,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -11066,7 +11066,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -11355,13 +11355,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -11385,7 +11385,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -11393,7 +11393,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -11401,7 +11401,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -11419,11 +11419,11 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -11431,7 +11431,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -11451,7 +11451,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -11462,7 +11462,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -11503,7 +11503,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -11522,7 +11522,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -11533,7 +11533,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -11564,7 +11564,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -11586,10 +11586,10 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -11611,7 +11611,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -11636,7 +11636,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -11927,13 +11927,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -11957,7 +11957,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -11965,7 +11965,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -11973,7 +11973,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -11991,11 +11991,11 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -12003,7 +12003,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -12023,7 +12023,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -12034,7 +12034,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -12075,7 +12075,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -12094,7 +12094,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -12105,7 +12105,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -12136,7 +12136,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -12158,10 +12158,10 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -12183,7 +12183,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -12208,7 +12208,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -12497,13 +12497,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -12527,7 +12527,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -12535,7 +12535,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -12543,7 +12543,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -12561,11 +12561,11 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -12573,7 +12573,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -12593,7 +12593,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -12604,7 +12604,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -12645,7 +12645,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -12664,7 +12664,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -12675,7 +12675,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -12706,7 +12706,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -12728,10 +12728,10 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -12753,7 +12753,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -12778,7 +12778,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -13067,13 +13067,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -13097,7 +13097,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -13105,7 +13105,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -13113,7 +13113,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -13131,11 +13131,11 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -13143,7 +13143,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -13163,7 +13163,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -13174,7 +13174,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -13215,7 +13215,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -13234,7 +13234,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -13245,7 +13245,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -13276,7 +13276,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -13298,10 +13298,10 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -13323,7 +13323,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -13348,7 +13348,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -13640,13 +13640,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -13670,7 +13670,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -13678,7 +13678,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -13686,7 +13686,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -13704,11 +13704,11 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -13716,7 +13716,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -13736,7 +13736,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -13747,7 +13747,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -13788,7 +13788,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -13807,7 +13807,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -13818,7 +13818,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -13849,7 +13849,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -13871,10 +13871,10 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -13896,7 +13896,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -13921,7 +13921,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -14210,13 +14210,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -14240,7 +14240,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -14248,7 +14248,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -14256,7 +14256,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -14274,11 +14274,11 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -14286,7 +14286,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -14306,7 +14306,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -14317,7 +14317,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -14358,7 +14358,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -14377,7 +14377,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -14388,7 +14388,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -14419,7 +14419,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -14441,10 +14441,10 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -14466,7 +14466,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -14491,7 +14491,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -14785,13 +14785,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -14815,7 +14815,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -14823,7 +14823,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -14831,7 +14831,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -14849,11 +14849,11 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -14861,7 +14861,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -14881,7 +14881,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -14892,7 +14892,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -14933,7 +14933,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -14952,7 +14952,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -14963,7 +14963,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -14994,7 +14994,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -15016,10 +15016,10 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -15041,7 +15041,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -15066,7 +15066,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -15355,13 +15355,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -15385,7 +15385,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -15393,7 +15393,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -15401,7 +15401,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -15419,11 +15419,11 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -15431,7 +15431,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -15451,7 +15451,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -15462,7 +15462,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -15503,7 +15503,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -15522,7 +15522,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -15533,7 +15533,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -15564,7 +15564,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -15586,10 +15586,10 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -15611,7 +15611,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -15636,7 +15636,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -15926,13 +15926,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -15956,7 +15956,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -15964,7 +15964,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -15972,7 +15972,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -15990,11 +15990,11 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -16002,7 +16002,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -16022,7 +16022,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -16033,7 +16033,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -16074,7 +16074,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -16093,7 +16093,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -16104,7 +16104,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -16135,7 +16135,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -16157,10 +16157,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -16182,7 +16182,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -16207,7 +16207,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -16496,13 +16496,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -16526,7 +16526,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -16534,7 +16534,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -16542,7 +16542,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -16560,11 +16560,11 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -16572,7 +16572,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -16592,7 +16592,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -16603,7 +16603,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -16644,7 +16644,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -16663,7 +16663,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -16674,7 +16674,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -16705,7 +16705,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -16727,10 +16727,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -16752,7 +16752,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -16777,7 +16777,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -17085,13 +17085,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -17115,7 +17115,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -17123,7 +17123,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -17131,7 +17131,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -17149,11 +17149,11 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -17161,7 +17161,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -17181,7 +17181,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -17192,7 +17192,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -17233,7 +17233,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -17252,7 +17252,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -17263,7 +17263,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -17294,7 +17294,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -17316,10 +17316,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -17341,7 +17341,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -17366,7 +17366,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -17657,13 +17657,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -17687,7 +17687,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -17695,7 +17695,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -17703,7 +17703,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -17721,11 +17721,11 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -17733,7 +17733,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -17753,7 +17753,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -17764,7 +17764,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -17805,7 +17805,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -17824,7 +17824,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -17835,7 +17835,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -17866,7 +17866,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -17888,10 +17888,10 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -17913,7 +17913,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -17938,7 +17938,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -18228,13 +18228,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -18258,7 +18258,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -18266,7 +18266,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -18274,7 +18274,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -18292,11 +18292,11 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -18304,7 +18304,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -18324,7 +18324,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -18335,7 +18335,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -18376,7 +18376,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -18395,7 +18395,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -18406,7 +18406,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -18437,7 +18437,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -18459,10 +18459,10 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -18484,7 +18484,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -18509,7 +18509,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -18808,13 +18808,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -18838,7 +18838,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -18846,7 +18846,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -18854,7 +18854,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -18872,11 +18872,11 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -18884,7 +18884,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -18904,7 +18904,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -18915,7 +18915,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -18956,7 +18956,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -18975,7 +18975,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -18986,7 +18986,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -19017,7 +19017,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -19039,10 +19039,10 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -19064,7 +19064,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -19089,7 +19089,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -19379,13 +19379,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -19409,7 +19409,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -19417,7 +19417,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -19425,7 +19425,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -19443,11 +19443,11 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -19455,7 +19455,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -19475,7 +19475,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -19486,7 +19486,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -19527,7 +19527,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -19546,7 +19546,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -19557,7 +19557,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -19588,7 +19588,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -19610,10 +19610,10 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -19635,7 +19635,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -19660,7 +19660,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -19950,13 +19950,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -19980,7 +19980,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -19988,7 +19988,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -19996,7 +19996,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -20014,11 +20014,11 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -20026,7 +20026,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -20046,7 +20046,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -20057,7 +20057,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -20098,7 +20098,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -20117,7 +20117,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -20128,7 +20128,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -20159,7 +20159,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -20181,10 +20181,10 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -20206,7 +20206,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -20231,7 +20231,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -20522,13 +20522,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -20552,7 +20552,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -20560,7 +20560,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -20568,7 +20568,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -20586,11 +20586,11 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -20598,7 +20598,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -20618,7 +20618,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -20629,7 +20629,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -20670,7 +20670,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -20689,7 +20689,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -20700,7 +20700,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -20731,7 +20731,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -20753,10 +20753,10 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -20778,7 +20778,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -20803,7 +20803,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -21099,13 +21099,13 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -21129,7 +21129,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -21137,7 +21137,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -21145,7 +21145,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -21163,11 +21163,11 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -21175,7 +21175,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -21195,7 +21195,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -21206,7 +21206,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -21247,7 +21247,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -21266,7 +21266,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -21277,7 +21277,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -21308,7 +21308,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -21330,10 +21330,10 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -21355,7 +21355,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -21380,7 +21380,7 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -21670,13 +21670,13 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -21700,7 +21700,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -21708,7 +21708,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -21716,7 +21716,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -21734,11 +21734,11 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -21746,7 +21746,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -21766,7 +21766,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -21777,7 +21777,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -21818,7 +21818,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -21837,7 +21837,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -21848,7 +21848,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -21879,7 +21879,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -21901,10 +21901,10 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -21926,7 +21926,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -21951,7 +21951,7 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -22241,13 +22241,13 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -22271,7 +22271,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -22279,7 +22279,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -22287,7 +22287,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -22305,11 +22305,11 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -22317,7 +22317,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -22337,7 +22337,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -22348,7 +22348,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -22389,7 +22389,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -22408,7 +22408,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -22419,7 +22419,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -22450,7 +22450,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -22472,10 +22472,10 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -22497,7 +22497,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -22522,7 +22522,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -22811,13 +22811,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -22841,7 +22841,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -22849,7 +22849,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -22857,7 +22857,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -22875,11 +22875,11 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -22887,7 +22887,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -22907,7 +22907,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -22918,7 +22918,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -22959,7 +22959,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -22978,7 +22978,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -22989,7 +22989,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -23020,7 +23020,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -23042,10 +23042,10 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -23067,7 +23067,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -23092,7 +23092,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -23401,13 +23401,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -23431,7 +23431,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -23439,7 +23439,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -23447,7 +23447,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -23465,11 +23465,11 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -23477,7 +23477,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -23497,7 +23497,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -23508,7 +23508,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -23549,7 +23549,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -23568,7 +23568,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -23579,7 +23579,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -23610,7 +23610,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -23632,10 +23632,10 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -23657,7 +23657,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -23682,7 +23682,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -23971,13 +23971,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	identityFeatureConfig := featureConfig.Identity
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -24001,7 +24001,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -24009,7 +24009,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -24017,7 +24017,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -24035,11 +24035,11 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	serviceStore := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -24047,7 +24047,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -24067,7 +24067,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -24078,7 +24078,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedis := &oob.StoreRedis{
@@ -24119,7 +24119,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -24138,7 +24138,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -24149,7 +24149,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
@@ -24180,7 +24180,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -24202,10 +24202,10 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -24227,7 +24227,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -24252,7 +24252,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -24768,11 +24768,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	oAuthConfig := appConfig.OAuth
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	appdbHandle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
@@ -24781,7 +24781,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -24794,7 +24794,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OriginProvider: mainOriginProvider,
 	}
 	userStore := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
@@ -24802,11 +24802,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	featureConfig := config.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -24830,7 +24830,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth3.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth3.Provider{
@@ -24838,7 +24838,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -24846,7 +24846,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -24864,11 +24864,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -24876,7 +24876,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -24896,7 +24896,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -24907,7 +24907,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oobStoreRedis := &oob.StoreRedis{
@@ -24948,7 +24948,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -24967,7 +24967,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -25005,7 +25005,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -25027,10 +25027,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{

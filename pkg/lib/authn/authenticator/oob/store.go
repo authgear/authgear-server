@@ -14,12 +14,12 @@ import (
 )
 
 type Store struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
-	return s.SQLBuilder.Tenant().
+	return s.SQLBuilder.
 		Select(
 			"a.id",
 			"a.type",
@@ -119,7 +119,7 @@ func (s *Store) List(userID string) ([]*Authenticator, error) {
 }
 
 func (s *Store) Delete(id string) error {
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Where("id = ?", id)
 	_, err := s.SQLExecutor.ExecWith(q)
@@ -127,7 +127,7 @@ func (s *Store) Delete(id string) error {
 		return err
 	}
 
-	q = s.SQLBuilder.Tenant().
+	q = s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_authenticator")).
 		Where("id = ?", id)
 	_, err = s.SQLExecutor.ExecWith(q)
@@ -149,7 +149,7 @@ func (s *Store) Create(a *Authenticator) error {
 		return errors.New("invalid oob authenticator type")
 	}
 
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_authenticator")).
 		Columns(
 			"id",
@@ -176,7 +176,7 @@ func (s *Store) Create(a *Authenticator) error {
 		return err
 	}
 
-	q = s.SQLBuilder.Tenant().
+	q = s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Columns(
 			"id",

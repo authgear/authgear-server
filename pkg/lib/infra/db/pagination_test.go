@@ -11,7 +11,7 @@ import (
 
 func TestApplyPageArgs(t *testing.T) {
 	Convey("ApplyPageArgs", t, func() {
-		builder := db.NewSQLBuilder("", "my-app").Tenant().
+		builder := db.NewSQLBuilderApp("", "my-app").
 			Select("id", "value").
 			From("values")
 
