@@ -5,6 +5,7 @@ type CounterStore interface {
 	TrackPageView(visitorID string, pageType PageType) error
 }
 
+// Service provides methods for the app to record analytic count
 type Service struct {
 	Counter CounterStore
 }
