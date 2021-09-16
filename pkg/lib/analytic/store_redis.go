@@ -85,11 +85,11 @@ func (s *StoreRedis) TrackPageView(visitorID string, pageType PageType) (err err
 }
 
 func monthlyActiveUserCount(appID config.AppID, year int, month int) string {
-	return fmt.Sprintf("app:%s:monthly-active-user:%d-%d", appID, year, month)
+	return fmt.Sprintf("app:%s:monthly-active-user:%04d-%02d", appID, year, month)
 }
 
 func weeklyActiveUserCount(appID config.AppID, year int, week int) string {
-	return fmt.Sprintf("app:%s:weekly-active-user:%dW%d", appID, year, week)
+	return fmt.Sprintf("app:%s:weekly-active-user:%04d-W%02d", appID, year, week)
 }
 
 func dailyActiveUserCount(appID config.AppID, date *time.Time) string {
