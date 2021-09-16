@@ -87,9 +87,38 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		return
 	}
 
+	// https://developers.weixin.qq.com/doc/offiaccount/User_Management/Get_users_basic_information_UnionID.html
+	// Here is an example of how the raw profile looks like.
+	// {
+	//     "sex": 0,
+	//     "city": "",
+	//     "openid": "redacted",
+	//     "country": "",
+	//     "language": "zh_CN",
+	//     "nickname": "John Doe",
+	//     "province": "",
+	//     "privilege": [],
+	//     "headimgurl": ""
+	// }
+	var gender string
+	if sex, ok := rawProfile["sex"].(float64); ok {
+		if sex == 1 {
+			gender = "male"
+		} else if sex == 2 {
+			gender = "female"
+		}
+	}
+
+	name, _ := rawProfile["nickname"].(string)
+	locale, _ := rawProfile["language"].(string)
+
 	authInfo.ProviderRawProfile = rawProfile
 	authInfo.ProviderUserID = userID
-	authInfo.StandardAttributes = stdattrs.T{}
+	authInfo.StandardAttributes = stdattrs.T{
+		stdattrs.Name:   name,
+		stdattrs.Locale: locale,
+		stdattrs.Gender: gender,
+	}
 
 	err = w.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {
