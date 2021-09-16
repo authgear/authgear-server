@@ -26,7 +26,7 @@ func NewStoreRedisLogger(lf *log.Factory) StoreRedisLogger {
 	return StoreRedisLogger{lf.New("redis-analytic-store")}
 }
 
-type StoreRedis struct {
+type WriteStoreRedis struct {
 	Context context.Context
 	Redis   *analyticredis.Handle
 	AppID   config.AppID
@@ -34,7 +34,7 @@ type StoreRedis struct {
 	Logger  StoreRedisLogger
 }
 
-func (s *StoreRedis) TrackActiveUser(userID string) (err error) {
+func (s *WriteStoreRedis) TrackActiveUser(userID string) (err error) {
 	if s.Redis == nil {
 		return nil
 	}
@@ -59,7 +59,7 @@ func (s *StoreRedis) TrackActiveUser(userID string) (err error) {
 	return
 }
 
-func (s *StoreRedis) TrackPageView(visitorID string, pageType PageType) (err error) {
+func (s *WriteStoreRedis) TrackPageView(visitorID string, pageType PageType) (err error) {
 	if s.Redis == nil {
 		return nil
 	}

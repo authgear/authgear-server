@@ -4422,7 +4422,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
 	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	analyticStoreRedis := &analytic.StoreRedis{
+	writeStoreRedis := &analytic.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
@@ -4430,7 +4430,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Logger:  analyticStoreRedisLogger,
 	}
 	analyticService := &analytic.Service{
-		Counter: analyticStoreRedis,
+		Counter: writeStoreRedis,
 	}
 	loginHandler := &webapp2.LoginHandler{
 		ControllerFactory: controllerFactory,
@@ -5010,7 +5010,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	analyticredisHandle := appProvider.AnalyticRedis
 	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	analyticStoreRedis := &analytic.StoreRedis{
+	writeStoreRedis := &analytic.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
@@ -5018,7 +5018,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Logger:  analyticStoreRedisLogger,
 	}
 	analyticService := &analytic.Service{
-		Counter: analyticStoreRedis,
+		Counter: writeStoreRedis,
 	}
 	signupHandler := &webapp2.SignupHandler{
 		ControllerFactory: controllerFactory,
@@ -25114,7 +25114,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	middlewareLogger := session.NewMiddlewareLogger(factory)
 	analyticredisHandle := appProvider.AnalyticRedis
 	analyticStoreRedisLogger := analytic.NewStoreRedisLogger(factory)
-	analyticStoreRedis := &analytic.StoreRedis{
+	writeStoreRedis := &analytic.WriteStoreRedis{
 		Context: contextContext,
 		Redis:   analyticredisHandle,
 		AppID:   appID,
@@ -25122,7 +25122,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Logger:  analyticStoreRedisLogger,
 	}
 	analyticService := &analytic.Service{
-		Counter: analyticStoreRedis,
+		Counter: writeStoreRedis,
 	}
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,

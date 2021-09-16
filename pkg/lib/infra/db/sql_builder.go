@@ -124,6 +124,11 @@ func (b InsertBuilder) Values(values ...interface{}) InsertBuilder {
 	return b
 }
 
+func (b InsertBuilder) Suffix(sql string, args ...interface{}) InsertBuilder {
+	b.builder = b.builder.Suffix(sql, args...)
+	return b
+}
+
 type SelectBuilder struct {
 	builder   sq.SelectBuilder
 	forTenant bool

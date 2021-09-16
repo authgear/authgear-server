@@ -88,3 +88,20 @@ func (s *AppDBStore) GetUserVerifiedEmails(appID string, userIDs []string) (resu
 
 	return
 }
+
+func (s *AppDBStore) GetUserCountBeforeTime(appID string, beforeTime *time.Time) (int, error) {
+	builder := s.SQLBuilder.WithAppID(appID).
+		Select("count(*)").
+		From(s.SQLBuilder.TableName("_auth_user")).
+		Where("created_at < ?", beforeTime)
+	row, err := s.SQLExecutor.QueryRowWith(builder)
+	if err != nil {
+		return 0, err
+	}
+	var count int
+	err = row.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
