@@ -80,9 +80,12 @@ func normalizeURL(t T, key string) {
 
 func normalizeLocale(t T) {
 	if locale, ok := t[Locale].(string); ok {
-		_, err := language.Parse(locale)
+		tag, err := language.Parse(locale)
 		if err != nil {
 			delete(t, Locale)
+		} else {
+			// Use Canonical representation.
+			t[Locale] = tag.String()
 		}
 	} else {
 		delete(t, Locale)

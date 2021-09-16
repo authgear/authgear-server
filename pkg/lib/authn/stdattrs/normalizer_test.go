@@ -147,6 +147,11 @@ func TestNormalizer(t *testing.T) {
 			"locale": "en",
 		})
 		test(T{
+			"locale": "zh_CN",
+		}, T{
+			"locale": "zh-CN",
+		})
+		test(T{
 			"locale": 1,
 		}, T{})
 		test(T{
