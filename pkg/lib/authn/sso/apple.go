@@ -138,19 +138,14 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 		return
 	}
 
-	email, _ := claims[stdattrs.Email].(string)
 	// By observation, if the first time of authentication does NOT include the `name` scope,
 	// Even the Services ID is unauthorized on https://appleid.apple.com,
 	// and the `name` scope is included,
 	// The ID Token still does not include the `name` claim.
-	name, _ := claims[stdattrs.Name].(string)
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
-	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Email: email,
-		stdattrs.Name:  name,
-	}
+	authInfo.StandardAttributes = stdattrs.Extract(claims)
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {

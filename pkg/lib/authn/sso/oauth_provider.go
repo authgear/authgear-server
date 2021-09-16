@@ -38,6 +38,7 @@ type OAuthProvider interface {
 // They are
 // "facebook"
 // "linkedin"
+// "wechat"
 type NonOpenIDConnectProvider interface {
 	NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param GetAuthInfoParam) (authInfo AuthInfo, err error)
 }

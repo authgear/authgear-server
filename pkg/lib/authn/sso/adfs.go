@@ -96,20 +96,22 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		return
 	}
 
-	preferredUsername := upn
-
-	var email string
-	if emailErr := (validation.FormatEmail{}).CheckFormat(upn); emailErr == nil {
-		// upn looks like an email address.
-		email = upn
+	extracted := stdattrs.Extract(claims)
+	// Transform upn into preferred_username
+	if _, ok := extracted[stdattrs.PreferredUsername]; !ok {
+		extracted[stdattrs.PreferredUsername] = upn
+	}
+	// Transform upn into email
+	if _, ok := extracted[stdattrs.Email]; !ok {
+		if emailErr := (validation.FormatEmail{}).CheckFormat(upn); emailErr == nil {
+			// upn looks like an email address.
+			extracted[stdattrs.Email] = upn
+		}
 	}
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
-	authInfo.StandardAttributes = stdattrs.T{
-		stdattrs.Email:             email,
-		stdattrs.PreferredUsername: preferredUsername,
-	}
+	authInfo.StandardAttributes = extracted
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {
