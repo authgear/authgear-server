@@ -371,8 +371,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)

@@ -383,8 +383,9 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -967,8 +968,9 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -1499,8 +1501,9 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -2015,8 +2018,9 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -2407,8 +2411,9 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -2767,8 +2772,9 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -3131,8 +3137,9 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -3544,8 +3551,9 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -4099,8 +4107,9 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -4687,8 +4696,9 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -5275,8 +5285,9 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -5850,8 +5861,9 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -6426,8 +6438,9 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -6994,8 +7007,9 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -7565,8 +7579,9 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -8139,8 +8154,9 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -8710,8 +8726,9 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -9280,8 +9297,9 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -9851,8 +9869,9 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -10423,8 +10442,9 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -10993,8 +11013,9 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -11563,8 +11584,9 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -12135,8 +12157,9 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -12705,8 +12728,9 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -13275,8 +13299,9 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -13848,8 +13873,9 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -14418,8 +14444,9 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -14993,8 +15020,9 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -15563,8 +15591,9 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -16134,8 +16163,9 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -16704,8 +16734,9 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -17293,8 +17324,9 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -17865,8 +17897,9 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -18436,8 +18469,9 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -19016,8 +19050,9 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -19587,8 +19622,9 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -20158,8 +20194,9 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -20730,8 +20767,9 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -21307,8 +21345,9 @@ func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -21878,8 +21917,9 @@ func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handl
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -22449,8 +22489,9 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -23019,8 +23060,9 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -23609,8 +23651,9 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -24179,8 +24222,9 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
@@ -25004,8 +25048,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilderApp,
+		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
 	hookLogger := hook.NewLogger(factory)
