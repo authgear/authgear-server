@@ -2,6 +2,8 @@ package graphql
 
 import (
 	"errors"
+	"fmt"
+	"time"
 
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
@@ -107,6 +109,56 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					"isInvitee": true,
 					"appID":     invitation.AppID,
 				}).Value, nil
+			},
+		},
+		"activeUserChart": &graphql.Field{
+			Description: "Active users chart dataset",
+			Type:        activeUserChart,
+			Args: graphql.FieldConfigArgument{
+				"appID": &graphql.ArgumentConfig{
+					Type:        graphql.NewNonNull(graphql.String),
+					Description: "Target app ID.",
+				},
+				"periodical": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(periodicalEnum),
+				},
+				"rangeFrom": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphqlutil.Date),
+				},
+				"rangeTo": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphqlutil.Date),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				appID := p.Args["appID"].(string)
+				periodical := p.Args["periodical"].(string)
+
+				ctx := GQLContext(p.Context)
+				var rangeFrom *time.Time
+				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
+					rangeFrom = &t
+				}
+
+				var rangeTo *time.Time
+				if t, ok := p.Args["rangeTo"].(time.Time); ok {
+					rangeTo = &t
+				}
+
+				err := checkChartDateRangeInput(rangeFrom, rangeTo)
+				if err != nil {
+					return nil, err
+				}
+
+				chart, err := ctx.AnalyticChartService.GetActiveUserChat(
+					appID,
+					periodical,
+					*rangeFrom,
+					*rangeTo,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch dataset: %w", err)
+				}
+				return graphqlutil.NewLazyValue(chart).Value, nil
 			},
 		},
 	},

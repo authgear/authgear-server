@@ -80,7 +80,7 @@ type AppResourceManagerFactory interface {
 }
 
 type AnalyticChartService interface {
-	GetActiveUserChat(appID string, periodical string, rangeFrom time.Time, rangeTo time.Time) ([]*analytic.DataPoint, error)
+	GetActiveUserChat(appID string, periodical string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 }
 
 type Logger struct{ *log.Logger }

@@ -66,6 +66,37 @@ func (s *AuditDBReadStore) QueryPage(appID string, opts audit.QueryPageOptions, 
 	return logs, offset, nil
 }
 
+// GetAnalyticCountsByType get counts by type and date range
+// the provided rangeFrom and rangeTo are inclusive
+func (s *AuditDBReadStore) GetAnalyticCountsByType(
+	appID string,
+	typ string,
+	rangeFrom *time.Time,
+	rangeTo *time.Time,
+) ([]*Count, error) {
+	builder := s.selectAnalyticCountQuery(appID).
+		Where("type = ?", typ).
+		Where("date >= ?", rangeFrom).
+		Where("date <= ?", rangeTo)
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var counts []*Count
+	for rows.Next() {
+		count, err := s.scanAnalyticCount(rows)
+		if err != nil {
+			return nil, err
+		}
+		counts = append(counts, count)
+	}
+
+	return counts, nil
+}
+
 func (s *AuditDBReadStore) selectLogQuery(appID string) db.SelectBuilder {
 	return s.SQLBuilder.WithAppID(appID).
 		Select(
@@ -106,4 +137,31 @@ func (s *AuditDBReadStore) scanLog(scn db.Scanner) (*audit.Log, error) {
 	}
 
 	return l, nil
+}
+
+func (s *AuditDBReadStore) selectAnalyticCountQuery(appID string) db.SelectBuilder {
+	return s.SQLBuilder.WithAppID(appID).
+		Select(
+			"id",
+			"app_id",
+			"count",
+			"date",
+			"type",
+		).
+		From(s.SQLBuilder.TableName("_audit_analytic_count"))
+}
+
+func (s *AuditDBReadStore) scanAnalyticCount(scn db.Scanner) (*Count, error) {
+	c := &Count{}
+	err := scn.Scan(
+		&c.ID,
+		&c.AppID,
+		&c.Count,
+		&c.Date,
+		&c.Type,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }

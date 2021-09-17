@@ -107,6 +107,12 @@ input AppResourceUpdate {
 }
 
 """"""
+type Chart {
+  """"""
+  dataset: [DataPoint]!
+}
+
+""""""
 type CheckCollaboratorInvitationPayload {
   """"""
   appID: String!
@@ -204,6 +210,20 @@ type CreateDomainPayload {
   """"""
   domain: Domain!
 }
+
+""""""
+type DataPoint {
+  """"""
+  data: Int!
+
+  """"""
+  label: String!
+}
+
+"""
+The `Date` scalar type represents a Date. The Date is serialized in ISO 8601 format
+"""
+scalar Date
 
 """
 The `DateTime` scalar type represents a DateTime. The DateTime is serialized as an RFC 3339 quoted string
@@ -354,7 +374,31 @@ type PageInfo {
 }
 
 """"""
+enum Periodical {
+  """"""
+  MONTHLY
+
+  """"""
+  WEEKLY
+}
+
+""""""
 type Query {
+  """Active users chart dataset"""
+  activeUserChart(
+    """Target app ID."""
+    appID: String!
+
+    """"""
+    periodical: Periodical!
+
+    """"""
+    rangeFrom: Date!
+
+    """"""
+    rangeTo: Date!
+  ): Chart
+
   """All apps accessible by the viewer"""
   apps(after: String, before: String, first: Int, last: Int): AppConnection
 
