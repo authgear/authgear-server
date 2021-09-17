@@ -308,7 +308,7 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	return nil
 }
 
-func (s *Service) VerifySecret(info *authenticator.Info, state map[string]string, secret string) error {
+func (s *Service) VerifySecret(info *authenticator.Info, secret string) error {
 	err := s.RateLimiter.TakeToken(AuthenticateSecretRateLimitBucket(info.UserID, info.Type))
 	if err != nil {
 		return err
