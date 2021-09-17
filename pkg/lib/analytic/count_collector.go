@@ -30,13 +30,15 @@ type SignupCountResult struct {
 }
 
 type CountCollector struct {
-	GlobalHandle  *globaldb.Handle
-	GlobalDBStore *GlobalDBStore
-	AppDBHandle   *appdb.Handle
-	AppDBStore    *AppDBStore
-	AuditDBHandle *auditdb.WriteHandle
-	AuditDBStore  *AuditDBStore
-	CounterStore  *ReadStoreRedis
+	GlobalHandle       *globaldb.Handle
+	GlobalDBStore      *GlobalDBStore
+	AppDBHandle        *appdb.Handle
+	AppDBStore         *AppDBStore
+	AuditDBReadHandle  *auditdb.ReadHandle
+	AuditDBReadStore   *AuditDBReadStore
+	AuditDBWriteHandle *auditdb.WriteHandle
+	AuditDBWriteStore  *AuditDBWriteStore
+	CounterStore       *ReadStoreRedis
 }
 
 func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err error) {
@@ -149,7 +151,7 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 	}
 
 	// Signup count
-	err = c.AuditDBHandle.ReadOnly(func() error {
+	err = c.AuditDBReadHandle.ReadOnly(func() error {
 		signupCountResult, err := c.querySignupCount(appID, &date, &nextDay)
 		if err != nil {
 			err = fmt.Errorf("failed to calculate signup count: %w", err)
@@ -345,7 +347,7 @@ func (c *CountCollector) queryUserCreatedEvents(appID string, rangeFrom *time.Ti
 		ActivityTypes: []string{string(nonblocking.UserCreated)},
 	}
 
-	logs, offset, err := c.AuditDBStore.QueryPage(appID, options, graphqlutil.PageArgs{
+	logs, offset, err := c.AuditDBReadStore.QueryPage(appID, options, graphqlutil.PageArgs{
 		First: &first,
 		After: graphqlutil.Cursor(after),
 	})
@@ -393,9 +395,9 @@ func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
 
 func (c *CountCollector) saveCounts(counts []*Count) (updatedCount int, err error) {
 	if len(counts) > 0 {
-		err = c.AuditDBHandle.WithTx(func() error {
+		err = c.AuditDBWriteHandle.WithTx(func() error {
 			// Store the counts to audit db
-			err = c.AuditDBStore.UpsertCounts(counts)
+			err = c.AuditDBWriteStore.UpsertCounts(counts)
 			if err != nil {
 				return err
 			}
