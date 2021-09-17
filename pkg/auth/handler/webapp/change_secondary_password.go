@@ -29,10 +29,22 @@ var ChangeSecondaryPasswordSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-func ConfigureChangeSecondaryPasswordRoute(route httproute.Route) httproute.Route {
-	return route.
-		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern("/settings/mfa/change_secondary_password")
+var ForceChangeSecondaryPasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_new_password": { "type": "string" },
+			"x_confirm_password": { "type": "string" }
+		},
+		"required": ["x_new_password", "x_confirm_password"]
+	}
+`)
+
+func ConfigureChangeSecondaryPasswordRoute(route httproute.Route) []httproute.Route {
+	return []httproute.Route{
+		route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/settings/mfa/change_secondary_password"),
+		route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/change_secondary_password"),
+	}
 }
 
 type ChangeSecondaryPasswordHandler struct {
@@ -63,11 +75,7 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	}
 	defer ctrl.Serve()
 
-	userID := ctrl.RequireUserID()
-	opts := webapp.SessionOptions{
-		RedirectURI: "/settings",
-	}
-	intent := intents.NewIntentChangeSecondaryPassword(userID)
+	maybeWebSession := webapp.GetSession(r.Context())
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
@@ -80,6 +88,39 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	})
 
 	ctrl.PostAction("", func() error {
+		if maybeWebSession != nil {
+			result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+				err = ForceChangeSecondaryPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+				if err != nil {
+					return
+				}
+
+				newPassword := r.Form.Get("x_new_password")
+				confirmPassword := r.Form.Get("x_confirm_password")
+				err = pwd.ConfirmPassword(newPassword, confirmPassword)
+				if err != nil {
+					return
+				}
+
+				input = &InputChangePassword{
+					NewPassword: newPassword,
+				}
+				return
+			})
+			if err != nil {
+				return err
+			}
+
+			result.WriteResponse(w, r)
+			return nil
+		}
+
+		userID := ctrl.RequireUserID()
+		opts := webapp.SessionOptions{
+			RedirectURI: "/settings",
+		}
+		intent := intents.NewIntentChangeSecondaryPassword(userID)
+
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			err = ChangeSecondaryPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
