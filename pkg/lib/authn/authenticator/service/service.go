@@ -23,7 +23,7 @@ type PasswordAuthenticatorProvider interface {
 	Create(*password.Authenticator) error
 	UpdatePassword(*password.Authenticator) error
 	Delete(*password.Authenticator) error
-	Authenticate(a *password.Authenticator, password string) error
+	Authenticate(a *password.Authenticator, password string) (requireUpdate bool, err error)
 }
 
 type TOTPAuthenticatorProvider interface {
@@ -308,36 +308,38 @@ func (s *Service) Delete(info *authenticator.Info) error {
 	return nil
 }
 
-func (s *Service) VerifySecret(info *authenticator.Info, secret string) error {
-	err := s.RateLimiter.TakeToken(AuthenticateSecretRateLimitBucket(info.UserID, info.Type))
+func (s *Service) VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error) {
+	err = s.RateLimiter.TakeToken(AuthenticateSecretRateLimitBucket(info.UserID, info.Type))
 	if err != nil {
-		return err
+		return
 	}
 
 	switch info.Type {
 	case authn.AuthenticatorTypePassword:
 		a := passwordFromAuthenticatorInfo(info)
-		if s.Password.Authenticate(a, secret) != nil {
-			return authenticator.ErrInvalidCredentials
+		requireUpdate, err = s.Password.Authenticate(a, secret)
+		if err != nil {
+			err = authenticator.ErrInvalidCredentials
+			return
 		}
-		return nil
-
+		return
 	case authn.AuthenticatorTypeTOTP:
 		a := totpFromAuthenticatorInfo(info)
 		if s.TOTP.Authenticate(a, secret) != nil {
-			return authenticator.ErrInvalidCredentials
+			err = authenticator.ErrInvalidCredentials
+			return
 		}
-		return nil
-
+		return
 	case authn.AuthenticatorTypeOOBEmail, authn.AuthenticatorTypeOOBSMS:
 		a := oobotpFromAuthenticatorInfo(info)
-		_, err := s.OOBOTP.VerifyCode(a.ID, secret)
+		_, err = s.OOBOTP.VerifyCode(a.ID, secret)
 		if errors.Is(err, oob.ErrInvalidCode) {
-			return authenticator.ErrInvalidCredentials
+			err = authenticator.ErrInvalidCredentials
+			return
 		} else if err != nil {
-			return err
+			return
 		}
-		return nil
+		return
 	}
 
 	panic("authenticator: unhandled authenticator type " + info.Type)

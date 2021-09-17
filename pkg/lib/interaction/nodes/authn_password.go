@@ -50,9 +50,10 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 
 	inputPassword := passwordInput.GetPassword()
 
+	var requireUpdate bool
 	var info *authenticator.Info
 	for _, a := range e.Authenticators {
-		err := ctx.Authenticators.VerifySecret(a, inputPassword)
+		b, err := ctx.Authenticators.VerifySecret(a, inputPassword)
 		if errors.Is(err, authenticator.ErrInvalidCredentials) {
 			continue
 		} else if err != nil {
@@ -60,15 +61,18 @@ func (e *EdgeAuthenticationPassword) Instantiate(ctx *interaction.Context, graph
 		} else {
 			aa := a
 			info = aa
+			requireUpdate = b
+			break
 		}
 	}
 
-	return &NodeAuthenticationPassword{Stage: e.Stage, Authenticator: info}, nil
+	return &NodeAuthenticationPassword{Stage: e.Stage, Authenticator: info, RequireUpdate: requireUpdate}, nil
 }
 
 type NodeAuthenticationPassword struct {
 	Stage         authn.AuthenticationStage `json:"stage"`
 	Authenticator *authenticator.Info       `json:"authenticator"`
+	RequireUpdate bool                      `json:"require_update"`
 }
 
 func (n *NodeAuthenticationPassword) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {

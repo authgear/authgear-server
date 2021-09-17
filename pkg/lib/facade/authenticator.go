@@ -37,6 +37,6 @@ func (a AuthenticatorFacade) Delete(authenticatorInfo *authenticator.Info) error
 	return a.Coordinator.AuthenticatorDelete(authenticatorInfo)
 }
 
-func (a AuthenticatorFacade) VerifySecret(info *authenticator.Info, secret string) error {
+func (a AuthenticatorFacade) VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error) {
 	return a.Coordinator.AuthenticatorVerifySecret(info, secret)
 }
