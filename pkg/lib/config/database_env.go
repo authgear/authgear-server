@@ -8,3 +8,8 @@ type DatabaseEnvironmentConfig struct {
 	ConnMaxLifetimeSeconds int    `envconfig:"CONN_MAX_LIFETIME" default:"1800"`
 	ConnMaxIdleTimeSeconds int    `envconfig:"CONN_MAX_IDLE_TIME" default:"300"`
 }
+
+type DatabaseCredentialsEnvironmentConfig struct {
+	DatabaseURL    string `envconfig:"URL"`
+	DatabaseSchema string `envconfig:"SCHEMA" default:"public"`
+}
