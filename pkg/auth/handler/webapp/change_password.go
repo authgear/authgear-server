@@ -40,11 +40,12 @@ var ForceChangePasswordSchema = validation.NewSimpleSchema(`
 	}
 `)
 
-func ConfigureChangePasswordRoute(route httproute.Route) []httproute.Route {
-	return []httproute.Route{
-		route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/settings/change_password"),
-		route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/change_password"),
-	}
+func ConfigureChangePasswordRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/settings/change_password")
+}
+
+func ConfigureForceChangePasswordRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/change_password")
 }
 
 type ChangePasswordHandler struct {

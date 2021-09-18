@@ -216,6 +216,20 @@ func (g *Graph) GetUserNewAuthenticators() []*authenticator.Info {
 	return authenticators
 }
 
+func (g *Graph) GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {
+	for _, node := range g.Nodes {
+		if n, ok := node.(interface {
+			GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool)
+		}); ok {
+			info, ok := n.GetRequireUpdateAuthenticator(stage)
+			if ok {
+				return info, ok
+			}
+		}
+	}
+	return nil, false
+}
+
 func (g *Graph) GetAMR() []string {
 	seen := make(map[string]struct{})
 	amr := []string{}

@@ -92,3 +92,10 @@ func (n *NodeAuthenticationPassword) DeriveEdges(graph *interaction.Graph) ([]in
 		},
 	}, nil
 }
+
+func (n *NodeAuthenticationPassword) GetRequireUpdateAuthenticator(stage authn.AuthenticationStage) (info *authenticator.Info, ok bool) {
+	if n.RequireUpdate && n.Stage == stage {
+		return n.Authenticator, true
+	}
+	return nil, false
+}

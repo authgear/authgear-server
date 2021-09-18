@@ -462,6 +462,15 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		return SessionStepVerifyIdentity
 	case *nodes.NodeValidateUser:
 		return SessionStepUserDisabled
+	case *nodes.NodeChangePasswordBegin:
+		switch currentNode.Stage {
+		case authn.AuthenticationStagePrimary:
+			return SessionStepChangePrimaryPassword
+		case authn.AuthenticationStageSecondary:
+			return SessionStepChangeSecondaryPassword
+		default:
+			panic(fmt.Errorf("webapp: unexpected authentication stage: %s", currentNode.Stage))
+		}
 	default:
 		panic(fmt.Errorf("webapp: unexpected node: %T", graph.CurrentNode()))
 	}

@@ -40,6 +40,31 @@ func (i *IntentAuthenticate) InstantiateRootNode(ctx *interaction.Context, graph
 
 // nolint:gocyclo
 func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {
+	ensureSession := func() ([]interaction.Edge, error) {
+		var reason session.CreateReason
+		_, creating := graph.GetNewUserID()
+		switch {
+		case i.Kind == IntentAuthenticateKindPromote:
+			reason = session.CreateReasonPromote
+		case creating:
+			reason = session.CreateReasonSignup
+		default:
+			reason = session.CreateReasonLogin
+		}
+
+		var mode nodes.EnsureSessionMode
+		if i.SuppressIDPSessionCookie {
+			mode = nodes.EnsureSessionModeNoop
+		}
+
+		return []interaction.Edge{
+			&nodes.EdgeDoEnsureSession{
+				CreateReason: reason,
+				Mode:         mode,
+			},
+		}, nil
+	}
+
 	switch node := node.(type) {
 	case *nodes.NodeSelectIdentityEnd:
 		switch i.Kind {
@@ -293,33 +318,40 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			},
 		}, nil
 	case *nodes.NodeDoGenerateRecoveryCode:
-		var reason session.CreateReason
-		_, creating := graph.GetNewUserID()
-		switch {
-		case i.Kind == IntentAuthenticateKindPromote:
-			reason = session.CreateReasonPromote
-		case creating:
-			reason = session.CreateReasonSignup
-		default:
-			reason = session.CreateReasonLogin
-		}
-
-		var mode nodes.EnsureSessionMode
-		if i.SuppressIDPSessionCookie {
-			mode = nodes.EnsureSessionModeNoop
-		}
-
 		return []interaction.Edge{
-			&nodes.EdgeDoEnsureSession{
-				CreateReason: reason,
-				Mode:         mode,
+			&nodes.EdgeEnsurePasswordChange{
+				Stage: authn.AuthenticationStagePrimary,
 			},
 		}, nil
-
+	case *nodes.NodeEnsurePasswordChange:
+		switch node.Stage {
+		case authn.AuthenticationStagePrimary:
+			return []interaction.Edge{
+				&nodes.EdgeEnsurePasswordChange{
+					Stage: authn.AuthenticationStageSecondary,
+				},
+			}, nil
+		case authn.AuthenticationStageSecondary:
+			return ensureSession()
+		default:
+			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
+		}
+	case *nodes.NodeDoUpdateAuthenticator:
+		switch node.Stage {
+		case authn.AuthenticationStagePrimary:
+			return []interaction.Edge{
+				&nodes.EdgeEnsurePasswordChange{
+					Stage: authn.AuthenticationStageSecondary,
+				},
+			}, nil
+		case authn.AuthenticationStageSecondary:
+			return ensureSession()
+		default:
+			panic(fmt.Errorf("interaction: unexpected authentication stage: %v", node.Stage))
+		}
 	case *nodes.NodeDoEnsureSession:
 		// Intent is finished
 		return nil, nil
-
 	default:
 		panic(fmt.Errorf("interaction: unexpected node: %T", node))
 	}
