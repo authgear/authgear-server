@@ -53,6 +53,7 @@ func (n *NodeChangePasswordBegin) IsForceChangePassword() bool {
 }
 
 type InputChangePassword interface {
+	GetAuthenticationStage() authn.AuthenticationStage
 	GetOldPassword() string
 	GetNewPassword() string
 }
@@ -64,6 +65,16 @@ type EdgeChangePassword struct {
 func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (node interaction.Node, err error) {
 	var input InputChangePassword
 	if !interaction.Input(rawInput, &input) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
+	// We have to check the state of the input to ensure
+	// the input for this edge.
+	// We do not do this, the primary password input will be feeded to
+	// the secondary edge.
+	// Two passwords will be changed to the same value.
+	stage := input.GetAuthenticationStage()
+	if stage != e.Stage {
 		return nil, interaction.ErrIncompatibleInput
 	}
 

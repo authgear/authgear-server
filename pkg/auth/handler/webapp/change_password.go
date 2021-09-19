@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -132,7 +133,8 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				}
 
 				input = &InputChangePassword{
-					NewPassword: newPassword,
+					AuthenticationStage: authn.AuthenticationStagePrimary,
+					NewPassword:         newPassword,
 				}
 				return
 			})
@@ -164,8 +166,9 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			}
 
 			input = &InputChangePassword{
-				OldPassword: oldPassword,
-				NewPassword: newPassword,
+				AuthenticationStage: authn.AuthenticationStagePrimary,
+				OldPassword:         oldPassword,
+				NewPassword:         newPassword,
 			}
 			return
 		})
