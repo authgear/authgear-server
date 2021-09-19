@@ -178,9 +178,11 @@
 
   "change-password-page-title": "Change Password",
   "change-password-page-description": "Please enter your new password below.",
+  "change-password-page-description--force": "Your password does not meet the requirements. Please enter a new password.",
 
   "change-secondary-password-page-title": "Change Additional Password",
   "change-secondary-password-page-description": "Please enter your new password below.",
+  "change-secondary-password-page-description--force": "Your additional password does not meet the requirements. Please enter a new additional password.",
 
   "logout-button-hint": "Click the button to log out",
   "logout-button-label": "Log out",

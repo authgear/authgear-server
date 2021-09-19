@@ -17,6 +17,7 @@ func (e *EdgeEnsurePasswordChange) Instantiate(ctx *interaction.Context, graph *
 	authenticator, ok := graph.GetRequireUpdateAuthenticator(e.Stage)
 	if ok && authenticator.Type == authn.AuthenticatorTypePassword {
 		return &NodeChangePasswordBegin{
+			Force: true,
 			Stage: e.Stage,
 		}, nil
 	}

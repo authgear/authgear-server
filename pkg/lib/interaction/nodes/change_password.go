@@ -18,16 +18,19 @@ func init() {
 }
 
 type EdgeChangePasswordBegin struct {
-	Stage authn.AuthenticationStage `json:"stage"`
+	Force bool
+	Stage authn.AuthenticationStage
 }
 
 func (e *EdgeChangePasswordBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeChangePasswordBegin{
+		Force: e.Force,
 		Stage: e.Stage,
 	}, nil
 }
 
 type NodeChangePasswordBegin struct {
+	Force bool                      `json:"force"`
 	Stage authn.AuthenticationStage `json:"stage"`
 }
 
@@ -43,6 +46,10 @@ func (n *NodeChangePasswordBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 	return []interaction.Edge{&EdgeChangePassword{
 		Stage: n.Stage,
 	}}, nil
+}
+
+func (n *NodeChangePasswordBegin) IsForceChangePassword() bool {
+	return n.Force
 }
 
 type InputChangePassword interface {

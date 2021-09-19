@@ -18,6 +18,7 @@ type EdgeDoUpdateAuthenticator struct {
 
 func (e *EdgeDoUpdateAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeDoUpdateAuthenticator{
+		Stage:                     e.Stage,
 		AuthenticatorBeforeUpdate: e.AuthenticatorBeforeUpdate,
 		AuthenticatorAfterUpdate:  e.AuthenticatorAfterUpdate,
 	}, nil

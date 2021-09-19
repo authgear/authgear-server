@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -55,7 +56,7 @@ type ChangeSecondaryPasswordHandler struct {
 	PasswordPolicy    PasswordPolicy
 }
 
-func (h *ChangeSecondaryPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *ChangeSecondaryPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, maybeGraph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
@@ -65,6 +66,15 @@ func (h *ChangeSecondaryPasswordHandler) GetData(r *http.Request, rw http.Respon
 	)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
+
+	force := false
+	var node ForceChangePasswordNode
+	if maybeGraph != nil && maybeGraph.FindLastNode(&node) {
+		force = node.IsForceChangePassword()
+	}
+	viewmodels.Embed(data, ChangePasswordViewModel{
+		Force: force,
+	})
 	return data, nil
 }
 
@@ -79,7 +89,16 @@ func (h *ChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	maybeWebSession := webapp.GetSession(r.Context())
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		var err error
+		var graph *interaction.Graph
+		if maybeWebSession != nil {
+			graph, err = ctrl.InteractionGetWithSession(maybeWebSession)
+			if err != nil {
+				return err
+			}
+		}
+
+		data, err := h.GetData(r, w, graph)
 		if err != nil {
 			return err
 		}

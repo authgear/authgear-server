@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -48,6 +49,14 @@ func ConfigureForceChangePasswordRoute(route httproute.Route) httproute.Route {
 	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/change_password")
 }
 
+type ForceChangePasswordNode interface {
+	IsForceChangePassword() bool
+}
+
+type ChangePasswordViewModel struct {
+	Force bool
+}
+
 type ChangePasswordHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
@@ -55,7 +64,7 @@ type ChangePasswordHandler struct {
 	PasswordPolicy    PasswordPolicy
 }
 
-func (h *ChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *ChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter, maybeGraph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
@@ -65,6 +74,16 @@ func (h *ChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter)
 	)
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
+
+	force := false
+	var node ForceChangePasswordNode
+	if maybeGraph != nil && maybeGraph.FindLastNode(&node) {
+		force = node.IsForceChangePassword()
+	}
+	viewmodels.Embed(data, ChangePasswordViewModel{
+		Force: force,
+	})
+
 	return data, nil
 }
 
@@ -79,7 +98,16 @@ func (h *ChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	maybeWebSession := webapp.GetSession(r.Context())
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		var err error
+		var graph *interaction.Graph
+		if maybeWebSession != nil {
+			graph, err = ctrl.InteractionGetWithSession(maybeWebSession)
+			if err != nil {
+				return err
+			}
+		}
+
+		data, err := h.GetData(r, w, graph)
 		if err != nil {
 			return err
 		}
