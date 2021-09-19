@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"database/sql"
 	"encoding/json"
 	"time"
 
@@ -95,6 +96,39 @@ func (s *AuditDBReadStore) GetAnalyticCountsByType(
 	}
 
 	return counts, nil
+}
+
+func (s *AuditDBReadStore) GetSumOfAnalyticCountsByType(
+	appID string,
+	typ string,
+	rangeFrom *time.Time,
+	rangeTo *time.Time,
+) (int, error) {
+	builder := s.SQLBuilder.WithAppID(appID).
+		Select(
+			"sum(count)",
+		).
+		From(s.SQLBuilder.TableName("_audit_analytic_count")).
+		Where("type = ?", typ).
+		Where("date >= ?", rangeFrom).
+		Where("date <= ?", rangeTo)
+
+	row, err := s.SQLExecutor.QueryRowWith(builder)
+	if err != nil {
+		return 0, err
+	}
+
+	var sum sql.NullInt64
+	err = row.Scan(&sum)
+	if err != nil {
+		return 0, err
+	}
+
+	if sum.Valid {
+		return int(sum.Int64), nil
+	}
+
+	return 0, nil
 }
 
 func (s *AuditDBReadStore) selectLogQuery(appID string) db.SelectBuilder {

@@ -161,5 +161,45 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewLazyValue(chart).Value, nil
 			},
 		},
+		"signupSummary": &graphql.Field{
+			Description: "Signup summary for analytic dashboard",
+			Type:        signupSummary,
+			Args: graphql.FieldConfigArgument{
+				"appID": &graphql.ArgumentConfig{
+					Type:        graphql.NewNonNull(graphql.String),
+					Description: "Target app ID.",
+				},
+				"rangeFrom": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphqlutil.Date),
+				},
+				"rangeTo": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphqlutil.Date),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				appID := p.Args["appID"].(string)
+				var rangeFrom *time.Time
+				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
+					rangeFrom = &t
+				}
+
+				var rangeTo *time.Time
+				if t, ok := p.Args["rangeTo"].(time.Time); ok {
+					rangeTo = &t
+				}
+
+				err := checkChartDateRangeInput(rangeFrom, rangeTo)
+				if err != nil {
+					return nil, err
+				}
+
+				signupSummary, err := ctx.AnalyticChartService.GetSignupSummary(appID, *rangeFrom, *rangeTo)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch dataset: %w", err)
+				}
+				return graphqlutil.NewLazyValue(signupSummary).Value, nil
+			},
+		},
 	},
 })

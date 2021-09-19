@@ -42,6 +42,22 @@ var basicChart = graphql.NewObject(graphql.ObjectConfig{
 
 var activeUserChart = basicChart
 
+var signupSummary = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SignupSummary",
+	Description: "Signup summary for analytic dashboard",
+	Fields: graphql.Fields{
+		"totalUserCount":            &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+		"totalSignup":               &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+		"totalSignupPageCount":      &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+		"totalSignupUniquePageView": &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+		"totalLoginPageView":        &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+		"totalLoginUniquePageView":  &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+		"conversionRate":            &graphql.Field{Type: graphql.NewNonNull(graphql.Float)},
+		"signupByChannelChart":      &graphql.Field{Type: graphql.NewNonNull(basicChart)},
+		"totalUserCountChart":       &graphql.Field{Type: graphql.NewNonNull(basicChart)},
+	},
+})
+
 // checkChartDateRangeInput check the date range input and limit the range
 func checkChartDateRangeInput(rangeFrom *time.Time, rangeTo *time.Time) error {
 	if rangeFrom == nil || rangeTo == nil {

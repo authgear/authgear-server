@@ -417,6 +417,18 @@ type Query {
     ids: [ID!]!
   ): [Node]!
 
+  """Signup summary for analytic dashboard"""
+  signupSummary(
+    """Target app ID."""
+    appID: String!
+
+    """"""
+    rangeFrom: Date!
+
+    """"""
+    rangeTo: Date!
+  ): SignupSummary
+
   """The current viewer"""
   viewer: User
 }
@@ -473,6 +485,36 @@ input SecretConfigInput {
 
   """"""
   smtpSecret: SMTPSecretInput
+}
+
+"""Signup summary for analytic dashboard"""
+type SignupSummary {
+  """"""
+  conversionRate: Float!
+
+  """"""
+  signupByChannelChart: Chart!
+
+  """"""
+  totalLoginPageView: Int!
+
+  """"""
+  totalLoginUniquePageView: Int!
+
+  """"""
+  totalSignup: Int!
+
+  """"""
+  totalSignupPageCount: Int!
+
+  """"""
+  totalSignupUniquePageView: Int!
+
+  """"""
+  totalUserCount: Int!
+
+  """"""
+  totalUserCountChart: Chart!
 }
 
 """"""
