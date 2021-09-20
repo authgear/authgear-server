@@ -26,7 +26,7 @@ var datapoint = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"data": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.Int),
+			Type: graphql.NewNonNull(graphql.Float),
 		},
 	},
 })

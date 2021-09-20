@@ -214,7 +214,7 @@ type CreateDomainPayload {
 """"""
 type DataPoint {
   """"""
-  data: Int!
+  data: Float!
 
   """"""
   label: String!
