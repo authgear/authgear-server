@@ -12,6 +12,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuditDBWriteStore), "*"),
 	wire.Struct(new(UserWeeklyReport), "*"),
 	wire.Struct(new(ProjectWeeklyReport), "*"),
+	wire.Struct(new(ProjectMonthlyReport), "*"),
 	wire.Struct(new(Service), "*"),
 	wire.Struct(new(ReadStoreRedis), "*"),
 	wire.Struct(new(WriteStoreRedis), "*"),

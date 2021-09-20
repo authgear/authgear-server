@@ -175,7 +175,26 @@ var cmdAnalyticReport = &cobra.Command{
 				return err
 			}
 		case analytic.ReportTypeProjectMonthlyReport:
-			log.Printf("TODO")
+			auditDBCredentials, err := getAuditDBCredentials()
+			if err != nil {
+				return err
+			}
+			if periodicalType != periodical.Monthly {
+				return fmt.Errorf("invalid period, it should be last-month or in the format YYYY-MM")
+			}
+			report := analytic.NewProjectMonthlyReport(
+				context.Background(),
+				dbPool,
+				dbCredentials,
+				auditDBCredentials,
+			)
+			data, err = report.Run(&analyticlib.ProjectMonthlyReportOptions{
+				Year:  date.Year(),
+				Month: int(date.Month()),
+			})
+			if err != nil {
+				return err
+			}
 		default:
 			log.Fatalf("unknown report type: %s", reportType)
 		}

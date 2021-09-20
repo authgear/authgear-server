@@ -84,6 +84,33 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 	return projectWeeklyReport
 }
 
+func NewProjectMonthlyReport(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials) *analytic.ProjectMonthlyReport {
+	databaseConfig := NewDatabaseConfig()
+	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
+	factory := NewLoggerFactory()
+	handle := globaldb.NewHandle(ctx, pool, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	globalDBStore := &analytic.GlobalDBStore{
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+	}
+	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
+	auditDBReadStore := &analytic.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
+	projectMonthlyReport := &analytic.ProjectMonthlyReport{
+		GlobalHandle:  handle,
+		GlobalDBStore: globalDBStore,
+		AuditDBHandle: readHandle,
+		AuditDBStore:  auditDBReadStore,
+	}
+	return projectMonthlyReport
+}
+
 func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials) *analytic.CountCollector {
 	databaseConfig := NewDatabaseConfig()
 	databaseEnvironmentConfig := NewDatabaseEnvironmentConfig(databaseCredentials, databaseConfig)
