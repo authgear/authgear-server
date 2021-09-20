@@ -54,7 +54,7 @@ func (s *AuditDBStore) UpsertCounts(counts []*Count) error {
 }
 
 func (s *AuditDBStore) upsertCounts(counts []*Count) error {
-	builder := s.SQLBuilder.Global().
+	builder := s.SQLBuilder.WithoutAppID().
 		Insert(s.SQLBuilder.TableName("_audit_analytic_count")).
 		Columns(
 			"id",

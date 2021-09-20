@@ -30,7 +30,7 @@ type Store struct {
 	Redis       *appredis.Handle
 	AppID       config.AppID
 	Logger      Logger
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 	Clock       clock.Clock
 }

@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -32,7 +34,7 @@ func (s *Store) Create(plan *model.Plan) error {
 	if err != nil {
 		return err
 	}
-	q := s.SQLBuilder.Global().
+	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_plan")).
 		Columns(
 			"id",
@@ -60,7 +62,7 @@ func (s *Store) Update(plan *model.Plan) error {
 	if err != nil {
 		return err
 	}
-	q := s.SQLBuilder.Global().
+	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_portal_plan")).
 		Set("feature_config", configData).
 		Set("updated_at", s.Clock.NowUTC()).
@@ -85,8 +87,8 @@ func (s *Store) Update(plan *model.Plan) error {
 	return nil
 }
 
-func (s *Store) selectQuery() db.SelectBuilder {
-	return s.SQLBuilder.Global().
+func (s *Store) selectQuery() sq.SelectBuilder {
+	return s.SQLBuilder.
 		Select(
 			"id",
 			"name",

@@ -7,103 +7,80 @@ import (
 	"github.com/lib/pq"
 )
 
-type SQLBuilder struct {
-	sq.StatementBuilderType
-
-	schema string
-	appID  string
+type sqlBuilderSchema struct {
+	Schema string
 }
 
-func newSQLBuilder() sq.StatementBuilderType {
+func (b sqlBuilderSchema) TableName(table string) string {
+	return pq.QuoteIdentifier(b.Schema) + "." + pq.QuoteIdentifier(table)
+}
+
+func newStatementBuilderType() sq.StatementBuilderType {
 	return sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 }
 
-func NewSQLBuilder(schema string, appID string) SQLBuilder {
+type SQLBuilder struct {
+	sq.StatementBuilderType
+	sqlBuilderSchema
+}
+
+func NewSQLBuilder(schema string) SQLBuilder {
 	return SQLBuilder{
-		StatementBuilderType: newSQLBuilder(),
-		schema:               schema,
-		appID:                appID,
+		StatementBuilderType: newStatementBuilderType(),
+		sqlBuilderSchema: sqlBuilderSchema{
+			Schema: schema,
+		},
 	}
 }
 
-func (b SQLBuilder) TableName(table string) string {
-	return pq.QuoteIdentifier(b.schema) + "." + pq.QuoteIdentifier(table)
-}
-
-func (b SQLBuilder) Tenant() SQLStatementBuilder {
-	if b.appID == "" {
-		panic("no appID to build tenant sql, should not call Tenant() on global sql builder")
-	}
-	return SQLStatementBuilder{
-		builder:   b.StatementBuilderType,
-		forTenant: true,
-		appID:     b.appID,
-	}
-}
-
-func (b SQLBuilder) Global() SQLStatementBuilder {
-	return SQLStatementBuilder{
-		builder:   b.StatementBuilderType,
-		forTenant: false,
-	}
-}
-
-func (b SQLBuilder) WithAppID(appID string) SQLStatementBuilder {
-	return SQLStatementBuilder{
-		builder:   b.StatementBuilderType,
-		forTenant: true,
-		appID:     appID,
-	}
-}
-
-type SQLStatementBuilder struct {
+type SQLBuilderApp struct {
+	sqlBuilderSchema
 	builder sq.StatementBuilderType
-
-	forTenant bool
-	appID     string
+	appID   string
 }
 
-func (b SQLStatementBuilder) Select(columns ...string) SelectBuilder {
+func NewSQLBuilderApp(schema string, appID string) SQLBuilderApp {
+	return SQLBuilderApp{
+		builder: newStatementBuilderType(),
+		sqlBuilderSchema: sqlBuilderSchema{
+			Schema: schema,
+		},
+		appID: appID,
+	}
+}
+
+func (b SQLBuilderApp) Select(columns ...string) SelectBuilder {
 	builder := b.builder.Select(columns...)
 	return SelectBuilder{
-		builder:   builder,
-		forTenant: b.forTenant,
-		appID:     b.appID,
+		builder: builder,
+		appID:   b.appID,
 	}
 }
 
-func (b SQLStatementBuilder) Insert(into string) InsertBuilder {
+func (b SQLBuilderApp) Insert(into string) InsertBuilder {
 	builder := b.builder.Insert(into)
-	if b.forTenant {
-		builder = builder.Columns("app_id")
-	}
+	builder = builder.Columns("app_id")
 	return InsertBuilder{
-		builder:   builder,
-		forTenant: b.forTenant,
-		appID:     b.appID,
+		builder: builder,
+		appID:   b.appID,
 	}
 }
 
-func (b SQLStatementBuilder) Update(table string) sq.UpdateBuilder {
+func (b SQLBuilderApp) Update(table string) sq.UpdateBuilder {
 	builder := b.builder.Update(table)
-	if b.forTenant {
-		builder = builder.Where("app_id = ?", b.appID)
-	}
+	builder = builder.Where("app_id = ?", b.appID)
 	return builder
 }
 
-func (b SQLStatementBuilder) Delete(from string) sq.DeleteBuilder {
+func (b SQLBuilderApp) Delete(from string) sq.DeleteBuilder {
 	builder := b.builder.Delete(from)
-	if b.forTenant {
-		builder = builder.Where("app_id = ?", b.appID)
-	}
+	builder = builder.Where("app_id = ?", b.appID)
 	return builder
 }
 
 type InsertBuilder struct {
-	builder   sq.InsertBuilder
-	forTenant bool
-	appID     string
+	builder sq.InsertBuilder
+	appID   string
 }
 
 // nolint: golint
@@ -117,9 +94,7 @@ func (b InsertBuilder) Columns(columns ...string) InsertBuilder {
 }
 
 func (b InsertBuilder) Values(values ...interface{}) InsertBuilder {
-	if b.forTenant {
-		values = append([]interface{}{b.appID}, values...)
-	}
+	values = append([]interface{}{b.appID}, values...)
 	b.builder = b.builder.Values(values...)
 	return b
 }
@@ -130,9 +105,8 @@ func (b InsertBuilder) Suffix(sql string, args ...interface{}) InsertBuilder {
 }
 
 type SelectBuilder struct {
-	builder   sq.SelectBuilder
-	forTenant bool
-	appID     string
+	builder sq.SelectBuilder
+	appID   string
 }
 
 // nolint: golint
@@ -144,14 +118,10 @@ func (b SelectBuilder) From(from string, alias ...string) SelectBuilder {
 	if len(alias) > 0 {
 		from = fmt.Sprintf("%s AS %s", from, alias[0])
 		b.builder = b.builder.From(from)
-		if b.forTenant {
-			b.builder = b.builder.Where(alias[0]+".app_id = ?", b.appID)
-		}
+		b.builder = b.builder.Where(alias[0]+".app_id = ?", b.appID)
 	} else {
 		b.builder = b.builder.From(from)
-		if b.forTenant {
-			b.builder = b.builder.Where("app_id = ?", b.appID)
-		}
+		b.builder = b.builder.Where("app_id = ?", b.appID)
 	}
 	return b
 }
@@ -159,9 +129,7 @@ func (b SelectBuilder) From(from string, alias ...string) SelectBuilder {
 func (b SelectBuilder) Join(from string, alias string, pred string, args ...interface{}) SelectBuilder {
 	join := fmt.Sprintf("%s AS %s ON %s", from, alias, pred)
 	b.builder = b.builder.Join(join, args...)
-	if b.forTenant {
-		b.builder = b.builder.Where(alias+".app_id = ?", b.appID)
-	}
+	b.builder = b.builder.Where(alias+".app_id = ?", b.appID)
 	return b
 }
 

@@ -14,12 +14,12 @@ import (
 )
 
 type Store struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
-	return s.SQLBuilder.Tenant().
+	return s.SQLBuilder.
 		Select(
 			"p.id",
 			"p.labels",
@@ -164,7 +164,7 @@ func (s *Store) Create(i *Identity) error {
 		return err
 	}
 
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
 			"id",
@@ -188,7 +188,7 @@ func (s *Store) Create(i *Identity) error {
 		return err
 	}
 
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity_biometric")).
 		Columns(
 			"id",
@@ -212,7 +212,7 @@ func (s *Store) Create(i *Identity) error {
 }
 
 func (s *Store) Delete(i *Identity) error {
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity_biometric")).
 		Where("id = ?", i.ID)
 
@@ -221,7 +221,7 @@ func (s *Store) Delete(i *Identity) error {
 		return err
 	}
 
-	q = s.SQLBuilder.Tenant().
+	q = s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_identity")).
 		Where("id = ?", i.ID)
 

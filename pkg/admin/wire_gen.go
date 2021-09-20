@@ -149,13 +149,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	store := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticationConfig := appConfig.Authentication
@@ -163,11 +163,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	featureConfig := configConfig.FeatureConfig
 	identityFeatureConfig := featureConfig.Identity
 	serviceStore := &service.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
@@ -192,7 +192,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:             clockClock,
 	}
 	oauthStore := &oauth.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthProvider := &oauth.Provider{
@@ -200,7 +200,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	anonymousStore := &anonymous.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	anonymousProvider := &anonymous.Provider{
@@ -208,7 +208,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	biometricStore := &biometric.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	biometricProvider := &biometric.Provider{
@@ -226,11 +226,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 	}
 	store2 := &service2.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordStore := &password.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorConfig := appConfig.Authenticator
@@ -238,7 +238,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	passwordLogger := password.NewLogger(factory)
 	historyStore := &password.HistoryStore{
 		Clock:       clockClock,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	passwordChecker := password.ProvideChecker(authenticatorPasswordConfig, historyStore)
@@ -258,7 +258,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Housekeeper:     housekeeper,
 	}
 	totpStore := &totp.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	authenticatorTOTPConfig := authenticatorConfig.TOTP
@@ -269,7 +269,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	authenticatorOOBConfig := authenticatorConfig.OOB
 	oobStore := &oob.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	appredisHandle := appProvider.Redis
@@ -314,7 +314,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storePQ := &verification.StorePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
@@ -333,7 +333,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	mfaService := &mfa.Service{
@@ -371,6 +371,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	welcomeMessageConfig := appConfig.WelcomeMessage
 	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -394,10 +395,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials, appID)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
 	}
 	auditSink := &audit.Sink{
@@ -419,7 +420,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -445,7 +446,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
@@ -485,7 +486,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	readHandle := appProvider.AuditReadDatabase
 	readSQLExecutor := auditdb.NewReadSQLExecutor(contextContext, readHandle)
 	readStore := &audit.ReadStore{
-		SQLBuilder:  auditdbSQLBuilder,
+		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: readSQLExecutor,
 	}
 	query := &audit.Query{

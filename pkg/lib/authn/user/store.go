@@ -26,7 +26,7 @@ type store interface {
 }
 
 type Store struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
@@ -36,7 +36,7 @@ func (s *Store) Create(u *User) error {
 		return err
 	}
 
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_user")).
 		Columns(
 			"id",
@@ -68,7 +68,7 @@ func (s *Store) Create(u *User) error {
 }
 
 func (s *Store) selectQuery() db.SelectBuilder {
-	return s.SQLBuilder.Tenant().
+	return s.SQLBuilder.
 		Select(
 			"id",
 			"labels",
@@ -146,7 +146,7 @@ func (s *Store) GetByIDs(userIDs []string) ([]*User, error) {
 }
 
 func (s *Store) Count() (uint64, error) {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_auth_user"))
 	scanner, err := s.SQLExecutor.QueryRowWith(builder)
@@ -191,7 +191,7 @@ func (s *Store) QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) 
 }
 
 func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("last_login_at", squirrel.Expr("login_at")).
 		Set("login_at", loginAt).
@@ -206,7 +206,7 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 }
 
 func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("is_disabled", isDisabled).
 		Set("disable_reason", reason).
@@ -221,7 +221,7 @@ func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *str
 }
 
 func (s *Store) Delete(userID string) error {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_user")).
 		Where("id = ?", userID)
 

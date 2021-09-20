@@ -13,12 +13,12 @@ import (
 )
 
 type AuthorizationStore struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *AuthorizationStore) selectQuery() db.SelectBuilder {
-	return s.SQLBuilder.Tenant().Select(
+	return s.SQLBuilder.Select(
 		"id",
 		"labels",
 		"app_id",
@@ -101,7 +101,7 @@ func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
 		return err
 	}
 
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Columns(
 			"id",
@@ -131,7 +131,7 @@ func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
 }
 
 func (s *AuthorizationStore) Delete(authz *oauth.Authorization) error {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Where("id = ?", authz.ID)
 
@@ -144,7 +144,7 @@ func (s *AuthorizationStore) Delete(authz *oauth.Authorization) error {
 }
 
 func (s *AuthorizationStore) ResetAll(userID string) error {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Where("user_id = ?", userID)
 
@@ -162,7 +162,7 @@ func (s *AuthorizationStore) UpdateScopes(authz *oauth.Authorization) error {
 		return err
 	}
 
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Set("updated_at", authz.UpdatedAt).
 		Set("scopes", scopeBytes).

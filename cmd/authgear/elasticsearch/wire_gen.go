@@ -41,18 +41,18 @@ func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 	databaseConfig := NewDatabaseConfig()
 	factory := NewLoggerFactory()
 	handle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials, appID)
+	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
 	store := &user.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	oauthStore := &oauth.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	loginidStore := &loginid.Store{
-		SQLBuilder:  sqlBuilder,
+		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	reindexer := &Reindexer{

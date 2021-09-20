@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 )
@@ -15,8 +17,8 @@ type Store struct {
 	SQLExecutor *globaldb.SQLExecutor
 }
 
-func (s *Store) selectConfigSourceQuery() db.SelectBuilder {
-	return s.SQLBuilder.Global().
+func (s *Store) selectConfigSourceQuery() sq.SelectBuilder {
+	return s.SQLBuilder.
 		Select(
 			"id",
 			"app_id",
@@ -54,7 +56,7 @@ func (s *Store) scanConfigSource(scn db.Scanner) (*DatabaseSource, error) {
 }
 
 func (s *Store) GetAppIDByDomain(domain string) (string, error) {
-	builder := s.SQLBuilder.Global().
+	builder := s.SQLBuilder.
 		Select(
 			"app_id",
 		).
@@ -103,7 +105,7 @@ func (s *Store) CreateDatabaseSource(dbs *DatabaseSource) error {
 		return err
 	}
 
-	builder := s.SQLBuilder.Global().
+	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_config_source")).
 		Columns(
 			"id",
@@ -136,7 +138,7 @@ func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
 		return err
 	}
 
-	q := s.SQLBuilder.Global().
+	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_portal_config_source")).
 		Set("updated_at", dbs.UpdatedAt).
 		Set("data", data).

@@ -10,12 +10,12 @@ import (
 )
 
 type StoreRecoveryCodePQ struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Select(
 			"rc.id",
 			"rc.user_id",
@@ -54,7 +54,7 @@ func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
 }
 
 func (s *StoreRecoveryCodePQ) Get(userID string, code string) (*RecoveryCode, error) {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Select(
 			"rc.id",
 			"rc.user_id",
@@ -92,7 +92,7 @@ func (s *StoreRecoveryCodePQ) Get(userID string, code string) (*RecoveryCode, er
 
 func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
 	ids, err := func() ([]string, error) {
-		builder := s.SQLBuilder.Tenant().
+		builder := s.SQLBuilder.
 			Select("rc.id").
 			From(s.SQLBuilder.TableName("_auth_recovery_code"), "rc").
 			Where("rc.user_id = ?", userID)
@@ -122,7 +122,7 @@ func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
 		return nil
 	}
 
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Where("id = ANY (?)", pq.Array(ids))
 	_, err = s.SQLExecutor.ExecWith(q)
@@ -134,7 +134,7 @@ func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
 }
 
 func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Columns(
 			"id",
@@ -165,7 +165,7 @@ func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
 }
 
 func (s *StoreRecoveryCodePQ) UpdateConsumed(code *RecoveryCode) error {
-	q := s.SQLBuilder.Tenant().
+	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Where("id = ?", code.ID).
 		Set("consumed", code.Consumed).

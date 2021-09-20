@@ -34,12 +34,12 @@ func (o QueryPageOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
 }
 
 type ReadStore struct {
-	SQLBuilder  *auditdb.SQLBuilder
+	SQLBuilder  *auditdb.SQLBuilderApp
 	SQLExecutor *auditdb.ReadSQLExecutor
 }
 
 func (s *ReadStore) Count(opts QueryPageOptions) (uint64, error) {
-	query := s.SQLBuilder.Tenant().
+	query := s.SQLBuilder.
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_audit_log"))
 
@@ -111,7 +111,7 @@ func (s *ReadStore) GetByIDs(ids []string) ([]*Log, error) {
 }
 
 func (s *ReadStore) selectQuery() db.SelectBuilder {
-	return s.SQLBuilder.Tenant().
+	return s.SQLBuilder.
 		Select(
 			"id",
 			"created_at",

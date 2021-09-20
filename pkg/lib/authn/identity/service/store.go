@@ -8,12 +8,12 @@ import (
 )
 
 type Store struct {
-	SQLBuilder  *appdb.SQLBuilder
+	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
 }
 
 func (s *Store) Count(userID string) (uint64, error) {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Select("count(*)").
 		Where("user_id = ?", userID).
 		From(s.SQLBuilder.TableName("_auth_identity"))
@@ -31,7 +31,7 @@ func (s *Store) Count(userID string) (uint64, error) {
 }
 
 func (s *Store) ListRefsByUsers(userIDs []string) ([]*identity.Ref, error) {
-	builder := s.SQLBuilder.Tenant().
+	builder := s.SQLBuilder.
 		Select("id", "type", "user_id", "created_at", "updated_at").
 		Where("user_id = ANY (?)", pq.Array(userIDs)).
 		From(s.SQLBuilder.TableName("_auth_identity"))
