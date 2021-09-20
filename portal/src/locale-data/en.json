@@ -390,6 +390,7 @@
   "PasswordPolicyConfigurationScreen.description": "Configure the password policy if Password is configurate as primary authenticators.",
   "PasswordPolicyConfigurationScreen.basic-policies": "Basic Policies",
   "PasswordPolicyConfigurationScreen.advanced-policies": "Advanced Policies",
+  "PasswordPolicyConfigurationScreen.force-change.label": "Force password change on next login if it does not meet the policy requirements",
   "PasswordPolicyConfigurationScreen.min-length.label": "Minimum password length",
   "PasswordPolicyConfigurationScreen.require-digit.label": "Requires at least 1 digit",
   "PasswordPolicyConfigurationScreen.require-lowercase.label": "Requires at least 1 lowercase character",
