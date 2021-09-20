@@ -178,11 +178,11 @@
 
   "change-password-page-title": "更改密碼",
   "change-password-page-description": "請輸入新密碼",
-  "change-password-page-description--force": "你的密碼不符合規格，請輸入新密碼",
+  "change-password-page-description--force": "你的密碼不符合密碼規則，請輸入新密碼",
 
   "change-secondary-password-page-title": "更改輔助密碼",
   "change-secondary-password-page-description": "請輸入新密碼",
-  "change-secondary-password-page-description--force": "你的輔助密碼不符合規格，請輸入新密碼",
+  "change-secondary-password-page-description--force": "你的輔助密碼不符合密碼規則，請輸入新密碼",
 
   "logout-button-hint": "按此鍵登出",
   "logout-button-label": "登出",
