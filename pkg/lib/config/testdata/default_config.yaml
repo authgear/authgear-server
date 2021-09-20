@@ -323,6 +323,7 @@ identity:
     promotion: error
 authenticator:
   password:
+    force_change: true
     policy:
       min_length: 8
   totp:

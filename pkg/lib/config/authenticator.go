@@ -23,13 +23,21 @@ var _ = Schema.Add("AuthenticatorPasswordConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"policy": { "$ref": "#/$defs/PasswordPolicyConfig" }
+		"policy": { "$ref": "#/$defs/PasswordPolicyConfig" },
+		"force_change": { "type": "boolean" }
 	}
 }
 `)
 
 type AuthenticatorPasswordConfig struct {
-	Policy *PasswordPolicyConfig `json:"policy,omitempty"`
+	Policy      *PasswordPolicyConfig `json:"policy,omitempty"`
+	ForceChange *bool                 `json:"force_change,omitempty"`
+}
+
+func (c *AuthenticatorPasswordConfig) SetDefaults() {
+	if c.ForceChange == nil {
+		c.ForceChange = newBool(true)
+	}
 }
 
 var _ = Schema.Add("PasswordPolicyConfig", `

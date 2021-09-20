@@ -122,7 +122,9 @@ func (p *Provider) Authenticate(a *Authenticator, password string) (requireUpdat
 	}
 
 	if notAllowedErr := p.isPasswordAllowed(a.UserID, password); notAllowedErr != nil {
-		requireUpdate = true
+		if p.Config.ForceChange != nil && *p.Config.ForceChange {
+			requireUpdate = true
+		}
 	}
 
 	return
