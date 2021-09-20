@@ -23,7 +23,7 @@ type ProjectWeeklyReport struct {
 	AppDBHandle   *appdb.Handle
 	AppDBStore    *AppDBStore
 	AuditDBHandle *auditdb.ReadHandle
-	AuditDBStore  *AuditDBStore
+	AuditDBStore  *AuditDBReadStore
 }
 
 func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *ReportData, err error) {

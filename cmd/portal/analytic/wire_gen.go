@@ -68,11 +68,10 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 	}
 	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
-	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
-	auditDBStore := &analytic.AuditDBStore{
+	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
+	auditDBReadStore := &analytic.AuditDBReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
-		SQLExecutor: writeSQLExecutor,
+		SQLExecutor: readSQLExecutor,
 	}
 	projectWeeklyReport := &analytic.ProjectWeeklyReport{
 		GlobalHandle:  handle,
@@ -80,7 +79,7 @@ func NewProjectWeeklyReport(ctx context.Context, pool *db.Pool, databaseCredenti
 		AppDBHandle:   appdbHandle,
 		AppDBStore:    appDBStore,
 		AuditDBHandle: readHandle,
-		AuditDBStore:  auditDBStore,
+		AuditDBStore:  auditDBReadStore,
 	}
 	return projectWeeklyReport
 }
@@ -103,10 +102,16 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
-	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
+	auditDBReadStore := &analytic.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
+	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseConfig, auditDatabaseCredentials, factory)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
-	auditDBStore := &analytic.AuditDBStore{
+	auditDBWriteStore := &analytic.AuditDBWriteStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: writeSQLExecutor,
 	}
@@ -117,13 +122,15 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 		Redis:   analyticredisHandle,
 	}
 	countCollector := &analytic.CountCollector{
-		GlobalHandle:  handle,
-		GlobalDBStore: globalDBStore,
-		AppDBHandle:   appdbHandle,
-		AppDBStore:    appDBStore,
-		AuditDBHandle: writeHandle,
-		AuditDBStore:  auditDBStore,
-		CounterStore:  readStoreRedis,
+		GlobalHandle:       handle,
+		GlobalDBStore:      globalDBStore,
+		AppDBHandle:        appdbHandle,
+		AppDBStore:         appDBStore,
+		AuditDBReadHandle:  readHandle,
+		AuditDBReadStore:   auditDBReadStore,
+		AuditDBWriteHandle: writeHandle,
+		AuditDBWriteStore:  auditDBWriteStore,
+		CounterStore:       readStoreRedis,
 	}
 	return countCollector
 }

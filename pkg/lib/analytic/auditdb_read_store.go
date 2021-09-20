@@ -10,12 +10,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-type AuditDBStore struct {
+type AuditDBReadStore struct {
 	SQLBuilder  *auditdb.SQLBuilder
-	SQLExecutor *auditdb.WriteSQLExecutor
+	SQLExecutor *auditdb.ReadSQLExecutor
 }
 
-func (s *AuditDBStore) GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error) {
+func (s *AuditDBReadStore) GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error) {
 	builder := s.SQLBuilder.WithAppID(appID).
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_audit_log")).
@@ -34,59 +34,10 @@ func (s *AuditDBStore) GetCountByActivityType(appID string, activityType string,
 	return count, nil
 }
 
-// UpsertCounts upsert counts in batches
-func (s *AuditDBStore) UpsertCounts(counts []*Count) error {
-	batchSize := 100
-	for i := 0; i < len(counts); i += batchSize {
-		j := i + batchSize
-		if j > len(counts) {
-			j = len(counts)
-		}
-		batch := counts[i:j]
-
-		err := s.upsertCounts(batch)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (s *AuditDBStore) upsertCounts(counts []*Count) error {
-	builder := s.SQLBuilder.WithoutAppID().
-		Insert(s.SQLBuilder.TableName("_audit_analytic_count")).
-		Columns(
-			"id",
-			"app_id",
-			"type",
-			"count",
-			"date",
-		)
-
-	for _, count := range counts {
-		builder = builder.Values(
-			count.ID,
-			count.AppID,
-			count.Type,
-			count.Count,
-			count.Date,
-		)
-	}
-
-	builder = builder.Suffix("ON CONFLICT (app_id, type, date) DO UPDATE SET count = excluded.count")
-	_, err := s.SQLExecutor.ExecWith(builder)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // QueryPage is copied from pkg/lib/audit/read_store.go
 // The ReadStore cannot be used here as it requires appID during initialization through injection
-func (s *AuditDBStore) QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error) {
-	query := s.selectQuery(appID)
+func (s *AuditDBReadStore) QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error) {
+	query := s.selectLogQuery(appID)
 
 	query = opts.Apply(query)
 
@@ -105,7 +56,7 @@ func (s *AuditDBStore) QueryPage(appID string, opts audit.QueryPageOptions, page
 
 	var logs []*audit.Log
 	for rows.Next() {
-		l, err := s.scan(rows)
+		l, err := s.scanLog(rows)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -115,7 +66,7 @@ func (s *AuditDBStore) QueryPage(appID string, opts audit.QueryPageOptions, page
 	return logs, offset, nil
 }
 
-func (s *AuditDBStore) selectQuery(appID string) db.SelectBuilder {
+func (s *AuditDBReadStore) selectLogQuery(appID string) db.SelectBuilder {
 	return s.SQLBuilder.WithAppID(appID).
 		Select(
 			"id",
@@ -130,7 +81,7 @@ func (s *AuditDBStore) selectQuery(appID string) db.SelectBuilder {
 		From(s.SQLBuilder.TableName("_audit_log"))
 }
 
-func (s *AuditDBStore) scan(scn db.Scanner) (*audit.Log, error) {
+func (s *AuditDBReadStore) scanLog(scn db.Scanner) (*audit.Log, error) {
 	l := &audit.Log{}
 
 	var data []byte
