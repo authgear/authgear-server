@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	periodicalutil "github.com/authgear/authgear-server/pkg/util/periodical"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
@@ -27,6 +28,7 @@ type SignupSummary struct {
 
 // ChartService provides method for the portal to get data for charts
 type ChartService struct {
+	Database   *auditdb.ReadHandle
 	AuditStore *AuditDBReadStore
 }
 
@@ -36,6 +38,10 @@ func (s *ChartService) GetActiveUserChat(
 	rangeFrom time.Time,
 	rangeTo time.Time,
 ) (*Chart, error) {
+	if s.Database == nil {
+		return &Chart{}, nil
+	}
+
 	countType := ""
 	periodicalType := periodicalutil.Type(periodical)
 	switch periodicalType {
@@ -62,6 +68,12 @@ func (s *ChartService) GetSignupSummary(
 	rangeFrom time.Time,
 	rangeTo time.Time,
 ) (*SignupSummary, error) {
+	if s.Database == nil {
+		return &SignupSummary{
+			SignupByChannelChart: &Chart{},
+			TotalUserCountChart:  &Chart{},
+		}, nil
+	}
 	var err error
 	totalUserCounts, err := s.getDataPointsByCountType(appID, CumulativeUserCountType, periodicalutil.Daily, rangeFrom, rangeTo)
 	if err != nil {
