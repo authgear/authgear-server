@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -83,6 +84,7 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 			string(nonblocking.EmailSent):         0,
 			string(nonblocking.SMSSent):           0,
 		}
+		weeklyActiveUserCount := 0
 
 		err = r.AuditDBHandle.ReadOnly(func() (e error) {
 			for activityType := range countMap {
@@ -93,6 +95,20 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 					return err
 				}
 			}
+
+			c, err := r.AuditDBStore.GetAnalyticCountByType(
+				appID,
+				WeeklyActiveUserCountType,
+				&rangeFrom,
+			)
+			if err != nil {
+				if !errors.Is(err, ErrAnalyticCountNotFound) {
+					return fmt.Errorf("failed to fetch weekly active user: %w", err)
+				}
+			} else {
+				weeklyActiveUserCount = c.Count
+			}
+
 			return nil
 		})
 		if err != nil {
@@ -110,6 +126,7 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 			countMap[string(nonblocking.UserAuthenticated)],
 			countMap[string(nonblocking.EmailSent)],
 			countMap[string(nonblocking.SMSSent)],
+			weeklyActiveUserCount,
 		}
 	}
 
@@ -125,6 +142,7 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 			"Number of login",
 			"Email sent",
 			"SMS sent",
+			"Weekly active user",
 		},
 		Values: values,
 	}
