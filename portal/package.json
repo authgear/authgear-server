@@ -48,7 +48,7 @@
     "google-libphonenumber": "3.2.21",
     "history": "5.0.0",
     "i18n-iso-countries": "6.8.0",
-    "immer": "8.0.1",
+    "immer": "9.0.6",
     "js-yaml": "4.1.0",
     "luxon": "1.27.0",
     "postcss": "8.3.4",
