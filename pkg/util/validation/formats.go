@@ -124,8 +124,18 @@ func (f FormatHTTPOrigin) CheckFormat(value interface{}) error {
 		return errors.New("expect input URL with non-empty host")
 	}
 
-	if u.User != nil || u.RawPath != "" || u.RawQuery != "" || u.RawFragment != "" {
-		return errors.New("expect input URL without user info, path, query and fragment")
+	err = errors.New("expect input URL without user info, path, query and fragment")
+	if u.User != nil {
+		return err
+	}
+	if u.Path != "" || u.RawPath != "" {
+		return err
+	}
+	if u.RawQuery != "" {
+		return err
+	}
+	if u.Fragment != "" || u.RawFragment != "" {
+		return err
 	}
 
 	return nil

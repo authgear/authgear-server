@@ -58,9 +58,15 @@ func TestFormatHTTPOrigin(t *testing.T) {
 		f := FormatHTTPOrigin{}.CheckFormat
 
 		So(f(1), ShouldBeNil)
-		So(f(""), ShouldBeError, "expect input URL with scheme http / https")
 		So(f("http://example.com"), ShouldBeNil)
-		// FIXME: add more test
+		So(f("http://example.com?"), ShouldBeNil)
+		So(f("http://example.com#"), ShouldBeNil)
+
+		So(f(""), ShouldBeError, "expect input URL with scheme http / https")
+		So(f("http://user:password@example.com"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+		So(f("http://example.com/"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+		So(f("http://example.com?a"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+		So(f("http://example.com#a"), ShouldBeError, "expect input URL without user info, path, query and fragment")
 	})
 }
 
