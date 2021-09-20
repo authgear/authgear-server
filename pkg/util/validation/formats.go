@@ -30,8 +30,8 @@ func init() {
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
-// If the input is not a string or is an empty string, it is not an error.
-// To enforce string or non-empty string, use other JSON schema constructs.
+// If the input is not a string, it is not an error.
+// To enforce string, use other JSON schema constructs.
 // This design allows this format to validate optional phone number.
 type FormatPhone struct{}
 
@@ -44,8 +44,8 @@ func (f FormatPhone) CheckFormat(value interface{}) error {
 }
 
 // FormatEmail checks if input is an email address.
-// If the input is not a string or is an empty string, it is not an error.
-// To enforce string or non-empty string, use other JSON schema constructs.
+// If the input is not a string, it is not an error.
+// To enforce string, use other JSON schema constructs.
 // This design allows this format to validate optional email.
 type FormatEmail struct {
 	AllowName bool
@@ -92,7 +92,12 @@ func (f FormatURI) CheckFormat(value interface{}) error {
 		p = "/"
 	}
 
+	hasTrailingSlash := strings.HasSuffix(p, "/")
 	cleaned := filepath.Clean(p)
+	if hasTrailingSlash && !strings.HasSuffix(cleaned, "/") {
+		cleaned = cleaned + "/"
+	}
+
 	if !filepath.IsAbs(p) || cleaned != p {
 		return errors.New("input URL must be normalized")
 	}
@@ -124,8 +129,18 @@ func (f FormatHTTPOrigin) CheckFormat(value interface{}) error {
 		return errors.New("expect input URL with non-empty host")
 	}
 
-	if u.User != nil || u.RawPath != "" || u.RawQuery != "" || u.RawFragment != "" {
-		return errors.New("expect input URL without user info, path, query and fragment")
+	err = errors.New("expect input URL without user info, path, query and fragment")
+	if u.User != nil {
+		return err
+	}
+	if u.Path != "" || u.RawPath != "" {
+		return err
+	}
+	if u.RawQuery != "" {
+		return err
+	}
+	if u.Fragment != "" || u.RawFragment != "" {
+		return err
 	}
 
 	return nil

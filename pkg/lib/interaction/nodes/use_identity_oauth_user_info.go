@@ -85,14 +85,15 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		return nil, err
 	}
 
-	providerID := userInfo.ProviderConfig.ProviderID()
+	providerConfig := oauthProvider.Config()
+	providerID := providerConfig.ProviderID()
 	spec := &identity.Spec{
 		Type: authn.IdentityTypeOAuth,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
-			identity.IdentityClaimOAuthSubjectID:    userInfo.ProviderUserInfo.ID,
+			identity.IdentityClaimOAuthSubjectID:    userInfo.ProviderUserID,
 			identity.IdentityClaimOAuthProfile:      userInfo.ProviderRawProfile,
-			identity.IdentityClaimOAuthClaims:       userInfo.ProviderUserInfo.ClaimsValue(),
+			identity.IdentityClaimOAuthClaims:       userInfo.StandardAttributes.ToClaims(),
 		},
 	}
 

@@ -3,22 +3,23 @@ package sso
 import (
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 )
 
 const (
-	facebookAuthorizationURL string = "https://www.facebook.com/v9.0/dialog/oauth"
+	facebookAuthorizationURL string = "https://www.facebook.com/v11.0/dialog/oauth"
 	// nolint: gosec
-	facebookTokenURL    string = "https://graph.facebook.com/v9.0/oauth/access_token"
-	facebookUserInfoURL string = "https://graph.facebook.com/v9.0/me?fields=id,email"
+	facebookTokenURL    string = "https://graph.facebook.com/v11.0/oauth/access_token"
+	facebookUserInfoURL string = "https://graph.facebook.com/v11.0/me?fields=id,email,first_name,last_name,middle_name,name,name_format,picture,short_name"
 )
 
 type FacebookImpl struct {
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (*FacebookImpl) Type() config.OAuthSSOProviderType {
@@ -46,9 +47,7 @@ func (f *FacebookImpl) GetAuthInfo(r OAuthAuthorizationResponse, param GetAuthIn
 }
 
 func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _ GetAuthInfoParam) (authInfo AuthInfo, err error) {
-	authInfo = AuthInfo{
-		ProviderConfig: f.ProviderConfig,
-	}
+	authInfo = AuthInfo{}
 
 	accessTokenResp, err := fetchAccessTokenResp(
 		r.Code,
@@ -60,7 +59,6 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	if err != nil {
 		return
 	}
-	authInfo.ProviderAccessTokenResp = accessTokenResp
 
 	userProfileURL, err := url.Parse(facebookUserInfoURL)
 	if err != nil {
@@ -71,6 +69,25 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 	q.Set("appsecret_proof", appSecretProof)
 	userProfileURL.RawQuery = q.Encode()
 
+	// Here is the refacted user profile of Louis' facebook account.
+	// {
+	//   "id": "redacted",
+	//   "email": "redacted",
+	//   "first_name": "Jonathan",
+	//   "last_name": "Doe",
+	//   "name": "Johnathan Doe",
+	//   "name_format": "{first} {last}",
+	//   "picture": {
+	//     "data": {
+	//       "height": 50,
+	//       "is_silhouette": true,
+	//       "url": "http://example.com",
+	//       "width": 50
+	//     }
+	//   },
+	//   "short_name": "John"
+	// }
+
 	userProfile, err := fetchUserProfile(accessTokenResp, userProfileURL.String())
 	if err != nil {
 		return
@@ -79,16 +96,32 @@ func (f *FacebookImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse,
 
 	id, _ := userProfile["id"].(string)
 	email, _ := userProfile["email"].(string)
-	if email != "" {
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(email)
-		if err != nil {
-			return
+	firstName, _ := userProfile["first_name"].(string)
+	lastName, _ := userProfile["last_name"].(string)
+	name, _ := userProfile["name"].(string)
+	shortName, _ := userProfile["short_name"].(string)
+	var picture string
+	if pictureObj, ok := userProfile["picture"].(map[string]interface{}); ok {
+		if data, ok := pictureObj["data"].(map[string]interface{}); ok {
+			if url, ok := data["url"].(string); ok {
+				picture = url
+			}
 		}
 	}
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:    id,
-		Email: email,
+
+	authInfo.ProviderUserID = id
+	authInfo.StandardAttributes = stdattrs.T{
+		stdattrs.Email:      email,
+		stdattrs.GivenName:  firstName,
+		stdattrs.FamilyName: lastName,
+		stdattrs.Name:       name,
+		stdattrs.Nickname:   shortName,
+		stdattrs.Picture:    picture,
+	}
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
 	return

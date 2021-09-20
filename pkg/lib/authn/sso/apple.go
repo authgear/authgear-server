@@ -9,6 +9,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
@@ -23,11 +24,11 @@ var appleOIDCConfig = OIDCDiscoveryDocument{
 }
 
 type AppleImpl struct {
-	Clock                    clock.Clock
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Clock                        clock.Clock
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (f *AppleImpl) createClientSecret() (clientSecret string, err error) {
@@ -137,21 +138,18 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 		return
 	}
 
-	email, _ := claims["email"].(string)
-	if email != "" {
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(email)
-		if err != nil {
-			return
-		}
-	}
+	// By observation, if the first time of authentication does NOT include the `name` scope,
+	// Even the Services ID is unauthorized on https://appleid.apple.com,
+	// and the `name` scope is included,
+	// The ID Token still does not include the `name` claim.
 
-	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
-	authInfo.ProviderAccessTokenResp = tokenResp
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:    sub,
-		Email: email,
+	authInfo.ProviderUserID = sub
+	authInfo.StandardAttributes = stdattrs.Extract(claims)
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
 	return

@@ -4,17 +4,18 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type ADFSImpl struct {
-	Clock                    clock.Clock
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Clock                        clock.Clock
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (*ADFSImpl) Type() config.OAuthSSOProviderType {
@@ -95,25 +96,26 @@ func (f *ADFSImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param 
 		return
 	}
 
-	preferredUsername := upn
-
-	var email string
-	if emailErr := (validation.FormatEmail{}).CheckFormat(upn); emailErr == nil {
-		// upn looks like an email address.
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(upn)
-		if err != nil {
-			return
+	extracted := stdattrs.Extract(claims)
+	// Transform upn into preferred_username
+	if _, ok := extracted[stdattrs.PreferredUsername]; !ok {
+		extracted[stdattrs.PreferredUsername] = upn
+	}
+	// Transform upn into email
+	if _, ok := extracted[stdattrs.Email]; !ok {
+		if emailErr := (validation.FormatEmail{}).CheckFormat(upn); emailErr == nil {
+			// upn looks like an email address.
+			extracted[stdattrs.Email] = upn
 		}
 	}
 
-	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
-	authInfo.ProviderAccessTokenResp = tokenResp
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:                sub,
-		Email:             email,
-		PreferredUsername: preferredUsername,
+	authInfo.ProviderUserID = sub
+	authInfo.StandardAttributes = extracted
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
 	return

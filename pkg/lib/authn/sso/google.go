@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -13,11 +14,11 @@ const (
 )
 
 type GoogleImpl struct {
-	Clock                    clock.Clock
-	RedirectURL              RedirectURLProvider
-	ProviderConfig           config.OAuthSSOProviderConfig
-	Credentials              config.OAuthClientCredentialsItem
-	LoginIDNormalizerFactory LoginIDNormalizerFactory
+	Clock                        clock.Clock
+	RedirectURL                  RedirectURLProvider
+	ProviderConfig               config.OAuthSSOProviderConfig
+	Credentials                  config.OAuthClientCredentialsItem
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (f *GoogleImpl) GetAuthURL(param GetAuthURLParam) (string, error) {
@@ -97,21 +98,13 @@ func (f *GoogleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, para
 		return
 	}
 
-	email, _ := claims["email"].(string)
-	if email != "" {
-		normalizer := f.LoginIDNormalizerFactory.NormalizerWithLoginIDType(config.LoginIDKeyTypeEmail)
-		email, err = normalizer.Normalize(email)
-		if err != nil {
-			return
-		}
-	}
-
-	authInfo.ProviderConfig = f.ProviderConfig
 	authInfo.ProviderRawProfile = claims
-	authInfo.ProviderAccessTokenResp = tokenResp
-	authInfo.ProviderUserInfo = ProviderUserInfo{
-		ID:    sub,
-		Email: email,
+	authInfo.ProviderUserID = sub
+	authInfo.StandardAttributes = stdattrs.Extract(claims)
+
+	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
+	if err != nil {
+		return
 	}
 
 	return
