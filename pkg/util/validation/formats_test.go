@@ -48,8 +48,18 @@ func TestFormatURI(t *testing.T) {
 		So(f("/a"), ShouldBeError, "input URL must be absolute")
 		So(f("#a"), ShouldBeError, "input URL must be absolute")
 		So(f("?a"), ShouldBeError, "input URL must be absolute")
+
 		So(f("http://example.com"), ShouldBeNil)
-		// FIXME: add more test
+		So(f("http://example.com/"), ShouldBeNil)
+		So(f("http://example.com/a"), ShouldBeNil)
+		So(f("http://example.com/a/"), ShouldBeNil)
+
+		So(f("http://example.com?"), ShouldBeNil)
+		So(f("http://example.com?a"), ShouldBeNil)
+		So(f("http://example.com?a=b"), ShouldBeNil)
+
+		So(f("http://example.com#"), ShouldBeNil)
+		So(f("http://example.com#a"), ShouldBeNil)
 	})
 }
 

@@ -92,7 +92,12 @@ func (f FormatURI) CheckFormat(value interface{}) error {
 		p = "/"
 	}
 
+	hasTrailingSlash := strings.HasSuffix(p, "/")
 	cleaned := filepath.Clean(p)
+	if hasTrailingSlash && !strings.HasSuffix(cleaned, "/") {
+		cleaned = cleaned + "/"
+	}
+
 	if !filepath.IsAbs(p) || cleaned != p {
 		return errors.New("input URL must be normalized")
 	}
