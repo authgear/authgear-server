@@ -6,6 +6,7 @@ import (
 	"time"
 
 	periodicalutil "github.com/authgear/authgear-server/pkg/util/periodical"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 type Chart struct {
@@ -148,12 +149,12 @@ func (s *ChartService) getDataPointsByCountType(
 	countsMap := map[string]int{}
 	dataPoints := []*DataPoint{}
 	for _, c := range counts {
-		countsMap[c.Date.Format("2006-01-02")] = c.Count
+		countsMap[c.Date.Format(timeutil.LayoutISODate)] = c.Count
 	}
 
 	dateLists := GetDateListByRangeInclusive(rangeFrom, rangeTo, periodical)
 	for _, date := range dateLists {
-		dateStr := date.Format("2006-01-02")
+		dateStr := date.Format(timeutil.LayoutISODate)
 		count := countsMap[dateStr]
 		dataPoints = append(dataPoints, &DataPoint{
 			Label: dateStr,

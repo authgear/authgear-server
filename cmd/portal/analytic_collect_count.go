@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 	"github.com/spf13/cobra"
 )
 
@@ -86,7 +87,7 @@ var cmdAnalyticCollectCount = &cobra.Command{
 		}
 		switch periodicalType {
 		case periodical.Daily:
-			log.Println("Start collecting daily analytic count", date.Format("2006-01-02"))
+			log.Println("Start collecting daily analytic count", date.Format(timeutil.LayoutISODate))
 			updatedCount, err := countCollector.CollectDaily(date)
 			if err != nil {
 				return err
@@ -96,7 +97,7 @@ var cmdAnalyticCollectCount = &cobra.Command{
 			year, week := date.ISOWeek()
 			log.Println(
 				"Start collecting weekly analytic count",
-				date.Format("2006-01-02"),
+				date.Format(timeutil.LayoutISODate),
 				fmt.Sprintf("%04d-W%02d", year, week),
 			)
 			updatedCount, err := countCollector.CollectWeekly(date)
