@@ -21,4 +21,6 @@ type EnvironmentConfig struct {
 	SentryDSN SentryDSN `envconfig:"SENTRY_DSN"`
 	// Database configures the backend database
 	Database DatabaseEnvironmentConfig `envconfig:"DATABASE"`
+	// AuditDatabase configures the audit database
+	AuditDatabase DatabaseCredentialsEnvironmentConfig `envconfig:"AUDIT_DATABASE"`
 }

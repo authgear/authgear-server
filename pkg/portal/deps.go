@@ -4,6 +4,9 @@ import (
 	"github.com/google/wire"
 
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	appresource "github.com/authgear/authgear-server/pkg/portal/appresource/factory"
 	"github.com/authgear/authgear-server/pkg/portal/deps"
@@ -23,6 +26,10 @@ import (
 	_ "github.com/authgear/authgear-server/pkg/auth"
 )
 
+func ProvideEmptyAppID() config.AppID {
+	return config.AppID("")
+}
+
 var DependencySet = wire.NewSet(
 	deps.DependencySet,
 	deps.TaskDependencySet,
@@ -38,6 +45,10 @@ var DependencySet = wire.NewSet(
 	endpoint.DependencySet,
 
 	smtp.DependencySet,
+
+	auditdb.NewReadHandle,
+	auditdb.DependencySet,
+	analytic.DependencySet,
 
 	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
 	wire.Bind(new(service.CollaboratorServiceTaskQueue), new(*task.InProcessQueue)),
@@ -66,6 +77,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.CollaboratorService), new(*service.CollaboratorService)),
 	wire.Bind(new(graphql.SMTPService), new(*smtp.Service)),
 	wire.Bind(new(graphql.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
+	wire.Bind(new(graphql.AnalyticChartService), new(*analytic.ChartService)),
 
 	transport.DependencySet,
 	wire.Bind(new(transport.AdminAPIService), new(*service.AdminAPIService)),

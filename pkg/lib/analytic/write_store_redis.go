@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 type PageType string
@@ -93,13 +94,13 @@ func weeklyActiveUserCount(appID config.AppID, year int, week int) string {
 }
 
 func dailyActiveUserCount(appID config.AppID, date *time.Time) string {
-	return fmt.Sprintf("app:%s:daily-active-user:%s", appID, date.Format("2006-01-02"))
+	return fmt.Sprintf("app:%s:daily-active-user:%s", appID, date.Format(timeutil.LayoutISODate))
 }
 
 func dailyUniquePageView(appID config.AppID, page PageType, date *time.Time) string {
-	return fmt.Sprintf("app:%s:daily-unique-page-view:%s:%s", appID, page, date.Format("2006-01-02"))
+	return fmt.Sprintf("app:%s:daily-unique-page-view:%s:%s", appID, page, date.Format(timeutil.LayoutISODate))
 }
 
 func dailyPageView(appID config.AppID, page PageType, date *time.Time) string {
-	return fmt.Sprintf("app:%s:daily-page-view:%s:%s", appID, page, date.Format("2006-01-02"))
+	return fmt.Sprintf("app:%s:daily-page-view:%s:%s", appID, page, date.Format(timeutil.LayoutISODate))
 }

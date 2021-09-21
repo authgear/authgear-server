@@ -251,6 +251,12 @@ const (
 	LoginIDKeyTypeUsername LoginIDKeyType = "username"
 )
 
+var LoginIDKeyTypes = []LoginIDKeyType{
+	LoginIDKeyTypeEmail,
+	LoginIDKeyTypePhone,
+	LoginIDKeyTypeUsername,
+}
+
 var _ = Schema.Add("OAuthSSOConfig", `
 {
 	"type": "object",
@@ -330,6 +336,16 @@ const (
 	OAuthSSOProviderTypeApple     OAuthSSOProviderType = "apple"
 	OAuthSSOProviderTypeWechat    OAuthSSOProviderType = "wechat"
 )
+
+var OAuthSSOProviderTypes = []OAuthSSOProviderType{
+	OAuthSSOProviderTypeGoogle,
+	OAuthSSOProviderTypeFacebook,
+	OAuthSSOProviderTypeLinkedIn,
+	OAuthSSOProviderTypeAzureADv2,
+	OAuthSSOProviderTypeADFS,
+	OAuthSSOProviderTypeApple,
+	OAuthSSOProviderTypeWechat,
+}
 
 var _ = Schema.Add("OAuthSSOWeChatAppType", `
 {

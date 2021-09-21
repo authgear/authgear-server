@@ -7,6 +7,8 @@ package portal
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
+	"github.com/authgear/authgear-server/pkg/lib/analytic"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
@@ -226,6 +228,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	smtpService := &smtp.Service{
 		Context: context,
 	}
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
+	databaseConfig := deps.ProvideDatabaseConfig(databaseEnvironmentConfig)
+	readHandle := auditdb.NewReadHandle(context, pool, databaseConfig, auditDatabaseCredentials, logFactory)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(context, readHandle)
+	auditDBReadStore := &analytic.AuditDBReadStore{
+		SQLBuilder:  auditdbSQLBuilder,
+		SQLExecutor: readSQLExecutor,
+	}
+	chartService := &analytic.ChartService{
+		AuditStore: auditDBReadStore,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
 		Users:                   userLoader,
@@ -239,11 +253,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		CollaboratorService:     collaboratorService,
 		SMTPService:             smtpService,
 		AppResMgrFactory:        managerFactory,
+		AnalyticChartService:    chartService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		DevMode:        devMode,
 		GraphQLContext: graphqlContext,
 		Database:       handle,
+		AuditDatabase:  readHandle,
 	}
 	return graphQLHandler
 }

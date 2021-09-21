@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -21,6 +22,31 @@ const (
 	DailySignupWithOAuthCountType      = "daily.signup.oauth.%s"
 	DailySignupAnonymouslyCountType    = "daily.signup.anonymous"
 )
+
+type DailySignupCountTypeByChannel struct {
+	// ChannelName is the name of channel
+	// It could be LoginIDKeyType or OAuthSSOProviderType. e.g. (email, username, google, anonymous)
+	ChannelName string
+	CountType   string
+}
+
+var DailySignupCountTypeByChannels = []*DailySignupCountTypeByChannel{}
+
+func init() {
+	for _, typ := range config.LoginIDKeyTypes {
+		DailySignupCountTypeByChannels = append(DailySignupCountTypeByChannels, &DailySignupCountTypeByChannel{
+			string(typ), fmt.Sprintf(DailySignupWithLoginIDCountType, typ),
+		})
+	}
+	for _, typ := range config.OAuthSSOProviderTypes {
+		DailySignupCountTypeByChannels = append(DailySignupCountTypeByChannels, &DailySignupCountTypeByChannel{
+			string(typ), fmt.Sprintf(DailySignupWithOAuthCountType, typ),
+		})
+	}
+	DailySignupCountTypeByChannels = append(DailySignupCountTypeByChannels, &DailySignupCountTypeByChannel{
+		"anonymous", DailySignupAnonymouslyCountType,
+	})
+}
 
 type Count struct {
 	ID    string

@@ -9,6 +9,7 @@ import (
 	graphqlgohandler "github.com/graphql-go/handler"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -24,29 +25,39 @@ type GraphQLHandler struct {
 	DevMode        config.DevMode
 	GraphQLContext *graphql.Context
 	Database       *globaldb.Handle
+	AuditDatabase  *auditdb.ReadHandle
 }
 
 func (h *GraphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := h.Database.WithTx(func() error {
-		doRollback := false
-		graphqlHandler := graphqlgohandler.New(&graphqlgohandler.Config{
-			Schema:   graphql.Schema,
-			Pretty:   false,
-			GraphiQL: bool(h.DevMode),
-			ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
-				if result.HasErrors() {
-					doRollback = true
-				}
-			},
+	invoke := func(f func() error) error {
+		return f()
+	}
+	if h.AuditDatabase != nil {
+		invoke = h.AuditDatabase.ReadOnly
+	}
+
+	err := invoke(func() error {
+		return h.Database.WithTx(func() error {
+			doRollback := false
+			graphqlHandler := graphqlgohandler.New(&graphqlgohandler.Config{
+				Schema:   graphql.Schema,
+				Pretty:   false,
+				GraphiQL: bool(h.DevMode),
+				ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
+					if result.HasErrors() {
+						doRollback = true
+					}
+				},
+			})
+
+			ctx := graphql.WithContext(r.Context(), h.GraphQLContext)
+			graphqlHandler.ContextHandler(ctx, w, r)
+
+			if doRollback {
+				return errRollback
+			}
+			return nil
 		})
-
-		ctx := graphql.WithContext(r.Context(), h.GraphQLContext)
-		graphqlHandler.ContextHandler(ctx, w, r)
-
-		if doRollback {
-			return errRollback
-		}
-		return nil
 	})
 	if err != nil && !errors.Is(err, errRollback) {
 		panic(err)
