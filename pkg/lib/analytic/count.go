@@ -23,27 +23,27 @@ const (
 	DailySignupAnonymouslyCountType    = "daily.signup.anonymous"
 )
 
-type DailySignupCountTypeByChannel struct {
-	// ChannelName is the name of channel
+type DailySignupCountTypeByMethod struct {
+	// MethodName is the name of method
 	// It could be LoginIDKeyType or OAuthSSOProviderType. e.g. (email, username, google, anonymous)
-	ChannelName string
-	CountType   string
+	MethodName string
+	CountType  string
 }
 
-var DailySignupCountTypeByChannels = []*DailySignupCountTypeByChannel{}
+var DailySignupCountTypeByMethods = []*DailySignupCountTypeByMethod{}
 
 func init() {
 	for _, typ := range config.LoginIDKeyTypes {
-		DailySignupCountTypeByChannels = append(DailySignupCountTypeByChannels, &DailySignupCountTypeByChannel{
+		DailySignupCountTypeByMethods = append(DailySignupCountTypeByMethods, &DailySignupCountTypeByMethod{
 			string(typ), fmt.Sprintf(DailySignupWithLoginIDCountType, typ),
 		})
 	}
 	for _, typ := range config.OAuthSSOProviderTypes {
-		DailySignupCountTypeByChannels = append(DailySignupCountTypeByChannels, &DailySignupCountTypeByChannel{
+		DailySignupCountTypeByMethods = append(DailySignupCountTypeByMethods, &DailySignupCountTypeByMethod{
 			string(typ), fmt.Sprintf(DailySignupWithOAuthCountType, typ),
 		})
 	}
-	DailySignupCountTypeByChannels = append(DailySignupCountTypeByChannels, &DailySignupCountTypeByChannel{
+	DailySignupCountTypeByMethods = append(DailySignupCountTypeByMethods, &DailySignupCountTypeByMethod{
 		"anonymous", DailySignupAnonymouslyCountType,
 	})
 }

@@ -197,5 +197,32 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewLazyValue(signupConversionRateData).Value, nil
 			},
 		},
+		"signupByMethodsChart": &graphql.Field{
+			Description: "Signup by methods dataset",
+			Type:        signupByMethodsChart,
+			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
+				if err != nil {
+					return nil, err
+				}
+
+				err = checkChartDateRangeInput(rangeFrom, rangeTo)
+				if err != nil {
+					return nil, err
+				}
+
+				chart, err := ctx.AnalyticChartService.GetSignupByMethodsChart(
+					appID,
+					*rangeFrom,
+					*rangeTo,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch dataset: %w", err)
+				}
+				return graphqlutil.NewLazyValue(chart).Value, nil
+			},
+		},
 	},
 })

@@ -97,6 +97,27 @@ func (s *ChartService) GetSignupConversionRate(appID string, rangeFrom time.Time
 	}, nil
 }
 
+func (s *ChartService) GetSignupByMethodsChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*Chart, error) {
+	if s.Database == nil {
+		return &Chart{}, nil
+	}
+	// SignupByMethodsChart are the data points for signup by method pie chart
+	signupByMethodsChart := []*DataPoint{}
+	for _, method := range DailySignupCountTypeByMethods {
+		c, err := s.AuditStore.GetSumOfAnalyticCountsByType(appID, method.CountType, &rangeFrom, &rangeTo)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch signup count for method: %s: %w", method.MethodName, err)
+		}
+		signupByMethodsChart = append(signupByMethodsChart, &DataPoint{
+			Label: method.MethodName,
+			Data:  c,
+		})
+	}
+	return &Chart{
+		DataSet: signupByMethodsChart,
+	}, nil
+}
+
 func (s *ChartService) getDataPointsByCountType(
 	appID string,
 	countType string,
