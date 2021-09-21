@@ -3,6 +3,7 @@ package analytic
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -65,6 +66,28 @@ func (s *AuditDBReadStore) QueryPage(appID string, opts audit.QueryPageOptions, 
 	}
 
 	return logs, offset, nil
+}
+
+func (s *AuditDBReadStore) GetAnalyticCountByType(
+	appID string,
+	typ string,
+	date *time.Time,
+) (*Count, error) {
+	builder := s.selectAnalyticCountQuery(appID).
+		Where("type = ?", typ).
+		Where("date = ?", date)
+	row, err := s.SQLExecutor.QueryRowWith(builder)
+	if err != nil {
+		return nil, err
+	}
+
+	count, err := s.scanAnalyticCount(row)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrAnalyticCountNotFound
+	} else if err != nil {
+		return nil, err
+	}
+	return count, nil
 }
 
 // GetAnalyticCountsByType get counts by type and date range

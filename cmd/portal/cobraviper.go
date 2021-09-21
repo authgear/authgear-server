@@ -4,8 +4,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/cobraviper"
 )
 
-func newInt(v int) *int { return &v }
-
 var cvbinder *cobraviper.Binder
 
 func getBinder() *cobraviper.Binder {
@@ -96,19 +94,9 @@ var ArgAnalyticPortalAppID = &cobraviper.StringArgument{
 	DefaultValue: "accounts",
 }
 
-var ArgAnalyticYear = &cobraviper.IntArgument{
-	ArgumentName: "year",
-	Usage:        "Year of the report",
-	EnvName:      "YEAR",
-	Min:          newInt(1900),
-	Max:          newInt(3000),
-}
-
-var ArgAnalyticISOWeek = &cobraviper.IntArgument{
-	ArgumentName: "week",
-	Usage:        "ISO week of the weekly report",
-	Min:          newInt(1),
-	Max:          newInt(53),
+var ArgAnalyticPeriod = &cobraviper.StringArgument{
+	ArgumentName: "period",
+	Usage:        "The period of the report",
 }
 
 var ArgAnalyticOutputType = &cobraviper.StringArgument{

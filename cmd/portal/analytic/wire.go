@@ -35,6 +35,17 @@ func NewProjectWeeklyReport(
 	))
 }
 
+func NewProjectMonthlyReport(
+	ctx context.Context,
+	pool *db.Pool,
+	databaseCredentials *config.DatabaseCredentials,
+	auditDatabaseCredentials *config.AuditDatabaseCredentials,
+) *analytic.ProjectMonthlyReport {
+	panic(wire.Build(
+		DependencySet,
+	))
+}
+
 func NewCountCollector(
 	ctx context.Context,
 	pool *db.Pool,

@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
 	analyticlib "github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
+	"github.com/authgear/authgear-server/pkg/util/periodical"
 	"github.com/spf13/cobra"
 )
 
@@ -22,8 +22,7 @@ func init() {
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAuditDatabaseSchema)
 
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticPortalAppID)
-	binder.BindInt(cmdAnalyticReport.Flags(), ArgAnalyticYear)
-	binder.BindInt(cmdAnalyticReport.Flags(), ArgAnalyticISOWeek)
+	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticPeriod)
 
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticOutputType)
 	binder.BindString(cmdAnalyticReport.Flags(), ArgAnalyticCSVOutputFilePath)
@@ -69,6 +68,16 @@ var cmdAnalyticReport = &cobra.Command{
 			return err
 		}
 
+		period, err := binder.GetRequiredString(cmd, ArgAnalyticPeriod)
+		if err != nil {
+			return err
+		}
+		parser := analytic.NewPeriodicalArgumentParser()
+		periodicalType, date, err := parser.Parse(period)
+		if err != nil {
+			return err
+		}
+
 		clientCredentialsJSONFilePath := ""
 		csvOutputFilePath := ""
 		tokenJSONFilePath := ""
@@ -82,7 +91,7 @@ var cmdAnalyticReport = &cobra.Command{
 			// if the csv output file path is not provided
 			// use the report type as the default file name
 			if csvOutputFilePath == "" {
-				csvOutputFilePath = fmt.Sprintf("%s.csv", reportType)
+				csvOutputFilePath = fmt.Sprintf("%s-%s-report.csv", reportType, periodicalType)
 			}
 		case analytic.ReportOutputTypeGoogleSheets:
 			clientCredentialsJSONFilePath, err = binder.GetRequiredString(cmd, ArgAnalyticGoogleOAuthClientCredentialsJSONFilePath)
@@ -108,27 +117,6 @@ var cmdAnalyticReport = &cobra.Command{
 			log.Fatalf("unknown output type: %s", outputType)
 		}
 
-		getISOWeek := func() (year int, week int, err error) {
-			y, err := binder.GetInt(cmd, ArgAnalyticYear)
-			if err != nil {
-				return
-			}
-			w, err := binder.GetInt(cmd, ArgAnalyticISOWeek)
-			if err != nil {
-				return
-			}
-			if y == nil || w == nil {
-				// if year and week are not provided
-				// use last week as default
-				now := time.Now().UTC()
-				lastWeek := now.AddDate(0, 0, -7)
-				year, week = lastWeek.ISOWeek()
-			} else {
-				year, week = *y, *w
-			}
-			return
-		}
-
 		getAuditDBCredentials := func() (*config.AuditDatabaseCredentials, error) {
 			dbURL, err := binder.GetRequiredString(cmd, ArgAuditDatabaseURL)
 			if err != nil {
@@ -149,11 +137,11 @@ var cmdAnalyticReport = &cobra.Command{
 		var data *analyticlib.ReportData
 		dbPool := db.NewPool()
 		switch reportType {
-		case analytic.ReportTypeUserWeeklyReport:
-			year, week, err := getISOWeek()
-			if err != nil {
-				return err
+		case analytic.ReportTypeUser:
+			if periodicalType != periodical.Weekly {
+				return fmt.Errorf("invalid period, it should be last-week or in the format YYYY-Www")
 			}
+			year, week := date.ISOWeek()
 			report := analytic.NewUserWeeklyReport(context.Background(), dbPool, dbCredentials)
 			data, err = report.Run(&analyticlib.UserWeeklyReportOptions{
 				Year:        year,
@@ -163,31 +151,46 @@ var cmdAnalyticReport = &cobra.Command{
 			if err != nil {
 				return err
 			}
-		case analytic.ReportTypeProjectWeeklyReport:
+		case analytic.ReportTypeProject:
 			auditDBCredentials, err := getAuditDBCredentials()
 			if err != nil {
 				return err
 			}
-			year, week, err := getISOWeek()
-			if err != nil {
-				return err
+
+			switch periodicalType {
+			case periodical.Weekly:
+				year, week := date.ISOWeek()
+				report := analytic.NewProjectWeeklyReport(
+					context.Background(),
+					dbPool,
+					dbCredentials,
+					auditDBCredentials,
+				)
+				data, err = report.Run(&analyticlib.ProjectWeeklyReportOptions{
+					Year:        year,
+					Week:        week,
+					PortalAppID: portalAppID,
+				})
+				if err != nil {
+					return err
+				}
+			case periodical.Monthly:
+				report := analytic.NewProjectMonthlyReport(
+					context.Background(),
+					dbPool,
+					dbCredentials,
+					auditDBCredentials,
+				)
+				data, err = report.Run(&analyticlib.ProjectMonthlyReportOptions{
+					Year:  date.Year(),
+					Month: int(date.Month()),
+				})
+				if err != nil {
+					return err
+				}
+			default:
+				return fmt.Errorf("invalid period for project report: %s", period)
 			}
-			report := analytic.NewProjectWeeklyReport(
-				context.Background(),
-				dbPool,
-				dbCredentials,
-				auditDBCredentials,
-			)
-			data, err = report.Run(&analyticlib.ProjectWeeklyReportOptions{
-				Year:        year,
-				Week:        week,
-				PortalAppID: portalAppID,
-			})
-			if err != nil {
-				return err
-			}
-		case analytic.ReportTypeProjectMonthlyReport:
-			log.Printf("TODO")
 		default:
 			log.Fatalf("unknown report type: %s", reportType)
 		}

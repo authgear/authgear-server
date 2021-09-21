@@ -25,7 +25,7 @@ func init() {
 }
 
 var cmdAnalyticCollectCount = &cobra.Command{
-	Use:   "collect-count [interval]",
+	Use:   "collect-count [period]",
 	Short: "Collect analytic count to the audit db",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -79,9 +79,9 @@ var cmdAnalyticCollectCount = &cobra.Command{
 			analyticRedisCredentials,
 		)
 
-		periodicalInput := args[0]
+		period := args[0]
 		parser := analytic.NewPeriodicalArgumentParser()
-		periodicalType, date, err := parser.Parse(periodicalInput)
+		periodicalType, date, err := parser.Parse(period)
 		if err != nil {
 			return err
 		}
