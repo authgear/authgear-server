@@ -39,13 +39,14 @@ func (o SortOption) Apply(builder db.SelectBuilder) db.SelectBuilder {
 }
 
 type User struct {
-	ID                string
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
-	MostRecentLoginAt *time.Time
-	LessRecentLoginAt *time.Time
-	IsDisabled        bool
-	DisableReason     *string
+	ID                 string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	MostRecentLoginAt  *time.Time
+	LessRecentLoginAt  *time.Time
+	IsDisabled         bool
+	DisableReason      *string
+	StandardAttributes map[string]interface{}
 }
 
 func (u *User) GetMeta() model.Meta {
