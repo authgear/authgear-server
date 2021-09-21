@@ -79,6 +79,10 @@ func (c *Commands) UpdateDisabledStatus(userID string, isDisabled bool, reason *
 	return c.Raw.UpdateDisabledStatus(userID, isDisabled, reason)
 }
 
+func (c *Commands) UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
+	return c.Raw.UpdateStandardAttributes(userID, stdAttrs)
+}
+
 func (c *Commands) Delete(userID string) error {
 	return c.Raw.Delete(userID)
 }
