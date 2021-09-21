@@ -8,6 +8,7 @@ import (
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -116,7 +117,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Type:        activeUserChart,
 			Args: graphql.FieldConfigArgument{
 				"appID": &graphql.ArgumentConfig{
-					Type:        graphql.NewNonNull(graphql.String),
+					Type:        graphql.NewNonNull(graphql.ID),
 					Description: "Target app ID.",
 				},
 				"periodical": &graphql.ArgumentConfig{
@@ -130,8 +131,14 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				appID := p.Args["appID"].(string)
 				periodical := p.Args["periodical"].(string)
+
+				appNodeID := p.Args["appID"].(string)
+				resolvedNodeID := relay.FromGlobalID(appNodeID)
+				if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+					return nil, apierrors.NewInvalid("invalid app ID")
+				}
+				appID := resolvedNodeID.ID
 
 				ctx := GQLContext(p.Context)
 				var rangeFrom *time.Time
@@ -166,7 +173,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			Type:        signupSummary,
 			Args: graphql.FieldConfigArgument{
 				"appID": &graphql.ArgumentConfig{
-					Type:        graphql.NewNonNull(graphql.String),
+					Type:        graphql.NewNonNull(graphql.ID),
 					Description: "Target app ID.",
 				},
 				"rangeFrom": &graphql.ArgumentConfig{
@@ -178,7 +185,14 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ctx := GQLContext(p.Context)
-				appID := p.Args["appID"].(string)
+
+				appNodeID := p.Args["appID"].(string)
+				resolvedNodeID := relay.FromGlobalID(appNodeID)
+				if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+					return nil, apierrors.NewInvalid("invalid app ID")
+				}
+				appID := resolvedNodeID.ID
+
 				var rangeFrom *time.Time
 				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
 					rangeFrom = &t

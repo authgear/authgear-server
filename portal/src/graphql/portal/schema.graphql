@@ -387,7 +387,7 @@ type Query {
   """Active users chart dataset"""
   activeUserChart(
     """Target app ID."""
-    appID: String!
+    appID: ID!
 
     """"""
     periodical: Periodical!
@@ -420,7 +420,7 @@ type Query {
   """Signup summary for analytic dashboard"""
   signupSummary(
     """Target app ID."""
-    appID: String!
+    appID: ID!
 
     """"""
     rangeFrom: Date!
