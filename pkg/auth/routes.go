@@ -138,6 +138,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureUserDisabledRoute(webappPageRoute), p.Handler(newWebAppUserDisabledHandler))
 	router.Add(webapphandler.ConfigureReturnRoute(webappPageRoute), p.Handler(newWebAppReturnHandler))
 	router.Add(webapphandler.ConfigureErrorRoute(webappPageRoute), p.Handler(newWebAppErrorHandler))
+	router.Add(webapphandler.ConfigureForceChangePasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangePasswordHandler))
+	router.Add(webapphandler.ConfigureForceChangeSecondaryPasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangeSecondaryPasswordHandler))
 
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
@@ -149,8 +151,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureSettingsOOBOTPRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsOOBOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsRecoveryCodeRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsRecoveryCodeHandler))
 	router.Add(webapphandler.ConfigureSettingsSessionsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsSessionsHandler))
-	router.Add(webapphandler.ConfigureChangePasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppChangePasswordHandler))
-	router.Add(webapphandler.ConfigureChangeSecondaryPasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppChangeSecondaryPasswordHandler))
+	router.Add(webapphandler.ConfigureSettingsChangePasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsChangePasswordHandler))
+	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 

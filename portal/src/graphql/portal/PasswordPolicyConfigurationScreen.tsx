@@ -37,6 +37,7 @@ import FormContainer from "../../FormContainer";
 import styles from "./PasswordPolicyConfigurationScreen.module.scss";
 
 interface FormState {
+  forceChange: boolean;
   policy: Required<PasswordPolicyConfig>;
   isPreventPasswordReuseEnabled: boolean;
 }
@@ -55,6 +56,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     ...config.authenticator?.password?.policy,
   };
   return {
+    forceChange: config.authenticator?.password?.force_change ?? true,
     policy,
     isPreventPasswordReuseEnabled:
       policy.history_days > 0 || policy.history_size > 0,
@@ -74,6 +76,14 @@ function constructConfig(
     const policy = config.authenticator.password.policy;
     const initial = initialState.policy;
     const current = currentState.policy;
+
+    if (initialState.forceChange !== currentState.forceChange) {
+      if (currentState.forceChange) {
+        config.authenticator.password.force_change = undefined;
+      } else {
+        config.authenticator.password.force_change = false;
+      }
+    }
 
     if (initial.min_length !== current.min_length) {
       policy.min_length = current.min_length;
@@ -218,6 +228,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
         }
         if (checked) {
           setState((state) => ({
+            ...state,
             isPreventPasswordReuseEnabled: true,
             policy: {
               ...state.policy,
@@ -231,6 +242,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           }));
         } else {
           setState((state) => ({
+            ...state,
             isPreventPasswordReuseEnabled: false,
             policy: state.policy,
           }));
@@ -274,6 +286,19 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
       [setPolicy]
     );
 
+    const onForceChangeChange = useCallback(
+      (_, checked?: boolean) => {
+        if (checked == null) {
+          return;
+        }
+        setState((state) => ({
+          ...state,
+          forceChange: checked,
+        }));
+      },
+      [setState]
+    );
+
     return (
       <ScreenContent className={styles.root}>
         <ScreenTitle>
@@ -282,6 +307,17 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="PasswordPolicyConfigurationScreen.description" />
         </ScreenDescription>
+        <Widget className={cn(styles.widget, styles.controlGroup)}>
+          <Toggle
+            className={styles.control}
+            checked={state.forceChange}
+            inlineLabel={true}
+            label={
+              <FormattedMessage id="PasswordPolicyConfigurationScreen.force-change.label" />
+            }
+            onChange={onForceChangeChange}
+          />
+        </Widget>
         <Widget className={cn(styles.widget, styles.controlGroup)}>
           <WidgetTitle>
             <FormattedMessage id="PasswordPolicyConfigurationScreen.basic-policies" />

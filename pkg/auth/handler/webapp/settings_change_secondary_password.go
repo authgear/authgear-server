@@ -4,45 +4,38 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
-	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var TemplateWebChangePasswordHTML = template.RegisterHTML(
-	"web/change_password.html",
-	components...,
-)
-
-var ForceChangePasswordSchema = validation.NewSimpleSchema(`
+var SettingsChangeSecondaryPasswordSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
+			"x_old_password": { "type": "string" },
 			"x_new_password": { "type": "string" },
 			"x_confirm_password": { "type": "string" }
 		},
-		"required": ["x_new_password", "x_confirm_password"]
+		"required": ["x_old_password", "x_new_password", "x_confirm_password"]
 	}
 `)
 
-func ConfigureForceChangePasswordRoute(route httproute.Route) httproute.Route {
-	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/change_password")
+func ConfigureSettingsChangeSecondaryPasswordRoute(route httproute.Route) httproute.Route {
+	return route.WithMethods("OPTIONS", "POST", "GET").WithPathPattern("/settings/mfa/change_secondary_password")
 }
 
-type ChangePasswordViewModel struct {
-	Force bool
-}
-
-type ForceChangePasswordHandler struct {
+type SettingsChangeSecondaryPasswordHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	PasswordPolicy    PasswordPolicy
 }
 
-func (h *ForceChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *SettingsChangeSecondaryPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
@@ -53,13 +46,12 @@ func (h *ForceChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWr
 	viewmodels.Embed(data, baseViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
 	viewmodels.Embed(data, ChangePasswordViewModel{
-		Force: true,
+		Force: false,
 	})
-
 	return data, nil
 }
 
-func (h *ForceChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *SettingsChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -73,17 +65,24 @@ func (h *ForceChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebChangePasswordHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebChangeSecondaryPasswordHTML, data)
 		return nil
 	})
 
 	ctrl.PostAction("", func() error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
-			err = ForceChangePasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
+		userID := ctrl.RequireUserID()
+		opts := webapp.SessionOptions{
+			RedirectURI: "/settings",
+		}
+		intent := intents.NewIntentChangeSecondaryPassword(userID)
+
+		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+			err = SettingsChangeSecondaryPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
 			}
 
+			oldPassword := r.Form.Get("x_old_password")
 			newPassword := r.Form.Get("x_new_password")
 			confirmPassword := r.Form.Get("x_confirm_password")
 			err = pwd.ConfirmPassword(newPassword, confirmPassword)
@@ -92,7 +91,8 @@ func (h *ForceChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			}
 
 			input = &InputChangePassword{
-				AuthenticationStage: authn.AuthenticationStagePrimary,
+				AuthenticationStage: authn.AuthenticationStageSecondary,
+				OldPassword:         oldPassword,
 				NewPassword:         newPassword,
 			}
 			return

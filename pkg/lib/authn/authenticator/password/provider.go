@@ -99,17 +99,17 @@ func (p *Provider) Create(a *Authenticator) error {
 	return nil
 }
 
-func (p *Provider) Authenticate(a *Authenticator, password string) error {
-	err := pwd.Compare([]byte(password), a.PasswordHash)
+func (p *Provider) Authenticate(a *Authenticator, password string) (requireUpdate bool, err error) {
+	err = pwd.Compare([]byte(password), a.PasswordHash)
 	if err != nil {
-		return err
+		return
 	}
 
 	migrated, err := pwd.TryMigrate([]byte(password), &a.PasswordHash)
 	if err != nil {
 		p.Logger.WithError(err).WithField("authenticator_id", a.ID).
 			Warn("Failed to migrate password")
-		return nil
+		return
 	}
 
 	if migrated {
@@ -117,11 +117,17 @@ func (p *Provider) Authenticate(a *Authenticator, password string) error {
 		if err != nil {
 			p.Logger.WithError(err).WithField("authenticator_id", a.ID).
 				Warn("Failed to save migrated password")
-			return nil
+			return
 		}
 	}
 
-	return nil
+	if notAllowedErr := p.isPasswordAllowed(a.UserID, password); notAllowedErr != nil {
+		if p.Config.ForceChange != nil && *p.Config.ForceChange {
+			requireUpdate = true
+		}
+	}
+
+	return
 }
 
 func (p *Provider) isPasswordAllowed(userID string, password string) error {

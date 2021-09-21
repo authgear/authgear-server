@@ -18,16 +18,19 @@ func init() {
 }
 
 type EdgeChangePasswordBegin struct {
-	Stage authn.AuthenticationStage `json:"stage"`
+	Force bool
+	Stage authn.AuthenticationStage
 }
 
 func (e *EdgeChangePasswordBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeChangePasswordBegin{
+		Force: e.Force,
 		Stage: e.Stage,
 	}, nil
 }
 
 type NodeChangePasswordBegin struct {
+	Force bool                      `json:"force"`
 	Stage authn.AuthenticationStage `json:"stage"`
 }
 
@@ -45,7 +48,12 @@ func (n *NodeChangePasswordBegin) DeriveEdges(graph *interaction.Graph) ([]inter
 	}}, nil
 }
 
+func (n *NodeChangePasswordBegin) IsForceChangePassword() bool {
+	return n.Force
+}
+
 type InputChangePassword interface {
+	GetAuthenticationStage() authn.AuthenticationStage
 	GetOldPassword() string
 	GetNewPassword() string
 }
@@ -57,6 +65,16 @@ type EdgeChangePassword struct {
 func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (node interaction.Node, err error) {
 	var input InputChangePassword
 	if !interaction.Input(rawInput, &input) {
+		return nil, interaction.ErrIncompatibleInput
+	}
+
+	// We have to check the state of the input to ensure
+	// the input for this edge.
+	// We do not do this, the primary password input will be feeded to
+	// the secondary edge.
+	// Two passwords will be changed to the same value.
+	stage := input.GetAuthenticationStage()
+	if stage != e.Stage {
 		return nil, interaction.ErrIncompatibleInput
 	}
 
@@ -84,10 +102,15 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 	}
 	oldInfo := ais[0]
 
-	err = ctx.Authenticators.VerifySecret(oldInfo, nil, oldPassword)
-	if err != nil {
-		err = interaction.ErrInvalidCredentials
-		return
+	if verifiedAuthenticator, ok := graph.GetUserAuthenticator(e.Stage); ok && verifiedAuthenticator.ID == oldInfo.ID {
+		// The password authenticator we are changing has been verified in this interaction.
+		// We avoid asking the user to provide the password again.
+	} else {
+		_, err = ctx.Authenticators.VerifySecret(oldInfo, oldPassword)
+		if err != nil {
+			err = interaction.ErrInvalidCredentials
+			return
+		}
 	}
 
 	changed, newInfo, err := ctx.Authenticators.WithSecret(oldInfo, newPassword)

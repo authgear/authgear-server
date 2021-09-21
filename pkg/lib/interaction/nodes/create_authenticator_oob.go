@@ -27,7 +27,7 @@ func (e *EdgeCreateAuthenticatorOOB) Instantiate(ctx *interaction.Context, graph
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	err := ctx.Authenticators.VerifySecret(e.Authenticator, nil, input.GetOOBOTP())
+	_, err := ctx.Authenticators.VerifySecret(e.Authenticator, input.GetOOBOTP())
 	if errors.Is(err, authenticator.ErrAuthenticatorNotFound) ||
 		errors.Is(err, authenticator.ErrInvalidCredentials) {
 		return nil, interaction.ErrInvalidCredentials

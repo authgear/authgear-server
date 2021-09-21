@@ -30,7 +30,7 @@ type AuthenticatorService interface {
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
-	VerifySecret(info *authenticator.Info, state map[string]string, secret string) error
+	VerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error)
 	RemoveOrphans(identities []*identity.Info) error
 }
 
@@ -211,8 +211,8 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, state map[string]string, secret string) error {
-	return c.Authenticators.VerifySecret(info, state, secret)
+func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, secret string) (requireUpdate bool, err error) {
+	return c.Authenticators.VerifySecret(info, secret)
 }
 
 func (c *Coordinator) UserDelete(userID string) error {

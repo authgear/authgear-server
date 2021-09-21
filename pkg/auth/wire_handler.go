@@ -319,17 +319,31 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppChangePasswordHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.ChangePasswordHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.ForceChangePasswordHandler)),
 	))
 }
 
-func newWebAppChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.ChangeSecondaryPasswordHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsChangePasswordHandler)),
+	))
+}
+
+func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.ForceChangeSecondaryPasswordHandler)),
+	))
+}
+
+func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsChangeSecondaryPasswordHandler)),
 	))
 }
 

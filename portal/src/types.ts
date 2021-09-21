@@ -172,6 +172,7 @@ export interface PasswordPolicyConfig {
 }
 
 export interface AuthenticatorPasswordConfig {
+  force_change?: boolean;
   policy?: PasswordPolicyConfig;
 }
 

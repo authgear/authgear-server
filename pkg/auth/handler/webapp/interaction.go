@@ -217,12 +217,16 @@ var _ nodes.InputVerifyIdentityCheckCode = &InputVerificationCode{}
 func (i *InputVerificationCode) GetVerificationCode() string { return i.Code }
 
 type InputChangePassword struct {
-	OldPassword string
-	NewPassword string
+	AuthenticationStage authn.AuthenticationStage
+	OldPassword         string
+	NewPassword         string
 }
 
 var _ nodes.InputChangePassword = &InputChangePassword{}
 
+func (i *InputChangePassword) GetAuthenticationStage() authn.AuthenticationStage {
+	return i.AuthenticationStage
+}
 func (i *InputChangePassword) GetOldPassword() string { return i.OldPassword }
 func (i *InputChangePassword) GetNewPassword() string { return i.NewPassword }
 
