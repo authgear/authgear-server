@@ -21,13 +21,14 @@ type RawCommands struct {
 func (c *RawCommands) New(userID string) *User {
 	now := c.Clock.NowUTC()
 	user := &User{
-		ID:                userID,
-		CreatedAt:         now,
-		UpdatedAt:         now,
-		MostRecentLoginAt: nil,
-		LessRecentLoginAt: nil,
-		IsDisabled:        false,
-		DisableReason:     nil,
+		ID:                 userID,
+		CreatedAt:          now,
+		UpdatedAt:          now,
+		MostRecentLoginAt:  nil,
+		LessRecentLoginAt:  nil,
+		IsDisabled:         false,
+		DisableReason:      nil,
+		StandardAttributes: make(map[string]interface{}),
 	}
 	return user
 }
