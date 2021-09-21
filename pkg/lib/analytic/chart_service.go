@@ -63,6 +63,19 @@ func (s *ChartService) GetActiveUserChat(
 	}, nil
 }
 
+func (s *ChartService) GetTotalUserCountChat(appID string, rangeFrom time.Time, rangeTo time.Time) (*Chart, error) {
+	if s.Database == nil {
+		return &Chart{}, nil
+	}
+	dataset, err := s.getDataPointsByCountType(appID, CumulativeUserCountType, periodicalutil.Daily, rangeFrom, rangeTo)
+	if err != nil {
+		return nil, err
+	}
+	return &Chart{
+		DataSet: dataset,
+	}, nil
+}
+
 func (s *ChartService) GetSignupSummary(
 	appID string,
 	rangeFrom time.Time,

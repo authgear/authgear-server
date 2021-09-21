@@ -429,6 +429,18 @@ type Query {
     rangeTo: Date!
   ): SignupSummary
 
+  """Total users count chart dataset"""
+  totalUserCountChart(
+    """Target app ID."""
+    appID: ID!
+
+    """"""
+    rangeFrom: Date!
+
+    """"""
+    rangeTo: Date!
+  ): Chart
+
   """The current viewer"""
   viewer: User
 }

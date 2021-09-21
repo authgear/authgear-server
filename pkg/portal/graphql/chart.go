@@ -44,6 +44,7 @@ var basicChart = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var activeUserChart = basicChart
+var totalUserCountChart = basicChart
 
 var signupSummary = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SignupSummary",

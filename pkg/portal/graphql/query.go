@@ -145,6 +145,33 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewLazyValue(chart).Value, nil
 			},
 		},
+		"totalUserCountChart": &graphql.Field{
+			Description: "Total users count chart dataset",
+			Type:        totalUserCountChart,
+			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
+				if err != nil {
+					return nil, err
+				}
+
+				err = checkChartDateRangeInput(rangeFrom, rangeTo)
+				if err != nil {
+					return nil, err
+				}
+
+				chart, err := ctx.AnalyticChartService.GetTotalUserCountChat(
+					appID,
+					*rangeFrom,
+					*rangeTo,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch dataset: %w", err)
+				}
+				return graphqlutil.NewLazyValue(chart).Value, nil
+			},
+		},
 		"signupSummary": &graphql.Field{
 			Description: "Signup summary for analytic dashboard",
 			Type:        signupSummary,
