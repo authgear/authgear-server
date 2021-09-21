@@ -83,7 +83,7 @@ var cmdMigrateDown = &cobra.Command{
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := getBinder()
-		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseSchema)
+		dbURL, err := binder.GetRequiredString(cmd, ArgDatabaseURL)
 		if err != nil {
 			return
 		}
