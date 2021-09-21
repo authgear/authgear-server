@@ -70,7 +70,6 @@ func (p *Provider) New(
 ) *Identity {
 	i := &Identity{
 		ID:         uuid.New(),
-		Labels:     make(map[string]interface{}),
 		UserID:     userID,
 		KeyID:      keyID,
 		Key:        key,

@@ -22,7 +22,6 @@ func (c *RawCommands) New(userID string) *User {
 	now := c.Clock.NowUTC()
 	user := &User{
 		ID:                userID,
-		Labels:            make(map[string]interface{}),
 		CreatedAt:         now,
 		UpdatedAt:         now,
 		MostRecentLoginAt: nil,

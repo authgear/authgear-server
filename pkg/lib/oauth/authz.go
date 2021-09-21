@@ -4,7 +4,6 @@ import "time"
 
 type Authorization struct {
 	ID        string
-	Labels    map[string]interface{}
 	AppID     string
 	ClientID  string
 	UserID    string
