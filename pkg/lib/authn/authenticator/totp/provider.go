@@ -46,7 +46,6 @@ func (p *Provider) New(userID string, displayName string, isDefault bool, kind s
 
 	a := &Authenticator{
 		ID:          uuid.New(),
-		Labels:      make(map[string]interface{}),
 		UserID:      userID,
 		Secret:      secret,
 		DisplayName: displayName,

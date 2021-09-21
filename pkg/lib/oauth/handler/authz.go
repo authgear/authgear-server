@@ -29,7 +29,6 @@ func checkAuthorization(
 	if authz == nil {
 		authz = &oauth.Authorization{
 			ID:        uuid.New(),
-			Labels:    make(map[string]interface{}),
 			AppID:     string(appID),
 			ClientID:  clientID,
 			UserID:    userID,

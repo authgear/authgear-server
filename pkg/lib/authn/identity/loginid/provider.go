@@ -128,7 +128,6 @@ func (p *Provider) New(userID string, spec Spec, options CheckerOptions) (*Ident
 
 	iden := &Identity{
 		ID:              uuid.New(),
-		Labels:          make(map[string]interface{}),
 		UserID:          userID,
 		LoginIDKey:      spec.Key,
 		LoginIDType:     spec.Type,
@@ -158,18 +157,12 @@ func (p *Provider) WithValue(iden *Identity, value string, options CheckerOption
 		return nil, err
 	}
 
-	labels := make(map[string]interface{}, len(iden.Labels))
-	for key, value := range iden.Labels {
-		labels[key] = value
-	}
-
 	claims := make(map[string]interface{})
 	if claimName, ok := p.Checker.LoginIDKeyClaimName(spec.Key); ok {
 		claims[claimName] = normalized
 	}
 
 	newIden := *iden
-	newIden.Labels = labels
 	newIden.LoginID = normalized
 	newIden.UniqueKey = uniqueKey
 	newIden.OriginalLoginID = value
