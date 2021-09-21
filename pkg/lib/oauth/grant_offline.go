@@ -12,11 +12,10 @@ import (
 )
 
 type OfflineGrant struct {
-	AppID           string                 `json:"app_id"`
-	ID              string                 `json:"id"`
-	Labels          map[string]interface{} `json:"labels"`
-	ClientID        string                 `json:"client_id"`
-	AuthorizationID string                 `json:"authz_id"`
+	AppID           string `json:"app_id"`
+	ID              string `json:"id"`
+	ClientID        string `json:"client_id"`
+	AuthorizationID string `json:"authz_id"`
 	// IDPSessionID refers to the IDP session.
 	IDPSessionID string `json:"idp_session_id,omitempty"`
 	// IdentityID refers to the identity.

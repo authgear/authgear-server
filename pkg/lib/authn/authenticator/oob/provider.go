@@ -56,7 +56,6 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 func (p *Provider) New(userID string, oobAuthenticatorType authn.AuthenticatorType, target string, isDefault bool, kind string) *Authenticator {
 	a := &Authenticator{
 		ID:                   uuid.New(),
-		Labels:               make(map[string]interface{}),
 		UserID:               userID,
 		OOBAuthenticatorType: oobAuthenticatorType,
 		IsDefault:            isDefault,

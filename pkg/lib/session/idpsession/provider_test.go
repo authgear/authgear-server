@@ -64,8 +64,7 @@ func TestProvider(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(token, ShouldNotBeEmpty)
 				So(s, ShouldResemble, &IDPSession{
-					ID:     s.ID,
-					Labels: make(map[string]interface{}),
+					ID: s.ID,
 					Attrs: session.Attrs{
 						UserID: "user-id",
 					},
