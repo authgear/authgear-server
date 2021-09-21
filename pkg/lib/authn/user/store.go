@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -30,6 +31,16 @@ type Store struct {
 }
 
 func (s *Store) Create(u *User) (err error) {
+	stdAttrs := u.StandardAttributes
+	if stdAttrs == nil {
+		stdAttrs = make(map[string]interface{})
+	}
+
+	stdAttrsBytes, err := json.Marshal(stdAttrs)
+	if err != nil {
+		return
+	}
+
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_user")).
 		Columns(
@@ -40,6 +51,7 @@ func (s *Store) Create(u *User) (err error) {
 			"last_login_at",
 			"is_disabled",
 			"disable_reason",
+			"standard_attributes",
 		).
 		Values(
 			u.ID,
@@ -49,6 +61,7 @@ func (s *Store) Create(u *User) (err error) {
 			u.LessRecentLoginAt,
 			u.IsDisabled,
 			u.DisableReason,
+			stdAttrsBytes,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(builder)
@@ -69,12 +82,14 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"last_login_at",
 			"is_disabled",
 			"disable_reason",
+			"standard_attributes",
 		).
 		From(s.SQLBuilder.TableName("_auth_user"))
 }
 
 func (s *Store) scan(scn db.Scanner) (*User, error) {
 	u := &User{}
+	var stdAttrsBytes []byte
 
 	if err := scn.Scan(
 		&u.ID,
@@ -84,8 +99,18 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.LessRecentLoginAt,
 		&u.IsDisabled,
 		&u.DisableReason,
+		&stdAttrsBytes,
 	); err != nil {
 		return nil, err
+	}
+
+	if len(stdAttrsBytes) > 0 {
+		if err := json.Unmarshal(stdAttrsBytes, &u.StandardAttributes); err != nil {
+			return nil, err
+		}
+	}
+	if u.StandardAttributes == nil {
+		u.StandardAttributes = make(map[string]interface{})
 	}
 
 	return u, nil
