@@ -83,7 +83,6 @@ type AnalyticChartService interface {
 	GetActiveUserChat(appID string, periodical string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 	GetTotalUserCountChat(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 	GetSignupConversionRate(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.SignupConversionRateData, error)
-	GetSignupSummary(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.SignupSummary, error)
 }
 
 type Logger struct{ *log.Logger }

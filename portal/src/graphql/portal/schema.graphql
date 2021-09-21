@@ -429,18 +429,6 @@ type Query {
     rangeTo: Date!
   ): SignupConversionRate
 
-  """Signup summary for analytic dashboard"""
-  signupSummary(
-    """Target app ID."""
-    appID: ID!
-
-    """"""
-    rangeFrom: Date!
-
-    """"""
-    rangeTo: Date!
-  ): SignupSummary
-
   """Total users count chart dataset"""
   totalUserCountChart(
     """Target app ID."""
@@ -521,36 +509,6 @@ type SignupConversionRate {
 
   """"""
   totalSignupUniquePageView: Int!
-}
-
-"""Signup summary for analytic dashboard"""
-type SignupSummary {
-  """"""
-  conversionRate: Float!
-
-  """"""
-  signupByChannelChart: Chart!
-
-  """"""
-  totalLoginPageView: Int!
-
-  """"""
-  totalLoginUniquePageView: Int!
-
-  """"""
-  totalSignup: Int!
-
-  """"""
-  totalSignupPageCount: Int!
-
-  """"""
-  totalSignupUniquePageView: Int!
-
-  """"""
-  totalUserCount: Int!
-
-  """"""
-  totalUserCountChart: Chart!
 }
 
 """"""
