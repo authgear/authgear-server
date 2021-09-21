@@ -172,6 +172,33 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewLazyValue(chart).Value, nil
 			},
 		},
+		"signupConversionRate": &graphql.Field{
+			Description: "Signup conversion rate dashboard data",
+			Type:        signupConversionRate,
+			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
+				if err != nil {
+					return nil, err
+				}
+
+				err = checkChartDateRangeInput(rangeFrom, rangeTo)
+				if err != nil {
+					return nil, err
+				}
+
+				signupConversionRateData, err := ctx.AnalyticChartService.GetSignupConversionRate(
+					appID,
+					*rangeFrom,
+					*rangeTo,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch conversion rate data: %w", err)
+				}
+				return graphqlutil.NewLazyValue(signupConversionRateData).Value, nil
+			},
+		},
 		"signupSummary": &graphql.Field{
 			Description: "Signup summary for analytic dashboard",
 			Type:        signupSummary,

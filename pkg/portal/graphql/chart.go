@@ -46,6 +46,16 @@ var basicChart = graphql.NewObject(graphql.ObjectConfig{
 var activeUserChart = basicChart
 var totalUserCountChart = basicChart
 
+var signupConversionRate = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SignupConversionRate",
+	Description: "Signup conversion rate dashboard data",
+	Fields: graphql.Fields{
+		"totalSignup":               &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+		"totalSignupUniquePageView": &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
+		"conversionRate":            &graphql.Field{Type: graphql.NewNonNull(graphql.Float)},
+	},
+})
+
 var signupSummary = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SignupSummary",
 	Description: "Signup summary for analytic dashboard",

@@ -14,6 +14,12 @@ type Chart struct {
 	DataSet []*DataPoint `json:"dataset"`
 }
 
+type SignupConversionRateData struct {
+	TotalSignup               int     `json:"totalSignup"`
+	TotalSignupUniquePageView int     `json:"totalSignupUniquePageView"`
+	ConversionRate            float64 `json:"conversionRate"`
+}
+
 type SignupSummary struct {
 	TotalUserCount            int     `json:"totalUserCount"`
 	TotalSignup               int     `json:"totalSignup"`
@@ -73,6 +79,33 @@ func (s *ChartService) GetTotalUserCountChat(appID string, rangeFrom time.Time, 
 	}
 	return &Chart{
 		DataSet: dataset,
+	}, nil
+}
+
+func (s *ChartService) GetSignupConversionRate(appID string, rangeFrom time.Time, rangeTo time.Time) (*SignupConversionRateData, error) {
+	if s.Database == nil {
+		return &SignupConversionRateData{}, nil
+	}
+	totalSignupCount, err := s.AuditStore.GetSumOfAnalyticCountsByType(appID, DailySignupCountType, &rangeFrom, &rangeTo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch total signup count: %w", err)
+	}
+
+	totalSignupUniquePageCount, err := s.AuditStore.GetSumOfAnalyticCountsByType(appID, DailySignupUniquePageViewCountType, &rangeFrom, &rangeTo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch total signup unique page view count: %w", err)
+	}
+
+	conversionRate := float64(0)
+	if totalSignupUniquePageCount > 0 {
+		rate := float64(totalSignupCount) / float64(totalSignupUniquePageCount)
+		conversionRate = math.Round(rate*100*100) / 100
+	}
+
+	return &SignupConversionRateData{
+		TotalSignup:               totalSignupCount,
+		TotalSignupUniquePageView: totalSignupUniquePageCount,
+		ConversionRate:            conversionRate,
 	}, nil
 }
 
