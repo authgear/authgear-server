@@ -115,43 +115,20 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"activeUserChart": &graphql.Field{
 			Description: "Active users chart dataset",
 			Type:        activeUserChart,
-			Args: graphql.FieldConfigArgument{
-				"appID": &graphql.ArgumentConfig{
-					Type:        graphql.NewNonNull(graphql.ID),
-					Description: "Target app ID.",
-				},
+			Args: newAnalyticArgs(graphql.FieldConfigArgument{
 				"periodical": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(periodicalEnum),
 				},
-				"rangeFrom": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphqlutil.Date),
-				},
-				"rangeTo": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphqlutil.Date),
-				},
-			},
+			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				periodical := p.Args["periodical"].(string)
-
-				appNodeID := p.Args["appID"].(string)
-				resolvedNodeID := relay.FromGlobalID(appNodeID)
-				if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
-					return nil, apierrors.NewInvalid("invalid app ID")
-				}
-				appID := resolvedNodeID.ID
-
 				ctx := GQLContext(p.Context)
-				var rangeFrom *time.Time
-				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
-					rangeFrom = &t
+				periodical := p.Args["periodical"].(string)
+				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
+				if err != nil {
+					return nil, err
 				}
 
-				var rangeTo *time.Time
-				if t, ok := p.Args["rangeTo"].(time.Time); ok {
-					rangeTo = &t
-				}
-
-				err := checkChartDateRangeInput(rangeFrom, rangeTo)
+				err = checkChartDateRangeInput(rangeFrom, rangeTo)
 				if err != nil {
 					return nil, err
 				}
