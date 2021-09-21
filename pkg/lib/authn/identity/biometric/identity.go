@@ -11,7 +11,6 @@ var KeyIDFormat = regexp.MustCompile(`^[-\w]{8,64}$`)
 
 type Identity struct {
 	ID         string
-	Labels     map[string]interface{}
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	UserID     string

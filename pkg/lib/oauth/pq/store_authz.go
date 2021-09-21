@@ -20,7 +20,6 @@ type AuthorizationStore struct {
 func (s *AuthorizationStore) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.Select(
 		"id",
-		"labels",
 		"app_id",
 		"client_id",
 		"user_id",
@@ -58,12 +57,10 @@ func (s *AuthorizationStore) GetByID(id string) (*oauth.Authorization, error) {
 func (s *AuthorizationStore) scanAuthz(scn sqlx.ColScanner) (*oauth.Authorization, error) {
 	authz := &oauth.Authorization{}
 
-	var labels []byte
 	var scopeBytes []byte
 
 	err := scn.Scan(
 		&authz.ID,
-		&labels,
 		&authz.AppID,
 		&authz.ClientID,
 		&authz.UserID,
@@ -77,11 +74,6 @@ func (s *AuthorizationStore) scanAuthz(scn sqlx.ColScanner) (*oauth.Authorizatio
 		return nil, err
 	}
 
-	err = json.Unmarshal(labels, &authz.Labels)
-	if err != nil {
-		return nil, err
-	}
-
 	err = json.Unmarshal(scopeBytes, &authz.Scopes)
 	if err != nil {
 		return nil, err
@@ -91,11 +83,6 @@ func (s *AuthorizationStore) scanAuthz(scn sqlx.ColScanner) (*oauth.Authorizatio
 }
 
 func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
-	labels, err := json.Marshal(authz.Labels)
-	if err != nil {
-		return err
-	}
-
 	scopeBytes, err := json.Marshal(authz.Scopes)
 	if err != nil {
 		return err
@@ -105,7 +92,6 @@ func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
 		Insert(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Columns(
 			"id",
-			"labels",
 			"client_id",
 			"user_id",
 			"created_at",
@@ -114,7 +100,6 @@ func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
 		).
 		Values(
 			authz.ID,
-			labels,
 			authz.ClientID,
 			authz.UserID,
 			authz.CreatedAt,
