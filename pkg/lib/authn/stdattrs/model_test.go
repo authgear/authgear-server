@@ -24,5 +24,29 @@ func TestT(t *testing.T) {
 				"given_name": "Jonathan",
 			})
 		})
+
+		Convey("NonIdentityAware", func() {
+			So(T{
+				"a":     "b",
+				"name":  "John Doe",
+				"email": "louischan@oursky.com",
+			}.NonIdentityAware(), ShouldResemble, T{
+				"name": "John Doe",
+			})
+		})
+
+		Convey("MergedWith", func() {
+			So(T{
+				"a":    "b",
+				"keep": "this",
+			}.MergedWith(T{
+				"a":   "c",
+				"new": "key",
+			}), ShouldResemble, T{
+				"keep": "this",
+				"new":  "key",
+				"a":    "c",
+			})
+		})
 	})
 }
