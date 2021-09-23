@@ -449,6 +449,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Verification:    verificationService,
 		MFA:             mfaService,
 		UserCommands:    rawCommands,
+		UserQueries:     rawQueries,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
