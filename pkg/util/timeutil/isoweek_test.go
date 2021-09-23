@@ -26,7 +26,7 @@ func TestFirstDayOfISOWeek(t *testing.T) {
 			}
 		})
 
-		Convey("should return error for invald week number", func() {
+		Convey("should return error for invalid week number", func() {
 			_, err := timeutil.FirstDayOfISOWeek(2021, 53, time.UTC)
 			So(err, ShouldBeError, "invalid week: 2021W53 not in [1, 52]")
 		})
