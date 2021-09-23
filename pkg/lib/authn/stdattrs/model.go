@@ -17,6 +17,32 @@ func (t T) WithNameCopiedToGivenName() T {
 			out[GivenName] = name
 		}
 	}
+	return out
+}
+
+// NonIdentityAware returns a copy of t with identity-aware attributes removed.
+func (t T) NonIdentityAware() T {
+	out := make(T)
+	for k1, val := range t {
+		for _, k2 := range NonIdentityAwareKeys {
+			if k1 == k2 {
+				out[k1] = val
+			}
+		}
+	}
+	return out
+}
+
+// MergedWith returns a T with that merged into t.
+func (t T) MergedWith(that T) T {
+	out := make(T)
+	for k, v := range t {
+		out[k] = v
+	}
+
+	for k, v := range that {
+		out[k] = v
+	}
 
 	return out
 }
@@ -50,3 +76,19 @@ const (
 	PostalCode          = "postal_code"
 	Country             = "country"
 )
+
+var NonIdentityAwareKeys []string = []string{
+	FamilyName,
+	GivenName,
+	MiddleName,
+	Name,
+	Nickname,
+	Picture,
+	Profile,
+	Website,
+	Gender,
+	Birthdate,
+	Zoneinfo,
+	Locale,
+	Address,
+}
