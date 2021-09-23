@@ -43,7 +43,7 @@ func (date *Date) Decode(value string) error {
 	if err != nil {
 		return err
 	}
-	*date = Date(time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC))
+	*date = Date(timeutil.TruncateToDate(t))
 	return nil
 }
 

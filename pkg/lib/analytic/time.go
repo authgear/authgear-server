@@ -4,6 +4,7 @@ import (
 	"time"
 
 	periodicalutil "github.com/authgear/authgear-server/pkg/util/periodical"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 func GetDateListByRangeInclusive(rangeFrom time.Time, rangeTo time.Time, periodical periodicalutil.Type) []time.Time {
@@ -11,7 +12,7 @@ func GetDateListByRangeInclusive(rangeFrom time.Time, rangeTo time.Time, periodi
 	date := rangeFrom.UTC()
 	switch periodical {
 	case periodicalutil.Monthly:
-		date = time.Date(rangeFrom.Year(), rangeFrom.Month(), 1, 0, 0, 0, 0, time.UTC)
+		date = timeutil.FirstDayOfTheMonth(rangeFrom)
 		if rangeFrom.Day() != 1 {
 			date = date.AddDate(0, 1, 0)
 		}
@@ -36,7 +37,7 @@ func GetDateListByRangeInclusive(rangeFrom time.Time, rangeTo time.Time, periodi
 			date = date.AddDate(0, 0, 7)
 		}
 	case periodicalutil.Daily:
-		date = time.Date(rangeFrom.Year(), rangeFrom.Month(), rangeFrom.Day(), 0, 0, 0, 0, time.UTC)
+		date = timeutil.TruncateToDate(rangeFrom)
 		for {
 			// Termination
 			if date.After(rangeTo) {
