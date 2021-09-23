@@ -10,4 +10,5 @@ type SystemConfig struct {
 	Translations       interface{} `json:"translations,omitempty"`
 	SearchEnabled      bool        `json:"searchEnabled"`
 	AuditLogEnabled    bool        `json:"auditLogEnabled"`
+	AnalyticEnabled    bool        `json:"analyticEnabled"`
 }

@@ -20,6 +20,7 @@ type SystemConfigProvider struct {
 	AppConfig      *config.AppConfig
 	SearchConfig   *config.SearchConfig
 	AuditLogConfig *config.AuditLogConfig
+	AnalyticConfig *config.AnalyticConfig
 	Resources      ResourceManager
 }
 
@@ -44,6 +45,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		Translations:       translations,
 		SearchEnabled:      p.SearchConfig.Enabled,
 		AuditLogEnabled:    p.AuditLogConfig.Enabled,
+		AnalyticEnabled:    p.AnalyticConfig.Enabled,
 	}, nil
 }
 
