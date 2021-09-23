@@ -237,9 +237,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
 	}
+	analyticConfig := rootProvider.AnalyticConfig
 	chartService := &analytic.ChartService{
-		Database:   readHandle,
-		AuditStore: auditDBReadStore,
+		Database:       readHandle,
+		AuditStore:     auditDBReadStore,
+		Clock:          clock,
+		AnalyticConfig: analyticConfig,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
