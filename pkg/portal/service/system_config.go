@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
+	configlib "github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
@@ -35,6 +36,11 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		return nil, err
 	}
 
+	var analyticEpoch *configlib.Date
+	if !p.AnalyticConfig.Epoch.IsEmpty() {
+		analyticEpoch = &p.AnalyticConfig.Epoch
+	}
+
 	return &model.SystemConfig{
 		AuthgearClientID:   p.AuthgearConfig.ClientID,
 		AuthgearEndpoint:   p.AuthgearConfig.Endpoint,
@@ -46,6 +52,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		SearchEnabled:      p.SearchConfig.Enabled,
 		AuditLogEnabled:    p.AuditLogConfig.Enabled,
 		AnalyticEnabled:    p.AnalyticConfig.Enabled,
+		AnalyticEpoch:      analyticEpoch,
 	}, nil
 }
 
