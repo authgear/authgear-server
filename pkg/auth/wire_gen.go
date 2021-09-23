@@ -545,10 +545,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -1138,10 +1141,13 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -1695,10 +1701,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -3773,10 +3782,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -4351,10 +4363,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -4948,10 +4963,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -5545,10 +5563,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -6129,10 +6150,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -6714,10 +6738,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -7291,10 +7318,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -7871,10 +7901,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -8454,10 +8487,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -9034,10 +9070,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -9613,10 +9652,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -10193,10 +10235,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -10774,10 +10819,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -11353,10 +11401,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -11932,10 +11983,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -12513,10 +12567,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -13092,10 +13149,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -13671,10 +13731,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -14253,10 +14316,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -14832,10 +14898,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -15416,10 +15485,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -15995,10 +16067,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -16575,10 +16650,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -17154,10 +17232,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -17752,10 +17833,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -18333,10 +18417,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -18913,10 +19000,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -19502,10 +19592,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -20082,10 +20175,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -20662,10 +20758,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -21243,10 +21342,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -21829,10 +21931,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -22409,10 +22514,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -22989,10 +23097,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -23569,10 +23680,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -24149,10 +24263,13 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -24728,10 +24845,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -25327,10 +25447,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
@@ -25906,10 +26029,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
+	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:  rawCommands,
-		Events:       eventService,
-		Verification: verificationService,
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
 	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
