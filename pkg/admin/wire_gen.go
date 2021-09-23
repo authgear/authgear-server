@@ -455,6 +455,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:    verificationService,
 		MFA:             mfaService,
 		UserCommands:    rawCommands,
+		UserQueries:     rawQueries,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,

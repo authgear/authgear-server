@@ -1,12 +1,17 @@
 package facade
 
 import (
+	"sort"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type IdentityService interface {
@@ -46,8 +51,13 @@ type MFAService interface {
 	InvalidateAllRecoveryCode(userID string) error
 }
 
+type UserQueries interface {
+	GetRaw(userID string) (*user.User, error)
+}
+
 type UserCommands interface {
 	Delete(userID string) error
+	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 }
 
 type PasswordHistoryStore interface {
@@ -79,7 +89,8 @@ type Coordinator struct {
 	Authenticators  AuthenticatorService
 	Verification    VerificationService
 	MFA             MFAService
-	Users           UserCommands
+	UserCommands    UserCommands
+	UserQueries     UserQueries
 	PasswordHistory PasswordHistoryStore
 	OAuth           OAuthService
 	IDPSessions     IDPSessionManager
@@ -122,6 +133,11 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 		return err
 	}
 
+	err = c.populateIdentityAwareStandardAttributes(is.UserID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -141,6 +157,11 @@ func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
 		return err
 	}
 
+	err = c.populateIdentityAwareStandardAttributes(info.UserID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -151,6 +172,11 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 	}
 
 	err = c.removeOrphans(is.UserID)
+	if err != nil {
+		return err
+	}
+
+	err = c.populateIdentityAwareStandardAttributes(is.UserID)
 	if err != nil {
 		return err
 	}
@@ -282,7 +308,7 @@ func (c *Coordinator) UserDelete(userID string) error {
 	}
 
 	// Finally, delete the user.
-	return c.Users.Delete(userID)
+	return c.UserCommands.Delete(userID)
 }
 
 func (c *Coordinator) removeOrphans(userID string) error {
@@ -373,4 +399,77 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	}
 
 	return nil
+}
+
+func (c *Coordinator) populateIdentityAwareStandardAttributes(userID string) (err error) {
+	// Get all the identities this user has.
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return
+	}
+
+	// Sort the identities with newer ones ordered first.
+	sort.SliceStable(identities, func(i, j int) bool {
+		a := identities[i]
+		b := identities[j]
+		return a.CreatedAt.After(b.CreatedAt)
+	})
+
+	// Generate a list of emails, phone numbers and usernames belong to the user.
+	var emails []string
+	var phoneNumbers []string
+	var preferredUsernames []string
+	for _, iden := range identities {
+		if email, ok := iden.Claims[stdattrs.Email].(string); ok && email != "" {
+			emails = append(emails, email)
+		}
+		if phoneNumber, ok := iden.Claims[stdattrs.PhoneNumber].(string); ok && phoneNumber != "" {
+			phoneNumbers = append(phoneNumbers, phoneNumber)
+		}
+		if preferredUsername, ok := iden.Claims[stdattrs.PreferredUsername].(string); ok && preferredUsername != "" {
+			preferredUsernames = append(preferredUsernames, preferredUsername)
+		}
+	}
+
+	user, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return
+	}
+
+	updated := false
+
+	// Clear dangling standard attributes.
+	clear := func(key string, allowedValues []string) {
+		if value, ok := user.StandardAttributes[key].(string); ok {
+			if !slice.ContainsString(allowedValues, value) {
+				delete(user.StandardAttributes, key)
+				updated = true
+			}
+		}
+	}
+	clear(stdattrs.Email, emails)
+	clear(stdattrs.PhoneNumber, phoneNumbers)
+	clear(stdattrs.PreferredUsername, preferredUsernames)
+
+	// Populate standard attributes.
+	populate := func(key string, allowedValues []string) {
+		if _, ok := user.StandardAttributes[key].(string); !ok {
+			if len(allowedValues) > 0 {
+				user.StandardAttributes[key] = allowedValues[0]
+				updated = true
+			}
+		}
+	}
+	populate(stdattrs.Email, emails)
+	populate(stdattrs.PhoneNumber, phoneNumbers)
+	populate(stdattrs.PreferredUsername, preferredUsernames)
+
+	if updated {
+		err = c.UserCommands.UpdateStandardAttributes(userID, user.StandardAttributes)
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
