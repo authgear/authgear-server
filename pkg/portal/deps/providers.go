@@ -29,7 +29,7 @@ type RootProvider struct {
 	DomainImplementation portalconfig.DomainImplementationType
 	SearchConfig         *portalconfig.SearchConfig
 	AuditLogConfig       *portalconfig.AuditLogConfig
-	AnalyticConfig       *portalconfig.AnalyticConfig
+	AnalyticConfig       *config.AnalyticConfig
 	LoggerFactory        *log.Factory
 	SentryHub            *getsentry.Hub
 
@@ -56,7 +56,7 @@ func NewRootProvider(
 	domainImplementation portalconfig.DomainImplementationType,
 	searchConfig *portalconfig.SearchConfig,
 	auditLogConfig *portalconfig.AuditLogConfig,
-	analyticConfig *portalconfig.AnalyticConfig,
+	analyticConfig *config.AnalyticConfig,
 ) (*RootProvider, error) {
 	logLevel, err := log.ParseLevel(cfg.LogLevel)
 	if err != nil {

@@ -51,7 +51,7 @@ type Config struct {
 	AuditLog portalconfig.AuditLogConfig `envconfig:"AUDIT_LOG"`
 
 	// Analytic sets analytic dashboard related config.
-	Analytic portalconfig.AnalyticConfig `envconfig:"ANALYTIC"`
+	Analytic config.AnalyticConfig `envconfig:"ANALYTIC"`
 
 	*config.EnvironmentConfig
 }

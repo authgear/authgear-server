@@ -21,7 +21,7 @@ type SystemConfigProvider struct {
 	AppConfig      *config.AppConfig
 	SearchConfig   *config.SearchConfig
 	AuditLogConfig *config.AuditLogConfig
-	AnalyticConfig *config.AnalyticConfig
+	AnalyticConfig *configlib.AnalyticConfig
 	Resources      ResourceManager
 }
 
