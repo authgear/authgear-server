@@ -175,6 +175,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
+		wire.Bind(new(facade.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(facade.UserCommands), new(*user.RawCommands)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),
