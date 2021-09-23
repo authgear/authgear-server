@@ -200,7 +200,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-watermark {
+  display: inline-block;
   height: 24px;
+  width: 87px;
   background-repeat: no-repeat;
   background-size: auto 24px;
   background-position: center;
