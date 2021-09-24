@@ -10,6 +10,7 @@ type VerificationService interface {
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 	DeleteClaim(claimID string) error
+	DeriveStandardAttributes(userID string, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
 type VerificationFacade struct {
@@ -71,4 +72,8 @@ func (f *VerificationFacade) SetVerified(userID string, claimName string, claimV
 	}
 
 	return nil
+}
+
+func (f *VerificationFacade) DeriveStandardAttributes(userID string, attrs map[string]interface{}) (map[string]interface{}, error) {
+	return f.Verification.DeriveStandardAttributes(userID, attrs)
 }
