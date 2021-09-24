@@ -637,6 +637,9 @@ type User implements Entity & Node {
   """"""
   sessions(after: String, before: String, first: Int, last: Int): SessionConnection
 
+  """"""
+  standardAttributes: UserStandardAttributes!
+
   """The update time of entity"""
   updatedAt: DateTime!
 
@@ -673,4 +676,9 @@ enum UserSortBy {
   """"""
   LAST_LOGIN_AT
 }
+
+"""
+The `UserStandardAttributes` scalar type represents the standard attributes of the user
+"""
+scalar UserStandardAttributes
 
