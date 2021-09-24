@@ -37,6 +37,7 @@ var _ = Schema.Add("AppConfig", `
 		"oauth": { "$ref": "#/$defs/OAuthConfig" },
 		"identity": { "$ref": "#/$defs/IdentityConfig" },
 		"authenticator": { "$ref": "#/$defs/AuthenticatorConfig" },
+		"user_profile": { "$ref": "#/$defs/UserProfileConfig" },
 		"forgot_password": { "$ref": "#/$defs/ForgotPasswordConfig" },
 		"welcome_message": { "$ref": "#/$defs/WelcomeMessageConfig" },
 		"verification": { "$ref": "#/$defs/VerificationConfig" }
@@ -62,6 +63,7 @@ type AppConfig struct {
 	OAuth          *OAuthConfig          `json:"oauth,omitempty"`
 	Identity       *IdentityConfig       `json:"identity,omitempty"`
 	Authenticator  *AuthenticatorConfig  `json:"authenticator,omitempty"`
+	UserProfile    *UserProfileConfig    `json:"user_profile,omitempty"`
 
 	ForgotPassword *ForgotPasswordConfig `json:"forgot_password,omitempty"`
 	WelcomeMessage *WelcomeMessageConfig `json:"welcome_message,omitempty"`
