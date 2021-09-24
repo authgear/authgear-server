@@ -81,7 +81,9 @@ type AppResourceManagerFactory interface {
 
 type AnalyticChartService interface {
 	GetActiveUserChat(appID string, periodical string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
-	GetSignupSummary(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.SignupSummary, error)
+	GetTotalUserCountChat(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
+	GetSignupConversionRate(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.SignupConversionRateData, error)
+	GetSignupByMethodsChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 }
 
 type Logger struct{ *log.Logger }

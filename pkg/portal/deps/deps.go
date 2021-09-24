@@ -57,6 +57,7 @@ var DependencySet = wire.NewSet(
 		"DomainImplementation",
 		"SearchConfig",
 		"AuditLogConfig",
+		"AnalyticConfig",
 		"SentryHub",
 		"LoggerFactory",
 		"Database",

@@ -4,6 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 )
 
@@ -41,20 +44,16 @@ var basicChart = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var activeUserChart = basicChart
+var totalUserCountChart = basicChart
+var signupByMethodsChart = basicChart
 
-var signupSummary = graphql.NewObject(graphql.ObjectConfig{
-	Name:        "SignupSummary",
-	Description: "Signup summary for analytic dashboard",
+var signupConversionRate = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SignupConversionRate",
+	Description: "Signup conversion rate dashboard data",
 	Fields: graphql.Fields{
-		"totalUserCount":            &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
 		"totalSignup":               &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
-		"totalSignupPageCount":      &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
 		"totalSignupUniquePageView": &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
-		"totalLoginPageView":        &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
-		"totalLoginUniquePageView":  &graphql.Field{Type: graphql.NewNonNull(graphql.Int)},
 		"conversionRate":            &graphql.Field{Type: graphql.NewNonNull(graphql.Float)},
-		"signupByChannelChart":      &graphql.Field{Type: graphql.NewNonNull(basicChart)},
-		"totalUserCountChart":       &graphql.Field{Type: graphql.NewNonNull(basicChart)},
 	},
 })
 
@@ -68,4 +67,43 @@ func checkChartDateRangeInput(rangeFrom *time.Time, rangeTo *time.Time) error {
 		return errors.New("exceed the maximum 1 year date range")
 	}
 	return nil
+}
+
+var analyticArgs = graphql.FieldConfigArgument{
+	"appID": &graphql.ArgumentConfig{
+		Type:        graphql.NewNonNull(graphql.ID),
+		Description: "Target app ID.",
+	},
+	"rangeFrom": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphqlutil.Date),
+	},
+	"rangeTo": &graphql.ArgumentConfig{
+		Type: graphql.NewNonNull(graphqlutil.Date),
+	},
+}
+
+func newAnalyticArgs(configMap graphql.FieldConfigArgument) graphql.FieldConfigArgument {
+	for fieldName, argConfig := range analyticArgs {
+		configMap[fieldName] = argConfig
+	}
+	return configMap
+}
+
+func getAnalyticArgs(args map[string]interface{}) (appID string, rangeFrom *time.Time, rangeTo *time.Time, err error) {
+	appNodeID := args["appID"].(string)
+	resolvedNodeID := relay.FromGlobalID(appNodeID)
+	if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
+		err = apierrors.NewInvalid("invalid app ID")
+		return
+	}
+	appID = resolvedNodeID.ID
+
+	if t, ok := args["rangeFrom"].(time.Time); ok {
+		rangeFrom = &t
+	}
+
+	if t, ok := args["rangeTo"].(time.Time); ok {
+		rangeTo = &t
+	}
+	return
 }

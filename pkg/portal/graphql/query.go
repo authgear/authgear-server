@@ -3,12 +3,10 @@ package graphql
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -115,43 +113,20 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 		"activeUserChart": &graphql.Field{
 			Description: "Active users chart dataset",
 			Type:        activeUserChart,
-			Args: graphql.FieldConfigArgument{
-				"appID": &graphql.ArgumentConfig{
-					Type:        graphql.NewNonNull(graphql.ID),
-					Description: "Target app ID.",
-				},
+			Args: newAnalyticArgs(graphql.FieldConfigArgument{
 				"periodical": &graphql.ArgumentConfig{
 					Type: graphql.NewNonNull(periodicalEnum),
 				},
-				"rangeFrom": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphqlutil.Date),
-				},
-				"rangeTo": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphqlutil.Date),
-				},
-			},
+			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				periodical := p.Args["periodical"].(string)
-
-				appNodeID := p.Args["appID"].(string)
-				resolvedNodeID := relay.FromGlobalID(appNodeID)
-				if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
-					return nil, apierrors.NewInvalid("invalid app ID")
-				}
-				appID := resolvedNodeID.ID
-
 				ctx := GQLContext(p.Context)
-				var rangeFrom *time.Time
-				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
-					rangeFrom = &t
+				periodical := p.Args["periodical"].(string)
+				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
+				if err != nil {
+					return nil, err
 				}
 
-				var rangeTo *time.Time
-				if t, ok := p.Args["rangeTo"].(time.Time); ok {
-					rangeTo = &t
-				}
-
-				err := checkChartDateRangeInput(rangeFrom, rangeTo)
+				err = checkChartDateRangeInput(rangeFrom, rangeTo)
 				if err != nil {
 					return nil, err
 				}
@@ -168,51 +143,85 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return graphqlutil.NewLazyValue(chart).Value, nil
 			},
 		},
-		"signupSummary": &graphql.Field{
-			Description: "Signup summary for analytic dashboard",
-			Type:        signupSummary,
-			Args: graphql.FieldConfigArgument{
-				"appID": &graphql.ArgumentConfig{
-					Type:        graphql.NewNonNull(graphql.ID),
-					Description: "Target app ID.",
-				},
-				"rangeFrom": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphqlutil.Date),
-				},
-				"rangeTo": &graphql.ArgumentConfig{
-					Type: graphql.NewNonNull(graphqlutil.Date),
-				},
-			},
+		"totalUserCountChart": &graphql.Field{
+			Description: "Total users count chart dataset",
+			Type:        totalUserCountChart,
+			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				ctx := GQLContext(p.Context)
-
-				appNodeID := p.Args["appID"].(string)
-				resolvedNodeID := relay.FromGlobalID(appNodeID)
-				if resolvedNodeID == nil || resolvedNodeID.Type != typeApp {
-					return nil, apierrors.NewInvalid("invalid app ID")
-				}
-				appID := resolvedNodeID.ID
-
-				var rangeFrom *time.Time
-				if t, ok := p.Args["rangeFrom"].(time.Time); ok {
-					rangeFrom = &t
-				}
-
-				var rangeTo *time.Time
-				if t, ok := p.Args["rangeTo"].(time.Time); ok {
-					rangeTo = &t
-				}
-
-				err := checkChartDateRangeInput(rangeFrom, rangeTo)
+				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
 				if err != nil {
 					return nil, err
 				}
 
-				signupSummary, err := ctx.AnalyticChartService.GetSignupSummary(appID, *rangeFrom, *rangeTo)
+				err = checkChartDateRangeInput(rangeFrom, rangeTo)
+				if err != nil {
+					return nil, err
+				}
+
+				chart, err := ctx.AnalyticChartService.GetTotalUserCountChat(
+					appID,
+					*rangeFrom,
+					*rangeTo,
+				)
 				if err != nil {
 					return nil, fmt.Errorf("failed to fetch dataset: %w", err)
 				}
-				return graphqlutil.NewLazyValue(signupSummary).Value, nil
+				return graphqlutil.NewLazyValue(chart).Value, nil
+			},
+		},
+		"signupConversionRate": &graphql.Field{
+			Description: "Signup conversion rate dashboard data",
+			Type:        signupConversionRate,
+			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
+				if err != nil {
+					return nil, err
+				}
+
+				err = checkChartDateRangeInput(rangeFrom, rangeTo)
+				if err != nil {
+					return nil, err
+				}
+
+				signupConversionRateData, err := ctx.AnalyticChartService.GetSignupConversionRate(
+					appID,
+					*rangeFrom,
+					*rangeTo,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch conversion rate data: %w", err)
+				}
+				return graphqlutil.NewLazyValue(signupConversionRateData).Value, nil
+			},
+		},
+		"signupByMethodsChart": &graphql.Field{
+			Description: "Signup by methods dataset",
+			Type:        signupByMethodsChart,
+			Args:        newAnalyticArgs(graphql.FieldConfigArgument{}),
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				ctx := GQLContext(p.Context)
+				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
+				if err != nil {
+					return nil, err
+				}
+
+				err = checkChartDateRangeInput(rangeFrom, rangeTo)
+				if err != nil {
+					return nil, err
+				}
+
+				chart, err := ctx.AnalyticChartService.GetSignupByMethodsChart(
+					appID,
+					*rangeFrom,
+					*rangeTo,
+				)
+				if err != nil {
+					return nil, fmt.Errorf("failed to fetch dataset: %w", err)
+				}
+				return graphqlutil.NewLazyValue(chart).Value, nil
 			},
 		},
 	},

@@ -417,8 +417,8 @@ type Query {
     ids: [ID!]!
   ): [Node]!
 
-  """Signup summary for analytic dashboard"""
-  signupSummary(
+  """Signup by methods dataset"""
+  signupByMethodsChart(
     """Target app ID."""
     appID: ID!
 
@@ -427,7 +427,31 @@ type Query {
 
     """"""
     rangeTo: Date!
-  ): SignupSummary
+  ): Chart
+
+  """Signup conversion rate dashboard data"""
+  signupConversionRate(
+    """Target app ID."""
+    appID: ID!
+
+    """"""
+    rangeFrom: Date!
+
+    """"""
+    rangeTo: Date!
+  ): SignupConversionRate
+
+  """Total users count chart dataset"""
+  totalUserCountChart(
+    """Target app ID."""
+    appID: ID!
+
+    """"""
+    rangeFrom: Date!
+
+    """"""
+    rangeTo: Date!
+  ): Chart
 
   """The current viewer"""
   viewer: User
@@ -487,34 +511,16 @@ input SecretConfigInput {
   smtpSecret: SMTPSecretInput
 }
 
-"""Signup summary for analytic dashboard"""
-type SignupSummary {
+"""Signup conversion rate dashboard data"""
+type SignupConversionRate {
   """"""
   conversionRate: Float!
-
-  """"""
-  signupByChannelChart: Chart!
-
-  """"""
-  totalLoginPageView: Int!
-
-  """"""
-  totalLoginUniquePageView: Int!
 
   """"""
   totalSignup: Int!
 
   """"""
-  totalSignupPageCount: Int!
-
-  """"""
   totalSignupUniquePageView: Int!
-
-  """"""
-  totalUserCount: Int!
-
-  """"""
-  totalUserCountChart: Chart!
 }
 
 """"""

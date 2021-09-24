@@ -25,7 +25,7 @@ type UserWeeklyReport struct {
 func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (data *ReportData, err error) {
 	rangeFormPtr, err := timeutil.FirstDayOfISOWeek(options.Year, options.Week, time.UTC)
 	if err != nil {
-		err = fmt.Errorf("invald year or week number: %w", err)
+		err = fmt.Errorf("invalid year or week number: %w", err)
 		return
 	}
 	rangeFrom := *rangeFormPtr

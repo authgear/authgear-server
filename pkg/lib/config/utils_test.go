@@ -42,4 +42,5 @@ func TestSecretLogHook(t *testing.T) {
 			})
 		})
 	})
+
 }

@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 
+	configlib "github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 type ResourceManager interface {
@@ -20,6 +22,7 @@ type SystemConfigProvider struct {
 	AppConfig      *config.AppConfig
 	SearchConfig   *config.SearchConfig
 	AuditLogConfig *config.AuditLogConfig
+	AnalyticConfig *configlib.AnalyticConfig
 	Resources      ResourceManager
 }
 
@@ -34,6 +37,11 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		return nil, err
 	}
 
+	var analyticEpoch *timeutil.Date
+	if !p.AnalyticConfig.Epoch.IsZero() {
+		analyticEpoch = &p.AnalyticConfig.Epoch
+	}
+
 	return &model.SystemConfig{
 		AuthgearClientID:   p.AuthgearConfig.ClientID,
 		AuthgearEndpoint:   p.AuthgearConfig.Endpoint,
@@ -44,6 +52,8 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		Translations:       translations,
 		SearchEnabled:      p.SearchConfig.Enabled,
 		AuditLogEnabled:    p.AuditLogConfig.Enabled,
+		AnalyticEnabled:    p.AnalyticConfig.Enabled,
+		AnalyticEpoch:      analyticEpoch,
 	}, nil
 }
 

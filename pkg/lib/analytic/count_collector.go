@@ -43,7 +43,7 @@ type CountCollector struct {
 
 func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err error) {
 	utc := date.UTC()
-	rangeFrom := time.Date(utc.Year(), utc.Month(), utc.Day(), 0, 0, 0, 0, time.UTC)
+	rangeFrom := timeutil.TruncateToDate(utc)
 	rangeTo := rangeFrom.AddDate(0, 0, 1)
 
 	appIDs, err := c.getAppIDs()
@@ -277,7 +277,7 @@ func (c *CountCollector) CollectWeeklyForApp(appID string, date *time.Time) (cou
 
 func (c *CountCollector) CollectMonthlyForApp(appID string, date *time.Time) (counts []*Count, redisKeys []string, err error) {
 	utc := date.UTC()
-	firstDayOfTheMonth := time.Date(utc.Year(), utc.Month(), 1, 0, 0, 0, 0, time.UTC)
+	firstDayOfTheMonth := timeutil.FirstDayOfTheMonth(utc)
 	if err != nil {
 		return
 	}

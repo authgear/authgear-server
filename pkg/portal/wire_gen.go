@@ -228,17 +228,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	smtpService := &smtp.Service{
 		Context: context,
 	}
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
-	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	databaseConfig := deps.ProvideDatabaseConfig(databaseEnvironmentConfig)
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
 	readHandle := auditdb.NewReadHandle(context, pool, databaseConfig, auditDatabaseCredentials, logFactory)
+	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
 	readSQLExecutor := auditdb.NewReadSQLExecutor(context, readHandle)
 	auditDBReadStore := &analytic.AuditDBReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
 	}
+	analyticConfig := rootProvider.AnalyticConfig
 	chartService := &analytic.ChartService{
-		AuditStore: auditDBReadStore,
+		Database:       readHandle,
+		AuditStore:     auditDBReadStore,
+		Clock:          clock,
+		AnalyticConfig: analyticConfig,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:               logger,
@@ -276,12 +280,14 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	appConfig := rootProvider.AppConfig
 	searchConfig := rootProvider.SearchConfig
 	auditLogConfig := rootProvider.AuditLogConfig
+	analyticConfig := rootProvider.AnalyticConfig
 	manager := rootProvider.Resources
 	systemConfigProvider := &service.SystemConfigProvider{
 		AuthgearConfig: authgearConfig,
 		AppConfig:      appConfig,
 		SearchConfig:   searchConfig,
 		AuditLogConfig: auditLogConfig,
+		AnalyticConfig: analyticConfig,
 		Resources:      manager,
 	}
 	systemConfigHandler := &transport.SystemConfigHandler{
