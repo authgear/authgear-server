@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -345,4 +346,51 @@ func (s *Service) RemoveOrphanedClaims(identities []*identity.Info, authenticato
 		}
 	}
 	return nil
+}
+
+// DeriveStandardAttributes populates email_verified and phone_number_verified,
+// if email or phone_number are found in attrs.
+func (s *Service) DeriveStandardAttributes(userID string, attrs map[string]interface{}) (map[string]interface{}, error) {
+	out := make(map[string]interface{})
+
+	for key, value := range attrs {
+		// Copy
+		out[key] = value
+
+		// Email
+		if key == stdattrs.Email {
+			verified := false
+			if str, ok := value.(string); ok {
+				claims, err := s.ClaimStore.ListByClaimName(userID, stdattrs.Email)
+				if err != nil {
+					return nil, err
+				}
+				for _, claim := range claims {
+					if claim.Value == str {
+						verified = true
+					}
+				}
+			}
+			out[stdattrs.EmailVerified] = verified
+		}
+
+		// Phone number
+		if key == stdattrs.PhoneNumber {
+			verified := false
+			if str, ok := value.(string); ok {
+				claims, err := s.ClaimStore.ListByClaimName(userID, stdattrs.PhoneNumber)
+				if err != nil {
+					return nil, err
+				}
+				for _, claim := range claims {
+					if claim.Value == str {
+						verified = true
+					}
+				}
+			}
+			out[stdattrs.PhoneNumberVerified] = verified
+		}
+	}
+
+	return out, nil
 }
