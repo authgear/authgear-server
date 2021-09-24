@@ -10,6 +10,7 @@ import (
 	portalresource "github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 )
 
 type ResourceManager interface {
@@ -36,8 +37,8 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		return nil, err
 	}
 
-	var analyticEpoch *configlib.Date
-	if !p.AnalyticConfig.Epoch.IsEmpty() {
+	var analyticEpoch *timeutil.Date
+	if !p.AnalyticConfig.Epoch.IsZero() {
 		analyticEpoch = &p.AnalyticConfig.Epoch
 	}
 

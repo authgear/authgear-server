@@ -1,9 +1,7 @@
 package config_test
 
 import (
-	"encoding/json"
 	"testing"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
@@ -45,15 +43,4 @@ func TestSecretLogHook(t *testing.T) {
 		})
 	})
 
-	Convey("test Date type", t, func() {
-		Convey("test MarshalJSON", func() {
-			t := config.Date(time.Date(2006, 1, 2, 0, 0, 0, 0, time.UTC))
-			dateB, _ := json.Marshal(&t)
-			So(string(dateB), ShouldResemble, `"2006-01-02"`)
-
-			var tPtr *time.Time
-			dateB, _ = json.Marshal(tPtr)
-			So(string(dateB), ShouldResemble, `null`)
-		})
-	})
 }

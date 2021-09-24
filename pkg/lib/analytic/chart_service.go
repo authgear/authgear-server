@@ -159,7 +159,7 @@ func (s *ChartService) GetBoundedRange(
 	today := timeutil.TruncateToDate(s.Clock.NowUTC())
 	newRangeFrom = rangeFrom
 	newRangeTo = rangeTo
-	if !s.AnalyticConfig.Epoch.IsEmpty() {
+	if !s.AnalyticConfig.Epoch.IsZero() {
 		epoch := time.Time(s.AnalyticConfig.Epoch)
 		if newRangeFrom.Before(epoch) {
 			newRangeFrom = epoch

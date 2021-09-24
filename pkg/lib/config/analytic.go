@@ -1,6 +1,10 @@
 package config
 
+import (
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
+)
+
 type AnalyticConfig struct {
-	Enabled bool `envconfig:"ENABLED" default:"false"`
-	Epoch   Date `envconfig:"EPOCH"`
+	Enabled bool          `envconfig:"ENABLED" default:"false"`
+	Epoch   timeutil.Date `envconfig:"EPOCH"`
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/periodical"
+	"github.com/authgear/authgear-server/pkg/util/timeutil"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -17,7 +18,7 @@ func TestChartService(t *testing.T) {
 		svc := &analytic.ChartService{
 			Clock: clock,
 			AnalyticConfig: &config.AnalyticConfig{
-				Epoch: config.Date(time.Date(2005, 6, 15, 0, 0, 0, 0, time.UTC)),
+				Epoch: timeutil.Date(time.Date(2005, 6, 15, 0, 0, 0, 0, time.UTC)),
 			},
 		}
 		Convey("TestGetBoundedRange", func() {
