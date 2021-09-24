@@ -824,7 +824,6 @@
 
   "SubscriptionScreen.contact-us.label": "Contact Us",
 
-  "SubscriptionScreen.plan-features.title": "Plan Features",
   "SubscriptionScreen.plan-features.desc": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing#compare-plans} children{pricing page}}.",
 
   "SMTPConfigurationScreen.title": "Custom Email Provider",
