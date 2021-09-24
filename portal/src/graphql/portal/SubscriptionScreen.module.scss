@@ -5,47 +5,40 @@
   flex-direction: column;
 }
 
-.section {
-  padding: 0 15px;
-  margin: 30px 0;
-}
-
-.subTitle {
-  font-weight: 600;
-  margin-bottom: 15px;
+.widget {
+  margin: 10px 15px;
+  width: 1176px;
 }
 
 .summaryList {
   display: flex;
   flex-direction: row;
   max-width: 600px;
+  margin: 20px 10px 10px;
 
   .summaryItem {
     flex-grow: 1;
     .label {
-      color: $neutral-tertiary-color;
+      color: $neutral-secondary-color;
       margin-bottom: 5px;
-    }
-    .value {
-      font-weight: 600;
     }
   }
 }
 
 .planBlockList {
-  width: calc(3 * 325px + 2 * 20px + 2 * 20px);
+  width: calc(3 * 368px + 2 * 16px);
   display: grid;
-  grid-template-columns: repeat(3, 325px);
+  grid-template-columns: repeat(3, 368px);
   grid-auto-rows: auto;
-  gap: 20px;
-  padding: 0 20px;
-  margin: 0 -20px;
+  gap: 16px;
+  margin: 20px 10px;
 
   .planBlockItem {
     display: flex;
     flex-direction: column;
-    padding: 40px;
+    padding: 20px;
     overflow: hidden;
+    border: 1px solid $neutral-light;
   }
 
   .title {
@@ -54,7 +47,7 @@
   }
 
   .desc {
-    color: $neutral-tertiary-color;
+    color: $neutral-secondary-color;
     margin-bottom: 40px;
   }
 
@@ -86,8 +79,8 @@
     flex-grow: 1;
     color: $theme-tertiary-color;
     white-space: pre-wrap;
-    line-height: 24px;
-    margin-bottom: 50px;
+    line-height: 26px;
+    margin-bottom: 110px;
   }
 
   .contactUsLink {

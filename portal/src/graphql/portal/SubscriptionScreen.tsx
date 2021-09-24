@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import { PrimaryButton, Text, DefaultEffects } from "@fluentui/react";
+import { PrimaryButton, Text } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
@@ -8,6 +8,8 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import styles from "./SubscriptionScreen.module.scss";
+import Widget from "../../Widget";
+import WidgetTitle from "../../WidgetTitle";
 
 const contactUsLink = "https://oursky.typeform.com/to/PecQiGfc";
 
@@ -30,16 +32,16 @@ const SubscriptionPlanSummary: React.FC<SubscriptionPlanSummaryProps> =
     }, [planName]);
 
     return (
-      <div className={styles.section}>
-        <Text as="h2" variant="medium" block={true} className={styles.subTitle}>
+      <Widget className={styles.widget}>
+        <WidgetTitle>
           <FormattedMessage id="SubscriptionScreen.current-plan-summary.title" />
-        </Text>
+        </WidgetTitle>
         <div className={styles.summaryList}>
           <div className={styles.summaryItem}>
-            <Text variant="smallPlus" block={true} className={styles.label}>
+            <Text variant="medium" block={true} className={styles.label}>
               <FormattedMessage id="SubscriptionScreen.subscription.label" />
             </Text>
-            <Text variant="medium" block={true} className={styles.value}>
+            <Text variant="xLarge" block={true}>
               {isCustom ? (
                 <>{planName}</>
               ) : (
@@ -50,10 +52,10 @@ const SubscriptionPlanSummary: React.FC<SubscriptionPlanSummaryProps> =
             </Text>
           </div>
           <div className={styles.summaryItem}>
-            <Text variant="smallPlus" block={true} className={styles.label}>
+            <Text variant="medium" block={true} className={styles.label}>
               <FormattedMessage id="SubscriptionScreen.monthly-active-users.label" />
             </Text>
-            <Text variant="medium" block={true} className={styles.value}>
+            <Text variant="xLarge" block={true}>
               {isCustom ? (
                 <>-</>
               ) : (
@@ -64,10 +66,10 @@ const SubscriptionPlanSummary: React.FC<SubscriptionPlanSummaryProps> =
             </Text>
           </div>
           <div className={styles.summaryItem}>
-            <Text variant="smallPlus" block={true} className={styles.label}>
+            <Text variant="medium" block={true} className={styles.label}>
               <FormattedMessage id="SubscriptionScreen.plan-cost.label" />
             </Text>
-            <Text variant="medium" className={styles.value}>
+            <Text variant="xLarge">
               {isCustom ? (
                 <>-</>
               ) : (
@@ -78,7 +80,7 @@ const SubscriptionPlanSummary: React.FC<SubscriptionPlanSummaryProps> =
             </Text>
           </div>
         </div>
-      </div>
+      </Widget>
     );
   };
 
@@ -103,14 +105,11 @@ const SubscriptionPlanBlock: React.FC<SubscriptionPlanBlockProps> =
     }, [planName, renderToString]);
 
     return (
-      <div
-        className={styles.planBlockItem}
-        style={{ boxShadow: DefaultEffects.elevation4 }}
-      >
-        <Text as="h3" variant="medium" block={true} className={styles.title}>
+      <div className={styles.planBlockItem}>
+        <Text as="h3" variant="xLarge" block={true} className={styles.title}>
           {planCopy.title}
         </Text>
-        <Text variant="smallPlus" block={true} className={styles.desc}>
+        <Text variant="medium" block={true} className={styles.desc}>
           {planCopy.desc}
         </Text>
         <Text variant="xLarge" block={true} className={styles.price}>
@@ -120,12 +119,12 @@ const SubscriptionPlanBlock: React.FC<SubscriptionPlanBlockProps> =
           {planCopy.mau}
         </Text>
         {planCopy.extraCost && (
-          <Text variant="smallPlus" block={true} className={styles.extraCost}>
+          <Text variant="medium" block={true} className={styles.extraCost}>
             {planCopy.extraCost}
           </Text>
         )}
         <div className={styles.separator} />
-        <Text variant="smallPlus" block={true} className={styles.features}>
+        <Text variant="medium" block={true} className={styles.features}>
           {planCopy.features}
         </Text>
         <PrimaryButton
@@ -142,26 +141,23 @@ const SubscriptionPlanBlock: React.FC<SubscriptionPlanBlockProps> =
 
 const SubscriptionPlanBlocks: React.FC = function SubscriptionPlanBlocks() {
   return (
-    <div className={styles.section}>
-      <Text as="h2" variant="medium" block={true} className={styles.subTitle}>
+    <Widget className={styles.widget}>
+      <WidgetTitle>
         <FormattedMessage id="SubscriptionScreen.upgrade-your-plan.title" />
-      </Text>
+      </WidgetTitle>
       <div className={styles.planBlockList}>
         {paidPlansForBlocksList.map((planName) => (
           <SubscriptionPlanBlock key={planName} planName={planName} />
         ))}
       </div>
-    </div>
+    </Widget>
   );
 };
 
 const SubscriptionPlanFeatures: React.FC = function SubscriptionPlanFeatures() {
   return (
-    <div className={styles.section}>
-      <Text as="h2" variant="medium" block={true} className={styles.subTitle}>
-        <FormattedMessage id="SubscriptionScreen.plan-features.title" />
-      </Text>
-      <Text as="p" variant="smallPlus" block={true}>
+    <div className={styles.widget}>
+      <Text as="p" variant="medium" block={true}>
         <FormattedMessage id="SubscriptionScreen.plan-features.desc" />
       </Text>
     </div>
