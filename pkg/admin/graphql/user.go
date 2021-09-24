@@ -106,6 +106,18 @@ var nodeUser = node(
 			"disableReason": &graphql.Field{
 				Type: graphql.String,
 			},
+			"standardAttributes": &graphql.Field{
+				Type: graphql.NewNonNull(UserStandardAttributes),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*user.User)
+					gqlCtx := GQLContext(p.Context)
+					attrs, err := gqlCtx.VerificationFacade.DeriveStandardAttributes(source.ID, source.StandardAttributes)
+					if err != nil {
+						return nil, err
+					}
+					return attrs, nil
+				},
+			},
 		},
 	}),
 	&user.User{},
