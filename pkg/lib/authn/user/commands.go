@@ -53,7 +53,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	stdAttrs, err := c.Verification.DeriveStandardAttributes(user.ID, user.StandardAttributes)
+	stdAttrs, err := c.Verification.DeriveStandardAttributes(user.ID, user.UpdatedAt, user.StandardAttributes)
 	if err != nil {
 		return err
 	}
