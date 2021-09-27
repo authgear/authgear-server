@@ -1,7 +1,6 @@
 package stdattrs
 
 import (
-	"strings"
 	"time"
 
 	"golang.org/x/text/language"
@@ -94,19 +93,9 @@ func normalizeLocale(t T) {
 
 func normalizeZoneinfo(t T) {
 	if value, ok := t[Zoneinfo].(string); ok {
-		if value == "" {
+		err := validation.FormatTimezone{}.CheckFormat(value)
+		if err != nil {
 			delete(t, Zoneinfo)
-		} else {
-			// Canonical tz database name must contain at least one /
-			hasSlash := strings.Contains(value, "/")
-			if !hasSlash {
-				delete(t, Zoneinfo)
-			} else {
-				_, err := time.LoadLocation(value)
-				if err != nil {
-					delete(t, Zoneinfo)
-				}
-			}
 		}
 	} else {
 		delete(t, Zoneinfo)

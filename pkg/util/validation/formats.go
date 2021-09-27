@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
 	"golang.org/x/text/language"
@@ -22,6 +23,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
+	jsonschemaformat.DefaultChecker["timezone"] = FormatTimezone{}
 	jsonschemaformat.DefaultChecker["x_totp_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_oob_otp_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_verification_code"] = secretcode.OOBOTPSecretCode
@@ -178,6 +180,27 @@ func (f FormatBCP47) CheckFormat(value interface{}) error {
 	canonical := tag.String()
 	if str != canonical {
 		return fmt.Errorf("non-canonical BCP 47 tag: %v != %v", str, canonical)
+	}
+
+	return nil
+}
+
+type FormatTimezone struct{}
+
+func (FormatTimezone) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	hasSlash := strings.Contains(str, "/")
+	if !hasSlash {
+		return fmt.Errorf("valid timezone name has at least 1 slash: %#v", str)
+	}
+
+	_, err := time.LoadLocation(str)
+	if err != nil {
+		return fmt.Errorf("invalid timezone name: %w", err)
 	}
 
 	return nil
