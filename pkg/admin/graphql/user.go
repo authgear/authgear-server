@@ -111,7 +111,7 @@ var nodeUser = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*user.User)
 					gqlCtx := GQLContext(p.Context)
-					attrs, err := gqlCtx.VerificationFacade.DeriveStandardAttributes(source.ID, source.StandardAttributes)
+					attrs, err := gqlCtx.VerificationFacade.DeriveStandardAttributes(source.ID, source.UpdatedAt, source.StandardAttributes)
 					if err != nil {
 						return nil, err
 					}
