@@ -103,5 +103,7 @@ func TestFormatBCP47(t *testing.T) {
 		So(f("en"), ShouldBeNil)
 		So(f("zh-TW"), ShouldBeNil)
 		So(f("und"), ShouldBeNil)
+
+		So(f("zh_TW"), ShouldBeError, "non-canonical BCP 47 tag: zh_TW != zh-TW")
 	})
 }
