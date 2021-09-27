@@ -41,6 +41,7 @@ type UserFacade interface {
 	ResetPassword(id string, password string) error
 	SetDisabled(id string, isDisabled bool, reason *string) error
 	Delete(id string) error
+	UpdateStandardAttributes(id string, stdAttrs map[string]interface{}) error
 }
 
 type IdentityFacade interface {
