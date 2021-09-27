@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -62,12 +61,7 @@ func (c *RawCommands) UpdateDisabledStatus(userID string, isDisabled bool, reaso
 	return c.Store.UpdateDisabledStatus(userID, isDisabled, reason)
 }
 
-func (c *RawCommands) UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
-	err := stdattrs.Validate(stdattrs.T(stdAttrs))
-	if err != nil {
-		return err
-	}
-	// FIXME: validate identity-aware standard attributes
+func (c *RawCommands) UpdateStandardAttributesUnsafe(userID string, stdAttrs map[string]interface{}) error {
 	return c.Store.UpdateStandardAttributes(userID, stdAttrs)
 }
 
