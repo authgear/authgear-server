@@ -182,6 +182,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clock,
 	}
 	rawQueries := &user.RawQueries{
 		Store: userStore,
