@@ -107,3 +107,18 @@ func TestFormatBCP47(t *testing.T) {
 		So(f("zh_TW"), ShouldBeError, "non-canonical BCP 47 tag: zh_TW != zh-TW")
 	})
 }
+
+func TestFormatTimezone(t *testing.T) {
+	f := FormatTimezone{}.CheckFormat
+
+	Convey("FormatTimezone", t, func() {
+		So(f(1), ShouldBeNil)
+
+		So(f(""), ShouldBeError, `valid timezone name has at least 1 slash: ""`)
+		So(f("UTC"), ShouldBeError, `valid timezone name has at least 1 slash: "UTC"`)
+
+		So(f("Asia/Hong_Kong"), ShouldBeNil)
+		So(f("ASIA/HONG_KONG"), ShouldBeNil)
+		So(f("Etc/UTC"), ShouldBeNil)
+	})
+}
