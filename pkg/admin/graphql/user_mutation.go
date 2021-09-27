@@ -262,6 +262,60 @@ var _ = registerMutationField(
 	},
 )
 
+var updateUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "UpdateUserInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"standardAttributes": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(UserStandardAttributes),
+			Description: "Whole standard attributes to be set on the user.",
+		},
+	},
+})
+
+var updateUserPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "UpdateUserPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"updateUser",
+	&graphql.Field{
+		Description: "Update user",
+		Type:        graphql.NewNonNull(updateUserPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(updateUserInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			// FIXME: update standard attributes.
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
 var deleteUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "DeleteUserInput",
 	Fields: graphql.InputObjectConfigFieldMap{
