@@ -1,8 +1,6 @@
 package stdattrs
 
 import (
-	"time"
-
 	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -102,30 +100,10 @@ func normalizeZoneinfo(t T) {
 	}
 }
 
-func IsValidBirthdate(value string) bool {
-	if _, err := time.Parse("2006-01-02", value); err == nil {
-		return true
-	}
-
-	if _, err := time.Parse("0000-01-02", value); err == nil {
-		return true
-	}
-
-	if _, err := time.Parse("--01-02", value); err == nil {
-		return true
-	}
-
-	if _, err := time.Parse("2006", value); err == nil {
-		return true
-	}
-
-	return false
-}
-
 func normalizeBirthdate(t T) {
 	if value, ok := t[Birthdate].(string); ok {
-		ok = IsValidBirthdate(value)
-		if !ok {
+		err := validation.FormatBirthdate{}.CheckFormat(value)
+		if err != nil {
 			delete(t, Birthdate)
 		}
 	} else {
