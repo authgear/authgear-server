@@ -62,6 +62,7 @@ func (c *RawCommands) UpdateDisabledStatus(userID string, isDisabled bool, reaso
 }
 
 func (c *RawCommands) UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
+	// FIXME: validate stdAttrs
 	return c.Store.UpdateStandardAttributes(userID, stdAttrs)
 }
 

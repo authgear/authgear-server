@@ -19,6 +19,7 @@ type UserService interface {
 	Count() (uint64, error)
 	QueryPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
+	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 	Delete(userID string) error
 }
 
@@ -117,6 +118,18 @@ func (f *UserFacade) Delete(id string) error {
 		return err
 	}
 	err = f.UserSearchService.ReindexUser(id, true)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) UpdateStandardAttributes(id string, stdAttrs map[string]interface{}) error {
+	err := f.Users.UpdateStandardAttributes(id, stdAttrs)
+	if err != nil {
+		return err
+	}
+	err = f.UserSearchService.ReindexUser(id, false)
 	if err != nil {
 		return err
 	}
