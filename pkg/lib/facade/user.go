@@ -12,6 +12,7 @@ type UserProvider interface {
 	Count() (uint64, error)
 	QueryPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
+	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 }
 
 type UserFacade struct {
