@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -57,7 +58,7 @@ type UserQueries interface {
 
 type UserCommands interface {
 	Delete(userID string) error
-	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributesUnsafe(userID string, stdAttrs map[string]interface{}) error
 }
 
 type PasswordHistoryStore interface {
@@ -311,6 +312,60 @@ func (c *Coordinator) UserDelete(userID string) error {
 	return c.UserCommands.Delete(userID)
 }
 
+func (c *Coordinator) UserUpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
+	err := stdattrs.Validate(stdattrs.T(stdAttrs))
+	if err != nil {
+		return err
+	}
+
+	identities, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return err
+	}
+
+	ownedEmails := make(map[string]struct{})
+	ownedPhoneNumbers := make(map[string]struct{})
+	ownedPreferredUsernames := make(map[string]struct{})
+	for _, iden := range identities {
+		if email, ok := iden.Claims[stdattrs.Email].(string); ok && email != "" {
+			ownedEmails[email] = struct{}{}
+		}
+		if phoneNumber, ok := iden.Claims[stdattrs.PhoneNumber].(string); ok && phoneNumber != "" {
+			ownedPhoneNumbers[phoneNumber] = struct{}{}
+		}
+		if preferredUsername, ok := iden.Claims[stdattrs.PreferredUsername].(string); ok && preferredUsername != "" {
+			ownedPreferredUsernames[preferredUsername] = struct{}{}
+		}
+	}
+
+	check := func(key string, allowedValues map[string]struct{}) error {
+		if value, ok := stdAttrs[key].(string); ok {
+			_, allowed := allowedValues[value]
+			if !allowed {
+				return fmt.Errorf("unowned %v: %v", key, value)
+			}
+		}
+		return nil
+	}
+
+	err = check(stdattrs.Email, ownedEmails)
+	if err != nil {
+		return err
+	}
+
+	err = check(stdattrs.PhoneNumber, ownedPhoneNumbers)
+	if err != nil {
+		return err
+	}
+
+	err = check(stdattrs.PreferredUsername, ownedPreferredUsernames)
+	if err != nil {
+		return err
+	}
+
+	return c.UserCommands.UpdateStandardAttributesUnsafe(userID, stdAttrs)
+}
+
 func (c *Coordinator) removeOrphans(userID string) error {
 	identities, err := c.Identities.ListByUser(userID)
 	if err != nil {
@@ -465,7 +520,7 @@ func (c *Coordinator) populateIdentityAwareStandardAttributes(userID string) (er
 	populate(stdattrs.PreferredUsername, preferredUsernames)
 
 	if updated {
-		err = c.UserCommands.UpdateStandardAttributes(userID, user.StandardAttributes)
+		err = c.UserCommands.UpdateStandardAttributesUnsafe(userID, user.StandardAttributes)
 		if err != nil {
 			return
 		}
