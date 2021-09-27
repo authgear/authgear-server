@@ -33,7 +33,7 @@ func (c *Commands) PopulateStandardAttributes(userID string, iden *identity.Info
 	originalStdAttrs := stdattrs.T(user.StandardAttributes)
 	stdAttrs := originalStdAttrs.MergedWith(stdAttrsFromIden)
 
-	err = c.RawCommands.UpdateStandardAttributes(userID, stdAttrs.ToClaims())
+	err = c.RawCommands.UpdateStandardAttributesUnsafe(userID, stdAttrs.ToClaims())
 	if err != nil {
 		return err
 	}
