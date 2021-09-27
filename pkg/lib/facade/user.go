@@ -12,7 +12,6 @@ type UserProvider interface {
 	Count() (uint64, error)
 	QueryPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
-	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 }
 
 type UserFacade struct {
@@ -22,4 +21,8 @@ type UserFacade struct {
 
 func (u UserFacade) Delete(userID string) error {
 	return u.Coordinator.UserDelete(userID)
+}
+
+func (u UserFacade) UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
+	return u.Coordinator.UserUpdateStandardAttributes(userID, stdAttrs)
 }
