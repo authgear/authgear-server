@@ -11,6 +11,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -29,6 +30,7 @@ type store interface {
 type Store struct {
 	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
+	Clock       clock.Clock
 }
 
 func (s *Store) Create(u *User) (err error) {
@@ -231,6 +233,8 @@ func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *str
 }
 
 func (s *Store) UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
+	now := s.Clock.NowUTC()
+
 	if stdAttrs == nil {
 		stdAttrs = make(map[string]interface{})
 	}
@@ -243,6 +247,7 @@ func (s *Store) UpdateStandardAttributes(userID string, stdAttrs map[string]inte
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("standard_attributes", stdAttrsBytes).
+		Set("updated_at", now).
 		Where("id = ?", userID)
 
 	_, err = s.SQLExecutor.ExecWith(builder)

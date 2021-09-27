@@ -357,6 +357,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -953,6 +954,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -1496,6 +1498,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -1836,9 +1839,11 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -1868,7 +1873,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -2245,9 +2249,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -2277,7 +2283,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -2619,9 +2624,11 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -2651,7 +2658,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -2997,9 +3003,11 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -3029,7 +3037,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,
@@ -3609,6 +3616,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -4177,6 +4185,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -4777,6 +4786,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -5377,6 +5387,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -5964,6 +5975,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -6552,6 +6564,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -7132,6 +7145,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -7715,6 +7729,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -8301,6 +8316,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -8884,6 +8900,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -9466,6 +9483,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -10049,6 +10067,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -10633,6 +10652,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -11215,6 +11235,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -11797,6 +11818,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -12381,6 +12403,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -12963,6 +12986,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -13545,6 +13569,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -14130,6 +14155,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -14712,6 +14738,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -15299,6 +15326,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -15881,6 +15909,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -16464,6 +16493,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -17046,6 +17076,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -17647,6 +17678,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -18231,6 +18263,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -18814,6 +18847,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -19406,6 +19440,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -19989,6 +20024,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -20572,6 +20608,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -21156,6 +21193,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -21745,6 +21783,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -22328,6 +22367,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -22911,6 +22951,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -23494,6 +23535,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -24077,6 +24119,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -24659,6 +24702,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -25261,6 +25305,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -25843,6 +25888,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -26486,6 +26532,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userStore := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
 		Store: userStore,
