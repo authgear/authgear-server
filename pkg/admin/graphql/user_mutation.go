@@ -307,7 +307,12 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			// FIXME: update standard attributes.
+			stdAttrs := input["standardAttributes"].(map[string]interface{})
+
+			err := gqlCtx.UserFacade.UpdateStandardAttributes(userID, stdAttrs)
+			if err != nil {
+				return nil, err
+			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"user": gqlCtx.Users.Load(userID),
