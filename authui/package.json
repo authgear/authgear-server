@@ -10,7 +10,7 @@
     "@babel/core": "7.15.5",
     "@babel/preset-env": "7.15.6",
     "@babel/preset-typescript": "7.15.0",
-    "@types/luxon": "1.27.0",
+    "@types/luxon": "1.27.1",
     "@types/turbolinks": "5.2.0",
     "@types/zxcvbn": "4.4.1",
     "babel-loader": "8.2.2",
@@ -30,7 +30,7 @@
     "webpack-cli": "4.8.0"
   },
   "dependencies": {
-    "luxon": "1.27.0",
+    "luxon": "1.28.0",
     "turbolinks": "5.2.0",
     "zxcvbn": "4.4.2"
   }
