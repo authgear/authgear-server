@@ -415,6 +415,9 @@ type Mutation {
 
   """Set verified status of a claim of user"""
   setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
+
+  """Update user"""
+  updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
 
 """An object with an ID"""
@@ -609,6 +612,21 @@ enum SortDirection {
 
   """"""
   DESC
+}
+
+""""""
+input UpdateUserInput {
+  """Whole standard attributes to be set on the user."""
+  standardAttributes: UserStandardAttributes!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type UpdateUserPayload {
+  """"""
+  user: User!
 }
 
 """Authgear user"""
