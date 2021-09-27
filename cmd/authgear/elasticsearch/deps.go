@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -41,6 +42,7 @@ var DependencySet = wire.NewSet(
 	globaldb.DependencySet,
 	appdb.NewHandle,
 	appdb.DependencySet,
+	clock.DependencySet,
 	wire.Struct(new(user.Store), "*"),
 	wire.Struct(new(identityoauth.Store), "*"),
 	wire.Struct(new(identityloginid.Store), "*"),
