@@ -144,9 +144,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.AppDatabase
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	rawQueries := &user.RawQueries{
 		Store: store,
@@ -176,7 +178,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	normalizerFactory := &loginid.NormalizerFactory{
 		Config: loginIDConfig,
 	}
-	clockClock := _wireSystemClockValue
 	provider := &loginid.Provider{
 		Store:             loginidStore,
 		Config:            loginIDConfig,

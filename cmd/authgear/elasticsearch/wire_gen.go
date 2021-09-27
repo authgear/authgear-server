@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 // Injectors from wire.go:
@@ -43,9 +44,11 @@ func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 	handle := appdb.NewHandle(ctx, pool, databaseConfig, databaseCredentials, factory)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
+	clock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clock,
 	}
 	oauthStore := &oauth.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -64,3 +67,7 @@ func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 	}
 	return reindexer
 }
+
+var (
+	_wireSystemClockValue = clock.NewSystemClock()
+)
