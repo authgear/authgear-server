@@ -122,3 +122,19 @@ func TestFormatTimezone(t *testing.T) {
 		So(f("Etc/UTC"), ShouldBeNil)
 	})
 }
+
+func TestFormatBirthdate(t *testing.T) {
+	f := FormatBirthdate{}.CheckFormat
+
+	Convey("FormatBirthdate", t, func() {
+		So(f(1), ShouldBeNil)
+
+		So(f(""), ShouldBeError, `invalid birthdate: ""`)
+		So(f("foobar"), ShouldBeError, `invalid birthdate: "foobar"`)
+
+		So(f("2021"), ShouldBeNil)
+		So(f("--01-01"), ShouldBeNil)
+		So(f("0000-01-01"), ShouldBeNil)
+		So(f("2021-01-01"), ShouldBeNil)
+	})
+}
