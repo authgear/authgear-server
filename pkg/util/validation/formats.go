@@ -170,9 +170,14 @@ func (f FormatBCP47) CheckFormat(value interface{}) error {
 		return nil
 	}
 
-	_, err := language.Parse(str)
+	tag, err := language.Parse(str)
 	if err != nil {
 		return fmt.Errorf("invalid BCP 47 tag: %w", err)
+	}
+
+	canonical := tag.String()
+	if str != canonical {
+		return fmt.Errorf("non-canonical BCP 47 tag: %v != %v", str, canonical)
 	}
 
 	return nil
