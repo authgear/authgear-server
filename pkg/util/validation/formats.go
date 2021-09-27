@@ -24,6 +24,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
 	jsonschemaformat.DefaultChecker["timezone"] = FormatTimezone{}
+	jsonschemaformat.DefaultChecker["birthdate"] = FormatBirthdate{}
 	jsonschemaformat.DefaultChecker["x_totp_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_oob_otp_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_verification_code"] = secretcode.OOBOTPSecretCode
@@ -204,4 +205,31 @@ func (FormatTimezone) CheckFormat(value interface{}) error {
 	}
 
 	return nil
+}
+
+type FormatBirthdate struct{}
+
+func (FormatBirthdate) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	if _, err := time.Parse("2006-01-02", str); err == nil {
+		return nil
+	}
+
+	if _, err := time.Parse("0000-01-02", str); err == nil {
+		return nil
+	}
+
+	if _, err := time.Parse("--01-02", str); err == nil {
+		return nil
+	}
+
+	if _, err := time.Parse("2006", str); err == nil {
+		return nil
+	}
+
+	return fmt.Errorf("invalid birthdate: %#v", str)
 }
