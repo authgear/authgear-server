@@ -423,6 +423,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
+	userProfileConfig := appConfig.UserProfile
+	commands := &user.Commands{
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -465,7 +473,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service4,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
+		UserCommands:    commands,
 		UserQueries:     rawQueries,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
@@ -509,14 +517,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuth:     oauthStore,
 		LoginID:   loginidStore,
 		TaskQueue: queue,
-	}
-	userProfileConfig := appConfig.UserProfile
-	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,

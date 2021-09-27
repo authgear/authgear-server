@@ -441,6 +441,14 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:                  clock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
+	userProfileConfig := appConfig.UserProfile
+	commands := &user.Commands{
+		RawCommands:       rawCommands,
+		RawQueries:        rawQueries,
+		Events:            eventService,
+		Verification:      verificationService,
+		UserProfileConfig: userProfileConfig,
+	}
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
 		Clock:     clock,
@@ -458,7 +466,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
+		UserCommands:    commands,
 		UserQueries:     rawQueries,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
