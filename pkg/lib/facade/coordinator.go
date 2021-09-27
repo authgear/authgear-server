@@ -363,7 +363,18 @@ func (c *Coordinator) UserUpdateStandardAttributes(userID string, stdAttrs map[s
 		return err
 	}
 
-	return c.UserCommands.UpdateStandardAttributesUnsafe(userID, stdAttrs)
+	err = c.UserCommands.UpdateStandardAttributesUnsafe(userID, stdAttrs)
+	if err != nil {
+		return err
+	}
+
+	// In case email/phone_number/preferred_username was removed, we add them back.
+	err = c.populateIdentityAwareStandardAttributes(userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Coordinator) removeOrphans(userID string) error {
