@@ -510,13 +510,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginID:   loginidStore,
 		TaskQueue: queue,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		RawCommands:  rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,

@@ -21,7 +21,6 @@ var configDeps = wire.NewSet(
 		"OAuth",
 		"Identity",
 		"Authenticator",
-		"UserProfile",
 		"ForgotPassword",
 		"WelcomeMessage",
 		"Verification",

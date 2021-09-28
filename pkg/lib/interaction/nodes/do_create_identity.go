@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -28,14 +27,12 @@ func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *inte
 	}
 	return &NodeDoCreateIdentity{
 		Identity:   e.Identity,
-		IsAddition: e.IsAddition,
 		IsAdminAPI: isAdminAPI,
 	}, nil
 }
 
 type NodeDoCreateIdentity struct {
 	Identity   *identity.Info `json:"identity"`
-	IsAddition bool           `json:"is_addition"`
 	IsAdminAPI bool           `json:"is_admin_api"`
 }
 
@@ -67,13 +64,6 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 			if err := ctx.Identities.Create(n.Identity); err != nil {
 				return err
-			}
-
-			if !n.IsAddition && ctx.Config.UserProfile.StandardAttributes.Population.Strategy == config.StandardAttributesPopulationStrategyOnSignup {
-				err := ctx.Users.PopulateStandardAttributes(n.Identity.UserID, n.Identity)
-				if err != nil {
-					return err
-				}
 			}
 
 			return nil
