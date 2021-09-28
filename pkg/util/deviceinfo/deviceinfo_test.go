@@ -82,6 +82,15 @@ func TestDeviceModel(t *testing.T) {
 		So(actual, ShouldEqual, "Google Pixel 3")
 
 		So(DeviceModel(nil), ShouldEqual, "")
+
+		// Allow unknown iPhone.
+		So(DeviceModel(map[string]interface{}{
+			"ios": map[string]interface{}{
+				"uname": map[string]interface{}{
+					"machine": "iPhone9999,9999",
+				},
+			},
+		}), ShouldEqual, "iPhone9999,9999")
 	})
 }
 
