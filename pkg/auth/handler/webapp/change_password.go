@@ -68,6 +68,14 @@ func (h *ForceChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
+		// Ensure there is an ongoing web session.
+		// If the user clicks back just after authentication, there is no ongoing web session.
+		// The user will see the normal web session not found error page.
+		_, err := ctrl.InteractionGet()
+		if err != nil {
+			return err
+		}
+
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err

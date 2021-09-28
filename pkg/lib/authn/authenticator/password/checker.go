@@ -1,17 +1,3 @@
-// Copyright 2015-present Oursky Ltd.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package password
 
 import (
@@ -106,7 +92,7 @@ func checkPasswordExcludedKeywords(password string, keywords []string) bool {
 	return loc == nil
 }
 
-func checkPasswordGuessableLevel(password string, minLevel int, userInputs []string) (int, bool) {
+func checkPasswordGuessableLevel(password string, minLevel int) (int, bool) {
 	if minLevel <= 0 {
 		return 0, true
 	}
@@ -114,57 +100,9 @@ func checkPasswordGuessableLevel(password string, minLevel int, userInputs []str
 	if minScore > 4 {
 		minScore = 4
 	}
-	result := zxcvbn.PasswordStrength(password, userInputs)
+	result := zxcvbn.PasswordStrength(password, nil)
 	ok := result.Score >= minScore
 	return result.Score + 1, ok
-}
-
-func userDataToStringStringMap(m map[string]interface{}) map[string]string {
-	output := make(map[string]string)
-	for key, value := range m {
-		str, ok := value.(string)
-		if ok {
-			output[key] = str
-		}
-	}
-	return output
-}
-
-func filterDictionary(m map[string]string, predicate func(string) bool) []string {
-	output := []string{}
-	for key, value := range m {
-		ok := predicate(key)
-		if ok {
-			output = append(output, value)
-		}
-	}
-	return output
-}
-
-func filterDictionaryByKeys(m map[string]string, keys []string) []string {
-	lookupMap := make(map[string]bool)
-	for _, key := range keys {
-		lookupMap[key] = true
-	}
-	predicate := func(key string) bool {
-		_, ok := lookupMap[key]
-		return ok
-	}
-
-	return filterDictionary(m, predicate)
-}
-
-func filterDictionaryTakeAll(m map[string]string) []string {
-	predicate := func(key string) bool {
-		return true
-	}
-	return filterDictionary(m, predicate)
-}
-
-type ValidatePayload struct {
-	AuthID        string
-	PlainPassword string
-	UserData      map[string]interface{}
 }
 
 type CheckerHistoryStore interface {
@@ -179,7 +117,6 @@ type Checker struct {
 	PwSymbolRequired       bool
 	PwMinGuessableLevel    int
 	PwExcludedKeywords     []string
-	PwExcludedFields       []string
 	PwHistorySize          int
 	PwHistoryDays          config.DurationDays
 	PasswordHistoryEnabled bool
@@ -241,18 +178,6 @@ func (pc *Checker) checkPasswordExcludedKeywords(password string) *Policy {
 	return nil
 }
 
-func (pc *Checker) checkPasswordExcludedFields(password string, userData map[string]interface{}) *Policy {
-	fields := pc.PwExcludedFields
-	if len(fields) > 0 {
-		dict := userDataToStringStringMap(userData)
-		keywords := filterDictionaryByKeys(dict, fields)
-		if !checkPasswordExcludedKeywords(password, keywords) {
-			return &Policy{Name: PasswordContainingExcludedKeywords}
-		}
-	}
-	return nil
-}
-
 func (pc *Checker) policyPasswordGuessableLevel() Policy {
 	return Policy{
 		Name: PasswordBelowGuessableLevel,
@@ -262,13 +187,11 @@ func (pc *Checker) policyPasswordGuessableLevel() Policy {
 	}
 }
 
-func (pc *Checker) checkPasswordGuessableLevel(password string, userData map[string]interface{}) *Policy {
+func (pc *Checker) checkPasswordGuessableLevel(password string) *Policy {
 	v := pc.policyPasswordGuessableLevel()
 	minLevel := pc.PwMinGuessableLevel
 	if minLevel > 0 {
-		dict := userDataToStringStringMap(userData)
-		userInputs := filterDictionaryTakeAll(dict)
-		level, ok := checkPasswordGuessableLevel(password, minLevel, userInputs)
+		level, ok := checkPasswordGuessableLevel(password, minLevel)
 		if !ok {
 			v.Info["pw_level"] = level
 			return &v
@@ -307,11 +230,8 @@ func (pc *Checker) checkPasswordHistory(password, authID string) (*Policy, error
 	return nil, nil
 }
 
-func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
-	password := payload.PlainPassword
-	userData := payload.UserData
-	authID := payload.AuthID
-
+// ValidateNewPassword should be used when the user changes their password.
+func (pc *Checker) ValidateNewPassword(userID string, plainPassword string) error {
 	var violations []apierrors.Cause
 	check := func(v *Policy) {
 		if v != nil {
@@ -319,20 +239,43 @@ func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
 		}
 	}
 
-	check(pc.checkPasswordLength(password))
-	check(pc.checkPasswordUppercase(password))
-	check(pc.checkPasswordLowercase(password))
-	check(pc.checkPasswordDigit(password))
-	check(pc.checkPasswordSymbol(password))
-	check(pc.checkPasswordExcludedKeywords(password))
-	check(pc.checkPasswordExcludedFields(password, userData))
-	check(pc.checkPasswordGuessableLevel(password, userData))
+	check(pc.checkPasswordLength(plainPassword))
+	check(pc.checkPasswordUppercase(plainPassword))
+	check(pc.checkPasswordLowercase(plainPassword))
+	check(pc.checkPasswordDigit(plainPassword))
+	check(pc.checkPasswordSymbol(plainPassword))
+	check(pc.checkPasswordExcludedKeywords(plainPassword))
+	check(pc.checkPasswordGuessableLevel(plainPassword))
 
-	p, err := pc.checkPasswordHistory(password, authID)
+	p, err := pc.checkPasswordHistory(plainPassword, userID)
 	if err != nil {
 		return err
 	}
 	check(p)
+
+	if len(violations) == 0 {
+		return nil
+	}
+
+	return PasswordPolicyViolated.NewWithCauses("password policy violated", violations)
+}
+
+// ValidateCurrentPassword should be used when the user authenticates.
+func (pc *Checker) ValidateCurrentPassword(plainPassword string) error {
+	var violations []apierrors.Cause
+	check := func(v *Policy) {
+		if v != nil {
+			violations = append(violations, *v)
+		}
+	}
+
+	check(pc.checkPasswordLength(plainPassword))
+	check(pc.checkPasswordUppercase(plainPassword))
+	check(pc.checkPasswordLowercase(plainPassword))
+	check(pc.checkPasswordDigit(plainPassword))
+	check(pc.checkPasswordSymbol(plainPassword))
+	check(pc.checkPasswordExcludedKeywords(plainPassword))
+	check(pc.checkPasswordGuessableLevel(plainPassword))
 
 	if len(violations) == 0 {
 		return nil
@@ -373,12 +316,8 @@ func (pc *Checker) PasswordPolicy() (out []Policy) {
 	return
 }
 
-func (pc *Checker) ShouldSavePasswordHistory() bool {
-	return pc.PasswordHistoryEnabled
-}
-
 func (pc *Checker) shouldCheckPasswordHistory() bool {
-	return pc.ShouldSavePasswordHistory()
+	return pc.PasswordHistoryEnabled
 }
 
 func IsSamePassword(hashedPassword []byte, password string) bool {
