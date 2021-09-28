@@ -62,6 +62,7 @@ build:
 
 .PHONY: check-tidy
 check-tidy:
+	$(MAKE) fmt
 	$(MAKE) generate
 	$(MAKE) html-email
 	$(MAKE) export-schemas
