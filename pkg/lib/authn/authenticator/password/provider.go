@@ -55,7 +55,7 @@ func (p *Provider) New(userID string, password string, isDefault bool, kind stri
 		IsDefault: isDefault,
 		Kind:      kind,
 	}
-	err := p.isPasswordAllowed(userID, password)
+	err := p.PasswordChecker.ValidateNewPassword(userID, password)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (p *Provider) New(userID string, password string, isDefault bool, kind stri
 // WithPassword return new authenticator pointer if password is changed
 // Otherwise original authenticator will be returned
 func (p *Provider) WithPassword(a *Authenticator, password string) (*Authenticator, error) {
-	err := p.isPasswordAllowed(a.UserID, password)
+	err := p.PasswordChecker.ValidateNewPassword(a.UserID, password)
 	if err != nil {
 		return nil, err
 	}
@@ -121,20 +121,13 @@ func (p *Provider) Authenticate(a *Authenticator, password string) (requireUpdat
 		}
 	}
 
-	if notAllowedErr := p.isPasswordAllowed(a.UserID, password); notAllowedErr != nil {
+	if notAllowedErr := p.PasswordChecker.ValidateCurrentPassword(password); notAllowedErr != nil {
 		if p.Config.ForceChange != nil && *p.Config.ForceChange {
 			requireUpdate = true
 		}
 	}
 
 	return
-}
-
-func (p *Provider) isPasswordAllowed(userID string, password string) error {
-	return p.PasswordChecker.ValidatePassword(ValidatePayload{
-		AuthID:        userID,
-		PlainPassword: password,
-	})
 }
 
 func (p *Provider) UpdatePassword(a *Authenticator) error {

@@ -64,7 +64,7 @@ func TestPasswordCheckingFuncs(t *testing.T) {
 	})
 }
 
-func TestValidatePassword(t *testing.T) {
+func TestValidateNewPassword(t *testing.T) {
 	// fixture
 	authID := "chima"
 	phData := map[string][]History{
@@ -100,9 +100,7 @@ func TestValidatePassword(t *testing.T) {
 			PwMinLength: 2,
 		}
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-			}),
+			pc.ValidateNewPassword("", password),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -118,9 +116,7 @@ func TestValidatePassword(t *testing.T) {
 			PwUppercaseRequired: true,
 		}
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-			}),
+			pc.ValidateNewPassword("", password),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -136,9 +132,7 @@ func TestValidatePassword(t *testing.T) {
 			PwLowercaseRequired: true,
 		}
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-			}),
+			pc.ValidateNewPassword("", password),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -154,9 +148,7 @@ func TestValidatePassword(t *testing.T) {
 			PwDigitRequired: true,
 		}
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-			}),
+			pc.ValidateNewPassword("", password),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -172,9 +164,7 @@ func TestValidatePassword(t *testing.T) {
 			PwSymbolRequired: true,
 		}
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-			}),
+			pc.ValidateNewPassword("", password),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -190,9 +180,7 @@ func TestValidatePassword(t *testing.T) {
 			PwExcludedKeywords: []string{"user"},
 		}
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-			}),
+			pc.ValidateNewPassword("", password),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -208,9 +196,7 @@ func TestValidatePassword(t *testing.T) {
 			PwMinGuessableLevel: 5,
 		}
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-			}),
+			pc.ValidateNewPassword("", password),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -233,10 +219,7 @@ func TestValidatePassword(t *testing.T) {
 		}
 
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: "chima",
-				AuthID:        authID,
-			}),
+			pc.ValidateNewPassword(authID, "chima"),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -247,10 +230,7 @@ func TestValidatePassword(t *testing.T) {
 		)
 
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: "coffee",
-				AuthID:        authID,
-			}),
+			pc.ValidateNewPassword(authID, "coffee"),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -261,10 +241,7 @@ func TestValidatePassword(t *testing.T) {
 		)
 
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: "milktea",
-				AuthID:        authID,
-			}),
+			pc.ValidateNewPassword(authID, "milktea"),
 			ShouldBeNil,
 		)
 	})
@@ -281,10 +258,7 @@ func TestValidatePassword(t *testing.T) {
 		}
 
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: "chima",
-				AuthID:        authID,
-			}),
+			pc.ValidateNewPassword(authID, "chima"),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -295,10 +269,7 @@ func TestValidatePassword(t *testing.T) {
 		)
 
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: "coffee",
-				AuthID:        authID,
-			}),
+			pc.ValidateNewPassword(authID, "coffee"),
 			ShouldBeNil,
 		)
 	})
@@ -315,10 +286,7 @@ func TestValidatePassword(t *testing.T) {
 		}
 
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: "chima",
-				AuthID:        authID,
-			}),
+			pc.ValidateNewPassword(authID, "chima"),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
 			map[string]interface{}{
@@ -329,10 +297,7 @@ func TestValidatePassword(t *testing.T) {
 		)
 
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: "coffee",
-				AuthID:        authID,
-			}),
+			pc.ValidateNewPassword(authID, "coffee"),
 			ShouldBeNil,
 		)
 	})
@@ -350,9 +315,7 @@ func TestValidatePassword(t *testing.T) {
 			PwExcludedKeywords:  []string{"user", "admin"},
 		}
 		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-			}),
+			pc.ValidateNewPassword("", password),
 			ShouldEqual,
 			nil,
 		)

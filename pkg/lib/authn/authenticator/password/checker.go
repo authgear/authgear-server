@@ -105,11 +105,6 @@ func checkPasswordGuessableLevel(password string, minLevel int) (int, bool) {
 	return result.Score + 1, ok
 }
 
-type ValidatePayload struct {
-	AuthID        string
-	PlainPassword string
-}
-
 type CheckerHistoryStore interface {
 	GetPasswordHistory(userID string, historySize int, historyDays config.DurationDays) ([]History, error)
 }
@@ -235,10 +230,8 @@ func (pc *Checker) checkPasswordHistory(password, authID string) (*Policy, error
 	return nil, nil
 }
 
-func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
-	password := payload.PlainPassword
-	authID := payload.AuthID
-
+// ValidateNewPassword should be used when the user changes their password.
+func (pc *Checker) ValidateNewPassword(userID string, plainPassword string) error {
 	var violations []apierrors.Cause
 	check := func(v *Policy) {
 		if v != nil {
@@ -246,19 +239,43 @@ func (pc *Checker) ValidatePassword(payload ValidatePayload) error {
 		}
 	}
 
-	check(pc.checkPasswordLength(password))
-	check(pc.checkPasswordUppercase(password))
-	check(pc.checkPasswordLowercase(password))
-	check(pc.checkPasswordDigit(password))
-	check(pc.checkPasswordSymbol(password))
-	check(pc.checkPasswordExcludedKeywords(password))
-	check(pc.checkPasswordGuessableLevel(password))
+	check(pc.checkPasswordLength(plainPassword))
+	check(pc.checkPasswordUppercase(plainPassword))
+	check(pc.checkPasswordLowercase(plainPassword))
+	check(pc.checkPasswordDigit(plainPassword))
+	check(pc.checkPasswordSymbol(plainPassword))
+	check(pc.checkPasswordExcludedKeywords(plainPassword))
+	check(pc.checkPasswordGuessableLevel(plainPassword))
 
-	p, err := pc.checkPasswordHistory(password, authID)
+	p, err := pc.checkPasswordHistory(plainPassword, userID)
 	if err != nil {
 		return err
 	}
 	check(p)
+
+	if len(violations) == 0 {
+		return nil
+	}
+
+	return PasswordPolicyViolated.NewWithCauses("password policy violated", violations)
+}
+
+// ValidateCurrentPassword should be used when the user authenticates.
+func (pc *Checker) ValidateCurrentPassword(plainPassword string) error {
+	var violations []apierrors.Cause
+	check := func(v *Policy) {
+		if v != nil {
+			violations = append(violations, *v)
+		}
+	}
+
+	check(pc.checkPasswordLength(plainPassword))
+	check(pc.checkPasswordUppercase(plainPassword))
+	check(pc.checkPasswordLowercase(plainPassword))
+	check(pc.checkPasswordDigit(plainPassword))
+	check(pc.checkPasswordSymbol(plainPassword))
+	check(pc.checkPasswordExcludedKeywords(plainPassword))
+	check(pc.checkPasswordGuessableLevel(plainPassword))
 
 	if len(violations) == 0 {
 		return nil
