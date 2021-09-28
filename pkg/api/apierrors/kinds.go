@@ -5,16 +5,16 @@ import "net/http"
 type Name string
 
 const (
-	BadRequest         Name = "BadRequest"
-	Invalid            Name = "Invalid"
-	Unauthorized       Name = "Unauthorized"
-	Forbidden          Name = "Forbidden"
-	NotFound           Name = "NotFound"
-	AlreadyExists      Name = "AlreadyExists"
-	DataRace           Name = "DataRace"
-	TooManyRequest     Name = "TooManyRequest"
-	InternalError      Name = "InternalError"
-	ServiceUnavailable Name = "ServiceUnavailable"
+	BadRequest            Name = "BadRequest"
+	Invalid               Name = "Invalid"
+	Unauthorized          Name = "Unauthorized"
+	Forbidden             Name = "Forbidden"
+	NotFound              Name = "NotFound"
+	AlreadyExists         Name = "AlreadyExists"
+	DataRace              Name = "DataRace"
+	TooManyRequest        Name = "TooManyRequest"
+	InternalError         Name = "InternalError"
+	ServiceUnavailable    Name = "ServiceUnavailable"
 	RequestEntityTooLarge Name = "RequestEntityTooLarge"
 )
 

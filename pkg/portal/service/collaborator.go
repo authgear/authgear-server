@@ -419,7 +419,7 @@ func (s *CollaboratorService) DeleteInvitation(i *model.CollaboratorInvitation) 
 func (s *CollaboratorService) AcceptInvitation(code string) (*model.Collaborator, error) {
 	actorID := session.GetValidSessionInfo(s.Context).UserID
 
-	invitation, err :=s.GetInvitationWithCode(code)
+	invitation, err := s.GetInvitationWithCode(code)
 	if err != nil {
 		return nil, err
 	}
