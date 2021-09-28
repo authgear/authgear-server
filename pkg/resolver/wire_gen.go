@@ -183,9 +183,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
@@ -458,8 +455,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -473,7 +469,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,

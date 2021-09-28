@@ -432,9 +432,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
@@ -453,8 +450,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -544,16 +540,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -1028,9 +1020,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
@@ -1049,8 +1038,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -1140,16 +1128,12 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -1572,9 +1556,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  appredisHandle,
@@ -1602,8 +1583,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -1700,16 +1680,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -1839,9 +1815,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	rawQueries := &user.RawQueries{
-		Store: store,
-	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
@@ -2145,8 +2118,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -2160,7 +2132,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          store,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -2240,9 +2211,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	rawQueries := &user.RawQueries{
-		Store: store,
-	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
@@ -2543,8 +2511,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -2558,7 +2525,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          store,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -2606,9 +2572,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	rawQueries := &user.RawQueries{
-		Store: store,
-	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
@@ -2909,8 +2872,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -2924,7 +2886,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          store,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -2976,9 +2937,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	rawQueries := &user.RawQueries{
-		Store: store,
-	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
@@ -3278,8 +3236,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -3293,7 +3250,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          store,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -3653,9 +3609,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  appredisHandle,
@@ -3683,8 +3636,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -3781,16 +3733,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -4220,9 +4168,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4264,8 +4209,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -4362,16 +4306,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -4820,9 +4760,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4864,8 +4801,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -4962,16 +4898,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -5420,9 +5352,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -5464,8 +5393,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -5562,16 +5490,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -6007,9 +5931,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -6051,8 +5972,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -6149,16 +6069,12 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -6595,9 +6511,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -6639,8 +6552,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -6737,16 +6649,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -7175,9 +7083,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -7219,8 +7124,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -7317,16 +7221,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -7758,9 +7658,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -7802,8 +7699,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -7900,16 +7796,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -8344,9 +8236,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -8388,8 +8277,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -8486,16 +8374,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -8927,9 +8811,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -8971,8 +8852,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -9069,16 +8949,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -9509,9 +9385,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -9553,8 +9426,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -9651,16 +9523,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -10092,9 +9960,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -10136,8 +10001,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -10234,16 +10098,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -10676,9 +10536,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -10720,8 +10577,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -10818,16 +10674,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -11258,9 +11110,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -11302,8 +11151,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -11400,16 +11248,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -11840,9 +11684,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -11884,8 +11725,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -11982,16 +11822,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -12424,9 +12260,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -12468,8 +12301,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -12566,16 +12398,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -13006,9 +12834,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -13050,8 +12875,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -13148,16 +12972,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -13588,9 +13408,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -13632,8 +13449,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -13730,16 +13546,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -14173,9 +13985,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -14217,8 +14026,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -14315,16 +14123,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -14755,9 +14559,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -14799,8 +14600,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -14897,16 +14697,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -15342,9 +15138,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -15386,8 +15179,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -15484,16 +15276,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -15924,9 +15712,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -15968,8 +15753,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -16066,16 +15850,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -16507,9 +16287,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -16551,8 +16328,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -16649,16 +16425,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -17089,9 +16861,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -17133,8 +16902,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -17231,16 +16999,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -17690,9 +17454,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -17734,8 +17495,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -17832,16 +17592,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -18274,9 +18030,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -18318,8 +18071,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -18416,16 +18168,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -18857,9 +18605,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -18901,8 +18646,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -18999,16 +18743,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -19449,9 +19189,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -19493,8 +19230,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -19591,16 +19327,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -20032,9 +19764,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -20076,8 +19805,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -20174,16 +19902,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -20615,9 +20339,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -20659,8 +20380,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -20757,16 +20477,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -21199,9 +20915,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -21243,8 +20956,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -21341,16 +21053,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -21788,9 +21496,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -21832,8 +21537,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -21930,16 +21634,12 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -22371,9 +22071,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -22415,8 +22112,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -22513,16 +22209,12 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -22954,9 +22646,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -22998,8 +22687,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -23096,16 +22784,12 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -23537,9 +23221,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -23581,8 +23262,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -23679,16 +23359,12 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -24120,9 +23796,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -24164,8 +23837,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -24262,16 +23934,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -24702,9 +24370,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -24746,8 +24411,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -24844,16 +24508,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -25304,9 +24964,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -25348,8 +25005,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -25446,16 +25102,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -25886,9 +25538,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -25930,8 +25579,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -26028,16 +25676,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		Raw:          rawCommands,
+		Events:       eventService,
+		Verification: verificationService,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,
@@ -26468,9 +26112,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	featureConfig := config.FeatureConfig
@@ -26743,8 +26384,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Authenticators:  service3,
 		Verification:    verificationService,
 		MFA:             mfaService,
-		UserCommands:    rawCommands,
-		UserQueries:     rawQueries,
+		Users:           rawCommands,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,
 		IDPSessions:     idpsessionManager,
@@ -26758,7 +26398,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Coordinator: coordinator,
 	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
 		Store:          userStore,
 		Identities:     identityFacade,
 		Authenticators: authenticatorFacade,

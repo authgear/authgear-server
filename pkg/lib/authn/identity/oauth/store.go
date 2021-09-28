@@ -24,6 +24,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
 			"p.id",
+			"p.labels",
 			"p.user_id",
 			"p.created_at",
 			"p.updated_at",
@@ -39,12 +40,14 @@ func (s *Store) selectQuery() db.SelectBuilder {
 
 func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	i := &Identity{}
+	var labels []byte
 	var providerKeys []byte
 	var profile []byte
 	var claims []byte
 
 	err := scn.Scan(
 		&i.ID,
+		&labels,
 		&i.UserID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -57,6 +60,10 @@ func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, identity.ErrIdentityNotFound
 	} else if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(labels, &i.Labels); err != nil {
 		return nil, err
 	}
 
@@ -181,11 +188,17 @@ func (s *Store) GetByUserProvider(userID string, provider config.ProviderID) (*I
 	return s.scan(rows)
 }
 
-func (s *Store) Create(i *Identity) (err error) {
+func (s *Store) Create(i *Identity) error {
+	labels, err := json.Marshal(i.Labels)
+	if err != nil {
+		return err
+	}
+
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
 			"id",
+			"labels",
 			"type",
 			"user_id",
 			"created_at",
@@ -193,6 +206,7 @@ func (s *Store) Create(i *Identity) (err error) {
 		).
 		Values(
 			i.ID,
+			labels,
 			authn.IdentityTypeOAuth,
 			i.UserID,
 			i.CreatedAt,

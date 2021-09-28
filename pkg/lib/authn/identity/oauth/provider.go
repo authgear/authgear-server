@@ -59,6 +59,7 @@ func (p *Provider) New(
 ) *Identity {
 	i := &Identity{
 		ID:                uuid.New(),
+		Labels:            make(map[string]interface{}),
 		UserID:            userID,
 		ProviderID:        provider,
 		ProviderSubjectID: subjectID,
@@ -73,7 +74,13 @@ func (p *Provider) WithUpdate(
 	rawProfile map[string]interface{},
 	claims map[string]interface{},
 ) *Identity {
+	labels := make(map[string]interface{}, len(iden.Labels))
+	for key, value := range iden.Labels {
+		labels[key] = value
+	}
+
 	newIden := *iden
+	newIden.Labels = labels
 	newIden.UserProfile = rawProfile
 	newIden.Claims = claims
 

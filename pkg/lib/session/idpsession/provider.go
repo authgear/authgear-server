@@ -48,6 +48,7 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	accessEvent := access.NewEvent(now, p.Request, bool(p.TrustProxy))
 	session := &IDPSession{
 		ID:              uuid.New(),
+		Labels:          make(map[string]interface{}),
 		CreatedAt:       now,
 		AuthenticatedAt: now,
 		Attrs:           *attrs,

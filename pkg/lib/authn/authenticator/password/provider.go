@@ -50,6 +50,7 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 func (p *Provider) New(userID string, password string, isDefault bool, kind string) (*Authenticator, error) {
 	authen := &Authenticator{
 		ID:        uuid.New(),
+		Labels:    make(map[string]interface{}),
 		UserID:    userID,
 		IsDefault: isDefault,
 		Kind:      kind,

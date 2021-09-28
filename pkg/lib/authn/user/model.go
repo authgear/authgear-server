@@ -39,14 +39,14 @@ func (o SortOption) Apply(builder db.SelectBuilder) db.SelectBuilder {
 }
 
 type User struct {
-	ID                 string
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-	MostRecentLoginAt  *time.Time
-	LessRecentLoginAt  *time.Time
-	IsDisabled         bool
-	DisableReason      *string
-	StandardAttributes map[string]interface{}
+	ID                string
+	Labels            map[string]interface{}
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	MostRecentLoginAt *time.Time
+	LessRecentLoginAt *time.Time
+	IsDisabled        bool
+	DisableReason     *string
 }
 
 func (u *User) GetMeta() model.Meta {
@@ -69,7 +69,6 @@ func newUserModel(
 	identities []*identity.Info,
 	authenticators []*authenticator.Info,
 	isVerified bool,
-	derivedStandardAttributes map[string]interface{},
 ) *model.User {
 	isAnonymous := false
 	for _, i := range identities {
@@ -95,12 +94,11 @@ func newUserModel(
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 		},
-		LastLoginAt:        user.MostRecentLoginAt,
-		IsAnonymous:        isAnonymous,
-		IsVerified:         isVerified,
-		IsDisabled:         user.IsDisabled,
-		CanReauthenticate:  canReauthenticate,
-		DisableReason:      user.DisableReason,
-		StandardAttributes: derivedStandardAttributes,
+		LastLoginAt:       user.MostRecentLoginAt,
+		IsAnonymous:       isAnonymous,
+		IsVerified:        isVerified,
+		IsDisabled:        user.IsDisabled,
+		CanReauthenticate: canReauthenticate,
+		DisableReason:     user.DisableReason,
 	}
 }

@@ -11,8 +11,9 @@ import (
 )
 
 type IDPSession struct {
-	ID    string `json:"id"`
-	AppID string `json:"app_id"`
+	ID     string                 `json:"id"`
+	Labels map[string]interface{} `json:"labels"`
+	AppID  string                 `json:"app_id"`
 
 	// CreatedAt is the timestamp that the user was initially authenticated at.
 	CreatedAt time.Time `json:"created_at"`

@@ -11,6 +11,7 @@ import (
 func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
 		Type:      authn.AuthenticatorTypePassword,
+		Labels:    p.Labels,
 		ID:        p.ID,
 		UserID:    p.UserID,
 		CreatedAt: p.CreatedAt,
@@ -25,6 +26,7 @@ func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info 
 func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticator {
 	return &password.Authenticator{
 		ID:           a.ID,
+		Labels:       a.Labels,
 		UserID:       a.UserID,
 		CreatedAt:    a.CreatedAt,
 		UpdatedAt:    a.UpdatedAt,
@@ -37,6 +39,7 @@ func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticato
 func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
 		Type:      authn.AuthenticatorTypeTOTP,
+		Labels:    t.Labels,
 		ID:        t.ID,
 		UserID:    t.UserID,
 		CreatedAt: t.CreatedAt,
@@ -53,6 +56,7 @@ func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 func totpFromAuthenticatorInfo(a *authenticator.Info) *totp.Authenticator {
 	return &totp.Authenticator{
 		ID:          a.ID,
+		Labels:      a.Labels,
 		UserID:      a.UserID,
 		CreatedAt:   a.CreatedAt,
 		UpdatedAt:   a.UpdatedAt,
@@ -67,6 +71,7 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 	info := &authenticator.Info{
 		Type:      o.OOBAuthenticatorType,
 		ID:        o.ID,
+		Labels:    o.Labels,
 		UserID:    o.UserID,
 		CreatedAt: o.CreatedAt,
 		UpdatedAt: o.UpdatedAt,
@@ -91,6 +96,7 @@ func oobotpFromAuthenticatorInfo(a *authenticator.Info) *oob.Authenticator {
 	email, _ := a.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 	return &oob.Authenticator{
 		ID:                   a.ID,
+		Labels:               a.Labels,
 		UserID:               a.UserID,
 		CreatedAt:            a.CreatedAt,
 		UpdatedAt:            a.UpdatedAt,

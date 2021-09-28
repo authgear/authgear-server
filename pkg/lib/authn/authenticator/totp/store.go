@@ -2,6 +2,7 @@ package totp
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 
 	"github.com/lib/pq"
@@ -21,6 +22,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
 			"a.id",
+			"a.labels",
 			"a.user_id",
 			"a.created_at",
 			"a.updated_at",
@@ -39,9 +41,11 @@ func (s *Store) selectQuery() db.SelectBuilder {
 
 func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	a := &Authenticator{}
+	var labels []byte
 
 	err := scn.Scan(
 		&a.ID,
+		&labels,
 		&a.UserID,
 		&a.CreatedAt,
 		&a.UpdatedAt,
@@ -53,6 +57,10 @@ func (s *Store) scan(scn db.Scanner) (*Authenticator, error) {
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, authenticator.ErrAuthenticatorNotFound
 	} else if err != nil {
+		return nil, err
+	}
+
+	if err = json.Unmarshal(labels, &a.Labels); err != nil {
 		return nil, err
 	}
 
@@ -132,11 +140,17 @@ func (s *Store) Delete(id string) error {
 	return nil
 }
 
-func (s *Store) Create(a *Authenticator) (err error) {
+func (s *Store) Create(a *Authenticator) error {
+	labels, err := json.Marshal(a.Labels)
+	if err != nil {
+		return err
+	}
+
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_authenticator")).
 		Columns(
 			"id",
+			"labels",
 			"type",
 			"user_id",
 			"created_at",
@@ -146,6 +160,7 @@ func (s *Store) Create(a *Authenticator) (err error) {
 		).
 		Values(
 			a.ID,
+			labels,
 			authn.AuthenticatorTypeTOTP,
 			a.UserID,
 			a.CreatedAt,

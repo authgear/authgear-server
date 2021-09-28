@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/lestrrat-go/jwx/jwt"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -17,7 +19,7 @@ func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolUserInfoProvider interface {
-	GetUserInfo(userID string) (map[string]interface{}, error)
+	LoadUserClaims(userID string) (jwt.Token, error)
 }
 
 type UserInfoHandlerLogger struct{ *log.Logger }
@@ -34,9 +36,9 @@ type UserInfoHandler struct {
 
 func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	s := session.GetSession(r.Context())
-	var userInfo map[string]interface{}
+	var claims jwt.Token
 	err := h.Database.WithTx(func() (err error) {
-		userInfo, err = h.UserInfoProvider.GetUserInfo(s.GetAuthenticationInfo().UserID)
+		claims, err = h.UserInfoProvider.LoadUserClaims(s.GetAuthenticationInfo().UserID)
 		return
 	})
 
@@ -49,7 +51,7 @@ func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.Header().Set("Content-Type", "application/json")
 
 	encoder := json.NewEncoder(rw)
-	err = encoder.Encode(userInfo)
+	err = encoder.Encode(claims)
 	if err != nil {
 		http.Error(rw, err.Error(), 500)
 	}

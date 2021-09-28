@@ -21,14 +21,14 @@ type RawCommands struct {
 func (c *RawCommands) New(userID string) *User {
 	now := c.Clock.NowUTC()
 	user := &User{
-		ID:                 userID,
-		CreatedAt:          now,
-		UpdatedAt:          now,
-		MostRecentLoginAt:  nil,
-		LessRecentLoginAt:  nil,
-		IsDisabled:         false,
-		DisableReason:      nil,
-		StandardAttributes: make(map[string]interface{}),
+		ID:                userID,
+		Labels:            make(map[string]interface{}),
+		CreatedAt:         now,
+		UpdatedAt:         now,
+		MostRecentLoginAt: nil,
+		LessRecentLoginAt: nil,
+		IsDisabled:        false,
+		DisableReason:     nil,
 	}
 	return user
 }
@@ -59,10 +59,6 @@ func (c *RawCommands) UpdateLoginTime(userID string, loginAt time.Time) error {
 
 func (c *RawCommands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
 	return c.Store.UpdateDisabledStatus(userID, isDisabled, reason)
-}
-
-func (c *RawCommands) UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
-	return c.Store.UpdateStandardAttributes(userID, stdAttrs)
 }
 
 func (c *RawCommands) Delete(userID string) error {

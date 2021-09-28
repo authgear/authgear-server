@@ -1,14 +1,14 @@
 package user
 
 import (
+	gotime "time"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type EventService interface {
@@ -16,29 +16,13 @@ type EventService interface {
 }
 
 type Commands struct {
-	*RawCommands
-	RawQueries        *RawQueries
-	Events            EventService
-	Verification      VerificationService
-	UserProfileConfig *config.UserProfileConfig
+	Raw          *RawCommands
+	Events       EventService
+	Verification VerificationService
 }
 
-func (c *Commands) PopulateStandardAttributes(userID string, iden *identity.Info) error {
-	user, err := c.RawQueries.GetRaw(userID)
-	if err != nil {
-		return err
-	}
-
-	stdAttrsFromIden := stdattrs.T(iden.Claims).NonIdentityAware()
-	originalStdAttrs := stdattrs.T(user.StandardAttributes)
-	stdAttrs := originalStdAttrs.MergedWith(stdAttrsFromIden)
-
-	err = c.RawCommands.UpdateStandardAttributes(userID, stdAttrs.ToClaims())
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (c *Commands) Create(userID string) (*User, error) {
+	return c.Raw.Create(userID)
 }
 
 func (c *Commands) AfterCreate(
@@ -53,12 +37,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	stdAttrs, err := c.Verification.DeriveStandardAttributes(user.ID, user.StandardAttributes)
-	if err != nil {
-		return err
-	}
-
-	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs)
+	userModel := newUserModel(user, identities, authenticators, isVerified)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
@@ -84,10 +63,22 @@ func (c *Commands) AfterCreate(
 		}
 	}
 
-	err = c.RawCommands.AfterCreate(userModel, identities)
+	err = c.Raw.AfterCreate(userModel, identities)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (c *Commands) UpdateLoginTime(userID string, loginAt gotime.Time) error {
+	return c.Raw.UpdateLoginTime(userID, loginAt)
+}
+
+func (c *Commands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+	return c.Raw.UpdateDisabledStatus(userID, isDisabled, reason)
+}
+
+func (c *Commands) Delete(userID string) error {
+	return c.Raw.Delete(userID)
 }
