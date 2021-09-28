@@ -161,7 +161,12 @@ func DeviceModelIOS(ios map[string]interface{}) string {
 		return "iOS Simulator"
 	}
 
-	return iosMachineMapping[machine]
+	known, ok := iosMachineMapping[machine]
+	if ok {
+		return known
+	}
+
+	return machine
 }
 
 func DeviceName(deviceInfo map[string]interface{}) string {
