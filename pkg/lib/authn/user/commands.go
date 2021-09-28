@@ -1,6 +1,8 @@
 package user
 
 import (
+	gotime "time"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -14,9 +16,13 @@ type EventService interface {
 }
 
 type Commands struct {
-	*RawCommands
+	Raw          *RawCommands
 	Events       EventService
 	Verification VerificationService
+}
+
+func (c *Commands) Create(userID string) (*User, error) {
+	return c.Raw.Create(userID)
 }
 
 func (c *Commands) AfterCreate(
@@ -57,10 +63,22 @@ func (c *Commands) AfterCreate(
 		}
 	}
 
-	err = c.RawCommands.AfterCreate(userModel, identities)
+	err = c.Raw.AfterCreate(userModel, identities)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (c *Commands) UpdateLoginTime(userID string, loginAt gotime.Time) error {
+	return c.Raw.UpdateLoginTime(userID, loginAt)
+}
+
+func (c *Commands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+	return c.Raw.UpdateDisabledStatus(userID, isDisabled, reason)
+}
+
+func (c *Commands) Delete(userID string) error {
+	return c.Raw.Delete(userID)
 }
