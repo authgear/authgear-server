@@ -299,12 +299,8 @@ func (pc *Checker) PasswordPolicy() (out []Policy) {
 	return
 }
 
-func (pc *Checker) ShouldSavePasswordHistory() bool {
-	return pc.PasswordHistoryEnabled
-}
-
 func (pc *Checker) shouldCheckPasswordHistory() bool {
-	return pc.ShouldSavePasswordHistory()
+	return pc.PasswordHistoryEnabled
 }
 
 func IsSamePassword(hashedPassword []byte, password string) bool {
