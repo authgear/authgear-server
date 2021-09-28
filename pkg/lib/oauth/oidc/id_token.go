@@ -92,6 +92,21 @@ func (ti *IDTokenIssuer) Iss() string {
 	return ti.BaseURL.BaseURL().String()
 }
 
+func (ti *IDTokenIssuer) updateUserClaims(token jwt.Token, userID string) error {
+	user, err := ti.Users.Get(userID)
+	if err != nil {
+		return err
+	}
+
+	_ = token.Set(jwt.IssuerKey, ti.Iss())
+	_ = token.Set(jwt.SubjectKey, userID)
+	_ = token.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
+	_ = token.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
+	_ = token.Set(string(authn.ClaimUserCanReauthenticate), user.CanReauthenticate)
+
+	return nil
+}
+
 func (ti *IDTokenIssuer) updateTimeClaims(token jwt.Token) {
 	now := ti.Clock.NowUTC()
 	_ = token.Set(jwt.IssuedAtKey, now.Unix())
@@ -119,7 +134,8 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 
 	info := opts.AuthenticationInfo
 
-	err := ti.PopulateNonPIIUserClaims(claims, info.UserID)
+	// Populate user specific claims
+	err := ti.updateUserClaims(claims, info.UserID)
 	if err != nil {
 		return "", err
 	}
@@ -196,34 +212,11 @@ func (ti *IDTokenIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idT
 	return
 }
 
-func (ti *IDTokenIssuer) PopulateNonPIIUserClaims(token jwt.Token, userID string) error {
-	user, err := ti.Users.Get(userID)
-	if err != nil {
-		return err
-	}
-
-	_ = token.Set(jwt.IssuerKey, ti.Iss())
-	_ = token.Set(jwt.SubjectKey, userID)
-	_ = token.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
-	_ = token.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
-	_ = token.Set(string(authn.ClaimUserCanReauthenticate), user.CanReauthenticate)
-
-	return nil
-}
-
-func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, error) {
-	user, err := ti.Users.Get(userID)
+func (ti *IDTokenIssuer) LoadUserClaims(userID string) (jwt.Token, error) {
+	claims := jwt.New()
+	err := ti.updateUserClaims(claims, userID)
 	if err != nil {
 		return nil, err
 	}
-
-	out := make(map[string]interface{})
-	out[jwt.SubjectKey] = userID
-	out[string(authn.ClaimUserIsAnonymous)] = user.IsAnonymous
-	out[string(authn.ClaimUserIsVerified)] = user.IsVerified
-	out[string(authn.ClaimUserCanReauthenticate)] = user.CanReauthenticate
-	for k, v := range user.StandardAttributes {
-		out[k] = v
-	}
-	return out, nil
+	return claims, nil
 }

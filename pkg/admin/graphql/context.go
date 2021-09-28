@@ -59,7 +59,6 @@ type AuthenticatorFacade interface {
 type VerificationFacade interface {
 	Get(userID string) ([]model.Claim, error)
 	SetVerified(userID string, claimName string, claimValue string, isVerified bool) error
-	DeriveStandardAttributes(userID string, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
 type SessionFacade interface {

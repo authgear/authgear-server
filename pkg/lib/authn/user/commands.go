@@ -53,12 +53,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	stdAttrs, err := c.Verification.DeriveStandardAttributes(user.ID, user.StandardAttributes)
-	if err != nil {
-		return err
-	}
-
-	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs)
+	userModel := newUserModel(user, identities, authenticators, isVerified)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())

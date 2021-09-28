@@ -18,7 +18,7 @@ import (
 )
 
 type UserClaimsProvider interface {
-	PopulateNonPIIUserClaims(token jwt.Token, userID string) error
+	LoadUserClaims(userID string) (jwt.Token, error)
 }
 
 type BaseURLProvider interface {
@@ -37,13 +37,12 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		return token, nil
 	}
 
-	claims := jwt.New()
-
-	err := e.UserClaims.PopulateNonPIIUserClaims(claims, userID)
+	claims, err := e.UserClaims.LoadUserClaims(userID)
 	if err != nil {
 		return "", err
 	}
 
+	// iss & sub claims are in user claims.
 	_ = claims.Set(jwt.AudienceKey, e.BaseURL.BaseURL().String())
 	_ = claims.Set(jwt.IssuedAtKey, grant.CreatedAt.Unix())
 	_ = claims.Set(jwt.ExpirationKey, grant.ExpireAt.Unix())

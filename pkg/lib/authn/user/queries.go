@@ -16,7 +16,6 @@ type AuthenticatorService interface {
 
 type VerificationService interface {
 	IsUserVerified(identities []*identity.Info) (bool, error)
-	DeriveStandardAttributes(userID string, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
 type Queries struct {
@@ -28,7 +27,7 @@ type Queries struct {
 }
 
 func (p *Queries) Get(id string) (*model.User, error) {
-	user, err := p.RawQueries.GetRaw(id)
+	user, err := p.Store.Get(id)
 	if err != nil {
 		return nil, err
 	}
@@ -48,10 +47,5 @@ func (p *Queries) Get(id string) (*model.User, error) {
 		return nil, err
 	}
 
-	stdAttrs, err := p.Verification.DeriveStandardAttributes(id, user.StandardAttributes)
-	if err != nil {
-		return nil, err
-	}
-
-	return newUserModel(user, identities, authenticators, isVerified, stdAttrs), nil
+	return newUserModel(user, identities, authenticators, isVerified), nil
 }
