@@ -40,6 +40,7 @@ func (o SortOption) Apply(builder db.SelectBuilder) db.SelectBuilder {
 
 type User struct {
 	ID                string
+	Labels            map[string]interface{}
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
 	MostRecentLoginAt *time.Time

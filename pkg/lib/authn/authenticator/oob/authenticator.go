@@ -16,6 +16,7 @@ const (
 
 type Authenticator struct {
 	ID                   string
+	Labels               map[string]interface{}
 	IsDefault            bool
 	Kind                 string
 	UserID               string

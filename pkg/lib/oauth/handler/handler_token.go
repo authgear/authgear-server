@@ -838,6 +838,7 @@ func (h *TokenHandler) issueOfflineGrant(
 	offlineGrant := &oauth.OfflineGrant{
 		AppID:           string(h.AppID),
 		ID:              uuid.New(),
+		Labels:          make(map[string]interface{}),
 		AuthorizationID: opts.AuthorizationID,
 		ClientID:        client.ClientID,
 		IDPSessionID:    opts.IDPSessionID,

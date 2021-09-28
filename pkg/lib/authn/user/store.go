@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
@@ -29,11 +30,17 @@ type Store struct {
 	SQLExecutor *appdb.SQLExecutor
 }
 
-func (s *Store) Create(u *User) (err error) {
+func (s *Store) Create(u *User) error {
+	labels, err := json.Marshal(u.Labels)
+	if err != nil {
+		return err
+	}
+
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_user")).
 		Columns(
 			"id",
+			"labels",
 			"created_at",
 			"updated_at",
 			"login_at",
@@ -43,6 +50,7 @@ func (s *Store) Create(u *User) (err error) {
 		).
 		Values(
 			u.ID,
+			labels,
 			u.CreatedAt,
 			u.UpdatedAt,
 			u.MostRecentLoginAt,
@@ -63,6 +71,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 	return s.SQLBuilder.
 		Select(
 			"id",
+			"labels",
 			"created_at",
 			"updated_at",
 			"login_at",
@@ -76,8 +85,11 @@ func (s *Store) selectQuery() db.SelectBuilder {
 func (s *Store) scan(scn db.Scanner) (*User, error) {
 	u := &User{}
 
+	var labels []byte
+
 	if err := scn.Scan(
 		&u.ID,
+		&labels,
 		&u.CreatedAt,
 		&u.UpdatedAt,
 		&u.MostRecentLoginAt,
@@ -85,6 +97,10 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.IsDisabled,
 		&u.DisableReason,
 	); err != nil {
+		return nil, err
+	}
+
+	if err := json.Unmarshal(labels, &u.Labels); err != nil {
 		return nil, err
 	}
 
