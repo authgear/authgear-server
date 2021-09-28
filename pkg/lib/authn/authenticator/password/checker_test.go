@@ -1,17 +1,3 @@
-// Copyright 2015-present Oursky Ltd.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package password
 
 import (
@@ -73,64 +59,8 @@ func TestPasswordCheckingFuncs(t *testing.T) {
 	})
 	Convey("check password guessable level", t, func() {
 		p := "nihongo-wo-manabimashou" // 日本語を学びましょう
-		_, ok := checkPasswordGuessableLevel(p, 5, nil)
+		_, ok := checkPasswordGuessableLevel(p, 5)
 		So(ok, ShouldEqual, true)
-
-		userInputs := []string{"nihongo", "wo", "manabimashou"}
-
-		_, ok = checkPasswordGuessableLevel(p, 5, userInputs)
-		So(ok, ShouldEqual, false)
-		_, ok = checkPasswordGuessableLevel(p, 4, userInputs)
-		So(ok, ShouldEqual, true)
-		_, ok = checkPasswordGuessableLevel(p, 3, userInputs)
-		So(ok, ShouldEqual, true)
-		_, ok = checkPasswordGuessableLevel(p, 2, userInputs)
-		So(ok, ShouldEqual, true)
-		_, ok = checkPasswordGuessableLevel(p, 1, userInputs)
-		So(ok, ShouldEqual, true)
-		_, ok = checkPasswordGuessableLevel(p, 0, userInputs)
-		So(ok, ShouldEqual, true)
-	})
-}
-
-func TestUserDataToStringStringMap(t *testing.T) {
-	Convey("user record to map[string]string", t, func() {
-		userData := map[string]interface{}{
-			"s1":  "s1",
-			"s2":  "s2",
-			"int": 1,
-		}
-		So(
-			userDataToStringStringMap(userData),
-			ShouldResemble,
-			map[string]string{
-				"s1": "s1",
-				"s2": "s2",
-			},
-		)
-	})
-}
-
-func TestGetDictionary(t *testing.T) {
-	Convey("filter dictionary by keys", t, func() {
-		So(
-			filterDictionaryByKeys(map[string]string{
-				"a": "A",
-				"b": "B",
-			}, []string{"a"}),
-			ShouldEqualStringSliceWithoutOrder,
-			[]string{"A"},
-		)
-	})
-	Convey("filter dictionary take all", t, func() {
-		So(
-			filterDictionaryTakeAll(map[string]string{
-				"a": "A",
-				"b": "B",
-			}),
-			ShouldEqualStringSliceWithoutOrder,
-			[]string{"A", "B"},
-		)
 	})
 }
 
@@ -262,29 +192,6 @@ func TestValidatePassword(t *testing.T) {
 		So(
 			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
-			}),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordContainingExcludedKeywords},
-				},
-			},
-		)
-	})
-	Convey("validate excluded fields password", t, func() {
-		password := "adalovelace"
-		pc := &Checker{
-			PwExcludedFields: []string{"first_name"},
-		}
-		userData := map[string]interface{}{
-			"first_name": "Ada",
-			"last_name":  "Lovelace",
-		}
-		So(
-			pc.ValidatePassword(ValidatePayload{
-				PlainPassword: password,
-				UserData:      userData,
 			}),
 			ShouldEqualAPIError,
 			PasswordPolicyViolated,
@@ -441,16 +348,10 @@ func TestValidatePassword(t *testing.T) {
 			PwSymbolRequired:    true,
 			PwMinGuessableLevel: 5,
 			PwExcludedKeywords:  []string{"user", "admin"},
-			PwExcludedFields:    []string{"first_name", "last_name"},
-		}
-		userData := map[string]interface{}{
-			"first_name": "Natsume",
-			"last_name":  "Souseki",
 		}
 		So(
 			pc.ValidatePassword(ValidatePayload{
 				PlainPassword: password,
-				UserData:      userData,
 			}),
 			ShouldEqual,
 			nil,
