@@ -25865,6 +25865,8 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	panicMiddlewareLogger := webapp2.NewPanicMiddlewareLogger(factory)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -25929,13 +25931,13 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
 	panicMiddleware := &webapp2.PanicMiddleware{
+		Logger:        panicMiddlewareLogger,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 	}

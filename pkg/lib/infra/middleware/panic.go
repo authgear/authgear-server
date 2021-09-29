@@ -1,15 +1,12 @@
 package middleware
 
 import (
-	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -35,12 +32,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 					e = fmt.Errorf("%+v", err)
 				}
 
-				// Do not log context canceled error.
-				if !errors.Is(e, context.Canceled) {
-					m.Logger.WithError(e).
-						WithField("stack", errorutil.Callers(10000)).
-						Error("panic occurred")
-				}
+				log.PanicValue(m.Logger.Logger, e)
 
 				// Write the error as JSON.
 				// Note this will not always be successful,

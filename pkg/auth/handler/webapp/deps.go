@@ -13,6 +13,7 @@ var DependencySet = wire.NewSet(
 
 	NewPublisher,
 
+	NewPanicMiddlewareLogger,
 	wire.Struct(new(PanicMiddleware), "*"),
 
 	wire.Struct(new(StaticAssetsHandler), "*"),
