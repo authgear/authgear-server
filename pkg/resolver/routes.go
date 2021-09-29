@@ -16,15 +16,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	}, p.RootHandler(newHealthzHandler))
 
 	chain := httproute.Chain(
-		p.RootMiddleware(newPanicEndMiddleware),
-		p.RootMiddleware(newPanicWriteEmptyResponseMiddleware),
+		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
-		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(newSessionMiddleware),
 	)
 

@@ -20,14 +20,13 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	}, p.RootHandler(newHealthzHandler))
 
 	rootChain := httproute.Chain(
-		p.RootMiddleware(newPanicEndMiddleware),
+		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
-		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
@@ -55,7 +54,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		rootChain,
 		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
-		p.Middleware(newPanicAPIMiddleware),
 		p.Middleware(newCORSMiddleware),
 	)
 
@@ -63,7 +61,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		rootChain,
 		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
-		p.Middleware(newPanicWriteEmptyResponseMiddleware),
 		p.Middleware(newCORSMiddleware),
 		// Current we only require valid session and do not require any scope.
 		httproute.MiddlewareFunc(oauth.RequireScope()),
@@ -71,10 +68,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	webappChain := httproute.Chain(
 		rootChain,
+		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoCache),
 		httproute.MiddlewareFunc(webapp.IntlMiddleware),
-		p.Middleware(newPanicWebAppMiddleware),
 		p.Middleware(newWebAppSessionMiddleware),
 		p.Middleware(newWebAppUILocalesMiddleware),
 		p.Middleware(newWebAppWeChatRedirectURIMiddleware),

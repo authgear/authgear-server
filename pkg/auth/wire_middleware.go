@@ -15,6 +15,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
+func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		deps.RootDependencySet,
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicMiddleware)),
+	))
+}
+
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		deps.RootDependencySet,
@@ -27,34 +35,6 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.BodyLimitMiddleware)),
-	))
-}
-
-func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panic(wire.Build(
-		middleware.DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.PanicEndMiddleware)),
-	))
-}
-
-func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		middleware.DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.PanicWriteEmptyResponseMiddleware)),
-	))
-}
-
-func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.PanicLogMiddleware)),
-	))
-}
-
-func newPanicAPIMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.PanicWriteAPIResponseMiddleware)),
 	))
 }
 

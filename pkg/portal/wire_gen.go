@@ -37,24 +37,14 @@ import (
 
 // Injectors from wire.go:
 
-func newPanicEndMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panicEndMiddleware := &middleware.PanicEndMiddleware{}
-	return panicEndMiddleware
-}
-
-func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
+func newPanicMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := p.RootProvider
 	factory := rootProvider.LoggerFactory
-	panicLogMiddlewareLogger := middleware.NewPanicLogMiddlewareLogger(factory)
-	panicLogMiddleware := &middleware.PanicLogMiddleware{
-		Logger: panicLogMiddlewareLogger,
+	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
+	panicMiddleware := &middleware.PanicMiddleware{
+		Logger: panicMiddlewareLogger,
 	}
-	return panicLogMiddleware
-}
-
-func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panicWriteEmptyResponseMiddleware := &middleware.PanicWriteEmptyResponseMiddleware{}
-	return panicWriteEmptyResponseMiddleware
+	return panicMiddleware
 }
 
 func newBodyLimitMiddleware(p *deps.RequestProvider) httproute.Middleware {

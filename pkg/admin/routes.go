@@ -31,8 +31,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	}
 
 	chain := httproute.Chain(
-		p.RootMiddleware(newPanicEndMiddleware),
-		p.RootMiddleware(newPanicWriteEmptyResponseMiddleware),
+		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
 		secMiddleware,
@@ -41,7 +40,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
-		p.Middleware(newPanicLogMiddleware),
 		p.Middleware(func(p *deps.RequestProvider) httproute.Middleware {
 			return newAuthorizationMiddleware(p, auth)
 		}),

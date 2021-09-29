@@ -25838,6 +25838,15 @@ func newWebAppWebsocketHandler(p *deps.RequestProvider) http.Handler {
 
 // Injectors from wire_middleware.go:
 
+func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
+	factory := p.LoggerFactory
+	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
+	panicMiddleware := &middleware.PanicMiddleware{
+		Logger: panicMiddlewareLogger,
+	}
+	return panicMiddleware
+}
+
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
 	environmentConfig := p.EnvironmentConfig
@@ -25854,33 +25863,10 @@ func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return bodyLimitMiddleware
 }
 
-func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panicEndMiddleware := &middleware.PanicEndMiddleware{}
-	return panicEndMiddleware
-}
-
-func newPanicWriteEmptyResponseMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panicWriteEmptyResponseMiddleware := &middleware.PanicWriteEmptyResponseMiddleware{}
-	return panicWriteEmptyResponseMiddleware
-}
-
-func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	panicLogMiddlewareLogger := middleware.NewPanicLogMiddlewareLogger(factory)
-	panicLogMiddleware := &middleware.PanicLogMiddleware{
-		Logger: panicLogMiddlewareLogger,
-	}
-	return panicLogMiddleware
-}
-
-func newPanicAPIMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panicWriteAPIResponseMiddleware := &middleware.PanicWriteAPIResponseMiddleware{}
-	return panicWriteAPIResponseMiddleware
-}
-
 func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	panicMiddlewareLogger := webapp2.NewPanicMiddlewareLogger(factory)
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -25945,13 +25931,13 @@ func newPanicWebAppMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		DefaultLanguageTag:    defaultLanguageTag,
 		SupportedLanguageTags: supportedLanguageTags,
 	}
-	factory := appProvider.LoggerFactory
 	responseRendererLogger := webapp2.NewResponseRendererLogger(factory)
 	responseRenderer := &webapp2.ResponseRenderer{
 		TemplateEngine: engine,
 		Logger:         responseRendererLogger,
 	}
 	panicMiddleware := &webapp2.PanicMiddleware{
+		Logger:        panicMiddlewareLogger,
 		BaseViewModel: baseViewModeler,
 		Renderer:      responseRenderer,
 	}

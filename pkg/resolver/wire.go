@@ -27,6 +27,14 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	))
 }
 
+func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
+	panic(wire.Build(
+		deps.RootDependencySet,
+		middleware.DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*middleware.PanicMiddleware)),
+	))
+}
+
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		deps.RootDependencySet,
@@ -35,31 +43,10 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	))
 }
 
-func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panic(wire.Build(
-		middleware.DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.PanicEndMiddleware)),
-	))
-}
-
-func newPanicWriteEmptyResponseMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panic(wire.Build(
-		middleware.DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.PanicWriteEmptyResponseMiddleware)),
-	))
-}
-
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	panic(wire.Build(
 		middleware.DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*middleware.BodyLimitMiddleware)),
-	))
-}
-
-func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(httproute.Middleware), new(*middleware.PanicLogMiddleware)),
 	))
 }
 
