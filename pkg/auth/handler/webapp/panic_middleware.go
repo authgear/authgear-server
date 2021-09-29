@@ -1,11 +1,11 @@
 package webapp
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -33,13 +33,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				data := make(map[string]interface{})
 				baseViewModel := m.BaseViewModel.ViewModel(r, w)
 
-				// Make error
-				var err error
-				if ee, isErr := e.(error); isErr {
-					err = ee
-				} else {
-					err = fmt.Errorf("%+v", e)
-				}
+				err := panicutil.MakeError(e)
 
 				log.PanicValue(m.Logger.Logger, err)
 

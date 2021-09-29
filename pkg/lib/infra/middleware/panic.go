@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
 
 type PanicMiddlewareLogger struct{ *log.Logger }
@@ -24,13 +24,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				// Make error.
-				var e error
-				if ee, isErr := err.(error); isErr {
-					e = ee
-				} else {
-					e = fmt.Errorf("%+v", err)
-				}
+				e := panicutil.MakeError(err)
 
 				log.PanicValue(m.Logger.Logger, e)
 
