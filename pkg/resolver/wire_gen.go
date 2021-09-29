@@ -68,6 +68,15 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	return handler
 }
 
+func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
+	factory := p.LoggerFactory
+	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
+	panicMiddleware := &middleware.PanicMiddleware{
+		Logger: panicMiddlewareLogger,
+	}
+	return panicMiddleware
+}
+
 func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	hub := p.SentryHub
 	environmentConfig := p.EnvironmentConfig
@@ -79,29 +88,9 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return sentryMiddleware
 }
 
-func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panicEndMiddleware := &middleware.PanicEndMiddleware{}
-	return panicEndMiddleware
-}
-
-func newPanicWriteEmptyResponseMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panicWriteEmptyResponseMiddleware := &middleware.PanicWriteEmptyResponseMiddleware{}
-	return panicWriteEmptyResponseMiddleware
-}
-
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
 	return bodyLimitMiddleware
-}
-
-func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	panicLogMiddlewareLogger := middleware.NewPanicLogMiddlewareLogger(factory)
-	panicLogMiddleware := &middleware.PanicLogMiddleware{
-		Logger: panicLogMiddlewareLogger,
-	}
-	return panicLogMiddleware
 }
 
 func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {

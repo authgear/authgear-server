@@ -64,6 +64,15 @@ import (
 
 // Injectors from wire.go:
 
+func newPanicMiddleware(p *deps.RootProvider) httproute.Middleware {
+	factory := p.LoggerFactory
+	panicMiddlewareLogger := middleware.NewPanicMiddlewareLogger(factory)
+	panicMiddleware := &middleware.PanicMiddleware{
+		Logger: panicMiddlewareLogger,
+	}
+	return panicMiddleware
+}
+
 func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Request, ctx context.Context) http.Handler {
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
@@ -92,29 +101,9 @@ func newSentryMiddleware(p *deps.RootProvider) httproute.Middleware {
 	return sentryMiddleware
 }
 
-func newPanicEndMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panicEndMiddleware := &middleware.PanicEndMiddleware{}
-	return panicEndMiddleware
-}
-
-func newPanicWriteEmptyResponseMiddleware(p *deps.RootProvider) httproute.Middleware {
-	panicWriteEmptyResponseMiddleware := &middleware.PanicWriteEmptyResponseMiddleware{}
-	return panicWriteEmptyResponseMiddleware
-}
-
 func newBodyLimitMiddleware(p *deps.RootProvider) httproute.Middleware {
 	bodyLimitMiddleware := &middleware.BodyLimitMiddleware{}
 	return bodyLimitMiddleware
-}
-
-func newPanicLogMiddleware(p *deps.RequestProvider) httproute.Middleware {
-	appProvider := p.AppProvider
-	factory := appProvider.LoggerFactory
-	panicLogMiddlewareLogger := middleware.NewPanicLogMiddlewareLogger(factory)
-	panicLogMiddleware := &middleware.PanicLogMiddleware{
-		Logger: panicLogMiddlewareLogger,
-	}
-	return panicLogMiddleware
 }
 
 func newAuthorizationMiddleware(p *deps.RequestProvider, auth config.AdminAPIAuth) httproute.Middleware {
