@@ -65,9 +65,7 @@ func (c *Controller) Start() {
 	specs = append(specs, server.Spec{
 		Name:          "portal server",
 		ListenAddress: cfg.PortalListenAddr,
-		Handler: portal.NewRouter(p, portal.StaticAssetConfig{
-			ServingEnabled: cfg.StaticAsset.ServingEnabled,
-		}),
+		Handler:       portal.NewRouter(p),
 	})
 	server.Start(c.logger, specs)
 }

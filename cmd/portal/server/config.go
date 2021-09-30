@@ -23,8 +23,6 @@ type Config struct {
 	AdminAPI portalconfig.AdminAPIConfig `envconfig:"ADMIN_API"`
 	// App configures the managed apps.
 	App portalconfig.AppConfig `envconfig:"APP"`
-	// StaticAsset configures serving static asset
-	StaticAsset StaticAssetConfig `envconfig:"STATIC_ASSET"`
 	// SMTP configures SMTP.
 	SMTP portalconfig.SMTPConfig `envconfig:"SMTP"`
 	// Mail configures email settings.
@@ -102,9 +100,4 @@ func (c *Config) Validate() error {
 	}
 
 	return ctx.Error("invalid server configuration")
-}
-
-type StaticAssetConfig struct {
-	// ServingEnabled sets whether serving static assets is enabled
-	ServingEnabled bool `envconfig:"SERVING_ENABLED" default:"true"`
 }

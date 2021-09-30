@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.Router {
+func NewRouter(p *deps.RootProvider) *httproute.Router {
 	router := httproute.NewRouter()
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
@@ -65,9 +65,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 
 	router.Add(transport.ConfigureAdminAPIRoute(adminAPIRoute), p.Handler(newAdminAPIHandler))
 
-	if staticAsset.ServingEnabled {
-		router.NotFound(secMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
-	}
+	router.NotFound(secMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
 
 	return router
 }
