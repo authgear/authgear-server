@@ -171,7 +171,7 @@ graphql must be 14 because apollo requires ^14.0.0
 
 @monaco-editor/react>=4 is slow in our usage. We need to adjust how we use it when we upgrade.
 
-prettier==2.3.0 changes formatting a lot.
+react-router-dom>6.0.0-beta.0 introduces a lot of breaking changes. It is better to wait for the RC version.
 
 ### Setup environment variable
 
