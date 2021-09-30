@@ -167,21 +167,13 @@ To setup multi-tenant mode:
 
 ### Known issues
 
-`parcel@2.0.0-beta.1` cannot bundle `@apollo/client>=3.3.4` because it uses `ts-invariant@0.6.0`.
-See https://github.com/apollographql/apollo-client/compare/v3.3.3..v3.3.4
-
-`parcel@2.0.0-beta.2` cannot bundle `@fluentui/react` unless `no-scope-hoisting` is specified in the build command `parcel build`.
-However, with `no-scope-hoisting` specified, the CSS of `@fluentui/react` is not bundled at all, causing the UI to break.
-See https://github.com/parcel-bundler/parcel/issues/6071
-
-postcss-modules>=4 requires postcss>=8
+graphql must be 15 otherwise `npm run gentype` will fail.
+When graphql is ^15.0.0, we will see missing peer dependency of graphql@^14.0.0
+See https://github.com/apollographql/apollo-tooling/issues/2232
 
 @monaco-editor/react>=4 is slow in our usage. We need to adjust how we use it when we upgrade.
 
-prettier==2.3.0 changes formatting a lot.
-
-We cannot upgrade @fluentui/react because installing a new version will update @fluentui/utilities to >= 8.1.0
-@fluentui/utilities>=8.1.0 has export statement which parcel cannot transform.
+react-router-dom>6.0.0-beta.0 introduces a lot of breaking changes. It is better to wait for the RC version.
 
 ### Setup environment variable
 

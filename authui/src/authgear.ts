@@ -139,11 +139,15 @@ window.api.onLoad(() => {
     if (typeof rfc3339 === "string") {
       const luxonDatetime = DateTime.fromISO(rfc3339);
       const abs = hasAbs
-        ? luxonDatetime.toLocaleString({
-            locale: lang,
-            dateStyle: "medium",
-            timeStyle: "short",
-          } as any)
+        ? luxonDatetime.toLocaleString(
+            {
+              dateStyle: "medium",
+              timeStyle: "short",
+            },
+            {
+              locale: lang,
+            }
+          )
         : null;
       const rel = hasRel
         ? luxonDatetime.toRelative({
