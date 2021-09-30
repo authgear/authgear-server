@@ -41,7 +41,7 @@
   "dependencies": {
     "@apollo/client": "3.4.15",
     "@authgear/web": "0.13.0",
-    "@fluentui/react": "8.9.0",
+    "@fluentui/react": "8.35.2",
     "@monaco-editor/react": "3.7.2",
     "@oursky/react-messageformat": "1.1.1",
     "base64-js": "1.5.1",

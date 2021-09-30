@@ -173,9 +173,6 @@ graphql must be 14 because apollo requires ^14.0.0
 
 prettier==2.3.0 changes formatting a lot.
 
-We cannot upgrade @fluentui/react because installing a new version will update @fluentui/utilities to >= 8.1.0
-@fluentui/utilities>=8.1.0 has export statement which parcel cannot transform.
-
 ### Setup environment variable
 
 We need to set up environment variables for Authgear servers and portal server.
