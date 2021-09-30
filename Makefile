@@ -101,6 +101,19 @@ authui:
 	npm run --silent --prefix ./authui format
 	npm run --silent --prefix ./authui build
 
+.PHONY: portal
+portal:
+	npm run --silent --prefix ./portal build
+	cp -R ./portal/dist/ ./resources/portal/static/
+
+# After you run `make clean`, you have to run `make authui` and `make portal`.
+.PHONY: clean
+clean:
+	rm -rf ./resources/portal/static
+	git checkout -- ./resources/portal/static
+	rm -rf ./resources/authgear/static
+	git checkout -- ./resources/authgear/static
+
 .PHONY: export-schemas
 export-schemas:
 	go run ./scripts/exportschemas -s app-config -o tmp/app-config.schema.json

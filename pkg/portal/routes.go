@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.Router {
+func NewRouter(p *deps.RootProvider) *httproute.Router {
 	router := httproute.NewRouter()
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
@@ -22,7 +22,12 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 	// TODO(csp): improve security
 	secMiddleware := &web.SecHeadersMiddleware{
 		CSPDirectives: []string{
-			"script-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
+			// FIXME(regeneratorRuntime)
+			// parcel-2.0.0-rc.0 requires us to use ES6 module when the browser supports it.
+			// ES6 module assumes strict mode.
+			// regeneratorRuntime is not compatible with strict mode because
+			// it uses Function to generate function, which is considered as eval.
+			"script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net",
 			"worker-src 'self' 'unsafe-inline' cdn.jsdelivr.net",
 			"object-src 'none'",
 			"base-uri 'none'",
@@ -65,9 +70,7 @@ func NewRouter(p *deps.RootProvider, staticAsset StaticAssetConfig) *httproute.R
 
 	router.Add(transport.ConfigureAdminAPIRoute(adminAPIRoute), p.Handler(newAdminAPIHandler))
 
-	if staticAsset.ServingEnabled {
-		router.NotFound(secMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
-	}
+	router.NotFound(secMiddleware.Handle(p.Handler(newStaticAssetsHandler)))
 
 	return router
 }
