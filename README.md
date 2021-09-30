@@ -167,7 +167,9 @@ To setup multi-tenant mode:
 
 ### Known issues
 
-graphql must be 14 because apollo requires ^14.0.0
+graphql must be 15 otherwise `npm run gentype` will fail.
+When graphql is ^15.0.0, we will see missing peer dependency of graphql@^14.0.0
+See https://github.com/apollographql/apollo-tooling/issues/2232
 
 @monaco-editor/react>=4 is slow in our usage. We need to adjust how we use it when we upgrade.
 
