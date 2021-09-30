@@ -21,7 +21,7 @@
     "@oursky/stylelint-oursky": "2.0.0",
     "@parcel/transformer-sass": "2.0.0-rc.0",
     "@types/deep-equal": "1.0.1",
-    "@types/jest": "26.0.23",
+    "@types/jest": "27.0.2",
     "@types/js-yaml": "4.0.3",
     "@types/luxon": "2.0.4",
     "@types/react": "17.0.25",
