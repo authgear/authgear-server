@@ -212,6 +212,8 @@
   "UserDetails.command-bar.login-as-user": "Login as this user",
   "UserDetails.command-bar.invalidate-sessions": "Invalidate all sessions",
 
+  "UserDetails.standard-attributes.header": "Profile",
+
   "UserDetails.account-security.header": "Account Security",
   "UserDetails.account-security.last-updated": "Last updated at {datetime}",
   "UserDetails.account-security.added-on": "Added: {datetime}",
