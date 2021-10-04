@@ -484,3 +484,34 @@ export interface NonBlockingHookHandlerFeatureConfig {
 export interface AuditLogFeatureConfig {
   retrieval_days?: number;
 }
+
+export interface StandardAttributes {
+  email?: string;
+  email_verified?: boolean;
+  phone_number?: string;
+  phone_number_verified?: boolean;
+  preferred_username?: string;
+  family_name?: string;
+  given_name?: string;
+  middle_name?: string;
+  name?: string;
+  nickname?: string;
+  picture?: string;
+  profile?: string;
+  website?: string;
+  gender?: string;
+  birthdate?: string;
+  zoneinfo?: string;
+  locale?: string;
+  address?: StandardAttributesAddress;
+  updated_at?: number;
+}
+
+export interface StandardAttributesAddress {
+  formatted?: string;
+  street_address?: string;
+  locality?: string;
+  region?: string;
+  postal_code?: string;
+  country?: string;
+}
