@@ -126,6 +126,7 @@ export interface UserQuery_node_User {
   authenticators: UserQuery_node_User_authenticators | null;
   identities: UserQuery_node_User_identities | null;
   verifiedClaims: UserQuery_node_User_verifiedClaims[];
+  standardAttributes: GQL_UserStandardAttributes;
   sessions: UserQuery_node_User_sessions | null;
   isDisabled: boolean;
   /**
