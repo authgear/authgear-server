@@ -32,19 +32,31 @@ interface FormState {
   password: string;
 }
 
-const defaultFormState: FormState = {
-  selectedLoginIDType: null,
-  username: "",
-  email: "",
-  phone: "",
-  password: "",
-};
-
 const loginIdTypeNameIds: Record<LoginIDKeyType, string> = {
   username: "login-id-key.username",
   email: "login-id-key.email",
   phone: "login-id-key.phone",
 };
+
+function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
+  if (loginIDTypes.length === 1) {
+    return {
+      selectedLoginIDType: loginIDTypes[0],
+      username: "",
+      email: "",
+      phone: "",
+      password: "",
+    };
+  }
+
+  return {
+    selectedLoginIDType: null,
+    username: "",
+    email: "",
+    phone: "",
+    password: "",
+  };
+}
 
 function isPasswordNeeded(
   primaryAuthenticators: PrimaryAuthenticatorType[],
@@ -298,6 +310,11 @@ const AddUserScreen: React.FC = function AddUserScreen() {
   const passwordPolicy = useMemo(
     () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
     [effectiveAppConfig]
+  );
+
+  const defaultFormState = useMemo(
+    () => makeDefaultFormState(loginIDTypes),
+    [loginIDTypes]
   );
 
   const { createUser } = useCreateUserMutation();
