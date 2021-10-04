@@ -26,7 +26,6 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 		appCtx, err := m.ConfigSource.ProvideContext(r)
 		if err != nil {
 			if errors.Is(err, configsource.ErrAppNotFound) {
-				logger.WithError(err).Error("app not found")
 				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)
 			} else {
 				logger.WithError(err).Error("failed to resolve config")
