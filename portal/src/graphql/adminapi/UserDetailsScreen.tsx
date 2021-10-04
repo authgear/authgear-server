@@ -9,6 +9,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import UserDetailCommandBarContainer from "./UserDetailCommandBarContainer";
 import UserDetailSummary from "./UserDetailSummary";
+import UserDetailsStandardAttributes from "./UserDetailsStandardAttributes";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
@@ -28,6 +29,7 @@ interface UserDetailsProps {
   loading: boolean;
 }
 
+const STANDARD_ATTRIBUTES_KEY = "standard-attributes";
 const ACCOUNT_SECURITY_PIVOT_KEY = "account-security";
 const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
@@ -38,6 +40,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   const { data, loading, appConfig } = props;
   const { renderToString } = React.useContext(Context);
   const { selectedKey, onLinkClick } = usePivotNavigation([
+    STANDARD_ATTRIBUTES_KEY,
     ACCOUNT_SECURITY_PIVOT_KEY,
     CONNECTED_IDENTITIES_PIVOT_KEY,
     SESSION_PIVOT_KEY,
@@ -83,6 +86,14 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
       />
       <div className={styles.userDetailsTab}>
         <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
+          <PivotItem
+            itemKey={STANDARD_ATTRIBUTES_KEY}
+            headerText={renderToString(
+              "UserDetails.standard-attributes.header"
+            )}
+          >
+            <UserDetailsStandardAttributes />
+          </PivotItem>
           <PivotItem
             itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
             headerText={renderToString("UserDetails.account-security.header")}
