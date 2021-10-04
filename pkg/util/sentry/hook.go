@@ -7,6 +7,8 @@ import (
 	"github.com/getsentry/sentry-go"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var LogHookLevels = []logrus.Level{
@@ -32,6 +34,10 @@ func (h *LogHook) Levels() []logrus.Level { return LogHookLevels }
 
 func (h *LogHook) Fire(entry *logrus.Entry) error {
 	if h.hub == nil {
+		return nil
+	}
+
+	if log.Ignore(entry) {
 		return nil
 	}
 
