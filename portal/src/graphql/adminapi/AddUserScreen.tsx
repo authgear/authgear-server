@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { ChoiceGroup, IChoiceGroupOption, Label, Text } from "@fluentui/react";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
@@ -11,6 +10,7 @@ import ShowError from "../../ShowError";
 import PasswordField from "../../PasswordField";
 import { useTextField } from "../../hook/useInput";
 import {
+  PrimaryAuthenticatorType,
   LoginIDKeyType,
   loginIDKeyTypes,
   PasswordPolicyConfig,
@@ -32,65 +32,70 @@ interface FormState {
   password: string;
 }
 
-const defaultFormState: FormState = {
-  selectedLoginIDType: null,
-  username: "",
-  email: "",
-  phone: "",
-  password: "",
-};
-
 const loginIdTypeNameIds: Record<LoginIDKeyType, string> = {
   username: "login-id-key.username",
   email: "login-id-key.email",
   phone: "login-id-key.phone",
 };
 
+function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
+  if (loginIDTypes.length === 1) {
+    return {
+      selectedLoginIDType: loginIDTypes[0],
+      username: "",
+      email: "",
+      phone: "",
+      password: "",
+    };
+  }
+
+  return {
+    selectedLoginIDType: null,
+    username: "",
+    email: "",
+    phone: "",
+    password: "",
+  };
+}
+
 function isPasswordNeeded(
-  appConfig: PortalAPIAppConfig | null,
+  primaryAuthenticators: PrimaryAuthenticatorType[],
   loginIdKeySelected: LoginIDKeyType | null
 ) {
+  // Unknown yet.
   if (loginIdKeySelected == null) {
     return false;
   }
-  const primaryAuthenticators =
-    appConfig?.authentication?.primary_authenticators ?? [];
-  // password is first one, all login ID types need password
-  if (primaryAuthenticators[0] === "password") {
-    return true;
+
+  switch (loginIdKeySelected) {
+    case "email":
+      return !primaryAuthenticators.includes("oob_otp_email");
+    case "phone":
+      return !primaryAuthenticators.includes("oob_otp_sms");
+    case "username":
+      return true;
+    default:
+      return false;
   }
-  // password is second one, require password if user choose username
-  // only id is username -> need password
-  if (deepEqual(["oob_otp", "password"], primaryAuthenticators)) {
-    return loginIdKeySelected === "username";
-  }
-  return false;
 }
 
-function getLoginIdTypeOptions(appConfig: PortalAPIAppConfig | null) {
-  const primaryAuthenticators =
-    appConfig?.authentication?.primary_authenticators ?? [];
-
-  // need password authenticator in order to use username to login
-  const usernameAllowed = primaryAuthenticators.includes("password");
-
-  const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
+function getEnabledLoginIDTypes(
+  appConfig: PortalAPIAppConfig | null
+): LoginIDKeyType[] {
   const enabledIdentities = appConfig?.authentication?.identities ?? [];
   const isLoginIDIdentityEnabled = enabledIdentities.includes("login_id");
-
   // if login ID identity is disabled
   // we cannot add login ID identity to new user
   if (!isLoginIDIdentityEnabled) {
     return [];
   }
 
+  const loginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
   const loginIdKeyOptions = new Set<LoginIDKeyType>();
   for (const key of loginIdKeys) {
     switch (key.type) {
       case "username": {
-        if (usernameAllowed) {
-          loginIdKeyOptions.add("username");
-        }
+        loginIdKeyOptions.add("username");
         break;
       }
       case "email":
@@ -121,10 +126,9 @@ const errorRules: ErrorParseRule[] = [
 ];
 
 interface AddUserContentProps {
-  isPasswordNeeded: boolean;
+  primaryAuthenticators: PrimaryAuthenticatorType[];
   passwordPolicy: PasswordPolicyConfig;
   loginIDTypes: LoginIDKeyType[];
-
   form: SimpleFormModel<FormState>;
 }
 
@@ -132,7 +136,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
 ) {
   const {
-    isPasswordNeeded,
+    primaryAuthenticators,
     passwordPolicy,
     loginIDTypes,
     form: { state, setState },
@@ -147,6 +151,10 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   }, []);
 
   const { username, email, phone, password, selectedLoginIDType } = state;
+
+  const passwordFieldDisabled = useMemo(() => {
+    return !isPasswordNeeded(primaryAuthenticators, selectedLoginIDType);
+  }, [primaryAuthenticators, selectedLoginIDType]);
 
   const { onChange: onUsernameChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, username: value }));
@@ -270,7 +278,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
       />
       <PasswordField
         textFieldClassName={styles.textField}
-        disabled={!isPasswordNeeded}
+        disabled={passwordFieldDisabled}
         label={renderToString("AddUserScreen.password.label")}
         value={password}
         onChange={onPasswordChange}
@@ -288,25 +296,37 @@ const AddUserScreen: React.FC = function AddUserScreen() {
 
   const { effectiveAppConfig, loading, error, refetch } =
     useAppAndSecretConfigQuery(appID);
-  const loginIDTypes = useMemo(
-    () => getLoginIdTypeOptions(effectiveAppConfig),
+
+  const primaryAuthenticators = useMemo(
+    () => effectiveAppConfig?.authentication?.primary_authenticators ?? [],
     [effectiveAppConfig]
   );
+
+  const loginIDTypes = useMemo(
+    () => getEnabledLoginIDTypes(effectiveAppConfig),
+    [effectiveAppConfig]
+  );
+
   const passwordPolicy = useMemo(
     () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
     [effectiveAppConfig]
+  );
+
+  const defaultFormState = useMemo(
+    () => makeDefaultFormState(loginIDTypes),
+    [loginIDTypes]
   );
 
   const { createUser } = useCreateUserMutation();
 
   const validate = useCallback(
     (state: FormState) => {
-      if (!isPasswordNeeded(effectiveAppConfig, state.selectedLoginIDType)) {
+      if (!isPasswordNeeded(primaryAuthenticators, state.selectedLoginIDType)) {
         return null;
       }
       return validatePassword(state.password, passwordPolicy);
     },
-    [effectiveAppConfig, passwordPolicy]
+    [primaryAuthenticators, passwordPolicy]
   );
 
   const submit = useCallback(
@@ -317,7 +337,7 @@ const AddUserScreen: React.FC = function AddUserScreen() {
       }
 
       const needPassword = isPasswordNeeded(
-        effectiveAppConfig,
+        primaryAuthenticators,
         state.selectedLoginIDType
       );
       const identityValue = state[loginIDType];
@@ -325,19 +345,15 @@ const AddUserScreen: React.FC = function AddUserScreen() {
 
       await createUser({ key: loginIDType, value: identityValue }, password);
     },
-    [createUser, effectiveAppConfig]
+    [createUser, primaryAuthenticators]
   );
 
   const form = useSimpleForm(defaultFormState, submit, validate);
 
-  const needPassword = useMemo(
-    () => isPasswordNeeded(effectiveAppConfig, form.state.selectedLoginIDType),
-    [effectiveAppConfig, form.state]
-  );
-
   const canSave =
     form.state.selectedLoginIDType != null &&
     form.state[form.state.selectedLoginIDType].length > 0;
+
   const saveButtonProps = useMemo(
     () => ({
       labelId: "AddUserScreen.add-user.label",
@@ -368,7 +384,7 @@ const AddUserScreen: React.FC = function AddUserScreen() {
     >
       <AddUserContent
         form={form}
-        isPasswordNeeded={needPassword}
+        primaryAuthenticators={primaryAuthenticators}
         loginIDTypes={loginIDTypes}
         passwordPolicy={passwordPolicy}
       />
