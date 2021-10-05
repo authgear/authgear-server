@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { TextField } from "@fluentui/react";
+import React, { useContext, useMemo } from "react";
+import { TextField, Dropdown, IDropdownOption } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import { StandardAttributes } from "../../types";
 
@@ -15,6 +15,31 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
   ) {
     const { standardAttributes } = props;
     const { renderToString } = useContext(Context);
+
+    const email = standardAttributes.email;
+    const emailOptions: IDropdownOption[] = useMemo(() => {
+      if (email == null) {
+        return [];
+      }
+      return [{ key: email, text: email }];
+    }, [email]);
+
+    const phoneNumber = standardAttributes.phone_number;
+    const phoneNumberOptions: IDropdownOption[] = useMemo(() => {
+      if (phoneNumber == null) {
+        return [];
+      }
+      return [{ key: phoneNumber, text: phoneNumber }];
+    }, [phoneNumber]);
+
+    const preferredUsername = standardAttributes.preferred_username;
+    const preferredUsernameOptions: IDropdownOption[] = useMemo(() => {
+      if (preferredUsername == null) {
+        return [];
+      }
+      return [{ key: preferredUsername, text: preferredUsername }];
+    }, [preferredUsername]);
+
     return (
       <div className={styles.root}>
         <TextField
@@ -56,6 +81,24 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           className={styles.control}
           label={renderToString("standard-attribute.website")}
           value={standardAttributes.website ?? ""}
+        />
+        <Dropdown
+          className={styles.control}
+          label={renderToString("standard-attribute.email")}
+          selectedKey={email}
+          options={emailOptions}
+        />
+        <Dropdown
+          className={styles.control}
+          label={renderToString("standard-attribute.phone_number")}
+          selectedKey={phoneNumber}
+          options={phoneNumberOptions}
+        />
+        <Dropdown
+          className={styles.control}
+          label={renderToString("standard-attribute.preferred_username")}
+          selectedKey={preferredUsername}
+          options={preferredUsernameOptions}
         />
       </div>
     );
