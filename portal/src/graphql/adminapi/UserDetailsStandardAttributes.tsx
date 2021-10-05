@@ -5,14 +5,25 @@ import {
   IDropdownOption,
   ComboBox,
   IComboBoxOption,
+  DatePicker,
+  DayOfWeek,
+  FirstWeekOfYear,
 } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
+import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import { StandardAttributes } from "../../types";
 
 import styles from "./UserDetailsStandardAttributes.module.scss";
 
 export interface UserDetailsStandardAttributesProps {
   standardAttributes: StandardAttributes;
+}
+
+function formatDate(date?: Date): string {
+  if (date == null) {
+    return "";
+  }
+  return toBirthdate(date) ?? "";
 }
 
 const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps> =
@@ -64,6 +75,15 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       }
       return predefinedOptions;
     }, [gender]);
+
+    const birthdate = standardAttributes.birthdate;
+    const birthdateValue = useMemo(() => {
+      if (birthdate == null) {
+        return undefined;
+      }
+      const jsDate = parseBirthdate(birthdate);
+      return jsDate;
+    }, [birthdate]);
 
     return (
       <div className={styles.root}>
@@ -130,6 +150,14 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           label={renderToString("standard-attribute.gender")}
           selectedKey={gender}
           options={genderOptions}
+        />
+        <DatePicker
+          className={styles.control}
+          label={renderToString("standard-attribute.birthdate")}
+          firstDayOfWeek={DayOfWeek.Monday}
+          firstWeekOfYear={FirstWeekOfYear.FirstFourDayWeek}
+          value={birthdateValue}
+          formatDate={formatDate}
         />
       </div>
     );
