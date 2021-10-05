@@ -61,6 +61,7 @@
     "react-dom": "17.0.2",
     "react-helmet-async": "1.1.2",
     "react-router-dom": "6.0.0-beta.0",
+    "tzdata": "1.0.27",
     "zxcvbn": "4.4.2"
   }
 }
