@@ -858,6 +858,7 @@
   "standard-attribute.email": "Primary Email",
   "standard-attribute.phone_number": "Primary Phone",
   "standard-attribute.preferred_username": "Username",
+  "standard-attribute.gender": "Gender",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
