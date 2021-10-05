@@ -847,6 +847,15 @@
   "SMTPConfigurationScreen.sendgrid.description": "Sign up for a SengGrid account and generate a SendGrid API Key. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
   "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
 
+  "standard-attribute.name": "Name",
+  "standard-attribute.given_name": "Given Name",
+  "standard-attribute.family_name": "Family Name",
+  "standard-attribute.middle_name": "Middle Name",
+  "standard-attribute.nickname": "Nickname",
+  "standard-attribute.picture": "Picture",
+  "standard-attribute.profile": "Profile",
+  "standard-attribute.website": "Website",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",
