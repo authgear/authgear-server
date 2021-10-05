@@ -74,6 +74,8 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
       ?.map((edge) => edge?.node)
       .filter(nonNullable) ?? [];
 
+  const standardAttributes = data?.standardAttributes ?? {};
+
   const sessions =
     data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
 
@@ -92,7 +94,9 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
               "UserDetails.standard-attributes.header"
             )}
           >
-            <UserDetailsStandardAttributes />
+            <UserDetailsStandardAttributes
+              standardAttributes={standardAttributes}
+            />
           </PivotItem>
           <PivotItem
             itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
