@@ -1,5 +1,11 @@
 import React, { useContext, useMemo } from "react";
-import { TextField, Dropdown, IDropdownOption } from "@fluentui/react";
+import {
+  TextField,
+  Dropdown,
+  IDropdownOption,
+  ComboBox,
+  IComboBoxOption,
+} from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import { StandardAttributes } from "../../types";
 
@@ -39,6 +45,25 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       }
       return [{ key: preferredUsername, text: preferredUsername }];
     }, [preferredUsername]);
+
+    const gender = standardAttributes.gender;
+    const genderOptions: IComboBoxOption[] = useMemo(() => {
+      const predefinedOptions: IComboBoxOption[] = [
+        { key: "male", text: "male" },
+        { key: "female", text: "female" },
+      ];
+      if (gender != null) {
+        const index = predefinedOptions.findIndex((a) => a.key === gender);
+        if (index < 0) {
+          predefinedOptions.push({
+            key: gender,
+            text: gender,
+            hidden: true,
+          });
+        }
+      }
+      return predefinedOptions;
+    }, [gender]);
 
     return (
       <div className={styles.root}>
@@ -99,6 +124,12 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           label={renderToString("standard-attribute.preferred_username")}
           selectedKey={preferredUsername}
           options={preferredUsernameOptions}
+        />
+        <ComboBox
+          className={styles.control}
+          label={renderToString("standard-attribute.gender")}
+          selectedKey={gender}
+          options={genderOptions}
         />
       </div>
     );
