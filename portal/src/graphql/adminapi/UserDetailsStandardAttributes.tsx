@@ -10,6 +10,7 @@ import {
   FirstWeekOfYear,
 } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import { StandardAttributes } from "../../types";
 import { TIMEZONE_NAMES } from "../../util/timezone";
@@ -32,6 +33,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
     props: UserDetailsStandardAttributesProps
   ) {
     const { standardAttributes } = props;
+    const { availableLanguages } = useSystemConfig();
     const { renderToString } = useContext(Context);
 
     const email = standardAttributes.email;
@@ -95,6 +97,31 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         };
       });
     }, []);
+
+    const locale = standardAttributes.locale;
+    const localeOptions = useMemo(() => {
+      let found = false;
+      const options: IDropdownOption[] = [];
+      for (const tag of availableLanguages) {
+        options.push({
+          key: tag,
+          text: renderToString("Locales." + tag),
+        });
+        if (locale != null && locale === tag) {
+          found = true;
+        }
+      }
+
+      if (locale != null && !found) {
+        options.push({
+          key: locale,
+          text: locale,
+          hidden: true,
+        });
+      }
+
+      return options;
+    }, [locale, renderToString, availableLanguages]);
 
     return (
       <div className={styles.root}>
@@ -175,6 +202,12 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           label={renderToString("standard-attribute.zoneinfo")}
           selectedKey={zoneinfo}
           options={zoneinfoOptions}
+        />
+        <Dropdown
+          className={styles.control}
+          label={renderToString("standard-attribute.locale")}
+          selectedKey={locale}
+          options={localeOptions}
         />
       </div>
     );
