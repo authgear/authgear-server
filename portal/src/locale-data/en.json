@@ -861,6 +861,7 @@
   "standard-attribute.gender": "Gender",
   "standard-attribute.birthdate": "Birthdate",
   "standard-attribute.zoneinfo": "Timezone",
+  "standard-attribute.locale": "Language",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
