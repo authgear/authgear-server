@@ -860,6 +860,7 @@
   "standard-attribute.preferred_username": "Username",
   "standard-attribute.gender": "Gender",
   "standard-attribute.birthdate": "Birthdate",
+  "standard-attribute.zoneinfo": "Timezone",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

@@ -12,6 +12,7 @@ import {
 import { Context } from "@oursky/react-messageformat";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import { StandardAttributes } from "../../types";
+import { TIMEZONE_NAMES } from "../../util/timezone";
 
 import styles from "./UserDetailsStandardAttributes.module.scss";
 
@@ -84,6 +85,16 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       const jsDate = parseBirthdate(birthdate);
       return jsDate;
     }, [birthdate]);
+
+    const zoneinfo = standardAttributes.zoneinfo;
+    const zoneinfoOptions = useMemo(() => {
+      return TIMEZONE_NAMES.map((a) => {
+        return {
+          key: a,
+          text: a,
+        };
+      });
+    }, []);
 
     return (
       <div className={styles.root}>
@@ -158,6 +169,12 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           firstWeekOfYear={FirstWeekOfYear.FirstFourDayWeek}
           value={birthdateValue}
           formatDate={formatDate}
+        />
+        <Dropdown
+          className={styles.control}
+          label={renderToString("standard-attribute.zoneinfo")}
+          selectedKey={zoneinfo}
+          options={zoneinfoOptions}
         />
       </div>
     );
