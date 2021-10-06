@@ -93,6 +93,26 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       [standardAttributes, onChangeStandardAttributes]
     );
 
+    const makeOnChangeDropdown = useCallback(
+      (fieldName: keyof StandardAttributes) => {
+        return (
+          _e: React.FormEvent<unknown>,
+          option?: IDropdownOption,
+          _index?: number
+        ) => {
+          if (option != null) {
+            if (onChangeStandardAttributes != null) {
+              onChangeStandardAttributes({
+                ...standardAttributes,
+                [fieldName]: option.key,
+              });
+            }
+          }
+        };
+      },
+      [standardAttributes, onChangeStandardAttributes]
+    );
+
     const onChangeName = useMemo(
       () => makeOnChangeText("name"),
       [makeOnChangeText]
@@ -261,6 +281,10 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
     const zoneinfoOptions = useMemo(() => {
       return makeTimezoneOptions();
     }, []);
+    const onChangeZoneinfo = useMemo(
+      () => makeOnChangeDropdown("zoneinfo"),
+      [makeOnChangeDropdown]
+    );
 
     const locale = standardAttributes.locale;
     const localeOptions = useMemo(() => {
@@ -286,8 +310,32 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
 
       return options;
     }, [locale, renderToString, availableLanguages]);
+    const onChangeLocale = useMemo(
+      () => makeOnChangeDropdown("locale"),
+      [makeOnChangeDropdown]
+    );
 
     const alpha2Options = useMemo(() => makeAlpha2Options(), []);
+    const onChangeCountry = useCallback(
+      (
+        _e: React.FormEvent<unknown>,
+        option?: IDropdownOption,
+        _index?: number
+      ) => {
+        if (option != null && typeof option.key === "string") {
+          if (onChangeStandardAttributes != null) {
+            onChangeStandardAttributes({
+              ...standardAttributes,
+              address: {
+                ...standardAttributes.address,
+                country: option.key,
+              },
+            });
+          }
+        }
+      },
+      [standardAttributes, onChangeStandardAttributes]
+    );
 
     const updatedAt = standardAttributes.updated_at;
     const updatedAtFormatted: string | undefined | null = useMemo(() => {
@@ -392,12 +440,14 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           label={renderToString("standard-attribute.zoneinfo")}
           selectedKey={zoneinfo}
           options={zoneinfoOptions}
+          onChange={onChangeZoneinfo}
         />
         <Dropdown
           className={styles.control}
           label={renderToString("standard-attribute.locale")}
           selectedKey={locale}
           options={localeOptions}
+          onChange={onChangeLocale}
         />
         <div className={styles.addressGroup}>
           <Label className={styles.addressInput}>
@@ -436,6 +486,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
               label={renderToString("standard-attribute.country")}
               selectedKey={standardAttributes.address?.country}
               options={alpha2Options}
+              onChange={onChangeCountry}
             />
           </div>
         </div>
