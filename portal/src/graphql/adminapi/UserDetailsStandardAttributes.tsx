@@ -1,4 +1,5 @@
 import React, { useContext, useMemo } from "react";
+import cn from "classnames";
 import {
   TextField,
   Dropdown,
@@ -8,12 +9,15 @@ import {
   DatePicker,
   DayOfWeek,
   FirstWeekOfYear,
+  Label,
+  Text,
 } from "@fluentui/react";
-import { Context } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import { StandardAttributes } from "../../types";
 import { TIMEZONE_NAMES } from "../../util/timezone";
+import { makeAlpha2Options } from "../../util/alpha2";
 
 import styles from "./UserDetailsStandardAttributes.module.scss";
 
@@ -123,6 +127,8 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       return options;
     }, [locale, renderToString, availableLanguages]);
 
+    const alpha2Options = makeAlpha2Options();
+
     return (
       <div className={styles.root}>
         <TextField
@@ -209,6 +215,42 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           selectedKey={locale}
           options={localeOptions}
         />
+        <div className={styles.addressGroup}>
+          <Label className={styles.addressInput}>
+            <Text variant="xLarge">
+              <FormattedMessage id="standard-attribute.address" />
+            </Text>
+          </Label>
+          <TextField
+            className={styles.addressInput}
+            label={renderToString("standard-attribute.street_address")}
+            multiline={true}
+            value={standardAttributes.address?.street_address}
+          />
+          <TextField
+            className={styles.addressInput}
+            label={renderToString("standard-attribute.locality")}
+            value={standardAttributes.address?.locality}
+          />
+          <div className={styles.addressInputGroup}>
+            <TextField
+              className={cn(styles.addressInput, styles.postalCode)}
+              label={renderToString("standard-attribute.postal_code")}
+              value={standardAttributes.address?.postal_code}
+            />
+            <TextField
+              className={cn(styles.addressInput, styles.region)}
+              label={renderToString("standard-attribute.region")}
+              value={standardAttributes.address?.region}
+            />
+            <Dropdown
+              className={cn(styles.addressInput, styles.country)}
+              label={renderToString("standard-attribute.country")}
+              selectedKey={standardAttributes.address?.country}
+              options={alpha2Options}
+            />
+          </div>
+        </div>
       </div>
     );
   };
