@@ -868,6 +868,7 @@
   "standard-attribute.postal_code": "Postal Code",
   "standard-attribute.region": "State / Province / Prefecture / Region",
   "standard-attribute.country": "Country",
+  "standard-attribute.updated_at": "Last updated at {datetime}",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
