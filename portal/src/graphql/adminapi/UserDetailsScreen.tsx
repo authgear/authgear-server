@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -19,14 +19,13 @@ import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { nonNullable } from "../../util/types";
 import { extractUserInfoFromIdentities } from "../../util/user";
-import { PortalAPIAppConfig } from "../../types";
+import { PortalAPIAppConfig, StandardAttributes } from "../../types";
 
 import styles from "./UserDetailsScreen.module.scss";
 
 interface UserDetailsProps {
   data: UserQuery_node_User | null;
   appConfig: PortalAPIAppConfig | null;
-  loading: boolean;
 }
 
 const STANDARD_ATTRIBUTES_KEY = "standard-attributes";
@@ -37,7 +36,7 @@ const SESSION_PIVOT_KEY = "session";
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
-  const { data, loading, appConfig } = props;
+  const { data, appConfig } = props;
   const { renderToString } = React.useContext(Context);
   const { selectedKey, onLinkClick } = usePivotNavigation([
     STANDARD_ATTRIBUTES_KEY,
@@ -58,9 +57,9 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
   }, [appConfig]);
 
-  if (loading) {
-    return <ShowLoading />;
-  }
+  const [standardAttributes, setStandardAttributes] = useState(
+    data?.standardAttributes ?? {}
+  );
 
   const verifiedClaims = data?.verifiedClaims ?? [];
 
@@ -74,10 +73,15 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
       ?.map((edge) => edge?.node)
       .filter(nonNullable) ?? [];
 
-  const standardAttributes = data?.standardAttributes ?? {};
-
   const sessions =
     data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
+
+  const onChangeStandardAttributes = useCallback(
+    (attrs: StandardAttributes) => {
+      setStandardAttributes(attrs);
+    },
+    []
+  );
 
   return (
     <div className={styles.userDetails}>
@@ -96,6 +100,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
           >
             <UserDetailsStandardAttributes
               standardAttributes={standardAttributes}
+              onChangeStandardAttributes={onChangeStandardAttributes}
             />
           </PivotItem>
           <PivotItem
@@ -130,7 +135,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
 
 const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   const { appID, userID } = useParams();
-  const { user, loading, error, refetch } = useUserQuery(userID);
+  const { user, loading: loadingUser, error, refetch } = useUserQuery(userID);
   const {
     effectiveAppConfig,
     loading: loadingAppConfig,
@@ -145,12 +150,18 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     ];
   }, []);
 
+  const loading = loadingUser || loadingAppConfig;
+
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
   }
 
   if (appConfigError != null) {
     return <ShowError error={appConfigError} onRetry={refetchAppConfig} />;
+  }
+
+  if (loading) {
+    return <ShowLoading />;
   }
 
   const identities =
@@ -161,11 +172,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     <UserDetailCommandBarContainer user={user} identities={identities}>
       <main className={styles.root}>
         <NavBreadcrumb items={navBreadcrumbItems} />
-        <UserDetails
-          data={user}
-          loading={loading || loadingAppConfig}
-          appConfig={effectiveAppConfig}
-        />
+        <UserDetails data={user} appConfig={effectiveAppConfig} />
       </main>
     </UserDetailCommandBarContainer>
   );
