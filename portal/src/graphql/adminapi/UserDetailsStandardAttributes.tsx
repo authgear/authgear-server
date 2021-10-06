@@ -11,6 +11,8 @@ import {
   FirstWeekOfYear,
   Label,
   Text,
+  ITextProps,
+  ITheme,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -18,6 +20,7 @@ import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import { StandardAttributes } from "../../types";
 import { makeTimezoneOptions } from "../../util/timezone";
 import { makeAlpha2Options } from "../../util/alpha2";
+import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsStandardAttributes.module.scss";
 
@@ -32,13 +35,23 @@ function formatDate(date?: Date): string {
   return toBirthdate(date) ?? "";
 }
 
+function UPDATED_AT_STYLES(_props: ITextProps, theme: ITheme) {
+  return {
+    root: {
+      color: theme.semanticColors.inputPlaceholderText,
+      borderBottom: `1px solid ${theme.palette.neutralTertiaryAlt}`,
+      padding: "8px 0",
+    },
+  };
+}
+
 const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps> =
   function UserDetailsStandardAttributes(
     props: UserDetailsStandardAttributesProps
   ) {
     const { standardAttributes } = props;
     const { availableLanguages } = useSystemConfig();
-    const { renderToString } = useContext(Context);
+    const { renderToString, locale: appLocale } = useContext(Context);
 
     const email = standardAttributes.email;
     const emailOptions: IDropdownOption[] = useMemo(() => {
@@ -123,6 +136,15 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
     }, [locale, renderToString, availableLanguages]);
 
     const alpha2Options = useMemo(() => makeAlpha2Options(), []);
+
+    const updatedAt = standardAttributes.updated_at;
+    const updatedAtFormatted: string | undefined | null = useMemo(() => {
+      if (updatedAt == null) {
+        return undefined;
+      }
+
+      return formatDatetime(appLocale, new Date(updatedAt * 1000));
+    }, [appLocale, updatedAt]);
 
     return (
       <div className={styles.root}>
@@ -246,6 +268,20 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             />
           </div>
         </div>
+        {updatedAtFormatted != null && (
+          <Text
+            className={styles.control}
+            variant="small"
+            styles={UPDATED_AT_STYLES}
+          >
+            <FormattedMessage
+              id="standard-attribute.updated_at"
+              values={{
+                datetime: updatedAtFormatted,
+              }}
+            />
+          </Text>
+        )}
       </div>
     );
   };
