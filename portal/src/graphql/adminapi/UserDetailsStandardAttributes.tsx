@@ -36,6 +36,10 @@ function formatDate(date?: Date): string {
   return toBirthdate(date) ?? "";
 }
 
+function parseDateFromString(str: string): Date | null {
+  return parseBirthdate(str) ?? null;
+}
+
 function UPDATED_AT_STYLES(_props: ITextProps, theme: ITheme) {
   return {
     root: {
@@ -232,6 +236,26 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       const jsDate = parseBirthdate(birthdate);
       return jsDate;
     }, [birthdate]);
+    const onSelectBirthdate = useCallback(
+      (date: Date | null | undefined) => {
+        if (onChangeStandardAttributes == null) {
+          return;
+        }
+
+        if (date == null || isNaN(date.getTime())) {
+          onChangeStandardAttributes({
+            ...standardAttributes,
+            birthdate: undefined,
+          });
+        } else {
+          onChangeStandardAttributes({
+            ...standardAttributes,
+            birthdate: toBirthdate(date),
+          });
+        }
+      },
+      [standardAttributes, onChangeStandardAttributes]
+    );
 
     const zoneinfo = standardAttributes.zoneinfo;
     const zoneinfoOptions = useMemo(() => {
@@ -356,8 +380,12 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           label={renderToString("standard-attribute.birthdate")}
           firstDayOfWeek={DayOfWeek.Monday}
           firstWeekOfYear={FirstWeekOfYear.FirstFourDayWeek}
+          showGoToToday={false}
+          allowTextInput={true}
           value={birthdateValue}
           formatDate={formatDate}
+          onSelectDate={onSelectBirthdate}
+          parseDateFromString={parseDateFromString}
         />
         <Dropdown
           className={styles.control}
