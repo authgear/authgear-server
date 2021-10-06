@@ -16,7 +16,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import { StandardAttributes } from "../../types";
-import { TIMEZONE_NAMES } from "../../util/timezone";
+import { makeTimezoneOptions } from "../../util/timezone";
 import { makeAlpha2Options } from "../../util/alpha2";
 
 import styles from "./UserDetailsStandardAttributes.module.scss";
@@ -94,12 +94,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
 
     const zoneinfo = standardAttributes.zoneinfo;
     const zoneinfoOptions = useMemo(() => {
-      return TIMEZONE_NAMES.map((a) => {
-        return {
-          key: a,
-          text: a,
-        };
-      });
+      return makeTimezoneOptions();
     }, []);
 
     const locale = standardAttributes.locale;
@@ -127,7 +122,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       return options;
     }, [locale, renderToString, availableLanguages]);
 
-    const alpha2Options = makeAlpha2Options();
+    const alpha2Options = useMemo(() => makeAlpha2Options(), []);
 
     return (
       <div className={styles.root}>
