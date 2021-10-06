@@ -1,7 +1,16 @@
 import data from "tzdata";
+import { IANAZone } from "luxon";
 
-export const TIMEZONE_NAMES = (() => {
-  const names = [];
+export interface Option {
+  key: string;
+  text: string;
+  timezoneOffset: number;
+}
+
+export function makeTimezoneOptions(): Option[] {
+  const options = [];
+  const refTime = new Date().getTime();
+
   for (const [key, value] of Object.entries(data.zones)) {
     // This is an alias.
     if (typeof value === "string") {
@@ -16,12 +25,24 @@ export const TIMEZONE_NAMES = (() => {
       continue;
     }
 
-    names.push(key);
+    const iana = IANAZone.create(key);
+    if (!iana.isValid) {
+      continue;
+    }
+
+    const timezoneOffset = iana.offset(refTime);
+    const text = `[UTC ${iana.formatOffset(refTime, "short")}] ${key}`;
+
+    options.push({
+      key,
+      text,
+      timezoneOffset,
+    });
   }
 
-  names.sort((a, b) => {
-    return a.localeCompare(b);
+  options.sort((a, b) => {
+    return a.timezoneOffset - b.timezoneOffset;
   });
 
-  return names;
-})();
+  return options;
+}
