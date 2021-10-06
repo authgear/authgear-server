@@ -40,6 +40,7 @@ const userQuery = gql`
           name
           value
         }
+        standardAttributes
         sessions {
           edges {
             node {
