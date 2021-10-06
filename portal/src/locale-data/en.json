@@ -862,6 +862,12 @@
   "standard-attribute.birthdate": "Birthdate",
   "standard-attribute.zoneinfo": "Timezone",
   "standard-attribute.locale": "Language",
+  "standard-attribute.address": "Address",
+  "standard-attribute.street_address": "Street Address",
+  "standard-attribute.locality": "City",
+  "standard-attribute.postal_code": "Postal Code",
+  "standard-attribute.region": "State / Province / Prefecture / Region",
+  "standard-attribute.country": "Country",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
