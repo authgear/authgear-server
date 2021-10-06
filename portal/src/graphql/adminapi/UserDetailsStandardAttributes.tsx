@@ -191,6 +191,38 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       }
       return predefinedOptions;
     }, [gender]);
+    const onChangeGender = useCallback(
+      (
+        _e: React.FormEvent<unknown>,
+        option?: IComboBoxOption,
+        index?: number,
+        _value?: string
+      ) => {
+        if (option != null && index != null && typeof option.key === "string") {
+          if (onChangeStandardAttributes != null) {
+            onChangeStandardAttributes({
+              ...standardAttributes,
+              gender: option.key,
+            });
+          }
+        }
+      },
+      [standardAttributes, onChangeStandardAttributes]
+    );
+    const onChangeGenderPending = useCallback(
+      (option?: IComboBoxOption, index?: number, value?: string) => {
+        // We are only interested in the typing case.
+        if (option == null && index == null && value != null) {
+          if (onChangeStandardAttributes != null) {
+            onChangeStandardAttributes({
+              ...standardAttributes,
+              gender: value,
+            });
+          }
+        }
+      },
+      [standardAttributes, onChangeStandardAttributes]
+    );
 
     const birthdate = standardAttributes.birthdate;
     const birthdateValue = useMemo(() => {
@@ -315,6 +347,9 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           label={renderToString("standard-attribute.gender")}
           selectedKey={gender}
           options={genderOptions}
+          allowFreeform={true}
+          onChange={onChangeGender}
+          onPendingValueChanged={onChangeGenderPending}
         />
         <DatePicker
           className={styles.control}
