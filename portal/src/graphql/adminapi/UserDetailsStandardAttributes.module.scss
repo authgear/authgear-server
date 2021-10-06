@@ -1,7 +1,34 @@
 .root {
+  display: flex;
+  flex-direction: column;
   width: calc(80px * 8 + 20px * 8);
 }
 
 .control {
-  margin: 25px calc(20px / 2);
+  margin: 10px calc(20px / 2);
+}
+
+.addressGroup {
+  margin: 4px 6px;
+}
+
+.addressInputGroup {
+  display: flex;
+  flex-direction: row;
+}
+
+.addressInput {
+  margin: 4px;
+}
+
+.postalCode {
+  flex: 1 0 0;
+}
+
+.region {
+  flex: 1 0 0;
+}
+
+.country {
+  flex: 1 0 0;
 }
