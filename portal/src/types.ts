@@ -515,3 +515,24 @@ export interface StandardAttributesAddress {
   postal_code?: string;
   country?: string;
 }
+
+export interface Identity {
+  id: string;
+  claims: IdentityClaims;
+}
+
+export interface IdentityClaims {
+  email?: string;
+  preferred_username?: string;
+  phone_number?: string;
+}
+
+export type SessionType = "IDP" | "OFFLINE_GRANT";
+
+export interface Session {
+  id: string;
+  type: SessionType;
+  lastAccessedAt: string;
+  lastAccessedByIP: string;
+  displayName: string;
+}
