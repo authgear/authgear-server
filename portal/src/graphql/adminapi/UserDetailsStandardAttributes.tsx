@@ -17,7 +17,12 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
-import { StandardAttributes, StandardAttributesAddress } from "../../types";
+import {
+  StandardAttributes,
+  StandardAttributesAddress,
+  Identity,
+  IdentityClaims,
+} from "../../types";
 import { makeTimezoneOptions } from "../../util/timezone";
 import { makeAlpha2Options } from "../../util/alpha2";
 import { formatDatetime } from "../../util/formatDatetime";
@@ -25,6 +30,7 @@ import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UserDetailsStandardAttributes.module.scss";
 
 export interface UserDetailsStandardAttributesProps {
+  identities: Identity[];
   standardAttributes: StandardAttributes;
   onChangeStandardAttributes?: (attrs: StandardAttributes) => void;
 }
@@ -54,7 +60,8 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
   function UserDetailsStandardAttributes(
     props: UserDetailsStandardAttributesProps
   ) {
-    const { standardAttributes, onChangeStandardAttributes } = props;
+    const { standardAttributes, onChangeStandardAttributes, identities } =
+      props;
     const { availableLanguages } = useSystemConfig();
     const { renderToString, locale: appLocale } = useContext(Context);
 
@@ -173,29 +180,58 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       [makeOnChangeAddressText]
     );
 
-    const email = standardAttributes.email;
-    const emailOptions: IDropdownOption[] = useMemo(() => {
-      if (email == null) {
-        return [];
-      }
-      return [{ key: email, text: email }];
-    }, [email]);
+    const makeIdentityDropdownOptions = useCallback(
+      (
+        stdAttrKey: keyof StandardAttributes,
+        identityClaimKey: keyof IdentityClaims
+      ): IDropdownOption[] => {
+        const options = [];
+        const value = standardAttributes[stdAttrKey];
+        const seen = new Set();
 
-    const phoneNumber = standardAttributes.phone_number;
-    const phoneNumberOptions: IDropdownOption[] = useMemo(() => {
-      if (phoneNumber == null) {
-        return [];
-      }
-      return [{ key: phoneNumber, text: phoneNumber }];
-    }, [phoneNumber]);
+        for (const i of identities) {
+          const identityValue = i.claims[identityClaimKey];
+          if (
+            identityValue != null &&
+            typeof identityValue === "string" &&
+            !seen.has(identityValue)
+          ) {
+            seen.add(identityValue);
+            options.push({
+              key: identityValue,
+              text: identityValue,
+            });
+          }
+        }
 
-    const preferredUsername = standardAttributes.preferred_username;
-    const preferredUsernameOptions: IDropdownOption[] = useMemo(() => {
-      if (preferredUsername == null) {
-        return [];
-      }
-      return [{ key: preferredUsername, text: preferredUsername }];
-    }, [preferredUsername]);
+        if (value != null && typeof value === "string" && !seen.has(value)) {
+          options.push({
+            key: value,
+            text: value,
+            hidden: true,
+          });
+        }
+
+        return options;
+      },
+      [identities, standardAttributes]
+    );
+
+    const emailOptions = useMemo(
+      () => makeIdentityDropdownOptions("email", "email"),
+      [makeIdentityDropdownOptions]
+    );
+
+    const phoneNumberOptions = useMemo(
+      () => makeIdentityDropdownOptions("phone_number", "phone_number"),
+      [makeIdentityDropdownOptions]
+    );
+
+    const preferredUsernameOptions = useMemo(
+      () =>
+        makeIdentityDropdownOptions("preferred_username", "preferred_username"),
+      [makeIdentityDropdownOptions]
+    );
 
     const gender = standardAttributes.gender;
     const genderOptions: IComboBoxOption[] = useMemo(() => {
@@ -399,19 +435,19 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         <Dropdown
           className={styles.control}
           label={renderToString("standard-attribute.email")}
-          selectedKey={email}
+          selectedKey={standardAttributes.email}
           options={emailOptions}
         />
         <Dropdown
           className={styles.control}
           label={renderToString("standard-attribute.phone_number")}
-          selectedKey={phoneNumber}
+          selectedKey={standardAttributes.phone_number}
           options={phoneNumberOptions}
         />
         <Dropdown
           className={styles.control}
           label={renderToString("standard-attribute.preferred_username")}
-          selectedKey={preferredUsername}
+          selectedKey={standardAttributes.preferred_username}
           options={preferredUsernameOptions}
         />
         <ComboBox
