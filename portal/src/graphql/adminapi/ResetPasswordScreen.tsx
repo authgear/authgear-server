@@ -67,7 +67,7 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
         value={state.newPassword}
         onChange={onNewPasswordChange}
         passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
-        parentJSONPointer="/"
+        parentJSONPointer=""
         fieldName="password"
       />
       <FormTextField
@@ -76,7 +76,7 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
         type="password"
         value={state.confirmPassword}
         onChange={onConfirmPasswordChange}
-        parentJSONPointer="/"
+        parentJSONPointer=""
         fieldName="confirm_password"
       />
     </div>
