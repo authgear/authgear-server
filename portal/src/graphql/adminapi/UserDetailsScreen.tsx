@@ -6,6 +6,7 @@ import {
   IButtonProps,
   ICommandBarItemProps,
   CommandButton,
+  IPivotItemProps,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
@@ -13,7 +14,7 @@ import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQu
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import CommandBarContainer from "../../CommandBarContainer";
+import FormContainer from "../../FormContainer";
 import DeleteUserDialog from "./DeleteUserDialog";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import UserDetailSummary from "./UserDetailSummary";
@@ -24,7 +25,7 @@ import UserDetailsSession from "./UserDetailsSession";
 
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
-import { useSimpleForm } from "../../hook/useSimpleForm";
+import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { usePivotNavigation } from "../../hook/usePivot";
@@ -35,8 +36,11 @@ import { PortalAPIAppConfig, StandardAttributes } from "../../types";
 import styles from "./UserDetailsScreen.module.scss";
 
 interface UserDetailsProps {
+  form: SimpleFormModel<FormState>;
   data: UserQuery_node_User | null;
   appConfig: PortalAPIAppConfig | null;
+  selectedKey: string;
+  onLinkClick: (item?: { props: IPivotItemProps }) => void;
 }
 
 const STANDARD_ATTRIBUTES_KEY = "standard-attributes";
@@ -52,14 +56,9 @@ interface FormState {
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
-  const { data, appConfig } = props;
+  const { form, data, appConfig, selectedKey, onLinkClick } = props;
+  const { state, setState } = form;
   const { renderToString } = React.useContext(Context);
-  const { selectedKey, onLinkClick } = usePivotNavigation([
-    STANDARD_ATTRIBUTES_KEY,
-    ACCOUNT_SECURITY_PIVOT_KEY,
-    CONNECTED_IDENTITIES_PIVOT_KEY,
-    SESSION_PIVOT_KEY,
-  ]);
 
   const availableLoginIdIdentities = useMemo(() => {
     const authenticationIdentities =
@@ -72,27 +71,6 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     const rawLoginIdKeys = appConfig?.identity?.login_id?.keys ?? [];
     return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
   }, [appConfig]);
-
-  const defaultFormState = useMemo(() => {
-    return {
-      userID: data?.id ?? "",
-      standardAttributes: data?.standardAttributes ?? {},
-    };
-  }, [data?.id, data?.standardAttributes]);
-
-  const { updateUser } = useUpdateUserMutation();
-
-  const submit = useCallback(
-    async (state: FormState) => {
-      await updateUser(state.userID, state.standardAttributes);
-    },
-    [updateUser]
-  );
-
-  const { setState, state } = useSimpleForm<FormState>(
-    defaultFormState,
-    submit
-  );
 
   const onChangeStandardAttributes = useCallback(
     (attrs: StandardAttributes) => {
@@ -220,9 +198,121 @@ function useSetUserDisabledCommandBarItem(
   return itemProps;
 }
 
-// eslint-disable-next-line complexity
+interface UserDetailsScreenContentProps {
+  user: UserQuery_node_User;
+  effectiveAppConfig: PortalAPIAppConfig;
+}
+
+const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
+  // eslint-disable-next-line complexity
+  function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
+    const { user, effectiveAppConfig } = props;
+    const navigate = useNavigate();
+
+    const { selectedKey, onLinkClick } = usePivotNavigation([
+      STANDARD_ATTRIBUTES_KEY,
+      ACCOUNT_SECURITY_PIVOT_KEY,
+      CONNECTED_IDENTITIES_PIVOT_KEY,
+      SESSION_PIVOT_KEY,
+    ]);
+    const canSave = selectedKey === STANDARD_ATTRIBUTES_KEY;
+
+    const identities =
+      user.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
+      [];
+    const { username, email, phone } =
+      extractUserInfoFromIdentities(identities);
+
+    const navBreadcrumbItems = React.useMemo(() => {
+      return [
+        { to: "../..", label: <FormattedMessage id="UsersScreen.title" /> },
+        { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
+      ];
+    }, []);
+
+    const [deleteUserDialogIsHidden, setDeleteUserDialogIsHidden] =
+      useState(true);
+    const onDismissDeleteUserDialog = useCallback(
+      (deletedUser: boolean) => {
+        setDeleteUserDialogIsHidden(true);
+        if (deletedUser) {
+          setTimeout(() => navigate("../.."), 0);
+        }
+      },
+      [navigate]
+    );
+    const onClickDeleteUser = useCallback(() => {
+      setDeleteUserDialogIsHidden(false);
+    }, []);
+
+    const [setUserDisabledDialogIsHidden, setSetUserDisabledDialogIsHidden] =
+      useState(true);
+    const onDismissSetUserDisabledDialog = useCallback(() => {
+      setSetUserDisabledDialogIsHidden(true);
+    }, []);
+    const deleteUserCommandBarItem =
+      useDeleteUserCommandBarItem(onClickDeleteUser);
+    const onClickSetUserDisabled = useCallback(() => {
+      setSetUserDisabledDialogIsHidden(false);
+    }, []);
+
+    const setUserDisabledCommandBarItem = useSetUserDisabledCommandBarItem(
+      user.isDisabled,
+      onClickSetUserDisabled
+    );
+
+    const farItems: ICommandBarItemProps[] = useMemo(() => {
+      return [deleteUserCommandBarItem, setUserDisabledCommandBarItem];
+    }, [deleteUserCommandBarItem, setUserDisabledCommandBarItem]);
+
+    const defaultFormState = useMemo(() => {
+      return {
+        userID: user.id,
+        standardAttributes: user.standardAttributes,
+      };
+    }, [user.id, user.standardAttributes]);
+
+    const { updateUser } = useUpdateUserMutation();
+
+    const submit = useCallback(
+      async (state: FormState) => {
+        await updateUser(state.userID, state.standardAttributes);
+      },
+      [updateUser]
+    );
+
+    const form = useSimpleForm<FormState>(defaultFormState, submit);
+
+    return (
+      <FormContainer form={form} farItems={farItems} canSave={canSave}>
+        <main className={styles.root}>
+          <NavBreadcrumb items={navBreadcrumbItems} />
+          <UserDetails
+            form={form}
+            data={user}
+            appConfig={effectiveAppConfig}
+            selectedKey={selectedKey}
+            onLinkClick={onLinkClick}
+          />
+        </main>
+        <DeleteUserDialog
+          isHidden={deleteUserDialogIsHidden}
+          onDismiss={onDismissDeleteUserDialog}
+          userID={user.id}
+          username={username ?? email ?? phone}
+        />
+        <SetUserDisabledDialog
+          isHidden={setUserDisabledDialogIsHidden}
+          onDismiss={onDismissSetUserDisabledDialog}
+          userID={user.id}
+          username={username ?? email ?? phone}
+          isDisablingUser={!user.isDisabled}
+        />
+      </FormContainer>
+    );
+  };
+
 const UserDetailsScreen: React.FC = function UserDetailsScreen() {
-  const navigate = useNavigate();
   const { appID, userID } = useParams();
   const { user, loading: loadingUser, error, refetch } = useUserQuery(userID);
   const {
@@ -231,55 +321,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     error: appConfigError,
     refetch: refetchAppConfig,
   } = useAppAndSecretConfigQuery(appID);
-
   const loading = loadingUser || loadingAppConfig;
-
-  const identities =
-    user?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
-    [];
-  const { username, email, phone } = extractUserInfoFromIdentities(identities);
-
-  const navBreadcrumbItems = React.useMemo(() => {
-    return [
-      { to: "../..", label: <FormattedMessage id="UsersScreen.title" /> },
-      { to: ".", label: <FormattedMessage id="UserDetailsScreen.title" /> },
-    ];
-  }, []);
-
-  const [deleteUserDialogIsHidden, setDeleteUserDialogIsHidden] =
-    useState(true);
-  const onDismissDeleteUserDialog = useCallback(
-    (deletedUser: boolean) => {
-      setDeleteUserDialogIsHidden(true);
-      if (deletedUser) {
-        setTimeout(() => navigate("../.."), 0);
-      }
-    },
-    [navigate]
-  );
-  const onClickDeleteUser = useCallback(() => {
-    setDeleteUserDialogIsHidden(false);
-  }, []);
-
-  const [setUserDisabledDialogIsHidden, setSetUserDisabledDialogIsHidden] =
-    useState(true);
-  const onDismissSetUserDisabledDialog = useCallback(() => {
-    setSetUserDisabledDialogIsHidden(true);
-  }, []);
-  const deleteUserCommandBarItem =
-    useDeleteUserCommandBarItem(onClickDeleteUser);
-  const onClickSetUserDisabled = useCallback(() => {
-    setSetUserDisabledDialogIsHidden(false);
-  }, []);
-
-  const setUserDisabledCommandBarItem = useSetUserDisabledCommandBarItem(
-    user?.isDisabled ?? false,
-    onClickSetUserDisabled
-  );
-
-  const farItems: ICommandBarItemProps[] = useMemo(() => {
-    return [deleteUserCommandBarItem, setUserDisabledCommandBarItem];
-  }, [deleteUserCommandBarItem, setUserDisabledCommandBarItem]);
 
   if (error != null) {
     return <ShowError error={error} onRetry={refetch} />;
@@ -293,26 +335,15 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
     return <ShowLoading />;
   }
 
+  if (user == null || effectiveAppConfig == null) {
+    return <ShowLoading />;
+  }
+
   return (
-    <CommandBarContainer farItems={farItems}>
-      <main className={styles.root}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
-        <UserDetails data={user} appConfig={effectiveAppConfig} />
-      </main>
-      <DeleteUserDialog
-        isHidden={deleteUserDialogIsHidden}
-        onDismiss={onDismissDeleteUserDialog}
-        userID={user?.id ?? ""}
-        username={username ?? email ?? phone}
-      />
-      <SetUserDisabledDialog
-        isHidden={setUserDisabledDialogIsHidden}
-        onDismiss={onDismissSetUserDisabledDialog}
-        userID={user?.id ?? ""}
-        username={username ?? email ?? phone}
-        isDisablingUser={!(user?.isDisabled ?? false)}
-      />
-    </CommandBarContainer>
+    <UserDetailsScreenContent
+      user={user}
+      effectiveAppConfig={effectiveAppConfig}
+    />
   );
 };
 
