@@ -38,10 +38,11 @@ const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> =
       const { destination } = navigationBlockerDialog;
       if (destination != null) {
         navigate(destination);
-      } else {
-        onDialogDismiss();
       }
-    }, [navigate, navigationBlockerDialog, onDialogDismiss]);
+      // We must dismiss the dialog because some navigation is merely hash change, e.g. Pivot.
+      // If we do not dismiss the dialog, the dialog will block the content.
+      setNavigationBlockerDialog({ visible: false });
+    }, [navigate, navigationBlockerDialog]);
 
     return (
       <BlockerDialog
