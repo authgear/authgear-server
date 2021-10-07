@@ -183,7 +183,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
               label={renderToString("AddUsernameScreen.password.label")}
               value={form.state.password}
               onChange={onPasswordChange}
-              parentJSONPointer="/"
+              parentJSONPointer=""
               fieldName="password"
             />
           )}

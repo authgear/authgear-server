@@ -39,7 +39,7 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
   );
   return (
     <FormTextField
-      parentJSONPointer="/"
+      parentJSONPointer=""
       fieldName="email"
       fieldNameMessageID="AddEmailScreen.email.label"
       className={styles.emailField}

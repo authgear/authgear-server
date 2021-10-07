@@ -136,7 +136,7 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
         ariaLabel={renderToString("AddPhoneScreen.country-code.label")}
       />
       <FormTextField
-        parentJSONPointer="/"
+        parentJSONPointer=""
         fieldName="phone"
         fieldNameMessageID="AddPhoneScreen.phone.label"
         errorRules={errorRules}

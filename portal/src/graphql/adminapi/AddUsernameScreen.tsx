@@ -42,7 +42,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
   );
   return (
     <FormTextField
-      parentJSONPointer="/"
+      parentJSONPointer=""
       fieldName="username"
       fieldNameMessageID="AddUsernameScreen.username.label"
       className={styles.usernameField}

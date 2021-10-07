@@ -64,7 +64,7 @@ const CreateAppContent: React.FC<CreateAppContentProps> =
         </Label>
         <FormTextField
           className={styles.appIDField}
-          parentJSONPointer="/"
+          parentJSONPointer=""
           fieldName="app_id"
           value={state.appID}
           errorRules={errorRules}
