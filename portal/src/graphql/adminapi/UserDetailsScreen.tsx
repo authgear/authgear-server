@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Pivot, PivotItem } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -14,6 +14,8 @@ import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
 
+import { useUpdateUserMutation } from "./mutations/updateUserMutation";
+import { useSimpleForm } from "../../hook/useSimpleForm";
 import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { usePivotNavigation } from "../../hook/usePivot";
@@ -32,6 +34,11 @@ const STANDARD_ATTRIBUTES_KEY = "standard-attributes";
 const ACCOUNT_SECURITY_PIVOT_KEY = "account-security";
 const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
+
+interface FormState {
+  userID: string;
+  standardAttributes: StandardAttributes;
+}
 
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
@@ -57,8 +64,37 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
   }, [appConfig]);
 
-  const [standardAttributes, setStandardAttributes] = useState(
-    data?.standardAttributes ?? {}
+  const defaultFormState = useMemo(() => {
+    return {
+      userID: data?.id ?? "",
+      standardAttributes: data?.standardAttributes ?? {},
+    };
+  }, [data?.id, data?.standardAttributes]);
+
+  const { updateUser } = useUpdateUserMutation();
+
+  const submit = useCallback(
+    async (state: FormState) => {
+      await updateUser(state.userID, state.standardAttributes);
+    },
+    [updateUser]
+  );
+
+  const { setState, state } = useSimpleForm<FormState>(
+    defaultFormState,
+    submit
+  );
+
+  const onChangeStandardAttributes = useCallback(
+    (attrs: StandardAttributes) => {
+      setState((state) => {
+        return {
+          ...state,
+          standardAttributes: attrs,
+        };
+      });
+    },
+    [setState]
   );
 
   const verifiedClaims = data?.verifiedClaims ?? [];
@@ -75,13 +111,6 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
 
   const sessions =
     data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
-
-  const onChangeStandardAttributes = useCallback(
-    (attrs: StandardAttributes) => {
-      setStandardAttributes(attrs);
-    },
-    []
-  );
 
   return (
     <div className={styles.userDetails}>
@@ -100,7 +129,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
           >
             <UserDetailsStandardAttributes
               identities={identities}
-              standardAttributes={standardAttributes}
+              standardAttributes={state.standardAttributes}
               onChangeStandardAttributes={onChangeStandardAttributes}
             />
           </PivotItem>
