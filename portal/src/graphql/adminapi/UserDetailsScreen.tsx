@@ -6,7 +6,6 @@ import {
   IButtonProps,
   ICommandBarItemProps,
   CommandButton,
-  IPivotItemProps,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
@@ -39,8 +38,6 @@ interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
   data: UserQuery_node_User | null;
   appConfig: PortalAPIAppConfig | null;
-  selectedKey: string;
-  onLinkClick: (item?: { props: IPivotItemProps }) => void;
 }
 
 const STANDARD_ATTRIBUTES_KEY = "standard-attributes";
@@ -56,7 +53,13 @@ interface FormState {
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
-  const { form, data, appConfig, selectedKey, onLinkClick } = props;
+  const { selectedKey, onLinkClick } = usePivotNavigation([
+    STANDARD_ATTRIBUTES_KEY,
+    ACCOUNT_SECURITY_PIVOT_KEY,
+    CONNECTED_IDENTITIES_PIVOT_KEY,
+    SESSION_PIVOT_KEY,
+  ]);
+  const { form, data, appConfig } = props;
   const { state, setState } = form;
   const { renderToString } = React.useContext(Context);
 
@@ -209,14 +212,6 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     const { user, effectiveAppConfig } = props;
     const navigate = useNavigate();
 
-    const { selectedKey, onLinkClick } = usePivotNavigation([
-      STANDARD_ATTRIBUTES_KEY,
-      ACCOUNT_SECURITY_PIVOT_KEY,
-      CONNECTED_IDENTITIES_PIVOT_KEY,
-      SESSION_PIVOT_KEY,
-    ]);
-    const canSave = selectedKey === STANDARD_ATTRIBUTES_KEY;
-
     const identities =
       user.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
       [];
@@ -284,16 +279,10 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     const form = useSimpleForm<FormState>(defaultFormState, submit);
 
     return (
-      <FormContainer form={form} farItems={farItems} canSave={canSave}>
+      <FormContainer form={form} farItems={farItems}>
         <main className={styles.root}>
           <NavBreadcrumb items={navBreadcrumbItems} />
-          <UserDetails
-            form={form}
-            data={user}
-            appConfig={effectiveAppConfig}
-            selectedKey={selectedKey}
-            onLinkClick={onLinkClick}
-          />
+          <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
         </main>
         <DeleteUserDialog
           isHidden={deleteUserDialogIsHidden}
