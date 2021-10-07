@@ -1,7 +1,6 @@
 import React, { useContext, useMemo, useCallback } from "react";
 import cn from "classnames";
 import {
-  TextField,
   Dropdown,
   IDropdownOption,
   ComboBox,
@@ -15,6 +14,7 @@ import {
   ITheme,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import FormTextField from "../../FormTextField";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import {
@@ -385,53 +385,69 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
 
     return (
       <div className={styles.root}>
-        <TextField
+        <FormTextField
           className={styles.control}
-          label={renderToString("standard-attribute.name")}
           value={standardAttributes.name ?? ""}
           onChange={onChangeName}
+          parentJSONPointer=""
+          fieldName="name"
+          fieldNameMessageID="standard-attribute.name"
         />
-        <TextField
+        <FormTextField
           className={styles.control}
-          label={renderToString("standard-attribute.given_name")}
           value={standardAttributes.given_name ?? ""}
           onChange={onChangeGiveName}
+          parentJSONPointer=""
+          fieldName="given_name"
+          fieldNameMessageID="standard-attribute.given_name"
         />
-        <TextField
+        <FormTextField
           className={styles.control}
-          label={renderToString("standard-attribute.family_name")}
           value={standardAttributes.family_name ?? ""}
           onChange={onChangeFamilyName}
+          parentJSONPointer=""
+          fieldName="family_name"
+          fieldNameMessageID="standard-attribute.family_name"
         />
-        <TextField
+        <FormTextField
           className={styles.control}
-          label={renderToString("standard-attribute.middle_name")}
           value={standardAttributes.middle_name ?? ""}
           onChange={onChangeMiddleName}
+          parentJSONPointer=""
+          fieldName="middle_name"
+          fieldNameMessageID="standard-attribute.middle_name"
         />
-        <TextField
+        <FormTextField
           className={styles.control}
-          label={renderToString("standard-attribute.nickname")}
           value={standardAttributes.nickname ?? ""}
           onChange={onChangeNickname}
+          parentJSONPointer=""
+          fieldName="nickname"
+          fieldNameMessageID="standard-attribute.nickname"
         />
-        <TextField
+        <FormTextField
           className={styles.control}
-          label={renderToString("standard-attribute.picture")}
           value={standardAttributes.picture ?? ""}
           onChange={onChangePicture}
+          parentJSONPointer=""
+          fieldName="picture"
+          fieldNameMessageID="standard-attribute.picture"
         />
-        <TextField
+        <FormTextField
           className={styles.control}
-          label={renderToString("standard-attribute.profile")}
           value={standardAttributes.profile ?? ""}
           onChange={onChangeProfile}
+          parentJSONPointer=""
+          fieldName="profile"
+          fieldNameMessageID="standard-attribute.profile"
         />
-        <TextField
+        <FormTextField
           className={styles.control}
-          label={renderToString("standard-attribute.website")}
           value={standardAttributes.website ?? ""}
           onChange={onChangeWebsite}
+          parentJSONPointer=""
+          fieldName="website"
+          fieldNameMessageID="standard-attribute.website"
         />
         <Dropdown
           className={styles.control}
@@ -492,31 +508,39 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
               <FormattedMessage id="standard-attribute.address" />
             </Text>
           </Label>
-          <TextField
+          <FormTextField
             className={styles.addressInput}
-            label={renderToString("standard-attribute.street_address")}
-            multiline={true}
             value={standardAttributes.address?.street_address ?? ""}
             onChange={onChangeStreetAddress}
+            multiline={true}
+            parentJSONPointer="/address"
+            fieldName="street_address"
+            fieldNameMessageID="standard-attribute.street_address"
           />
-          <TextField
+          <FormTextField
             className={styles.addressInput}
-            label={renderToString("standard-attribute.locality")}
             value={standardAttributes.address?.locality ?? ""}
             onChange={onChangeLocality}
+            parentJSONPointer="/address"
+            fieldName="locality"
+            fieldNameMessageID="standard-attribute.locality"
           />
           <div className={styles.addressInputGroup}>
-            <TextField
+            <FormTextField
               className={cn(styles.addressInput, styles.postalCode)}
-              label={renderToString("standard-attribute.postal_code")}
               value={standardAttributes.address?.postal_code ?? ""}
               onChange={onChangePostalCode}
+              parentJSONPointer="/address"
+              fieldName="postal_code"
+              fieldNameMessageID="standard-attribute.postal_code"
             />
-            <TextField
+            <FormTextField
               className={cn(styles.addressInput, styles.region)}
-              label={renderToString("standard-attribute.region")}
               value={standardAttributes.address?.region ?? ""}
               onChange={onChangeRegion}
+              parentJSONPointer="/address"
+              fieldName="region"
+              fieldNameMessageID="standard-attribute.region"
             />
             <Dropdown
               className={cn(styles.addressInput, styles.country)}
