@@ -57,6 +57,7 @@ function UPDATED_AT_STYLES(_props: ITextProps, theme: ITheme) {
 }
 
 const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps> =
+  // eslint-disable-next-line complexity
   function UserDetailsStandardAttributes(
     props: UserDetailsStandardAttributesProps
   ) {
@@ -495,26 +496,26 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             className={styles.addressInput}
             label={renderToString("standard-attribute.street_address")}
             multiline={true}
-            value={standardAttributes.address?.street_address}
+            value={standardAttributes.address?.street_address ?? ""}
             onChange={onChangeStreetAddress}
           />
           <TextField
             className={styles.addressInput}
             label={renderToString("standard-attribute.locality")}
-            value={standardAttributes.address?.locality}
+            value={standardAttributes.address?.locality ?? ""}
             onChange={onChangeLocality}
           />
           <div className={styles.addressInputGroup}>
             <TextField
               className={cn(styles.addressInput, styles.postalCode)}
               label={renderToString("standard-attribute.postal_code")}
-              value={standardAttributes.address?.postal_code}
+              value={standardAttributes.address?.postal_code ?? ""}
               onChange={onChangePostalCode}
             />
             <TextField
               className={cn(styles.addressInput, styles.region)}
               label={renderToString("standard-attribute.region")}
-              value={standardAttributes.address?.region}
+              value={standardAttributes.address?.region ?? ""}
               onChange={onChangeRegion}
             />
             <Dropdown
