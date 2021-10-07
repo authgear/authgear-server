@@ -20,7 +20,7 @@ import { useRevokeSessionMutation } from "./mutations/revokeSessionMutation";
 import { useRevokeAllSessionsMutation } from "./mutations/revokeAllSessionsMutation";
 import { useParams } from "react-router-dom";
 import ErrorDialog from "../../error/ErrorDialog";
-import { Session, SessionType } from "../../util/user";
+import { Session, SessionType } from "../../types";
 
 interface RevokeConfirmationDialogProps {
   isHidden: boolean;
