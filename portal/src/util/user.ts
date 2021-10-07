@@ -1,18 +1,9 @@
+import { Identity } from "../types";
+
 export interface UserInfo {
   username: string | null;
   phone: string | null;
   email: string | null;
-}
-
-export interface IdentityClaims {
-  email?: string;
-  preferred_username?: string;
-  phone_number?: string;
-}
-
-export interface Identity {
-  id: string;
-  claims: IdentityClaims;
 }
 
 export function extractUserInfoFromIdentities(
@@ -29,14 +20,4 @@ export function extractUserInfoFromIdentities(
     claimsList.map((claims) => claims.phone_number).filter(Boolean)[0] ?? null;
 
   return { email, username, phone };
-}
-
-export type SessionType = "IDP" | "OFFLINE_GRANT";
-
-export interface Session {
-  id: string;
-  type: SessionType;
-  lastAccessedAt: string;
-  lastAccessedByIP: string;
-  displayName: string;
 }
