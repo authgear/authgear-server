@@ -4,6 +4,7 @@ import { ValidationFailedErrorInfoCause } from "./validation";
 import { Values } from "@oursky/react-messageformat";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIResourceTooLargeError } from "./resources";
+import { parseJSONPointerIntoParentChild } from "../util/jsonpointer";
 
 export function parseRawError(error: unknown): APIError[] {
   const errors: APIError[] = [];
@@ -252,15 +253,6 @@ export interface FormField {
   rules?: ErrorParseRule[];
 }
 
-export function parseJSONPointer(pointer: string): [string, string] | null {
-  const locMatch = /^(.+)?\/([^/]+)?$/.exec(pointer);
-  if (!locMatch) {
-    return ["", ""];
-  }
-  const [, parentJSONPointer = "/", fieldName = ""] = locMatch;
-  return [parentJSONPointer, fieldName];
-}
-
 function matchPattern(pattern: string, value: string) {
   return new RegExp(`^${pattern}$`).test(value);
 }
@@ -289,7 +281,7 @@ function matchFields(
   fields: FormField[],
   result: Map<string, ValidationFailedErrorInfoCause[]>
 ) {
-  const locMatch = parseJSONPointer(cause.location);
+  const locMatch = parseJSONPointerIntoParentChild(cause.location);
   if (!locMatch) {
     return false;
   }
