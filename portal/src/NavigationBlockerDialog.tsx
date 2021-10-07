@@ -5,11 +5,12 @@ import BlockerDialog from "./BlockerDialog";
 
 interface NavigationBlockerDialogProps {
   blockNavigation: boolean;
+  onConfirmNavigation?: () => void;
 }
 
 const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> =
   function NavigationBlockerDialog(props: NavigationBlockerDialogProps) {
-    const { blockNavigation } = props;
+    const { blockNavigation, onConfirmNavigation } = props;
 
     const navigate = useNavigate();
 
@@ -38,11 +39,12 @@ const NavigationBlockerDialog: React.FC<NavigationBlockerDialogProps> =
       const { destination } = navigationBlockerDialog;
       if (destination != null) {
         navigate(destination);
+        onConfirmNavigation?.();
       }
       // We must dismiss the dialog because some navigation is merely hash change, e.g. Pivot.
       // If we do not dismiss the dialog, the dialog will block the content.
       setNavigationBlockerDialog({ visible: false });
-    }, [navigate, navigationBlockerDialog]);
+    }, [navigate, navigationBlockerDialog, onConfirmNavigation]);
 
     return (
       <BlockerDialog
