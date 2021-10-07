@@ -12,14 +12,6 @@ const progressIndicatorStyles = {
   },
 };
 
-export interface FormModel {
-  updateError: unknown;
-  isDirty: boolean;
-  isUpdating: boolean;
-  reset: () => void;
-  save: () => void;
-}
-
 export interface CommandBarContainerProps {
   className?: string;
   isLoading?: boolean;
