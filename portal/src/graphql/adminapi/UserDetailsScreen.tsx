@@ -99,6 +99,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
             )}
           >
             <UserDetailsStandardAttributes
+              identities={identities}
               standardAttributes={standardAttributes}
               onChangeStandardAttributes={onChangeStandardAttributes}
             />
