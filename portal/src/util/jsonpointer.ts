@@ -80,18 +80,24 @@ export function jsonPointerToString(t: string[]): string {
   let buf = "";
   for (const token of t) {
     buf += "/";
-    for (const r of token) {
-      switch (r) {
-        case "~":
-          buf += "~0";
-          break;
-        case "/":
-          buf += "~1";
-          break;
-        default:
-          buf += r;
-          break;
-      }
+    buf += tokenToString(token);
+  }
+  return buf;
+}
+
+function tokenToString(token: string): string {
+  let buf = "";
+  for (const r of token) {
+    switch (r) {
+      case "~":
+        buf += "~0";
+        break;
+      case "/":
+        buf += "~1";
+        break;
+      default:
+        buf += r;
+        break;
     }
   }
   return buf;
@@ -135,4 +141,15 @@ export function matchParentChild(
   }
 
   return parent.test(parentChild[0]) && parentChild[1] === child;
+}
+
+export function joinParentChild(
+  parent: string | RegExp,
+  child: string
+): string | RegExp {
+  if (typeof parent === "string") {
+    return parent + "/" + tokenToString(child);
+  }
+  const source = parent.source + "/" + tokenToString(child);
+  return new RegExp(source);
 }
