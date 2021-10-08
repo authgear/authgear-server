@@ -391,7 +391,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onChange={onChangeName}
           parentJSONPointer=""
           fieldName="name"
-          fieldNameMessageID="standard-attribute.name"
+          label={renderToString("standard-attribute.name")}
         />
         <FormTextField
           className={styles.control}
@@ -399,7 +399,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onChange={onChangeGiveName}
           parentJSONPointer=""
           fieldName="given_name"
-          fieldNameMessageID="standard-attribute.given_name"
+          label={renderToString("standard-attribute.given_name")}
         />
         <FormTextField
           className={styles.control}
@@ -407,7 +407,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onChange={onChangeFamilyName}
           parentJSONPointer=""
           fieldName="family_name"
-          fieldNameMessageID="standard-attribute.family_name"
+          label={renderToString("standard-attribute.family_name")}
         />
         <FormTextField
           className={styles.control}
@@ -415,7 +415,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onChange={onChangeMiddleName}
           parentJSONPointer=""
           fieldName="middle_name"
-          fieldNameMessageID="standard-attribute.middle_name"
+          label={renderToString("standard-attribute.middle_name")}
         />
         <FormTextField
           className={styles.control}
@@ -423,7 +423,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onChange={onChangeNickname}
           parentJSONPointer=""
           fieldName="nickname"
-          fieldNameMessageID="standard-attribute.nickname"
+          label={renderToString("standard-attribute.nickname")}
         />
         <FormTextField
           className={styles.control}
@@ -431,7 +431,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onChange={onChangePicture}
           parentJSONPointer=""
           fieldName="picture"
-          fieldNameMessageID="standard-attribute.picture"
+          label={renderToString("standard-attribute.picture")}
         />
         <FormTextField
           className={styles.control}
@@ -439,7 +439,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onChange={onChangeProfile}
           parentJSONPointer=""
           fieldName="profile"
-          fieldNameMessageID="standard-attribute.profile"
+          label={renderToString("standard-attribute.profile")}
         />
         <FormTextField
           className={styles.control}
@@ -447,7 +447,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onChange={onChangeWebsite}
           parentJSONPointer=""
           fieldName="website"
-          fieldNameMessageID="standard-attribute.website"
+          label={renderToString("standard-attribute.website")}
         />
         <Dropdown
           className={styles.control}
@@ -515,7 +515,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             multiline={true}
             parentJSONPointer="/address"
             fieldName="street_address"
-            fieldNameMessageID="standard-attribute.street_address"
+            label={renderToString("standard-attribute.street_address")}
           />
           <FormTextField
             className={styles.addressInput}
@@ -523,7 +523,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             onChange={onChangeLocality}
             parentJSONPointer="/address"
             fieldName="locality"
-            fieldNameMessageID="standard-attribute.locality"
+            label={renderToString("standard-attribute.locality")}
           />
           <div className={styles.addressInputGroup}>
             <FormTextField
@@ -532,7 +532,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
               onChange={onChangePostalCode}
               parentJSONPointer="/address"
               fieldName="postal_code"
-              fieldNameMessageID="standard-attribute.postal_code"
+              label={renderToString("standard-attribute.postal_code")}
             />
             <FormTextField
               className={cn(styles.addressInput, styles.region)}
@@ -540,7 +540,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
               onChange={onChangeRegion}
               parentJSONPointer="/address"
               fieldName="region"
-              fieldNameMessageID="standard-attribute.region"
+              label={renderToString("standard-attribute.region")}
             />
             <Dropdown
               className={cn(styles.addressInput, styles.country)}
