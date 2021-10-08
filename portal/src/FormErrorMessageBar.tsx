@@ -15,7 +15,7 @@ export const FormErrorMessageBar: React.FC = (props) => {
   return (
     <MessageBar messageBarType={MessageBarType.error}>
       {errors.map((err, i) => (
-        <Text key={i}>{renderError(null, err, renderToString)}</Text>
+        <Text key={i}>{renderError(err, renderToString)}</Text>
       ))}
     </MessageBar>
   );
