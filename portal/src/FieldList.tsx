@@ -17,7 +17,7 @@ type RenderFieldListItem<T> = (
 interface FieldListProps<T> {
   className?: string;
   label?: React.ReactNode;
-  parentJSONPointer: string;
+  parentJSONPointer: string | RegExp;
   fieldName: string;
   list: T[];
   onListChange: (list: T[]) => void;

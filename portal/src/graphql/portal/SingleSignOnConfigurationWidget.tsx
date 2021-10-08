@@ -40,7 +40,7 @@ interface SingleSignOnConfigurationWidgetProps {
   className?: string;
 
   jsonPointer: string;
-  clientSecretParentJsonPointer: string;
+  clientSecretParentJsonPointer: RegExp;
 
   isEnabled: boolean;
   onIsEnabledChange: (value: boolean) => void;
