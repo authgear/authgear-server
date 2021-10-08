@@ -40,11 +40,11 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 			cases := []Case{
 				{"Faseng@Example.com", ""},
 				{"Faseng+Chima@example.com", ""},
-				{"faseng.the.cat", "invalid login ID:\n<root>: format\n  map[format:email]"},
-				{"fasengthecat", "invalid login ID:\n<root>: format\n  map[format:email]"},
-				{"fasengthecat@", "invalid login ID:\n<root>: format\n  map[format:email]"},
-				{"@fasengthecat", "invalid login ID:\n<root>: format\n  map[format:email]"},
-				{"Faseng <faseng@example>", "invalid login ID:\n<root>: format\n  map[format:email]"},
+				{"faseng.the.cat", "invalid login ID:\n/login_id: format\n  map[format:email]"},
+				{"fasengthecat", "invalid login ID:\n/login_id: format\n  map[format:email]"},
+				{"fasengthecat@", "invalid login ID:\n/login_id: format\n  map[format:email]"},
+				{"@fasengthecat", "invalid login ID:\n/login_id: format\n  map[format:email]"},
+				{"Faseng <faseng@example>", "invalid login ID:\n/login_id: format\n  map[format:email]"},
 				{"faseng.ℌ𝒌@測試.香港", ""},
 				{`"fase ng@cat"@example.com`, ""},
 				{`"faseng@"@example.com`, ""},
@@ -64,8 +64,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 		Convey("block plus sign", func() {
 			cases := []Case{
 				{"Faseng@Example.com", ""},
-				{"Faseng+Chima@example.com", "invalid login ID:\n<root>: format\n  map[format:email]"},
-				{`"faseng@cat+123"@example.com`, "invalid login ID:\n<root>: format\n  map[format:email]"},
+				{"Faseng+Chima@example.com", "invalid login ID:\n/login_id: format\n  map[format:email]"},
+				{`"faseng@cat+123"@example.com`, "invalid login ID:\n/login_id: format\n  map[format:email]"},
 			}
 
 			checker := &EmailChecker{
@@ -81,10 +81,10 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("email domain blocklist", func() {
 			cases := []Case{
-				{"Faseng@Example.com", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@example.com", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@testing.com", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@TESTING.COM", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"Faseng@Example.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@example.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@testing.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@TESTING.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
 				{`faseng@authgear.io`, ""},
 			}
 
@@ -106,8 +106,8 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("block free email provider domains", func() {
 			cases := []Case{
-				{"faseng@free-mail.com", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
-				{"faseng@FREE-MAIL.COM", "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@free-mail.com", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
+				{"faseng@FREE-MAIL.COM", "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainBlocklist]"},
 				{`faseng@authgear.io`, ""},
 			}
 
@@ -131,7 +131,7 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				{"Faseng@Example.com", ""},
 				{"faseng@example.com", ""},
 				{"faseng@free-mail.com", ""},
-				{`"faseng@cat+123"@authgear.io`, "invalid login ID:\n<root>: blocked\n  map[reason:EmailDomainAllowlist]"},
+				{`"faseng@cat+123"@authgear.io`, "invalid login ID:\n/login_id: blocked\n  map[reason:EmailDomainAllowlist]"},
 			}
 
 			domainsList, _ := matchlist.New(`
@@ -164,14 +164,14 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				{"faseng", ""},
 
 				// space is not allowed in Identifier class
-				{"Test ID", "invalid login ID:\n<root>: format\n  map[format:username]"},
+				{"Test ID", "invalid login ID:\n/login_id: format\n  map[format:username]"},
 
 				// confusable homoglyphs
 				{"microsoft", ""},
-				{"microsоft", "invalid login ID:\n<root>: username contains confusable characters"},
+				{"microsоft", "invalid login ID:\n/login_id: username contains confusable characters"},
 				// byte array versions
 				{string([]byte{109, 105, 99, 114, 111, 115, 111, 102, 116}), ""},
-				{string([]byte{109, 105, 99, 114, 111, 115, 208, 190, 102, 116}), "invalid login ID:\n<root>: username contains confusable characters"},
+				{string([]byte{109, 105, 99, 114, 111, 115, 208, 190, 102, 116}), "invalid login ID:\n/login_id: username contains confusable characters"},
 			}
 
 			n := &UsernameChecker{
@@ -187,11 +187,11 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 
 		Convey("block keywords and non ascii", func() {
 			cases := []Case{
-				{"admin", "invalid login ID:\n<root>: blocked\n  map[reason:UsernameReserved]"},
-				{"settings", "invalid login ID:\n<root>: blocked\n  map[reason:UsernameReserved]"},
-				{"authgear", "invalid login ID:\n<root>: blocked\n  map[reason:UsernameExcludedKeywords]"},
-				{"myauthgearapp", "invalid login ID:\n<root>: blocked\n  map[reason:UsernameExcludedKeywords]"},
-				{"花生thecat", "invalid login ID:\n<root>: format\n  map[format:username]"},
+				{"admin", "invalid login ID:\n/login_id: blocked\n  map[reason:UsernameReserved]"},
+				{"settings", "invalid login ID:\n/login_id: blocked\n  map[reason:UsernameReserved]"},
+				{"authgear", "invalid login ID:\n/login_id: blocked\n  map[reason:UsernameExcludedKeywords]"},
+				{"myauthgearapp", "invalid login ID:\n/login_id: blocked\n  map[reason:UsernameExcludedKeywords]"},
+				{"花生thecat", "invalid login ID:\n/login_id: format\n  map[format:username]"},
 				{"faseng", ""},
 				{"faseng_chima-the.cat", ""},
 			}

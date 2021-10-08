@@ -144,6 +144,8 @@ func (c *EmailChecker) Validate(ctx *validation.Context, loginID string) {
 		return
 	}
 
+	ctx = ctx.Child("login_id")
+
 	err := validation.FormatEmail{}.CheckFormat(loginID)
 	if err != nil {
 		ctx.EmitError("format", map[string]interface{}{"format": "email"})
@@ -224,6 +226,8 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 		return
 	}
 
+	ctx = ctx.Child("login_id")
+
 	// Ensure the login id is valid for Identifier profile
 	// and use the casefolded value for checking blacklist
 	// https://godoc.org/golang.org/x/text/secure/precis#NewIdentifier
@@ -270,6 +274,8 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 type PhoneChecker struct{}
 
 func (c *PhoneChecker) Validate(ctx *validation.Context, loginID string) {
+	ctx = ctx.Child("login_id")
+
 	err := validation.FormatPhone{}.CheckFormat(loginID)
 	if err != nil {
 		ctx.EmitError("format", map[string]interface{}{"format": "phone"})

@@ -22,6 +22,9 @@ func (c *Checker) ValidateOne(loginID Spec, options CheckerOptions) error {
 }
 
 func (c *Checker) validateOne(ctx *validation.Context, loginID Spec, options CheckerOptions) {
+	originCtx := ctx
+	ctx = ctx.Child("login_id")
+
 	allowed := false
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginID.Key {
@@ -46,7 +49,7 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID Spec, options Che
 		return
 	}
 
-	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(ctx, loginID.Value)
+	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(originCtx, loginID.Value)
 }
 
 func (c *Checker) LoginIDKeyClaimName(loginIDKey string) (string, bool) {

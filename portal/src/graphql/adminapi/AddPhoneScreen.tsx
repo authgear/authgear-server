@@ -29,12 +29,6 @@ const errorRules: ErrorParseRule[] = [
     kind: "DuplicatedIdentity",
     errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
   },
-  {
-    reason: "ValidationFailed",
-    location: "",
-    kind: "format",
-    errorMessageID: "errors.validation.format",
-  },
 ];
 
 type Country = typeof ALL_COUNTRIES[number];
@@ -130,7 +124,7 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
       />
       <FormTextField
         parentJSONPointer=""
-        fieldName="phone"
+        fieldName="login_id"
         errorRules={errorRules}
         className={styles.phone}
         value={phone}
