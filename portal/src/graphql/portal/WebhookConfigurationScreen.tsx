@@ -126,13 +126,14 @@ const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> =
     );
     const { errors: eventErrors } = useFormField(eventField);
     const { errors: urlErrors } = useFormField(urlField);
+    // FIXME: use formbinding
     const eventErrorMessage = useMemo(
-      () => renderErrors(eventField, eventErrors, renderToString),
-      [eventField, eventErrors, renderToString]
+      () => renderErrors(eventErrors, renderToString),
+      [eventErrors, renderToString]
     );
     const urlErrorMessage = useMemo(
-      () => renderErrors(urlField, urlErrors, renderToString),
-      [urlField, urlErrors, renderToString]
+      () => renderErrors(urlErrors, renderToString),
+      [urlErrors, renderToString]
     );
 
     const onBlockingEventChange = useCallback(
@@ -214,9 +215,10 @@ const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
       [index]
     );
     const { errors: urlErrors } = useFormField(urlField);
+    // FIXME: use formbinding
     const urlErrorMessage = useMemo(
-      () => renderErrors(urlField, urlErrors, renderToString),
-      [urlField, urlErrors, renderToString]
+      () => renderErrors(urlErrors, renderToString),
+      [urlErrors, renderToString]
     );
 
     const onURLChange = useCallback(

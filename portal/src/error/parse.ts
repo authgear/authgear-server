@@ -4,7 +4,22 @@ import { ValidationFailedErrorInfoCause } from "./validation";
 import { Values } from "@oursky/react-messageformat";
 import { APIPasswordPolicyViolatedError } from "./password";
 import { APIResourceTooLargeError } from "./resources";
-import { parseJSONPointerIntoParentChild } from "../util/jsonpointer";
+import {
+  parentChildToJSONPointer,
+  matchParentChild,
+} from "../util/jsonpointer";
+
+export interface FormField {
+  parentJSONPointer: string | RegExp;
+  fieldName: string;
+  rules?: ErrorParseRule[];
+}
+
+export interface ParsedAPIError {
+  message?: string;
+  messageID?: string;
+  arguments?: Values;
+}
 
 export function parseRawError(error: unknown): APIError[] {
   const errors: APIError[] = [];
@@ -39,12 +54,6 @@ export function parseRawError(error: unknown): APIError[] {
     });
   }
   return errors;
-}
-
-export interface ParsedAPIError {
-  message?: string;
-  messageID?: string;
-  arguments?: Values;
 }
 
 const errorCauseMessageIDs = {
@@ -82,10 +91,11 @@ function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
 }
 
 function parsePasswordPolicyViolatedError(
-  error: APIPasswordPolicyViolatedError,
-  errors: ParsedAPIError[]
-) {
+  error: APIPasswordPolicyViolatedError
+): ParsedAPIError[] {
+  const errors: ParsedAPIError[] = [];
   let hasUnmatched = false;
+
   for (const cause of error.info.causes) {
     switch (cause.Name) {
       case "PasswordReused":
@@ -103,26 +113,28 @@ function parsePasswordPolicyViolatedError(
         break;
     }
   }
+
   if (hasUnmatched && errors.length === 0) {
     errors.push({ messageID: "errors.password-policy.unknown" });
   }
+
+  return errors;
 }
 
 function parseResourceTooLargeError(
-  error: APIResourceTooLargeError,
-  errors: ParsedAPIError[]
-) {
+  error: APIResourceTooLargeError
+): ParsedAPIError {
   const dir = error.info.path.split("/");
   const fileName = dir[dir.length - 1];
   const resourceType = fileName.slice(0, fileName.lastIndexOf("."));
 
-  errors.push({
+  return {
     messageID: "errors.resource-too-large",
     arguments: {
       maxSize: error.info.max_size / 1024,
       resourceType,
     },
-  });
+  };
 }
 
 function parseError(error: APIError): ParsedAPIError[] {
@@ -141,11 +153,11 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     case "ResourceTooLarge": {
-      parseResourceTooLargeError(error, errors);
+      errors.push(parseResourceTooLargeError(error));
       break;
     }
     case "PasswordPolicyViolated": {
-      parsePasswordPolicyViolatedError(error, errors);
+      errors.push(...parsePasswordPolicyViolatedError(error));
       break;
     }
     default:
@@ -158,28 +170,21 @@ function parseError(error: APIError): ParsedAPIError[] {
 }
 
 export function renderErrors(
-  field: FormField | null,
   errors: readonly ParsedAPIError[],
   renderMessage: (id: string, args: Values) => string
 ): string | undefined {
   if (errors.length === 0) {
     return undefined;
   }
-  return errors.map((err) => renderError(field, err, renderMessage)).join("\n");
+  return errors.map((err) => renderError(err, renderMessage)).join("\n");
 }
 
 export function renderError(
-  field: FormField | null,
   error: ParsedAPIError,
   renderMessage: (id: string, args: Values) => string
 ): string {
   if (error.messageID) {
     const args: Values = { ...error.arguments };
-    if (error.messageID === errorCauseMessageIDs["required"]) {
-      if (field?.fieldName) {
-        args.fieldName = field.fieldName;
-      }
-    }
     return renderMessage(error.messageID, args);
   }
   return error.message ?? "";
@@ -220,11 +225,12 @@ function matchRule(rule: ErrorParseRule, error: APIError): ParsedAPIError[] {
   }
 
   const parsedErrors: ParsedAPIError[] = [];
+
   switch (error.reason) {
     case "ValidationFailed": {
       const { kind, location } = rule as ValidationErrorParseRule;
       for (const cause of error.info.causes) {
-        if (matchPattern(location, cause.location) && kind === cause.kind) {
+        if (kind === cause.kind && location === cause.location) {
           parsedErrors.push({ messageID: rule.errorMessageID });
         }
       }
@@ -241,62 +247,33 @@ function matchRule(rule: ErrorParseRule, error: APIError): ParsedAPIError[] {
       parsedErrors.push({ messageID: rule.errorMessageID });
       break;
   }
+
   return parsedErrors;
-}
-
-export interface FormField {
-  parentJSONPointer: string;
-  fieldName: string;
-  rules?: ErrorParseRule[];
-}
-
-function matchPattern(pattern: string, value: string) {
-  return new RegExp(`^${pattern}$`).test(value);
 }
 
 function matchField(
   cause: ValidationFailedErrorInfoCause,
-  parentJSONPointer: string,
-  fieldName: string,
   field: FormField
-) {
+): boolean {
   if (cause.kind === "required") {
-    parentJSONPointer = `${parentJSONPointer}/${fieldName}`;
-    return (
-      matchPattern(field.parentJSONPointer, parentJSONPointer) &&
-      cause.details.missing.includes(field.fieldName)
-    );
-  }
-  return (
-    matchPattern(field.parentJSONPointer, parentJSONPointer) &&
-    field.fieldName === fieldName
-  );
-}
-
-function matchFields(
-  cause: ValidationFailedErrorInfoCause,
-  fields: FormField[],
-  result: Map<string, ValidationFailedErrorInfoCause[]>
-) {
-  const locMatch = parseJSONPointerIntoParentChild(cause.location);
-  if (!locMatch) {
-    return false;
-  }
-  const [parentJSONPointer, fieldName] = locMatch;
-
-  let matched = false;
-  for (const field of fields) {
-    if (!matchField(cause, parentJSONPointer, fieldName, field)) {
-      continue;
+    for (const child of cause.details.missing) {
+      const condidate = parentChildToJSONPointer(cause.location, child);
+      const matched = matchParentChild(
+        condidate,
+        field.parentJSONPointer,
+        field.fieldName
+      );
+      if (matched) {
+        return true;
+      }
     }
-    const jsonPointer = `${field.parentJSONPointer}/${field.fieldName}`;
-    const matches = result.get(jsonPointer) ?? [];
-    matches.push(cause);
-    result.set(jsonPointer, matches);
-    matched = true;
   }
 
-  return matched;
+  return matchParentChild(
+    cause.location,
+    field.parentJSONPointer,
+    field.fieldName
+  );
 }
 
 interface FieldRule {
@@ -320,28 +297,49 @@ function aggregateRules(
   return rules;
 }
 
-function parseValidationErrors(errors: APIError[], fields: FormField[]) {
-  const rawFieldCauses = new Map<string, ValidationFailedErrorInfoCause[]>();
+function parseValidationErrors(
+  errors: APIError[],
+  fields: FormField[]
+): {
+  rawFieldCauses: Map<FormField, ValidationFailedErrorInfoCause[]>;
+  unhandledErrors: APIError[];
+} {
   const unhandledErrors: APIError[] = [];
+  const rawFieldCauses = new Map<FormField, ValidationFailedErrorInfoCause[]>();
+
   for (const error of errors) {
+    const unhandledCauses: ValidationFailedErrorInfoCause[] = [];
+
     if (error.reason === "ValidationFailed") {
       const causes = error.info.causes;
-      const unhandledCauses: ValidationFailedErrorInfoCause[] = [];
       for (const cause of causes) {
-        if (matchFields(cause, fields, rawFieldCauses)) {
-          continue;
+        const matchedFields = fields.filter((field) =>
+          matchField(cause, field)
+        );
+
+        if (matchedFields.length === 0) {
+          unhandledCauses.push(cause);
+        } else {
+          for (const field of matchedFields) {
+            const value = rawFieldCauses.get(field);
+            if (value == null) {
+              rawFieldCauses.set(field, [cause]);
+            } else {
+              value.push(cause);
+            }
+          }
         }
-        unhandledCauses.push(cause);
-      }
-      if (unhandledCauses.length !== 0) {
-        unhandledErrors.push({
-          reason: "ValidationFailed",
-          errorName: error.errorName,
-          info: { causes: unhandledCauses },
-        });
       }
     } else {
       unhandledErrors.push(error);
+    }
+
+    if (unhandledCauses.length !== 0) {
+      unhandledErrors.push({
+        reason: "ValidationFailed",
+        errorName: error.errorName,
+        info: { causes: unhandledCauses },
+      });
     }
   }
 
@@ -349,56 +347,51 @@ function parseValidationErrors(errors: APIError[], fields: FormField[]) {
 }
 
 function parseErrorWithRules(
-  rawFieldCauses: Map<string, ValidationFailedErrorInfoCause[]>,
   errors: APIError[],
-  rules: FieldRule[],
-  fallbackMessageID?: string
-) {
-  const fieldErrors = new Map(
-    Array.from(rawFieldCauses.entries()).map(([field, causes]) => [
-      field,
-      causes.map((cause) => parseCause(cause)),
-    ])
-  );
+  rules: FieldRule[]
+): {
+  fieldErrors: Map<FormField, ParsedAPIError[]>;
+  topErrors: ParsedAPIError[];
+  unhandledErrors: APIError[];
+} {
+  const fieldErrors: Map<FormField, ParsedAPIError[]> = new Map();
   const topErrors: ParsedAPIError[] = [];
+  const unhandledErrors: APIError[] = [];
 
-  let hasFallback = false;
   for (const error of errors) {
-    let matched = false;
+    let handled = false;
+
     for (const { field, rule } of rules) {
       const matchedErrors = matchRule(rule, error);
-      if (matchedErrors.length === 0) {
-        continue;
-      }
-
-      if (field) {
-        const jsonPointer = `${field.parentJSONPointer}/${field.fieldName}`;
-        const errors = fieldErrors.get(jsonPointer) ?? [];
-        errors.push(...matchedErrors);
-        fieldErrors.set(jsonPointer, errors);
-      } else {
-        topErrors.push(...matchedErrors);
-      }
-      matched = true;
-      break;
-    }
-    if (!matched) {
-      if (fallbackMessageID) {
-        if (!hasFallback) {
-          topErrors.push({ messageID: fallbackMessageID });
-          hasFallback = true;
+      if (matchedErrors.length > 0) {
+        handled = true;
+        if (field != null) {
+          const value = fieldErrors.get(field);
+          if (value == null) {
+            fieldErrors.set(field, matchedErrors);
+          } else {
+            value.push(...matchedErrors);
+          }
+        } else {
+          topErrors.push(...matchedErrors);
         }
-      } else {
-        topErrors.push(...parseError(error));
       }
+    }
+
+    if (!handled) {
+      unhandledErrors.push(error);
     }
   }
 
-  return { fieldErrors, topErrors };
+  return {
+    fieldErrors,
+    topErrors,
+    unhandledErrors,
+  };
 }
 
 export interface ErrorParseResult {
-  fieldErrors: Map<string, ParsedAPIError[]>;
+  fieldErrors: Map<FormField, ParsedAPIError[]>;
   topErrors: ParsedAPIError[];
 }
 
@@ -414,17 +407,36 @@ export function parseAPIErrors(
 
   const rules = aggregateRules(fields, topRules);
 
-  const { rawFieldCauses, unhandledErrors } = parseValidationErrors(
-    errors,
-    fields
+  const { rawFieldCauses, unhandledErrors: unhandledErrorsForRules } =
+    parseValidationErrors(errors, fields);
+
+  const { fieldErrors, topErrors, unhandledErrors } = parseErrorWithRules(
+    unhandledErrorsForRules,
+    rules
   );
 
-  const { fieldErrors, topErrors } = parseErrorWithRules(
-    rawFieldCauses,
-    unhandledErrors,
-    rules,
-    fallbackMessageID
-  );
+  // Add rawFieldCauses to fieldErrors
+  for (const [field, causes] of rawFieldCauses.entries()) {
+    const errors = fieldErrors.get(field);
+    if (errors == null) {
+      fieldErrors.set(field, causes.map(parseCause));
+    } else {
+      errors.push(...causes.map(parseCause));
+    }
+  }
+
+  // Handle fallbackMessageID
+  if (unhandledErrors.length > 0) {
+    if (fallbackMessageID != null) {
+      topErrors.push({
+        messageID: fallbackMessageID,
+      });
+    } else {
+      for (const error of unhandledErrors) {
+        topErrors.push(...parseError(error));
+      }
+    }
+  }
 
   return { fieldErrors, topErrors };
 }
