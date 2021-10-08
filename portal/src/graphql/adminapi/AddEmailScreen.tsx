@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
@@ -33,6 +33,7 @@ interface EmailFieldProps {
 
 const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
   const { value, onChange } = props;
+  const { renderToString } = useContext(Context);
   const onEmailChange = useCallback(
     (_, value?: string) => onChange(value ?? ""),
     [onChange]
@@ -41,7 +42,7 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
     <FormTextField
       parentJSONPointer=""
       fieldName="email"
-      fieldNameMessageID="AddEmailScreen.email.label"
+      label={renderToString("AddEmailScreen.email.label")}
       className={styles.emailField}
       value={value}
       onChange={onEmailChange}
