@@ -59,7 +59,7 @@
   "show-error.retry": "Retry",
 
   "errors.validation.unknown": "Invalid input at {location}: {kind} {details}",
-  "errors.validation.required": "Required field `{fieldName}` is missing",
+  "errors.validation.required": "Please fill in this field",
   "errors.validation.general": "Invalid value",
   "errors.validation.format": "Invalid format",
   "errors.validation.minItems": "Expect at least {expected} items",
