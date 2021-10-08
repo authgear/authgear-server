@@ -3,6 +3,7 @@ import {
   parseJSONPointer,
   jsonPointerToString,
   parseJSONPointerIntoParentChild,
+  parentChildToJSONPointer,
   matchParentChild,
 } from "./jsonpointer";
 
@@ -33,6 +34,15 @@ describe("parseJSONPointerIntoParentChild", () => {
     expect(f("/")).toEqual(["", ""]);
     expect(f("/a")).toEqual(["", "a"]);
     expect(f("/a/b")).toEqual(["/a", "b"]);
+  });
+});
+
+describe("parentChildToJSONPointer", () => {
+  it("work", () => {
+    const f = parentChildToJSONPointer;
+    expect(f("", "")).toEqual("/");
+    expect(f("", "a")).toEqual("/a");
+    expect(f("/a", "b")).toEqual("/a/b");
   });
 });
 
