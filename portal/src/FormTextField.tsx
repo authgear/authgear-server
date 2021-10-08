@@ -7,23 +7,13 @@ import { ErrorParseRule, renderErrors } from "./error/parse";
 export interface FormTextFieldProps extends ITextFieldProps {
   parentJSONPointer: string;
   fieldName: string;
-  fieldNameMessageID?: string;
   errorRules?: ErrorParseRule[];
-  hideLabel?: boolean;
 }
 
 const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
   props: FormTextFieldProps
 ) {
-  const {
-    parentJSONPointer,
-    fieldName,
-    fieldNameMessageID,
-    errorRules,
-    label: labelProps,
-    hideLabel,
-    ...rest
-  } = props;
+  const { parentJSONPointer, fieldName, errorRules, ...rest } = props;
 
   const { renderToString } = useContext(Context);
 
@@ -31,10 +21,9 @@ const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
     () => ({
       parentJSONPointer,
       fieldName,
-      fieldNameMessageID,
       rules: errorRules,
     }),
-    [parentJSONPointer, fieldName, fieldNameMessageID, errorRules]
+    [parentJSONPointer, fieldName, errorRules]
   );
   const { errors } = useFormField(field);
   const errorMessage = useMemo(
@@ -42,19 +31,7 @@ const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
     [field, errors, renderToString]
   );
 
-  const localizedFieldName = useMemo(() => {
-    return fieldNameMessageID != null
-      ? renderToString(fieldNameMessageID)
-      : undefined;
-  }, [renderToString, fieldNameMessageID]);
-
-  return (
-    <TextField
-      {...rest}
-      errorMessage={errorMessage}
-      label={hideLabel ? undefined : labelProps ?? localizedFieldName}
-    />
-  );
+  return <TextField {...rest} errorMessage={errorMessage} />;
 };
 
 export default FormTextField;
