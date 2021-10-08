@@ -18,12 +18,6 @@ const errorRules: ErrorParseRule[] = [
     kind: "DuplicatedIdentity",
     errorMessageID: "AddEmailScreen.error.duplicated-email",
   },
-  {
-    reason: "ValidationFailed",
-    location: "",
-    kind: "format",
-    errorMessageID: "errors.validation.format",
-  },
 ];
 
 interface EmailFieldProps {
@@ -41,7 +35,7 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
   return (
     <FormTextField
       parentJSONPointer=""
-      fieldName="email"
+      fieldName="login_id"
       label={renderToString("AddEmailScreen.email.label")}
       className={styles.emailField}
       value={value}

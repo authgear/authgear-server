@@ -19,12 +19,6 @@ const errorRules: ErrorParseRule[] = [
     kind: "DuplicatedIdentity",
     errorMessageID: "AddUsernameScreen.error.duplicated-username",
   },
-  {
-    reason: "ValidationFailed",
-    location: "",
-    kind: "format",
-    errorMessageID: "errors.validation.format",
-  },
 ];
 
 interface UsernameFieldProps {
@@ -44,7 +38,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
   return (
     <FormTextField
       parentJSONPointer=""
-      fieldName="username"
+      fieldName="login_id"
       label={renderToString("AddUsernameScreen.username.label")}
       className={styles.usernameField}
       value={value}
