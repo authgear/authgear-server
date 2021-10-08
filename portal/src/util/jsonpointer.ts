@@ -111,6 +111,15 @@ export function parseJSONPointerIntoParentChild(
   return [jsonPointerToString(parent), child];
 }
 
+export function parentChildToJSONPointer(
+  parent: string,
+  child: string
+): string {
+  const pointer = parseJSONPointer(parent);
+  pointer.push(child);
+  return jsonPointerToString(pointer);
+}
+
 export function matchParentChild(
   pointer: string,
   parent: string | RegExp,
