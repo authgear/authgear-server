@@ -159,6 +159,8 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
       [onClientConfigChange, clientConfig]
     );
 
+    const parentJSONPointer = /\/oauth\/clients\/\d+/;
+
     return (
       <div className={cn(styles.root, className)}>
         <Widget className={styles.widget}>
@@ -171,7 +173,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
             />
           )}
           <FormTextField
-            parentJSONPointer="/oauth/clients/\d+"
+            parentJSONPointer={parentJSONPointer}
             fieldName="name"
             label={renderToString("ModifyOAuthClientForm.name-label")}
             className={styles.control}
@@ -181,7 +183,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
           />
           <FormTextFieldList
             className={styles.control}
-            parentJSONPointer="/oauth/clients/\d+"
+            parentJSONPointer={parentJSONPointer}
             fieldName="redirect_uris"
             list={clientConfig.redirect_uris}
             onListChange={onRedirectUrisChange}
@@ -206,7 +208,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               <FormattedMessage id="ModifyOAuthClientForm.token-settings.description" />
             </WidgetDescription>
             <FormTextField
-              parentJSONPointer="/oauth/clients/\d+"
+              parentJSONPointer={parentJSONPointer}
               fieldName="access_token_lifetime_seconds"
               label={renderToString(
                 "ModifyOAuthClientForm.acces-token-lifetime-label"
@@ -218,7 +220,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               onChange={onAccessTokenLifetimeChange}
             />
             <FormTextField
-              parentJSONPointer="/oauth/clients/\d+"
+              parentJSONPointer={parentJSONPointer}
               fieldName="refresh_token_lifetime_seconds"
               label={renderToString(
                 "ModifyOAuthClientForm.refresh-token-lifetime-label"
@@ -239,7 +241,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               styles={CHECKBOX_STYLES}
             />
             <FormTextField
-              parentJSONPointer="/oauth/clients/\d+"
+              parentJSONPointer={parentJSONPointer}
               fieldName="refresh_token_idle_timeout_seconds"
               label={renderToString(
                 "ModifyOAuthClientForm.refresh-token-idle-timeout-label"
@@ -278,7 +280,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
             </WidgetDescription>
             <FormTextFieldList
               className={styles.control}
-              parentJSONPointer="/oauth/clients/\d+"
+              parentJSONPointer={parentJSONPointer}
               fieldName="post_logout_redirect_uris"
               list={clientConfig.post_logout_redirect_uris ?? []}
               onListChange={onPostLogoutRedirectUrisChange}
