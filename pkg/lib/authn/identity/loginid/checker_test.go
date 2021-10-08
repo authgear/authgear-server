@@ -73,16 +73,16 @@ func TestLoginIDChecker(t *testing.T) {
 			So(checker.ValidateOne(loginID, options), ShouldBeNil)
 
 			loginID = Spec{Key: "nickname", Type: "", Value: "johndoe"}
-			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n<root>: login ID key is not allowed")
+			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: login ID key is not allowed")
 
 			loginID = Spec{Key: "username", Type: config.LoginIDKeyTypeUsername, Value: "foobarexample"}
-			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n<root>: maxLength\n  map[actual:13 expected:10]")
+			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: maxLength\n  map[actual:13 expected:10]")
 
 			loginID = Spec{Key: "email", Type: config.LoginIDKeyTypeEmail, Value: ""}
-			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n<root>: required")
+			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: required")
 
 			loginID = Spec{Key: "phone", Type: config.LoginIDKeyTypePhone, Value: "51234567"}
-			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n<root>: format\n  map[format:phone]")
+			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: format\n  map[format:phone]")
 		})
 	})
 }
