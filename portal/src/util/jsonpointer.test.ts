@@ -5,6 +5,7 @@ import {
   parseJSONPointerIntoParentChild,
   parentChildToJSONPointer,
   matchParentChild,
+  joinParentChild,
 } from "./jsonpointer";
 
 describe("parseJSONPointer", () => {
@@ -54,5 +55,14 @@ describe("matchParentChild", () => {
     expect(f("/a/b", "/a", "b")).toEqual(true);
     expect(f("/a/b", /^\/a$/, "b")).toEqual(true);
     expect(f("/secrets/2/data/a", /^\/secrets\/\d+\/data$/, "a")).toEqual(true);
+  });
+});
+
+describe("joinParentChild", () => {
+  it("join", () => {
+    const f = joinParentChild;
+    expect(f("", "a")).toEqual("/a");
+    expect(f(/\/a/, "b")).toEqual(/\/a\/b/);
+    expect(f(/\/a\/\d+/, "b")).toEqual(/\/a\/\d+\/b/);
   });
 });
