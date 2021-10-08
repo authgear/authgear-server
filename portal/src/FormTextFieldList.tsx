@@ -35,8 +35,8 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> =
     );
     const { errors } = useFormField(field);
     const errorMessage = useMemo(
-      () => renderErrors(field, errors, renderToString),
-      [field, errors, renderToString]
+      () => renderErrors(errors, renderToString),
+      [errors, renderToString]
     );
 
     const _onChange = useCallback(

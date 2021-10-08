@@ -7,20 +7,15 @@ import React, {
   useState,
 } from "react";
 import {
+  FormField,
   ErrorParseRule,
   parseAPIErrors,
   ParsedAPIError,
   parseRawError,
 } from "./error/parse";
 
-export interface FormField {
-  parentJSONPointer: string;
-  fieldName: string;
-  rules?: ErrorParseRule[];
-}
-
 export interface FormContext {
-  readonly fieldErrors: ReadonlyMap<string, ParsedAPIError[]>;
+  readonly fieldErrors: ReadonlyMap<FormField, ParsedAPIError[]>;
   readonly topErrors: readonly ParsedAPIError[];
 
   registerField(field: FormField): void;
@@ -91,6 +86,40 @@ export const FormProvider: React.FC<FormProviderProps> = (props) => {
   return <context.Provider value={value}>{children}</context.Provider>;
 };
 
+function equal(a: FormField, b: FormField): boolean {
+  if (a.fieldName !== b.fieldName) {
+    return false;
+  }
+
+  if (
+    typeof a.parentJSONPointer === "string" &&
+    typeof b.parentJSONPointer === "string"
+  ) {
+    return a.parentJSONPointer === b.parentJSONPointer;
+  }
+  if (
+    a.parentJSONPointer instanceof RegExp &&
+    b.parentJSONPointer instanceof RegExp
+  ) {
+    return a.parentJSONPointer.source === b.parentJSONPointer.source;
+  }
+
+  return false;
+}
+
+function getFieldErrors(
+  fieldErrors: ReadonlyMap<FormField, ParsedAPIError[]>,
+  field: FormField
+): ParsedAPIError[] {
+  const errors = [];
+  for (const [key, value] of fieldErrors.entries()) {
+    if (equal(key, field)) {
+      errors.push(...value);
+    }
+  }
+  return errors;
+}
+
 export function useFormField(field: FormField): {
   errors: readonly ParsedAPIError[];
 } {
@@ -106,9 +135,14 @@ export function useFormField(field: FormField): {
     return () => unregisterField(field);
   }, [registerField, unregisterField, field]);
 
-  const jsonPointer = `${field.parentJSONPointer}/${field.fieldName}`;
+  // We cannot simply use get to retrieve errors because FormField is not a value type.
+  const errors = useMemo(
+    () => getFieldErrors(fieldErrors, field),
+    [field, fieldErrors]
+  );
+
   return {
-    errors: fieldErrors.get(jsonPointer) ?? [],
+    errors,
   };
 }
 

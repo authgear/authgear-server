@@ -5,7 +5,7 @@ import { useFormField } from "./form";
 import { ErrorParseRule, renderErrors } from "./error/parse";
 
 export interface FormTextFieldProps extends ITextFieldProps {
-  parentJSONPointer: string;
+  parentJSONPointer: string | RegExp;
   fieldName: string;
   errorRules?: ErrorParseRule[];
 }
@@ -27,8 +27,8 @@ const FormTextField: React.FC<FormTextFieldProps> = function FormTextField(
   );
   const { errors } = useFormField(field);
   const errorMessage = useMemo(
-    () => renderErrors(field, errors, renderToString),
-    [field, errors, renderToString]
+    () => renderErrors(errors, renderToString),
+    [errors, renderToString]
   );
 
   return <TextField {...rest} errorMessage={errorMessage} />;
