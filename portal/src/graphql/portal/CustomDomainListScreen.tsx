@@ -189,7 +189,7 @@ const AddDomainSection: React.FC = function AddDomainSection() {
     );
     return topErrors;
   }, [createDomainError, errorRules]);
-  const errorMessage = renderErrors(null, errors, renderToString);
+  const errorMessage = renderErrors(errors, renderToString);
 
   return (
     <form className={styles.addDomain} onSubmit={onAddClick}>
