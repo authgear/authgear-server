@@ -110,3 +110,20 @@ export function parseJSONPointerIntoParentChild(
 
   return [jsonPointerToString(parent), child];
 }
+
+export function matchParentChild(
+  pointer: string,
+  parent: string | RegExp,
+  child: string
+): boolean {
+  const parentChild = parseJSONPointerIntoParentChild(pointer);
+  if (parentChild == null) {
+    return false;
+  }
+
+  if (typeof parent === "string") {
+    return parentChild[0] === parent && parentChild[1] === child;
+  }
+
+  return parent.test(parentChild[0]) && parentChild[1] === child;
+}
