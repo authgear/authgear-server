@@ -173,7 +173,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
           <FormTextField
             parentJSONPointer="/oauth/clients/\d+"
             fieldName="name"
-            fieldNameMessageID="ModifyOAuthClientForm.name-label"
+            label={renderToString("ModifyOAuthClientForm.name-label")}
             className={styles.control}
             value={clientConfig.name ?? ""}
             onChange={onClientNameChange}
@@ -208,7 +208,9 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
             <FormTextField
               parentJSONPointer="/oauth/clients/\d+"
               fieldName="access_token_lifetime_seconds"
-              fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
+              label={renderToString(
+                "ModifyOAuthClientForm.acces-token-lifetime-label"
+              )}
               className={styles.control}
               value={
                 clientConfig.access_token_lifetime_seconds?.toFixed(0) ?? ""
@@ -218,7 +220,9 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
             <FormTextField
               parentJSONPointer="/oauth/clients/\d+"
               fieldName="refresh_token_lifetime_seconds"
-              fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
+              label={renderToString(
+                "ModifyOAuthClientForm.refresh-token-lifetime-label"
+              )}
               className={styles.control}
               value={
                 clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? ""
@@ -237,7 +241,9 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
             <FormTextField
               parentJSONPointer="/oauth/clients/\d+"
               fieldName="refresh_token_idle_timeout_seconds"
-              fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
+              label={renderToString(
+                "ModifyOAuthClientForm.refresh-token-idle-timeout-label"
+              )}
               className={styles.control}
               value={
                 clientConfig.refresh_token_idle_timeout_seconds?.toFixed(0) ??

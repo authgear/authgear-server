@@ -176,9 +176,7 @@ export function renderError(
   if (error.messageID) {
     const args: Values = { ...error.arguments };
     if (error.messageID === errorCauseMessageIDs["required"]) {
-      if (field?.fieldNameMessageID) {
-        args.fieldName = renderMessage(field.fieldNameMessageID, {});
-      } else if (field?.fieldName) {
+      if (field?.fieldName) {
         args.fieldName = field.fieldName;
       }
     }
@@ -249,7 +247,6 @@ function matchRule(rule: ErrorParseRule, error: APIError): ParsedAPIError[] {
 export interface FormField {
   parentJSONPointer: string;
   fieldName: string;
-  fieldNameMessageID?: string;
   rules?: ErrorParseRule[];
 }
 

@@ -138,9 +138,7 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
       <FormTextField
         parentJSONPointer=""
         fieldName="phone"
-        fieldNameMessageID="AddPhoneScreen.phone.label"
         errorRules={errorRules}
-        hideLabel={true}
         className={styles.phone}
         value={phone}
         onChange={onPhoneChange}

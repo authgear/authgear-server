@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
@@ -36,6 +36,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
   props
 ) {
   const { value, onChange } = props;
+  const { renderToString } = useContext(Context);
   const onUsernameChange = useCallback(
     (_, value?: string) => onChange(value ?? ""),
     [onChange]
@@ -44,7 +45,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
     <FormTextField
       parentJSONPointer=""
       fieldName="username"
-      fieldNameMessageID="AddUsernameScreen.username.label"
+      label={renderToString("AddUsernameScreen.username.label")}
       className={styles.usernameField}
       value={value}
       onChange={onUsernameChange}
