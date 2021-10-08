@@ -83,10 +83,7 @@ function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
       arguments: cause as unknown as Values,
     };
   }
-  let args: Values = cause.details;
-  if (cause.kind === "required") {
-    args = { fieldName: cause.details.missing.join(", ") };
-  }
+  const args: Values = cause.details;
   return { messageID, arguments: args };
 }
 
