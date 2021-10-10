@@ -432,6 +432,9 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           parentJSONPointer=""
           fieldName="picture"
           label={renderToString("standard-attribute.picture")}
+          placeholder={renderToString(
+            "UserDetailsStandardAttributes.picture.placeholder"
+          )}
         />
         <FormTextField
           className={styles.control}
@@ -440,6 +443,9 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           parentJSONPointer=""
           fieldName="profile"
           label={renderToString("standard-attribute.profile")}
+          placeholder={renderToString(
+            "UserDetailsStandardAttributes.profile.placeholder"
+          )}
         />
         <FormTextField
           className={styles.control}
@@ -448,6 +454,9 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           parentJSONPointer=""
           fieldName="website"
           label={renderToString("standard-attribute.website")}
+          placeholder={renderToString(
+            "UserDetailsStandardAttributes.website.placeholder"
+          )}
         />
         <Dropdown
           className={styles.control}
