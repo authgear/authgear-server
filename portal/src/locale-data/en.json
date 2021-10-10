@@ -252,6 +252,10 @@
   "UserDetails.connected-identities.remove-identity-error.connot-remove-last": "Cannot remove last identity",
   "UserDetails.connected-identities.verify-identity-error.generic": "Failed to set verified status of identity claim",
 
+  "UserDetailsStandardAttributes.picture.placeholder": "URL to the profile picture",
+  "UserDetailsStandardAttributes.profile.placeholder": "URL to the profile webpage",
+  "UserDetailsStandardAttributes.website.placeholder": "URL to the personal website",
+
   "CreateIdentity.require-login-id": "You need to add \"login_id\" to identities list in authgear config",
 
   "AddEmailScreen.title": "Add Email",
