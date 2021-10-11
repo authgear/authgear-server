@@ -25,7 +25,7 @@ func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 		matcher, err := originmatcher.New(m.Config.AllowedOrigins)
 		// nolint: staticcheck
 		if err != nil {
-			// FIXME(logging): Log invalid AllowedOrigins error here.
+			// err is handled by not writing any CORS headers.
 		}
 
 		w.Header().Add("Vary", "Origin")
