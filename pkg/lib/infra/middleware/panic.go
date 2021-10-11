@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/felixge/httpsnoop"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -22,6 +24,23 @@ type PanicMiddleware struct {
 
 func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		written := false
+
+		w = httpsnoop.Wrap(w, httpsnoop.Hooks{
+			WriteHeader: func(f httpsnoop.WriteHeaderFunc) httpsnoop.WriteHeaderFunc {
+				return func(code int) {
+					written = true
+					f(code)
+				}
+			},
+			Write: func(f httpsnoop.WriteFunc) httpsnoop.WriteFunc {
+				return func(b []byte) (int, error) {
+					written = true
+					return f(b)
+				}
+			},
+		})
+
 		defer func() {
 			if err := recover(); err != nil {
 				e := panicutil.MakeError(err)
@@ -29,18 +48,15 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				log.PanicValue(m.Logger.Logger, e)
 
 				// Write the error as JSON.
-				// Note this will not always be successful,
-				// because the downstream may have written the response.
-				// In that case, this following has no effect,
-				// and will generate a warning saying
-				// `http: superfluous response.WriteHeader call from ...`
-				apiError := apierrors.AsAPIError(e)
-				resp := &api.Response{Error: e}
-				httpStatus := apiError.Code
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(httpStatus)
-				encoder := json.NewEncoder(w)
-				_ = encoder.Encode(resp)
+				if !written {
+					apiError := apierrors.AsAPIError(e)
+					resp := &api.Response{Error: e}
+					httpStatus := apiError.Code
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(httpStatus)
+					encoder := json.NewEncoder(w)
+					_ = encoder.Encode(resp)
+				}
 			}
 		}()
 

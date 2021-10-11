@@ -9,6 +9,7 @@ require (
 	github.com/boombuler/barcode v1.0.1
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/elastic/go-elasticsearch/v7 v7.13.1
+	github.com/felixge/httpsnoop v1.0.2
 	github.com/getsentry/sentry-go v0.11.0
 	github.com/go-http-utils/etag v0.0.0-20161124023236-513ea8f21eb1
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
