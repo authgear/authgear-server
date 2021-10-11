@@ -315,9 +315,10 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
     );
 
     const zoneinfo = standardAttributes.zoneinfo;
-    const zoneinfoOptions = useMemo(() => {
-      return makeTimezoneOptions();
-    }, []);
+    const zoneinfoOptions = useMemo(
+      () => [{ key: "", text: "" }, ...makeTimezoneOptions()],
+      []
+    );
     const onChangeZoneinfo = useMemo(
       () => makeOnChangeDropdown("zoneinfo"),
       [makeOnChangeDropdown]
@@ -326,7 +327,12 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
     const locale = standardAttributes.locale;
     const localeOptions = useMemo(() => {
       let found = false;
-      const options: IDropdownOption[] = [];
+      const options: IDropdownOption[] = [
+        {
+          key: "",
+          text: "",
+        },
+      ];
       for (const tag of availableLanguages) {
         options.push({
           key: tag,
@@ -352,7 +358,10 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       [makeOnChangeDropdown]
     );
 
-    const alpha2Options = useMemo(() => makeAlpha2Options(), []);
+    const alpha2Options = useMemo(
+      () => [{ key: "", text: "" }, ...makeAlpha2Options()],
+      []
+    );
     const onChangeCountry = useCallback(
       (
         _e: React.FormEvent<unknown>,
@@ -500,14 +509,14 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         <Dropdown
           className={styles.control}
           label={renderToString("standard-attribute.zoneinfo")}
-          selectedKey={zoneinfo}
+          selectedKey={zoneinfo ?? ""}
           options={zoneinfoOptions}
           onChange={onChangeZoneinfo}
         />
         <Dropdown
           className={styles.control}
           label={renderToString("standard-attribute.locale")}
-          selectedKey={locale}
+          selectedKey={locale ?? ""}
           options={localeOptions}
           onChange={onChangeLocale}
         />
@@ -554,7 +563,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             <Dropdown
               className={cn(styles.addressInput, styles.country)}
               label={renderToString("standard-attribute.country")}
-              selectedKey={standardAttributes.address?.country}
+              selectedKey={standardAttributes.address?.country ?? ""}
               options={alpha2Options}
               onChange={onChangeCountry}
             />
