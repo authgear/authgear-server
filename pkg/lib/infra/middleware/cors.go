@@ -25,7 +25,7 @@ func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 		matcher, err := originmatcher.New(m.Config.AllowedOrigins)
 		// nolint: staticcheck
 		if err != nil {
-			// FIXME(logging): Log invalid AllowedOrigins error here.
+			// err is handled by not writing any CORS headers.
 		}
 
 		w.Header().Add("Vary", "Origin")
@@ -50,9 +50,6 @@ func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 
 		requestMethod := r.Method
 		if requestMethod == "OPTIONS" {
-			// FIXME(logging): the log below may cause too many logs to server
-			// should remove the log after diagnostic
-			m.Logger.Info("return 200 for options request")
 			w.WriteHeader(http.StatusOK)
 		} else {
 			next.ServeHTTP(w, r)
