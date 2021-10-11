@@ -17,7 +17,9 @@ import FormContainer from "../../FormContainer";
 import DeleteUserDialog from "./DeleteUserDialog";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import UserDetailSummary from "./UserDetailSummary";
-import UserDetailsStandardAttributes from "./UserDetailsStandardAttributes";
+import UserDetailsStandardAttributes, {
+  StandardAttributesState,
+} from "./UserDetailsStandardAttributes";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
@@ -47,7 +49,36 @@ const SESSION_PIVOT_KEY = "session";
 
 interface FormState {
   userID: string;
-  standardAttributes: StandardAttributes;
+  standardAttributes: StandardAttributesState;
+}
+
+// eslint-disable-next-line complexity
+function makeState(attrs: StandardAttributes): StandardAttributesState {
+  return {
+    email: attrs.email ?? "",
+    phone_number: attrs.phone_number ?? "",
+    preferred_username: attrs.preferred_username ?? "",
+    family_name: attrs.family_name ?? "",
+    given_name: attrs.given_name ?? "",
+    middle_name: attrs.middle_name ?? "",
+    name: attrs.name ?? "",
+    nickname: attrs.nickname ?? "",
+    picture: attrs.picture ?? "",
+    profile: attrs.profile ?? "",
+    website: attrs.website ?? "",
+    gender: attrs.gender ?? "",
+    birthdate: attrs.birthdate,
+    zoneinfo: attrs.zoneinfo ?? "",
+    locale: attrs.zoneinfo ?? "",
+    address: {
+      street_address: attrs.address?.street_address ?? "",
+      locality: attrs.address?.locality ?? "",
+      region: attrs.address?.region ?? "",
+      postal_code: attrs.address?.postal_code ?? "",
+      country: attrs.address?.country ?? "",
+    },
+    updated_at: attrs.updated_at,
+  };
 }
 
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
@@ -76,7 +107,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   }, [appConfig]);
 
   const onChangeStandardAttributes = useCallback(
-    (attrs: StandardAttributes) => {
+    (attrs: StandardAttributesState) => {
       setState((state) => {
         return {
           ...state,
@@ -263,7 +294,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     const defaultFormState = useMemo(() => {
       return {
         userID: user.id,
-        standardAttributes: user.standardAttributes,
+        standardAttributes: makeState(user.standardAttributes),
       };
     }, [user.id, user.standardAttributes]);
 
