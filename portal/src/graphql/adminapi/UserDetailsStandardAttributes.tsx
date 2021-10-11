@@ -29,10 +29,40 @@ import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsStandardAttributes.module.scss";
 
+export interface StandardAttributesAddressState {
+  street_address: string;
+  locality: string;
+  region: string;
+  postal_code: string;
+  country: string;
+}
+
+// We must use string to represent the form state,
+// otherwise form dirtyness checking will be incorrect.
+export interface StandardAttributesState {
+  email: string;
+  phone_number: string;
+  preferred_username: string;
+  family_name: string;
+  given_name: string;
+  middle_name: string;
+  name: string;
+  nickname: string;
+  picture: string;
+  profile: string;
+  website: string;
+  gender: string;
+  birthdate: string | undefined;
+  zoneinfo: string;
+  locale: string;
+  address: StandardAttributesAddressState;
+  updated_at?: number;
+}
+
 export interface UserDetailsStandardAttributesProps {
   identities: Identity[];
-  standardAttributes: StandardAttributes;
-  onChangeStandardAttributes?: (attrs: StandardAttributes) => void;
+  standardAttributes: StandardAttributesState;
+  onChangeStandardAttributes?: (attrs: StandardAttributesState) => void;
 }
 
 function formatDate(date?: Date): string {
@@ -183,7 +213,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
 
     const makeIdentityDropdownOptions = useCallback(
       (
-        stdAttrKey: keyof StandardAttributes,
+        stdAttrKey: keyof StandardAttributesState,
         identityClaimKey: keyof IdentityClaims
       ): IDropdownOption[] => {
         const options = [];
@@ -240,15 +270,13 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         { key: "male", text: "male" },
         { key: "female", text: "female" },
       ];
-      if (gender != null) {
-        const index = predefinedOptions.findIndex((a) => a.key === gender);
-        if (index < 0) {
-          predefinedOptions.push({
-            key: gender,
-            text: gender,
-            hidden: true,
-          });
-        }
+      const index = predefinedOptions.findIndex((a) => a.key === gender);
+      if (index < 0) {
+        predefinedOptions.push({
+          key: gender,
+          text: gender,
+          hidden: true,
+        });
       }
       return predefinedOptions;
     }, [gender]);
@@ -338,12 +366,12 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           key: tag,
           text: renderToString("Locales." + tag),
         });
-        if (locale != null && locale === tag) {
+        if (locale === tag) {
           found = true;
         }
       }
 
-      if (locale != null && !found) {
+      if (!found) {
         options.push({
           key: locale,
           text: locale,
@@ -396,7 +424,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       <div className={styles.root}>
         <FormTextField
           className={styles.control}
-          value={standardAttributes.name ?? ""}
+          value={standardAttributes.name}
           onChange={onChangeName}
           parentJSONPointer=""
           fieldName="name"
@@ -404,7 +432,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         />
         <FormTextField
           className={styles.control}
-          value={standardAttributes.given_name ?? ""}
+          value={standardAttributes.given_name}
           onChange={onChangeGiveName}
           parentJSONPointer=""
           fieldName="given_name"
@@ -412,7 +440,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         />
         <FormTextField
           className={styles.control}
-          value={standardAttributes.family_name ?? ""}
+          value={standardAttributes.family_name}
           onChange={onChangeFamilyName}
           parentJSONPointer=""
           fieldName="family_name"
@@ -420,7 +448,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         />
         <FormTextField
           className={styles.control}
-          value={standardAttributes.middle_name ?? ""}
+          value={standardAttributes.middle_name}
           onChange={onChangeMiddleName}
           parentJSONPointer=""
           fieldName="middle_name"
@@ -428,7 +456,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         />
         <FormTextField
           className={styles.control}
-          value={standardAttributes.nickname ?? ""}
+          value={standardAttributes.nickname}
           onChange={onChangeNickname}
           parentJSONPointer=""
           fieldName="nickname"
@@ -436,7 +464,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         />
         <FormTextField
           className={styles.control}
-          value={standardAttributes.picture ?? ""}
+          value={standardAttributes.picture}
           onChange={onChangePicture}
           parentJSONPointer=""
           fieldName="picture"
@@ -447,7 +475,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         />
         <FormTextField
           className={styles.control}
-          value={standardAttributes.profile ?? ""}
+          value={standardAttributes.profile}
           onChange={onChangeProfile}
           parentJSONPointer=""
           fieldName="profile"
@@ -458,7 +486,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         />
         <FormTextField
           className={styles.control}
-          value={standardAttributes.website ?? ""}
+          value={standardAttributes.website}
           onChange={onChangeWebsite}
           parentJSONPointer=""
           fieldName="website"
@@ -509,14 +537,14 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         <Dropdown
           className={styles.control}
           label={renderToString("standard-attribute.zoneinfo")}
-          selectedKey={zoneinfo ?? ""}
+          selectedKey={zoneinfo}
           options={zoneinfoOptions}
           onChange={onChangeZoneinfo}
         />
         <Dropdown
           className={styles.control}
           label={renderToString("standard-attribute.locale")}
-          selectedKey={locale ?? ""}
+          selectedKey={locale}
           options={localeOptions}
           onChange={onChangeLocale}
         />
@@ -528,7 +556,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           </Label>
           <FormTextField
             className={styles.addressInput}
-            value={standardAttributes.address?.street_address ?? ""}
+            value={standardAttributes.address.street_address}
             onChange={onChangeStreetAddress}
             multiline={true}
             parentJSONPointer="/address"
@@ -537,7 +565,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           />
           <FormTextField
             className={styles.addressInput}
-            value={standardAttributes.address?.locality ?? ""}
+            value={standardAttributes.address.locality}
             onChange={onChangeLocality}
             parentJSONPointer="/address"
             fieldName="locality"
@@ -546,7 +574,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           <div className={styles.addressInputGroup}>
             <FormTextField
               className={cn(styles.addressInput, styles.postalCode)}
-              value={standardAttributes.address?.postal_code ?? ""}
+              value={standardAttributes.address.postal_code}
               onChange={onChangePostalCode}
               parentJSONPointer="/address"
               fieldName="postal_code"
@@ -554,7 +582,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             />
             <FormTextField
               className={cn(styles.addressInput, styles.region)}
-              value={standardAttributes.address?.region ?? ""}
+              value={standardAttributes.address.region}
               onChange={onChangeRegion}
               parentJSONPointer="/address"
               fieldName="region"
@@ -563,7 +591,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             <Dropdown
               className={cn(styles.addressInput, styles.country)}
               label={renderToString("standard-attribute.country")}
-              selectedKey={standardAttributes.address?.country ?? ""}
+              selectedKey={standardAttributes.address.country}
               options={alpha2Options}
               onChange={onChangeCountry}
             />
