@@ -50,9 +50,6 @@ func (m *CORSMiddleware) Handle(next http.Handler) http.Handler {
 
 		requestMethod := r.Method
 		if requestMethod == "OPTIONS" {
-			// FIXME(logging): the log below may cause too many logs to server
-			// should remove the log after diagnostic
-			m.Logger.Info("return 200 for options request")
 			w.WriteHeader(http.StatusOK)
 		} else {
 			next.ServeHTTP(w, r)
