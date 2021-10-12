@@ -1,9 +1,13 @@
-import React, { useContext, useMemo, useCallback, Children } from "react";
+import React, {
+  useContext,
+  useMemo,
+  useCallback,
+  useState,
+  Children,
+} from "react";
 import {
   Dropdown,
   IDropdownOption,
-  ComboBox,
-  IComboBoxOption,
   DatePicker,
   DayOfWeek,
   FirstWeekOfYear,
@@ -11,6 +15,7 @@ import {
   Text,
   ITextProps,
   ITheme,
+  TextField,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import FormTextField from "../../FormTextField";
@@ -62,6 +67,18 @@ export interface UserDetailsStandardAttributesProps {
   identities: Identity[];
   standardAttributes: StandardAttributesState;
   onChangeStandardAttributes?: (attrs: StandardAttributesState) => void;
+}
+
+type GenderVariant = "" | "male" | "female" | "other";
+
+function getInitialGenderVariant(gender: string | undefined): GenderVariant {
+  if (gender == null || gender === "") {
+    return "";
+  }
+  if (gender === "male" || gender === "female") {
+    return gender;
+  }
+  return "other";
 }
 
 function formatDate(date?: Date): string {
@@ -278,53 +295,90 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       [makeIdentityDropdownOptions]
     );
 
-    const gender = standardAttributes.gender;
-    const genderOptions: IComboBoxOption[] = useMemo(() => {
-      const predefinedOptions: IComboBoxOption[] = [
+    const [genderVariant, setGenderVariant] = useState<GenderVariant>(
+      getInitialGenderVariant(standardAttributes.gender)
+    );
+    const [genderString, setGenderString] = useState<string>(
+      standardAttributes.gender
+    );
+    const genderOptions: IDropdownOption[] = useMemo(() => {
+      const options: IDropdownOption[] = [
+        { key: "", text: "" },
         { key: "male", text: "male" },
         { key: "female", text: "female" },
+        {
+          key: "other",
+          text: renderToString(
+            "UserDetailsStandardAttributes.gender.other.label"
+          ),
+        },
       ];
-      const index = predefinedOptions.findIndex((a) => a.key === gender);
-      if (index < 0) {
-        predefinedOptions.push({
-          key: gender,
-          text: gender,
-          hidden: true,
-        });
-      }
-      return predefinedOptions;
-    }, [gender]);
-    const onChangeGender = useCallback(
+      return options;
+    }, [renderToString]);
+    const onChangeGenderVariant = useCallback(
+      // eslint-disable-next-line
       (
         _e: React.FormEvent<unknown>,
-        option?: IComboBoxOption,
-        index?: number,
+        option?: IDropdownOption,
+        _index?: number,
         _value?: string
       ) => {
-        if (option != null && index != null && typeof option.key === "string") {
-          if (onChangeStandardAttributes != null) {
-            onChangeStandardAttributes({
-              ...standardAttributes,
-              gender: option.key,
-            });
+        if (option != null && typeof option.key === "string") {
+          // @ts-expect-error
+          setGenderVariant(option.key);
+          switch (option.key) {
+            case "":
+              if (onChangeStandardAttributes != null) {
+                onChangeStandardAttributes({
+                  ...standardAttributes,
+                  gender: "",
+                });
+              }
+              break;
+            case "male":
+              if (onChangeStandardAttributes != null) {
+                onChangeStandardAttributes({
+                  ...standardAttributes,
+                  gender: "male",
+                });
+              }
+              break;
+            case "female":
+              if (onChangeStandardAttributes != null) {
+                onChangeStandardAttributes({
+                  ...standardAttributes,
+                  gender: "female",
+                });
+              }
+              break;
+            case "other":
+              if (onChangeStandardAttributes != null) {
+                onChangeStandardAttributes({
+                  ...standardAttributes,
+                  gender: genderString,
+                });
+              }
+              break;
           }
         }
       },
-      [standardAttributes, onChangeStandardAttributes]
+      [standardAttributes, onChangeStandardAttributes, genderString]
     );
-    const onChangeGenderPending = useCallback(
-      (option?: IComboBoxOption, index?: number, value?: string) => {
-        // We are only interested in the typing case.
-        if (option == null && index == null && value != null) {
-          if (onChangeStandardAttributes != null) {
-            onChangeStandardAttributes({
-              ...standardAttributes,
-              gender: value,
-            });
+    const onChangeGenderString = useCallback(
+      (_e: React.FormEvent<unknown>, newValue?: string) => {
+        if (newValue != null) {
+          setGenderString(newValue);
+          if (genderVariant === "other") {
+            if (onChangeStandardAttributes != null) {
+              onChangeStandardAttributes({
+                ...standardAttributes,
+                gender: newValue,
+              });
+            }
           }
         }
       },
-      [standardAttributes, onChangeStandardAttributes]
+      [genderVariant, onChangeStandardAttributes, standardAttributes]
     );
 
     const birthdate = standardAttributes.birthdate;
@@ -528,15 +582,22 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             options={preferredUsernameOptions}
           />
         </Div>
-        <ComboBox
-          className={styles.standalone}
-          label={renderToString("standard-attribute.gender")}
-          selectedKey={gender}
-          options={genderOptions}
-          allowFreeform={true}
-          onChange={onChangeGender}
-          onPendingValueChanged={onChangeGenderPending}
-        />
+        <Div className={styles.twoColumnGroup}>
+          <Dropdown
+            label={renderToString("standard-attribute.gender")}
+            selectedKey={genderVariant}
+            options={genderOptions}
+            onChange={onChangeGenderVariant}
+          />
+          <TextField
+            value={genderVariant === "other" ? genderString : ""}
+            onChange={onChangeGenderString}
+            disabled={genderVariant !== "other"}
+            label={
+              /* Show a non-breaking space so that the label is still rendered */ "\u00a0"
+            }
+          />
+        </Div>
         <DatePicker
           className={styles.standalone}
           label={renderToString("standard-attribute.birthdate")}

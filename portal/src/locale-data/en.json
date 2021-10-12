@@ -255,6 +255,7 @@
   "UserDetailsStandardAttributes.picture.placeholder": "URL to the profile picture",
   "UserDetailsStandardAttributes.profile.placeholder": "URL to the profile webpage",
   "UserDetailsStandardAttributes.website.placeholder": "URL to the personal website",
+  "UserDetailsStandardAttributes.gender.other.label": "Others (Please specify)",
 
   "CreateIdentity.require-login-id": "You need to add \"login_id\" to identities list in authgear config",
 
