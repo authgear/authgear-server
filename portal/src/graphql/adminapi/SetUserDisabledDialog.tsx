@@ -16,14 +16,20 @@ interface SetUserDisabledDialogProps {
   onDismiss: () => void;
   isDisablingUser: boolean;
   userID: string;
-  username: string | null;
+  endUserAccountIdentifier: string | undefined;
 }
 
 const dialogStyles = { main: { minHeight: 0 } };
 
 const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
   function SetUserDisabledDialog(props: SetUserDisabledDialogProps) {
-    const { isHidden, onDismiss, isDisablingUser, userID, username } = props;
+    const {
+      isHidden,
+      onDismiss,
+      isDisablingUser,
+      userID,
+      endUserAccountIdentifier,
+    } = props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
     const { setDisabledStatus, loading, error } =
@@ -48,16 +54,16 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
         ? {
             title: renderToString("SetUserDisabledDialog.disableUser.title"),
             subText: renderToString("SetUserDisabledDialog.disableUser.text", {
-              username: username ?? userID,
+              username: endUserAccountIdentifier ?? userID,
             }),
           }
         : {
             title: renderToString("SetUserDisabledDialog.enableUser.title"),
             subText: renderToString("SetUserDisabledDialog.enableUser.text", {
-              username: username ?? userID,
+              username: endUserAccountIdentifier ?? userID,
             }),
           };
-    }, [renderToString, isDisablingUser, username, userID]);
+    }, [renderToString, isDisablingUser, endUserAccountIdentifier, userID]);
 
     return (
       <>
