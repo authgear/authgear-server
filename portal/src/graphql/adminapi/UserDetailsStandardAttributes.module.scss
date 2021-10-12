@@ -2,33 +2,97 @@
   display: flex;
   flex-direction: column;
   width: calc(80px * 8 + 20px * 8);
+  row-gap: 40px;
 }
 
-.control {
+.standalone {
   margin: 10px calc(20px / 2);
 }
 
+.nameGroup {
+  display: grid;
+  row-gap: 8px;
+  column-gap: 16px;
+  padding: 10px;
+
+  grid-template-areas:
+    "c1 ."
+    "c2 c3"
+    "c4 c5";
+}
+
+.c1 {
+  grid-area: c1;
+}
+
+.c2 {
+  grid-area: c2;
+}
+
+.c3 {
+  grid-area: c3;
+}
+
+.c4 {
+  grid-area: c4;
+}
+
+.c5 {
+  grid-area: c5;
+}
+
+.twoColumnGroup {
+  display: grid;
+  row-gap: 8px;
+  column-gap: 16px;
+  padding: 10px;
+
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: min-content;
+}
+
+.singleColumnGroup {
+  display: grid;
+  row-gap: 8px;
+  padding: 10px;
+
+  grid-template-columns: repeat(1, 1fr);
+  grid-auto-rows: min-content;
+}
+
 .addressGroup {
-  margin: 4px 6px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+
+  grid-template:
+    "label       label   label" auto
+    "street      street  street" auto
+    "city        city    city" auto
+    "postalCode  state   country" auto
+    / 1fr 1fr 1fr;
 }
 
-.addressInputGroup {
-  display: flex;
-  flex-direction: row;
+.gridAreaLabel {
+  grid-area: label;
 }
 
-.addressInput {
-  margin: 4px;
+.gridAreaStreet {
+  grid-area: street;
 }
 
-.postalCode {
-  flex: 1 0 0;
+.gridAreaCity {
+  grid-area: city;
 }
 
-.region {
-  flex: 1 0 0;
+.gridAreaPostalCode {
+  grid-area: postalCode;
 }
 
-.country {
-  flex: 1 0 0;
+.gridAreaState {
+  grid-area: state;
+}
+
+.gridAreaCountry {
+  grid-area: country;
 }
