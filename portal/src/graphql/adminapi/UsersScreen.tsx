@@ -41,14 +41,7 @@ const LIST_QUERY = gql`
           createdAt
           lastLoginAt
           isDisabled
-          identities {
-            edges {
-              node {
-                id
-                claims
-              }
-            }
-          }
+          standardAttributes
         }
       }
       totalCount

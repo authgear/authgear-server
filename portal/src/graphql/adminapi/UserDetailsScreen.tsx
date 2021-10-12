@@ -31,7 +31,7 @@ import { useUserQuery } from "./query/userQuery";
 import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { nonNullable } from "../../util/types";
-import { extractUserInfoFromIdentities } from "../../util/user";
+import { getEndUserAccountIdentifier } from "../../util/user";
 import { PortalAPIAppConfig, StandardAttributes } from "../../types";
 
 import styles from "./UserDetailsScreen.module.scss";
@@ -123,7 +123,6 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   const identities =
     data?.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
     [];
-  const userInfo = extractUserInfoFromIdentities(identities);
 
   const authenticators =
     data?.authenticators?.edges
@@ -133,10 +132,15 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   const sessions =
     data?.sessions?.edges?.map((edge) => edge?.node).filter(nonNullable) ?? [];
 
+  const endUserAccountIdentifier = getEndUserAccountIdentifier(
+    data?.standardAttributes ?? {}
+  );
+
   return (
     <div className={styles.userDetails}>
       <UserDetailSummary
-        userInfo={userInfo}
+        profileImageURL={data?.standardAttributes.picture}
+        endUserAccountIdentifier={endUserAccountIdentifier}
         createdAtISO={data?.createdAt ?? null}
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
@@ -243,12 +247,6 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     const { user, effectiveAppConfig } = props;
     const navigate = useNavigate();
 
-    const identities =
-      user.identities?.edges?.map((edge) => edge?.node).filter(nonNullable) ??
-      [];
-    const { username, email, phone } =
-      extractUserInfoFromIdentities(identities);
-
     const navBreadcrumbItems = React.useMemo(() => {
       return [
         { to: "../..", label: <FormattedMessage id="UsersScreen.title" /> },
@@ -298,6 +296,11 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
       };
     }, [user.id, user.standardAttributes]);
 
+    const endUserAccountIdentifier = useMemo(
+      () => getEndUserAccountIdentifier(user.standardAttributes),
+      [user.standardAttributes]
+    );
+
     const { updateUser } = useUpdateUserMutation();
 
     const submit = useCallback(
@@ -319,13 +322,13 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
           isHidden={deleteUserDialogIsHidden}
           onDismiss={onDismissDeleteUserDialog}
           userID={user.id}
-          username={username ?? email ?? phone}
+          endUserAccountIdentifier={endUserAccountIdentifier}
         />
         <SetUserDisabledDialog
           isHidden={setUserDisabledDialogIsHidden}
           onDismiss={onDismissSetUserDisabledDialog}
           userID={user.id}
-          username={username ?? email ?? phone}
+          endUserAccountIdentifier={endUserAccountIdentifier}
           isDisablingUser={!user.isDisabled}
         />
       </FormContainer>
