@@ -1,5 +1,4 @@
 import React, { useContext, useMemo, useCallback } from "react";
-import cn from "classnames";
 import {
   Dropdown,
   IDropdownOption,
@@ -422,48 +421,50 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
 
     return (
       <div className={styles.root}>
+        <div className={styles.nameGroup}>
+          <FormTextField
+            className={styles.c1}
+            value={standardAttributes.name}
+            onChange={onChangeName}
+            parentJSONPointer=""
+            fieldName="name"
+            label={renderToString("standard-attribute.name")}
+          />
+          <FormTextField
+            className={styles.c2}
+            value={standardAttributes.given_name}
+            onChange={onChangeGiveName}
+            parentJSONPointer=""
+            fieldName="given_name"
+            label={renderToString("standard-attribute.given_name")}
+          />
+          <FormTextField
+            className={styles.c3}
+            value={standardAttributes.family_name}
+            onChange={onChangeFamilyName}
+            parentJSONPointer=""
+            fieldName="family_name"
+            label={renderToString("standard-attribute.family_name")}
+          />
+          <FormTextField
+            className={styles.c4}
+            value={standardAttributes.middle_name}
+            onChange={onChangeMiddleName}
+            parentJSONPointer=""
+            fieldName="middle_name"
+            label={renderToString("standard-attribute.middle_name")}
+          />
+          <FormTextField
+            className={styles.c5}
+            value={standardAttributes.nickname}
+            onChange={onChangeNickname}
+            parentJSONPointer=""
+            fieldName="nickname"
+            label={renderToString("standard-attribute.nickname")}
+          />
+        </div>
         <FormTextField
-          className={styles.control}
-          value={standardAttributes.name}
-          onChange={onChangeName}
-          parentJSONPointer=""
-          fieldName="name"
-          label={renderToString("standard-attribute.name")}
-        />
-        <FormTextField
-          className={styles.control}
-          value={standardAttributes.given_name}
-          onChange={onChangeGiveName}
-          parentJSONPointer=""
-          fieldName="given_name"
-          label={renderToString("standard-attribute.given_name")}
-        />
-        <FormTextField
-          className={styles.control}
-          value={standardAttributes.family_name}
-          onChange={onChangeFamilyName}
-          parentJSONPointer=""
-          fieldName="family_name"
-          label={renderToString("standard-attribute.family_name")}
-        />
-        <FormTextField
-          className={styles.control}
-          value={standardAttributes.middle_name}
-          onChange={onChangeMiddleName}
-          parentJSONPointer=""
-          fieldName="middle_name"
-          label={renderToString("standard-attribute.middle_name")}
-        />
-        <FormTextField
-          className={styles.control}
-          value={standardAttributes.nickname}
-          onChange={onChangeNickname}
-          parentJSONPointer=""
-          fieldName="nickname"
-          label={renderToString("standard-attribute.nickname")}
-        />
-        <FormTextField
-          className={styles.control}
+          className={styles.standalone}
           value={standardAttributes.picture}
           onChange={onChangePicture}
           parentJSONPointer=""
@@ -473,48 +474,47 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             "UserDetailsStandardAttributes.picture.placeholder"
           )}
         />
-        <FormTextField
-          className={styles.control}
-          value={standardAttributes.profile}
-          onChange={onChangeProfile}
-          parentJSONPointer=""
-          fieldName="profile"
-          label={renderToString("standard-attribute.profile")}
-          placeholder={renderToString(
-            "UserDetailsStandardAttributes.profile.placeholder"
-          )}
-        />
-        <FormTextField
-          className={styles.control}
-          value={standardAttributes.website}
-          onChange={onChangeWebsite}
-          parentJSONPointer=""
-          fieldName="website"
-          label={renderToString("standard-attribute.website")}
-          placeholder={renderToString(
-            "UserDetailsStandardAttributes.website.placeholder"
-          )}
-        />
-        <Dropdown
-          className={styles.control}
-          label={renderToString("standard-attribute.email")}
-          selectedKey={standardAttributes.email}
-          options={emailOptions}
-        />
-        <Dropdown
-          className={styles.control}
-          label={renderToString("standard-attribute.phone_number")}
-          selectedKey={standardAttributes.phone_number}
-          options={phoneNumberOptions}
-        />
-        <Dropdown
-          className={styles.control}
-          label={renderToString("standard-attribute.preferred_username")}
-          selectedKey={standardAttributes.preferred_username}
-          options={preferredUsernameOptions}
-        />
+        <div className={styles.singleColumnGroup}>
+          <FormTextField
+            value={standardAttributes.profile}
+            onChange={onChangeProfile}
+            parentJSONPointer=""
+            fieldName="profile"
+            label={renderToString("standard-attribute.profile")}
+            placeholder={renderToString(
+              "UserDetailsStandardAttributes.profile.placeholder"
+            )}
+          />
+          <FormTextField
+            value={standardAttributes.website}
+            onChange={onChangeWebsite}
+            parentJSONPointer=""
+            fieldName="website"
+            label={renderToString("standard-attribute.website")}
+            placeholder={renderToString(
+              "UserDetailsStandardAttributes.website.placeholder"
+            )}
+          />
+        </div>
+        <div className={styles.twoColumnGroup}>
+          <Dropdown
+            label={renderToString("standard-attribute.email")}
+            selectedKey={standardAttributes.email}
+            options={emailOptions}
+          />
+          <Dropdown
+            label={renderToString("standard-attribute.phone_number")}
+            selectedKey={standardAttributes.phone_number}
+            options={phoneNumberOptions}
+          />
+          <Dropdown
+            label={renderToString("standard-attribute.preferred_username")}
+            selectedKey={standardAttributes.preferred_username}
+            options={preferredUsernameOptions}
+          />
+        </div>
         <ComboBox
-          className={styles.control}
+          className={styles.standalone}
           label={renderToString("standard-attribute.gender")}
           selectedKey={gender}
           options={genderOptions}
@@ -523,7 +523,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onPendingValueChanged={onChangeGenderPending}
         />
         <DatePicker
-          className={styles.control}
+          className={styles.standalone}
           label={renderToString("standard-attribute.birthdate")}
           firstDayOfWeek={DayOfWeek.Monday}
           firstWeekOfYear={FirstWeekOfYear.FirstFourDayWeek}
@@ -534,28 +534,28 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           onSelectDate={onSelectBirthdate}
           parseDateFromString={parseDateFromString}
         />
-        <Dropdown
-          className={styles.control}
-          label={renderToString("standard-attribute.zoneinfo")}
-          selectedKey={zoneinfo}
-          options={zoneinfoOptions}
-          onChange={onChangeZoneinfo}
-        />
-        <Dropdown
-          className={styles.control}
-          label={renderToString("standard-attribute.locale")}
-          selectedKey={locale}
-          options={localeOptions}
-          onChange={onChangeLocale}
-        />
+        <div className={styles.twoColumnGroup}>
+          <Dropdown
+            label={renderToString("standard-attribute.zoneinfo")}
+            selectedKey={zoneinfo}
+            options={zoneinfoOptions}
+            onChange={onChangeZoneinfo}
+          />
+          <Dropdown
+            label={renderToString("standard-attribute.locale")}
+            selectedKey={locale}
+            options={localeOptions}
+            onChange={onChangeLocale}
+          />
+        </div>
         <div className={styles.addressGroup}>
-          <Label className={styles.addressInput}>
+          <Label className={styles.gridAreaLabel}>
             <Text variant="xLarge">
               <FormattedMessage id="standard-attribute.address" />
             </Text>
           </Label>
           <FormTextField
-            className={styles.addressInput}
+            className={styles.gridAreaStreet}
             value={standardAttributes.address.street_address}
             onChange={onChangeStreetAddress}
             multiline={true}
@@ -564,42 +564,40 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             label={renderToString("standard-attribute.street_address")}
           />
           <FormTextField
-            className={styles.addressInput}
+            className={styles.gridAreaCity}
             value={standardAttributes.address.locality}
             onChange={onChangeLocality}
             parentJSONPointer="/address"
             fieldName="locality"
             label={renderToString("standard-attribute.locality")}
           />
-          <div className={styles.addressInputGroup}>
-            <FormTextField
-              className={cn(styles.addressInput, styles.postalCode)}
-              value={standardAttributes.address.postal_code}
-              onChange={onChangePostalCode}
-              parentJSONPointer="/address"
-              fieldName="postal_code"
-              label={renderToString("standard-attribute.postal_code")}
-            />
-            <FormTextField
-              className={cn(styles.addressInput, styles.region)}
-              value={standardAttributes.address.region}
-              onChange={onChangeRegion}
-              parentJSONPointer="/address"
-              fieldName="region"
-              label={renderToString("standard-attribute.region")}
-            />
-            <Dropdown
-              className={cn(styles.addressInput, styles.country)}
-              label={renderToString("standard-attribute.country")}
-              selectedKey={standardAttributes.address.country}
-              options={alpha2Options}
-              onChange={onChangeCountry}
-            />
-          </div>
+          <FormTextField
+            className={styles.gridAreaPostalCode}
+            value={standardAttributes.address.postal_code}
+            onChange={onChangePostalCode}
+            parentJSONPointer="/address"
+            fieldName="postal_code"
+            label={renderToString("standard-attribute.postal_code")}
+          />
+          <FormTextField
+            className={styles.gridAreaState}
+            value={standardAttributes.address.region}
+            onChange={onChangeRegion}
+            parentJSONPointer="/address"
+            fieldName="region"
+            label={renderToString("standard-attribute.region")}
+          />
+          <Dropdown
+            className={styles.gridAreaCountry}
+            label={renderToString("standard-attribute.country")}
+            selectedKey={standardAttributes.address.country}
+            options={alpha2Options}
+            onChange={onChangeCountry}
+          />
         </div>
         {updatedAtFormatted != null && (
           <Text
-            className={styles.control}
+            className={styles.standalone}
             variant="small"
             styles={UPDATED_AT_STYLES}
           >
