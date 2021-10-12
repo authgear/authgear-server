@@ -20,12 +20,11 @@ import SetUserDisabledDialog from "./SetUserDisabledDialog";
 
 import { extractRawID } from "../../util/graphql";
 import { formatDatetime } from "../../util/formatDatetime";
-import { extractUserInfoFromIdentities } from "../../util/user";
-import { nonNullable } from "../../util/types";
 
 import styles from "./UsersList.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import useDelayedValue from "../../hook/useDelayedValue";
+import { getEndUserAccountIdentifier } from "../../util/user";
 
 interface UsersListProps {
   className?: string;
@@ -45,6 +44,7 @@ interface UserListItem {
   rawID: string;
   isDisabled: boolean;
   createdAt: string | null;
+  endUserAccountIdentitifer: string | null;
   username: string | null;
   phone: string | null;
   email: string | null;
@@ -54,7 +54,7 @@ interface UserListItem {
 interface DisableUserDialogData {
   isDisablingUser: boolean;
   userID: string;
-  username: string | null;
+  endUserAccountIdentitifer: string | null;
 }
 
 const USER_LIST_PLACEHOLDER = "-";
@@ -150,27 +150,23 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   const [disableUserDialogData, setDisableUserDialogData] =
     useState<DisableUserDialogData | null>(null);
 
-  // TODO: consider update UI design to allow multiple email, username and phone number
   const items: UserListItem[] = useMemo(() => {
     const items = [];
     if (edges != null) {
       for (const edge of edges) {
         const node = edge?.node;
         if (node != null) {
-          const identities =
-            node.identities?.edges
-              ?.map((edge) => edge?.node)
-              ?.filter(nonNullable) ?? [];
-          const userInfo = extractUserInfoFromIdentities(identities);
           items.push({
             id: node.id,
             rawID: extractRawID(node.id),
             isDisabled: node.isDisabled,
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
-            username: userInfo.username,
-            phone: userInfo.phone,
-            email: userInfo.email,
+            endUserAccountIdentitifer:
+              getEndUserAccountIdentifier(node.standardAttributes) ?? null,
+            username: node.standardAttributes.preferred_username ?? null,
+            phone: node.standardAttributes.phone_number ?? null,
+            email: node.standardAttributes.email ?? null,
           });
         }
       }
@@ -197,12 +193,16 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
       event: React.MouseEvent<unknown>,
       isDisablingUser: boolean,
       userID: string,
-      username: string | null
+      endUserAccountIdentitifer: string | null
     ) => {
       // prevent triggering the link to user detail page
       event.preventDefault();
       event.stopPropagation();
-      setDisableUserDialogData({ isDisablingUser, userID, username });
+      setDisableUserDialogData({
+        isDisablingUser,
+        userID,
+        endUserAccountIdentitifer,
+      });
       setIsDisableUserDialogHidden(false);
     },
     []
@@ -222,7 +222,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
                   event,
                   !item.isDisabled,
                   item.id,
-                  item.username ?? item.email ?? item.phone
+                  item.endUserAccountIdentitifer
                 )
               }
             >
@@ -292,7 +292,9 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
           onDismiss={dismissDisableUserDialog}
           isDisablingUser={disableUserDialogData.isDisablingUser}
           userID={disableUserDialogData.userID}
-          username={disableUserDialogData.username}
+          endUserAccountIdentifier={
+            disableUserDialogData.endUserAccountIdentitifer ?? undefined
+          }
         />
       )}
     </>

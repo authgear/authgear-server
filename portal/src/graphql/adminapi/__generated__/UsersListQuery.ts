@@ -9,31 +9,6 @@ import { UserSortBy, SortDirection } from "./globalTypes";
 // GraphQL query operation: UsersListQuery
 // ====================================================
 
-export interface UsersListQuery_users_edges_node_identities_edges_node {
-  __typename: "Identity";
-  /**
-   * The ID of an object
-   */
-  id: string;
-  claims: GQL_IdentityClaims;
-}
-
-export interface UsersListQuery_users_edges_node_identities_edges {
-  __typename: "IdentityEdge";
-  /**
-   * The item at the end of the edge
-   */
-  node: UsersListQuery_users_edges_node_identities_edges_node | null;
-}
-
-export interface UsersListQuery_users_edges_node_identities {
-  __typename: "IdentityConnection";
-  /**
-   * Information to aid in pagination.
-   */
-  edges: (UsersListQuery_users_edges_node_identities_edges | null)[] | null;
-}
-
 export interface UsersListQuery_users_edges_node {
   __typename: "User";
   /**
@@ -49,7 +24,7 @@ export interface UsersListQuery_users_edges_node {
    */
   lastLoginAt: GQL_DateTime | null;
   isDisabled: boolean;
-  identities: UsersListQuery_users_edges_node_identities | null;
+  standardAttributes: GQL_UserStandardAttributes;
 }
 
 export interface UsersListQuery_users_edges {

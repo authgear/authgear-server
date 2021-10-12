@@ -15,12 +15,12 @@ interface DeleteUserDialogProps {
   isHidden: boolean;
   onDismiss: (deletedUser: boolean) => void;
   userID: string;
-  username: string | null;
+  endUserAccountIdentifier: string | undefined;
 }
 
 const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
   function DeleteUserDialog(props: DeleteUserDialogProps) {
-    const { isHidden, onDismiss, userID, username } = props;
+    const { isHidden, onDismiss, userID, endUserAccountIdentifier } = props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
     const { deleteUser, loading, error } = useDeleteUserMutation();
@@ -45,10 +45,10 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = React.memo(
       () => ({
         title: renderToString("DeleteUserDialog.title"),
         subText: renderToString("DeleteUserDialog.text", {
-          username: username ?? userID,
+          username: endUserAccountIdentifier ?? userID,
         }),
       }),
-      [renderToString, username, userID]
+      [renderToString, endUserAccountIdentifier, userID]
     );
 
     return (
