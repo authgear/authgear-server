@@ -3,28 +3,23 @@
   font-size: 13px;
   font-weight: 300;
   display: grid;
-  grid-gap: 5px;
+  row-gap: 4px;
+  column-gap: 26px;
   grid-template:
-    "pic         email"
-    "pic      username"
+    "pic     accountID"
     "pic             ." 10px
     "pic     createdAt"
     "pic   lastLoginAt"
-    / 74px auto;
+    / min-content auto;
 }
 
 .profilePic {
   grid-area: pic;
   place-self: center;
-  padding-left: 15px;
 }
 
-.email {
-  grid-area: email;
-}
-
-.username {
-  grid-area: username;
+.accountID {
+  grid-area: accountID;
 }
 
 .createdAt {
