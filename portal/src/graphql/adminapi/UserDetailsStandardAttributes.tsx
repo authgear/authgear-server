@@ -533,6 +533,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           formatDate={formatDate}
           onSelectDate={onSelectBirthdate}
           parseDateFromString={parseDateFromString}
+          placeholder="yyyy-MM-dd"
         />
         <div className={styles.twoColumnGroup}>
           <Dropdown
