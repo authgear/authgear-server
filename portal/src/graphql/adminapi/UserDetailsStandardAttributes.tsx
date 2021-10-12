@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useCallback } from "react";
+import React, { useContext, useMemo, useCallback, Children } from "react";
 import {
   Dropdown,
   IDropdownOption,
@@ -83,6 +83,21 @@ function UPDATED_AT_STYLES(_props: ITextProps, theme: ITheme) {
       padding: "8px 0",
     },
   };
+}
+
+interface DivProps {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+function Div(props: DivProps) {
+  const { className, children } = props;
+  const array = Children.toArray(children);
+  const isEmpty = array.length === 0;
+  if (isEmpty) {
+    return null;
+  }
+  return <div className={className}>{children}</div>;
 }
 
 const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps> =
@@ -421,7 +436,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
 
     return (
       <div className={styles.root}>
-        <div className={styles.nameGroup}>
+        <Div className={styles.nameGroup}>
           <FormTextField
             className={styles.c1}
             value={standardAttributes.name}
@@ -462,7 +477,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             fieldName="nickname"
             label={renderToString("standard-attribute.nickname")}
           />
-        </div>
+        </Div>
         <FormTextField
           className={styles.standalone}
           value={standardAttributes.picture}
@@ -474,7 +489,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             "UserDetailsStandardAttributes.picture.placeholder"
           )}
         />
-        <div className={styles.singleColumnGroup}>
+        <Div className={styles.singleColumnGroup}>
           <FormTextField
             value={standardAttributes.profile}
             onChange={onChangeProfile}
@@ -495,8 +510,8 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
               "UserDetailsStandardAttributes.website.placeholder"
             )}
           />
-        </div>
-        <div className={styles.twoColumnGroup}>
+        </Div>
+        <Div className={styles.twoColumnGroup}>
           <Dropdown
             label={renderToString("standard-attribute.email")}
             selectedKey={standardAttributes.email}
@@ -512,7 +527,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             selectedKey={standardAttributes.preferred_username}
             options={preferredUsernameOptions}
           />
-        </div>
+        </Div>
         <ComboBox
           className={styles.standalone}
           label={renderToString("standard-attribute.gender")}
@@ -535,7 +550,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           parseDateFromString={parseDateFromString}
           placeholder="yyyy-MM-dd"
         />
-        <div className={styles.twoColumnGroup}>
+        <Div className={styles.twoColumnGroup}>
           <Dropdown
             label={renderToString("standard-attribute.zoneinfo")}
             selectedKey={zoneinfo}
@@ -548,8 +563,8 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             options={localeOptions}
             onChange={onChangeLocale}
           />
-        </div>
-        <div className={styles.addressGroup}>
+        </Div>
+        <Div className={styles.addressGroup}>
           <Label className={styles.gridAreaLabel}>
             <Text variant="xLarge">
               <FormattedMessage id="standard-attribute.address" />
@@ -595,7 +610,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             options={alpha2Options}
             onChange={onChangeCountry}
           />
-        </div>
+        </Div>
         {updatedAtFormatted != null && (
           <Text
             className={styles.standalone}
