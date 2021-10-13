@@ -25,7 +25,7 @@ require (
 	github.com/graphql-go/graphql v0.8.0
 	github.com/graphql-go/handler v0.2.3
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5
-	github.com/iawaknahc/jsonschema v0.0.0-20201115095512-87990d0baba1
+	github.com/iawaknahc/jsonschema v0.0.0-20210812154943-527b91efe176
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
 	github.com/jetstack/cert-manager v1.4.4
 	github.com/jmoiron/sqlx v1.3.4
@@ -53,12 +53,11 @@ require (
 	github.com/spf13/viper v1.9.0
 	github.com/test-go/testify v1.1.4 // indirect
 	github.com/trustelem/zxcvbn v1.0.1
-	// The changes are compatible. See https://github.com/ua-parser/uap-go/compare/e1c09f13e2fe..347a3497cc39
-	github.com/ua-parser/uap-go v0.0.0-20210121150957-347a3497cc39
+	github.com/ua-parser/uap-go v0.0.0-20210824134941-3b2ceb1c75a3
 	github.com/ziutek/mymysql v1.5.4 // indirect
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
-	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/net v0.0.0-20211011170408-caeb26a5c8c0
+	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
 	golang.org/x/text v0.3.7
 	google.golang.org/api v0.58.0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
