@@ -42,7 +42,8 @@ func (c *HTTPConfig) SetDefaults() {
 			"font-src 'self' cdnjs.cloudflare.com static2.sharepointonline.com",
 			"style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com",
 			// We use data URI to show QR image.
-			"img-src 'self' data:",
+			// We can display external profile picture.
+			"img-src 'self' http: https: data:",
 			"object-src 'none'",
 			"base-uri 'none'",
 			// https://github.com/w3c/webappsec-csp/issues/7
