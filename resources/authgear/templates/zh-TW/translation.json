@@ -212,6 +212,8 @@
   "revoke-all-device-tokens-button-label": "忘記所有受信任裝置",
   "no-device-tokens-description": "你沒有任何可以略過多重驗證的受信任裝置",
 
+  "settings-my-profile-title": "我的個人檔案",
+  "settings-my-profile-empty-label": "增添你的個人資料以完成你的個人檔案",
   "settings-my-account-title": "我的帳號",
   "settings-identity-title": "登入方式",
   "settings-identity-description": "以下為可用的登入方式",

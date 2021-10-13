@@ -212,6 +212,8 @@
   "revoke-all-device-tokens-button-label": "Forget all trusted devices that can skip 2-step verification",
   "no-device-tokens-description": "You do not have any trusted devices that can skip 2-step verification.",
 
+  "settings-my-profile-title": "My Profile",
+  "settings-my-profile-empty-label": "Add personal information to complete your profile",
   "settings-my-account-title": "My Account",
   "settings-identity-title": "Login Info",
   "settings-identity-description": "There are the methods to sign in your account",
