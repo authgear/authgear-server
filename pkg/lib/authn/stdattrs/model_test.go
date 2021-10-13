@@ -68,5 +68,27 @@ func TestT(t *testing.T) {
 				"nickname":    "Johnny",
 			}.FormattedName(), ShouldEqual, "John Doe (Johnny)")
 		})
+
+		Convey("EndUserAccountID", func() {
+			So(T{}.EndUserAccountID(), ShouldEqual, "")
+			So(T{
+				"email": "user@example.com",
+			}.EndUserAccountID(), ShouldEqual, "user@example.com")
+			So(T{
+				"preferred_username": "user",
+			}.EndUserAccountID(), ShouldEqual, "user")
+			So(T{
+				"phone_number": "+85298765432",
+			}.EndUserAccountID(), ShouldEqual, "+85298765432")
+			So(T{
+				"preferred_username": "user",
+				"phone_number":       "+85298765432",
+			}.EndUserAccountID(), ShouldEqual, "user")
+			So(T{
+				"email":              "user@example.com",
+				"preferred_username": "user",
+				"phone_number":       "+85298765432",
+			}.EndUserAccountID(), ShouldEqual, "user@example.com")
+		})
 	})
 }

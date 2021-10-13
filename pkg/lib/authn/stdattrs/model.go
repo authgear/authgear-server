@@ -37,6 +37,19 @@ func (t T) FormattedName() string {
 	}
 }
 
+func (t T) EndUserAccountID() string {
+	if s, ok := t[Email].(string); ok && s != "" {
+		return s
+	}
+	if s, ok := t[PreferredUsername].(string); ok && s != "" {
+		return s
+	}
+	if s, ok := t[PhoneNumber].(string); ok && s != "" {
+		return s
+	}
+	return ""
+}
+
 func (t T) ToClaims() map[string]interface{} {
 	return map[string]interface{}(t)
 }
