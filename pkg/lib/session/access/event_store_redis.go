@@ -35,7 +35,8 @@ func (s *EventStoreRedis) AppendEvent(sessionID string, event *Event) error {
 		},
 	}
 	if maxEventStreamLength >= 0 {
-		args.MaxLenApprox = maxEventStreamLength
+		args.MaxLen = maxEventStreamLength
+		args.Approx = true
 	}
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
