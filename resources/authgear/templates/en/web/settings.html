@@ -4,11 +4,38 @@
 <main class="content settings-content">
 {{ template "__nav_bar.html" }}
 
+{{/* Profile */}}
+<div class="pane flex flex-col margin-b-20">
+  <section class="padding-h-20 margin-t-16 margin-b-4">
+    <h1 class="margin-0 primary-txt text-xl font-bold">
+      {{ template "settings-my-profile-title" }}
+    </h1>
+  </section>
+  <section class="padding-10 flex flex-row items-center row-sep">
+    <img
+      class="margin-10 profile-picture"
+      style="background-image: url({{ call $.StaticAssetURL "avatar-placeholder" }})"
+      {{ if $.ProfilePictureURL }}src="{{ $.ProfilePictureURL }}"{{ end }}
+    >
+    <div class="margin-h-10 flex flex-col gap-4">
+      {{ if $.FormattedName }}<span class="primary-txt">{{ $.FormattedName }}</span>{{ end }}
+      {{ if $.EndUserAccountID }}<span class="secondary-txt font-sm">{{ $.EndUserAccountID }}</span>{{ end }}
+      {{ if (and (not $.FormattedName) (not $.EndUserAccountID)) }}<span class="secondary-txt font-sm">{{ template "settings-my-profile-empty-label" }}</span>{{ end }}
+    </div>
+  </section>
+  <section class="padding-20 row-sep">
+    <a class="link action text-sm" href="#">
+      <i class="ti ti-chevrons-right"></i>
+      {{ template "more-button-label" }}
+    </a>
+  </section>
+</div>
+
 {{/* Identity */}}
 <div class="pane flex flex-col margin-b-20">
 <div class="flex flex-col">
   <section class="padding-h-20 margin-t-16 margin-b-4">
-    <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
+    <h1 class="margin-0 primary-txt text-xl font-bold">
       {{ template "settings-my-account-title" }}
     </h1>
   </section>
