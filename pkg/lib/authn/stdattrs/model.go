@@ -1,6 +1,41 @@
 package stdattrs
 
+import (
+	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/util/nameutil"
+)
+
 type T map[string]interface{}
+
+func (t T) FormattedName() string {
+	// Choose between name or given_name+middle_name+family_name
+	var name string
+	if s, ok := t[Name].(string); ok && s != "" {
+		name = s
+	} else {
+		givenName, _ := t[GivenName].(string)
+		familyName, _ := t[FamilyName].(string)
+		middleName, _ := t[MiddleName].(string)
+		s := nameutil.Format(givenName, middleName, familyName)
+		if s != "" {
+			name = s
+		}
+	}
+
+	nickname, _ := t[Nickname].(string)
+
+	switch {
+	case name == "" && nickname == "":
+		return ""
+	case name != "" && nickname == "":
+		return name
+	case name == "" && nickname != "":
+		return nickname
+	default:
+		return fmt.Sprintf("%s (%s)", name, nickname)
+	}
+}
 
 func (t T) ToClaims() map[string]interface{} {
 	return map[string]interface{}(t)
