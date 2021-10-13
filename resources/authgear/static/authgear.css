@@ -451,6 +451,10 @@ h1, h2, h3, h4, h5, h6 {
   padding: 6px;
 }
 
+.padding-10 {
+  padding: 10px;
+}
+
 .padding-20 {
   padding: 20px;
 }
@@ -1317,4 +1321,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .modal-content {
   padding: 20px;
+}
+
+.profile-picture {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
