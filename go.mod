@@ -1,6 +1,6 @@
 module github.com/authgear/authgear-server
 
-go 1.13
+go 1.16
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
