@@ -86,3 +86,4 @@ var IntlTelInputRealRuntime = resource.RegisterResource(JavaScriptDescriptor{
 var AppLogo = resource.RegisterResource(ImageDescriptor{Name: "app_logo"})
 var AppLogoDark = resource.RegisterResource(ImageDescriptor{Name: "app_logo_dark"})
 var Favicon = resource.RegisterResource(ImageDescriptor{Name: "favicon"})
+var AvatarPlaceholder = resource.RegisterResource(ImageDescriptor{Name: "avatar_placeholder"})
