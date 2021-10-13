@@ -103,6 +103,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(viewmodelswebapp.SettingsIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(viewmodelswebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(viewmodelswebapp.SettingsMFAService), new(*mfa.Service)),
+	wire.Bind(new(viewmodelswebapp.SettingsUserService), new(*user.Queries)),
 
 	handlerwebapp.DependencySet,
 	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
