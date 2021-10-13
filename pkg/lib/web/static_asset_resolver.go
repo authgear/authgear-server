@@ -15,10 +15,11 @@ import (
 )
 
 var StaticAssetResources = map[string]resource.Descriptor{
-	"web-js":        WebJS,
-	"app-logo":      AppLogo,
-	"app-logo-dark": AppLogoDark,
-	"favicon":       Favicon,
+	"web-js":             WebJS,
+	"app-logo":           AppLogo,
+	"app-logo-dark":      AppLogoDark,
+	"favicon":            Favicon,
+	"avatar-placeholder": AvatarPlaceholder,
 
 	"authgear.css":             AuthgearCSS,
 	"authgear-light-theme.css": AuthgearLightThemeCSS,
