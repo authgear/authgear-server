@@ -118,7 +118,7 @@ func (w *WechatImpl) NonOpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, _
 		stdattrs.Name:   name,
 		stdattrs.Locale: locale,
 		stdattrs.Gender: gender,
-	}
+	}.WithNameCopiedToGivenName()
 
 	err = w.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {

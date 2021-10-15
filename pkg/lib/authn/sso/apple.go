@@ -145,7 +145,7 @@ func (f *AppleImpl) OpenIDConnectGetAuthInfo(r OAuthAuthorizationResponse, param
 
 	authInfo.ProviderRawProfile = claims
 	authInfo.ProviderUserID = sub
-	authInfo.StandardAttributes = stdattrs.Extract(claims)
+	authInfo.StandardAttributes = stdattrs.Extract(claims).WithNameCopiedToGivenName()
 
 	err = f.StandardAttributesNormalizer.Normalize(authInfo.StandardAttributes)
 	if err != nil {
