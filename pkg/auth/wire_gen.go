@@ -17442,12 +17442,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
 	}
-	manager2 := &session.Manager{
-		Users:               queries,
-		IDPSessions:         idpsessionManager,
-		AccessTokenSessions: sessionManager,
-		Events:              eventService,
-	}
 	settingsHandler := &webapp2.SettingsHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
@@ -17455,8 +17449,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:          responseRenderer,
 		Identities:        serviceService,
 		Verification:      verificationService,
-		TrustProxy:        trustProxy,
-		SessionManager:    manager2,
 	}
 	return settingsHandler
 }
