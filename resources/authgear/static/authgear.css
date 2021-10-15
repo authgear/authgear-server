@@ -1127,13 +1127,13 @@ h1, h2, h3, h4, h5, h6 {
 .grid-icon-name-desc-action {
   grid: "icon  name  action" auto
         "desc  desc  action" auto
-      /  24px  1fr   auto    auto;
+      /  24px  1fr   auto;
 }
 
 .grid-name-desc-action {
   grid: "name  action" auto
         "desc  action" auto
-      /  1fr   auto    auto;
+      /  1fr   auto;
 }
 
 .grid-area-name {
