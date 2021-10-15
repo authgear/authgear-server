@@ -6,6 +6,21 @@ func (t T) ToClaims() map[string]interface{} {
 	return map[string]interface{}(t)
 }
 
+func (t T) WithNameCopiedToGivenName() T {
+	out := make(T)
+	for k, v := range t {
+		out[k] = v
+	}
+
+	if name, ok := t[Name].(string); ok && name != "" {
+		if _, ok := t[GivenName].(string); !ok {
+			out[GivenName] = name
+		}
+	}
+
+	return out
+}
+
 const (
 	// Sub is not used because we do not always use sub as the unique identifier for
 	// an user from the identity provider.
