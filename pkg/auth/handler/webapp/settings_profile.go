@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -20,15 +21,26 @@ func ConfigureSettingsProfileRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsProfileHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          Renderer
+	ControllerFactory        ControllerFactory
+	BaseViewModel            *viewmodels.BaseViewModeler
+	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
+	Renderer                 Renderer
 }
 
 func (h *SettingsProfileHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	userID := session.GetUserID(r.Context())
+
 	data := map[string]interface{}{}
+
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
+
+	viewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *viewModelPtr)
+
 	return data, nil
 }
 
