@@ -2,7 +2,195 @@
 
 {{ define "page-content" }}
 <main class="content settings-content">
-{{ template "__nav_bar.html" }}
+<div class="pane flex flex-col">
+  {{ template "__nav_bar.html" "/settings" }}
 
+  {{/* picture */}}
+  <div class="padding-20 row-sep gap-12 grid grid-profile-picture">
+    <div class="grid-area-title">{{ template "standard-attribute-picture" }}</div>
+    <img class="grid-area-picture settings-profile-profile-picture"
+      {{ if $.Picture }}
+	src="{{ $.Picture }}"
+      {{ else }}
+        src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+      {{ end }}
+    >
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* name */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-name" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Name }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* given_name */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-given-name" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.GivenName }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* middle_name */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-middle-name" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.MiddleName }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* family_name */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-family-name" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.FamilyName }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* nickname */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-nickname" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Nickname }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* email */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-email" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Email }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* phone_number */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-phone-number" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.PhoneNumber }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* preferred_username */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-preferred-username" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.PreferredUsername }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* profile */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-profile" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Profile }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* website */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-website" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Website }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* gender */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-gender" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Gender }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* birthdate */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-birthdate" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Birthdate }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* zoneinfo */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-zoneinfo" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Zoneinfo }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* locale */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-locale" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.Locale }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.street_address */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-street-address" }}</span>
+    <span class="grid-area-desc secondary-txt whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.locality */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-locality" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.AddressLocality }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.postal_code */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-postal-code" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.AddressPostalCode }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.region */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-region" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.AddressRegion }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.country */}}
+  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-country" }}</span>
+    <span class="grid-area-desc secondary-txt">{{ $.AddressCountry }}</span>
+    <a class="link grid-area-action self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+</div>
 </main>
 {{ end }}
