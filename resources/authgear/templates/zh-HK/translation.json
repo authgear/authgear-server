@@ -313,5 +313,26 @@
   "select-account-title": "繼續至 {AppOrClientName}",
   "select-account-you-are-using-description": "您正在使用",
   "select-account-continue-label": "繼續",
-  "select-account-use-another-account-label": "使用另一個帳戶"
+  "select-account-use-another-account-label": "使用另一個帳戶",
+
+  "standard-attribute-name": "全名",
+  "standard-attribute-given-name": "名",
+  "standard-attribute-family-name": "姓",
+  "standard-attribute-middle-name": "中間名",
+  "standard-attribute-nickname": "暱稱",
+  "standard-attribute-picture": "頭像",
+  "standard-attribute-profile": "個人檔案 URL",
+  "standard-attribute-website": "網站 URL",
+  "standard-attribute-email": "電郵地址",
+  "standard-attribute-phone-number": "電話號碼",
+  "standard-attribute-preferred-username": "用戶名稱",
+  "standard-attribute-gender": "性別",
+  "standard-attribute-birthdate": "出生日期",
+  "standard-attribute-zoneinfo": "時區",
+  "standard-attribute-locale": "偏好語言",
+  "standard-attribute-street-address": "街道地址",
+  "standard-attribute-locality": "城市",
+  "standard-attribute-postal-code": "郵遞區號",
+  "standard-attribute-region": "洲 / 省 / 縣 / 區",
+  "standard-attribute-country": "國家"
 }

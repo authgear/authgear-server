@@ -246,7 +246,15 @@ h1, h2, h3, h4, h5, h6 {
   gap: 4px;
 }
 
+.gap-6 {
+  gap: 6px;
+}
+
 .gap-8 {
+  gap: 8px;
+}
+
+.gap-12 {
   gap: 8px;
 }
 
@@ -1136,6 +1144,12 @@ h1, h2, h3, h4, h5, h6 {
       /  1fr   auto;
 }
 
+.grid-profile-picture {
+  grid: "title title action" auto
+        "picture .   action" 80px
+      / 80px    1fr  auto;
+}
+
 .grid-area-name {
   grid-area: name;
 }
@@ -1174,6 +1188,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .grid-area-claim {
   grid-area: claim;
+}
+
+.grid-area-picture {
+  grid-area: picture;
 }
 
 .row-sep:not(:last-child) {
@@ -1316,9 +1334,18 @@ h1, h2, h3, h4, h5, h6 {
   padding: 20px;
 }
 
-.profile-picture {
+.settings-profile-picture {
   width: 72px;
   height: 72px;
+  border-radius: 50%;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.settings-profile-profile-picture {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background-position: center;
   background-size: cover;
