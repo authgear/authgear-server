@@ -14,8 +14,11 @@
   <section class="padding-10 flex flex-row items-center row-sep">
     <img
       class="margin-10 profile-picture"
-      style="background-image: url({{ call $.StaticAssetURL "avatar-placeholder" }})"
-      {{ if $.ProfilePictureURL }}src="{{ $.ProfilePictureURL }}"{{ end }}
+      {{ if $.ProfilePictureURL }}
+        src="{{ $.ProfilePictureURL }}"
+      {{ else }}
+        src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+      {{ end }}
     >
     <div class="margin-h-10 flex flex-col gap-4">
       {{ if $.FormattedName }}<span class="primary-txt">{{ $.FormattedName }}</span>{{ end }}
