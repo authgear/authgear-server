@@ -18029,10 +18029,14 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
+		Users: queries,
+	}
 	settingsProfileHandler := &webapp2.SettingsProfileHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		Renderer:          responseRenderer,
+		ControllerFactory:        controllerFactory,
+		BaseViewModel:            baseViewModeler,
+		SettingsProfileViewModel: settingsProfileViewModeler,
+		Renderer:                 responseRenderer,
 	}
 	return settingsProfileHandler
 }
