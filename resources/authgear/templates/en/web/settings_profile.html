@@ -1,8 +1,196 @@
-{{ template "__page_frame.html" . }}
+{{ template "__wide_page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content settings-content">
-{{ template "__nav_bar.html" }}
+<div class="pane flex flex-col">
+  <div class="padding-h-16">
+    {{ template "__nav_bar.html" "/settings" }}
+  </div>
 
-</main>
+  {{/* picture */}}
+  <div class="padding-20 row-sep gap-12 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <div class="col-start-1 col-span-1 row-start-1 row-span-1">{{ template "standard-attribute-picture" }}</div>
+    <img class="col-start-1 col-span-1 row-start-2 row-span-1 rounded-full bg-center bg-cover bg-no-repeat w-20 h-20"
+      {{ if $.Picture }}
+	src="{{ $.Picture }}"
+      {{ else }}
+        src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+      {{ end }}
+    >
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* name */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-name" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Name }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* given_name */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-given-name" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.GivenName }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* middle_name */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-middle-name" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.MiddleName }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* family_name */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-family-name" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.FamilyName }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* nickname */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-nickname" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Nickname }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* email */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-email" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Email }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* phone_number */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-phone-number" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PhoneNumber }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* preferred_username */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-preferred-username" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PreferredUsername }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* profile */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-profile" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Profile }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* website */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-website" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Website }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* gender */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-gender" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Gender }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* birthdate */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-birthdate" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Birthdate }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* zoneinfo */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-zoneinfo" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Zoneinfo }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* locale */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-locale" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Locale }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.street_address */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-street-address" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.locality */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-locality" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.AddressLocality }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.postal_code */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-postal-code" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.AddressPostalCode }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.region */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-region" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.AddressRegion }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+  {{/* address.country */}}
+  <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-country" }}</span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.AddressCountry }}</span>
+    <a class="link col-start-2 row-span-full self-center" href="#">
+      <i class="ti ti-edit"></i>
+    </a>
+  </div>
+
+</div>
 {{ end }}
