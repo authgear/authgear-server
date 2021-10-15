@@ -131,7 +131,15 @@ h1, h2, h3, h4, h5, h6 {
   gap: 4px;
 }
 
+.gap-6 {
+  gap: 6px;
+}
+
 .gap-8 {
+  gap: 8px;
+}
+
+.gap-12 {
   gap: 8px;
 }
 
@@ -923,6 +931,10 @@ h1, h2, h3, h4, h5, h6 {
   grid-template-columns: minmax(0, 1fr) auto;
 }
 
+.grid-rows-auto-auto {
+  grid-template-rows: auto auto;
+}
+
 .row-sep:not(:last-child) {
   border-bottom: 1px solid var(--color-separator);
 }
@@ -986,9 +998,9 @@ h1, h2, h3, h4, h5, h6 {
   padding: 20px;
 }
 
-.profile-picture {
-  width: 72px;
-  height: 72px;
+.settings-profile-profile-picture {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background-position: center;
   background-size: cover;
