@@ -69,6 +69,41 @@ func TestT(t *testing.T) {
 			}.FormattedName(), ShouldEqual, "John Doe (Johnny)")
 		})
 
+		Convey("FormattedNames", func() {
+			So(T{}.FormattedNames(), ShouldEqual, "")
+			So(T{
+				"nickname": "John",
+			}.FormattedNames(), ShouldEqual, "John")
+			So(T{
+				"given_name":  "John",
+				"middle_name": "William",
+				"family_name": "Doe",
+			}.FormattedNames(), ShouldEqual, "John William Doe")
+			So(T{
+				"given_name":  "John",
+				"family_name": "Doe",
+				"nickname":    "Johnny",
+			}.FormattedNames(), ShouldEqual, "John Doe (Johnny)")
+			So(T{
+				"name": "John Doe",
+			}.FormattedNames(), ShouldEqual, "John Doe")
+			So(T{
+				"name":     "John Doe",
+				"nickname": "Johnny",
+			}.FormattedNames(), ShouldEqual, "John Doe (Johnny)")
+			So(T{
+				"name":        "John Doe",
+				"given_name":  "John",
+				"family_name": "Doe",
+			}.FormattedNames(), ShouldEqual, "John Doe\nJohn Doe")
+			So(T{
+				"name":        "John Doe",
+				"given_name":  "John",
+				"family_name": "Doe",
+				"nickname":    "Johnny",
+			}.FormattedNames(), ShouldEqual, "John Doe (Johnny)\nJohn Doe")
+		})
+
 		Convey("EndUserAccountID", func() {
 			So(T{}.EndUserAccountID(), ShouldEqual, "")
 			So(T{
