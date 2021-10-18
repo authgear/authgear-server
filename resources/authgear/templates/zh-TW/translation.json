@@ -330,6 +330,7 @@
   "standard-attribute-birthdate": "出生日期",
   "standard-attribute-zoneinfo": "時區",
   "standard-attribute-locale": "偏好語言",
+  "standard-attribute-address": "地址",
   "standard-attribute-street-address": "街道地址",
   "standard-attribute-locality": "城市",
   "standard-attribute-postal-code": "郵遞區號",
