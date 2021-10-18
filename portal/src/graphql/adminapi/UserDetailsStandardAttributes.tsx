@@ -501,6 +501,14 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           />
           <FormTextField
             className={styles.c2}
+            value={standardAttributes.nickname}
+            onChange={onChangeNickname}
+            parentJSONPointer=""
+            fieldName="nickname"
+            label={renderToString("standard-attribute.nickname")}
+          />
+          <FormTextField
+            className={styles.c3}
             value={standardAttributes.given_name}
             onChange={onChangeGiveName}
             parentJSONPointer=""
@@ -508,7 +516,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             label={renderToString("standard-attribute.given_name")}
           />
           <FormTextField
-            className={styles.c3}
+            className={styles.c4}
             value={standardAttributes.family_name}
             onChange={onChangeFamilyName}
             parentJSONPointer=""
@@ -516,20 +524,12 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             label={renderToString("standard-attribute.family_name")}
           />
           <FormTextField
-            className={styles.c4}
+            className={styles.c5}
             value={standardAttributes.middle_name}
             onChange={onChangeMiddleName}
             parentJSONPointer=""
             fieldName="middle_name"
             label={renderToString("standard-attribute.middle_name")}
-          />
-          <FormTextField
-            className={styles.c5}
-            value={standardAttributes.nickname}
-            onChange={onChangeNickname}
-            parentJSONPointer=""
-            fieldName="nickname"
-            label={renderToString("standard-attribute.nickname")}
           />
         </Div>
         <FormTextField
