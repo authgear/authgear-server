@@ -543,7 +543,9 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           <FormTextField
             parentJSONPointer="/authentication/recovery_code"
             fieldName="count"
-            fieldNameMessageID="AuthenticatorConfigurationScreen.policy.recovery-code-number"
+            label={renderToString(
+              "AuthenticatorConfigurationScreen.policy.recovery-code-number"
+            )}
             className={styles.control}
             value={state.numRecoveryCode?.toFixed(0) ?? ""}
             onChange={onRecoveryCodeNumberChange}

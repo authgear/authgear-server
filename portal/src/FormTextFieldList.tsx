@@ -6,10 +6,11 @@ import { Context } from "@oursky/react-messageformat";
 import styles from "./FormTextFieldList.module.scss";
 import { useFormField } from "./form";
 import { renderErrors } from "./error/parse";
+import { joinParentChild } from "./util/jsonpointer";
 
 interface TextFieldListItemProps {
   index: number;
-  parentJSONPointer: string;
+  parentJSONPointer: string | RegExp;
   textFieldProps?: ITextFieldProps;
   value: string;
   onChange: (value: string) => void;
@@ -35,8 +36,8 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> =
     );
     const { errors } = useFormField(field);
     const errorMessage = useMemo(
-      () => renderErrors(field, errors, renderToString),
-      [field, errors, renderToString]
+      () => renderErrors(errors, renderToString),
+      [errors, renderToString]
     );
 
     const _onChange = useCallback(
@@ -60,10 +61,10 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> =
     );
   };
 
-interface FormTextFieldListProps {
+export interface FormTextFieldListProps {
   className?: string;
   label?: React.ReactNode;
-  parentJSONPointer: string;
+  parentJSONPointer: string | RegExp;
   fieldName: string;
   inputProps?: ITextFieldProps;
   list: string[];
@@ -88,7 +89,7 @@ const FormTextFieldList: React.FC<FormTextFieldListProps> =
       (index: number, value: string, onChange: (newValue: string) => void) => (
         <TextFieldListItem
           index={index}
-          parentJSONPointer={`${parentJSONPointer}/${fieldName}`}
+          parentJSONPointer={joinParentChild(parentJSONPointer, fieldName)}
           textFieldProps={inputProps}
           value={value}
           onChange={onChange}

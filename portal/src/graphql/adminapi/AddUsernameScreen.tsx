@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
@@ -19,12 +19,6 @@ const errorRules: ErrorParseRule[] = [
     kind: "DuplicatedIdentity",
     errorMessageID: "AddUsernameScreen.error.duplicated-username",
   },
-  {
-    reason: "ValidationFailed",
-    location: "",
-    kind: "format",
-    errorMessageID: "errors.validation.format",
-  },
 ];
 
 interface UsernameFieldProps {
@@ -36,15 +30,16 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
   props
 ) {
   const { value, onChange } = props;
+  const { renderToString } = useContext(Context);
   const onUsernameChange = useCallback(
     (_, value?: string) => onChange(value ?? ""),
     [onChange]
   );
   return (
     <FormTextField
-      parentJSONPointer="/"
-      fieldName="username"
-      fieldNameMessageID="AddUsernameScreen.username.label"
+      parentJSONPointer=""
+      fieldName="login_id"
+      label={renderToString("AddUsernameScreen.username.label")}
       className={styles.usernameField}
       value={value}
       onChange={onUsernameChange}

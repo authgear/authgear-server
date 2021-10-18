@@ -40,6 +40,7 @@ import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
+import { useErrorMessage } from "../../formbinding";
 
 interface BlockingEventHandler {
   event: string;
@@ -109,7 +110,6 @@ interface BlockingHandlerItemEditProps {
 const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> =
   function BlockingHandlerItemEdit(props) {
     const { index, value, onChange } = props;
-    const { renderToString } = useContext(Context);
 
     const eventField = useMemo(
       () => ({
@@ -125,16 +125,8 @@ const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> =
       }),
       [index]
     );
-    const { errors: eventErrors } = useFormField(eventField);
-    const { errors: urlErrors } = useFormField(urlField);
-    const eventErrorMessage = useMemo(
-      () => renderErrors(eventField, eventErrors, renderToString),
-      [eventField, eventErrors, renderToString]
-    );
-    const urlErrorMessage = useMemo(
-      () => renderErrors(urlField, urlErrors, renderToString),
-      [urlField, urlErrors, renderToString]
-    );
+    const eventFieldProps = useErrorMessage(eventField);
+    const urlFieldProps = useErrorMessage(urlField);
 
     const onBlockingEventChange = useCallback(
       (_, event?: IDropdownOption) => {
@@ -184,14 +176,14 @@ const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> =
           onRenderOption={renderBlockingEventDropdownItem}
           onRenderTitle={renderBlockingEventDropdownTitle}
           ariaLabel={"WebhookConfigurationScreen.blocking-events.label"}
-          errorMessage={eventErrorMessage}
+          {...eventFieldProps}
         />
         <TextField
           className={styles.handlerURLField}
           value={value.url}
           onChange={onURLChange}
-          errorMessage={urlErrorMessage}
           placeholder="https://example.com/callback"
+          {...urlFieldProps}
         />
       </div>
     );
@@ -215,9 +207,10 @@ const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
       [index]
     );
     const { errors: urlErrors } = useFormField(urlField);
+    // FIXME: use formbinding
     const urlErrorMessage = useMemo(
-      () => renderErrors(urlField, urlErrors, renderToString),
-      [urlField, urlErrors, renderToString]
+      () => renderErrors(urlErrors, renderToString),
+      [urlErrors, renderToString]
     );
 
     const onURLChange = useCallback(

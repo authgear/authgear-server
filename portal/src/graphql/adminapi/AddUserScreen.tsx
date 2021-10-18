@@ -185,7 +185,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.textField}
         value={username}
         onChange={onUsernameChange}
-        parentJSONPointer="/"
+        parentJSONPointer=""
         fieldName="username"
         errorRules={errorRules}
       />
@@ -198,7 +198,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.textField}
         value={email}
         onChange={onEmailChange}
-        parentJSONPointer="/"
+        parentJSONPointer=""
         fieldName="email"
         errorRules={errorRules}
       />
@@ -211,7 +211,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         className={styles.textField}
         value={phone}
         onChange={onPhoneChange}
-        parentJSONPointer="/"
+        parentJSONPointer=""
         fieldName="phone"
         errorRules={errorRules}
       />
@@ -283,7 +283,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         value={password}
         onChange={onPasswordChange}
         passwordPolicy={passwordPolicy}
-        parentJSONPointer="/"
+        parentJSONPointer=""
         fieldName="password"
       />
     </div>

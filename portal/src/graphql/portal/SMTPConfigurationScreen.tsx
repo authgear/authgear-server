@@ -17,10 +17,11 @@ import {
   IButtonProps,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import TooltipTextField from "../../TooltipTextField";
+import { useTextFieldTooltip } from "../../useTextFieldTooltip";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import FormContainer from "../../FormContainer";
+import FormTextField from "../../FormTextField";
 import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
@@ -399,6 +400,20 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
       [setState]
     );
 
+    const hostProps = useTextFieldTooltip({
+      tooltipLabel: renderToString("SMTPConfigurationScreen.host.tooltip"),
+    });
+
+    const portProps = useTextFieldTooltip({
+      tooltipLabel: renderToString("SMTPConfigurationScreen.port.tooltip"),
+    });
+
+    const sendgridAPIKeyProps = useTextFieldTooltip({
+      tooltipLabel: renderToString(
+        "SMTPConfigurationScreen.sendgrid.api-key.tooltip"
+      ),
+    });
+
     return (
       <ScreenContent className={styles.root}>
         <ScreenTitle>
@@ -442,7 +457,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                   <ProviderDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
                   </ProviderDescription>
-                  <TooltipTextField
+                  <FormTextField
                     className={styles.control}
                     type="text"
                     label={renderToString("SMTPConfigurationScreen.host.label")}
@@ -450,11 +465,11 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     disabled={state.isPasswordMasked}
                     required={true}
                     onChange={onChangeHost}
-                    tooltipLabel={renderToString(
-                      "SMTPConfigurationScreen.host.tooltip"
-                    )}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="host"
+                    {...hostProps}
                   />
-                  <TooltipTextField
+                  <FormTextField
                     className={styles.control}
                     type="text"
                     label={renderToString("SMTPConfigurationScreen.port.label")}
@@ -462,11 +477,11 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     disabled={state.isPasswordMasked}
                     required={true}
                     onChange={onChangePort}
-                    tooltipLabel={renderToString(
-                      "SMTPConfigurationScreen.port.tooltip"
-                    )}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="port"
+                    {...portProps}
                   />
-                  <TextField
+                  <FormTextField
                     className={styles.control}
                     type="text"
                     label={renderToString(
@@ -475,8 +490,10 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     value={state.username}
                     disabled={state.isPasswordMasked}
                     onChange={onChangeUsername}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="username"
                   />
-                  <TextField
+                  <FormTextField
                     className={styles.control}
                     type="password"
                     label={renderToString(
@@ -489,6 +506,8 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     }
                     disabled={state.isPasswordMasked}
                     onChange={onChangePassword}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="password"
                   />
                 </>
               )}
@@ -497,7 +516,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                   <ProviderDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
                   </ProviderDescription>
-                  <TooltipTextField
+                  <FormTextField
                     className={styles.control}
                     type="password"
                     label={renderToString(
@@ -511,9 +530,9 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     required={true}
                     disabled={state.isPasswordMasked}
                     onChange={onChangePassword}
-                    tooltipLabel={renderToString(
-                      "SMTPConfigurationScreen.sendgrid.api-key.tooltip"
-                    )}
+                    parentJSONPointer={/\/secrets\/\d+\/data/}
+                    fieldName="password"
+                    {...sendgridAPIKeyProps}
                   />
                 </>
               )}

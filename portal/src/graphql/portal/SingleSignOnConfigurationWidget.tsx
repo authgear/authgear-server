@@ -40,7 +40,7 @@ interface SingleSignOnConfigurationWidgetProps {
   className?: string;
 
   jsonPointer: string;
-  clientSecretParentJsonPointer: string;
+  clientSecretParentJsonPointer: RegExp;
 
   isEnabled: boolean;
   onIsEnabledChange: (value: boolean) => void;
@@ -374,7 +374,9 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="alias"
-            fieldNameMessageID="SingleSignOnConfigurationScreen.widget.alias"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.alias"
+            )}
             className={styles.textField}
             styles={TEXT_FIELD_STYLE}
             value={config.alias}
@@ -385,7 +387,9 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="client_id"
-            fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-id"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.client-id"
+            )}
             className={styles.textField}
             styles={TEXT_FIELD_STYLE}
             value={config.client_id ?? ""}
@@ -396,7 +400,9 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           <FormTextField
             parentJSONPointer={clientSecretParentJsonPointer}
             fieldName="client_secret"
-            fieldNameMessageID="SingleSignOnConfigurationScreen.widget.client-secret"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.client-secret"
+            )}
             className={styles.textField}
             styles={
               isSecretFieldTextArea
@@ -412,7 +418,9 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="tenant"
-            fieldNameMessageID="SingleSignOnConfigurationScreen.widget.tenant"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.tenant"
+            )}
             className={styles.textField}
             styles={TEXT_FIELD_STYLE}
             value={config.tenant ?? ""}
@@ -423,7 +431,9 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="discovery_document_endpoint"
-            fieldNameMessageID="SingleSignOnConfigurationScreen.widget.discovery-document-endpoint"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.discovery-document-endpoint"
+            )}
             className={styles.textField}
             styles={TEXT_FIELD_STYLE}
             value={config.discovery_document_endpoint ?? ""}
@@ -435,7 +445,9 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="key_id"
-            fieldNameMessageID="SingleSignOnConfigurationScreen.widget.key-id"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.key-id"
+            )}
             className={styles.textField}
             styles={TEXT_FIELD_STYLE}
             value={config.key_id ?? ""}
@@ -446,7 +458,9 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="team_id"
-            fieldNameMessageID="SingleSignOnConfigurationScreen.widget.team-id"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.team-id"
+            )}
             className={styles.textField}
             styles={TEXT_FIELD_STYLE}
             value={config.team_id ?? ""}
@@ -457,7 +471,9 @@ const SingleSignOnConfigurationWidget: React.FC<SingleSignOnConfigurationWidgetP
           <FormTextField
             parentJSONPointer={jsonPointer}
             fieldName="account_id"
-            fieldNameMessageID="SingleSignOnConfigurationScreen.widget.account-id"
+            label={renderToString(
+              "SingleSignOnConfigurationScreen.widget.account-id"
+            )}
             className={styles.textField}
             styles={TEXT_FIELD_STYLE}
             value={config.account_id ?? ""}

@@ -17,7 +17,7 @@ type RenderFieldListItem<T> = (
 interface FieldListProps<T> {
   className?: string;
   label?: React.ReactNode;
-  parentJSONPointer: string;
+  parentJSONPointer: string | RegExp;
   fieldName: string;
   list: T[];
   onListChange: (list: T[]) => void;
@@ -55,8 +55,8 @@ const FieldList = function FieldList<T>(
   );
   const { errors } = useFormField(field);
   const errorMessage = useMemo(
-    () => renderErrors(field, errors, renderToString),
-    [field, errors, renderToString]
+    () => renderErrors(errors, renderToString),
+    [errors, renderToString]
   );
 
   const onItemChange = useCallback(

@@ -111,6 +111,10 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     };
   }, [renderToString]);
 
+  const onConfirmNavigation = useCallback(() => {
+    reset();
+  }, [reset]);
+
   return (
     <FormProvider
       error={updateError ?? localError}
@@ -139,7 +143,10 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
           </DefaultButton>
         </DialogFooter>
       </Dialog>
-      <NavigationBlockerDialog blockNavigation={isDirty} />
+      <NavigationBlockerDialog
+        blockNavigation={isDirty}
+        onConfirmNavigation={onConfirmNavigation}
+      />
     </FormProvider>
   );
 };

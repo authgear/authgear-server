@@ -33,7 +33,7 @@ const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
   }, [error, rules, fallbackErrorMessageID]);
 
   const message = useMemo(
-    () => renderErrors(null, topErrors, renderToString),
+    () => renderErrors(topErrors, renderToString),
     [topErrors, renderToString]
   );
 
