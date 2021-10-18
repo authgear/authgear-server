@@ -315,6 +315,8 @@
   "select-account-continue-label": "繼續",
   "select-account-use-another-account-label": "使用另一個帳戶",
 
+  "settings-profile-formatted-names-label": "名稱",
+
   "standard-attribute-name": "全名",
   "standard-attribute-given-name": "名",
   "standard-attribute-family-name": "姓",
