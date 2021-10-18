@@ -69,7 +69,7 @@ function makeState(attrs: StandardAttributes): StandardAttributesState {
     gender: attrs.gender ?? "",
     birthdate: attrs.birthdate,
     zoneinfo: attrs.zoneinfo ?? "",
-    locale: attrs.zoneinfo ?? "",
+    locale: attrs.locale ?? "",
     address: {
       street_address: attrs.address?.street_address ?? "",
       locality: attrs.address?.locality ?? "",
