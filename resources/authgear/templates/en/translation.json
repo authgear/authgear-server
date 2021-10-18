@@ -315,6 +315,8 @@
   "select-account-continue-label": "Continue",
   "select-account-use-another-account-label": "Use another account",
 
+  "settings-profile-formatted-names-label": "Name",
+
   "standard-attribute-name": "Full Name",
   "standard-attribute-given-name": "Given Name",
   "standard-attribute-family-name": "Family Name",
