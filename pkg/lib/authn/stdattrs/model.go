@@ -37,6 +37,37 @@ func (t T) FormattedName() string {
 	}
 }
 
+func (t T) FormattedNames() string {
+	name, _ := t[Name].(string)
+
+	givenName, _ := t[GivenName].(string)
+	familyName, _ := t[FamilyName].(string)
+	middleName, _ := t[MiddleName].(string)
+	gmf := nameutil.Format(givenName, middleName, familyName)
+
+	nickname, _ := t[Nickname].(string)
+
+	switch {
+	case name == "" && gmf == "" && nickname == "":
+		return ""
+	case name == "" && gmf == "" && nickname != "":
+		return nickname
+	case name == "" && gmf != "" && nickname == "":
+		return gmf
+	case name == "" && gmf != "" && nickname != "":
+		return fmt.Sprintf("%s (%s)", gmf, nickname)
+	case name != "" && gmf == "" && nickname == "":
+		return name
+	case name != "" && gmf == "" && nickname != "":
+		return fmt.Sprintf("%s (%s)", name, nickname)
+	case name != "" && gmf != "" && nickname == "":
+		return fmt.Sprintf("%s\n%s", name, gmf)
+	case name != "" && gmf != "" && nickname != "":
+		return fmt.Sprintf("%s (%s)\n%s", name, nickname, gmf)
+	}
+	return ""
+}
+
 func (t T) EndUserAccountID() string {
 	if s, ok := t[Email].(string); ok && s != "" {
 		return s
