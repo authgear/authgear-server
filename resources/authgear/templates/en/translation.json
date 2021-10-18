@@ -330,6 +330,7 @@
   "standard-attribute-birthdate": "Birthdate",
   "standard-attribute-zoneinfo": "Timezone",
   "standard-attribute-locale": "Preferred Language",
+  "standard-attribute-address": "Address",
   "standard-attribute-street-address": "Street Address",
   "standard-attribute-locality": "City",
   "standard-attribute-postal-code": "Postal Code",
