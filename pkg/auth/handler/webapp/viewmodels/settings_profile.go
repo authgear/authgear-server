@@ -6,6 +6,7 @@ import (
 )
 
 type SettingsProfileViewModel struct {
+	FormattedNames       string
 	Name                 string
 	GivenName            string
 	FamilyName           string
@@ -60,6 +61,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 	}
 
 	viewModel := &SettingsProfileViewModel{
+		FormattedNames:       stdattrs.T(stdAttrs).FormattedNames(),
 		Name:                 str(stdattrs.Name),
 		GivenName:            str(stdattrs.GivenName),
 		FamilyName:           str(stdattrs.FamilyName),
