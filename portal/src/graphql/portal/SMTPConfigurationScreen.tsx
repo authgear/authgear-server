@@ -201,6 +201,19 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
     const { viewer } = useViewerQuery();
     const { renderToString } = useContext(Context);
 
+    const openSendTestEmailDialogButtonEnabled = useMemo(() => {
+      return (
+        state.host !== "" &&
+        state.portString !== "" &&
+        state.username !== "" &&
+        state.password !== ""
+      );
+    }, [state]);
+
+    const sendTestEmailButtonEnabled = useMemo(() => {
+      return toAddress !== "";
+    }, [toAddress]);
+
     const onChangeEnabled = useCallback(
       (_event, checked?: boolean) => {
         if (checked != null) {
@@ -546,6 +559,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                 <DefaultButton
                   className={styles.control}
                   onClick={onClickSendTestEmail}
+                  disabled={!openSendTestEmailDialogButtonEnabled}
                 >
                   <FormattedMessage id="SMTPConfigurationScreen.send-test-email.label" />
                 </DefaultButton>
@@ -563,7 +577,10 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                   onChange={onChangeToAddress}
                 />
                 <DialogFooter>
-                  <PrimaryButton onClick={onClickSend} disabled={loading}>
+                  <PrimaryButton
+                    onClick={onClickSend}
+                    disabled={!sendTestEmailButtonEnabled || loading}
+                  >
                     <FormattedMessage id="send" />
                   </PrimaryButton>
                   <DefaultButton onClick={onDismissDialog} disabled={loading}>
