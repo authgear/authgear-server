@@ -489,6 +489,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     )}
                     value={state.username}
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={onChangeUsername}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="username"
@@ -505,6 +506,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                         : state.password
                     }
                     disabled={state.isPasswordMasked}
+                    required={true}
                     onChange={onChangePassword}
                     parentJSONPointer={/\/secrets\/\d+\/data/}
                     fieldName="password"

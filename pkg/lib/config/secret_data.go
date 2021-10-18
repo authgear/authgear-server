@@ -203,7 +203,7 @@ var _ = SecretConfigSchema.Add("SMTPServerCredentials", `
 		"username": { "type": "string" },
 		"password": { "type": "string" }
 	},
-	"required": ["host", "port"]
+	"required": ["host", "port", "username", "password"]
 }
 `)
 
