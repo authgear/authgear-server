@@ -14,6 +14,7 @@ import deepEqual from "deep-equal";
 import produce from "immer";
 import cn from "classnames";
 import { clearEmptyObject } from "../../util/misc";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import {
   isPasswordPolicyGuessableLevel,
   PasswordPolicyConfig,
@@ -38,12 +39,12 @@ import styles from "./PasswordPolicyConfigurationScreen.module.scss";
 
 interface FormState {
   forceChange: boolean;
-  policy: Required<PasswordPolicyConfig>;
+  policy: PasswordPolicyConfig;
   isPreventPasswordReuseEnabled: boolean;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
-  const policy: Required<PasswordPolicyConfig> = {
+  const policy: PasswordPolicyConfig = {
     min_length: 1,
     uppercase_required: false,
     lowercase_required: false,
@@ -59,7 +60,8 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     forceChange: config.authenticator?.password?.force_change ?? true,
     policy,
     isPreventPasswordReuseEnabled:
-      policy.history_days > 0 || policy.history_size > 0,
+      (policy.history_days != null && policy.history_days > 0) ||
+      (policy.history_size != null && policy.history_size > 0),
   };
 }
 
@@ -155,10 +157,12 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
     }, [state.policy.minimum_guessable_level, renderToString]);
 
     const defaultSelectedExcludedKeywordItems: ITag[] = useMemo(() => {
-      return state.policy.excluded_keywords.map((keyword) => ({
-        key: keyword,
-        name: keyword,
-      }));
+      return (
+        state.policy.excluded_keywords?.map((keyword) => ({
+          key: keyword,
+          name: keyword,
+        })) ?? []
+      );
     }, [state.policy.excluded_keywords]);
 
     const setPolicy = useCallback(
@@ -171,10 +175,11 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
     );
 
     const onMinLengthChange = useCallback(
-      (_, value?: string) =>
+      (_, value?: string) => {
         setPolicy({
-          min_length: Number(value),
-        }),
+          min_length: parseIntegerAllowLeadingZeros(value),
+        });
+      },
       [setPolicy]
     );
 
@@ -252,18 +257,20 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
     );
 
     const onHistoryDaysChange = useCallback(
-      (_, value?: string) =>
+      (_, value?: string) => {
         setPolicy({
-          history_days: Number(value),
-        }),
+          history_days: parseIntegerAllowLeadingZeros(value),
+        });
+      },
       [setPolicy]
     );
 
     const onHistorySizeChange = useCallback(
-      (_, value?: string) =>
+      (_, value?: string) => {
         setPolicy({
-          history_size: Number(value),
-        }),
+          history_size: parseIntegerAllowLeadingZeros(value),
+        });
+      },
       [setPolicy]
     );
 
@@ -324,13 +331,11 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           </WidgetTitle>
           <TextField
             className={styles.control}
-            type="number"
-            min="1"
-            step="1"
+            type="text"
             label={renderToString(
               "PasswordPolicyConfigurationScreen.min-length.label"
             )}
-            value={String(state.policy.min_length)}
+            value={state.policy.min_length?.toFixed(0) ?? ""}
             onChange={onMinLengthChange}
           />
           <Checkbox
@@ -391,26 +396,22 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           />
           <TextField
             className={styles.control}
-            type="number"
-            min="0"
-            step="1"
+            type="text"
             disabled={!state.isPreventPasswordReuseEnabled}
             label={renderToString(
               "PasswordPolicyConfigurationScreen.history-days.label"
             )}
-            value={String(state.policy.history_days)}
+            value={state.policy.history_days?.toFixed(0) ?? ""}
             onChange={onHistoryDaysChange}
           />
           <TextField
             className={styles.control}
-            type="number"
-            min="0"
-            step="1"
+            type="text"
             disabled={!state.isPreventPasswordReuseEnabled}
             label={renderToString(
               "PasswordPolicyConfigurationScreen.history-size.label"
             )}
-            value={String(state.policy.history_size)}
+            value={state.policy.history_size?.toFixed(0) ?? ""}
             onChange={onHistorySizeChange}
           />
           <div className={styles.control}>

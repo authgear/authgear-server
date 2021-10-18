@@ -4,6 +4,7 @@ import { TextField } from "@fluentui/react";
 import produce from "immer";
 import cn from "classnames";
 import { clearEmptyObject } from "../../util/misc";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { PortalAPIAppConfig } from "../../types";
 import {
   AppConfigFormModel,
@@ -21,13 +22,12 @@ import FormContainer from "../../FormContainer";
 import styles from "./ForgotPasswordConfigurationScreen.module.scss";
 
 interface FormState {
-  codeExpirySeconds: number;
+  codeExpirySeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
-    codeExpirySeconds:
-      config.forgot_password?.reset_code_expiry_seconds ?? 1200,
+    codeExpirySeconds: config.forgot_password?.reset_code_expiry_seconds,
   };
 }
 
@@ -60,7 +60,7 @@ const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigura
       (_, value?: string) => {
         setState((state) => ({
           ...state,
-          codeExpirySeconds: Number(value),
+          codeExpirySeconds: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
@@ -80,13 +80,11 @@ const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigura
           </WidgetTitle>
           <TextField
             className={styles.control}
-            type="number"
-            min="0"
-            step="1"
+            type="text"
             label={renderToString(
               "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"
             )}
-            value={String(state.codeExpirySeconds)}
+            value={state.codeExpirySeconds?.toFixed(0) ?? ""}
             onChange={onCodeExpirySecondsChange}
           />
         </Widget>

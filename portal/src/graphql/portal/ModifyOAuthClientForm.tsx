@@ -10,9 +10,10 @@ import WidgetDescription from "../../WidgetDescription";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import FormTextField from "../../FormTextField";
 import FormTextFieldList from "../../FormTextFieldList";
-import { useIntegerTextField, useTextField } from "../../hook/useInput";
+import { useTextField } from "../../hook/useInput";
 import { OAuthClientConfig } from "../../types";
 import { ensureNonEmptyString } from "../../util/misc";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 
 import styles from "./ModifyOAuthClientForm.module.scss";
 
@@ -55,12 +56,6 @@ function updateClientConfig<K extends keyof OAuthClientConfig>(
   });
 }
 
-function convertIntegerStringToNumber(value: string): number | undefined {
-  // Number("") = 0
-  const numericValue = Number(value);
-  return numericValue === 0 ? undefined : numericValue;
-}
-
 const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
   // eslint-disable-next-line complexity
   function ModifyOAuthClientForm(props: ModifyOAuthClientFormProps) {
@@ -74,37 +69,44 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
       );
     });
 
-    const { onChange: onAccessTokenLifetimeChange } = useIntegerTextField(
-      (value) => {
+    const onAccessTokenLifetimeChange = useCallback(
+      (_, value?: string) => {
         onClientConfigChange(
           updateClientConfig(
             clientConfig,
             "access_token_lifetime_seconds",
-            convertIntegerStringToNumber(value)
+            parseIntegerAllowLeadingZeros(value)
           )
         );
-      }
+      },
+      [clientConfig, onClientConfigChange]
     );
-    const { onChange: onRefreshTokenLifetimeChange } = useIntegerTextField(
-      (value) => {
+
+    const onRefreshTokenLifetimeChange = useCallback(
+      (_, value?: string) => {
         onClientConfigChange(
           updateClientConfig(
             clientConfig,
             "refresh_token_lifetime_seconds",
-            convertIntegerStringToNumber(value)
+            parseIntegerAllowLeadingZeros(value)
           )
         );
-      }
+      },
+      [clientConfig, onClientConfigChange]
     );
-    const { onChange: onIdleTimeoutChange } = useIntegerTextField((value) => {
-      onClientConfigChange(
-        updateClientConfig(
-          clientConfig,
-          "refresh_token_idle_timeout_seconds",
-          convertIntegerStringToNumber(value)
-        )
-      );
-    });
+
+    const onIdleTimeoutChange = useCallback(
+      (_, value?: string) => {
+        onClientConfigChange(
+          updateClientConfig(
+            clientConfig,
+            "refresh_token_idle_timeout_seconds",
+            parseIntegerAllowLeadingZeros(value)
+          )
+        );
+      },
+      [clientConfig, onClientConfigChange]
+    );
 
     const onRedirectUrisChange = useCallback(
       (list: string[]) => {
@@ -209,7 +211,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               fieldNameMessageID="ModifyOAuthClientForm.acces-token-lifetime-label"
               className={styles.control}
               value={
-                clientConfig.access_token_lifetime_seconds?.toString() ?? ""
+                clientConfig.access_token_lifetime_seconds?.toFixed(0) ?? ""
               }
               onChange={onAccessTokenLifetimeChange}
             />
@@ -219,7 +221,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               fieldNameMessageID="ModifyOAuthClientForm.refresh-token-lifetime-label"
               className={styles.control}
               value={
-                clientConfig.refresh_token_lifetime_seconds?.toString() ?? ""
+                clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? ""
               }
               onChange={onRefreshTokenLifetimeChange}
             />
@@ -238,7 +240,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               fieldNameMessageID="ModifyOAuthClientForm.refresh-token-idle-timeout-label"
               className={styles.control}
               value={
-                clientConfig.refresh_token_idle_timeout_seconds?.toString() ??
+                clientConfig.refresh_token_idle_timeout_seconds?.toFixed(0) ??
                 ""
               }
               onChange={onIdleTimeoutChange}

@@ -24,12 +24,9 @@ import {
   SecondaryAuthenticatorType,
   secondaryAuthenticatorTypes,
 } from "../../types";
-import {
-  useCheckbox,
-  useDropdown,
-  useIntegerTextField,
-} from "../../hook/useInput";
+import { useCheckbox, useDropdown } from "../../hook/useInput";
 import { clearEmptyObject } from "../../util/misc";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useParams } from "react-router-dom";
 import {
   AppConfigFormModel,
@@ -59,7 +56,7 @@ interface FormState {
   secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[];
 
   mfaMode: SecondaryAuthenticationMode;
-  numRecoveryCode: number;
+  numRecoveryCode: number | undefined;
   allowListRecoveryCode: boolean;
   disableDeviceToken: boolean;
 }
@@ -94,7 +91,7 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     secondary,
     mfaMode:
       config.authentication?.secondary_authentication_mode ?? "if_exists",
-    numRecoveryCode: config.authentication?.recovery_code?.count ?? 16,
+    numRecoveryCode: config.authentication?.recovery_code?.count,
     allowListRecoveryCode:
       config.authentication?.recovery_code?.list_enabled ?? false,
     disableDeviceToken: config.authentication?.device_token?.disabled ?? false,
@@ -314,13 +311,14 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
         new Set(HIDDEN_REQUIRE_MFA_OPTIONS)
       );
 
-    const { onChange: onRecoveryCodeNumberChange } = useIntegerTextField(
-      (value) => {
+    const onRecoveryCodeNumberChange = useCallback(
+      (_, value?: string) => {
         setState((prev) => ({
           ...prev,
-          numRecoveryCode: Number(value),
+          numRecoveryCode: parseIntegerAllowLeadingZeros(value),
         }));
-      }
+      },
+      [setState]
     );
 
     const { onChange: onAllowRetrieveRecoveryCodeChange } = useCheckbox(
@@ -547,7 +545,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             fieldName="count"
             fieldNameMessageID="AuthenticatorConfigurationScreen.policy.recovery-code-number"
             className={styles.control}
-            value={String(state.numRecoveryCode)}
+            value={state.numRecoveryCode?.toFixed(0) ?? ""}
             onChange={onRecoveryCodeNumberChange}
           />
           <Toggle

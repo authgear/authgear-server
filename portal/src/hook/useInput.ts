@@ -15,20 +15,6 @@ export function useTextField(onChange: (value: string) => void): {
   };
 }
 
-export function useIntegerTextField(onChange: (value: string) => void): {
-  onChange: (_event: any, value?: string) => void;
-} {
-  const onTextFieldChange = useCallback(
-    (_event: any, value?: string) => {
-      if (/^[0-9]*$/.test(value ?? "")) {
-        onChange(value ?? "");
-      }
-    },
-    [onChange]
-  );
-  return { onChange: onTextFieldChange };
-}
-
 export function useCheckbox(onChange: (checked: boolean) => void): {
   onChange: (_event: any, checked?: boolean) => void;
 } {

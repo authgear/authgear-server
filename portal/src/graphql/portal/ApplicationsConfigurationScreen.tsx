@@ -27,6 +27,7 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 import FormContainer from "../../FormContainer";
 
@@ -51,9 +52,9 @@ interface FormState {
   clients: OAuthClientConfig[];
   allowedOrigins: string[];
   persistentCookie: boolean;
-  sessionLifetimeSeconds: number;
+  sessionLifetimeSeconds: number | undefined;
   idleTimeoutEnabled: boolean;
-  idleTimeoutSeconds: number;
+  idleTimeoutSeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -63,9 +64,9 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     clients: config.oauth?.clients ?? [],
     allowedOrigins: config.http?.allowed_origins ?? [],
     persistentCookie: !(config.session?.cookie_non_persistent ?? false),
-    sessionLifetimeSeconds: config.session?.lifetime_seconds ?? 0,
+    sessionLifetimeSeconds: config.session?.lifetime_seconds,
     idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
-    idleTimeoutSeconds: config.session?.idle_timeout_seconds ?? 0,
+    idleTimeoutSeconds: config.session?.idle_timeout_seconds,
   };
 }
 
@@ -74,6 +75,7 @@ function constructConfig(
   initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
+  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.oauth ??= {};
     config.oauth.clients = currentState.clients;
@@ -89,14 +91,16 @@ function constructConfig(
     ) {
       config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
     }
+
     if (initialState.idleTimeoutEnabled !== currentState.idleTimeoutEnabled) {
       config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
-      if (
-        currentState.idleTimeoutEnabled &&
-        initialState.idleTimeoutSeconds !== currentState.idleTimeoutSeconds
-      ) {
-        config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
-      }
+    }
+
+    if (
+      currentState.idleTimeoutEnabled &&
+      initialState.idleTimeoutSeconds !== currentState.idleTimeoutSeconds
+    ) {
+      config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
     }
     clearEmptyObject(config);
   });
@@ -249,9 +253,9 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
 
     const onSessionLifetimeSecondsChange = useCallback(
       (_, value?: string) => {
-        setState((state) => ({
-          ...state,
-          sessionLifetimeSeconds: Number(value),
+        setState((prev) => ({
+          ...prev,
+          sessionLifetimeSeconds: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
@@ -269,9 +273,9 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
 
     const onIdleTimeoutSecondsChange = useCallback(
       (_, value?: string) => {
-        setState((state) => ({
-          ...state,
-          idleTimeoutSeconds: Number(value),
+        setState((prev) => ({
+          ...prev,
+          idleTimeoutSeconds: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
@@ -302,13 +306,11 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
         />
         <TextField
           className={styles.control}
-          type="number"
-          min="1"
-          step="1"
+          type="text"
           label={renderToString(
             "SessionConfigurationWidget.session-lifetime.label"
           )}
-          value={String(state.sessionLifetimeSeconds)}
+          value={state.sessionLifetimeSeconds?.toFixed(0) ?? ""}
           onChange={onSessionLifetimeSecondsChange}
         />
         <Toggle
@@ -322,14 +324,12 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
         />
         <TextField
           className={styles.control}
-          type="number"
-          min="1"
-          step="1"
+          type="text"
           disabled={!state.idleTimeoutEnabled}
           label={renderToString(
             "SessionConfigurationWidget.idle-timeout.label"
           )}
-          value={String(state.idleTimeoutSeconds)}
+          value={state.idleTimeoutSeconds?.toFixed(0) ?? ""}
           onChange={onIdleTimeoutSecondsChange}
         />
       </Widget>

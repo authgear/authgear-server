@@ -33,6 +33,7 @@ import { useFormField } from "../../form";
 import FieldList from "../../FieldList";
 import FormContainer from "../../FormContainer";
 import { clearEmptyObject } from "../../util/misc";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import styles from "./WebhookConfigurationScreen.module.scss";
 import { renderErrors } from "../../error/parse";
 import WidgetDescription from "../../WidgetDescription";
@@ -50,8 +51,8 @@ interface NonBlockingEventHandler {
   url: string;
 }
 interface FormState {
-  timeout: number;
-  totalTimeout: number;
+  timeout: number | undefined;
+  totalTimeout: number | undefined;
   blocking_handlers: BlockingEventHandler[];
   non_blocking_handlers: NonBlockingEventHandler[];
   secret: string | null;
@@ -66,8 +67,8 @@ function constructFormState(
   secrets: PortalAPISecretConfig
 ): FormState {
   return {
-    timeout: config.hook?.sync_hook_timeout_seconds ?? 0,
-    totalTimeout: config.hook?.sync_hook_total_timeout_seconds ?? 0,
+    timeout: config.hook?.sync_hook_timeout_seconds,
+    totalTimeout: config.hook?.sync_hook_total_timeout_seconds,
     blocking_handlers: config.hook?.blocking_handlers ?? [],
     non_blocking_handlers: config.hook?.non_blocking_handlers ?? [],
     secret: secrets.webhookSecret?.secret ?? null,
@@ -270,7 +271,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
       (_, value?: string) => {
         setState((state) => ({
           ...state,
-          timeout: Number(value),
+          timeout: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
@@ -280,7 +281,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
       (_, value?: string) => {
         setState((state) => ({
           ...state,
-          totalTimeout: Number(value),
+          totalTimeout: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
@@ -516,22 +517,18 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           </WidgetTitle>
           <TextField
             className={styles.control}
-            type="number"
-            min="1"
-            step="1"
+            type="text"
             label={renderToString(
               "WebhookConfigurationScreen.total-timeout.label"
             )}
-            value={String(state.totalTimeout)}
+            value={state.totalTimeout?.toFixed(0) ?? ""}
             onChange={onTotalTimeoutChange}
           />
           <TextField
             className={styles.control}
-            type="number"
-            min="1"
-            step="1"
+            type="text"
             label={renderToString("WebhookConfigurationScreen.timeout.label")}
-            value={String(state.timeout)}
+            value={state.timeout?.toFixed(0) ?? ""}
             onChange={onTimeoutChange}
           />
         </Widget>
