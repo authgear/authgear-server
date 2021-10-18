@@ -456,10 +456,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                   />
                   <TooltipTextField
                     className={styles.control}
-                    type="number"
-                    min="1"
-                    step="1"
-                    max="65535"
+                    type="text"
                     label={renderToString("SMTPConfigurationScreen.port.label")}
                     value={state.portString}
                     disabled={state.isPasswordMasked}

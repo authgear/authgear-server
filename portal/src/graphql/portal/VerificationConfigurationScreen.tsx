@@ -19,6 +19,7 @@ import {
   verificationCriteriaList,
 } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
+import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
@@ -36,7 +37,7 @@ import styles from "./VerificationConfigurationScreen.module.scss";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 
 interface FormState {
-  codeExpirySeconds: number;
+  codeExpirySeconds: number | undefined;
   criteria: VerificationCriteria;
   email: Required<VerificationClaimConfig>;
   phone: Required<VerificationClaimConfig>;
@@ -44,7 +45,7 @@ interface FormState {
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
-    codeExpirySeconds: config.verification?.code_expiry_seconds ?? 3600,
+    codeExpirySeconds: config.verification?.code_expiry_seconds,
     criteria: config.verification?.criteria ?? "any",
     email: {
       enabled: config.verification?.claims?.email?.enabled ?? true,
@@ -115,7 +116,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
       (_, value?: string) => {
         setState((state) => ({
           ...state,
-          codeExpirySeconds: Number(value),
+          codeExpirySeconds: parseIntegerAllowLeadingZeros(value),
         }));
       },
       [setState]
@@ -204,13 +205,11 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
           </WidgetTitle>
           <TextField
             className={styles.control}
-            type="number"
-            min="0"
-            step="1"
+            type="text"
             label={renderToString(
               "VerificationConfigurationScreen.code-expiry-seconds.label"
             )}
-            value={String(state.codeExpirySeconds)}
+            value={state.codeExpirySeconds?.toFixed(0) ?? ""}
             onChange={onCodeExpirySecondsChange}
           />
           <Dropdown

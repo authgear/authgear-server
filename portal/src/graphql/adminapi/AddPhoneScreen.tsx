@@ -14,7 +14,7 @@ import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormTextField from "../../FormTextField";
 import AddIdentityForm from "./AddIdentityForm";
-import { useDropdown, useIntegerTextField } from "../../hook/useInput";
+import { useDropdown } from "../../hook/useInput";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
 import { PortalAPIAppConfig } from "../../types";
@@ -111,10 +111,17 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
       getLabel
     );
 
-  const { onChange: onPhoneChange } = useIntegerTextField((value) => {
-    setPhone(value);
-    onChange(makePhoneNumber(alpha2, value));
-  });
+  const onPhoneChange = useCallback(
+    (_, value?: string) => {
+      if (value != null) {
+        if (/^\d*$/.test(value)) {
+          setPhone(value);
+          onChange(makePhoneNumber(alpha2, value));
+        }
+      }
+    },
+    [alpha2, onChange]
+  );
 
   return (
     <section className={styles.phoneNumberFields}>
