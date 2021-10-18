@@ -146,46 +146,16 @@
     </a>
   </div>
 
-  {{/* address.street_address */}}
+  {{/* address.address */}}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
-    <span class="grid-area-name primary-txt">{{ template "standard-attribute-street-address" }}</span>
-    <span class="grid-area-desc secondary-txt whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span>
-    <a class="link grid-area-action self-center" href="#">
-      <i class="ti ti-edit"></i>
-    </a>
-  </div>
-
-  {{/* address.locality */}}
-  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
-    <span class="grid-area-name primary-txt">{{ template "standard-attribute-locality" }}</span>
-    <span class="grid-area-desc secondary-txt">{{ $.AddressLocality }}</span>
-    <a class="link grid-area-action self-center" href="#">
-      <i class="ti ti-edit"></i>
-    </a>
-  </div>
-
-  {{/* address.postal_code */}}
-  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
-    <span class="grid-area-name primary-txt">{{ template "standard-attribute-postal-code" }}</span>
-    <span class="grid-area-desc secondary-txt">{{ $.AddressPostalCode }}</span>
-    <a class="link grid-area-action self-center" href="#">
-      <i class="ti ti-edit"></i>
-    </a>
-  </div>
-
-  {{/* address.region */}}
-  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
-    <span class="grid-area-name primary-txt">{{ template "standard-attribute-region" }}</span>
-    <span class="grid-area-desc secondary-txt">{{ $.AddressRegion }}</span>
-    <a class="link grid-area-action self-center" href="#">
-      <i class="ti ti-edit"></i>
-    </a>
-  </div>
-
-  {{/* address.country */}}
-  <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
-    <span class="grid-area-name primary-txt">{{ template "standard-attribute-country" }}</span>
-    <span class="grid-area-desc secondary-txt">{{ $.AddressCountry }}</span>
+    <span class="grid-area-name primary-txt">{{ template "standard-attribute-address" }}</span>
+    <span class="grid-area-desc secondary-txt">
+      {{- if $.AddressStreetAddress }}<span class="whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span><br>{{ end }}
+      {{- if $.AddressLocality }}{{ $.AddressLocality }}<br>{{ end }}
+      {{- if $.AddressRegion }}{{ $.AddressRegion }}<br>{{ end }}
+      {{- if $.AddressPostalCode }}{{ $.AddressPostalCode }}<br>{{ end }}
+      {{- if $.AddressCountry }}{{ $.AddressCountry }}<br>{{ end }}
+    </span>
     <a class="link grid-area-action self-center" href="#">
       <i class="ti ti-edit"></i>
     </a>
