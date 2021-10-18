@@ -168,6 +168,10 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> =
       setSearchString(value);
     }, []);
 
+    const onClear = useCallback((_e) => {
+      setSearchString("");
+    }, []);
+
     useEffect(() => {
       if (presented) {
         setNewSupportedLanguages(supportedLanguages);
@@ -261,7 +265,9 @@ const ManageLanguageWidgetDialog: React.FC<ManageLanguageWidgetDialogProps> =
         <SearchBox
           className={styles.searchBox}
           placeholder={renderToString("search")}
+          value={searchString}
           onChange={onSearch}
+          onClear={onClear}
         />
         <Text variant="small" className={styles.dialogColumnHeader}>
           <FormattedMessage id="ManageLanguageWidget.languages" />

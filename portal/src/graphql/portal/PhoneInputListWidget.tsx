@@ -245,6 +245,10 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
       setSearchString(value);
     });
 
+    const onSearchBoxClear = useCallback((_e) => {
+      setSearchString("");
+    }, []);
+
     const allItems: ListItem[] = useMemo(() => {
       const pinned = new Set(pinnedAlpha2);
       const allowed = new Set(allowedAlpha2);
@@ -478,7 +482,9 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
         <SearchBox
           className={styles.searchBox}
           placeholder={renderToString("search")}
+          value={searchString}
           onChange={onSearchBoxChange}
+          onClear={onSearchBoxClear}
         />
         <div className={styles.listWrapper}>
           <ScrollablePane>

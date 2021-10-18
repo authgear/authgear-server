@@ -83,6 +83,12 @@ const UsersScreen: React.FC = function UsersScreen() {
     }
   }, []);
 
+  const onClearSearchKeyword = useCallback((_e) => {
+    setSearchKeyword("");
+    // Reset offset when search keyword was changed.
+    setOffset(0);
+  }, []);
+
   const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
     if (searchEnabled) {
       return [
@@ -96,6 +102,7 @@ const UsersScreen: React.FC = function UsersScreen() {
                 placeholder={renderToString("search")}
                 value={searchKeyword}
                 onChange={onChangeSearchKeyword}
+                onClear={onClearSearchKeyword}
               />
             );
           },
@@ -103,7 +110,13 @@ const UsersScreen: React.FC = function UsersScreen() {
       ];
     }
     return [];
-  }, [renderToString, onChangeSearchKeyword, searchKeyword, searchEnabled]);
+  }, [
+    renderToString,
+    onChangeSearchKeyword,
+    searchKeyword,
+    searchEnabled,
+    onClearSearchKeyword,
+  ]);
 
   const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
     return [
