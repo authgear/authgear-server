@@ -76,6 +76,7 @@
   "disconnect-button-label": "移除連結",
   "add-button-label": "增加",
   "remove-button-label": "移除",
+  "save-button-label": "儲存",
   "more-button-label": "更多",
   "more-login-methods-label": "更多登入方法",
   "resend-verification-code-button-label": "發送驗證碼",
