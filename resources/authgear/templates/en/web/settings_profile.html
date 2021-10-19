@@ -16,16 +16,16 @@
         src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
       {{ end }}
     >
-    <a class="link col-start-2 row-span-full self-center" href="#">
-      <i class="ti ti-edit"></i>
-    </a>
+    {{/* TODO(picture) */}}
+    {{/* The edit link is not shown because we only supports entering URL */}}
+    {{/* We will add the button back when we support uploading picture */}}
   </div>
 
   {{/* FormattedNames */}}
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "settings-profile-formatted-names-label" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt whitespace-pre-wrap">{{ $.FormattedNames }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/name/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -34,7 +34,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-email" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Email }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/email/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -43,7 +43,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-phone-number" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PhoneNumber }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/phone_number/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -52,7 +52,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-preferred-username" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PreferredUsername }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/preferred_username/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -61,7 +61,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-profile" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Profile }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/profile/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -70,7 +70,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-website" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Website }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/website/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -79,7 +79,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-gender" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Gender }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/gender/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -88,7 +88,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-birthdate" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Birthdate }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/birthdate/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -97,7 +97,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-zoneinfo" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Zoneinfo }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/zoneinfo/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -106,7 +106,7 @@
   <div class="padding-20 row-sep gap-6 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-locale" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Locale }}</span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/locale/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
@@ -121,7 +121,7 @@
       {{- if $.AddressPostalCode }}{{ $.AddressPostalCode }}<br>{{ end }}
       {{- if $.AddressCountry }}{{ $.AddressCountry }}<br>{{ end }}
     </span>
-    <a class="link col-start-2 row-span-full self-center" href="#">
+    <a class="link col-start-2 row-span-full self-center" href="/settings/profile/address/edit">
       <i class="ti ti-edit"></i>
     </a>
   </div>
