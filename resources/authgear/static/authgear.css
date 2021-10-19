@@ -105,25 +105,6 @@ h1, h2, h3, h4, h5, h6 {
   padding-bottom: 24px;  /* 40px - 16px = 8px */
 }
 
-.nav-bar {
-  display: flex;
-  flex-direction: row;
-  margin: 0 20px;
-}
-
-.nav-bar .back-btn {
-  margin-top: 32px;
-  margin-bottom: 12px;
-}
-
-.settings-content .nav-bar {
-  margin: 0 16px;
-}
-
-.settings-content .nav-bar .back-btn {
-  margin: 18px 0;
-}
-
 @media (min-width: 641px) {
   .page {
     display: flex;
@@ -463,6 +444,11 @@ h1, h2, h3, h4, h5, h6 {
 .padding-h-4 {
   padding-left: 4px;
   padding-right: 4px;
+}
+
+.padding-h-12 {
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 .padding-h-18 {
