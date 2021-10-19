@@ -1,9 +1,80 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content settings-content">
-<div class="pane flex flex-col">
+<div class="pane flex flex-col row-gap-20 padding-t-12 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
   {{ template "__nav_bar.html" "/settings/profile" }}
+
+  <h1 class="primary-txt margin-0 text-xl text-center font-bold">
+    {{ template "settings-profile-edit-title" (dict "variant" $.Variant) }}
+  </h1>
+
+  <form id="form" class="flex flex-col gap-20" method="post" novalidate>
+  {{ $.CSRFField }}
+
+  {{ if (eq $.Variant "name") }}
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-name" }}
+    <input class="input text-input text-base" name="/name" value="{{ $.Name }}">
+  </label>
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-nickname" }}
+    <input class="input text-input text-base" name="/nickname" value="{{ $.Nickname }}">
+  </label>
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-given-name" }}
+    <input class="input text-input text-base" name="/given_name" value="{{ $.GivenName }}">
+  </label>
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-middle-name" }}
+    <input class="input text-input text-base" name="/middle_name" value="{{ $.MiddleName }}">
+  </label>
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-family-name" }}
+    <input class="input text-input text-base" name="/family_name" value="{{ $.FamilyName }}">
+  </label>
+  {{ end }}
+
+  {{ if (eq $.Variant "profile") }}
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-profile" }}
+    <input class="input text-input text-base" name="/profile" value="{{ $.Profile }}">
+  </label>
+  {{ end }}
+
+  {{ if (eq $.Variant "website") }}
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-website" }}
+    <input class="input text-input text-base" name="/website" value="{{ $.Website }}">
+  </label>
+  {{ end }}
+
+  {{ if (eq $.Variant "address") }}
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-street-address" }}
+    <textarea class="input text-base" rows="3" name="/address/street_address">
+      {{- $.AddressStreetAddress -}}
+    </textarea>
+  </label>
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-locality" }}
+    <input class="input text-input text-base" name="/address/locality" value="{{ $.AddressLocality }}">
+  </label>
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-postal-code" }}
+    <input class="input text-input text-base" name="/address/postal_code" value="{{ $.AddressPostalCode }}">
+  </label>
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-region" }}
+    <input class="input text-input text-base" name="/address/region" value="{{ $.AddressRegion }}">
+  </label>
+  {{ end }}
+
+  <button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="save">
+    {{ template "save-button-label" }}
+  </button>
+
+  </form>
+
+  {{ template "__watermark.html" . }}
 </div>
-</main>
 {{ end }}
