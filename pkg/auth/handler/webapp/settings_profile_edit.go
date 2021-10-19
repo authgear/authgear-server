@@ -32,6 +32,9 @@ func (h *SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWr
 
 	data := map[string]interface{}{}
 
+	variant := httproute.GetParam(r, "variant")
+	data["Variant"] = variant
+
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 

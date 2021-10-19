@@ -76,6 +76,7 @@
   "disconnect-button-label": "Disconnect",
   "add-button-label": "Add",
   "remove-button-label": "Remove",
+  "save-button-label": "Save",
   "more-button-label": "More",
   "more-login-methods-label": "More login methods",
   "resend-verification-code-button-label": "Send verification code",
@@ -316,6 +317,8 @@
   "select-account-use-another-account-label": "Use another account",
 
   "settings-profile-formatted-names-label": "Name",
+
+  "settings-profile-edit-title": "Edit {variant, select, name{Name} email{Email} phone_number{Phone Number} preferred_username{Username} profile{Profile URL} website{Website URL} gender{Gender} birthdate{Birthdate} zoneinfo{Timezone} locale{Preferred Language} address{Address} other{}}",
 
   "standard-attribute-name": "Full Name",
   "standard-attribute-given-name": "Given Name",
