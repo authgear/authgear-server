@@ -517,19 +517,19 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           />
           <FormTextField
             className={styles.c4}
-            value={standardAttributes.family_name}
-            onChange={onChangeFamilyName}
-            parentJSONPointer=""
-            fieldName="family_name"
-            label={renderToString("standard-attribute.family_name")}
-          />
-          <FormTextField
-            className={styles.c5}
             value={standardAttributes.middle_name}
             onChange={onChangeMiddleName}
             parentJSONPointer=""
             fieldName="middle_name"
             label={renderToString("standard-attribute.middle_name")}
+          />
+          <FormTextField
+            className={styles.c5}
+            value={standardAttributes.family_name}
+            onChange={onChangeFamilyName}
+            parentJSONPointer=""
+            fieldName="family_name"
+            label={renderToString("standard-attribute.family_name")}
           />
         </Div>
         <FormTextField
