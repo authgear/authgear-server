@@ -140,7 +140,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .gap-12 {
-  gap: 8px;
+  gap: 12px;
+}
+
+.gap-20 {
+  gap: 20px;
 }
 
 .gap-16 {
@@ -308,6 +312,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 32px;
 }
 
+.margin-h-40 {
+  margin-left: 40px;
+  margin-right: 40px;
+}
+
 @media (min-width: 640px) {
   .tablet\:margin-h-16 {
     margin-left: 16px;
@@ -337,8 +346,16 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 4px;
 }
 
+.margin-t-6 {
+  margin-top: 6px;
+}
+
 .margin-t-10 {
   margin-top: 10px;
+}
+
+.margin-t-12 {
+  margin-top: 12px;
 }
 
 .margin-t-16 {
@@ -351,6 +368,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .margin-t-24 {
   margin-top: 24px;
+}
+
+.margin-t-30 {
+  margin-top: 30px;
 }
 
 .margin-t-32 {
