@@ -3,6 +3,8 @@ package webapp
 import (
 	"net/url"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -16,6 +18,21 @@ func FormToJSON(form url.Values) map[string]interface{} {
 		}
 	}
 	return j
+}
+
+func JSONPointerFormToMap(form url.Values) map[string]interface{} {
+	out := make(map[string]interface{})
+	for ptrStr := range form {
+		val := form.Get(ptrStr)
+		_, err := jsonpointer.Parse(ptrStr)
+		if err != nil {
+			// ignore this field because it does not seem a valid json pointer.
+			continue
+		}
+
+		out[ptrStr] = val
+	}
+	return out
 }
 
 type FormPrefiller struct {
