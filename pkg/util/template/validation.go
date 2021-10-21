@@ -9,10 +9,11 @@ import (
 )
 
 type Validator struct {
-	allowRangeNode    bool
-	allowTemplateNode bool
-	allowDeclaration  bool
-	maxDepth          int
+	allowRangeNode      bool
+	allowTemplateNode   bool
+	allowDeclaration    bool
+	allowIdentifierNode bool
+	maxDepth            int
 }
 
 type ValidatorOption func(*Validator)
@@ -32,6 +33,12 @@ func AllowTemplateNode(b bool) ValidatorOption {
 func AllowDeclaration(b bool) ValidatorOption {
 	return func(v *Validator) {
 		v.allowDeclaration = b
+	}
+}
+
+func AllowIdentifierNode(b bool) ValidatorOption {
+	return func(v *Validator) {
+		v.allowIdentifierNode = b
 	}
 }
 
@@ -104,7 +111,7 @@ func (v *Validator) validateTree(tree *parse.Tree) (err error) {
 			case *parse.CommandNode:
 				for _, arg := range n.Args {
 					if ident, ok := arg.(*parse.IdentifierNode); ok {
-						if !checkIdentifier(ident.Ident) {
+						if !v.allowIdentifierNode && !checkIdentifier(ident.Ident) {
 							err = fmt.Errorf("%s: forbidden identifier %s", formatLocation(tree, n), ident.Ident)
 							break
 						}
