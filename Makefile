@@ -66,6 +66,7 @@ check-tidy:
 	$(MAKE) generate
 	$(MAKE) html-email
 	$(MAKE) export-schemas
+	$(MAKE) generate-timezones
 	go mod tidy
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
@@ -120,6 +121,10 @@ export-schemas:
 	go run ./scripts/exportschemas -s secrets-config -o tmp/secrets-config.schema.json
 	npm run --silent --prefix ./scripts/npm export-graphql-schema admin > portal/src/graphql/adminapi/schema.graphql
 	npm run --silent --prefix ./scripts/npm export-graphql-schema portal > portal/src/graphql/portal/schema.graphql
+
+.PHONY:	generate-timezones
+generate-timezones:
+	npm run --silent --prefix ./scripts/npm generate-go-timezones > pkg/util/tzutil/names.go
 
 .PHONY: logs-summary
 logs-summary:
