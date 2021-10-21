@@ -3,10 +3,13 @@
   "description": "Install binaries from the node/npm ecosystem",
   "version": "0.1.0",
   "scripts": {
-    "export-graphql-schema": "node export-graphql-schema.js"
+    "export-graphql-schema": "node export-graphql-schema.js",
+    "generate-go-timezones": "node generate-go-timezones.js"
   },
   "devDependencies": {
     "graphql": "15.6.0",
-    "mjml": "4.10.3"
+    "luxon": "2.0.2",
+    "mjml": "4.10.3",
+    "tzdata": "1.0.28"
   }
 }
