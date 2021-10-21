@@ -18619,11 +18619,17 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
 		Users: queries,
 	}
+	userFacade := &facade.UserFacade{
+		UserProvider: userProvider,
+		Coordinator:  coordinator,
+	}
 	settingsProfileEditHandler := &webapp2.SettingsProfileEditHandler{
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
 		SettingsProfileViewModel: settingsProfileViewModeler,
 		Renderer:                 responseRenderer,
+		Users:                    userFacade,
+		ErrorCookie:              errorCookie,
 	}
 	return settingsProfileEditHandler
 }
