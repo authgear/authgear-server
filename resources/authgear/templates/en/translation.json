@@ -321,6 +321,7 @@
 
   "settings-profile-edit-title": "Edit {variant, select, name{Name} email{Email} phone_number{Phone Number} preferred_username{Username} profile{Profile URL} website{Website URL} gender{Gender} birthdate{Birthdate} zoneinfo{Timezone} locale{Preferred Language} address{Address} other{}}",
   "settings-profile-edit-zoneinfo-placeholder": "Select a timezone",
+  "settings-profile-edit-country-placeholder": "Select a territory",
 
   "standard-attribute-name": "Full Name",
   "standard-attribute-given-name": "Given Name",
@@ -342,7 +343,7 @@
   "standard-attribute-locality": "City",
   "standard-attribute-postal-code": "Postal Code",
   "standard-attribute-region": "State / Province / Prefecture / Region",
-  "standard-attribute-country": "Country",
+  "standard-attribute-country": "Territory",
 
   "gender-female": "Female",
   "gender-male": "Male",
