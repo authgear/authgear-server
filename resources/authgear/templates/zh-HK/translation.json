@@ -339,5 +339,8 @@
   "standard-attribute-locality": "城市",
   "standard-attribute-postal-code": "郵遞區號",
   "standard-attribute-region": "洲 / 省 / 縣 / 區",
-  "standard-attribute-country": "國家"
+  "standard-attribute-country": "國家",
+
+  "gender-female": "女性",
+  "gender-male": "男性"
 }

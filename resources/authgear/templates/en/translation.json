@@ -341,5 +341,8 @@
   "standard-attribute-locality": "City",
   "standard-attribute-postal-code": "Postal Code",
   "standard-attribute-region": "State / Province / Prefecture / Region",
-  "standard-attribute-country": "Country"
+  "standard-attribute-country": "Country",
+
+  "gender-female": "Female",
+  "gender-male": "Male"
 }
