@@ -125,5 +125,62 @@ func TestT(t *testing.T) {
 				"phone_number":       "+85298765432",
 			}.EndUserAccountID(), ShouldEqual, "user@example.com")
 		})
+
+		Convey("Clone", func() {
+			a := T{
+				"address": map[string]interface{}{
+					"street_address": "a",
+				},
+			}
+			b := a.Clone()
+			b["address"].(map[string]interface{})["street_address"] = "b"
+
+			So(b, ShouldResemble, T{
+				"address": map[string]interface{}{
+					"street_address": "b",
+				},
+			})
+			So(a, ShouldResemble, T{
+				"address": map[string]interface{}{
+					"street_address": "a",
+				},
+			})
+		})
+
+		Convey("Tidy", func() {
+			a := T{
+				"name":    "John Doe",
+				"address": map[string]interface{}{},
+			}
+			So(a.Tidy(), ShouldResemble, T{
+				"name": "John Doe",
+			})
+		})
+
+		Convey("MergedWithJSONPointer", func() {
+			test := func(original T, ptrs map[string]interface{}, expected T) {
+				actual, err := original.MergedWithJSONPointer(ptrs)
+				So(err, ShouldBeNil)
+				So(actual, ShouldResemble, expected)
+			}
+
+			test(T{
+				"name":        "John Doe",
+				"given_name":  "John",
+				"family_name": "Doe",
+				"address": map[string]interface{}{
+					"street_address": "Some street",
+				},
+			}, map[string]interface{}{
+				"/given_name":             "",
+				"/family_name":            "Lee",
+				"/middle_name":            "William",
+				"/address/street_address": "",
+			}, T{
+				"name":        "John Doe",
+				"middle_name": "William",
+				"family_name": "Lee",
+			})
+		})
 	})
 }

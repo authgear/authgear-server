@@ -3,6 +3,9 @@ package stdattrs
 import (
 	"fmt"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+
+	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
 	"github.com/authgear/authgear-server/pkg/util/nameutil"
 )
 
@@ -124,6 +127,57 @@ func (t T) MergedWith(that T) T {
 	}
 
 	return out
+}
+
+func (t T) Clone() T {
+	out := make(T)
+	for k, v := range t {
+		if k == Address {
+			address := make(map[string]interface{})
+			if m, ok := v.(map[string]interface{}); ok {
+				for mk, mv := range m {
+					address[mk] = mv
+				}
+			}
+			out[k] = address
+		} else {
+			out[k] = v
+		}
+	}
+	return out
+}
+
+func (t T) Tidy() T {
+	out := t.Clone()
+	if address, ok := out[Address].(map[string]interface{}); ok {
+		if len(address) <= 0 {
+			delete(out, Address)
+		}
+	}
+	return out
+}
+
+func (t T) MergedWithJSONPointer(ptrs map[string]interface{}) (T, error) {
+	out := t.Clone().ToClaims()
+	for ptrStr, val := range ptrs {
+		ptr, err := jsonpointer.Parse(ptrStr)
+		if err != nil {
+			return nil, err
+		}
+		if val == "" {
+			err = jsonpointerutil.RemoveFromJSONObject(ptr, out)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			err = jsonpointerutil.AssignToJSONObject(ptr, out, val)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	// All address fields may have been removed, so we should call Tidy here.
+	return T(out).Tidy(), nil
 }
 
 const (
