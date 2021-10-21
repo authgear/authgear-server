@@ -4,11 +4,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/tzutil"
 )
 
 type SettingsProfileViewModel struct {
 	FormattedNames string
 	Today          string
+	Timezones      []tzutil.Timezone
 
 	Name                 string
 	GivenName            string
@@ -66,9 +68,15 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 
 	now := m.Clock.NowUTC()
 
+	timezones, err := tzutil.List(now)
+	if err != nil {
+		return nil, err
+	}
+
 	viewModel := &SettingsProfileViewModel{
 		FormattedNames: stdattrs.T(stdAttrs).FormattedNames(),
 		Today:          now.Format("2006-01-02"),
+		Timezones:      timezones,
 
 		Name:                 str(stdattrs.Name),
 		GivenName:            str(stdattrs.GivenName),
