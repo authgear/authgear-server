@@ -65,6 +65,8 @@
                             <li>{{ template "error-verification-code-format" }}</li>
                         {{ else if (eq .details.format "x_recovery_code") }}
                             <li>{{ template "error-recovery-code-format" }}</li>
+                        {{ else if (eq .details.format "uri") }}
+                            <li>{{ template "error-uri-format" }}</li>
                         {{ else }}
                             <li>{{ . }}</li>
                         {{ end }}
