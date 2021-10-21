@@ -18054,6 +18054,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
 		Users: queries,
+		Clock: clockClock,
 	}
 	settingsProfileHandler := &webapp2.SettingsProfileHandler{
 		ControllerFactory:        controllerFactory,
@@ -18641,6 +18642,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
 		Users: queries,
+		Clock: clockClock,
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,
