@@ -76,6 +76,17 @@
   </label>
   {{ end }}
 
+  {{ if (eq $.Variant "gender") }}
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-gender" }}
+    <input class="input text-input text-base" name="/gender" value="{{ $.Gender }}" list="gender-list">
+  </label>
+  <datalist id="gender-list">
+    <option value="female">{{ template "gender-female" }}</option>
+    <option value="male">{{ template "gender-male" }}</option>
+  </datalist>
+  {{ end }}
+
   <button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="save">
     {{ template "save-button-label" }}
   </button>
