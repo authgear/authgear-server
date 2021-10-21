@@ -69,6 +69,16 @@
     {{ template "standard-attribute-region" }}
     <input class="input text-input text-base" name="/address/region" value="{{ $.AddressRegion }}">
   </label>
+  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-country" }}
+    <select class="select" name="/address/country">
+      <option value="" {{ if not $.AddressCountry }}selected{{ end }}>{{ template "settings-profile-edit-country-placeholder" }}</option>
+      {{ range $.Alpha2 }}
+      {{ $label := (print "territory-" . ) }}
+      <option value="{{ . }}" {{ if (eq $.AddressCountry .) }}selected{{ end }}>{{ . }} - {{ ($.Translations.RenderText $label nil) }}</option>
+      {{ end }}
+    </select>
+  </label>
   {{ end }}
 
   {{ if (eq $.Variant "birthdate") }}
