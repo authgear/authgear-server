@@ -31,6 +31,7 @@
   "error-oob-otp-code-format": "你所輸入的一次性密碼格式不正確。請確保一次性密碼為6位碼",
   "error-verification-code-format": "你所輸入的驗證碼格式不正確。請確保驗證碼為6位碼",
   "error-recovery-code-format": "你所輸入的備用碼格式不正確。請確保備用碼為10位碼",
+  "error-uri-format": "你所輸入的URL格式不正確。URL通常以https://作開始，例如https://example.com/",
   "error-email-not-allowed": "你所輸入的電郵地址被禁用。如你認為該電郵地址應為有效，請聯絡客戶服務",
   "error-username-not-allowed": "你所輸入的用戶名稱被禁用。請避免使用已保留的用戶名稱，例如「admin」",
   "error-user-not-found": "找不到你所輸入的帳號。請確保帳號正確",

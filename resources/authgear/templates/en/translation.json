@@ -31,6 +31,7 @@
   "error-oob-otp-code-format": "The one-time password you entered is not in a correct format. Please make ensure it is a 6-digit code.",
   "error-verification-code-format": "The verification code you entered is not in a correct format. Please make ensure it is a 6-digit code.",
   "error-recovery-code-format": "The recovery code you entered is not in a correct format. Please make ensure it is a 10-letter code.",
+  "error-uri-format": "The URL you entered is not in a correct format. URLs typically start with https://, e.g. https://example.com/",
   "error-email-not-allowed": "The email address you entered is disallowed. Please contact the customer support if you think the email address should be valid.",
   "error-username-not-allowed": "The username you entered is disallowed. Please avoid using reserved usernames like `admin`.",
   "error-user-not-found": "The account you entered cannot be found. Please ensure the account is correct.",
