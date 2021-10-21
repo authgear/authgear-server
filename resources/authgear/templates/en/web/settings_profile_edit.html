@@ -71,6 +71,13 @@
   </label>
   {{ end }}
 
+  {{ if (eq $.Variant "birthdate") }}
+  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-birthdate" }}
+    <input class="input text-input text-base" type="date" name="/birthdate" value="{{ $.Birthdate }}" max="{{ $.Today }}">
+  </label>
+  {{ end }}
+
   <button class="btn primary-btn margin-h-40 margin-v-20" type="submit" name="x_action" value="save">
     {{ template "save-button-label" }}
   </button>

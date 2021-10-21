@@ -3,10 +3,13 @@ package viewmodels
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type SettingsProfileViewModel struct {
-	FormattedNames       string
+	FormattedNames string
+	Today          string
+
 	Name                 string
 	GivenName            string
 	FamilyName           string
@@ -35,6 +38,7 @@ type SettingsProfileUserService interface {
 
 type SettingsProfileViewModeler struct {
 	Users SettingsProfileUserService
+	Clock clock.Clock
 }
 
 func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileViewModel, error) {
@@ -60,8 +64,12 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		return value
 	}
 
+	now := m.Clock.NowUTC()
+
 	viewModel := &SettingsProfileViewModel{
-		FormattedNames:       stdattrs.T(stdAttrs).FormattedNames(),
+		FormattedNames: stdattrs.T(stdAttrs).FormattedNames(),
+		Today:          now.Format("2006-01-02"),
+
 		Name:                 str(stdattrs.Name),
 		GivenName:            str(stdattrs.GivenName),
 		FamilyName:           str(stdattrs.FamilyName),
