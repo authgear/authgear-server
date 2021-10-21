@@ -89,6 +89,18 @@
   </datalist>
   {{ end }}
 
+  {{ if (eq $.Variant "zoneinfo") }}
+  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-zoneinfo" }}
+    <select class="select" name="/zoneinfo">
+      <option value="" {{ if not $.Zoneinfo }}selected{{ end }}>{{ template "settings-profile-edit-zoneinfo-placeholder" }}</option>
+      {{ range $.Timezones }}
+      <option value="{{ .Name }}" {{ if (eq $.Zoneinfo .Name) }}selected{{ end }}>[UTC {{ .FormattedOffset }}] {{ .Name }}</option>
+      {{ end }}
+    </select>
+  </label>
+  {{ end }}
+
   <button class="btn primary-btn margin-h-40 margin-v-20" type="submit" name="x_action" value="save">
     {{ template "save-button-label" }}
   </button>
