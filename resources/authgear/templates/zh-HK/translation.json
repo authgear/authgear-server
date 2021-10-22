@@ -321,6 +321,7 @@
   "settings-profile-formatted-names-label": "名稱",
 
   "settings-profile-edit-title": "更改{variant, select, name{名稱} email{電郵地址} phone_number{電話號碼} preferred_username{用戶名稱} profile{個人檔案 URL} website{網站 URL} gender{性別} birthdate{出生日期} zoneinfo{時區} locale{偏好語言} address{地址} other{}}",
+  "settings-profile-edit-gender-other": "其他 (請註明)",
 
   "standard-attribute-name": "全名",
   "standard-attribute-given-name": "名",
