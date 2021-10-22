@@ -11,6 +11,7 @@ import {
   xhrSubmitForm,
   restoreForm,
 } from "./form";
+import { setupSelectEmptyValue } from "./select";
 import { DateTime } from "luxon";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
@@ -22,6 +23,8 @@ window.api.onLoad(() => {
 });
 
 window.api.onLoad(setupIntlTelInput);
+
+window.api.onLoad(setupSelectEmptyValue);
 
 function copyToClipboard(str: string): void {
   const el = document.createElement("textarea");
