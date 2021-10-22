@@ -8,7 +8,7 @@ import {
   xhrSubmitForm,
   restoreForm,
 } from "./form";
-import { setupSelectEmptyValue } from "./select";
+import { setupSelectEmptyValue, setupGenderSelect } from "./select";
 import { formatDateRelative } from "./date";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
@@ -24,6 +24,7 @@ window.api.onLoad(setupPasswordPolicy);
 window.api.onLoad(setupIntlTelInput);
 
 window.api.onLoad(setupSelectEmptyValue);
+window.api.onLoad(setupGenderSelect);
 
 window.api.onLoad(formatDateRelative);
 
