@@ -65,7 +65,6 @@ var AvailableLanguages = []string{
 	"pt",
 	"pt-PT",
 	"ro",
-	"rm",
 	"ru",
 	"sr",
 	"si",
