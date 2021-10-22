@@ -91,12 +91,14 @@
   {{ if (eq $.Variant "gender") }}
   <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-gender" }}
-    <input class="input text-input text-base" name="/gender" value="{{ $.Gender }}" list="gender-list">
+    <select class="select" name="gender-select" data-gender-select="gender-input">
+      <option value="" {{ if not $.Gender }}selected{{ end }}>{{ template "unset-label" }}</option>
+      <option value="female" {{ if (eq $.Gender "female") }}selected{{ end }}>{{ template "gender-female" }}</option>
+      <option value="male" {{ if (eq $.Gender "male") }}selected{{ end }}>{{ template "gender-male" }}</option>
+      <option value="other" {{ if (and (not (eq $.Gender "female")) (not (eq $.Gender "male")) $.Gender) }}selected{{ end }}>{{ template "settings-profile-edit-gender-other" }}</option>
+    </select>
   </label>
-  <datalist id="gender-list">
-    <option value="female">{{ template "gender-female" }}</option>
-    <option value="male">{{ template "gender-male" }}</option>
-  </datalist>
+  <input id="gender-input" class="input text-input text-base margin-h-40" name="gender-input" value="{{ $.Gender }}">
   {{ end }}
 
   {{ if (eq $.Variant "zoneinfo") }}
