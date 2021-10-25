@@ -5,7 +5,12 @@ import {
   intlRelativeTimeFormatIsSupported,
 } from "./feature";
 import { setupIntlTelInput } from "./intlTelInput";
-import { clickLinkSubmitForm, autoSubmitForm, xhrSubmitForm } from "./form";
+import {
+  clickLinkSubmitForm,
+  autoSubmitForm,
+  xhrSubmitForm,
+  restoreForm,
+} from "./form";
 import { DateTime } from "luxon";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
@@ -225,6 +230,7 @@ window.api.onLoad(() => {
 });
 
 window.api.onLoad(xhrSubmitForm);
+window.api.onLoad(restoreForm);
 
 function refreshPage() {
   let url = window.location.pathname;

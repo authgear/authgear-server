@@ -159,3 +159,49 @@ function setNetworkError() {
     errorBar.classList.remove("hidden");
   }
 }
+
+export function restoreForm() {
+  const metaTag = document.querySelector(`meta[name="x-form-json"]`);
+  if (!(metaTag instanceof HTMLMetaElement)) {
+    return;
+  }
+
+  const content = metaTag.content;
+  if (content === "") {
+    return;
+  }
+
+  // Clear the content to avoid restoring twice.
+  metaTag.content = "";
+
+  const formDataJSON = JSON.parse(content);
+
+  // Find the form.
+  let form: HTMLFormElement | null = null;
+  const xAction = formDataJSON["x_action"];
+  const elementsWithXAction = document.querySelectorAll(`[name="x_action"]`);
+  for (let i = 0; i < elementsWithXAction.length; i++) {
+    const elem = elementsWithXAction[i];
+    if (elem instanceof HTMLButtonElement && elem.value === xAction) {
+      form = elem.form;
+      break;
+    }
+  }
+  if (form == null) {
+    return;
+  }
+
+  for (let i = 0; i < form.elements.length; i++) {
+    const elem = form.elements[i];
+    if (
+      elem instanceof HTMLInputElement ||
+      elem instanceof HTMLSelectElement ||
+      elem instanceof HTMLTextAreaElement
+    ) {
+      const value = formDataJSON[elem.name];
+      if (value != null) {
+        elem.value = value;
+      }
+    }
+  }
+}
