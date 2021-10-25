@@ -380,6 +380,7 @@ func (s *Service2) afterPost(
 				RawQuery: s.Request.URL.RawQuery,
 			}
 			result.RedirectURI = u.String()
+			result.NavigationAction = "replace"
 		}
 	}
 	s.Logger.Debugf("interaction: redirect to" + result.RedirectURI)
