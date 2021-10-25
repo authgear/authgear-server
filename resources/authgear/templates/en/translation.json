@@ -322,6 +322,9 @@
 
   "settings-profile-edit-title": "Edit {variant, select, name{Name} email{Email} phone_number{Phone Number} preferred_username{Username} profile{Profile URL} website{Website URL} gender{Gender} birthdate{Birthdate} zoneinfo{Timezone} locale{Preferred Language} address{Address} other{}}",
   "settings-profile-edit-gender-other": "Other (Please specify)",
+  "settings-profile-edit-email-placeholder": "No email addresses available",
+  "settings-profile-edit-phone-number-placeholder": "No phone numbers available",
+  "settings-profile-edit-preferred-username-placeholder": "No usernames available",
 
   "standard-attribute-name": "Full Name",
   "standard-attribute-given-name": "Given Name",
