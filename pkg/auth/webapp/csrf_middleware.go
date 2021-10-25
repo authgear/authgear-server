@@ -20,6 +20,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		secure := httputil.GetProto(r, bool(m.TrustProxy)) == "https"
 		options := []csrf.Option{
+			csrf.FieldName(CSRFFieldName),
 			csrf.CookieName(m.CookieDef.Name),
 			csrf.Path("/"),
 			csrf.Secure(secure),

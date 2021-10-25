@@ -36,6 +36,7 @@ type BaseViewModel struct {
 	AllowedPhoneCountryCodeJSON string
 	PinnedPhoneCountryCodeJSON  string
 	GeoIPCountryCode            string
+	FormJSON                    string
 	// ClientURI is the home page of the client.
 	ClientURI             string
 	ClientName            string
@@ -73,12 +74,26 @@ func (m *BaseViewModel) SetError(err error) {
 	}
 }
 
+func (m *BaseViewModel) SetFormJSON(form url.Values) {
+	// Do not restore CSRF token.
+	delete(form, webapp.CSRFFieldName)
+	simpleMap := make(map[string]string)
+	for key := range form {
+		simpleMap[key] = form.Get(key)
+	}
+	b, err := json.Marshal(simpleMap)
+	if err != nil {
+		panic(err)
+	}
+	m.FormJSON = string(b)
+}
+
 type StaticAssetResolver interface {
 	StaticAssetURL(id string) (url string, err error)
 }
 
 type ErrorCookie interface {
-	GetError(r *http.Request) (*apierrors.APIError, bool)
+	GetError(r *http.Request) (*webapp.ErrorState, bool)
 	ResetError() *http.Cookie
 }
 
@@ -182,8 +197,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		ResolvedLanguageTag:   resolvedLanguageTag,
 	}
 
-	if apiError, ok := m.ErrorCookie.GetError(r); ok {
-		model.SetError(apiError)
+	if errorState, ok := m.ErrorCookie.GetError(r); ok {
+		model.SetFormJSON(errorState.Form)
+		model.SetError(errorState.Error)
 		httputil.UpdateCookie(rw, m.ErrorCookie.ResetError())
 	}
 
