@@ -86,7 +86,7 @@
   {{/* birthdate */}}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-birthdate" }}</span>
-    <span class="grid-area-desc secondary-txt">{{ $.Birthdate }}</span>
+    <span class="grid-area-desc secondary-txt" data-input-date-value="{{ $.Birthdate }}">{{ $.Birthdate }}</span>
     <a class="link grid-area-action self-center" href="/settings/profile/birthdate/edit">
       <i class="ti ti-edit"></i>
     </a>
