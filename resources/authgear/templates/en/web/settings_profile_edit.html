@@ -3,9 +3,7 @@
 {{ define "page-content" }}
 <main class="content settings-content">
 <div class="pane flex flex-col gap-20">
-  <div class="margin-h-20 margin-t-12">
-    {{ template "__nav_bar.html" "/settings/profile" }}
-  </div>
+  {{ template "__nav_bar.html" "/settings/profile" }}
   <h1 class="margin-0 text-xl text-center">
     {{ template "settings-profile-edit-title" (dict "variant" $.Variant) }}
   </h1>
@@ -16,30 +14,30 @@
   {{ $save_disabled := false }}
 
   {{ if (eq $.Variant "name") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-name" }}
     <input class="input text-input text-base" name="/name" value="{{ $.Name }}">
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-nickname" }}
     <input class="input text-input text-base" name="/nickname" value="{{ $.Nickname }}">
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-given-name" }}
     <input class="input text-input text-base" name="/given_name" value="{{ $.GivenName }}">
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-middle-name" }}
     <input class="input text-input text-base" name="/middle_name" value="{{ $.MiddleName }}">
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-family-name" }}
     <input class="input text-input text-base" name="/family_name" value="{{ $.FamilyName }}">
   </label>
   {{ end }}
 
   {{ if (eq $.Variant "email") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-email" }}
     <select class="select" name="/email" {{ if not $.Emails }}disabled{{ end }}>
       {{ range $.Emails }}
@@ -54,7 +52,7 @@
   {{ end }}
 
   {{ if (eq $.Variant "phone_number") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-phone-number" }}
     <select class="select" name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}>
       {{ range $.PhoneNumbers }}
@@ -69,7 +67,7 @@
   {{ end }}
 
   {{ if (eq $.Variant "preferred_username") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-preferred-username" }}
     <select class="select" name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}>
       {{ range $.PreferredUsernames }}
@@ -84,39 +82,39 @@
   {{ end }}
 
   {{ if (eq $.Variant "profile") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-profile" }}
     <input class="input text-input text-base" name="/profile" value="{{ $.Profile }}">
   </label>
   {{ end }}
 
   {{ if (eq $.Variant "website") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-website" }}
     <input class="input text-input text-base" name="/website" value="{{ $.Website }}">
   </label>
   {{ end }}
 
   {{ if (eq $.Variant "address") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-street-address" }}
     <textarea class="input text-base" rows="3" name="/address/street_address">
       {{- $.AddressStreetAddress -}}
     </textarea>
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-locality" }}
     <input class="input text-input text-base" name="/address/locality" value="{{ $.AddressLocality }}">
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-postal-code" }}
     <input class="input text-input text-base" name="/address/postal_code" value="{{ $.AddressPostalCode }}">
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-region" }}
     <input class="input text-input text-base" name="/address/region" value="{{ $.AddressRegion }}">
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-country" }}
     <select class="select" name="/address/country">
       <option value="" {{ if not $.AddressCountry }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -129,14 +127,14 @@
   {{ end }}
 
   {{ if (eq $.Variant "birthdate") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-birthdate" }}
     <input class="input text-input text-base" type="date" name="/birthdate" value="{{ $.Birthdate }}" max="{{ $.Today }}">
   </label>
   {{ end }}
 
   {{ if (eq $.Variant "gender") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-gender" }}
     <select class="select" name="gender-select" data-gender-select="gender-input">
       <option value="" {{ if not $.Gender }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -145,11 +143,11 @@
       <option value="other" {{ if (and (not (eq $.Gender "female")) (not (eq $.Gender "male")) $.Gender) }}selected{{ end }}>{{ template "settings-profile-edit-gender-other" }}</option>
     </select>
   </label>
-  <input id="gender-input" class="input text-input text-base margin-h-40" name="gender-input" value="{{ $.Gender }}">
+  <input id="gender-input" class="input text-input text-base margin-h-20" name="gender-input" value="{{ $.Gender }}">
   {{ end }}
 
   {{ if (eq $.Variant "zoneinfo") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-zoneinfo" }}
     <select class="select" name="/zoneinfo">
       <option value="" {{ if not $.Zoneinfo }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -161,7 +159,7 @@
   {{ end }}
 
   {{ if (eq $.Variant "locale") }}
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-locale" }}
     <select class="select" name="/locale">
       <option value="" {{ if not $.Locale }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -173,7 +171,7 @@
   </label>
   {{ end }}
 
-  <button class="btn primary-btn margin-h-40 margin-v-20" type="submit" name="x_action" value="save" {{ if $save_disabled }}disabled{{ end }}>
+  <button class="btn primary-btn margin-h-20 margin-v-20" type="submit" name="x_action" value="save" {{ if $save_disabled }}disabled{{ end }}>
     {{ template "save-button-label" }}
   </button>
 
