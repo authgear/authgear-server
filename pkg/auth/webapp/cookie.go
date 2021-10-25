@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -62,11 +63,6 @@ func NewSignedUpCookieDef() SignedUpCookieDef {
 	return SignedUpCookieDef{Def: def}
 }
 
-type ErrorCookie struct {
-	Cookie  ErrorCookieDef
-	Cookies CookieManager
-}
-
 type ClientIDCookieDef struct {
 	Def *httputil.CookieDef
 }
@@ -80,7 +76,17 @@ func NewClientIDCookieDef() ClientIDCookieDef {
 	return ClientIDCookieDef{Def: def}
 }
 
-func (c *ErrorCookie) GetError(r *http.Request) (*apierrors.APIError, bool) {
+type ErrorState struct {
+	Form  url.Values
+	Error *apierrors.APIError
+}
+
+type ErrorCookie struct {
+	Cookie  ErrorCookieDef
+	Cookies CookieManager
+}
+
+func (c *ErrorCookie) GetError(r *http.Request) (*ErrorState, bool) {
 	cookie, err := c.Cookies.GetCookie(r, c.Cookie.Def)
 	if err != nil || cookie.Value == "" {
 		return nil, false
@@ -91,11 +97,11 @@ func (c *ErrorCookie) GetError(r *http.Request) (*apierrors.APIError, bool) {
 		return nil, false
 	}
 
-	var apiError apierrors.APIError
-	if err := json.Unmarshal(data, &apiError); err != nil {
+	var errorState ErrorState
+	if err := json.Unmarshal(data, &errorState); err != nil {
 		return nil, false
 	}
-	return &apiError, true
+	return &errorState, true
 }
 
 func (c *ErrorCookie) ResetError() *http.Cookie {
@@ -103,8 +109,11 @@ func (c *ErrorCookie) ResetError() *http.Cookie {
 	return cookie
 }
 
-func (c *ErrorCookie) SetError(value *apierrors.APIError) (*http.Cookie, error) {
-	data, err := json.Marshal(value)
+func (c *ErrorCookie) SetError(r *http.Request, value *apierrors.APIError) (*http.Cookie, error) {
+	data, err := json.Marshal(&ErrorState{
+		Form:  r.Form,
+		Error: value,
+	})
 	if err != nil {
 		return nil, err
 	}

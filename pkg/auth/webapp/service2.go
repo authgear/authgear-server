@@ -329,7 +329,7 @@ func (s *Service2) afterPost(
 		if !apierrors.IsAPIError(interactionErr) {
 			s.Logger.Errorf("interaction error: %v", interactionErr)
 		}
-		errCookie, err := s.ErrorCookie.SetError(apierrors.AsAPIError(interactionErr))
+		errCookie, err := s.ErrorCookie.SetError(s.Request, apierrors.AsAPIError(interactionErr))
 		if err != nil {
 			return err
 		}
@@ -380,6 +380,7 @@ func (s *Service2) afterPost(
 				RawQuery: s.Request.URL.RawQuery,
 			}
 			result.RedirectURI = u.String()
+			result.NavigationAction = "replace"
 		}
 	}
 	s.Logger.Debugf("interaction: redirect to" + result.RedirectURI)
