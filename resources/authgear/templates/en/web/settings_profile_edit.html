@@ -114,7 +114,7 @@
     {{ template "standard-attribute-region" }}
     <input class="input text-input text-base" name="/address/region" value="{{ $.AddressRegion }}">
   </label>
-  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+  <label class="flex flex-col gap-6 text-xs secondary-txt">
     {{ template "standard-attribute-country" }}
     <select class="select" name="/address/country">
       <option value="" {{ if not $.AddressCountry }}selected{{ end }}>{{ template "unset-label" }}</option>
@@ -143,7 +143,7 @@
       <option value="other" {{ if (and (not (eq $.Gender "female")) (not (eq $.Gender "male")) $.Gender) }}selected{{ end }}>{{ template "settings-profile-edit-gender-other" }}</option>
     </select>
   </label>
-  <input id="gender-input" class="input text-input text-base margin-h-40" name="gender-input" value="{{ $.Gender }}">
+  <input id="gender-input" class="input text-input text-base" name="gender-input" value="{{ $.Gender }}">
   {{ end }}
 
   {{ if (eq $.Variant "zoneinfo") }}
