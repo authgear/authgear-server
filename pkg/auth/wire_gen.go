@@ -18028,9 +18028,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	facadeIdentityFacade := &facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
 	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
 		Localization: localizationConfig,
 		Users:        queries,
+		Identities:   facadeIdentityFacade,
 		Clock:        clockClock,
 	}
 	settingsProfileHandler := &webapp2.SettingsProfileHandler{
@@ -18617,9 +18621,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	facadeIdentityFacade := &facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
 	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
 		Localization: localizationConfig,
 		Users:        queries,
+		Identities:   facadeIdentityFacade,
 		Clock:        clockClock,
 	}
 	userFacade := &facade.UserFacade{
