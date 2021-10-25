@@ -9,7 +9,7 @@ import {
   restoreForm,
 } from "./form";
 import { setupSelectEmptyValue, setupGenderSelect } from "./select";
-import { formatDateRelative } from "./date";
+import { formatDateRelative, formatInputDate } from "./date";
 // FIXME(css): Build CSS files one by one with another tool
 // webpack bundles all CSS files into one bundle.
 
@@ -27,6 +27,7 @@ window.api.onLoad(setupSelectEmptyValue);
 window.api.onLoad(setupGenderSelect);
 
 window.api.onLoad(formatDateRelative);
+window.api.onLoad(formatInputDate);
 
 function copyToClipboard(str: string): void {
   const el = document.createElement("textarea");
