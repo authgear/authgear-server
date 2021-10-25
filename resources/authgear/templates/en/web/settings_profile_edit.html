@@ -113,6 +113,19 @@
   </label>
   {{ end }}
 
+  {{ if (eq $.Variant "locale") }}
+  <label class="flex flex-col margin-h-40 gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-locale" }}
+    <select class="select" name="/locale">
+      <option value="" {{ if not $.Locale }}selected{{ end }}>{{ template "unset-label" }}</option>
+      {{ range $.Languages }}
+      {{ $label := (print "language-" . ) }}
+      <option value="{{ . }}" {{ if (eq $.Locale .) }}selected{{ end }}>{{ . }} - {{ ($.Translations.RenderText $label nil) }}</option>
+      {{ end }}
+    </select>
+  </label>
+  {{ end }}
+
   <button class="btn primary-btn margin-h-40 margin-v-20" type="submit" name="x_action" value="save">
     {{ template "save-button-label" }}
   </button>
