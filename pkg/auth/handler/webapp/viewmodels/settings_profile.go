@@ -3,6 +3,7 @@ package viewmodels
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
 	"github.com/authgear/authgear-server/pkg/util/tzutil"
@@ -13,6 +14,7 @@ type SettingsProfileViewModel struct {
 	Today          string
 	Timezones      []tzutil.Timezone
 	Alpha2         []string
+	Languages      []string
 
 	Name                 string
 	GivenName            string
@@ -41,8 +43,9 @@ type SettingsProfileUserService interface {
 }
 
 type SettingsProfileViewModeler struct {
-	Users SettingsProfileUserService
-	Clock clock.Clock
+	Localization *config.LocalizationConfig
+	Users        SettingsProfileUserService
+	Clock        clock.Clock
 }
 
 func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileViewModel, error) {
@@ -80,6 +83,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		Today:          now.Format("2006-01-02"),
 		Timezones:      timezones,
 		Alpha2:         territoryutil.Alpha2,
+		Languages:      m.Localization.SupportedLanguages,
 
 		Name:                 str(stdattrs.Name),
 		GivenName:            str(stdattrs.GivenName),
