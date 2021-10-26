@@ -17,7 +17,6 @@ import (
 
 func init() {
 	jsonschemaformat.DefaultChecker["phone"] = FormatPhone{}
-	jsonschemaformat.DefaultChecker["email"] = FormatEmail{AllowName: false}
 	jsonschemaformat.DefaultChecker["email-name-addr"] = FormatEmail{AllowName: true}
 	jsonschemaformat.DefaultChecker["uri"] = FormatURI{}
 	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}

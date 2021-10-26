@@ -25,7 +25,7 @@ require (
 	github.com/graphql-go/graphql v0.8.0
 	github.com/graphql-go/handler v0.2.3
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5
-	github.com/iawaknahc/jsonschema v0.0.0-20210812154943-527b91efe176
+	github.com/iawaknahc/jsonschema v0.0.0-20211026064614-d05c07b7760d
 	github.com/iawaknahc/originmatcher v0.0.0-20200622040912-c5bfd3560192
 	github.com/jetstack/cert-manager v1.4.4
 	github.com/jmoiron/sqlx v1.3.4
