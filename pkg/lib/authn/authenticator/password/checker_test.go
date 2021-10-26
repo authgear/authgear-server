@@ -1,6 +1,7 @@
 package password
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestPasswordCheckingFuncs(t *testing.T) {
@@ -94,117 +94,172 @@ func TestValidateNewPassword(t *testing.T) {
 		TimeNow: func() time.Time { return time.Date(2017, 11, 4, 0, 0, 0, 0, time.UTC) },
 	}
 
+	test := func(pc *Checker, userID string, password string, expected string) {
+		err := pc.ValidateNewPassword(userID, password)
+		if err != nil {
+			e := apierrors.AsAPIError(err)
+			b, _ := json.Marshal(e)
+			So(string(b), ShouldEqualJSON, expected)
+		} else {
+			So(expected, ShouldBeEmpty)
+		}
+	}
+
 	Convey("validate short password", t, func() {
 		password := "1"
 		pc := &Checker{
 			PwMinLength: 2,
 		}
-		So(
-			pc.ValidateNewPassword("", password),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordTooShort, Info: map[string]interface{}{"min_length": 2, "pw_length": 1}},
-				},
-			},
-		)
+		test(pc, "", password, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordTooShort",
+						"Info": {
+							"min_length": 2,
+							"pw_length": 1
+						}
+					}
+				]
+			}
+		}
+		`)
 	})
+
 	Convey("validate uppercase password", t, func() {
 		password := "a"
 		pc := &Checker{
 			PwUppercaseRequired: true,
 		}
-		So(
-			pc.ValidateNewPassword("", password),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordUppercaseRequired},
-				},
-			},
-		)
+		test(pc, "", password, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordUppercaseRequired"
+					}
+				]
+			}
+		}
+		`)
 	})
 	Convey("validate lowercase password", t, func() {
 		password := "A"
 		pc := &Checker{
 			PwLowercaseRequired: true,
 		}
-		So(
-			pc.ValidateNewPassword("", password),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordLowercaseRequired},
-				},
-			},
-		)
+		test(pc, "", password, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordLowercaseRequired"
+					}
+				]
+			}
+		}
+		`)
 	})
 	Convey("validate digit password", t, func() {
 		password := "-"
 		pc := &Checker{
 			PwDigitRequired: true,
 		}
-		So(
-			pc.ValidateNewPassword("", password),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordDigitRequired},
-				},
-			},
-		)
+		test(pc, "", password, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordDigitRequired"
+					}
+				]
+			}
+		}
+		`)
 	})
 	Convey("validate symbol password", t, func() {
 		password := "azAZ09"
 		pc := &Checker{
 			PwSymbolRequired: true,
 		}
-		So(
-			pc.ValidateNewPassword("", password),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordSymbolRequired},
-				},
-			},
-		)
+		test(pc, "", password, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordSymbolRequired"
+					}
+				]
+			}
+		}
+		`)
 	})
 	Convey("validate excluded keywords password", t, func() {
 		password := "useradmin1"
 		pc := &Checker{
 			PwExcludedKeywords: []string{"user"},
 		}
-		So(
-			pc.ValidateNewPassword("", password),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordContainingExcludedKeywords},
-				},
-			},
-		)
+		test(pc, "", password, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordContainingExcludedKeywords"
+					}
+				]
+			}
+		}
+		`)
 	})
 	Convey("validate guessable password", t, func() {
 		password := "abcde123456"
 		pc := &Checker{
 			PwMinGuessableLevel: 5,
 		}
-		So(
-			pc.ValidateNewPassword("", password),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordBelowGuessableLevel, Info: map[string]interface{}{"min_level": 5, "pw_level": 2}},
-				},
-			},
-		)
+		test(pc, "", password, `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordBelowGuessableLevel",
+						"Info": {
+							"min_level": 5,
+							"pw_level": 2
+						}
+					}
+				]
+			}
+		}
+		`)
 	})
 
 	Convey("validate password history", t, func(c C) {
@@ -218,32 +273,47 @@ func TestValidateNewPassword(t *testing.T) {
 			PasswordHistoryStore:   phStore,
 		}
 
-		So(
-			pc.ValidateNewPassword(authID, "chima"),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
-				},
-			},
-		)
+		test(pc, authID, "chima", `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordReused",
+						"Info": {
+							"history_size": 12,
+							"history_days": 365
+						}
+					}
+				]
+			}
+		}
+		`)
 
-		So(
-			pc.ValidateNewPassword(authID, "coffee"),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
-				},
-			},
-		)
+		test(pc, authID, "coffee", `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordReused",
+						"Info": {
+							"history_size": 12,
+							"history_days": 365
+						}
+					}
+				]
+			}
+		}
+		`)
 
-		So(
-			pc.ValidateNewPassword(authID, "milktea"),
-			ShouldBeNil,
-		)
+		test(pc, authID, "milktea", "")
 	})
 
 	Convey("validate password history by size", t, func(c C) {
@@ -257,21 +327,27 @@ func TestValidateNewPassword(t *testing.T) {
 			PasswordHistoryStore:   phStore,
 		}
 
-		So(
-			pc.ValidateNewPassword(authID, "chima"),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
-				},
-			},
-		)
+		test(pc, authID, "chima", `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordReused",
+						"Info": {
+							"history_size": 2,
+							"history_days": 0
+						}
+					}
+				]
+			}
+		}
+		`)
 
-		So(
-			pc.ValidateNewPassword(authID, "coffee"),
-			ShouldBeNil,
-		)
+		test(pc, authID, "coffee", "")
 	})
 
 	Convey("validate password history by days", t, func(c C) {
@@ -285,21 +361,27 @@ func TestValidateNewPassword(t *testing.T) {
 			PasswordHistoryStore:   phStore,
 		}
 
-		So(
-			pc.ValidateNewPassword(authID, "chima"),
-			ShouldEqualAPIError,
-			PasswordPolicyViolated,
-			map[string]interface{}{
-				"causes": []apierrors.Cause{
-					Policy{Name: PasswordReused, Info: map[string]interface{}{"history_size": historySize, "history_days": int(historyDays)}},
-				},
-			},
-		)
+		test(pc, authID, "chima", `
+		{
+			"name": "Invalid",
+			"reason": "PasswordPolicyViolated",
+			"message": "password policy violated",
+			"code": 400,
+			"info": {
+				"causes": [
+					{
+						"Name": "PasswordReused",
+						"Info": {
+							"history_size": 0,
+							"history_days": 2
+						}
+					}
+				]
+			}
+		}
+		`)
 
-		So(
-			pc.ValidateNewPassword(authID, "coffee"),
-			ShouldBeNil,
-		)
+		test(pc, authID, "coffee", "")
 	})
 
 	Convey("validate strong password", t, func() {
@@ -316,8 +398,7 @@ func TestValidateNewPassword(t *testing.T) {
 		}
 		So(
 			pc.ValidateNewPassword("", password),
-			ShouldEqual,
-			nil,
+			ShouldBeNil,
 		)
 	})
 }
