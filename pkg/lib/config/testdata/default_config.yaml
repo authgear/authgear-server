@@ -340,6 +340,97 @@ user_profile:
   standard_attributes:
     population:
       strategy: on_signup
+    access_control:
+      - pointer: /email
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /email_verified
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /phone_number
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /phone_number_verified
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /preferred_username
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /family_name
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /given_name
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /picture
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /gender
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /birthdate
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /zoneinfo
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /locale
+        access_control:
+          end_user: readwrite
+          bearer: readwrite
+          portal_ui: readwrite
+      - pointer: /name
+        access_control:
+          end_user: hidden
+          bearer: hidden
+          portal_ui: hidden
+      - pointer: /nickname
+        access_control:
+          end_user: hidden
+          bearer: hidden
+          portal_ui: hidden
+      - pointer: /middle_name
+        access_control:
+          end_user: hidden
+          bearer: hidden
+          portal_ui: hidden
+      - pointer: /profile
+        access_control:
+          end_user: hidden
+          bearer: hidden
+          portal_ui: hidden
+      - pointer: /website
+        access_control:
+          end_user: hidden
+          bearer: hidden
+          portal_ui: hidden
+      - pointer: /address
+        access_control:
+          end_user: hidden
+          bearer: hidden
+          portal_ui: hidden
 forgot_password:
   enabled: true
   email_message:
