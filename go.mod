@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/Masterminds/squirrel v1.5.0
+	github.com/Masterminds/squirrel v1.5.1
 	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892
 	github.com/boombuler/barcode v1.0.1
 	github.com/dlclark/regexp2 v1.4.0 // indirect
@@ -17,7 +17,7 @@ require (
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-redis/redis/v8 v8.11.4
-	github.com/go-redsync/redsync/v4 v4.4.1
+	github.com/go-redsync/redsync/v4 v4.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
@@ -33,11 +33,11 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	// jwx >= 1.2.1 fix the bug that `alg` and `use` are NOT required.
-	github.com/lestrrat-go/jwx v1.2.7
+	github.com/lestrrat-go/jwx v1.2.9
 	github.com/lib/pq v1.10.3
 	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
 	github.com/njern/gonexmo v2.0.0+incompatible
-	github.com/nyaruka/phonenumbers v1.0.72
+	github.com/nyaruka/phonenumbers v1.0.73
 	github.com/oschwald/geoip2-golang v1.5.0
 	github.com/pquerna/otp v1.3.0
 	// The changes are compatible. See https://github.com/rubenv/sql-migrate/compare/8d140a17f351..55d5740dbbcc
