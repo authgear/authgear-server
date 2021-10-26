@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestMakeSearchBody(t *testing.T) {
@@ -19,7 +18,7 @@ func TestMakeSearchBody(t *testing.T) {
 		val := MakeSearchBody(config.AppID(appID), searchKeyword, sortOption)
 		bytes, err := json.Marshal(val)
 		So(err, ShouldBeNil)
-		So(bytes, ShouldEqualJSON, expected)
+		So(string(bytes), ShouldEqualJSON, expected)
 	}
 
 	Convey("QueryUserOptions.SearchBody short keyword", t, func() {

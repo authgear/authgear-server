@@ -7,8 +7,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/lestrrat-go/jwx/jwk"
-
-	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestPublicSetOf(t *testing.T) {
@@ -40,7 +38,7 @@ func TestPublicSetOf(t *testing.T) {
 
 		jj, err := json.Marshal(pkSet)
 		So(err, ShouldBeNil)
-		So(jj, ShouldEqualJSON, `
+		So(string(jj), ShouldEqualJSON, `
 		{
 			"keys": [
 			{

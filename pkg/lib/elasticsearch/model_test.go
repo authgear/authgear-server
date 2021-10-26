@@ -8,7 +8,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestRawToSource(t *testing.T) {
@@ -30,7 +29,7 @@ func TestRawToSource(t *testing.T) {
 		sourceBytes, err := json.Marshal(source)
 		So(err, ShouldBeNil)
 
-		So(sourceBytes, ShouldEqualJSON, `{
+		So(string(sourceBytes), ShouldEqualJSON, `{
 			"app_id": "APP_ID",
 			"id": "ID",
 			"created_at": "2006-01-02T03:04:05Z",

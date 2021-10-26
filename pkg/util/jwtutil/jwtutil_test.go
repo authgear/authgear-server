@@ -14,8 +14,6 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 
 	. "github.com/smartystreets/goconvey/convey"
-
-	. "github.com/authgear/authgear-server/pkg/util/testing"
 )
 
 func TestSign(t *testing.T) {
@@ -123,7 +121,7 @@ func TestSplitWithoutVerify(t *testing.T) {
 
 		hdrBytes, err := json.Marshal(hdr)
 		So(err, ShouldBeNil)
-		So(hdrBytes, ShouldEqualJSON, `
+		So(string(hdrBytes), ShouldEqualJSON, `
 		{
 			"typ": "JWT",
 			"alg": "RS256"
@@ -132,7 +130,7 @@ func TestSplitWithoutVerify(t *testing.T) {
 
 		payloadBytes, err := json.Marshal(payload)
 		So(err, ShouldBeNil)
-		So(payloadBytes, ShouldEqualJSON, `
+		So(string(payloadBytes), ShouldEqualJSON, `
 		{
 			"foobar": 42
 		}
