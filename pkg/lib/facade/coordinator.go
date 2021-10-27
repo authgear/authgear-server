@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
@@ -86,17 +87,18 @@ type OAuthSessionManager SessionManager
 // FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
 //             removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
-	Identities      IdentityService
-	Authenticators  AuthenticatorService
-	Verification    VerificationService
-	MFA             MFAService
-	UserCommands    UserCommands
-	UserQueries     UserQueries
-	PasswordHistory PasswordHistoryStore
-	OAuth           OAuthService
-	IDPSessions     IDPSessionManager
-	OAuthSessions   OAuthSessionManager
-	IdentityConfig  *config.IdentityConfig
+	Identities        IdentityService
+	Authenticators    AuthenticatorService
+	Verification      VerificationService
+	MFA               MFAService
+	UserCommands      UserCommands
+	UserQueries       UserQueries
+	PasswordHistory   PasswordHistoryStore
+	OAuth             OAuthService
+	IDPSessions       IDPSessionManager
+	OAuthSessions     OAuthSessionManager
+	IdentityConfig    *config.IdentityConfig
+	UserProfileConfig *config.UserProfileConfig
 }
 
 func (c *Coordinator) IdentityGet(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -312,8 +314,23 @@ func (c *Coordinator) UserDelete(userID string) error {
 	return c.UserCommands.Delete(userID)
 }
 
-func (c *Coordinator) UserUpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
+func (c *Coordinator) UserUpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
 	err := stdattrs.Validate(stdattrs.T(stdAttrs))
+	if err != nil {
+		return err
+	}
+
+	rawUser, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accessControl := c.UserProfileConfig.StandardAttributes.GetAccessControl()
+	err = stdattrs.T(rawUser.StandardAttributes).CheckWrite(
+		accessControl,
+		role,
+		stdattrs.T(stdAttrs),
+	)
 	if err != nil {
 		return err
 	}
