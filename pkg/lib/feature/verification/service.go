@@ -45,10 +45,11 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
 
 type Service struct {
-	Request    *http.Request
-	Logger     Logger
-	Config     *config.VerificationConfig
-	TrustProxy config.TrustProxy
+	Request           *http.Request
+	Logger            Logger
+	Config            *config.VerificationConfig
+	UserProfileConfig *config.UserProfileConfig
+	TrustProxy        config.TrustProxy
 
 	Clock       clock.Clock
 	CodeStore   CodeStore
@@ -353,7 +354,6 @@ func (s *Service) RemoveOrphanedClaims(identities []*identity.Info, authenticato
 // DeriveStandardAttributes populates email_verified and phone_number_verified,
 // if email or phone_number are found in attrs.
 func (s *Service) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
-	// FIXME: respect role
 	out := make(map[string]interface{})
 
 	for key, value := range attrs {
@@ -397,6 +397,12 @@ func (s *Service) DeriveStandardAttributes(role accesscontrol.Role, userID strin
 
 	// updated_at
 	out["updated_at"] = updatedAt.Unix()
+
+	accessControl := s.UserProfileConfig.StandardAttributes.GetAccessControl()
+	out = stdattrs.T(out).ReadWithAccessControl(
+		accessControl,
+		role,
+	).ToClaims()
 
 	return out, nil
 }

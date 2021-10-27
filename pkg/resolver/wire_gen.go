@@ -321,6 +321,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -331,14 +332,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -431,7 +433,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:                  clock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -615,6 +616,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	factory := appProvider.LoggerFactory
 	logger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -639,14 +641,15 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      logger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   storeRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            logger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         storeRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	resolveHandlerLogger := handler.NewResolveHandlerLogger(factory)
 	resolveHandler := &handler.ResolveHandler{

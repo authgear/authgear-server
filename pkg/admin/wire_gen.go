@@ -299,6 +299,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -312,14 +313,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -413,7 +415,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
