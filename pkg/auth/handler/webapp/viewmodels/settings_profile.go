@@ -22,6 +22,9 @@ type SettingsProfileViewModel struct {
 	PhoneNumbers       []string
 	PreferredUsernames []string
 
+	IsReadable func(jsonpointer string) bool
+	IsEditable func(jsonpointer string) bool
+
 	Name                 string
 	GivenName            string
 	FamilyName           string
@@ -53,10 +56,11 @@ type SettingsProfileIdentityService interface {
 }
 
 type SettingsProfileViewModeler struct {
-	Localization *config.LocalizationConfig
-	Users        SettingsProfileUserService
-	Identities   SettingsProfileIdentityService
-	Clock        clock.Clock
+	Localization      *config.LocalizationConfig
+	UserProfileConfig *config.UserProfileConfig
+	Users             SettingsProfileUserService
+	Identities        SettingsProfileIdentityService
+	Clock             clock.Clock
 }
 
 func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileViewModel, error) {
@@ -105,6 +109,26 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		return nil, err
 	}
 
+	accessControl := m.UserProfileConfig.StandardAttributes.GetAccessControl()
+
+	isReadable := func(jsonpointer string) bool {
+		level := accessControl.GetLevel(
+			accesscontrol.Subject(jsonpointer),
+			config.RoleEndUser,
+			config.AccessControlLevelHidden,
+		)
+		return level >= config.AccessControlLevelReadonly
+	}
+
+	isEditable := func(jsonpointer string) bool {
+		level := accessControl.GetLevel(
+			accesscontrol.Subject(jsonpointer),
+			config.RoleEndUser,
+			config.AccessControlLevelHidden,
+		)
+		return level == config.AccessControlLevelReadwrite
+	}
+
 	viewModel := &SettingsProfileViewModel{
 		FormattedNames: stdattrs.T(stdAttrs).FormattedNames(),
 		Today:          now.Format("2006-01-02"),
@@ -115,6 +139,9 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		Emails:             emails,
 		PhoneNumbers:       phoneNumbers,
 		PreferredUsernames: preferredUsernames,
+
+		IsReadable: isReadable,
+		IsEditable: isEditable,
 
 		Name:                 str(stdattrs.Name),
 		GivenName:            str(stdattrs.GivenName),
