@@ -6,6 +6,7 @@
   {{ template "__nav_bar.html" "/settings" }}
 
   {{/* picture */}}
+  {{ if (call $.IsReadable "/picture") }}
   <div class="padding-20 row-sep gap-12 grid grid-profile-picture">
     <div class="grid-area-title">{{ template "standard-attribute-picture" }}</div>
     <img class="grid-area-picture settings-profile-profile-picture"
@@ -19,98 +20,140 @@
     {{/* The edit link is not shown because we only supports entering URL */}}
     {{/* We will add the button back when we support uploading picture */}}
   </div>
+  {{ end }}
 
   {{/* FormattedNames */}}
+  {{ if (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "settings-profile-formatted-names-label" }}</span>
     <span class="grid-area-desc secondary-txt whitespace-pre-wrap">{{ $.FormattedNames }}</span>
+    {{ if (or (call $.IsEditable "/name") (call $.IsEditable "/given_name") (call $.IsEditable "/family_name") (call $.IsEditable "/middle_name") (call $.IsEditable "/nickname")) }}
     <a class="link grid-area-action self-center" href="/settings/profile/name/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* email */}}
+  {{ if (call $.IsReadable "/email") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-email" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.Email }}</span>
+    {{ if (call $.IsEditable "/email") }}
     <a class="link grid-area-action self-center" href="/settings/profile/email/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* phone_number */}}
+  {{ if (call $.IsReadable "/phone_number") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-phone-number" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.PhoneNumber }}</span>
+    {{ if (call $.IsEditable "/phone_number") }}
     <a class="link grid-area-action self-center" href="/settings/profile/phone_number/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* preferred_username */}}
+  {{ if (call $.IsReadable "/preferred_username") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-preferred-username" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.PreferredUsername }}</span>
+    {{ if (call $.IsEditable "/preferred_username") }}
     <a class="link grid-area-action self-center" href="/settings/profile/preferred_username/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* profile */}}
+  {{ if (call $.IsReadable "/profile") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-profile" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.Profile }}</span>
+    {{ if (call $.IsEditable "/profile") }}
     <a class="link grid-area-action self-center" href="/settings/profile/profile/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* website */}}
+  {{ if (call $.IsReadable "/website") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-website" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.Website }}</span>
+    {{ if (call $.IsEditable "/website") }}
     <a class="link grid-area-action self-center" href="/settings/profile/website/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* gender */}}
+  {{ if (call $.IsReadable "/gender") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-gender" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.Gender }}</span>
+    {{ if (call $.IsEditable "/gender") }}
     <a class="link grid-area-action self-center" href="/settings/profile/gender/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* birthdate */}}
+  {{ if (call $.IsReadable "/birthdate") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-birthdate" }}</span>
     <span class="grid-area-desc secondary-txt" data-input-date-value="{{ $.Birthdate }}">{{ $.Birthdate }}</span>
+    {{ if (call $.IsEditable "/birthdate") }}
     <a class="link grid-area-action self-center" href="/settings/profile/birthdate/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* zoneinfo */}}
+  {{ if (call $.IsReadable "/zoneinfo") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-zoneinfo" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.Zoneinfo }}</span>
+    {{ if (call $.IsEditable "/zoneinfo") }}
     <a class="link grid-area-action self-center" href="/settings/profile/zoneinfo/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* locale */}}
+  {{ if (call $.IsReadable "/locale") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-locale" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.Locale }}</span>
+    {{ if (call $.IsEditable "/locale") }}
     <a class="link grid-area-action self-center" href="/settings/profile/locale/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* address */}}
+  {{ if (call $.IsReadable "/address") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-address" }}</span>
     <span class="grid-area-desc secondary-txt">
@@ -120,10 +163,13 @@
       {{- if $.AddressPostalCode }}{{ $.AddressPostalCode }}<br>{{ end }}
       {{- if $.AddressCountry }}{{ $.AddressCountry }}<br>{{ end }}
     </span>
+    {{ if (call $.IsEditable "/address") }}
     <a class="link grid-area-action self-center" href="/settings/profile/address/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
 </div>
 </main>
