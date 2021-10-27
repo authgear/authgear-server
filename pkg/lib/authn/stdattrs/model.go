@@ -2,9 +2,11 @@ package stdattrs
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
@@ -192,6 +194,62 @@ func (t T) ReadWithAccessControl(accessControl accesscontrol.T, role accesscontr
 		}
 	}
 	return out
+}
+
+func (t T) CheckWrite(accessControl accesscontrol.T, role accesscontrol.Role, that T) error {
+	check := func(subject accesscontrol.Subject) error {
+		level := accessControl.GetLevel(subject, role, config.AccessControlLevelReadwrite)
+		if level < config.AccessControlLevelReadwrite {
+			return AccessControlViolated.NewWithDetails(
+				fmt.Sprintf("%v being written by %v with level %v", subject, role, level),
+				apierrors.Details{
+					"subject": subject,
+					"role":    role,
+					"level":   level,
+				},
+			)
+		}
+		return nil
+	}
+
+	for key, val := range t {
+		subject := accesscontrol.Subject(jsonpointer.T{key}.String())
+
+		changed := false
+		newVal, ok := that[key]
+		if !ok {
+			// Deletion
+			changed = true
+		} else if !reflect.DeepEqual(val, newVal) {
+			// Edition
+			changed = true
+		}
+		if changed {
+			err := check(subject)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for key := range that {
+		subject := accesscontrol.Subject(jsonpointer.T{key}.String())
+
+		changed := false
+		_, ok := t[key]
+		if !ok {
+			// Addition
+			changed = true
+		}
+		if changed {
+			err := check(subject)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 const (
