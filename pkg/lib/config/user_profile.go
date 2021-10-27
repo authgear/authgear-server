@@ -246,6 +246,19 @@ func (c *StandardAttributesConfig) SetDefaults() {
 	}
 }
 
+func (c *StandardAttributesConfig) GetAccessControl() accesscontrol.T {
+	t := accesscontrol.T{}
+	for _, a := range c.AccessControl {
+		subject := accesscontrol.Subject(a.Pointer)
+		t[subject] = map[accesscontrol.Role]accesscontrol.Level{
+			RoleEndUser:  a.AccessControl.EndUser.Level(),
+			RoleBearer:   a.AccessControl.Bearer.Level(),
+			RolePortalUI: a.AccessControl.PortalUI.Level(),
+		}
+	}
+	return t
+}
+
 type StandardAttributesAccessControlConfig struct {
 	Pointer       string                           `json:"pointer,omitempty"`
 	AccessControl *StandardAttributesAccessControl `json:"access_control,omitempty"`
@@ -265,6 +278,24 @@ const (
 	AccessControlLevelStringReadonly  AccessControlLevelString = "readonly"
 	AccessControlLevelStringReadwrite AccessControlLevelString = "readwrite"
 )
+
+const (
+	AccessControlLevelHidden    accesscontrol.Level = 1
+	AccessControlLevelReadonly  accesscontrol.Level = 2
+	AccessControlLevelReadwrite accesscontrol.Level = 3
+)
+
+func (l AccessControlLevelString) Level() accesscontrol.Level {
+	switch l {
+	case AccessControlLevelStringHidden:
+		return AccessControlLevelHidden
+	case AccessControlLevelStringReadonly:
+		return AccessControlLevelReadonly
+	case AccessControlLevelStringReadwrite:
+		return AccessControlLevelReadwrite
+	}
+	return 0
+}
 
 type StandardAttributesPopulationStrategy string
 
