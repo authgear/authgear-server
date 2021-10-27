@@ -5,6 +5,8 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
 	"github.com/authgear/authgear-server/pkg/util/nameutil"
 )
@@ -178,6 +180,18 @@ func (t T) MergedWithJSONPointer(ptrs map[string]interface{}) (T, error) {
 	}
 	// All address fields may have been removed, so we should call Tidy here.
 	return T(out).Tidy(), nil
+}
+
+func (t T) ReadWithAccessControl(accessControl accesscontrol.T, role accesscontrol.Role) T {
+	out := T{}
+	for key, val := range t {
+		subject := accesscontrol.Subject(jsonpointer.T{key}.String())
+		level := accessControl.GetLevel(subject, role, config.AccessControlLevelReadwrite)
+		if level >= config.AccessControlLevelReadonly {
+			out[key] = val
+		}
+	}
+	return out
 }
 
 const (
