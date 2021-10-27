@@ -9,7 +9,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -27,7 +29,7 @@ func ConfigureSettingsProfileEditRoute(route httproute.Route) httproute.Route {
 
 type SettingsProfileEditUserService interface {
 	GetRaw(id string) (*user.User, error)
-	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
 type SettingsProfileEditHandler struct {
@@ -105,7 +107,7 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return writeErr(err)
 		}
 
-		err = h.Users.UpdateStandardAttributes(userID, attrs)
+		err = h.Users.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
 		if err != nil {
 			return writeErr(err)
 		}
