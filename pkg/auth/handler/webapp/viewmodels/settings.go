@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 type SettingsViewModel struct {
@@ -36,7 +37,7 @@ type SettingsMFAService interface {
 }
 
 type SettingsUserService interface {
-	Get(userID string) (*model.User, error)
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type SettingsViewModeler struct {
@@ -98,7 +99,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		}
 	}
 
-	user, err := m.Users.Get(userID)
+	user, err := m.Users.Get(userID, config.RoleEndUser)
 	if err != nil {
 		return nil, err
 	}

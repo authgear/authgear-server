@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -61,7 +62,7 @@ type AuthenticatorFacade interface {
 type VerificationFacade interface {
 	Get(userID string) ([]model.Claim, error)
 	SetVerified(userID string, claimName string, claimValue string, isVerified bool) error
-	DeriveStandardAttributes(userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
 type SessionFacade interface {

@@ -5,6 +5,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -111,7 +112,7 @@ var nodeUser = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*user.User)
 					gqlCtx := GQLContext(p.Context)
-					attrs, err := gqlCtx.VerificationFacade.DeriveStandardAttributes(source.ID, source.UpdatedAt, source.StandardAttributes)
+					attrs, err := gqlCtx.VerificationFacade.DeriveStandardAttributes(accesscontrol.EmptyRole, source.ID, source.UpdatedAt, source.StandardAttributes)
 					if err != nil {
 						return nil, err
 					}

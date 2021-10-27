@@ -1,5 +1,9 @@
 package config
 
+import (
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+)
+
 var _ = Schema.Add("UserProfileConfig", `
 {
 	"type": "object",
@@ -279,3 +283,9 @@ func (c *StandardAttributesPopulationConfig) SetDefaults() {
 		c.Strategy = StandardAttributesPopulationStrategyOnSignup
 	}
 }
+
+const (
+	RoleEndUser  accesscontrol.Role = "end_user"
+	RoleBearer   accesscontrol.Role = "bearer"
+	RolePortalUI accesscontrol.Role = "portal_ui"
+)

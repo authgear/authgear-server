@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 type EventService interface {
@@ -53,7 +54,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	stdAttrs, err := c.Verification.DeriveStandardAttributes(user.ID, user.UpdatedAt, user.StandardAttributes)
+	stdAttrs, err := c.Verification.DeriveStandardAttributes(accesscontrol.EmptyRole, user.ID, user.UpdatedAt, user.StandardAttributes)
 	if err != nil {
 		return err
 	}

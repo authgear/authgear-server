@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -351,7 +352,8 @@ func (s *Service) RemoveOrphanedClaims(identities []*identity.Info, authenticato
 
 // DeriveStandardAttributes populates email_verified and phone_number_verified,
 // if email or phone_number are found in attrs.
-func (s *Service) DeriveStandardAttributes(userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+func (s *Service) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+	// FIXME: respect role
 	out := make(map[string]interface{})
 
 	for key, value := range attrs {

@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 type IdentityService interface {
@@ -18,7 +19,7 @@ type AuthenticatorService interface {
 
 type VerificationService interface {
 	IsUserVerified(identities []*identity.Info) (bool, error)
-	DeriveStandardAttributes(userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
 type Queries struct {
@@ -29,7 +30,7 @@ type Queries struct {
 	Verification   VerificationService
 }
 
-func (p *Queries) Get(id string) (*model.User, error) {
+func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 	user, err := p.RawQueries.GetRaw(id)
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (p *Queries) Get(id string) (*model.User, error) {
 		return nil, err
 	}
 
-	stdAttrs, err := p.Verification.DeriveStandardAttributes(id, user.UpdatedAt, user.StandardAttributes)
+	stdAttrs, err := p.Verification.DeriveStandardAttributes(role, id, user.UpdatedAt, user.StandardAttributes)
 	if err != nil {
 		return nil, err
 	}

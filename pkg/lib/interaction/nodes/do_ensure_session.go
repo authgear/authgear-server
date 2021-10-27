@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 func init() {
@@ -131,7 +132,7 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 
 			userID := graph.MustGetUserID()
 
-			newUser, err := ctx.Users.Get(userID)
+			newUser, err := ctx.Users.Get(userID, accesscontrol.EmptyRole)
 			if err != nil {
 				return err
 			}
@@ -139,7 +140,7 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 			anonUser := newUser
 			if identityCheck, ok := getIdentityConflictNode(graph); ok && identityCheck.DuplicatedIdentity != nil {
 				// Logging as existing user when promoting: old user is different.
-				anonUser, err = ctx.Users.Get(identityCheck.NewIdentity.UserID)
+				anonUser, err = ctx.Users.Get(identityCheck.NewIdentity.UserID, accesscontrol.EmptyRole)
 				if err != nil {
 					return err
 				}
@@ -173,7 +174,7 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 				}
 			}
 
-			user, err := ctx.Users.Get(userID)
+			user, err := ctx.Users.Get(userID, accesscontrol.EmptyRole)
 			if err != nil {
 				return err
 			}

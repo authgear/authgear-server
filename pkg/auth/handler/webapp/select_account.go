@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -30,7 +31,7 @@ func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {
 }
 
 type SelectAccountUserService interface {
-	Get(userID string) (*model.User, error)
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type SelectAccountIdentityService interface {
@@ -190,7 +191,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				// 3. canUseIntentReauthenticate
 				// 4. user.CanReauthenticate
 
-				user, err := h.Users.Get(userIDHint)
+				user, err := h.Users.Get(userIDHint, accesscontrol.EmptyRole)
 				if err != nil {
 					return err
 				}
