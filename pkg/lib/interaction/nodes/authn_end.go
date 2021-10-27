@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
@@ -31,7 +32,7 @@ func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *int
 
 	if err := node.IsFailure(); err != nil {
 		userID := graph.MustGetUserID()
-		user, err := ctx.Users.Get(userID)
+		user, err := ctx.Users.Get(userID, accesscontrol.EmptyRole)
 		if err != nil {
 			return nil, err
 		}

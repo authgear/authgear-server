@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 func init() {
@@ -46,7 +47,7 @@ func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interact
 func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			user, err := ctx.Users.Get(n.Identity.UserID)
+			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.EmptyRole)
 			if err != nil {
 				return err
 			}
@@ -83,7 +84,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				return nil
 			}
 
-			user, err := ctx.Users.Get(n.Identity.UserID)
+			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.EmptyRole)
 			if err != nil {
 				return err
 			}

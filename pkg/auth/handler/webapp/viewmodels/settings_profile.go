@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
 	"github.com/authgear/authgear-server/pkg/util/tzutil"
@@ -44,7 +45,7 @@ type SettingsProfileViewModel struct {
 }
 
 type SettingsProfileUserService interface {
-	Get(userID string) (*model.User, error)
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type SettingsProfileIdentityService interface {
@@ -79,7 +80,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		}
 	}
 
-	user, err := m.Users.Get(userID)
+	user, err := m.Users.Get(userID, config.RoleEndUser)
 	if err != nil {
 		return nil, err
 	}
