@@ -319,6 +319,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -329,14 +330,15 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -437,7 +439,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -916,6 +917,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -926,14 +928,15 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -1034,7 +1037,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -1460,6 +1462,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1470,14 +1473,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -1579,7 +1583,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -1994,6 +1997,7 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -2007,14 +2011,15 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -2108,7 +2113,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -2404,6 +2408,7 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2414,14 +2419,15 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -2515,7 +2521,6 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -2779,6 +2784,7 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -2789,14 +2795,15 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -2890,7 +2897,6 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -3158,6 +3164,7 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3168,14 +3175,15 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -3269,7 +3277,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -3578,6 +3585,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -3588,14 +3596,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -3697,7 +3706,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -4147,6 +4155,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4157,14 +4166,15 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -4265,7 +4275,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -4748,6 +4757,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -4758,14 +4768,15 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -4866,7 +4877,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -5349,6 +5359,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5359,14 +5370,15 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -5467,7 +5479,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -5937,6 +5948,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -5947,14 +5959,15 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -6055,7 +6068,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -6526,6 +6538,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -6536,14 +6549,15 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -6644,7 +6658,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -7107,6 +7120,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7117,14 +7131,15 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -7225,7 +7240,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -7691,6 +7705,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -7701,14 +7716,15 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -7809,7 +7825,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -8278,6 +8293,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8288,14 +8304,15 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -8396,7 +8413,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -8862,6 +8878,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -8872,14 +8889,15 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -8980,7 +8998,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -9445,6 +9462,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -9455,14 +9473,15 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -9563,7 +9582,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -10029,6 +10047,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10039,14 +10058,15 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -10147,7 +10167,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -10614,6 +10633,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -10624,14 +10644,15 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -10732,7 +10753,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -11197,6 +11217,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11207,14 +11228,15 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -11315,7 +11337,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -11780,6 +11801,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -11790,14 +11812,15 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -11898,7 +11921,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -12365,6 +12387,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12375,14 +12398,15 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -12483,7 +12507,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -12948,6 +12971,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -12958,14 +12982,15 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -13066,7 +13091,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -13531,6 +13555,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -13541,14 +13566,15 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -13649,7 +13675,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -14117,6 +14142,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14127,14 +14153,15 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -14235,7 +14262,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -14700,6 +14726,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -14710,14 +14737,15 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -14818,7 +14846,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -15288,6 +15315,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15298,14 +15326,15 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -15406,7 +15435,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -15871,6 +15899,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -15881,14 +15910,15 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -15989,7 +16019,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -16455,6 +16484,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -16465,14 +16495,15 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -16573,7 +16604,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -17038,6 +17068,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17048,14 +17079,15 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -17156,7 +17188,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -17633,6 +17664,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -17643,14 +17675,15 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -17751,7 +17784,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -18226,6 +18258,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18236,14 +18269,15 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -18344,7 +18378,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -18825,6 +18858,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -18835,14 +18869,15 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -18943,7 +18978,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -19410,6 +19444,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -19420,14 +19455,15 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -19528,7 +19564,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -19994,6 +20029,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20004,14 +20040,15 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -20112,7 +20149,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -20588,6 +20624,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -20598,14 +20635,15 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -20706,7 +20744,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -21172,6 +21209,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21182,14 +21220,15 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -21290,7 +21329,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -21756,6 +21794,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -21766,14 +21805,15 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -21874,7 +21914,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -22341,6 +22380,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22351,14 +22391,15 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -22459,7 +22500,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -22931,6 +22971,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -22941,14 +22982,15 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -23049,7 +23091,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -23515,6 +23556,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -23525,14 +23567,15 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -23633,7 +23676,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -24099,6 +24141,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -24109,14 +24152,15 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -24217,7 +24261,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -24683,6 +24726,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -24693,14 +24737,15 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -24801,7 +24846,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -25267,6 +25311,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25277,14 +25322,15 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -25385,7 +25431,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -25850,6 +25895,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -25860,14 +25906,15 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -25968,7 +26015,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -26453,6 +26499,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -26463,14 +26510,15 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -26571,7 +26619,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -27036,6 +27083,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -27046,14 +27094,15 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
@@ -27154,7 +27203,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -27868,6 +27916,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	verificationLogger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -27878,14 +27927,15 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:     request,
-		Logger:      verificationLogger,
-		Config:      verificationConfig,
-		TrustProxy:  trustProxy,
-		Clock:       clockClock,
-		CodeStore:   verificationStoreRedis,
-		ClaimStore:  storePQ,
-		RateLimiter: limiter,
+		Request:           request,
+		Logger:            verificationLogger,
+		Config:            verificationConfig,
+		UserProfileConfig: userProfileConfig,
+		TrustProxy:        trustProxy,
+		Clock:             clockClock,
+		CodeStore:         verificationStoreRedis,
+		ClaimStore:        storePQ,
+		RateLimiter:       limiter,
 	}
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
@@ -27978,7 +28028,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	userProfileConfig := appConfig.UserProfile
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
