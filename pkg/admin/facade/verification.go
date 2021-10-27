@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 type VerificationService interface {
@@ -12,7 +13,7 @@ type VerificationService interface {
 	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
 	MarkClaimVerified(claim *verification.Claim) error
 	DeleteClaim(claimID string) error
-	DeriveStandardAttributes(userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
 type VerificationFacade struct {
@@ -76,6 +77,6 @@ func (f *VerificationFacade) SetVerified(userID string, claimName string, claimV
 	return nil
 }
 
-func (f *VerificationFacade) DeriveStandardAttributes(userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
-	return f.Verification.DeriveStandardAttributes(userID, updatedAt, attrs)
+func (f *VerificationFacade) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+	return f.Verification.DeriveStandardAttributes(role, userID, updatedAt, attrs)
 }

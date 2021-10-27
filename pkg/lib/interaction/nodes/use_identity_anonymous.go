@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 func init() {
@@ -71,7 +72,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		if err != nil {
 			dispatchEvent := func() error {
 				userID := anonIdentity.UserID
-				user, err := ctx.Users.Get(userID)
+				user, err := ctx.Users.Get(userID, accesscontrol.EmptyRole)
 				if err != nil {
 					return err
 				}

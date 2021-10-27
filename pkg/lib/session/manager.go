@@ -9,13 +9,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var ErrSessionNotFound = errors.New("session not found")
 
 type UserQuery interface {
-	Get(id string) (*model.User, error)
+	Get(id string, role accesscontrol.Role) (*model.User, error)
 	GetRaw(id string) (*user.User, error)
 }
 
@@ -54,7 +55,7 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
 	sessionModel := session.ToAPIModel()
 
-	user, err := m.Users.Get(session.GetAuthenticationInfo().UserID)
+	user, err := m.Users.Get(session.GetAuthenticationInfo().UserID, accesscontrol.EmptyRole)
 	if err != nil {
 		return nil, err
 	}

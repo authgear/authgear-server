@@ -18,13 +18,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
 )
 
 type UserProvider interface {
-	Get(id string) (*model.User, error)
+	Get(id string, role accesscontrol.Role) (*model.User, error)
 }
 
 type BaseURLProvider interface {
@@ -197,7 +198,7 @@ func (ti *IDTokenIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idT
 }
 
 func (ti *IDTokenIssuer) PopulateNonPIIUserClaims(token jwt.Token, userID string) error {
-	user, err := ti.Users.Get(userID)
+	user, err := ti.Users.Get(userID, config.RoleBearer)
 	if err != nil {
 		return err
 	}
@@ -212,7 +213,7 @@ func (ti *IDTokenIssuer) PopulateNonPIIUserClaims(token jwt.Token, userID string
 }
 
 func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, error) {
-	user, err := ti.Users.Get(userID)
+	user, err := ti.Users.Get(userID, config.RoleBearer)
 	if err != nil {
 		return nil, err
 	}
