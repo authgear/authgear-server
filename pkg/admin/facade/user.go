@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -19,7 +20,7 @@ type UserService interface {
 	Count() (uint64, error)
 	QueryPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
-	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 	Delete(userID string) error
 }
 
@@ -124,8 +125,8 @@ func (f *UserFacade) Delete(id string) error {
 	return nil
 }
 
-func (f *UserFacade) UpdateStandardAttributes(id string, stdAttrs map[string]interface{}) error {
-	err := f.Users.UpdateStandardAttributes(id, stdAttrs)
+func (f *UserFacade) UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error {
+	err := f.Users.UpdateStandardAttributes(role, id, stdAttrs)
 	if err != nil {
 		return err
 	}

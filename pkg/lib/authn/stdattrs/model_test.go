@@ -213,5 +213,54 @@ func TestT(t *testing.T) {
 				"given_name": "John Doe",
 			})
 		})
+
+		Convey("CheckWrite", func() {
+			accessControl := accesscontrol.T{
+				accesscontrol.Subject("/name"): map[accesscontrol.Role]accesscontrol.Level{
+					config.RoleEndUser:  config.AccessControlLevelHidden,
+					config.RoleBearer:   config.AccessControlLevelReadwrite,
+					config.RolePortalUI: config.AccessControlLevelReadwrite,
+				},
+				accesscontrol.Subject("/nickname"): map[accesscontrol.Role]accesscontrol.Level{
+					config.RoleEndUser:  config.AccessControlLevelHidden,
+					config.RoleBearer:   config.AccessControlLevelReadwrite,
+					config.RolePortalUI: config.AccessControlLevelReadwrite,
+				},
+				accesscontrol.Subject("/given_name"): map[accesscontrol.Role]accesscontrol.Level{
+					config.RoleEndUser:  config.AccessControlLevelReadwrite,
+					config.RoleBearer:   config.AccessControlLevelReadwrite,
+					config.RolePortalUI: config.AccessControlLevelReadwrite,
+				},
+			}
+
+			stdAttrs := T{
+				"name":       "John Doe",
+				"given_name": "John Doe",
+			}
+
+			// Edition
+			So(stdAttrs.CheckWrite(accessControl, config.RoleEndUser, T{
+				"name":       "42",
+				"given_name": "John Doe",
+			}), ShouldBeError, "/name being written by end_user with level 1")
+
+			// Deletion
+			So(stdAttrs.CheckWrite(accessControl, config.RoleEndUser, T{
+				"given_name": "John Doe",
+			}), ShouldBeError, "/name being written by end_user with level 1")
+
+			// Addition
+			So(stdAttrs.CheckWrite(accessControl, config.RoleEndUser, T{
+				"name":       "John Doe",
+				"given_name": "John Doe",
+				"nickname":   "42",
+			}), ShouldBeError, "/nickname being written by end_user with level 1")
+
+			// OK
+			So(stdAttrs.CheckWrite(accessControl, config.RoleEndUser, T{
+				"name":       "John Doe",
+				"given_name": "Jane Doe",
+			}), ShouldBeNil)
+		})
 	})
 }
