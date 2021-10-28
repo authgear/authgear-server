@@ -17498,20 +17498,30 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	}
 	biometricConfig := identityConfig.Biometric
 	settingsViewModeler := &viewmodels.SettingsViewModeler{
-		Users:          queries,
 		Authenticators: service3,
 		Identities:     serviceService,
 		MFA:            mfaService,
 		Authentication: authenticationConfig,
 		Biometric:      biometricConfig,
 	}
+	facadeIdentityFacade := &facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	settingsProfileViewModeler := &viewmodels.SettingsProfileViewModeler{
+		Localization:      localizationConfig,
+		UserProfileConfig: userProfileConfig,
+		Users:             queries,
+		Identities:        facadeIdentityFacade,
+		Clock:             clockClock,
+	}
 	settingsHandler := &webapp2.SettingsHandler{
-		ControllerFactory: controllerFactory,
-		BaseViewModel:     baseViewModeler,
-		SettingsViewModel: settingsViewModeler,
-		Renderer:          responseRenderer,
-		Identities:        serviceService,
-		Verification:      verificationService,
+		ControllerFactory:        controllerFactory,
+		BaseViewModel:            baseViewModeler,
+		SettingsViewModel:        settingsViewModeler,
+		SettingsProfileViewModel: settingsProfileViewModeler,
+		Renderer:                 responseRenderer,
+		Identities:               serviceService,
+		Verification:             verificationService,
 	}
 	return settingsHandler
 }
@@ -20466,7 +20476,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	}
 	biometricConfig := identityConfig.Biometric
 	settingsViewModeler := &viewmodels.SettingsViewModeler{
-		Users:          queries,
 		Authenticators: service3,
 		Identities:     serviceService,
 		MFA:            mfaService,
