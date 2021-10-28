@@ -47,12 +47,13 @@ type SettingsSessionManager interface {
 }
 
 type SettingsHandler struct {
-	ControllerFactory ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	SettingsViewModel *viewmodels.SettingsViewModeler
-	Renderer          Renderer
-	Identities        SettingsIdentityService
-	Verification      SettingsVerificationService
+	ControllerFactory        ControllerFactory
+	BaseViewModel            *viewmodels.BaseViewModeler
+	SettingsViewModel        *viewmodels.SettingsViewModeler
+	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
+	Renderer                 Renderer
+	Identities               SettingsIdentityService
+	Verification             SettingsVerificationService
 }
 
 func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -70,6 +71,13 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 		return nil, err
 	}
 	viewmodels.Embed(data, *viewModelPtr)
+
+	// SettingsProfileViewModel
+	profileViewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *profileViewModelPtr)
 
 	// Identity - Part 1
 	candidates, err := h.Identities.ListCandidates(*userID)

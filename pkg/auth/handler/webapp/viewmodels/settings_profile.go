@@ -12,8 +12,10 @@ import (
 )
 
 type SettingsProfileViewModel struct {
-	FormattedNames string
-	Today          string
+	FormattedName    string
+	EndUserAccountID string
+	FormattedNames   string
+	Today            string
 
 	Timezones          []tzutil.Timezone
 	Alpha2             []string
@@ -130,8 +132,10 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 	}
 
 	viewModel := &SettingsProfileViewModel{
-		FormattedNames: stdattrs.T(stdAttrs).FormattedNames(),
-		Today:          now.Format("2006-01-02"),
+		FormattedName:    stdattrs.T(stdAttrs).FormattedName(),
+		EndUserAccountID: stdattrs.T(stdAttrs).EndUserAccountID(),
+		FormattedNames:   stdattrs.T(stdAttrs).FormattedNames(),
+		Today:            now.Format("2006-01-02"),
 
 		Timezones:          timezones,
 		Alpha2:             territoryutil.Alpha2,
