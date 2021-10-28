@@ -50,11 +50,6 @@ var _ = Schema.Add("StandardAttributesAccessControlConfig", `
 			"type": "string",
 			"format": "json-pointer",
 			"enum": [
-				"/email",
-				"/email_verified",
-				"/phone_number",
-				"/phone_number_verified",
-				"/preferred_username",
 				"/family_name",
 				"/given_name",
 				"/picture",
@@ -170,26 +165,6 @@ func (c *StandardAttributesConfig) SetDefaults() {
 
 	if c.AccessControl == nil {
 		c.AccessControl = []*StandardAttributesAccessControlConfig{
-			{
-				Pointer:       "/email",
-				AccessControl: readwrite,
-			},
-			{
-				Pointer:       "/email_verified",
-				AccessControl: readwrite,
-			},
-			{
-				Pointer:       "/phone_number",
-				AccessControl: readwrite,
-			},
-			{
-				Pointer:       "/phone_number_verified",
-				AccessControl: readwrite,
-			},
-			{
-				Pointer:       "/preferred_username",
-				AccessControl: readwrite,
-			},
 			{
 				Pointer:       "/family_name",
 				AccessControl: readwrite,
