@@ -111,6 +111,10 @@ const ScreenNav: React.FC = function ScreenNav() {
         url: "configuration/localization",
       },
       {
+        textKey: "ScreenNav.user-profile",
+        url: "configuration/user-profile",
+      },
+      {
         textKey: "ScreenNav.billing",
         url: "billing",
       },
