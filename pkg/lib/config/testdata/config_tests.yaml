@@ -554,7 +554,7 @@ name: invalid-standard-attributes-pointer
 error: |-
   invalid configuration:
   /user_profile/standard_attributes/access_control/0/pointer: enum
-    map[actual:/foobar expected:[/email /email_verified /phone_number /phone_number_verified /preferred_username /family_name /given_name /picture /gender /birthdate /zoneinfo /locale /name /nickname /middle_name /profile /website /address]]
+    map[actual:/foobar expected:[/family_name /given_name /picture /gender /birthdate /zoneinfo /locale /name /nickname /middle_name /profile /website /address]]
 config:
   id: test
   http:
