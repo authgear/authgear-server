@@ -338,6 +338,32 @@ export interface NonBlockingHookHandlerConfig {
   url: string;
 }
 
+export interface StandardAttributesPopulationConfig {
+  strategy?: "none" | "on_signup";
+}
+
+export type AccessControlLevelString = "hidden" | "readonly" | "readwrite";
+
+export interface StandardAttributesAccessControl {
+  end_user: AccessControlLevelString;
+  bearer: AccessControlLevelString;
+  portal_ui: AccessControlLevelString;
+}
+
+export interface StandardAttributesAccessControlConfig {
+  pointer: string;
+  access_control: StandardAttributesAccessControl;
+}
+
+export interface StandardAttributesConfig {
+  population?: StandardAttributesPopulationConfig;
+  access_control?: StandardAttributesAccessControlConfig[];
+}
+
+export interface UserProfileConfig {
+  standard_attributes?: StandardAttributesConfig;
+}
+
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   id: string;
@@ -352,6 +378,7 @@ export interface PortalAPIAppConfig {
   oauth?: OAuthConfig;
   session?: SessionConfig;
   hook?: HookConfig;
+  user_profile?: UserProfileConfig;
 }
 
 export interface OAuthClientSecret {
