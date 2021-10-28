@@ -17,6 +17,9 @@ linters:
 linters-settings:
   gofmt:
     simplify: false
+  gosec:
+    excludes:
+    - G404 # G404: Use of weak random number generator (math/rand instead of crypto/rand)
 
 run:
   timeout: 5m

@@ -10,7 +10,7 @@ start:
 
 .PHONY: vendor
 vendor:
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.27.0
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.41.1
 	go mod download
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
