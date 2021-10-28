@@ -1,19 +1,13 @@
 package viewmodels
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 type SettingsViewModel struct {
-	FormattedName               string
-	EndUserAccountID            string
-	ProfilePictureURL           string
 	Authenticators              []*authenticator.Info
 	SecondaryTOTPAllowed        bool
 	SecondaryOOBOTPEmailAllowed bool
@@ -36,12 +30,7 @@ type SettingsMFAService interface {
 	HasDeviceTokens(userID string) (bool, error)
 }
 
-type SettingsUserService interface {
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
-}
-
 type SettingsViewModeler struct {
-	Users          SettingsUserService
 	Authenticators SettingsAuthenticatorService
 	Identities     SettingsIdentityService
 	MFA            SettingsMFAService
@@ -99,20 +88,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		}
 	}
 
-	user, err := m.Users.Get(userID, config.RoleEndUser)
-	if err != nil {
-		return nil, err
-	}
-
-	stdAttrs := stdattrs.T(user.StandardAttributes)
-	formattedName := stdAttrs.FormattedName()
-	endUserAccountID := stdAttrs.EndUserAccountID()
-	profilePictureURL, _ := stdAttrs[stdattrs.Picture].(string)
-
 	viewModel := &SettingsViewModel{
-		FormattedName:               formattedName,
-		EndUserAccountID:            endUserAccountID,
-		ProfilePictureURL:           profilePictureURL,
 		Authenticators:              authenticators,
 		SecondaryTOTPAllowed:        totp,
 		SecondaryOOBOTPEmailAllowed: oobotpemail,
