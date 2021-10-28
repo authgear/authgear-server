@@ -15,30 +15,8 @@
   column-gap: 16px;
   padding: 10px;
 
-  grid-template-areas:
-    "c1 c2"
-    "c3 c4"
-    "c5 .";
-}
-
-.c1 {
-  grid-area: c1;
-}
-
-.c2 {
-  grid-area: c2;
-}
-
-.c3 {
-  grid-area: c3;
-}
-
-.c4 {
-  grid-area: c4;
-}
-
-.c5 {
-  grid-area: c5;
+  grid-template-columns: repeat(2, auto);
+  grid-auto-rows: auto;
 }
 
 .twoColumnGroup {
