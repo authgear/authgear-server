@@ -14,14 +14,15 @@
   <div class="padding-10 flex flex-row items-center row-sep">
     <img
       class="margin-10 rounded-full bg-center bg-cover bg-no-repeat w-18 h-18"
-      {{ if $.ProfilePictureURL }}
-        src="{{ $.ProfilePictureURL }}"
+      {{ if (and (call $.IsReadable "/picture") $.Picture) }}
+        src="{{ $.Picture }}"
       {{ else }}
         src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
       {{ end }}
     >
     <div class="margin-h-10 flex flex-col gap-4">
-      {{ if $.FormattedName }}<span class="primary-txt">{{ $.FormattedName }}</span>{{ end }}
+      {{ $any_name_readable := (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
+      {{ if (and $any_name_readable $.FormattedName) }}<span class="primary-txt">{{ $.FormattedName }}</span>{{ end }}
       {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="primary-txt">{{ $.EndUserAccountID }}</span>{{ end }}
       {{ if (and $.FormattedName $.EndUserAccountID) }}<span class="secondary-txt font-sm">{{ $.EndUserAccountID }}</span>{{ end }}
       {{ if (and (not $.FormattedName) (not $.EndUserAccountID)) }}<span class="secondary-txt font-sm">{{ template "settings-my-profile-empty-label" }}</span>{{ end }}
