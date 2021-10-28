@@ -36,43 +36,31 @@
   {{ end }}
 
   {{/* email */}}
-  {{ if (call $.IsReadable "/email") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-email" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.Email }}</span>
-    {{ if (call $.IsEditable "/email") }}
     <a class="link grid-area-action self-center" href="/settings/profile/email/edit">
       <i class="ti ti-edit"></i>
     </a>
-    {{ end }}
   </div>
-  {{ end }}
 
   {{/* phone_number */}}
-  {{ if (call $.IsReadable "/phone_number") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-phone-number" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.PhoneNumber }}</span>
-    {{ if (call $.IsEditable "/phone_number") }}
     <a class="link grid-area-action self-center" href="/settings/profile/phone_number/edit">
       <i class="ti ti-edit"></i>
     </a>
-    {{ end }}
   </div>
-  {{ end }}
 
   {{/* preferred_username */}}
-  {{ if (call $.IsReadable "/preferred_username") }}
   <div class="padding-20 row-sep gap-6 grid grid-name-desc-action">
     <span class="grid-area-name primary-txt">{{ template "standard-attribute-preferred-username" }}</span>
     <span class="grid-area-desc secondary-txt">{{ $.PreferredUsername }}</span>
-    {{ if (call $.IsEditable "/preferred_username") }}
     <a class="link grid-area-action self-center" href="/settings/profile/preferred_username/edit">
       <i class="ti ti-edit"></i>
     </a>
-    {{ end }}
   </div>
-  {{ end }}
 
   {{/* profile */}}
   {{ if (call $.IsReadable "/profile") }}

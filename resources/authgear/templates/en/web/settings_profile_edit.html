@@ -47,54 +47,48 @@
   {{ end }}
 
   {{ if (eq $.Variant "email") }}
-    {{ if (call $.IsEditable "/email") }}
-    <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
-      {{ template "standard-attribute-email" }}
-      <select class="select" name="/email" {{ if not $.Emails }}disabled{{ end }}>
-	{{ range $.Emails }}
-	<option value="{{ . }}" {{ if (eq $.Email .) }}selected{{ end }}>{{ . }}</option>
-	{{ end }}
-      </select>
-      {{ if not $.Emails }}
-	{{ $save_disabled = true }}
-	<span class="text-base primary-txt">{{ template "settings-profile-edit-email-placeholder" }}</span>
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-email" }}
+    <select class="select" name="/email" {{ if not $.Emails }}disabled{{ end }}>
+      {{ range $.Emails }}
+      <option value="{{ . }}" {{ if (eq $.Email .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
-    </label>
+    </select>
+    {{ if not $.Emails }}
+      {{ $save_disabled = true }}
+      <span class="text-base primary-txt">{{ template "settings-profile-edit-email-placeholder" }}</span>
     {{ end }}
+  </label>
   {{ end }}
 
   {{ if (eq $.Variant "phone_number") }}
-    {{ if (call $.IsEditable "/phone_number") }}
-    <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
-      {{ template "standard-attribute-phone-number" }}
-      <select class="select" name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}>
-	{{ range $.PhoneNumbers }}
-	<option value="{{ . }}" {{ if (eq $.PhoneNumber .) }}selected{{ end }}>{{ . }}</option>
-	{{ end }}
-      </select>
-      {{ if not $.PhoneNumbers }}
-	{{ $save_disabled = true }}
-	<span class="text-base primary-txt">{{ template "settings-profile-edit-phone-number-placeholder" }}</span>
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-phone-number" }}
+    <select class="select" name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}>
+      {{ range $.PhoneNumbers }}
+      <option value="{{ . }}" {{ if (eq $.PhoneNumber .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
-    </label>
+    </select>
+    {{ if not $.PhoneNumbers }}
+      {{ $save_disabled = true }}
+      <span class="text-base primary-txt">{{ template "settings-profile-edit-phone-number-placeholder" }}</span>
     {{ end }}
+  </label>
   {{ end }}
 
   {{ if (eq $.Variant "preferred_username") }}
-    {{ if (call $.IsEditable "/preferred_username") }}
-    <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
-      {{ template "standard-attribute-preferred-username" }}
-      <select class="select" name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}>
-	{{ range $.PreferredUsernames }}
-	<option value="{{ . }}" {{ if (eq $.PreferredUsername .) }}selected{{ end }}>{{ . }}</option>
-	{{ end }}
-      </select>
-      {{ if not $.PreferredUsernames }}
-	{{ $save_disabled = true }}
-	<span class="text-base primary-txt">{{ template "settings-profile-edit-preferred-username-placeholder" }}</span>
+  <label class="flex flex-col margin-h-20 gap-6 text-xs secondary-txt">
+    {{ template "standard-attribute-preferred-username" }}
+    <select class="select" name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}>
+      {{ range $.PreferredUsernames }}
+      <option value="{{ . }}" {{ if (eq $.PreferredUsername .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
-    </label>
+    </select>
+    {{ if not $.PreferredUsernames }}
+      {{ $save_disabled = true }}
+      <span class="text-base primary-txt">{{ template "settings-profile-edit-preferred-username-placeholder" }}</span>
     {{ end }}
+  </label>
   {{ end }}
 
   {{ if (eq $.Variant "profile") }}
