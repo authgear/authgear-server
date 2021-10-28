@@ -341,31 +341,6 @@ user_profile:
     population:
       strategy: on_signup
     access_control:
-      - pointer: /email
-        access_control:
-          end_user: readwrite
-          bearer: readwrite
-          portal_ui: readwrite
-      - pointer: /email_verified
-        access_control:
-          end_user: readwrite
-          bearer: readwrite
-          portal_ui: readwrite
-      - pointer: /phone_number
-        access_control:
-          end_user: readwrite
-          bearer: readwrite
-          portal_ui: readwrite
-      - pointer: /phone_number_verified
-        access_control:
-          end_user: readwrite
-          bearer: readwrite
-          portal_ui: readwrite
-      - pointer: /preferred_username
-        access_control:
-          end_user: readwrite
-          bearer: readwrite
-          portal_ui: readwrite
       - pointer: /family_name
         access_control:
           end_user: readwrite
