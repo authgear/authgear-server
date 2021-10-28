@@ -297,7 +297,12 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           }
         }
 
-        if (value != null && typeof value === "string" && !seen.has(value)) {
+        if (
+          value != null &&
+          typeof value === "string" &&
+          value !== "" &&
+          !seen.has(value)
+        ) {
           options.push({
             key: value,
             text: value,
@@ -604,16 +609,19 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             label={renderToString("standard-attribute.email")}
             selectedKey={standardAttributes.email}
             options={emailOptions}
+            disabled={emailOptions.length <= 0}
           />
           <Dropdown
             label={renderToString("standard-attribute.phone_number")}
             selectedKey={standardAttributes.phone_number}
             options={phoneNumberOptions}
+            disabled={phoneNumberOptions.length <= 0}
           />
           <Dropdown
             label={renderToString("standard-attribute.preferred_username")}
             selectedKey={standardAttributes.preferred_username}
             options={preferredUsernameOptions}
+            disabled={preferredUsernameOptions.length <= 0}
           />
         </Div>
         {isReadable("gender") && (
