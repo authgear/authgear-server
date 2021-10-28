@@ -32,7 +32,11 @@ import { UserQuery_node_User } from "./query/__generated__/UserQuery";
 import { usePivotNavigation } from "../../hook/usePivot";
 import { nonNullable } from "../../util/types";
 import { getEndUserAccountIdentifier } from "../../util/user";
-import { PortalAPIAppConfig, StandardAttributes } from "../../types";
+import {
+  PortalAPIAppConfig,
+  StandardAttributes,
+  AccessControlLevelString,
+} from "../../types";
 
 import styles from "./UserDetailsScreen.module.scss";
 
@@ -106,6 +110,15 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
   }, [appConfig]);
 
+  const accessControl = useMemo(() => {
+    const record: Record<string, AccessControlLevelString> = {};
+    for (const item of appConfig?.user_profile?.standard_attributes
+      ?.access_control ?? []) {
+      record[item.pointer] = item.access_control.portal_ui;
+    }
+    return record;
+  }, [appConfig]);
+
   const onChangeStandardAttributes = useCallback(
     (attrs: StandardAttributesState) => {
       setState((state) => {
@@ -156,6 +169,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
               identities={identities}
               standardAttributes={state.standardAttributes}
               onChangeStandardAttributes={onChangeStandardAttributes}
+              accessControl={accessControl}
             />
           </PivotItem>
           <PivotItem
