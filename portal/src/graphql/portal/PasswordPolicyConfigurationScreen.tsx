@@ -33,6 +33,7 @@ import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
+import { fixTagPickerStyles } from "../../bugs";
 
 import styles from "./PasswordPolicyConfigurationScreen.module.scss";
 
@@ -408,6 +409,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
               <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
             </Label>
             <TagPicker
+              styles={fixTagPickerStyles}
               inputProps={{
                 "aria-label": renderToString(
                   "PasswordPolicyConfigurationScreen.excluded-keywords.label"

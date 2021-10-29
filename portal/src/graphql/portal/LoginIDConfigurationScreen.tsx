@@ -36,14 +36,15 @@ import {
   RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
   RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT,
 } from "../../resources";
-
-import styles from "./LoginIDConfigurationScreen.module.scss";
+import { fixTagPickerStyles } from "../../bugs";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
 import { Resource, ResourceSpecifier, specifierId } from "../../util/resource";
 import { useResourceForm } from "../../hook/useResourceForm";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ALL_COUNTRIES from "../../data/country.json";
+
+import styles from "./LoginIDConfigurationScreen.module.scss";
 
 // email domain lists are not language specific
 // so the locale in ResourceSpecifier is not important
@@ -740,6 +741,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
           />
           <CustomTagPicker
+            styles={fixTagPickerStyles}
             inputProps={{
               "aria-label": renderToString(
                 "LoginIDConfigurationScreen.email.domainBlocklist"
@@ -773,6 +775,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
           />
           <CustomTagPicker
+            styles={fixTagPickerStyles}
             inputProps={{
               "aria-label": renderToString(
                 "LoginIDConfigurationScreen.email.domainAllowlist"
@@ -903,6 +906,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             disabled={!usernameIsEnabled}
           />
           <CustomTagPicker
+            styles={fixTagPickerStyles}
             inputProps={{
               "aria-label": renderToString(
                 "LoginIDConfigurationScreen.username.excludeKeywords"
