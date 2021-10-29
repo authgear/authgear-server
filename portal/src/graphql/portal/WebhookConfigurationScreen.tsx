@@ -408,7 +408,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           <FormattedMessage id="WebhookConfigurationScreen.description" />
         </ScreenDescription>
 
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="WebhookConfigurationScreen.blocking-events" />
           </WidgetTitle>
@@ -438,7 +438,6 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
             ))}
           {!hideBlockingHandlerList && (
             <FieldList
-              className={styles.control}
               label={
                 <Label>
                   <FormattedMessage id="WebhookConfigurationScreen.blocking-handlers.label" />
@@ -456,7 +455,7 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           )}
         </Widget>
 
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events" />
           </WidgetTitle>
@@ -486,7 +485,6 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
             ))}
           {!hideNonBlockingHandlerList && (
             <FieldList
-              className={styles.control}
               label={
                 <Label>
                   <FormattedMessage id="WebhookConfigurationScreen.non-blocking-events-endpoints.label" />
@@ -504,12 +502,11 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           )}
         </Widget>
 
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="WebhookConfigurationScreen.webhook-settings" />
           </WidgetTitle>
           <TextField
-            className={styles.control}
             type="text"
             label={renderToString(
               "WebhookConfigurationScreen.total-timeout.label"
@@ -518,7 +515,6 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
             onChange={onTotalTimeoutChange}
           />
           <TextField
-            className={styles.control}
             type="text"
             label={renderToString("WebhookConfigurationScreen.timeout.label")}
             value={state.timeout?.toFixed(0) ?? ""}
@@ -526,39 +522,37 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
           />
         </Widget>
 
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
-          <WidgetTitle id={WEBHOOK_SIGNATURE_ID}>
+        <Widget className={cn(styles.widget, styles.grid)}>
+          <WidgetTitle className={styles.columnFull} id={WEBHOOK_SIGNATURE_ID}>
             <FormattedMessage id="WebhookConfigurationScreen.signature.title" />
           </WidgetTitle>
-          <WidgetDescription>
+          <WidgetDescription className={styles.columnFull}>
             <FormattedMessage id="WebhookConfigurationScreen.signature.description" />
           </WidgetDescription>
-          <div className={styles.secretControlGroup}>
-            <TextField
-              className={cn(styles.control, styles.secretControl)}
-              type="text"
-              label={renderToString(
-                "WebhookConfigurationScreen.signature.secret-key"
-              )}
-              value={
-                revealed && state.secret != null ? state.secret : MASKED_SECRET
-              }
-              readOnly={true}
-            />
-            <PrimaryButton
-              id={copyButtonProps.id}
-              className={styles.secretControlButton}
-              onClick={revealed ? copyButtonProps.onClick : onClickReveal}
-              onMouseLeave={revealed ? copyButtonProps.onMouseLeave : undefined}
-            >
-              {revealed ? (
-                <FormattedMessage id="copy" />
-              ) : (
-                <FormattedMessage id="reveal" />
-              )}
-            </PrimaryButton>
-            <Feedback />
-          </div>
+          <TextField
+            className={styles.secretInput}
+            type="text"
+            label={renderToString(
+              "WebhookConfigurationScreen.signature.secret-key"
+            )}
+            value={
+              revealed && state.secret != null ? state.secret : MASKED_SECRET
+            }
+            readOnly={true}
+          />
+          <PrimaryButton
+            className={styles.secretButton}
+            id={copyButtonProps.id}
+            onClick={revealed ? copyButtonProps.onClick : onClickReveal}
+            onMouseLeave={revealed ? copyButtonProps.onMouseLeave : undefined}
+          >
+            {revealed ? (
+              <FormattedMessage id="copy" />
+            ) : (
+              <FormattedMessage id="reveal" />
+            )}
+          </PrimaryButton>
+          <Feedback />
         </Widget>
       </ScreenContent>
     );

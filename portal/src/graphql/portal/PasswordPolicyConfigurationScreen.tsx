@@ -12,7 +12,6 @@ import {
 } from "@fluentui/react";
 import deepEqual from "deep-equal";
 import produce from "immer";
-import cn from "classnames";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import {
@@ -314,9 +313,8 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="PasswordPolicyConfigurationScreen.description" />
         </ScreenDescription>
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <Toggle
-            className={styles.control}
             checked={state.forceChange}
             inlineLabel={true}
             label={
@@ -325,12 +323,11 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onForceChangeChange}
           />
         </Widget>
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="PasswordPolicyConfigurationScreen.basic-policies" />
           </WidgetTitle>
           <TextField
-            className={styles.control}
             type="text"
             label={renderToString(
               "PasswordPolicyConfigurationScreen.min-length.label"
@@ -339,7 +336,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onMinLengthChange}
           />
           <Checkbox
-            className={styles.control}
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-digit.label"
             )}
@@ -347,7 +343,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onDigitRequiredChange}
           />
           <Checkbox
-            className={styles.control}
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-lowercase.label"
             )}
@@ -355,7 +350,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onLowercaseRequiredChange}
           />
           <Checkbox
-            className={styles.control}
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-uppercase.label"
             )}
@@ -363,7 +357,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onUppercaseRequiredChange}
           />
           <Checkbox
-            className={styles.control}
             label={renderToString(
               "PasswordPolicyConfigurationScreen.require-symbol.label"
             )}
@@ -372,12 +365,11 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
           />
         </Widget>
 
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="PasswordPolicyConfigurationScreen.advanced-policies" />
           </WidgetTitle>
           <Dropdown
-            className={styles.control}
             label={renderToString(
               "PasswordPolicyConfigurationScreen.min-guessable-level.label"
             )}
@@ -386,7 +378,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onMinimumGuessableLevelChange}
           />
           <Toggle
-            className={styles.control}
             checked={state.isPreventPasswordReuseEnabled}
             inlineLabel={true}
             label={
@@ -395,7 +386,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onPreventReuseChange}
           />
           <TextField
-            className={styles.control}
             type="text"
             disabled={!state.isPreventPasswordReuseEnabled}
             label={renderToString(
@@ -405,7 +395,6 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             onChange={onHistoryDaysChange}
           />
           <TextField
-            className={styles.control}
             type="text"
             disabled={!state.isPreventPasswordReuseEnabled}
             label={renderToString(
@@ -414,7 +403,7 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
             value={state.policy.history_size?.toFixed(0) ?? ""}
             onChange={onHistorySizeChange}
           />
-          <div className={styles.control}>
+          <div>
             <Label>
               <FormattedMessage id="PasswordPolicyConfigurationScreen.excluded-keywords.label" />
             </Label>

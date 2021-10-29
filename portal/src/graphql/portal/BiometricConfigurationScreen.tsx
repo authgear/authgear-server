@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Toggle } from "@fluentui/react";
-import cn from "classnames";
 import { PortalAPIAppConfig } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
@@ -99,19 +98,17 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="BiometricConfigurationScreen.description" />
         </ScreenDescription>
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="BiometricConfigurationScreen.title" />
           </WidgetTitle>
           <Toggle
-            className={styles.control}
             checked={state.enabled}
             onChange={onEnableChange}
             label={renderToString("BiometricConfigurationScreen.enable.label")}
             inlineLabel={true}
           />
           <Toggle
-            className={styles.control}
             disabled={!state.enabled}
             checked={state.list_enabled ?? false}
             onChange={onListEnabledChange}

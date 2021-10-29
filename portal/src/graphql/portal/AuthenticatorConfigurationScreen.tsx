@@ -6,13 +6,12 @@ import {
   SelectionMode,
   Toggle,
   MessageBar,
+  DetailsList,
 } from "@fluentui/react";
 import produce from "immer";
 import deepEqual from "deep-equal";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import cn from "classnames";
-import DetailsListWithOrdering from "../../DetailsListWithOrdering";
-import { swap } from "../../OrderButtons";
+import OrderButtons, { swap } from "../../OrderButtons";
 import FormTextField from "../../FormTextField";
 import {
   PortalAPIAppConfig,
@@ -243,6 +242,13 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
         minWidth: 250,
         maxWidth: 250,
       },
+      {
+        key: "order",
+        fieldName: "order",
+        name: renderToString("DetailsListWithOrdering.order"),
+        minWidth: 100,
+        maxWidth: 100,
+      },
     ];
 
     const featureDisabled: Record<
@@ -379,57 +385,6 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
       [setState]
     );
 
-    const onRenderColumnClassName = useCallback(
-      (item: AuthenticatorColumnItem, _index?: number, column?: IColumn) => {
-        if (column?.key === "activated") {
-          return "";
-        }
-        // added readOnly class for disabled item
-        // only except the activated column
-        // disabled of the activated column is controlled by AuthenticatorCheckbox
-        const disabled = featureDisabled[item.kind][item.type];
-        return cn({ [styles.readOnly]: disabled });
-      },
-      [featureDisabled]
-    );
-
-    const onRenderColumn = useCallback(
-      (item: AuthenticatorColumnItem, _index?: number, column?: IColumn) => {
-        const disabled = featureDisabled[item.kind][item.type];
-        switch (column?.key) {
-          case "activated":
-            return (
-              <AuthenticatorCheckbox
-                disabled={disabled}
-                item={item}
-                onChange={onAuthenticatorEnabledChange}
-              />
-            );
-
-          case "key": {
-            let nameId: string;
-            switch (item.kind) {
-              case "primary":
-                nameId = primaryAuthenticatorNameIds[item.type];
-                break;
-              case "secondary":
-                nameId = secondaryAuthenticatorNameIds[item.type];
-                break;
-            }
-            return (
-              <span>
-                <FormattedMessage id={nameId} />
-              </span>
-            );
-          }
-
-          default:
-            return null;
-        }
-      },
-      [onAuthenticatorEnabledChange, featureDisabled]
-    );
-
     const renderPrimaryAriaLabel = React.useCallback(
       (index?: number): string => {
         return index != null
@@ -471,6 +426,116 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
       [state.secondary]
     );
 
+    const onRenderPrimaryColumn = useCallback(
+      (item: AuthenticatorColumnItem, index?: number, column?: IColumn) => {
+        const disabled = featureDisabled[item.kind][item.type];
+        switch (column?.key) {
+          case "activated":
+            return (
+              <AuthenticatorCheckbox
+                disabled={disabled}
+                item={item}
+                onChange={onAuthenticatorEnabledChange}
+              />
+            );
+
+          case "key": {
+            let nameId: string;
+            switch (item.kind) {
+              case "primary":
+                nameId = primaryAuthenticatorNameIds[item.type];
+                break;
+              case "secondary":
+                nameId = secondaryAuthenticatorNameIds[item.type];
+                break;
+            }
+            return (
+              <span>
+                <FormattedMessage id={nameId} />
+              </span>
+            );
+          }
+
+          case "order": {
+            return (
+              <OrderButtons
+                disabled={disabled}
+                index={index}
+                itemCount={primaryItems.length}
+                onSwapClicked={onPrimarySwapClicked}
+                renderAriaLabel={renderPrimaryAriaLabel}
+              />
+            );
+          }
+
+          default:
+            return null;
+        }
+      },
+      [
+        onAuthenticatorEnabledChange,
+        featureDisabled,
+        onPrimarySwapClicked,
+        primaryItems.length,
+        renderPrimaryAriaLabel,
+      ]
+    );
+
+    const onRenderSecondaryColumn = useCallback(
+      (item: AuthenticatorColumnItem, index?: number, column?: IColumn) => {
+        const disabled = featureDisabled[item.kind][item.type];
+        switch (column?.key) {
+          case "activated":
+            return (
+              <AuthenticatorCheckbox
+                disabled={disabled}
+                item={item}
+                onChange={onAuthenticatorEnabledChange}
+              />
+            );
+
+          case "key": {
+            let nameId: string;
+            switch (item.kind) {
+              case "primary":
+                nameId = primaryAuthenticatorNameIds[item.type];
+                break;
+              case "secondary":
+                nameId = secondaryAuthenticatorNameIds[item.type];
+                break;
+            }
+            return (
+              <span>
+                <FormattedMessage id={nameId} />
+              </span>
+            );
+          }
+
+          case "order": {
+            return (
+              <OrderButtons
+                disabled={disabled}
+                index={index}
+                itemCount={secondaryItems.length}
+                onSwapClicked={onSecondarySwapClicked}
+                renderAriaLabel={renderSecondaryAriaLabel}
+              />
+            );
+          }
+
+          default:
+            return null;
+        }
+      },
+      [
+        onAuthenticatorEnabledChange,
+        featureDisabled,
+        onSecondarySwapClicked,
+        secondaryItems.length,
+        renderSecondaryAriaLabel,
+      ]
+    );
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -493,14 +558,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               />
             </MessageBar>
           )}
-          <DetailsListWithOrdering
+          <DetailsList
             items={primaryItems}
             columns={authenticatorColumns}
-            onRenderItemColumnClassName={onRenderColumnClassName}
-            onRenderItemColumn={onRenderColumn}
-            onSwapClicked={onPrimarySwapClicked}
+            onRenderItemColumn={onRenderPrimaryColumn}
             selectionMode={SelectionMode.none}
-            renderAriaLabel={renderPrimaryAriaLabel}
           />
         </Widget>
         <Widget className={styles.widget}>
@@ -517,22 +579,18 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
               />
             </MessageBar>
           )}
-          <DetailsListWithOrdering
+          <DetailsList
             items={secondaryItems}
             columns={authenticatorColumns}
-            onRenderItemColumnClassName={onRenderColumnClassName}
-            onRenderItemColumn={onRenderColumn}
-            onSwapClicked={onSecondarySwapClicked}
+            onRenderItemColumn={onRenderSecondaryColumn}
             selectionMode={SelectionMode.none}
-            renderAriaLabel={renderSecondaryAriaLabel}
           />
         </Widget>
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="AuthenticatorConfigurationScreen.policy.title" />
           </WidgetTitle>
           <Dropdown
-            className={styles.control}
             label={renderToString(
               "AuthenticatorConfigurationScreen.policy.require-mfa"
             )}
@@ -546,12 +604,10 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             label={renderToString(
               "AuthenticatorConfigurationScreen.policy.recovery-code-number"
             )}
-            className={styles.control}
             value={state.numRecoveryCode?.toFixed(0) ?? ""}
             onChange={onRecoveryCodeNumberChange}
           />
           <Toggle
-            className={styles.control}
             inlineLabel={true}
             label={
               <FormattedMessage id="AuthenticatorConfigurationScreen.policy.allow-retrieve-recovery-code" />
@@ -560,7 +616,6 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             onChange={onAllowRetrieveRecoveryCodeChange}
           />
           <Toggle
-            className={styles.control}
             inlineLabel={true}
             label={
               <FormattedMessage id="AuthenticatorConfigurationScreen.policy.disable-device-token" />

@@ -1,15 +1,33 @@
 .widget {
-  grid-column: 1 / span 6;
+  grid-column: 1 / span 8;
 }
 
-.control {
-  margin: 10px;
+.grid {
+  display: grid;
+  column-gap: 16px;
+  row-gap: 20px;
+  grid-template-columns: repeat(8, 1fr);
+  grid-auto-rows: auto;
+}
+
+.columnFull {
+  grid-column: 1 / span 8;
+}
+
+.columnLeft {
+  grid-column: 1 / span 4;
+}
+
+.columnRight {
+  grid-column: 5 / span 4;
+}
+
+.columnSmall {
+  grid-column: 1 / span 2;
 }
 
 .providerCard {
-  margin: 10px;
   flex: 1;
-
   padding: 8px 16px;
   display: flex;
   flex-direction: row;
@@ -17,14 +35,9 @@
   border-width: 1px;
   border-style: solid;
   cursor: pointer;
+  column-gap: 16px;
 }
 
 .providerCard > * {
-  margin: 8px;
   cursor: inherit;
-}
-
-.providerCards {
-  display: flex;
-  flex-direction: row;
 }

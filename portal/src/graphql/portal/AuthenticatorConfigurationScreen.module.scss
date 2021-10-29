@@ -7,17 +7,3 @@
   align-items: center;
   display: flex;
 }
-
-.controlGroup {
-  display: flex;
-  flex-direction: column;
-}
-
-.control {
-  margin: 10px;
-}
-
-.readOnly {
-  pointer-events: none;
-  opacity: 0.5;
-}

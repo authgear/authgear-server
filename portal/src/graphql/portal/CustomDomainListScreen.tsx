@@ -673,7 +673,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
           <NavBreadcrumb items={navBreadcrumbItems} />
         </div>
         <Widget className={cn(styles.widget, styles.controlGroup)}>
-          <Text className={styles.description}>
+          <Text block={true}>
             <FormattedMessage id="CustomDomainListScreen.desc" />
           </Text>
           {customDomainDisabled && (

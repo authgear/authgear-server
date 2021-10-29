@@ -7,7 +7,6 @@ import {
   IconButton,
   IDetailsListProps,
   SelectionMode,
-  Stack,
   Text,
 } from "@fluentui/react";
 
@@ -199,7 +198,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
         <NavBreadcrumb items={navBreadcrumbItems} />
       </div>
       <Widget className={styles.widget}>
-        <Text className={styles.description}>
+        <Text className={styles.description} block={true}>
           <FormattedMessage
             id="VerifyDomainScreen.desc-main"
             values={{
@@ -213,18 +212,12 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
           selectionMode={SelectionMode.none}
           onRenderItemColumn={renderDNSRecordListColumn}
         />
-        <Stack
-          className={styles.controlButtons}
-          horizontal={true}
-          tokens={{ childrenGap: 10 }}
-        >
-          <ButtonWithLoading
-            labelId="verify"
-            loading={verifyingDomain}
-            onClick={onVerifyClick}
-          />
-        </Stack>
-
+        <ButtonWithLoading
+          className={styles.verifyButton}
+          labelId="verify"
+          loading={verifyingDomain}
+          onClick={onVerifyClick}
+        />
         <ErrorDialog error={verifyDomainError} rules={errorRules} />
       </Widget>
     </ScreenContent>

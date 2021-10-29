@@ -410,12 +410,12 @@ function validateForm(
 const switchStyle = { root: { margin: "0" } };
 
 interface LoginIDTypeEditProps {
-  state: ConfigFormState;
   index: number;
   loginIDType: LoginIDKeyType;
   toggleLoginIDType: (type: LoginIDKeyType, isEnabled: boolean) => void;
   swapPosition: (index1: number, index2: number) => void;
   featureDisabled: boolean;
+  isEnabled: boolean;
 }
 
 const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
@@ -425,13 +425,11 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
       loginIDType,
       toggleLoginIDType,
       swapPosition,
-      state,
       featureDisabled,
+      isEnabled,
     } = props;
     const { renderToString } = useContext(Context);
 
-    const isEnabled =
-      state.types.find((t) => t.type === loginIDType)?.isEnabled ?? false;
     const onToggleIsEnabled = useCallback(
       (_, isEnabled?: boolean) =>
         toggleLoginIDType(loginIDType, isEnabled ?? false),
@@ -457,7 +455,7 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
           styles={switchStyle}
           checked={isEnabled}
           onChange={onToggleIsEnabled}
-          disabled={!isEnabled && featureDisabled}
+          disabled={featureDisabled}
         />
       ),
       [titleId, isEnabled, onToggleIsEnabled, featureDisabled]
@@ -481,10 +479,10 @@ const LoginIDTypeEdit: React.FC<LoginIDTypeEditProps> =
     return (
       <WidgetWithOrdering
         className={styles.widget}
+        disabled={!isEnabled || featureDisabled}
         index={index}
         itemCount={loginIDKeyTypes.length}
         onSwapClicked={swapPosition}
-        readOnly={!isEnabled || featureDisabled}
         renderAriaLabel={renderAriaLabel}
         HeaderComponent={widgetHeader}
         HeaderMessageComponent={widgetMessageHeader}
@@ -499,8 +497,16 @@ interface AuthenticationLoginIDSettingsContentProps {
 }
 
 const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettingsContentProps> =
+  // eslint-disable-next-line complexity
   function AuthenticationLoginIDSettingsContent(props) {
     const { state, setState } = props.form;
+
+    const emailIsEnabled =
+      state.types.find((t) => t.type === "email")?.isEnabled ?? false;
+    const phoneIsEnabled =
+      state.types.find((t) => t.type === "phone")?.isEnabled ?? false;
+    const usernameIsEnabled =
+      state.types.find((t) => t.type === "username")?.isEnabled ?? false;
 
     const { renderToString } = useContext(Context);
 
@@ -699,38 +705,38 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     );
 
     const emailSection = (
-      <div className={styles.widgetContent}>
+      <>
         <Checkbox
           label={renderToString(
             "LoginIDConfigurationScreen.email.caseSensitive"
           )}
-          className={styles.control}
           checked={state.email.case_sensitive}
           onChange={onEmailCaseSensitiveChange}
+          disabled={!emailIsEnabled}
         />
         <Checkbox
           label={renderToString(
             "LoginIDConfigurationScreen.email.ignoreDotLocal"
           )}
-          className={styles.control}
           checked={state.email.ignore_dot_sign}
           onChange={onEmailIgnoreDotLocalChange}
+          disabled={!emailIsEnabled}
         />
         <CheckboxWithTooltip
           label={renderToString("LoginIDConfigurationScreen.email.blockPlus")}
-          className={styles.control}
           checked={state.email.block_plus_sign}
           onChange={onEmailBlockPlusChange}
           tooltipMessageId="LoginIDConfigurationScreen.email.blockPlusTooltipMessage"
+          disabled={!emailIsEnabled}
         />
-        <CheckboxWithContentLayout className={styles.control}>
+        <CheckboxWithContentLayout>
           <CheckboxWithTooltip
             label={renderToString(
               "LoginIDConfigurationScreen.email.domainBlocklist"
             )}
             checked={state.email.domain_blocklist_enabled}
             onChange={onEmailDomainBlocklistEnabledChange}
-            disabled={state.email.domain_allowlist_enabled}
+            disabled={!emailIsEnabled || state.email.domain_allowlist_enabled}
             tooltipMessageId="LoginIDConfigurationScreen.email.domainBlocklistTooltipMessage"
           />
           <CustomTagPicker
@@ -740,7 +746,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
               ),
             }}
             className={styles.widgetInputField}
-            disabled={!state.email.domain_blocklist_enabled}
+            disabled={!emailIsEnabled || !state.email.domain_blocklist_enabled}
             selectedItems={domainBlocklist}
             onChange={onDomainBlocklistChange}
             onResolveSuggestions={onDomainBlocklistSuggestions}
@@ -751,20 +757,19 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           label={renderToString(
             "LoginIDConfigurationScreen.email.blockFreeEmailProviderDomains"
           )}
-          className={styles.control}
           checked={state.email.block_free_email_provider_domains}
           onChange={onEmailBlockFreeEmailProviderDomainsChange}
-          disabled={state.email.domain_allowlist_enabled}
+          disabled={!emailIsEnabled || state.email.domain_allowlist_enabled}
           tooltipMessageId="LoginIDConfigurationScreen.email.blockFreeEmailProviderDomainsTooltipMessage"
         />
-        <CheckboxWithContentLayout className={styles.control}>
+        <CheckboxWithContentLayout>
           <CheckboxWithTooltip
             label={renderToString(
               "LoginIDConfigurationScreen.email.domainAllowlist"
             )}
             checked={state.email.domain_allowlist_enabled}
             onChange={onEmailDomainAllowlistEnabledChange}
-            disabled={state.email.domain_blocklist_enabled}
+            disabled={!emailIsEnabled || state.email.domain_blocklist_enabled}
             tooltipMessageId="LoginIDConfigurationScreen.email.domainAllowlistTooltipMessage"
           />
           <CustomTagPicker
@@ -774,7 +779,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
               ),
             }}
             className={styles.widgetInputField}
-            disabled={!state.email.domain_allowlist_enabled}
+            disabled={!emailIsEnabled || !state.email.domain_allowlist_enabled}
             selectedItems={domainAllowlist}
             onChange={onDomainAllowlistChange}
             onResolveSuggestions={onDomainAllowlistSuggestions}
@@ -785,11 +790,11 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           label={renderToString(
             "LoginIDConfigurationScreen.email.modify-disabled"
           )}
-          className={styles.control}
           checked={state.email.modify_disabled}
           onChange={onEmailModifyDisabledChange}
+          disabled={!emailIsEnabled}
         />
-      </div>
+      </>
     );
 
     const onUsernameModifyDisabledChange = useCallback(
@@ -878,16 +883,16 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       updateUsernameExcludeKeywords
     );
     const usernameSection = (
-      <div className={styles.widgetContent}>
+      <>
         <Checkbox
           label={renderToString(
             "LoginIDConfigurationScreen.username.blockReservedUsername"
           )}
           checked={state.username.block_reserved_usernames}
           onChange={onUsernameBlockReservedUsernameChange}
-          className={styles.control}
+          disabled={!usernameIsEnabled}
         />
-        <CheckboxWithContentLayout className={styles.control}>
+        <CheckboxWithContentLayout>
           <CheckboxWithTooltip
             label={renderToString(
               "LoginIDConfigurationScreen.username.excludeKeywords"
@@ -895,6 +900,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
             checked={state.username.exclude_keywords_enabled}
             onChange={onUsernameIsExcludedKeywordsEnabledChange}
             tooltipMessageId="LoginIDConfigurationScreen.username.excludeKeywordsTooltipMessage"
+            disabled={!usernameIsEnabled}
           />
           <CustomTagPicker
             inputProps={{
@@ -903,7 +909,9 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
               ),
             }}
             className={styles.widgetInputField}
-            disabled={!state.username.exclude_keywords_enabled}
+            disabled={
+              !usernameIsEnabled || !state.username.exclude_keywords_enabled
+            }
             selectedItems={excludedKeywordItems}
             onChange={onExcludedKeywordsChange}
             onResolveSuggestions={onResolveExcludedKeywordSuggestions}
@@ -914,27 +922,27 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           label={renderToString(
             "LoginIDConfigurationScreen.username.caseSensitive"
           )}
-          className={styles.control}
           checked={state.username.case_sensitive}
           onChange={onUsernameCaseSensitiveChange}
+          disabled={!usernameIsEnabled}
         />
         <Checkbox
           label={renderToString(
             "LoginIDConfigurationScreen.username.asciiOnly"
           )}
-          className={styles.control}
           checked={state.username.ascii_only}
           onChange={onUsernameASCIIOnlyChange}
+          disabled={!usernameIsEnabled}
         />
         <Checkbox
           label={renderToString(
             "LoginIDConfigurationScreen.username.modify-disabled"
           )}
-          className={styles.control}
           checked={state.username.modify_disabled}
           onChange={onUsernameModifyDisabledChange}
+          disabled={!usernameIsEnabled}
         />
-      </div>
+      </>
     );
 
     const onPhonePreselectByIPDisabledChange = useCallback(
@@ -963,9 +971,10 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
       [change]
     );
     const phoneSection = (
-      <div className={styles.widgetContent}>
-        <Widget className={styles.control}>
+      <>
+        <Widget>
           <PhoneInputListWidget
+            disabled={!phoneIsEnabled || state.loginIDPhoneDisabled}
             allowedAlpha2={state.phone.allowlist}
             pinnedAlpha2={state.phone.pinned_list}
             onChange={onPhoneListChange}
@@ -975,19 +984,19 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           label={renderToString(
             "LoginIDConfigurationScreen.phone.preselect-by-ip"
           )}
-          className={styles.control}
           checked={state.phone.preselect_by_ip_disabled !== true}
           onChange={onPhonePreselectByIPDisabledChange}
+          disabled={!phoneIsEnabled || state.loginIDPhoneDisabled}
         />
         <Checkbox
           label={renderToString(
             "LoginIDConfigurationScreen.phone.modify-disabled"
           )}
-          className={styles.control}
           checked={state.phone.modify_disabled}
           onChange={onPhoneModifyDisabledChange}
+          disabled={!phoneIsEnabled || state.loginIDPhoneDisabled}
         />
-      </div>
+      </>
     );
 
     const sections = {
@@ -1004,14 +1013,14 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="LoginIDConfigurationScreen.columns.orderTooltipMessage" />
         </ScreenDescription>
-        {state.types.map(({ type }, index) => (
+        {state.types.map(({ type, isEnabled }, index) => (
           <LoginIDTypeEdit
             key={type}
-            state={state}
             index={index}
             loginIDType={type}
             toggleLoginIDType={toggleLoginIDType}
             swapPosition={swapPosition}
+            isEnabled={isEnabled}
             featureDisabled={type === "phone" && state.loginIDPhoneDisabled}
           >
             {sections[type]}

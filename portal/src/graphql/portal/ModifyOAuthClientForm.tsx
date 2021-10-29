@@ -1,5 +1,4 @@
 import React, { useCallback, useContext } from "react";
-import cn from "classnames";
 import produce from "immer";
 import { Checkbox, DirectionalHint, TextField, Text } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -169,20 +168,17 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               label={renderToString("EditOAuthClientScreen.client-id")}
               value={clientConfig.client_id}
               readOnly={true}
-              className={styles.control}
             />
           )}
           <FormTextField
             parentJSONPointer={parentJSONPointer}
             fieldName="name"
             label={renderToString("ModifyOAuthClientForm.name-label")}
-            className={styles.control}
             value={clientConfig.name ?? ""}
             onChange={onClientNameChange}
             required={true}
           />
           <FormTextFieldList
-            className={styles.control}
             parentJSONPointer={parentJSONPointer}
             fieldName="redirect_uris"
             list={clientConfig.redirect_uris}
@@ -213,7 +209,6 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               label={renderToString(
                 "ModifyOAuthClientForm.acces-token-lifetime-label"
               )}
-              className={styles.control}
               value={
                 clientConfig.access_token_lifetime_seconds?.toFixed(0) ?? ""
               }
@@ -225,14 +220,12 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               label={renderToString(
                 "ModifyOAuthClientForm.refresh-token-lifetime-label"
               )}
-              className={styles.control}
               value={
                 clientConfig.refresh_token_lifetime_seconds?.toFixed(0) ?? ""
               }
               onChange={onRefreshTokenLifetimeChange}
             />
             <Checkbox
-              className={styles.control}
               checked={clientConfig.refresh_token_idle_timeout_enabled ?? true}
               onChange={onChangeRefreshTokenIdleTimeoutEnabled}
               label={renderToString(
@@ -246,7 +239,6 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               label={renderToString(
                 "ModifyOAuthClientForm.refresh-token-idle-timeout-label"
               )}
-              className={styles.control}
               value={
                 clientConfig.refresh_token_idle_timeout_seconds?.toFixed(0) ??
                 ""
@@ -256,7 +248,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
                 !(clientConfig.refresh_token_idle_timeout_enabled ?? true)
               }
             />
-            <div className={cn(styles.control, styles.checkboxContainer)}>
+            <div className={styles.checkboxContainer}>
               <Checkbox
                 checked={clientConfig.issue_jwt_access_token}
                 onChange={onIssueJWTAccessTokenChange}
@@ -279,7 +271,6 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
               <FormattedMessage id="ModifyOAuthClientForm.cookie-settings.description" />
             </WidgetDescription>
             <FormTextFieldList
-              className={styles.control}
               parentJSONPointer={parentJSONPointer}
               fieldName="post_logout_redirect_uris"
               list={clientConfig.post_logout_redirect_uris ?? []}
@@ -294,7 +285,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
                 />
               }
             />
-            <Text className={styles.control} block={true}>
+            <Text block={true}>
               <FormattedMessage
                 id="ModifyOAuthClientForm.cookie-settings.link-to-cookie-session"
                 values={{

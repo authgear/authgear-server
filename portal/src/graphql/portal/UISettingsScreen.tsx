@@ -673,7 +673,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             <FormattedMessage id="UISettingsScreen.app-name-title" />
           </WidgetTitle>
           <TextField
-            className={styles.textField}
             label={renderToString("UISettingsScreen.app-name-label")}
             value={valueForTranslationJSON("app.name")}
             onChange={onChangeForTranslationJSON("app.name")}
@@ -684,7 +683,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             <FormattedMessage id="UISettingsScreen.link-settings-title" />
           </WidgetTitle>
           <TextField
-            className={styles.textField}
             label={renderToString("UISettingsScreen.privacy-policy-link-label")}
             description={renderToString(
               "UISettingsScreen.privacy-policy-link-description"
@@ -693,7 +691,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForTranslationJSON("privacy-policy-link")}
           />
           <TextField
-            className={styles.textField}
             label={renderToString(
               "UISettingsScreen.terms-of-service-link-label"
             )}
@@ -704,7 +701,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForTranslationJSON("terms-of-service-link")}
           />
           <TextField
-            className={styles.textField}
             label={renderToString(
               "UISettingsScreen.customer-support-link-label"
             )}
@@ -715,7 +711,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForTranslationJSON("customer-support-link")}
           />
           <TextField
-            className={styles.textField}
             label={renderToString("UISettingsScreen.default-client-uri-label")}
             description={renderToString(
               "UISettingsScreen.default-client-uri-description"
@@ -724,7 +719,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForState("default_client_uri")}
           />
           <TextField
-            className={styles.textField}
             label={renderToString(
               "UISettingsScreen.default-redirect-uri-label"
             )}
@@ -735,7 +729,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForState("default_redirect_uri")}
           />
           <TextField
-            className={styles.textField}
             label={renderToString(
               "UISettingsScreen.default-post-logout-redirect-uri-label"
             )}
@@ -774,7 +767,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             </MessageBar>
           )}
           <Toggle
-            className={styles.control}
             checked={watermarkEnabled}
             onChange={onChangeWatermarkEnabled}
             label={renderToString(

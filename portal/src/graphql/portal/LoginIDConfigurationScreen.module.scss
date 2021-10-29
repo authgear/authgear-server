@@ -2,11 +2,6 @@
   grid-column: 1 / span 8;
 }
 
-.widgetContent {
-  display: flex;
-  flex-direction: column;
-}
-
 .checkboxLabel {
   font-size: 14px;
   font-weight: 400;
@@ -16,8 +11,4 @@
 
 .widgetInputField {
   width: 490px;
-}
-
-.control {
-  margin: 10px;
 }

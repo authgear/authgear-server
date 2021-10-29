@@ -16,7 +16,6 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
 import produce from "immer";
-import cn from "classnames";
 
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
@@ -212,15 +211,14 @@ const CORSConfigurationWidget: React.FC<CORSConfigurationWidgetProps> =
     );
 
     return (
-      <Widget className={cn(styles.widget, styles.controlGroup)}>
+      <Widget className={styles.widget}>
         <WidgetTitle>
           <FormattedMessage id="ApplicationsConfigurationScreen.cors.title" />
         </WidgetTitle>
-        <Text className={styles.description}>
+        <Text className={styles.description} block={true}>
           <FormattedMessage id="ApplicationsConfigurationScreen.cors.desc" />
         </Text>
         <FormTextFieldList
-          className={styles.control}
           parentJSONPointer="/http"
           fieldName="allowed_origins"
           list={state.allowedOrigins}
@@ -282,7 +280,7 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
     );
 
     return (
-      <Widget className={cn(styles.widget, styles.controlGroup)}>
+      <Widget className={styles.widget}>
         <WidgetTitle id="cookie-session">
           <FormattedMessage id="SessionConfigurationWidget.title" />
         </WidgetTitle>
@@ -296,7 +294,6 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
           />
         </WidgetDescription>
         <Toggle
-          className={styles.control}
           inlineLabel={true}
           label={renderToString(
             "SessionConfigurationWidget.persistent-cookie.label"
@@ -305,7 +302,6 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
           onChange={onPersistentCookieChange}
         />
         <TextField
-          className={styles.control}
           type="text"
           label={renderToString(
             "SessionConfigurationWidget.session-lifetime.label"
@@ -314,7 +310,6 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
           onChange={onSessionLifetimeSecondsChange}
         />
         <Toggle
-          className={styles.control}
           inlineLabel={true}
           label={renderToString(
             "SessionConfigurationWidget.invalidate-session-after-idling.label"
@@ -323,7 +318,6 @@ const SessionConfigurationWidget: React.FC<SessionConfigurationWidgetProps> =
           onChange={onIdleTimeoutEnabledChange}
         />
         <TextField
-          className={styles.control}
           type="text"
           disabled={!state.idleTimeoutEnabled}
           label={renderToString(
@@ -396,7 +390,7 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="ApplicationsConfigurationScreen.title" />
         </ScreenTitle>
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="ApplicationsConfigurationScreen.title" />
           </WidgetTitle>

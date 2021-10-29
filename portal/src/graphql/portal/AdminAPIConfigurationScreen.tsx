@@ -210,11 +210,7 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
               value={adminAPIEndpoint}
               className={styles.copyTextField}
             />
-            <PrimaryButton
-              {...copyButtonProps}
-              className={styles.copyButton}
-              iconProps={undefined}
-            />
+            <PrimaryButton {...copyButtonProps} iconProps={undefined} />
             <Feedback />
           </div>
         </Widget>
@@ -229,7 +225,6 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
             />
           </WidgetDescription>
           <MessageBar
-            className={styles.messageBar}
             messageBarType={MessageBarType.warning}
             styles={messageBarStyles}
           >

@@ -1,7 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
-import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   Checkbox,
@@ -199,12 +198,11 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="VerificationConfigurationScreen.description" />
         </ScreenDescription>
-        <Widget className={cn(styles.controlGroup, styles.widget)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="VerificationConfigurationScreen.basic-settings" />
           </WidgetTitle>
           <TextField
-            className={styles.control}
             type="text"
             label={renderToString(
               "VerificationConfigurationScreen.code-expiry-seconds.label"
@@ -213,7 +211,6 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             onChange={onCodeExpirySecondsChange}
           />
           <Dropdown
-            className={styles.control}
             label={renderToString(
               "VerificationConfigurationScreen.criteria.label"
             )}
@@ -222,9 +219,8 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             onChange={onCriteriaChange}
           />
         </Widget>
-        <Widget className={cn(styles.controlGroup, styles.widget)}>
+        <Widget className={styles.widget}>
           <Toggle
-            className={styles.control}
             checked={state.email.enabled}
             onChange={onEmailEnabledChange}
             label={renderToString(
@@ -233,7 +229,6 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             inlineLabel={true}
           />
           <Checkbox
-            className={styles.control}
             disabled={!state.email.enabled}
             checked={state.email.required}
             onChange={onEmailRequiredChange}
@@ -242,7 +237,7 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
             )}
           />
         </Widget>
-        <Widget className={cn(styles.widget)}>
+        <Widget className={styles.widget}>
           {loginIDPhoneDisabled && (
             <MessageBar>
               <FormattedMessage
@@ -253,31 +248,23 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
               />
             </MessageBar>
           )}
-          <div
-            className={cn(styles.controlGroup, {
-              [styles.readOnly]: loginIDPhoneDisabled,
-            })}
-          >
-            <Toggle
-              className={styles.control}
-              checked={state.phone.enabled}
-              disabled={loginIDPhoneDisabled}
-              onChange={onPhoneEnabledChange}
-              label={renderToString(
-                "VerificationConfigurationScreen.verification.claims.phoneNumber"
-              )}
-              inlineLabel={true}
-            />
-            <Checkbox
-              className={styles.control}
-              disabled={!state.phone.enabled || loginIDPhoneDisabled}
-              checked={state.phone.required}
-              onChange={onPhoneRequiredChange}
-              label={renderToString(
-                "VerificationConfigurationScreen.verification.required.label"
-              )}
-            />
-          </div>
+          <Toggle
+            checked={state.phone.enabled}
+            disabled={loginIDPhoneDisabled}
+            onChange={onPhoneEnabledChange}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.claims.phoneNumber"
+            )}
+            inlineLabel={true}
+          />
+          <Checkbox
+            disabled={!state.phone.enabled || loginIDPhoneDisabled}
+            checked={state.phone.required}
+            onChange={onPhoneRequiredChange}
+            label={renderToString(
+              "VerificationConfigurationScreen.verification.required.label"
+            )}
+          />
         </Widget>
       </ScreenContent>
     );
