@@ -273,8 +273,8 @@ const SingleSignOnConfigurationContent: React.FC<SingleSignOnConfigurationConten
       oauthClientsMaximum;
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

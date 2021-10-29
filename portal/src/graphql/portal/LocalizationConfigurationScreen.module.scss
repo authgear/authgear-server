@@ -1,16 +1,11 @@
-.root {
-  display: flex;
-  flex-direction: column;
-}
-
 .titleContainer {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  grid-column: 1 / span 12;
 }
 
 .widget {
-  margin: 10px 15px;
-  max-width: 1024px;
+  grid-column: 1 / span 10;
 }

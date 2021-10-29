@@ -1,6 +1,5 @@
-.root {
-  display: flex;
-  flex-direction: column;
+.widget {
+  grid-column: 1 / span 6;
 }
 
 .dialogClientId {

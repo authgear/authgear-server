@@ -240,8 +240,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           "AuthenticatorConfigurationScreen.columns.authenticator"
         ),
         className: styles.authenticatorColumn,
-        minWidth: 300,
-        maxWidth: 300,
+        minWidth: 250,
+        maxWidth: 250,
       },
     ];
 
@@ -472,8 +472,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="AuthenticatorConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

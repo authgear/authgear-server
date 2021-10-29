@@ -1,14 +1,5 @@
-.root {
-  display: flex;
-  flex-direction: column;
-  // to align with the custom domain list page
-  // the height of hidden message bar
-  margin-top: 32px;
-}
-
 .widget {
-  margin: 10px 15px;
-  max-width: 750px;
+  grid-column: 1 / span 6;
 }
 
 .description {

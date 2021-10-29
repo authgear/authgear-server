@@ -192,8 +192,8 @@ const VerificationConfigurationContent: React.FC<VerificationConfigurationConten
     }, [identityFeatureConfig]);
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="VerificationConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

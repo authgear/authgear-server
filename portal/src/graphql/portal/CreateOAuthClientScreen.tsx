@@ -154,9 +154,12 @@ const CreateOAuthClientContent: React.FC<CreateOAuthClientContentProps> =
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
+      <ScreenContent>
+        <div className={styles.widget}>
+          <NavBreadcrumb items={navBreadcrumbItems} />
+        </div>
         <ModifyOAuthClientForm
+          className={styles.widget}
           isCreation={true}
           clientConfig={client}
           onClientConfigChange={onClientConfigChange}

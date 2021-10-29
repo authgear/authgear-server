@@ -652,7 +652,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     }, [state.whiteLabelingDisabled, state.watermarkDisabled]);
 
     return (
-      <ScreenContent className={styles.root}>
+      <ScreenContent>
         <div className={styles.titleContainer}>
           <ScreenTitle>
             <FormattedMessage id="UISettingsScreen.title" />

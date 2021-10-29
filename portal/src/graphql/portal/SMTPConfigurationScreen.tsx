@@ -428,8 +428,8 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
     });
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="SMTPConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

@@ -131,7 +131,7 @@ function makeOAuthClientListColumns(
       key: "action",
       name: renderToString("action"),
       className: styles.columnHeader,
-      minWidth: 150,
+      minWidth: 120,
     },
   ];
 }
@@ -392,8 +392,8 @@ const OAuthClientConfigurationContent: React.FC<OAuthClientConfigurationContentP
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="ApplicationsConfigurationScreen.title" />
         </ScreenTitle>
         <Widget className={cn(styles.widget, styles.controlGroup)}>

@@ -162,8 +162,8 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
     const parentJSONPointer = /\/oauth\/clients\/\d+/;
 
     return (
-      <div className={cn(styles.root, className)}>
-        <Widget className={styles.widget}>
+      <>
+        <Widget className={className}>
           {!isCreation && (
             <TextField
               label={renderToString("EditOAuthClientScreen.client-id")}
@@ -200,7 +200,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
           />
         </Widget>
         {!isCreation && (
-          <Widget className={styles.widget}>
+          <Widget className={className}>
             <WidgetTitle>
               <FormattedMessage id="ModifyOAuthClientForm.token-settings.title" />
             </WidgetTitle>
@@ -271,7 +271,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
           </Widget>
         )}
         {!isCreation && (
-          <Widget className={styles.widget}>
+          <Widget className={className}>
             <WidgetTitle>
               <FormattedMessage id="ModifyOAuthClientForm.cookie-settings.title" />
             </WidgetTitle>
@@ -304,7 +304,7 @@ const ModifyOAuthClientForm: React.FC<ModifyOAuthClientFormProps> =
             </Text>
           </Widget>
         )}
-      </div>
+      </>
     );
   };
 

@@ -307,8 +307,8 @@ const PasswordPolicyConfigurationScreenContent: React.FC<PasswordPolicyConfigura
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="PasswordPolicyConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

@@ -400,8 +400,8 @@ const WebhookConfigurationScreenContent: React.FC<WebhookConfigurationScreenCont
     }, [state.non_blocking_handlers.length, nonBlockingHandlerDisabled]);
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="WebhookConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

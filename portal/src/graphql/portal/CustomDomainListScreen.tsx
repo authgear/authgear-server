@@ -668,8 +668,10 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
+      <ScreenContent>
+        <div className={styles.widget}>
+          <NavBreadcrumb items={navBreadcrumbItems} />
+        </div>
         <Widget className={cn(styles.widget, styles.controlGroup)}>
           <Text className={styles.description}>
             <FormattedMessage id="CustomDomainListScreen.desc" />

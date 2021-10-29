@@ -997,8 +997,8 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
     };
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="LoginIDConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

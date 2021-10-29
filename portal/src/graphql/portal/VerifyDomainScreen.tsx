@@ -194,8 +194,10 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
   }, []);
 
   return (
-    <ScreenContent className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
+    <ScreenContent>
+      <div className={styles.widget}>
+        <NavBreadcrumb items={navBreadcrumbItems} />
+      </div>
       <Widget className={styles.widget}>
         <Text className={styles.description}>
           <FormattedMessage

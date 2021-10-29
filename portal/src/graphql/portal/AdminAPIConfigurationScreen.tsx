@@ -189,8 +189,8 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
     }, [renderToString, actionColumnOnRender]);
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="AdminAPIConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

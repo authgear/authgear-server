@@ -92,8 +92,8 @@ const BiometricConfigurationContent: React.FC<BiometricConfigurationContentProps
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="BiometricConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

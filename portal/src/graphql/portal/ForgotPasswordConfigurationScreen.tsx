@@ -67,8 +67,8 @@ const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigura
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="ForgotPasswordConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>

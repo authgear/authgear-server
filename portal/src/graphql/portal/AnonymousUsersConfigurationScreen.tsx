@@ -130,8 +130,8 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
