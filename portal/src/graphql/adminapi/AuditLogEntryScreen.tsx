@@ -7,6 +7,7 @@ import { CopyBlock, dracula } from "react-code-blocks";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import CommandBarContainer from "../../CommandBarContainer";
 import ShowError from "../../ShowError";
+import ScreenContent from "../../ScreenContent";
 import Widget from "../../Widget";
 import { formatDatetime } from "../../util/formatDatetime";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -45,7 +46,6 @@ function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
     <Text
       as="p"
       block={true}
-      className={styles.summaryText}
       style={{
         color: light === true ? lightColor : undefined,
       }}
@@ -105,14 +105,12 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   }
 
   return (
-    <CommandBarContainer
-      isLoading={loading}
-      className={styles.root}
-      messageBar={messageBar}
-    >
-      <main className={styles.content}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
-        <Widget className={styles.logSummary}>
+    <CommandBarContainer isLoading={loading} messageBar={messageBar}>
+      <ScreenContent>
+        <div className={styles.widget}>
+          <NavBreadcrumb items={navBreadcrumbItems} />
+        </div>
+        <Widget className={styles.widget}>
           {activityType && (
             <SummaryText>
               <FormattedMessage
@@ -174,20 +172,22 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
             </SummaryText>
           )}
         </Widget>
-        <Label>
-          <FormattedMessage id="AuditLogEntryScreen.raw-event-log" />
-        </Label>
-        {code != null && (
-          <div className={styles.codeBlock}>
-            <CopyBlock
-              text={code}
-              language="json"
-              codeBlock={true}
-              theme={dracula}
-            />
-          </div>
-        )}
-      </main>
+        <Widget className={styles.widget}>
+          <Label>
+            <FormattedMessage id="AuditLogEntryScreen.raw-event-log" />
+          </Label>
+          {code != null && (
+            <div className={styles.codeBlock}>
+              <CopyBlock
+                text={code}
+                language="json"
+                codeBlock={true}
+                theme={dracula}
+              />
+            </div>
+          )}
+        </Widget>
+      </ScreenContent>
     </CommandBarContainer>
   );
 };

@@ -370,7 +370,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     ];
 
     return (
-      <ScreenContent className={styles.root}>
+      <ScreenContent>
         <div className={styles.titleContainer}>
           <ScreenTitle>
             <FormattedMessage id="LocalizationConfigurationScreen.title" />

@@ -1,26 +1,9 @@
-.root {
-  display: flex;
-  flex-direction: column;
-}
-
 .widget {
-  margin: 10px 15px;
-  max-width: 650px;
-}
-
-.controlGroup {
-  display: flex;
-  flex-direction: column;
+  grid-column: 1 / span 6;
 }
 
 .description {
-  margin: 16px 8px;
-  display: block;
   white-space: pre-line;
-}
-
-.control {
-  margin: 10px;
 }
 
 .columnHeader {

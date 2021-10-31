@@ -189,8 +189,8 @@ const SubscriptionScreen: React.FC = function SubscriptionScreen() {
   }
 
   return (
-    <ScreenContent className={styles.root}>
-      <ScreenTitle>
+    <ScreenContent>
+      <ScreenTitle className={styles.widget}>
         <FormattedMessage id="SubscriptionScreen.title" />
       </ScreenTitle>
       <SubscriptionPlanSummary planName={planName} />

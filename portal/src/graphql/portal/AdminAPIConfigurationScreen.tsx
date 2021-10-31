@@ -189,8 +189,8 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
     }, [renderToString, actionColumnOnRender]);
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="AdminAPIConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
@@ -210,11 +210,7 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
               value={adminAPIEndpoint}
               className={styles.copyTextField}
             />
-            <PrimaryButton
-              {...copyButtonProps}
-              className={styles.copyButton}
-              iconProps={undefined}
-            />
+            <PrimaryButton {...copyButtonProps} iconProps={undefined} />
             <Feedback />
           </div>
         </Widget>
@@ -229,7 +225,6 @@ const AdminAPIConfigurationScreenContent: React.FC<AdminAPIConfigurationScreenCo
             />
           </WidgetDescription>
           <MessageBar
-            className={styles.messageBar}
             messageBarType={MessageBarType.warning}
             styles={messageBarStyles}
           >

@@ -1,17 +1,16 @@
 import React from "react";
 import Widget from "./Widget";
-import cn from "classnames";
 import OrderButtons from "./OrderButtons";
 import styles from "./WidgetWithOrdering.module.scss";
 
 interface WidgetWithOrderingProps {
+  disabled: boolean;
   index: number;
   itemCount: number;
   HeaderMessageComponent?: React.ReactNode;
   HeaderComponent: React.ReactNode;
   onSwapClicked: (index1: number, index2: number) => void;
   renderAriaLabel: (index?: number) => string;
-  readOnly?: boolean;
   children: React.ReactNode;
   className?: string;
 }
@@ -19,12 +18,12 @@ interface WidgetWithOrderingProps {
 const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> =
   function WidgetWithOrdering(props: WidgetWithOrderingProps) {
     const {
+      disabled,
       index,
       itemCount,
       HeaderMessageComponent,
       HeaderComponent,
       onSwapClicked,
-      readOnly,
       children,
       className,
       renderAriaLabel,
@@ -35,16 +34,15 @@ const WidgetWithOrdering: React.FC<WidgetWithOrderingProps> =
         {HeaderMessageComponent && <div>{HeaderMessageComponent}</div>}
         <div className={styles.header}>
           {HeaderComponent}
-          <div className={cn({ [styles.readOnly]: readOnly })}>
-            <OrderButtons
-              index={index}
-              itemCount={itemCount}
-              onSwapClicked={onSwapClicked}
-              renderAriaLabel={renderAriaLabel}
-            />
-          </div>
+          <OrderButtons
+            disabled={disabled}
+            index={index}
+            itemCount={itemCount}
+            onSwapClicked={onSwapClicked}
+            renderAriaLabel={renderAriaLabel}
+          />
         </div>
-        <div className={cn({ [styles.readOnly]: readOnly })}>{children}</div>
+        {children}
       </Widget>
     );
   };

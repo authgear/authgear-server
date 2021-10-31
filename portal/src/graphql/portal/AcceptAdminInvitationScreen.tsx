@@ -1,6 +1,11 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import authgear from "@authgear/web";
-import { DefaultButton, PrimaryButton, Text } from "@fluentui/react";
+import {
+  DefaultButton,
+  PrimaryButton,
+  Text,
+  DefaultEffects,
+} from "@fluentui/react";
 import {
   Context,
   FormattedMessage,
@@ -16,7 +21,6 @@ import ScreenHeader from "../../ScreenHeader";
 import { parseAPIErrors, parseRawError } from "../../error/parse";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import Widget from "../../Widget";
 import { useAuthenticatedForInvitationQuery } from "./query/authenticatedForInvitationQuery";
 
 function encodeOAuthState(state: Record<string, unknown>): string {
@@ -33,7 +37,12 @@ const AcceptAdminInvitationContent: React.FC<AcceptAdminInvitationWidgetProps> =
     return (
       <main className={styles.root}>
         <ScreenHeader />
-        <Widget className={styles.widget}>
+        <div
+          className={styles.widget}
+          style={{
+            boxShadow: DefaultEffects.elevation4,
+          }}
+        >
           <Text className={styles.title}>
             <FormattedMessage {...title} />
           </Text>
@@ -43,7 +52,7 @@ const AcceptAdminInvitationContent: React.FC<AcceptAdminInvitationWidgetProps> =
             ))}
           </Text>
           {children}
-        </Widget>
+        </div>
         <div />
         <div />
       </main>

@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useState, useMemo } from "react";
+import cn from "classnames";
 import { useParams } from "react-router-dom";
 import produce from "immer";
 import {
@@ -109,6 +110,7 @@ function constructConfig(
 }
 
 interface ProviderCardProps {
+  className?: string;
   iconProps?: IIconProps;
   logoSrc?: any;
   children?: React.ReactNode;
@@ -128,7 +130,15 @@ const CUSTOM_PROVIDER_ICON_PROPS = {
 };
 
 function ProviderCard(props: ProviderCardProps) {
-  const { disabled, isSelected, children, onClick, iconProps, logoSrc } = props;
+  const {
+    className,
+    disabled,
+    isSelected,
+    children,
+    onClick,
+    iconProps,
+    logoSrc,
+  } = props;
   const {
     themes: {
       main: {
@@ -145,7 +155,7 @@ function ProviderCard(props: ProviderCardProps) {
         backgroundColor: disabled ? backgroundColor : undefined,
         cursor: disabled ? "not-allowed" : undefined,
       }}
-      className={styles.providerCard}
+      className={cn(className, styles.providerCard)}
       onClick={disabled ? undefined : onClick}
     >
       {iconProps != null && (
@@ -173,12 +183,12 @@ function ProviderDescription(props: ProviderDescriptionProps) {
 
   return (
     <Text
-      className={styles.control}
       variant="small"
       block={true}
       style={{
         color,
       }}
+      className={styles.columnFull}
     >
       {children}
     </Text>
@@ -428,17 +438,17 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
     });
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="SMTPConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="SMTPConfigurationScreen.description" />
         </ScreenDescription>
 
-        <Widget className={styles.widget}>
+        <Widget className={cn(styles.widget, styles.grid)}>
           <Toggle
-            className={styles.control}
+            className={styles.columnFull}
             checked={state.enabled}
             onChange={onChangeEnabled}
             label={renderToString("SMTPConfigurationScreen.enable.label")}
@@ -447,31 +457,31 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
           />
           {state.enabled && (
             <>
-              <div className={styles.providerCards}>
-                <ProviderCard
-                  onClick={onClickProviderSendgrid}
-                  isSelected={providerType === "sendgrid"}
-                  disabled={state.isPasswordMasked}
-                  logoSrc={logoSendgrid}
-                >
-                  <FormattedMessage id="SMTPConfigurationScreen.provider.sendgrid" />
-                </ProviderCard>
-                <ProviderCard
-                  onClick={onClickProviderCustom}
-                  isSelected={providerType === "custom"}
-                  disabled={state.isPasswordMasked}
-                  iconProps={CUSTOM_PROVIDER_ICON_PROPS}
-                >
-                  <FormattedMessage id="SMTPConfigurationScreen.provider.custom" />
-                </ProviderCard>
-              </div>
+              <ProviderCard
+                className={styles.columnLeft}
+                onClick={onClickProviderSendgrid}
+                isSelected={providerType === "sendgrid"}
+                disabled={state.isPasswordMasked}
+                logoSrc={logoSendgrid}
+              >
+                <FormattedMessage id="SMTPConfigurationScreen.provider.sendgrid" />
+              </ProviderCard>
+              <ProviderCard
+                className={styles.columnRight}
+                onClick={onClickProviderCustom}
+                isSelected={providerType === "custom"}
+                disabled={state.isPasswordMasked}
+                iconProps={CUSTOM_PROVIDER_ICON_PROPS}
+              >
+                <FormattedMessage id="SMTPConfigurationScreen.provider.custom" />
+              </ProviderCard>
               {providerType === "custom" && (
                 <>
                   <ProviderDescription>
                     <FormattedMessage id="SMTPConfigurationScreen.custom.description" />
                   </ProviderDescription>
                   <FormTextField
-                    className={styles.control}
+                    className={styles.columnLeft}
                     type="text"
                     label={renderToString("SMTPConfigurationScreen.host.label")}
                     value={state.host}
@@ -483,7 +493,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     {...hostProps}
                   />
                   <FormTextField
-                    className={styles.control}
+                    className={styles.columnLeft}
                     type="text"
                     label={renderToString("SMTPConfigurationScreen.port.label")}
                     value={state.portString}
@@ -495,7 +505,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     {...portProps}
                   />
                   <FormTextField
-                    className={styles.control}
+                    className={styles.columnLeft}
                     type="text"
                     label={renderToString(
                       "SMTPConfigurationScreen.username.label"
@@ -508,7 +518,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     fieldName="username"
                   />
                   <FormTextField
-                    className={styles.control}
+                    className={styles.columnLeft}
                     type="password"
                     label={renderToString(
                       "SMTPConfigurationScreen.password.label"
@@ -532,7 +542,7 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                     <FormattedMessage id="SMTPConfigurationScreen.sendgrid.description" />
                   </ProviderDescription>
                   <FormTextField
-                    className={styles.control}
+                    className={styles.columnLeft}
                     type="password"
                     label={renderToString(
                       "SMTPConfigurationScreen.sendgrid.api-key.label"
@@ -552,12 +562,15 @@ const SMTPConfigurationScreenContent: React.FC<SMTPConfigurationScreenContentPro
                 </>
               )}
               {state.isPasswordMasked ? (
-                <PrimaryButton className={styles.control} onClick={onClickEdit}>
+                <PrimaryButton
+                  className={styles.columnSmall}
+                  onClick={onClickEdit}
+                >
                   <FormattedMessage id="edit" />
                 </PrimaryButton>
               ) : (
                 <DefaultButton
-                  className={styles.control}
+                  className={styles.columnSmall}
                   onClick={onClickSendTestEmail}
                   disabled={!openSendTestEmailDialogButtonEnabled}
                 >

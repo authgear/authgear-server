@@ -1,11 +1,5 @@
-.root {
-  display: flex;
-  flex-direction: column;
-}
-
 .widget {
-  margin: 10px 15px;
-  max-width: 672px;
+  grid-column: 1 / span 8;
 }
 
 .actionButton {
@@ -13,21 +7,12 @@
   height: auto;
 }
 
-.messageBar {
-  margin: 10px;
-}
-
 .copyButtonGroup {
   display: flex;
   flex-direction: row;
-  padding: 5px;
+  column-gap: 10px;
 }
 
 .copyTextField {
-  margin: 5px;
   flex: 1;
-}
-
-.copyButton {
-  margin: 5px;
 }

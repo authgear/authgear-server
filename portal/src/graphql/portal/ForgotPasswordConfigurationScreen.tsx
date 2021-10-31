@@ -2,7 +2,6 @@ import React, { useCallback, useContext } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { TextField } from "@fluentui/react";
 import produce from "immer";
-import cn from "classnames";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import { PortalAPIAppConfig } from "../../types";
@@ -67,19 +66,18 @@ const ForgotPasswordConfigurationScreenContent: React.FC<ForgotPasswordConfigura
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="ForgotPasswordConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="ForgotPasswordConfigurationScreen.description" />
         </ScreenDescription>
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="ForgotPasswordConfigurationScreen.code-settings" />
           </WidgetTitle>
           <TextField
-            className={styles.control}
             type="text"
             label={renderToString(
               "ForgotPasswordConfigurationScreen.reset-code-valid-duration.label"

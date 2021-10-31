@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Dropdown, IDropdownOption, Toggle } from "@fluentui/react";
-import cn from "classnames";
 import {
   isPromotionConflictBehaviour,
   PortalAPIAppConfig,
@@ -130,19 +129,18 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
     );
 
     return (
-      <ScreenContent className={styles.root}>
-        <ScreenTitle>
+      <ScreenContent>
+        <ScreenTitle className={styles.widget}>
           <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
         </ScreenTitle>
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="AnonymousUsersConfigurationScreen.description" />
         </ScreenDescription>
-        <Widget className={cn(styles.widget, styles.controlGroup)}>
+        <Widget className={styles.widget}>
           <WidgetTitle>
             <FormattedMessage id="AnonymousUsersConfigurationScreen.title" />
           </WidgetTitle>
           <Toggle
-            className={styles.control}
             checked={state.enabled}
             onChange={onEnableChange}
             label={renderToString(
@@ -151,7 +149,6 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
             inlineLabel={true}
           />
           <Dropdown
-            className={styles.control}
             styles={dropDownStyles}
             label={renderToString(
               "AnonymousUsersConfigurationScreen.conflict-droplist.label"

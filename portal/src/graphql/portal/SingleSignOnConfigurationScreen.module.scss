@@ -1,11 +1,5 @@
-.root {
-  display: flex;
-  flex-direction: column;
-}
-
 .widget {
-  margin: 10px 15px;
-  width: 600px;
+  grid-column: 1 / span 6;
 }
 
 .description {

@@ -1,29 +1,9 @@
-.root {
-  display: flex;
-  flex-direction: column;
-}
-
 .widget {
-  margin: 10px 15px;
-  max-width: 630px;
+  grid-column: 1 / span 6;
 }
 
 .authenticatorColumn {
   justify-content: flex-start;
   align-items: center;
   display: flex;
-}
-
-.controlGroup {
-  display: flex;
-  flex-direction: column;
-}
-
-.control {
-  margin: 10px;
-}
-
-.readOnly {
-  pointer-events: none;
-  opacity: 0.5;
 }

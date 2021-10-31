@@ -1,20 +1,26 @@
-.root {
-  display: flex;
-  flex-direction: column;
-}
-
 .widget {
-  margin: 10px 15px;
-  max-width: 672px;
+  grid-column: 1 / span 6;
 }
 
-.controlGroup {
-  display: flex;
-  flex-direction: column;
+.grid {
+  display: grid;
+  column-gap: 16px;
+  row-gap: 20px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-auto-rows: auto;
 }
 
-.control {
-  margin: 10px;
+.columnFull {
+  grid-column: 1 / span 8;
+}
+
+.secretInput {
+  grid-column: 1 / span 4;
+}
+
+.secretButton {
+  grid-column: 5 / span 1;
+  align-self: end;
 }
 
 .handlerEdit {
@@ -28,18 +34,4 @@
   .handlerURLField {
     flex: 1 0 0;
   }
-}
-
-.secretControlGroup {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
-}
-
-.secretControl {
-  width: 200px;
-}
-
-.secretControlButton {
-  margin: 10px 0;
 }

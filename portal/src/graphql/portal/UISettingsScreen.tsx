@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState, useContext } from "react";
+import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { TextField, Toggle, MessageBar } from "@fluentui/react";
 import deepEqual from "deep-equal";
@@ -652,7 +653,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     }, [state.whiteLabelingDisabled, state.watermarkDisabled]);
 
     return (
-      <ScreenContent className={styles.root}>
+      <ScreenContent>
         <div className={styles.titleContainer}>
           <ScreenTitle>
             <FormattedMessage id="UISettingsScreen.title" />
@@ -668,23 +669,23 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="UISettingsScreen.description" />
         </ScreenDescription>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
+        <Widget className={cn(styles.grid, styles.widget)}>
+          <WidgetTitle className={styles.columnFull}>
             <FormattedMessage id="UISettingsScreen.app-name-title" />
           </WidgetTitle>
           <TextField
-            className={styles.textField}
+            className={styles.columnLeft}
             label={renderToString("UISettingsScreen.app-name-label")}
             value={valueForTranslationJSON("app.name")}
             onChange={onChangeForTranslationJSON("app.name")}
           />
         </Widget>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
+        <Widget className={cn(styles.grid, styles.widget)}>
+          <WidgetTitle className={styles.columnFull}>
             <FormattedMessage id="UISettingsScreen.link-settings-title" />
           </WidgetTitle>
           <TextField
-            className={styles.textField}
+            className={styles.columnLeft}
             label={renderToString("UISettingsScreen.privacy-policy-link-label")}
             description={renderToString(
               "UISettingsScreen.privacy-policy-link-description"
@@ -693,7 +694,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForTranslationJSON("privacy-policy-link")}
           />
           <TextField
-            className={styles.textField}
+            className={styles.columnLeft}
             label={renderToString(
               "UISettingsScreen.terms-of-service-link-label"
             )}
@@ -704,7 +705,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForTranslationJSON("terms-of-service-link")}
           />
           <TextField
-            className={styles.textField}
+            className={styles.columnLeft}
             label={renderToString(
               "UISettingsScreen.customer-support-link-label"
             )}
@@ -715,7 +716,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForTranslationJSON("customer-support-link")}
           />
           <TextField
-            className={styles.textField}
+            className={styles.columnLeft}
             label={renderToString("UISettingsScreen.default-client-uri-label")}
             description={renderToString(
               "UISettingsScreen.default-client-uri-description"
@@ -724,7 +725,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForState("default_client_uri")}
           />
           <TextField
-            className={styles.textField}
+            className={styles.columnLeft}
             label={renderToString(
               "UISettingsScreen.default-redirect-uri-label"
             )}
@@ -735,7 +736,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForState("default_redirect_uri")}
           />
           <TextField
-            className={styles.textField}
+            className={styles.columnLeft}
             label={renderToString(
               "UISettingsScreen.default-post-logout-redirect-uri-label"
             )}
@@ -746,15 +747,15 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             onChange={onChangeForState("default_post_logout_redirect_uri")}
           />
         </Widget>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
+        <Widget className={cn(styles.grid, styles.widget)}>
+          <WidgetTitle className={styles.columnFull}>
             <FormattedMessage id="UISettingsScreen.favicon-title" />
           </WidgetTitle>
-          <WidgetDescription>
+          <WidgetDescription className={styles.columnFull}>
             <FormattedMessage id="UISettingsScreen.favicon-description" />
           </WidgetDescription>
           <ImageFilePicker
-            className={styles.faviconImagePicker}
+            className={styles.columnLeft}
             base64EncodedData={getValueIgnoreEmptyString(RESOURCE_FAVICON)}
             onChange={getOnChangeImage(RESOURCE_FAVICON)}
           />
@@ -774,7 +775,6 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             </MessageBar>
           )}
           <Toggle
-            className={styles.control}
             checked={watermarkEnabled}
             onChange={onChangeWatermarkEnabled}
             label={renderToString(

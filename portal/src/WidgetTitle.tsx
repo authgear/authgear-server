@@ -1,6 +1,5 @@
 import React from "react";
 import { Text } from "@fluentui/react";
-import styles from "./WidgetTitle.module.scss";
 
 export interface WidgetTitleProps {
   className?: string;
@@ -13,7 +12,7 @@ const WidgetTitle: React.FC<WidgetTitleProps> = function WidgetTitle(
 ) {
   const { className, children, id } = props;
   const element = (
-    <Text as="h2" variant="xLarge" className={styles.title}>
+    <Text as="h2" variant="xLarge" block={true}>
       {children}
     </Text>
   );

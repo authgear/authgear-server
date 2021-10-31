@@ -1,3 +1,8 @@
 .root {
-  padding: 15px;
+  display: grid;
+  padding: 24px;
+  column-gap: 16px;
+  row-gap: 20px;
+  grid-template-columns: repeat(12, 80px);
+  grid-auto-rows: auto;
 }

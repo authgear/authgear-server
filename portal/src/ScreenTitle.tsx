@@ -13,7 +13,12 @@ const ScreenTitle: React.FC<ScreenTitleProps> = function ScreenTitle(
 ) {
   const { className, children } = props;
   return (
-    <Text as="h1" variant="xxLarge" className={cn(className, styles.title)}>
+    <Text
+      as="h1"
+      variant="xxLarge"
+      block={true}
+      className={cn(styles.title, className)}
+    >
       {children}
     </Text>
   );

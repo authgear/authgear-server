@@ -6,6 +6,7 @@ import styles from "./OrderButtons.module.scss";
 
 interface OrderButtonsProps {
   index?: number;
+  disabled: boolean;
   itemCount: number;
   onSwapClicked: (index1: number, index2: number) => void;
   renderAriaLabel: (index?: number) => string;
@@ -31,7 +32,7 @@ export function swap<T>(items: T[], index1: number, index2: number): T[] {
 const OrderButtons: React.FC<OrderButtonsProps> = function OrderButtons(
   props: OrderButtonsProps
 ) {
-  const { index, itemCount, onSwapClicked, renderAriaLabel } = props;
+  const { index, disabled, itemCount, onSwapClicked, renderAriaLabel } = props;
   const { renderToString } = useContext(Context);
   const onUpClicked = useCallback(() => {
     if (index == null) {
@@ -61,14 +62,14 @@ const OrderButtons: React.FC<OrderButtonsProps> = function OrderButtons(
     <div>
       <IconButton
         className={styles.orderButton}
-        disabled={index === itemCount - 1}
+        disabled={disabled || index === itemCount - 1}
         onClick={onDownClicked}
         iconProps={{ iconName: "ChevronDown" }}
         ariaLabel={ariaLabelDown}
       />
       <IconButton
         className={styles.orderButton}
-        disabled={index === 0}
+        disabled={disabled || index === 0}
         onClick={onUpClicked}
         iconProps={{ iconName: "ChevronUp" }}
         ariaLabel={ariaLabelUp}

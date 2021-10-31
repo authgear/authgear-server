@@ -1,19 +1,5 @@
-.root {
-  display: flex;
-  flex-direction: column;
-  // to align with the custom domain list page
-  // the height of hidden message bar
-  margin-top: 32px;
-}
-
 .widget {
-  margin: 10px 15px;
-  max-width: 750px;
-}
-
-.description {
-  display: block;
-  margin: 16px 8px;
+  grid-column: 1 / span 6;
 }
 
 .dnsRecordListColumn {
@@ -38,6 +24,6 @@
   margin-left: 10px;
 }
 
-.controlButtons {
-  margin: 25px 12px;
+.verifyButton {
+  align-self: flex-start;
 }

@@ -35,6 +35,7 @@ export interface CountryCallingCodeListProps {
   pinnedAlpha2: string[];
   allowedAlpha2: string[];
   onChange: (newPinnedCodes: string[], newSelectedCodes: string[]) => void;
+  disabled: boolean;
 }
 
 interface ListItem {
@@ -44,6 +45,7 @@ interface ListItem {
   alpha2: string;
   countryCallingCode: string;
   displayName: string;
+  disabled: boolean;
 }
 
 type Country = typeof ALL_COUNTRIES[number];
@@ -67,6 +69,7 @@ interface CountryCallingCodeListPinButtonProps {
   index?: number;
   pinned?: boolean;
   onPinClick: (index: number, checked: boolean) => void;
+  disabled: boolean;
 }
 
 interface CountryCallingCodeListSelectAllProps extends ICheckboxProps {
@@ -175,7 +178,7 @@ const CountryCallingCodeListPinButton: React.FC<CountryCallingCodeListPinButtonP
   function CountryCallingCodeListPinButton(
     props: CountryCallingCodeListPinButtonProps
   ) {
-    const { className, index, pinned, onPinClick } = props;
+    const { className, index, pinned, onPinClick, disabled } = props;
 
     const iconProps: IIconProps = useMemo(() => {
       const iconName = pinned ? "PinnedSolid" : "Pinned";
@@ -194,6 +197,7 @@ const CountryCallingCodeListPinButton: React.FC<CountryCallingCodeListPinButtonP
         className={className}
         iconProps={iconProps}
         onClick={onButtonClick}
+        disabled={disabled}
       />
     );
   };
@@ -236,7 +240,8 @@ const CountryCallingCodeListSelectAll: React.FC<CountryCallingCodeListSelectAllP
 
 const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
   function CountryCallingCodeList(props: CountryCallingCodeListProps) {
-    const { className, pinnedAlpha2, allowedAlpha2, onChange } = props;
+    const { disabled, className, pinnedAlpha2, allowedAlpha2, onChange } =
+      props;
     const { renderToString } = useContext(Context);
     const { getTelecomCountryName } = useGetTelecomCountryName();
 
@@ -264,6 +269,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
           alpha2: country.Alpha2,
           countryCallingCode: country.CountryCallingCode,
           displayName: getTelecomCountryName(country.Alpha2),
+          disabled,
         });
       }
 
@@ -279,11 +285,12 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
           alpha2: country.Alpha2,
           countryCallingCode: country.CountryCallingCode,
           displayName: getTelecomCountryName(country.Alpha2),
+          disabled,
         });
       }
 
       return lst;
-    }, [allowedAlpha2, pinnedAlpha2, getTelecomCountryName]);
+    }, [disabled, allowedAlpha2, pinnedAlpha2, getTelecomCountryName]);
 
     const { search } = useExactKeywordSearch(allItems, [
       "alpha2",
@@ -379,12 +386,14 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
                 index={index}
                 checked={item?.selected}
                 onCheckboxClicked={onSelect}
+                disabled={item?.disabled ?? false}
               />
             );
           case "order":
             if (item?.pinned) {
               return (
                 <OrderButtons
+                  disabled={item.disabled}
                   index={index}
                   itemCount={pinnedAlpha2.length}
                   onSwapClicked={onSwap}
@@ -404,6 +413,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
                 className={styles.pin}
                 pinned={item?.pinned ?? false}
                 onPinClick={onPinClick}
+                disabled={item?.disabled ?? false}
               />
             );
           case "countryName":
@@ -431,6 +441,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
               unselectAll={unselectAll}
               isPartiallySelected={isPartiallySelected}
               isAllSelected={isAllSelected}
+              disabled={disabled}
             />
           );
         };
@@ -453,7 +464,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
           </Sticky>
         );
       },
-      [selectAll, unselectAll, isPartiallySelected, isAllSelected]
+      [disabled, selectAll, unselectAll, isPartiallySelected, isAllSelected]
     );
 
     const onRenderCallingCodeListRow = useCallback<
@@ -485,6 +496,7 @@ const CountryCallingCodeList: React.FC<CountryCallingCodeListProps> =
           value={searchString}
           onChange={onSearchBoxChange}
           onClear={onSearchBoxClear}
+          disabled={disabled}
         />
         <div className={styles.listWrapper}>
           <ScrollablePane>
