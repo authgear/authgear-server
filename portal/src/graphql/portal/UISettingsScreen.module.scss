@@ -7,9 +7,21 @@
 }
 
 .widget {
-  grid-column: 1 / span 6;
+  grid-column: 1 / span 8;
 }
 
-.faviconImagePicker {
-  width: 350px;
+.grid {
+  display: grid;
+  column-gap: 16px;
+  row-gap: 20px;
+  grid-template-columns: repeat(8, 1fr);
+  grid-auto-rows: auto;
+}
+
+.columnFull {
+  grid-column: 1 / span 8;
+}
+
+.columnLeft {
+  grid-column: 1 / span 5;
 }
