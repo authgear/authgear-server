@@ -11,6 +11,8 @@ import {
   IDetailsColumnRenderTooltipProps,
   DirectionalHint,
   Text,
+  Dropdown,
+  IDropdownOption,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import FormContainer from "../../FormContainer";
@@ -27,6 +29,7 @@ import {
   PortalAPIAppConfig,
   StandardAttributesAccessControlConfig,
   StandardAttributesAccessControl,
+  AccessControlLevelString,
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./UserProfileConfigurationScreen.module.scss";
@@ -118,16 +121,85 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
     );
 
     const makeRenderDropdown = useCallback(
-      (_key: keyof StandardAttributesAccessControl) => {
+      (key: keyof StandardAttributesAccessControl) => {
         return (
-          _items?: StandardAttributesAccessControlConfig,
+          item?: StandardAttributesAccessControlConfig,
           _index?: number,
           _column?: IColumn
         ) => {
-          return null;
+          if (item == null) {
+            return null;
+          }
+
+          const optionHidden: IDropdownOption = {
+            key: "hidden",
+            text: renderToString(
+              "standard-attribute.access-control-level.hidden"
+            ),
+          };
+
+          const optionReadonly: IDropdownOption = {
+            key: "readonly",
+            text: renderToString(
+              "standard-attribute.access-control-level.readonly"
+            ),
+          };
+
+          const optionReadwrite: IDropdownOption = {
+            key: "readwrite",
+            text: renderToString(
+              "standard-attribute.access-control-level.readwrite"
+            ),
+          };
+
+          const options: IDropdownOption<AccessControlLevelString>[] = [
+            optionHidden,
+            optionReadonly,
+            optionReadwrite,
+          ];
+
+          let selectedKey: string | undefined;
+          switch (key) {
+            case "portal_ui":
+              selectedKey = item.access_control.portal_ui;
+              break;
+            case "bearer":
+              if (item.access_control.portal_ui === "readonly") {
+                optionReadwrite.disabled = true;
+              }
+              if (item.access_control.portal_ui === "hidden") {
+                optionReadwrite.disabled = true;
+                optionReadonly.disabled = true;
+              }
+              selectedKey = item.access_control.bearer;
+              break;
+            case "end_user":
+              if (item.access_control.bearer === "readonly") {
+                optionReadwrite.disabled = true;
+              }
+              if (item.access_control.bearer === "hidden") {
+                optionReadwrite.disabled = true;
+                optionReadonly.disabled = true;
+              }
+              selectedKey = item.access_control.end_user;
+              break;
+          }
+
+          const disabledOptionCount = options.reduce((a, b) => {
+            return a + (b.disabled === true ? 1 : 0);
+          }, 0);
+          const dropdownIsDisabled = options.length - disabledOptionCount <= 1;
+
+          return (
+            <Dropdown
+              options={options}
+              selectedKey={selectedKey}
+              disabled={dropdownIsDisabled}
+            />
+          );
         };
       },
-      []
+      [renderToString]
     );
 
     const columns: IColumn[] = useMemo(

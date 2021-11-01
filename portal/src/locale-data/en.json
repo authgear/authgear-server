@@ -902,6 +902,10 @@
   "standard-attribute.description.locale": "End-user's locale, represented as a BCP47 language tag. The options are the supported language of the project. For example, zh-HK",
   "standard-attribute.description.address": "End-user''s address",
 
+  "standard-attribute.access-control-level.hidden": "Hidden",
+  "standard-attribute.access-control-level.readonly": "Read-only",
+  "standard-attribute.access-control-level.readwrite": "Editable",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",
