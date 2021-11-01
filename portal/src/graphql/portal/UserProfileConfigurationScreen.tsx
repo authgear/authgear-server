@@ -10,6 +10,7 @@ import {
   DetailsHeader,
   IDetailsColumnRenderTooltipProps,
   DirectionalHint,
+  Text,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import FormContainer from "../../FormContainer";
@@ -22,17 +23,50 @@ import ScreenTitle from "../../ScreenTitle";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import { PortalAPIAppConfig } from "../../types";
+import {
+  PortalAPIAppConfig,
+  StandardAttributesAccessControlConfig,
+  StandardAttributesAccessControl,
+} from "../../types";
+import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./UserProfileConfigurationScreen.module.scss";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
-interface FormState {}
+interface FormState {
+  standardAttributesItems: StandardAttributesAccessControlConfig[];
+}
 
 interface UserProfileConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
-function constructFormState(_config: PortalAPIAppConfig): FormState {
-  return {};
+const naturalOrder = [
+  "/name",
+  "/given_name",
+  "/family_name",
+  "/middle_name",
+  "/nickname",
+  "/profile",
+  "/picture",
+  "/website",
+  "/gender",
+  "/birthdate",
+  "/zoneinfo",
+  "/locale",
+  "/address",
+];
+
+function constructFormState(config: PortalAPIAppConfig): FormState {
+  const items = config.user_profile?.standard_attributes?.access_control ?? [];
+  const listedItems = items.filter((a) => naturalOrder.indexOf(a.pointer) >= 0);
+  listedItems.sort((a, b) => {
+    const ia = naturalOrder.indexOf(a.pointer);
+    const ib = naturalOrder.indexOf(b.pointer);
+    return ia - ib;
+  });
+  return {
+    standardAttributesItems: listedItems,
+  };
 }
 
 function constructConfig(
@@ -43,12 +77,58 @@ function constructConfig(
   return config;
 }
 
-interface Item {}
-
 const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationScreenContentProps> =
-  function UserProfileConfigurationScreenContent(_props) {
-    const items: Item[] = useMemo(() => [], []);
+  function UserProfileConfigurationScreenContent(props) {
+    const items = props.form.state.standardAttributesItems;
     const { renderToString } = useContext(Context);
+    const { themes } = useSystemConfig();
+    const descriptionColor = themes.main.palette.neutralTertiary;
+
+    const onRenderPointer = useCallback(
+      (
+        item?: StandardAttributesAccessControlConfig,
+        _index?: number,
+        _column?: IColumn
+      ) => {
+        if (item == null) {
+          return null;
+        }
+        const { pointer } = item;
+        const fieldName = parseJSONPointer(pointer)[0];
+        return (
+          <div>
+            <Text className={styles.fieldName} block={true}>
+              <FormattedMessage id={"standard-attribute." + fieldName} />
+            </Text>
+            <Text
+              variant="small"
+              block={true}
+              style={{
+                color: descriptionColor,
+              }}
+            >
+              <FormattedMessage
+                id={"standard-attribute.description." + fieldName}
+              />
+            </Text>
+          </div>
+        );
+      },
+      [descriptionColor]
+    );
+
+    const makeRenderDropdown = useCallback(
+      (_key: keyof StandardAttributesAccessControl) => {
+        return (
+          _items?: StandardAttributesAccessControlConfig,
+          _index?: number,
+          _column?: IColumn
+        ) => {
+          return null;
+        };
+      },
+      []
+    );
 
     const columns: IColumn[] = useMemo(
       () => [
@@ -58,27 +138,32 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
           name: renderToString(
             "UserProfileConfigurationScreen.header.label.attribute-name"
           ),
+          onRender: onRenderPointer,
+          isMultiline: true,
         },
         {
           key: "portal_ui",
           minWidth: 200,
           maxWidth: 200,
           name: "",
+          onRender: makeRenderDropdown("portal_ui"),
         },
         {
           key: "bearer",
           minWidth: 200,
           maxWidth: 200,
           name: "",
+          onRender: makeRenderDropdown("bearer"),
         },
         {
           key: "end_user",
           minWidth: 200,
           maxWidth: 200,
           name: "",
+          onRender: makeRenderDropdown("end_user"),
         },
       ],
-      [renderToString]
+      [renderToString, makeRenderDropdown, onRenderPointer]
     );
 
     const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
