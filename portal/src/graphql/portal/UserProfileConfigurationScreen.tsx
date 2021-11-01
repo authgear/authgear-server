@@ -80,9 +80,105 @@ function constructConfig(
   return config;
 }
 
+function intOfAccessControlLevelString(
+  level: AccessControlLevelString
+): number {
+  switch (level) {
+    case "hidden":
+      return 1;
+    case "readonly":
+      return 2;
+    case "readwrite":
+      return 3;
+    default:
+      throw new Error("unknown value: " + String(level));
+  }
+}
+
+function accessControlLevelStringOfInt(
+  value: number
+): AccessControlLevelString {
+  switch (value) {
+    case 1:
+      return "hidden";
+    case 2:
+      return "readonly";
+    case 3:
+      return "readwrite";
+  }
+  throw new Error("unknown value: " + String(value));
+}
+
+function adjustAccessControl(
+  accessControl: StandardAttributesAccessControl,
+  target: keyof StandardAttributesAccessControl,
+  ref: keyof StandardAttributesAccessControl
+): StandardAttributesAccessControl {
+  const targetLevelInt = intOfAccessControlLevelString(accessControl[target]);
+  const refLevelInt = intOfAccessControlLevelString(accessControl[ref]);
+  if (targetLevelInt <= refLevelInt) {
+    return accessControl;
+  }
+
+  return {
+    ...accessControl,
+    [target]: accessControlLevelStringOfInt(refLevelInt),
+  };
+}
+
+function setAccessControl(
+  prev: FormState,
+  index: number,
+  key: keyof StandardAttributesAccessControl,
+  newValue: AccessControlLevelString
+): FormState {
+  // Change key first.
+  let newAccessControl: StandardAttributesAccessControl = {
+    ...prev.standardAttributesItems[index].access_control,
+    [key]: newValue,
+  };
+
+  // Adjust other keys as needed.
+  switch (key) {
+    case "end_user":
+      break;
+    case "bearer":
+      newAccessControl = adjustAccessControl(
+        newAccessControl,
+        "end_user",
+        "bearer"
+      );
+      break;
+    case "portal_ui":
+      newAccessControl = adjustAccessControl(
+        newAccessControl,
+        "bearer",
+        "portal_ui"
+      );
+      newAccessControl = adjustAccessControl(
+        newAccessControl,
+        "end_user",
+        "portal_ui"
+      );
+      break;
+  }
+
+  const newItems = [...prev.standardAttributesItems];
+  newItems[index] = {
+    pointer: prev.standardAttributesItems[index].pointer,
+    access_control: newAccessControl,
+  };
+
+  return {
+    ...prev,
+    standardAttributesItems: newItems,
+  };
+}
+
 const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationScreenContentProps> =
   function UserProfileConfigurationScreenContent(props) {
     const items = props.form.state.standardAttributesItems;
+    const setState = props.form.setState;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
     const descriptionColor = themes.main.palette.neutralTertiary;
@@ -120,14 +216,38 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
       [descriptionColor]
     );
 
+    const makeDropdownOnChange = useCallback(
+      (index: number, key: keyof StandardAttributesAccessControl) => {
+        return (
+          _e: React.FormEvent<unknown>,
+          option?: IDropdownOption<AccessControlLevelString>,
+          _index?: number
+        ) => {
+          if (option == null) {
+            return;
+          }
+
+          setState((prev) =>
+            setAccessControl(
+              prev,
+              index,
+              key,
+              option.key as AccessControlLevelString
+            )
+          );
+        };
+      },
+      [setState]
+    );
+
     const makeRenderDropdown = useCallback(
       (key: keyof StandardAttributesAccessControl) => {
         return (
           item?: StandardAttributesAccessControlConfig,
-          _index?: number,
+          index?: number,
           _column?: IColumn
         ) => {
-          if (item == null) {
+          if (item == null || index == null) {
             return null;
           }
 
@@ -195,11 +315,12 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
               options={options}
               selectedKey={selectedKey}
               disabled={dropdownIsDisabled}
+              onChange={makeDropdownOnChange(index, key)}
             />
           );
         };
       },
-      [renderToString]
+      [renderToString, makeDropdownOnChange]
     );
 
     const columns: IColumn[] = useMemo(
