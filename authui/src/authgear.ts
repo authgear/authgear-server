@@ -277,25 +277,38 @@ window.api.onLoad(clickLinkSubmitForm);
 
 // Handle click link switch label and href
 window.api.onLoad(() => {
-  const groups = document.querySelectorAll(".switch-link-group");
-  const disposers: Array<() => void> = [];
-  for (let i = 0; i < groups.length; i++) {
-    const wrapper = groups[i];
-    const clickToSwitchLink = wrapper.querySelector(
-      ".click-to-switch"
-    ) as HTMLAnchorElement;
-    const switchLinks = (e: Event) => {
-      wrapper.classList.add("switched");
-    };
-    clickToSwitchLink.addEventListener("click", switchLinks);
-    disposers.push(() => {
-      clickToSwitchLink.removeEventListener("click", switchLinks);
-    });
+  const targets = document.querySelectorAll("[data-switch-to-on-click]");
+
+  function listener(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!(e.currentTarget instanceof HTMLElement)) {
+      return;
+    }
+    const selector = e.currentTarget.getAttribute("data-switch-to-on-click");
+    if (selector == null) {
+      return;
+    }
+
+    const selectedElement = document.querySelector(selector);
+    if (selectedElement == null) {
+      return;
+    }
+
+    e.currentTarget.classList.add("hidden");
+    selectedElement.classList.remove("hidden");
+  }
+
+  for (let i = 0; i < targets.length; i++) {
+    const target = targets[i];
+    target.addEventListener("click", listener);
   }
 
   return () => {
-    for (const disposer of disposers) {
-      disposer();
+    for (let i = 0; i < targets.length; i++) {
+      const target = targets[i];
+      target.removeEventListener("click", listener);
     }
   };
 });

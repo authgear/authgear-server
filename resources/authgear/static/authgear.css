@@ -173,6 +173,15 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* This declaration needs to be placed before "hidden" */
+/* Make <a> appears like <button> */
+.as-btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
 .footer-watermark {
   display: inline-block;
   height: 24px;
@@ -835,14 +844,6 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
 }
 
-/* Make <a> appears like <button> */
-.as-btn {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
-
 .btn.primary-btn, .btn.light-btn {
   height: 36px;
   border-radius: 2px;
@@ -1269,14 +1270,6 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   flex: 1;
   border-bottom: 2px solid var(--color-separator);
-}
-
-.switch-link-group .click-to-switch, .switch-link-group.switched .switch-to-item {
-  display: flex;
-}
-
-.switch-link-group.switched .click-to-switch, .switch-link-group .switch-to-item {
-  display: none;
 }
 
 .modal {
