@@ -109,64 +109,92 @@ function accessControlLevelStringOfInt(
   throw new Error("unknown value: " + String(value));
 }
 
+type StandardAttributesAccessControlAdjustment = [
+  keyof StandardAttributesAccessControl,
+  AccessControlLevelString
+];
+
 function adjustAccessControl(
   accessControl: StandardAttributesAccessControl,
   target: keyof StandardAttributesAccessControl,
-  ref: keyof StandardAttributesAccessControl
-): StandardAttributesAccessControl {
+  refValue: AccessControlLevelString
+): StandardAttributesAccessControlAdjustment | undefined {
   const targetLevelInt = intOfAccessControlLevelString(accessControl[target]);
-  const refLevelInt = intOfAccessControlLevelString(accessControl[ref]);
+  const refLevelInt = intOfAccessControlLevelString(refValue);
   if (targetLevelInt <= refLevelInt) {
-    return accessControl;
+    return undefined;
   }
 
-  return {
-    ...accessControl,
-    [target]: accessControlLevelStringOfInt(refLevelInt),
-  };
+  return [target, accessControlLevelStringOfInt(refLevelInt)];
 }
 
-function setAccessControl(
+interface PendingUpdate {
+  index: number;
+  key: keyof StandardAttributesAccessControl;
+  mainAdjustment: StandardAttributesAccessControlAdjustment;
+  otherAdjustments: StandardAttributesAccessControlAdjustment[];
+}
+
+function makeUpdate(
   prev: FormState,
   index: number,
   key: keyof StandardAttributesAccessControl,
   newValue: AccessControlLevelString
-): FormState {
-  // Change key first.
-  let newAccessControl: StandardAttributesAccessControl = {
-    ...prev.standardAttributesItems[index].access_control,
-    [key]: newValue,
-  };
+): PendingUpdate {
+  const accessControl = prev.standardAttributesItems[index].access_control;
+  const mainAdjustment: StandardAttributesAccessControlAdjustment = [
+    key,
+    newValue,
+  ];
 
-  // Adjust other keys as needed.
+  const adjustments: ReturnType<typeof adjustAccessControl>[] = [];
   switch (key) {
     case "end_user":
       break;
-    case "bearer":
-      newAccessControl = adjustAccessControl(
-        newAccessControl,
-        "end_user",
-        "bearer"
+    case "bearer": {
+      adjustments.push(
+        adjustAccessControl(accessControl, "end_user", newValue)
       );
       break;
-    case "portal_ui":
-      newAccessControl = adjustAccessControl(
-        newAccessControl,
-        "bearer",
-        "portal_ui"
-      );
-      newAccessControl = adjustAccessControl(
-        newAccessControl,
-        "end_user",
-        "portal_ui"
+    }
+    case "portal_ui": {
+      adjustments.push(adjustAccessControl(accessControl, "bearer", newValue));
+      adjustments.push(
+        adjustAccessControl(accessControl, "end_user", newValue)
       );
       break;
+    }
+  }
+
+  const otherAdjustments: StandardAttributesAccessControlAdjustment[] =
+    adjustments.filter(
+      (a): a is StandardAttributesAccessControlAdjustment => a != null
+    );
+
+  return {
+    index,
+    key,
+    mainAdjustment,
+    otherAdjustments,
+  };
+}
+
+function applyUpdate(prev: FormState, update: PendingUpdate): FormState {
+  const { index, mainAdjustment, otherAdjustments } = update;
+  let accessControl = prev.standardAttributesItems[index].access_control;
+  const adjustments = [mainAdjustment, ...otherAdjustments];
+
+  for (const adjustment of adjustments) {
+    accessControl = {
+      ...accessControl,
+      [adjustment[0]]: adjustment[1],
+    };
   }
 
   const newItems = [...prev.standardAttributesItems];
   newItems[index] = {
-    pointer: prev.standardAttributesItems[index].pointer,
-    access_control: newAccessControl,
+    ...newItems[index],
+    access_control: accessControl,
   };
 
   return {
@@ -227,14 +255,15 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
             return;
           }
 
-          setState((prev) =>
-            setAccessControl(
+          setState((prev) => {
+            const pendingUpdate = makeUpdate(
               prev,
               index,
               key,
               option.key as AccessControlLevelString
-            )
-          );
+            );
+            return applyUpdate(prev, pendingUpdate);
+          });
         };
       },
       [setState]
