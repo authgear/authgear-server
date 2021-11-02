@@ -132,12 +132,6 @@ h1, h2, h3, h4, h5, h6 {
     padding-top: 66px; /* 80px - 16px = 48px */
     padding-bottom: 48px;  /* 64px - 16px = 32px */
   }
-
-  .nav-bar {
-    display: flex;
-    flex-direction: row;
-    margin: 0 32px;
-  }
 }
 
 @media (min-width: 1025px) {
@@ -166,10 +160,6 @@ h1, h2, h3, h4, h5, h6 {
     /* 16px is the banner default padding */
     padding-top: 66px; /* 80px - 16px = 48px */
     padding-bottom: 48px;  /* 64px - 16px = 32px */
-  }
-
-  .nav-bar {
-    margin: 0 32px;
   }
 }
 
