@@ -217,12 +217,12 @@
   </p>
 </section>
 <section class="padding-20 padding-t-0">
-  <div class="settings-security-list">
+  <div class="grid grid-cols-3 mobile:grid-cols-2 auto-rows-min gap-16">
     {{ range $.Authenticators }}
     <!-- Primary Password -->
     {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item not-a" href="/settings/change_password">
-      <i class="ti ti-key icon margin-b-10 primary-txt" aria-hidden="true"></i>
+    <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a" href="/settings/change_password">
+      <i class="ti ti-key text-32 block margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-primary-password-title" }}
       </p>
@@ -235,8 +235,8 @@
 
     <!-- Primary OOB OTP Email -->
     {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item not-a" href="/settings/identity">
-      <i class="ti ti-mail icon margin-b-10 primary-txt" aria-hidden="true"></i>
+    <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a" href="/settings/identity">
+      <i class="ti ti-mail text-32 block margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-primary-oob-otp-title--email" }}
       </p>
@@ -252,8 +252,8 @@
 
     <!-- Primary OOB OTP SMS -->
     {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
-    <a class="settings-security-item not-a" href="/settings/identity">
-      <i class="ti ti-message-dots icon margin-b-10 primary-txt" aria-hidden="true"></i>
+    <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a" href="/settings/identity">
+      <i class="ti ti-message-dots text-32 block margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-primary-oob-otp-title--sms" }}
       </p>
@@ -270,8 +270,8 @@
 
     <!-- MFA -->
     {{ if $show_mfa }}
-    <a class="settings-security-item not-a" href="/settings/mfa">
-      <i class="ti ti-shield-lock icon margin-b-10 primary-txt" aria-hidden="true"></i>
+    <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a" href="/settings/mfa">
+      <i class="ti ti-shield-lock text-32 block margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-mfa-section-title" }}
       </p>
@@ -283,8 +283,8 @@
 
     {{ if $.ShowBiometric }}
     <!-- Biometric -->
-    <a class="settings-security-item not-a" href="/settings/biometric">
-      <i class="ti ti-fingerprint icon margin-b-10 primary-txt" aria-hidden="true"></i>
+    <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a" href="/settings/biometric">
+      <i class="ti ti-fingerprint text-32 block margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-biometric-section-title" }}
       </p>
@@ -294,8 +294,8 @@
     </a>
     {{ end }}
 
-    <a class="settings-security-item not-a" href="/settings/sessions">
-      <i class="ti ti-shield-check icon margin-b-10 primary-txt" aria-hidden="true"></i>
+    <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a" href="/settings/sessions">
+      <i class="ti ti-shield-check text-32 block margin-b-10 primary-txt" aria-hidden="true"></i>
       <p class="margin-t-0 margin-b-10 primary-txt text-base">
         {{ template "settings-page-session-section-title" }}
       </p>
