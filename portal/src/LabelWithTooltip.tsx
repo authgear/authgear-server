@@ -19,8 +19,8 @@ interface LabelWithTooltipProps {
   labelClassName?: string;
   tooltipHeaderClassName?: string;
   labelId: string;
-  tooltipHeaderId: string;
   tooltipMessageId: string;
+  tooltipHeaderId?: string;
   directionalHint?: ITooltipHostProps["directionalHint"];
   required?: boolean;
   labelIIconProps?: IIconProps;
