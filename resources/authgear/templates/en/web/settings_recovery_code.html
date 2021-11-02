@@ -9,12 +9,12 @@
 			{{ template "recovery-code-title" }}
 		</h1>
 
-		<section class="recovery-code-list-section">
+		<section class="recovery-code-list-section self-center">
 			<p class="primary-txt text-center margin-t-0 margin-b-20 text-sm whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
-			<div class="margin-b-20 code-list-container">
-				<ol class="margin-0 padding-0 code-list">
+			<div class="margin-b-20">
+				<ol class="recovery-code-list margin-0 padding-v-20 padding-inline-end-20 grid grid-cols-2 mobile:grid-cols-1 column-gap-20">
 					{{ range $.RecoveryCodes }}
-						<li class="code-item">{{ . }}</li>
+						<li class="font-mono whitespace-pre text-base leading-none margin-h-20 place-self-center">{{ . }}</li>
 					{{ end }}
 				</ol>
 			</div>
@@ -23,7 +23,7 @@
 			<p class="text-sm primary-txt text-center margin-t-0 margin-b-20">{{ template "recovery-code-consumption-description" }}</p>
 		</section>
 
-		<section class="margin-b-20 grid gap-8 recovery-code-action-section">
+		<section class="margin-b-20 grid gap-8 grid-cols-2 mobile:grid-cols-1">
 			<form method="post" novalidate>
 				{{ $.CSRFField }}
 				<button class="btn primary-btn w-full" type="submit" name="x_action" value="regenerate">
