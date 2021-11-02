@@ -20,6 +20,7 @@ import {
   IDialogContentProps,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import produce from "immer";
 import FormContainer from "../../FormContainer";
 import {
   AppConfigFormModel,
@@ -80,9 +81,20 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 function constructConfig(
   config: PortalAPIAppConfig,
   _initialState: FormState,
-  _currentState: FormState
+  currentState: FormState
 ): PortalAPIAppConfig {
-  return config;
+  return produce(config, (config) => {
+    config.user_profile ??= {};
+    config.user_profile.standard_attributes ??= {};
+    for (const accessControl of config.user_profile.standard_attributes
+      .access_control ?? []) {
+      for (const item of currentState.standardAttributesItems) {
+        if (accessControl.pointer === item.pointer) {
+          accessControl.access_control = item.access_control;
+        }
+      }
+    }
+  });
 }
 
 function intOfAccessControlLevelString(
