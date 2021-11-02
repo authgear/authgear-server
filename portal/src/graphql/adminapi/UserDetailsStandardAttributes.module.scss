@@ -2,18 +2,14 @@
   display: flex;
   flex-direction: column;
   width: calc(80px * 8 + 20px * 8);
-  row-gap: 40px;
-}
-
-.standalone {
-  margin: 10px calc(20px / 2);
+  row-gap: 30px;
+  margin: 20px 8px;
 }
 
 .nameGroup {
   display: grid;
   row-gap: 8px;
   column-gap: 16px;
-  padding: 10px;
 
   grid-template-columns: repeat(2, auto);
   grid-auto-rows: auto;
@@ -21,9 +17,8 @@
 
 .twoColumnGroup {
   display: grid;
-  row-gap: 8px;
+  row-gap: 4px;
   column-gap: 16px;
-  padding: 10px;
 
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: min-content;
@@ -32,7 +27,6 @@
 .singleColumnGroup {
   display: grid;
   row-gap: 8px;
-  padding: 10px;
 
   grid-template-columns: repeat(1, 1fr);
   grid-auto-rows: min-content;
@@ -41,7 +35,6 @@
 .addressGroup {
   display: grid;
   gap: 8px;
-  padding: 10px;
 
   grid-template:
     "label       label   label" auto
