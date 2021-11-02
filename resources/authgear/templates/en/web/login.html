@@ -15,9 +15,9 @@
 	<div class="pane flex flex-col">
 	<div class="flex flex-col">
 		{{ if $has_login_id }}{{ if (not (or $.PublicSignupDisabled $.AllowLoginOnly)) }}
-		<div class="signin-signup-switch flex flex-row margin-b-12">
-			<a class="not-a signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
-			<a class="not-a signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
+		<div class="flex flex-row margin-b-12">
+			<a class="not-a flex items-center justify-center flex-1 padding-v-16 signin-signup-link primary-txt current" href="/login" data-turbolinks-action="replace">{{ template "login-label" }}</a>
+			<a class="not-a flex items-center justify-center flex-1 padding-v-16 signin-signup-link primary-txt" href="/signup" data-turbolinks-action="replace">{{ template "signup-label" }}</a>
 		</div>
 		{{ end }}{{ end }}
 

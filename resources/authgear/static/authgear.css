@@ -241,6 +241,10 @@ h1, h2, h3, h4, h5, h6 {
   flex-direction: row;
 }
 
+.flex-1 {
+  flex: 1 1 0%;
+}
+
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1260,15 +1264,7 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--color-recovery-code-list-background);
 }
 
-.signin-signup-switch {
-  height: 50px;
-}
-
 .signin-signup-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
   border-bottom: 2px solid var(--color-separator);
 }
 
