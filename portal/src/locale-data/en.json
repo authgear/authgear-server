@@ -855,12 +855,14 @@
 
   "UserProfileConfigurationScreen.title": "User Profile Configuration",
   "UserProfileConfigurationScreen.header.label.attribute-name": "Attribute Name",
-  "UserProfileConfigurationScreen.header.label.end_user": "End User Access Right",
+  "UserProfileConfigurationScreen.header.label.end_user": "End-user Access Right",
   "UserProfileConfigurationScreen.header.tooltip.end_user": "Access control for the standard attributes in the {ExternalLink, react, href{https://docs.authgear.com/integrate/auth-ui} children{End-user settings page}}",
   "UserProfileConfigurationScreen.header.label.bearer": "Token Bearer Access Right",
   "UserProfileConfigurationScreen.header.tooltip.bearer": "Access control for the standard attributes in the {ExternalLink, react, href{https://docs.authgear.com/integrate/user-info} children{UserInfo endpoint}}",
   "UserProfileConfigurationScreen.header.label.portal_ui": "Portal Admin Access Right",
   "UserProfileConfigurationScreen.header.tooltip.portal_ui": "Access control for the standard attributes in Admin Portal > User Management",
+  "UserProfileConfigurationScreen.dialog.title.pending-update": "Are you sure to change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}”?",
+  "UserProfileConfigurationScreen.dialog.description.pending-update": "If you change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}” to {strong, react, children{{level}}}, the Access Right of {affected, select, bearer{Token Bearer} end_user{End-user} other{Token Bearer and End-user}} will also be changed to {strong, react, children{{level}}}.",
 
   "standard-attribute.name": "Name",
   "standard-attribute.given_name": "Given Name",

@@ -1,5 +1,5 @@
 /* global JSX */
-import React, { useContext, useMemo, useCallback } from "react";
+import React, { useContext, useMemo, useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   DetailsList,
@@ -13,6 +13,11 @@ import {
   Text,
   Dropdown,
   IDropdownOption,
+  Dialog,
+  DialogFooter,
+  PrimaryButton,
+  DefaultButton,
+  IDialogContentProps,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import FormContainer from "../../FormContainer";
@@ -206,10 +211,79 @@ function applyUpdate(prev: FormState, update: PendingUpdate): FormState {
 const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationScreenContentProps> =
   function UserProfileConfigurationScreenContent(props) {
     const items = props.form.state.standardAttributesItems;
-    const setState = props.form.setState;
+    const { state, setState } = props.form;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
+    const [pendingUpdate, setPendingUpdate] = useState<
+      PendingUpdate | undefined
+    >();
     const descriptionColor = themes.main.palette.neutralTertiary;
+
+    const onClickConfirmPendingUpdate = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (pendingUpdate != null) {
+          setState((prev) => applyUpdate(prev, pendingUpdate));
+          setPendingUpdate(undefined);
+        }
+      },
+      [setState, pendingUpdate]
+    );
+
+    const onDismissPendingUpdateDialog = useCallback(() => {
+      setPendingUpdate(undefined);
+    }, []);
+
+    // title and subText are typed as string but they can actually be any JSX.Element.
+    // @ts-expect-error
+    const pendingUpdateDialogContentProps: IDialogContentProps = useMemo(() => {
+      if (pendingUpdate == null) {
+        return {
+          title: "",
+          subText: "",
+        };
+      }
+
+      const { index } = pendingUpdate;
+
+      const pointer = state.standardAttributesItems[index].pointer;
+      const fieldName = parseJSONPointer(pointer)[0];
+
+      const formattedLevel = renderToString(
+        "standard-attribute.access-control-level." +
+          pendingUpdate.mainAdjustment[1]
+      );
+
+      const affected =
+        pendingUpdate.otherAdjustments.length === 1
+          ? pendingUpdate.otherAdjustments[0][0]
+          : "other";
+
+      return {
+        title: (
+          <FormattedMessage
+            id="UserProfileConfigurationScreen.dialog.title.pending-update"
+            values={{
+              fieldName,
+              party: pendingUpdate.mainAdjustment[0],
+            }}
+          />
+        ),
+        subText: (
+          <FormattedMessage
+            id="UserProfileConfigurationScreen.dialog.description.pending-update"
+            values={{
+              fieldName,
+              affected,
+              party: pendingUpdate.mainAdjustment[0],
+              level: formattedLevel,
+            }}
+          />
+        ),
+      };
+    }, [renderToString, pendingUpdate, state]);
 
     const onRenderPointer = useCallback(
       (
@@ -262,6 +336,12 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
               key,
               option.key as AccessControlLevelString
             );
+
+            if (pendingUpdate.otherAdjustments.length !== 0) {
+              setPendingUpdate(pendingUpdate);
+              return prev;
+            }
+
             return applyUpdate(prev, pendingUpdate);
           });
         };
@@ -443,19 +523,35 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
       );
 
     return (
-      <ScreenContent>
-        <ScreenTitle className={styles.widget}>
-          <FormattedMessage id="UserProfileConfigurationScreen.title" />
-        </ScreenTitle>
-        <div className={styles.widget}>
-          <DetailsList
-            columns={columns}
-            items={items}
-            selectionMode={SelectionMode.none}
-            onRenderDetailsHeader={onRenderDetailsHeader}
-          />
-        </div>
-      </ScreenContent>
+      <>
+        <ScreenContent>
+          <ScreenTitle className={styles.widget}>
+            <FormattedMessage id="UserProfileConfigurationScreen.title" />
+          </ScreenTitle>
+          <div className={styles.widget}>
+            <DetailsList
+              columns={columns}
+              items={items}
+              selectionMode={SelectionMode.none}
+              onRenderDetailsHeader={onRenderDetailsHeader}
+            />
+          </div>
+        </ScreenContent>
+        <Dialog
+          hidden={pendingUpdate == null}
+          onDismiss={onDismissPendingUpdateDialog}
+          dialogContentProps={pendingUpdateDialogContentProps}
+        >
+          <DialogFooter>
+            <PrimaryButton onClick={onClickConfirmPendingUpdate}>
+              <FormattedMessage id="confirm" />
+            </PrimaryButton>
+            <DefaultButton onClick={onDismissPendingUpdateDialog}>
+              <FormattedMessage id="cancel" />
+            </DefaultButton>
+          </DialogFooter>
+        </Dialog>
+      </>
     );
   };
 
