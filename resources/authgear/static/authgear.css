@@ -887,24 +887,6 @@ h1, h2, h3, h4, h5, h6 {
   visibility: visible;
 }
 
-.password-policy-title {
-  margin: 0;
-}
-
-.password-policy-list {
-  display: block;
-  margin: 0;
-  padding: 0;
-}
-
-.password-policy-list .password-policy {
-  display: block;
-}
-
-.password-policy-required-password-strength-title {
-  margin: 16px 0 0 0;
-}
-
 .password-strength-meter {
   -webkit-appearance: none;
   display: block;
