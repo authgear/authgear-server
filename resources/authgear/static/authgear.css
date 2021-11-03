@@ -106,13 +106,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (min-width: 641px) {
-  .page {
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
-    align-items: center;
-  }
-
   .content {
     padding: 0 0 20px 0;
     width: 390px;
@@ -135,13 +128,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (min-width: 1025px) {
-  .page {
-    display: flex;
-    flex-direction: column;
-    justify-content: start;
-    align-items: center;
-  }
-
   .content {
     padding: 0 0 20px 0;
     width: 436px;
