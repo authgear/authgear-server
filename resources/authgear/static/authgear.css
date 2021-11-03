@@ -203,12 +203,86 @@ h1, h2, h3, h4, h5, h6 {
   flex: none;
 }
 
+.col-span-4 {
+  grid-column: span 4 / span 4;
+}
+.col-span-6 {
+  grid-column: span 6 / span 6;
+}
+
+.col-start-1 {
+  grid-column-start: 1;
+}
+.col-start-4 {
+  grid-column-start: 4;
+}
+.col-start-5 {
+  grid-column-start: 5;
+}
+
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 .grid-cols-3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.grid-cols-6 {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.grid-cols-12 {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .tablet\:col-span-4 {
+    grid-column: span 4 / span 4;
+  }
+  .tablet\:col-span-6 {
+    grid-column: span 6 / span 6;
+  }
+
+  .tablet\:col-start-1 {
+    grid-column-start: 1;
+  }
+  .tablet\:col-start-4 {
+    grid-column-start: 4;
+  }
+  .tablet\:col-start-5 {
+    grid-column-start: 5;
+  }
+
+  .tablet\:grid-cols-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .tablet\:grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .desktop\:col-span-4 {
+    grid-column: span 4 / span 4;
+  }
+  .desktop\:col-span-6 {
+    grid-column: span 6 / span 6;
+  }
+
+  .desktop\:col-start-1 {
+    grid-column-start: 1;
+  }
+  .desktop\:col-start-4 {
+    grid-column-start: 4;
+  }
+  .desktop\:col-start-5 {
+    grid-column-start: 5;
+  }
+
+  .desktop\:grid-cols-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .desktop\:grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -249,8 +323,16 @@ h1, h2, h3, h4, h5, h6 {
   gap: 20px;
 }
 
+.column-gap-16 {
+  column-gap: 16px;
+}
+
 .column-gap-20 {
   column-gap: 20px;
+}
+
+.row-gap-20 {
+  row-gap: 20px;
 }
 
 .w-full {
@@ -370,6 +452,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 14px;
 }
 
+.margin-h-16 {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
 .margin-h-20 {
   margin-left: 20px;
   margin-right: 20px;
@@ -383,6 +470,27 @@ h1, h2, h3, h4, h5, h6 {
 .margin-h-32 {
   margin-left: 32px;
   margin-right: 32px;
+}
+
+@media (min-width: 640px) {
+  .tablet\:margin-h-16 {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  .tablet\:margin-h-24 {
+    margin-left: 24px;
+    margin-right: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  .desktop\:margin-h-16 {
+    margin-left: 16px;
+    margin-right: 16px;
+  }
+  .desktop\:margin-h-24 {
+    margin-left: 24px;
+    margin-right: 24px;
+  }
 }
 
 .margin-t-0 {
@@ -439,6 +547,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .margin-b-20 {
   margin-bottom: 20px;
+}
+
+.margin-b-32 {
+  margin-bottom: 32px;
 }
 
 .margin-b-40 {

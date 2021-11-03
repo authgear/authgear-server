@@ -4,7 +4,7 @@
 {{/* settings-content */}}
 
 {{/* Identity */}}
-<div class="pane flex flex-col margin-b-20">
+<div class="pane flex flex-col">
 <div class="flex flex-col">
   <section class="padding-h-20 margin-t-16 margin-b-4">
     <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
@@ -205,7 +205,7 @@
 {{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password) }}
 
 
-<div class="pane margin-b-20">
+<div class="pane">
 <!-- The title and the description -->
 <section class="padding-h-20 margin-v-16 gap-4 grid grid-title-desc-action1-action2">
   <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
@@ -307,7 +307,7 @@
 </div>
 
 {{ if $.ClientURI }}
-<div class="pane margin-b-20">
+<div class="pane">
   <section class="padding-v-16 padding-h-20 flex justify-center">
     <a class="link text-sm" href="{{ $.ClientURI }}">
       <i class="ti ti-logout margin-r-10"></i>
