@@ -187,31 +187,43 @@ function refreshPage() {
 
 // Handle password visibility toggle.
 window.api.onLoad(() => {
-  const wrappers = document.querySelectorAll(".password-input-wrapper");
+  const passwordInputs = document.querySelectorAll(
+    "[data-show-password-button]"
+  );
+
   const disposers: Array<() => void> = [];
-  for (let i = 0; i < wrappers.length; i++) {
-    const wrapper = wrappers[i];
-    const input = wrapper.querySelector(".input") as HTMLInputElement;
-    const showPasswordButton = wrapper.querySelector(".show-password-button");
-    const hidePasswordButton = wrapper.querySelector(".hide-password-button");
-    if (!input || !showPasswordButton || !hidePasswordButton) {
-      return;
+
+  for (let i = 0; i < passwordInputs.length; i++) {
+    const passwordInput = passwordInputs[i] as HTMLInputElement;
+
+    const showPasswordButtonID = passwordInput.getAttribute(
+      "data-show-password-button"
+    );
+    const hidePasswordButtonID = passwordInput.getAttribute(
+      "data-hide-password-button"
+    );
+    if (showPasswordButtonID == null || hidePasswordButtonID == null) {
+      continue;
     }
 
-    if (wrapper.classList.contains("show-password")) {
-      input.type = "text";
-    } else {
-      input.type = "password";
+    const showPasswordButton = document.getElementById(showPasswordButtonID);
+    const hidePasswordButton = document.getElementById(hidePasswordButtonID);
+    if (showPasswordButton == null || hidePasswordButton == null) {
+      continue;
     }
 
     const togglePasswordVisibility = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
-      wrapper.classList.toggle("show-password");
-      if (wrapper.classList.contains("show-password")) {
-        input.type = "text";
+
+      if (hidePasswordButton.classList.contains("hidden")) {
+        passwordInput.type = "text";
+        showPasswordButton.classList.add("hidden");
+        hidePasswordButton.classList.remove("hidden");
       } else {
-        input.type = "password";
+        passwordInput.type = "password";
+        showPasswordButton.classList.remove("hidden");
+        hidePasswordButton.classList.add("hidden");
       }
     };
 

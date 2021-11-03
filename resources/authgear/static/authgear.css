@@ -235,6 +235,10 @@ h1, h2, h3, h4, h5, h6 {
   flex: 1 1 0%;
 }
 
+.flex-none {
+  flex: none;
+}
+
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -287,6 +291,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .w-full {
   width: 100%;
+}
+
+.w-8 {
+  width: 2rem;
 }
 
 .margin-0 {
@@ -778,31 +786,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text-shaded-3);
 }
 
-.password-input-wrapper {
-  display: flex;
-  flex-direction: row;
-}
-
 .password-input-wrapper .input {
   padding-right: 32px;
   margin-right: -32px;
-  flex: 1;
-}
-
-.password-input-wrapper .show-password-button {
-  flex: 0 0 32px;
-  display: inline-block;
-}
-.password-input-wrapper.show-password .show-password-button {
-  display: none;
-}
-
-.password-input-wrapper .hide-password-button {
-  flex: 0 0 32px;
-  display: none;
-}
-.password-input-wrapper.show-password .hide-password-button {
-  display: inline-block;
 }
 
 .password-input-wrapper input::-ms-reveal,
@@ -832,6 +818,7 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.4;
 }
 
+/* FIXME(CSS): text-input is not compatible with atomic CSS. */
 .text-input {
   background-color: transparent;
   height: 36px;
