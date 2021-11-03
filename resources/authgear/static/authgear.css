@@ -90,10 +90,6 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-.content {
-  padding: 0 20px 20px;
-}
-
 .width-full {
   padding: 0 20px;
   align-self: stretch;
@@ -106,15 +102,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (min-width: 641px) {
-  .content {
-    padding: 0 0 20px 0;
-    width: 390px;
-  }
-
-  .content.settings-content {
-    width: 546px;
-  }
-
   .width-full {
     padding: 0 40px;
     align-self: stretch;
@@ -128,15 +115,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (min-width: 1025px) {
-  .content {
-    padding: 0 0 20px 0;
-    width: 436px;
-  }
-
-  .content.settings-content {
-    width: 546px;
-  }
-
   .width-full {
     padding: 0 40px;
     align-self: stretch;

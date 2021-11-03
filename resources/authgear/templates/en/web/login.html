@@ -1,7 +1,7 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="content">
+
 	{{ $has_oauth := false }}
 	{{ $has_login_id := false }}
 	{{ range $.IdentityCandidates }}
@@ -154,5 +154,5 @@
 		<div>{{ template "__watermark.html" . }}</div>
 	</div>
 	</div>
-</div>
+
 {{ end }}

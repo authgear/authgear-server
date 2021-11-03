@@ -1,11 +1,13 @@
 {{ define "__page_frame.html" }}
 <!DOCTYPE html>
-<html lang="{{ .ResolvedLanguageTag }}">
+<html lang="{{ $.ResolvedLanguageTag }}">
 {{ template "__html_head.html" . }}
 <body class="page flex flex-col items-center">
     {{ template "__message_bar.html" . }}
+    <div>
     {{ template "__header.html" . }}
     {{ template "page-content" . }}
+    </div>
     {{ template "__modal.html" }}
 </body>
 </html>
