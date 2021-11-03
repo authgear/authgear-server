@@ -209,9 +209,15 @@ h1, h2, h3, h4, h5, h6 {
 .col-span-6 {
   grid-column: span 6 / span 6;
 }
+.col-span-8 {
+  grid-column: span 8 / span 8;
+}
 
 .col-start-1 {
   grid-column-start: 1;
+}
+.col-start-3 {
+  grid-column-start: 3;
 }
 .col-start-4 {
   grid-column-start: 4;
@@ -240,9 +246,15 @@ h1, h2, h3, h4, h5, h6 {
   .tablet\:col-span-6 {
     grid-column: span 6 / span 6;
   }
+  .tablet\:col-span-8 {
+    grid-column: span 8 / span 8;
+  }
 
   .tablet\:col-start-1 {
     grid-column-start: 1;
+  }
+  .tablet\:col-start-3 {
+    grid-column-start: 3;
   }
   .tablet\:col-start-4 {
     grid-column-start: 4;
@@ -266,9 +278,15 @@ h1, h2, h3, h4, h5, h6 {
   .desktop\:col-span-6 {
     grid-column: span 6 / span 6;
   }
+  .desktop\:col-span-8 {
+    grid-column: span 8 / span 8;
+  }
 
   .desktop\:col-start-1 {
     grid-column-start: 1;
+  }
+  .desktop\:col-start-3 {
+    grid-column-start: 3;
   }
   .desktop\:col-start-4 {
     grid-column-start: 4;
