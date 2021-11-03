@@ -14,8 +14,8 @@
     {{ end }}
 {{ end }}
 <div class="messages-bar flew-row errors-messages-bar errors {{ if not $display_error }}hidden{{ else }}flex{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
-    <div class="icon"><i class="ti ti-alert-circle"></i></div>
-    <ul class="messages-txt error-txt">
+    <div class="w-8 h-8 flex justify-center items-center error-txt"><i class="ti ti-alert-circle"></i></div>
+    <ul class="messages-txt list-none flex flex-col flex-1 margin-h-0 margin-v-6 padding-0 text-sm">
         {{ if $display_error }}
             {{ $info := .Error.info }}
             {{ if eq .Error.reason "ValidationFailed" }}
@@ -135,6 +135,6 @@
             {{ end }}
         {{ end }}
     </ul>
-    <div class="close"><i class="ti ti-x"></i></div>
+    <div class="close w-8 h-8 flex justify-center items-center cursor-pointer"><i class="ti ti-x"></i></div>
 </div>
 {{ end }}

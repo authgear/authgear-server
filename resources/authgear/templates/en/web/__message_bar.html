@@ -1,17 +1,17 @@
 {{ define "__message_bar.html" }}
-<div class="messages-bar-wrapper">
+<div class="absolute w-full">
 
 {{ template "__error.html" . }}
 
 {{ if .FlashMessageType }}
 <div class="messages-bar flex flex-row success">
-    <div class="icon"><i class="ti ti-circle-check"></i></div>
-    <ul class="messages-txt">
+    <div class="w-8 h-8 flex justify-center items-center good-txt"><i class="ti ti-circle-check"></i></div>
+    <ul class="messages-txt list-none flex flex-col flex-1 padding-0 margin-h-0 margin-v-6 text-sm">
         {{ if (eq .FlashMessageType "resend_code_success") }}
             <li>{{ template "success-resend-code" }}</li>
         {{ end }}
     </ul>
-    <div class="close"><i class="ti ti-x"></i></div>
+    <div class="close w-8 h-8 flex justify-center items-center cursor-pointer"><i class="ti ti-x"></i></div>
 </div>
 </div>
 {{ end }}

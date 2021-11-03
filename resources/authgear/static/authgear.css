@@ -297,6 +297,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 2rem;
 }
 
+.h-8 {
+  height: 2rem;
+}
+
 .margin-0 {
   margin: 0;
 }
@@ -365,6 +369,11 @@ h1, h2, h3, h4, h5, h6 {
 .margin-v-40 {
   margin-top: 40px;
   margin-bottom: 40px;
+}
+
+.margin-h-0 {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .margin-h-4 {
@@ -490,6 +499,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .padding-6 {
   padding: 6px;
+}
+
+.padding-12 {
+  padding: 12px;
 }
 
 .padding-16 {
@@ -700,60 +713,24 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: flex-end;
 }
 
-.messages-bar-wrapper {
+.absolute {
   position: absolute;
-  width: 100%;
 }
 
-.messages-bar .icon {
-  font-size: 16px;
-  min-width: 16px;
-  min-height: 16px;
-  display: flex;
-  flex-shrink: 0;
-  margin: 8px 0px 8px 12px;
+.list-none {
+  list-style-type: none;
 }
 
 .messages-bar .messages-txt {
-  min-width: 0px;
-  display: flex;
-  flex-grow: 1;
-  padding: 0;
-  margin: 4px 8px;
-  list-style-type: none;
   color: var(--color-black-shaded-4);
-  font-size: smaller;
-  flex-direction: column;
-}
-
-.messages-bar .messages-txt li {
-  margin: 4px 0;
-}
-
-.messages-bar .close {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  display: flex;
-  cursor: pointer;
-  justify-content: center;
-  align-items: center;
 }
 
 .messages-bar.errors {
   background-color: var(--color-error-shaded-2);
 }
 
-.messages-bar.errors .icon {
-  color: var(--color-error-unshaded);
-}
-
 .messages-bar.success {
   background-color: var(--color-success-shaded-2);
-}
-
-.messages-bar.success .icon {
-  color: var(--color-success-unshaded);
 }
 
 .primary-txt {
