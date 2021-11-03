@@ -844,10 +844,6 @@ h1, h2, h3, h4, h5, h6 {
   /* padding in media queries */
 }
 
-.banner-frame-wrapper {
-  max-width: 436px;
-}
-
 .banner-frame {
   display: flex;
   justify-content: center;
