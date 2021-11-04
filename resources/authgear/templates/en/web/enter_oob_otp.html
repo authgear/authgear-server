@@ -1,30 +1,28 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane flex flex-col">
-
-<div class="flex flex-col width-full margin-v-20">
+<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
 {{ if $.OOBOTPChannel }}
 {{ if eq $.OOBOTPChannel "sms" }}
-<h1 class="margin-t-20 margin-b-10 primary-txt text-center text-xl font-bold">{{ template "oob-otp-page-title--sms" }}</h1>
+<h1 class="margin-0 primary-txt text-center text-xl font-bold">{{ template "oob-otp-page-title--sms" }}</h1>
 {{ end }}
 {{ if eq $.OOBOTPChannel "email" }}
-<h1 class="margin-t-20 margin-b-10 primary-txt text-center text-xl font-bold">{{ template "oob-otp-page-title--email" }}</h1>
+<h1 class="margin-0 primary-txt text-center text-xl font-bold">{{ template "oob-otp-page-title--email" }}</h1>
 {{ end }}
 {{ end }}
 
 {{ if $.OOBOTPTarget }}
-<div class="text-sm break-words primary-txt margin-b-20 text-center">{{ template "oob-otp-description" (dict "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
+<div class="text-sm break-words primary-txt text-center">{{ template "oob-otp-description" (dict "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
 {{ end }}
 
-<form class="flex flex-col" method="post" novalidate>
+<form class="flex flex-col row-gap-20" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-b-20"
+	class="input text-input primary-txt"
 	type="text"
 	inputmode="numeric"
 	pattern="[0-9]*"
@@ -35,33 +33,29 @@
 >
 
 {{ if $.CanRequestDeviceToken }}
-<div class="flex flex-row items-center self-start margin-b-20">
+<div class="flex flex-row items-center self-start">
 <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
 <label class="padding-4 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
 </div>
 {{ end }}
 
-<button class="btn primary-btn margin-b-20" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
 
 </form>
 
-<form class="link margin-b-20" method="post" novalidate>
-{{ $.CSRFField }}
+<div class="flex flex-col row-gap-4 margin-b-20">
+	<form class="link" method="post" novalidate>
+	{{ $.CSRFField }}
+	<span class="primary-txt text-sm">{{ template "oob-otp-resend-button-hint" }}</span>
+	<button id="resend-button" class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
+		data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
+		data-label="{{ template "oob-otp-resend-button-label" }}"
+		data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>
+	</form>
 
-<span class="primary-txt text-sm">{{ template "oob-otp-resend-button-hint" }}</span>
-<button id="resend-button" class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
-	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
-	data-label="{{ template "oob-otp-resend-button-label" }}"
-	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>
-</form>
-
-<div>
 	{{ template "__alternatives.html" . }}
 </div>
-	
 
-</div>
-
-<div class="margin-t-20">{{ template "__watermark.html" . }}</div>
+{{ template "__watermark.html" . }}
 </div>
 {{ end }}

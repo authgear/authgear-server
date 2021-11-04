@@ -1,11 +1,9 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane flex flex-col">
+<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
-<div class="flex flex-col width-full margin-v-20">
-
-<h1 class="margin-t-20 margin-b-10 primary-txt text-center text-xl font-bold">
+<h1 class="margin-0 primary-txt text-center text-xl font-bold">
 	{{ if $.IdentityID }}
 	{{ template "enter-login-id-page-title--change" (dict "key" $.LoginIDKey) }}
 	{{ else }}
@@ -14,20 +12,20 @@
 </h1>
 
 {{ if $.IdentityID }}
-<p class="text-sm margin-t-0 margin-b-10 break-words secondary-txt text-center">
+<p class="text-sm margin-0 break-words secondary-txt text-center">
 	{{ template "enter-login-id-page-description--change" (dict "key" $.LoginIDKey "displayID" $.DisplayID) }}
 </p>
 {{ end }}
 
-<form id="main-form" class="flex flex-col margin-t-10" method="post" novalidate>
+<form id="main-form" class="flex flex-col row-gap-20" method="post" novalidate>
 
 {{ $.CSRFField }}
 
 {{ if eq .LoginIDInputType "phone" }}
 <input
 	data-intl-tel-input="true"
-	data-intl-tel-input-class="margin-b-20 flex flex-col"
-	class="margin-b-20 primary-txt input text-input"
+	data-intl-tel-input-class="flex flex-col"
+	class="primary-txt input text-input"
 	tabindex="0"
 	autofocus
 	type="text"
@@ -41,7 +39,7 @@
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-b-20"
+	class="input text-input primary-txt"
 	type="{{ .LoginIDInputType }}"
 	autocomplete="username"
 	autocapitalize="none"
@@ -50,18 +48,19 @@
 >
 {{ end }}
 
+<div class="flex flex-col row-gap-8 margin-v-20">
+	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
-<button form="main-form" class="btn primary-btn margin-b-20" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
-
-{{ if .IdentityID }}{{ if gt $.IdentityCount 1 }}
-<button form="remove-form" class="btn secondary-btn margin-b-20 text-left text-sm" type="submit" name="x_action" value="remove">
-	{{ if eq .LoginIDType "username" }}
-	{{ template "remove-button-label" }}
-	{{ else }}
-	{{ template "disconnect-button-label" }}
-	{{ end }}
-</button>
-{{ end }}{{ end }}
+	{{ if .IdentityID }}{{ if gt $.IdentityCount 1 }}
+	<button form="remove-form" class="btn secondary-btn text-left text-sm" type="submit" name="x_action" value="remove">
+		{{ if eq .LoginIDType "username" }}
+		{{ template "remove-button-label" }}
+		{{ else }}
+		{{ template "disconnect-button-label" }}
+		{{ end }}
+	</button>
+	{{ end }}{{ end }}
+</div>
 
 </form>
 
@@ -69,8 +68,6 @@
 {{ $.CSRFField }}
 </form>
 
-</div>
-
-<div class="margin-t-20">{{ template "__watermark.html" . }}</div>
+{{ template "__watermark.html" . }}
 </div>
 {{ end }}

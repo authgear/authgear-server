@@ -13,24 +13,18 @@
 		{{ end }}
 	{{ end }}
 	{{ if $.PublicSignupDisabled }}
-	<div class="pane margin-6 flex flex-col">
-	<div class="padding-6 flex flex-col">
-
-		<div class="width-full margin-t-40 margin-b-20">
-			<p class="primary-txt margin-t-0 margin-b-20">{{ template "public-signup-disabled-notice" }}</p>
-			<a class="as-btn not-a btn primary-btn margin-b-20" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
-		</div>
-		<div>{{ template "__watermark.html" . }}</div>
-	</div>
+	<div class="pane flex flex-col row-gap-20 row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+		<p class="primary-txt margin-0 text-base">{{ template "public-signup-disabled-notice" }}</p>
+		<a class="as-btn not-a btn primary-btn margin-v-20" href="/login" data-turbolinks="false">{{ template "login-label" }}</a>
+		{{ template "__watermark.html" . }}
 	</div>
 	{{ else }}
-	<div class="pane flex flex-col">
-	<div class="flex flex-col">
-		<div class="width-full margin-v-20">
-			<form class="flex flex-col" method="post" novalidate>
+
+	<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+			<form class="flex flex-col row-gap-20" method="post" novalidate>
 				{{ $.CSRFField }}
 
-				<h1 class="margin-t-0 margin-b-20 primary-txt text-center text-xl font-bold">
+				<h1 class="margin-0 primary-txt text-center text-xl font-bold">
 					{{ if $.ClientName }}
 					{{ template "sign-up-to-continue" (dict "AppOrClientName" $.ClientName) }}
 					{{ else }}
@@ -47,8 +41,8 @@
 				{{ if eq .login_id_type "phone" }}
 					<input
 						data-intl-tel-input="true"
-						data-intl-tel-input-class="margin-b-20 flex flex-col"
-						class="margin-b-20 primary-txt input text-input"
+						data-intl-tel-input-class="flex flex-col"
+						class="primary-txt input text-input"
 						tabindex="0"
 						autofocus
 						type="text"
@@ -62,7 +56,7 @@
 					<input
 						tabindex="0"
 						autofocus
-						class="margin-b-20 input text-input primary-txt"
+						class="input text-input primary-txt"
 						type="{{ $.x_login_id_input_type }}"
 						name="x_login_id"
 						autocomplete="username"
@@ -75,7 +69,7 @@
 
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "login_id" }}{{ if not (eq .login_id_key $.x_login_id_key) }}
-					<a class="link text-sm self-start block margin-b-10" data-turbolinks-action="replace"
+					<a class="link text-sm self-start block" data-turbolinks-action="replace"
 						href="{{ call $.MakeCurrentStepURL "x_login_id_key" .login_id_key "x_login_id_input_type" .login_id_input_type}}">
 						{{ template "use-login-id-key" (dict "key" .login_id_key) }}
 					</a>
@@ -83,20 +77,20 @@
 				{{ end }}
 
 				{{ if $has_login_id }}
-				<button class="btn primary-btn margin-t-10 margin-b-20" type="submit" name="x_action" value="login_id">
+				<button class="btn primary-btn" type="submit" name="x_action" value="login_id">
 					{{ template "next-button-label" }}
 				</button>
 				{{ end }}
 			</form>
 
 			{{ if $has_oauth }}{{ if $has_login_id }}
-			<div class="sso-loginid-separator flex flex-row items-center margin-b-20">
+			<div class="sso-loginid-separator flex flex-row items-center">
 				<span class="primary-txt margin-h-6 text-sm">{{ template "sso-login-id-separator-both-present" }}</span>
 			</div>
 			{{ end }}{{ end }}
 
 			{{ if $has_oauth }}
-			<div class="flex flex-col margin-b-12">
+			<div class="flex flex-col row-gap-8">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				<form class="flex flex-col" method="post" novalidate>
@@ -109,7 +103,7 @@
 				{{ $skip = true }}
 				{{ end }}
 				{{- if not $skip -}}
-				<button class="btn sso-btn margin-b-8 {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
+				<button class="btn sso-btn {{ .provider_type }}" type="submit" name="x_action" value="oauth" data-form-xhr="false">
 					<input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
 					<span class="sso-btn-content">
 					{{- if eq .provider_type "apple" -}}
@@ -150,13 +144,12 @@
 			{{ end }}
 
 			{{ if ($.Translations.HasKey "toc-pp-footer") }}
-			<p class="text-sm primary-txt margin-t-0 margin-b-20">
+			<p class="text-sm primary-txt margin-0">
 			{{ template "toc-pp-footer" (dict "termsOfService" (.Translations.RenderText "terms-of-service-link" nil) "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
 			</p>
 			{{ end }}
-		</div>
-		<div>{{ template "__watermark.html" . }}</div>
-	</div>
+
+			{{ template "__watermark.html" . }}
 	</div>
 	{{ end }}
 

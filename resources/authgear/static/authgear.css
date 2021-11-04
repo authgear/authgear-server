@@ -90,23 +90,13 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
 }
 
-.width-full {
-  padding: 0 20px;
-  align-self: stretch;
-}
-
 .banner-wrapper {
   /* 16px is the banner default padding */
   padding-top: 24px; /* 40px - 16px = 8px */
   padding-bottom: 24px;  /* 40px - 16px = 8px */
 }
 
-@media (min-width: 641px) {
-  .width-full {
-    padding: 0 40px;
-    align-self: stretch;
-  }
-
+@media (min-width: 640px) {
   .banner-wrapper {
     /* 16px is the banner default padding */
     padding-top: 66px; /* 80px - 16px = 48px */
@@ -114,12 +104,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-@media (min-width: 1025px) {
-  .width-full {
-    padding: 0 40px;
-    align-self: stretch;
-  }
-
+@media (min-width: 1024px) {
   .banner-wrapper {
     /* 16px is the banner default padding */
     padding-top: 66px; /* 80px - 16px = 48px */
@@ -203,6 +188,36 @@ h1, h2, h3, h4, h5, h6 {
   flex: none;
 }
 
+.row-span-1 {
+  grid-row: span 1 / span 1;
+}
+.row-span-2 {
+  grid-row: span 2 / span 2;
+}
+.row-span-3 {
+  grid-row: span 3 / span 3;
+}
+
+.row-span-full {
+  grid-row: 1 / -1;
+}
+
+.row-start-1 {
+  grid-row-start: 1;
+}
+.row-start-2 {
+  grid-row-start: 2;
+}
+.row-start-3 {
+  grid-row-start: 3;
+}
+
+.col-span-1 {
+  grid-column: span 1 / span 1;
+}
+.col-span-2 {
+  grid-column: span 2 / span 2;
+}
 .col-span-4 {
   grid-column: span 4 / span 4;
 }
@@ -224,6 +239,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 .col-start-5 {
   grid-column-start: 5;
+}
+
+.grid-rows-1 {
+  grid-template-rows: repeat(1, minmax(0, 1fr));
+}
+.grid-rows-2 {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+.grid-rows-3 {
+  grid-template-rows: repeat(3, minmax(0, 1fr));
 }
 
 .grid-cols-2 {
@@ -341,12 +366,32 @@ h1, h2, h3, h4, h5, h6 {
   gap: 20px;
 }
 
+.column-gap-8 {
+  column-gap: 8px;
+}
+
 .column-gap-16 {
   column-gap: 16px;
 }
 
 .column-gap-20 {
   column-gap: 20px;
+}
+
+.row-gap-4 {
+  row-gap: 4px;
+}
+
+.row-gap-8 {
+  row-gap: 8px;
+}
+
+.row-gap-10 {
+  row-gap: 10px;
+}
+
+.row-gap-16 {
+  row-gap: 16px;
 }
 
 .row-gap-20 {
@@ -357,10 +402,16 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
+.w-6 {
+  width: 1.5rem;
+}
 .w-8 {
   width: 2rem;
 }
 
+.h-6 {
+  height: 1.5rem;
+}
 .h-8 {
   height: 2rem;
 }
@@ -627,6 +678,11 @@ h1, h2, h3, h4, h5, h6 {
   padding-right: 12px;
 }
 
+.padding-h-16 {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
 .padding-h-18 {
   padding-left: 18px;
   padding-right: 18px;
@@ -635,6 +691,29 @@ h1, h2, h3, h4, h5, h6 {
 .padding-h-20 {
   padding-left: 20px;
   padding-right: 20px;
+}
+
+.padding-h-24 {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.padding-h-32 {
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
+@media (min-width: 640px) {
+  .tablet\:padding-h-32 {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  .desktop\:padding-h-32 {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
 }
 
 .padding-v-2 {
@@ -688,6 +767,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .padding-t-0 {
   padding-top: 0px;
+}
+
+.padding-t-12 {
+  padding-top: 12px;
+}
+
+.padding-t-16 {
+  padding-top: 16px;
+}
+
+.padding-t-32 {
+  padding-top: 32px;
+}
+
+.padding-b-20 {
+  padding-bottom: 20px;
 }
 
 .truncate {
@@ -926,11 +1021,6 @@ h1, h2, h3, h4, h5, h6 {
   background-color: var(--color-background-unshaded);
 }
 
-.content {
-  display: flex;
-  flex-direction: column;
-}
-
 .banner-wrapper {
   width: 100%;
   display: flex;
@@ -1167,113 +1257,16 @@ h1, h2, h3, h4, h5, h6 {
   align-self: center;
 }
 
-.grid-icon-title {
-  grid: "icon title" auto
-      /  auto 1fr;
+.grid-cols-auto-1fr-auto {
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
-.grid-title-action {
-  grid: "title  action" auto
-      /   1fr    auto;
+.grid-cols-auto-1fr {
+  grid-template-columns: auto minmax(0, 1fr);
 }
 
-.grid-title-desc {
-  grid: "title"
-        "desc";
-}
-
-.grid-title {
-  grid: "title" auto
-      /  1fr;
-}
-
-.grid-action {
-  grid: "action" auto
-      /  1fr;
-}
-
-.grid-title-desc-action1-action2 {
-  grid: "title    action1 action2" auto
-        "desc     action1 action2" auto
-      /  1fr      auto auto;
-}
-
-.grid-icon-title-desc-action1-action2 {
-  grid: "icon title    action1 action2" auto
-        "desc desc     action1 action2" auto
-      /  22px 1fr      auto auto;
-}
-
-.grid-title-info-desc-action {
-  grid: "title    action" auto
-        "info     ......" auto
-        "desc     ......" auto
-      /  1fr       auto;
-}
-
-.grid-icon-name-claim-action1-action2 {
-  grid: "icon  name   action1 action2" auto
-        "claim  claim  action1 action2" auto
-      /  24px   1fr    auto auto;
-}
-
-.grid-icon-name-claim-action1-action2-action3 {
-  grid: "icon     name    action1 action2" auto
-        "claim    claim   action1 action2" auto
-        "action3  action3 action1 action2" auto
-      /  24px   1fr    auto auto;
-}
-
-.grid-icon-name-desc-action {
-  grid: "icon  name  action" auto
-        "desc  desc  action" auto
-      /  24px  1fr   auto;
-}
-
-.grid-name-desc-action {
-  grid: "name  action" auto
-        "desc  action" auto
-      /  1fr   auto;
-}
-
-.grid-area-name {
-  grid-area: name;
-}
-
-.grid-area-title {
-  grid-area: title;
-}
-
-.grid-area-desc {
-  grid-area: desc;
-}
-
-.grid-area-action1 {
-  grid-area: action1;
-}
-
-.grid-area-action2 {
-  grid-area: action2;
-}
-
-.grid-area-action3 {
-  grid-area: action3;
-}
-
-.grid-area-action {
-  grid-area: action;
-}
-
-.grid-area-info {
-  grid-area: info;
-}
-
-.grid-area-icon {
-  grid-area: icon;
-}
-
-.grid-area-claim {
-  grid-area: claim;
+.grid-cols-1fr-auto {
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .row-sep:not(:last-child) {

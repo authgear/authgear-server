@@ -1,18 +1,15 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane flex flex-col">
-
-<div class="flex flex-col width-full margin-v-20">
-  <h2 class="primary-txt text-center margin-b-20 text-xl font-bold">
+<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+  <h2 class="primary-txt text-center margin-0 text-xl font-bold">
     {{ template "logout-button-hint" }}
   </h2>
   <!-- We need to disable XHR for this request because after logout it could possibly redirect to external website with post_logout_uri -->
-  <form class="flex flex-col margin-b-20" method="post" novalidate>
+  <form class="flex flex-col" method="post" novalidate>
     {{ $.CSRFField }}
-    <button class="btn primary-btn" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
+    <button class="btn primary-btn margin-v-20" type="submit" name="x_action" value="logout" data-form-xhr="false">{{ template "logout-button-label" }}</button>
   </form>
-  <div class="margin-t-20">{{ template "__watermark.html" . }}</div>
-</div>
+  {{ template "__watermark.html" . }}
 </div>
 {{ end }}

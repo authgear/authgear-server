@@ -1,30 +1,28 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="setup-totp pane flex flex-col">
+<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
-<div class="flex flex-col width-full margin-v-20">
-
-<h1 class="primary-txt text-center margin-t-20 margin-b-10 text-xl font-bold">
+<h1 class="primary-txt text-center margin-0 text-xl font-bold">
 	{{ template "setup-totp-title" }}
 </h1>
 
-<p class="text-sm primary-txt text-center margin-t-0 margin-b-20">{{ template "setup-totp-description" }}</p>
+<p class="text-sm primary-txt text-center margin-0">{{ template "setup-totp-description" }}</p>
 
-<p class="text-sm break-words primary-txt whitespace-pre-wrap text-center margin-t-0 margin-b-20 leading-normal">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
+<p class="text-sm break-words primary-txt whitespace-pre-wrap text-center margin-0 leading-normal">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
 
-<form class="flex flex-col" method="post" novalidate>
+<form class="flex flex-col row-gap-20" method="post" novalidate>
 
 {{ $.CSRFField }}
 
-<img class="qr-code-image margin-b-20" src="{{ $.ImageURI }}">
+<img class="qr-code-image" src="{{ $.ImageURI }}">
 
-<p class="text-sm break-words primary-txt text-center whitespace-pre-wrap margin-t-0 margin-b-20">{{ template "setup-totp-code-description" }}</p>
+<p class="text-sm break-words primary-txt text-center whitespace-pre-wrap margin-0">{{ template "setup-totp-code-description" }}</p>
 
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-b-20"
+	class="input text-input primary-txt"
 	type="text"
 	inputmode="numeric"
 	pattern="[0-9]*"
@@ -34,19 +32,16 @@
 	placeholder="{{ template "setup-totp-code-placeholder" }}"
 >
 
-<button class="btn primary-btn margin-b-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn margin-v-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
 
-<p class="text-sm break-words primary-txt margin-t-0 margin-b-20">{{ template "setup-totp-get-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt margin-0">{{ template "setup-totp-get-google-authenticator-description" }}</p>
 
-<p class="text-sm break-words primary-txt whitespace-pre-wrap margin-t-0 margin-b-20">{{ template "setup-totp-use-google-authenticator-description" }}</p>
+<p class="text-sm break-words primary-txt whitespace-pre-wrap margin-0">{{ template "setup-totp-use-google-authenticator-description" }}</p>
 
 </form>
 
-<div>
 {{ template "__alternatives.html" . }}
-</div>
-</div>
 
-<div class="margin-t-20">{{ template "__watermark.html" . }}</div>
+{{ template "__watermark.html" . }}
 </div>
 {{ end }}

@@ -1,29 +1,28 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane flex flex-col">
+<div class="primary-txt pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
-<div class="flex flex-col width-full margin-v-20 primary-txt">
 {{ if .Error }}
 {{ if eq .Error.reason "WebUIInvalidSession" }}
     {{ if len .SessionStepURLs }}
         <div class="text-center text-sm">
             {{ template "error-web-ui-invalid-session-return" }}
         </div>
-        <a class="as-btn not-a btn primary-btn" href="{{ last .SessionStepURLs }}" data-turbolinks="false">
+        <a class="as-btn not-a btn primary-btn margin-v-20" href="{{ last .SessionStepURLs }}" data-turbolinks="false">
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ else }}
         <div class="text-center text-sm">
             {{ template "error-web-ui-invalid-session-retry" }}
         </div>
-        <a class="as-btn not-a btn primary-btn" href="/" data-turbolinks="false">
+        <a class="as-btn not-a btn primary-btn margin-v-20" href="/" data-turbolinks="false">
             {{ template "error-web-ui-invalid-session-action" }}
         </a>
     {{ end }}
 {{ else if eq .Error.reason "WebHookDisallowed" }}
 {{ $error_reason := index .Error.info.reasons 0 }}
-<h1 class="primary-txt margin-v-20 text-center text-xl font-bold">
+<h1 class="primary-txt margin-0 text-center text-xl font-bold">
 {{ if $error_reason.title }}
     {{ $error_reason.title }}
 {{ else }}
@@ -35,16 +34,15 @@
     {{ end }}
 {{ end }}
 </h1>
-<p class="text-sm break-words primary-txt margin-b-20 text-center">{{ $error_reason.reason }}</p>
-<a class="as-btn not-a btn primary-btn margin-b-20" href="/" data-turbolinks="false">
+<p class="text-sm break-words primary-txt margin-0 text-center">{{ $error_reason.reason }}</p>
+<a class="as-btn not-a btn primary-btn margin-v-20" href="/" data-turbolinks="false">
     {{ template "error-webhook-disallowed-action" }}
 </a>
 {{ else }}
-<h1 class="primary-txt margin-b-20 text-center text-xl font-bold">{{ template "error-server" }}</h1>
+<h1 class="primary-txt margin-0 text-center text-xl font-bold">{{ template "error-server" }}</h1>
 {{ end }}
 {{ end }}
-</div>
 
-<div class="margin-t-20">{{ template "__watermark.html" . }}</div>
+{{ template "__watermark.html" . }}
 </div>
 {{ end }}

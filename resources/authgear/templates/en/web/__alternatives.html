@@ -7,7 +7,7 @@
                 <input type="hidden" name="{{ $name }}" value="{{ $value }}">
             {{ end }}
             <input type="hidden" name="x_action" value="choose_step"/>
-            <div class="text-sm margin-b-20">
+            <div class="text-sm">
             {{ if eq .Step "enter-recovery-code" }}
             {{ if ($.Translations.HasKey "customer-support-link") }}
                 {{ template "enter-recovery-code-instead-with-customer-support-v1" (dict "customerSupportLink" ($.Translations.RenderText "customer-support-link" nil)) }}
