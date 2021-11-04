@@ -212,11 +212,11 @@
   </p>
 </div>
 
-<div class="padding-h-20 grid grid-cols-3 mobile:grid-cols-2 auto-rows-min gap-16">
+<div class="padding-h-20 grid grid-cols-2 tablet:grid-cols-2 desktop:grid-cols-3 auto-rows-min gap-16">
   {{ range $.Authenticators }}
   <!-- Primary Password -->
   {{ if eq .Type "password" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a flex flex-col row-gap-10" href="/settings/change_password">
+  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a flex flex-col row-gap-10" href="/settings/change_password">
     <i class="ti ti-key text-32 block primary-txt" aria-hidden="true"></i>
     <p class="margin-0 primary-txt text-base">
       {{ template "settings-page-primary-password-title" }}
@@ -230,7 +230,7 @@
 
   <!-- Primary OOB OTP Email -->
   {{ if eq .Type "oob_otp_email" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a flex flex-col row-gap-10" href="/settings/identity">
+  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a flex flex-col row-gap-10" href="/settings/identity">
     <i class="ti ti-mail text-32 block primary-txt" aria-hidden="true"></i>
     <p class="margin-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--email" }}
@@ -246,7 +246,7 @@
 
   <!-- Primary OOB OTP SMS -->
   {{ if eq .Type "oob_otp_sms" }}{{ if eq .Kind "primary" }}
-  <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a flex flex-col row-gap-10" href="/settings/identity">
+  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a flex flex-col row-gap-10" href="/settings/identity">
     <i class="ti ti-message-dots text-32 block primary-txt" aria-hidden="true"></i>
     <p class="margin-0 primary-txt text-base">
       {{ template "settings-page-primary-oob-otp-title--sms" }}
@@ -263,7 +263,7 @@
 
   <!-- MFA -->
   {{ if $show_mfa }}
-  <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a flex flex-col row-gap-10" href="/settings/mfa">
+  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a flex flex-col row-gap-10" href="/settings/mfa">
     <i class="ti ti-shield-lock text-32 block  primary-txt" aria-hidden="true"></i>
     <p class="margin-0 primary-txt text-base">
       {{ template "settings-page-mfa-section-title" }}
@@ -276,7 +276,7 @@
 
   {{ if $.ShowBiometric }}
   <!-- Biometric -->
-  <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a flex flex-col row-gap-10" href="/settings/biometric">
+  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a flex flex-col row-gap-10" href="/settings/biometric">
     <i class="ti ti-fingerprint text-32 block primary-txt" aria-hidden="true"></i>
     <p class="margin-0 primary-txt text-base">
       {{ template "settings-page-biometric-section-title" }}
@@ -287,7 +287,7 @@
   </a>
   {{ end }}
 
-  <a class="settings-security-item padding-16 mobile:padding-12 rounded-md not-a flex flex-col row-gap-10" href="/settings/sessions">
+  <a class="settings-security-item padding-12 tablet:padding-12 desktop:padding-16 rounded-md not-a flex flex-col row-gap-10" href="/settings/sessions">
     <i class="ti ti-shield-check text-32 block primary-txt" aria-hidden="true"></i>
     <p class="margin-0 primary-txt text-base">
       {{ template "settings-page-session-section-title" }}
