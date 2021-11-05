@@ -1271,12 +1271,11 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 0 0 -36px;
 }
 
-.sso-loginid-separator::before, .sso-loginid-separator::after {
+.alternative-separator::before, .alternative-separator::after {
   content: "";
   flex: 1;
   height: 1px;
   background-color: var(--color-separator);
-  margin: 6px 0;
 }
 
 .qr-code-image {
