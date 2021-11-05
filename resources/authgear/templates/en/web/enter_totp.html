@@ -7,7 +7,7 @@
 
 <p class="text-sm break-words primary-txt text-center margin-0">{{ template "enter-totp-description" }}</p>
 
-<form class="flex flex-col row-gap-20" method="post" novalidate>
+<form id="main-form" class="flex flex-col row-gap-20" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input
@@ -30,9 +30,11 @@
 </div>
 {{ end }}
 
-<button class="btn primary-btn margin-v-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
-
 </form>
+
+{{ template "__use_recovery_code.html" . }}
+
+<button form="main-form" class="btn primary-btn margin-v-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
 
 {{ template "__alternatives.html" . }}
 

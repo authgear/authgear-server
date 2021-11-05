@@ -10,6 +10,7 @@ var TemplateWebNavBarHTML = template.RegisterHTML("web/__nav_bar.html")
 var TemplateWebErrorHTML = template.RegisterHTML("web/__error.html")
 var TemplateWebMessageBarHTML = template.RegisterHTML("web/__message_bar.html")
 var TemplateWebAlternativeStepsHTML = template.RegisterHTML("web/__alternatives.html")
+var TemplateWebUseRecoveryCodeHTML = template.RegisterHTML("web/__use_recovery_code.html")
 var TemplateWebPasswordPolicyHTML = template.RegisterHTML("web/__password_policy.html")
 var TemplateWebPageFrameHTML = template.RegisterHTML("web/__page_frame.html")
 var TemplateWebWidePageFrameHTML = template.RegisterHTML("web/__wide_page_frame.html")
@@ -26,6 +27,7 @@ var components = []*template.HTML{
 	TemplateWebErrorHTML,
 	TemplateWebMessageBarHTML,
 	TemplateWebAlternativeStepsHTML,
+	TemplateWebUseRecoveryCodeHTML,
 	TemplateWebPasswordPolicyHTML,
 	TemplateWebPageFrameHTML,
 	TemplateWebWidePageFrameHTML,

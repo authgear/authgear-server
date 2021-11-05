@@ -16,7 +16,7 @@
 <div class="text-sm break-words primary-txt text-center">{{ template "oob-otp-description" (dict "length" $.OOBOTPCodeLength "target" $.OOBOTPTarget) }}</div>
 {{ end }}
 
-<form class="flex flex-col row-gap-20" method="post" novalidate>
+<form id="main-form" class="flex flex-col row-gap-20" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input
@@ -38,23 +38,22 @@
 <label class="padding-4 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
 </div>
 {{ end }}
-
-<button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
-
 </form>
 
-<div class="flex flex-col row-gap-4 margin-b-20">
-	<form class="link" method="post" novalidate>
-	{{ $.CSRFField }}
-	<span class="primary-txt text-sm">{{ template "oob-otp-resend-button-hint" }}</span>
-	<button id="resend-button" class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
-		data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
-		data-label="{{ template "oob-otp-resend-button-label" }}"
-		data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>
-	</form>
+<form class="link" method="post" novalidate>
+{{ $.CSRFField }}
+<span class="primary-txt text-sm">{{ template "oob-otp-resend-button-hint" }}</span>
+<button id="resend-button" class="btn secondary-btn text-sm" type="submit" name="x_action" value="resend"
+	data-cooldown="{{ $.OOBOTPCodeSendCooldown }}"
+	data-label="{{ template "oob-otp-resend-button-label" }}"
+	data-label-unit="{{ template "oob-otp-resend-button-label--unit" }}">{{ template "oob-otp-resend-button-label" }}</button>
+</form>
 
-	{{ template "__alternatives.html" . }}
-</div>
+{{ template "__use_recovery_code.html" . }}
+
+<button form="main-form" class="btn primary-btn margin-t-20" type="submit" name="x_action" value="submit">{{ template "next-button-label" }}</button>
+
+{{ template "__alternatives.html" . }}
 
 {{ template "__watermark.html" . }}
 </div>
