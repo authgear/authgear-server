@@ -79,21 +79,33 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 }
 
 function constructConfig(
-  config: PortalAPIAppConfig,
+  rawConfig: PortalAPIAppConfig,
   _initialState: FormState,
-  currentState: FormState
+  currentState: FormState,
+  effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
-  return produce(config, (config) => {
-    config.user_profile ??= {};
-    config.user_profile.standard_attributes ??= {};
-    for (const accessControl of config.user_profile.standard_attributes
-      .access_control ?? []) {
-      for (const item of currentState.standardAttributesItems) {
-        if (accessControl.pointer === item.pointer) {
-          accessControl.access_control = item.access_control;
+  const modifiedEffectiveConfig = produce(
+    effectiveConfig,
+    (effectiveConfig) => {
+      effectiveConfig.user_profile ??= {};
+      effectiveConfig.user_profile.standard_attributes ??= {};
+      for (const accessControl of effectiveConfig.user_profile
+        .standard_attributes.access_control ?? []) {
+        for (const item of currentState.standardAttributesItems) {
+          if (accessControl.pointer === item.pointer) {
+            accessControl.access_control = item.access_control;
+          }
         }
       }
     }
+  );
+
+  const accessControl =
+    modifiedEffectiveConfig.user_profile?.standard_attributes?.access_control;
+  return produce(rawConfig, (rawConfig) => {
+    rawConfig.user_profile ??= {};
+    rawConfig.user_profile.standard_attributes ??= {};
+    rawConfig.user_profile.standard_attributes.access_control = accessControl;
   });
 }
 
