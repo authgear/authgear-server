@@ -253,12 +253,9 @@ They are ordered by in increasing order.
 ### Access control configuration
 
 - The default access control level for `portal_ui` is `readwrite`.
-- The default access control level is `bearer` is `readwrite`.
-- The access control level `readwrite` is equivalent to `readonly` for `bearer`.
+- The default access control level is `bearer` is `readonly`.
 - The default access control level of standard attribute for `end_user` is `readwrite`.
 - The default access control level of custom attribute for `end_user` is `hidden`.
-- The access control level for `end_user` must be equal or less than that that for `bearer`.
-- The access control level for `bearer` must be equal or less than that for `portal_ui`.
 
 Here is an example with default values shown.
 
@@ -289,11 +286,9 @@ user_profile:
 |hidden|hidden|readwrite|
 |hidden|readonly|readonly|
 |hidden|readonly|readwrite|
-|hidden|readwrite|readwrite|
 |readonly|readonly|readonly|
 |readonly|readonly|readwrite|
-|readonly|readwrite|readwrite|
-|readwrite|readwrite|readwrite|
+|readwrite|readonly|readwrite|
 
 ## ID Token
 

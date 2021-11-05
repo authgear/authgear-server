@@ -17,9 +17,9 @@ func TestStandardAttributesConfig(t *testing.T) {
 		So(accessControl.GetLevel("/family_name", RoleEndUser, 0), ShouldEqual, AccessControlLevelReadwrite)
 
 		So(accessControl.GetLevel("/name", RoleBearer, 0), ShouldEqual, AccessControlLevelHidden)
-		So(accessControl.GetLevel("/family_name", RoleBearer, 0), ShouldEqual, AccessControlLevelReadwrite)
+		So(accessControl.GetLevel("/family_name", RoleBearer, 0), ShouldEqual, AccessControlLevelReadonly)
 
-		So(accessControl.GetLevel("/name", RoleBearer, 0), ShouldEqual, AccessControlLevelHidden)
-		So(accessControl.GetLevel("/family_name", RoleBearer, 0), ShouldEqual, AccessControlLevelReadwrite)
+		So(accessControl.GetLevel("/name", RolePortalUI, 0), ShouldEqual, AccessControlLevelHidden)
+		So(accessControl.GetLevel("/family_name", RolePortalUI, 0), ShouldEqual, AccessControlLevelReadwrite)
 	})
 }

@@ -572,7 +572,7 @@ name: empty-standard-attributes-access-control
 error: |-
   invalid configuration:
   /user_profile/standard_attributes/access_control/0/access_control: enum
-    map[actual:map[] expected:[map[bearer:hidden end_user:hidden portal_ui:hidden] map[bearer:hidden end_user:hidden portal_ui:readonly] map[bearer:hidden end_user:hidden portal_ui:readwrite] map[bearer:readonly end_user:hidden portal_ui:readonly] map[bearer:readonly end_user:hidden portal_ui:readwrite] map[bearer:readwrite end_user:hidden portal_ui:readwrite] map[bearer:readonly end_user:readonly portal_ui:readonly] map[bearer:readonly end_user:readonly portal_ui:readwrite] map[bearer:readwrite end_user:readonly portal_ui:readwrite] map[bearer:readwrite end_user:readwrite portal_ui:readwrite]]]
+    map[actual:map[] expected:[map[bearer:hidden end_user:hidden portal_ui:hidden] map[bearer:hidden end_user:hidden portal_ui:readonly] map[bearer:hidden end_user:hidden portal_ui:readwrite] map[bearer:readonly end_user:hidden portal_ui:readonly] map[bearer:readonly end_user:hidden portal_ui:readwrite] map[bearer:readonly end_user:readonly portal_ui:readonly] map[bearer:readonly end_user:readonly portal_ui:readwrite] map[bearer:readonly end_user:readwrite portal_ui:readwrite]]]
 config:
   id: test
   http:
