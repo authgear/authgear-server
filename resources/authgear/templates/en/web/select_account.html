@@ -21,7 +21,7 @@
     <span class="margin-l-8 truncate text-base leading-10">{{ $.IdentityDisplayName }}</span>
 </div>
 
-<div class="flex flex-col margin-v-20 row-gap-16">
+<div class="flex flex-col margin-t-20 row-gap-16">
     <form class="flex flex-col" method="post" novalidate>
 	{{ $.CSRFField }}
 	<button class="btn primary-btn submit-btn" type="submit" name="x_action" value="continue" data-form-xhr="false">{{ template "select-account-continue-label" }}</button>
