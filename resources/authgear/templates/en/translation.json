@@ -103,6 +103,8 @@
 
   "sso-login-id-separator-both-present": "or",
 
+  "or-label": "or",
+
   "phone-number-placeholder": "Phone number",
   "login-id-placeholder": "{variant, select, email {Email address} username {Username} other {Email address or username}}",
   "use-text-login-id-description": "Use {variant, select, email {email address} username {username} other {email address or username}} instead",
