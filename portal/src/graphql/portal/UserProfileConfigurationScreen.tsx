@@ -181,9 +181,11 @@ function makeUpdate(
     case "end_user":
       break;
     case "bearer": {
-      adjustments.push(
-        adjustAccessControl(accessControl, "end_user", newValue)
-      );
+      if (newValue === "hidden") {
+        adjustments.push(
+          adjustAccessControl(accessControl, "end_user", newValue)
+        );
+      }
       break;
     }
     case "portal_ui": {
@@ -405,34 +407,32 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
             ),
           };
 
-          const options: IDropdownOption<AccessControlLevelString>[] = [
-            optionHidden,
-            optionReadonly,
-            optionReadwrite,
-          ];
-
+          let options: IDropdownOption<AccessControlLevelString>[] = [];
           let selectedKey: string | undefined;
           switch (key) {
             case "portal_ui":
+              options = [optionHidden, optionReadonly, optionReadwrite];
               selectedKey = item.access_control.portal_ui;
               break;
             case "bearer":
-              if (item.access_control.portal_ui === "readonly") {
-                optionReadwrite.disabled = true;
-              }
+              options = [optionHidden, optionReadonly];
               if (item.access_control.portal_ui === "hidden") {
-                optionReadwrite.disabled = true;
                 optionReadonly.disabled = true;
               }
               selectedKey = item.access_control.bearer;
               break;
             case "end_user":
-              if (item.access_control.bearer === "readonly") {
-                optionReadwrite.disabled = true;
-              }
+              options = [optionHidden, optionReadonly, optionReadwrite];
               if (item.access_control.bearer === "hidden") {
                 optionReadwrite.disabled = true;
                 optionReadonly.disabled = true;
+              }
+              if (item.access_control.portal_ui === "hidden") {
+                optionReadwrite.disabled = true;
+                optionReadonly.disabled = true;
+              }
+              if (item.access_control.portal_ui === "readonly") {
+                optionReadwrite.disabled = true;
               }
               selectedKey = item.access_control.end_user;
               break;
