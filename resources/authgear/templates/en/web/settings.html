@@ -38,7 +38,7 @@
   {{ $show_more_button = (or ($show_more_button) ($is_hidden)) }}
 
   {{ if not $is_hidden }}
-  <section class="padding-20 row-sep grid grid-cols-auto-1fr-auto row-gap-4">
+  <section class="padding-20 row-sep flex flex-row column-gap-8">
     {{ $ti := "" }}
 
     {{ if eq .type "oauth" }}
@@ -57,89 +57,102 @@
     {{ if eq .login_id_type "phone" }}   {{ $ti = "ti ti-device-mobile" }}   {{ end }}
     {{ end }}
 
-    <i class="col-span-1 col-start-1 w-6 justify-self-start margin-0 primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
-    <p class="col-span-1 col-start-2 self-center margin-0 primary-txt text-base">
-      {{ if eq .type "oauth" }}
-        {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
-        {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
-        {{ if eq .provider_type "facebook" }}{{ template "settings-identity-oauth-facebook" }}{{ end }}
-        {{ if eq .provider_type "linkedin" }}{{ template "settings-identity-oauth-linkedin" }}{{ end }}
-        {{ if eq .provider_type "azureadv2" }}{{ template "settings-identity-oauth-azureadv2" }}{{ end }}
-        {{ if eq .provider_type "adfs" }}{{ template "settings-identity-oauth-adfs" }}{{ end }}
-        {{ if eq .provider_type "wechat" }}{{ template "settings-identity-oauth-wechat" }}{{ end }}
-      {{ end }}
-      {{ if eq .type "login_id" }}
-        {{ if eq .login_id_type "email" }}{{ template "settings-identity-login-id-email" }}{{ end }}
-        {{ if eq .login_id_type "phone" }}{{ template "settings-identity-login-id-phone" }}{{ end }}
-        {{ if eq .login_id_type "username" }}{{ template "settings-identity-login-id-username" }}{{ end }}
-        {{ if eq .login_id_type "raw" }}{{ template "settings-identity-login-id-raw" }}{{ end }}
-      {{ end }}
-    </p>
+    <div class="flex flex-col row-gap-4 flex-1">
 
-    {{ if .display_id }}
-    <p class="col-span-2 col-start-1 self-center text-sm margin-0 secondary-txt leading-normal">
-      {{ .display_id }}
+      {{/* Row */}}
+      <div class="flex flex-row">
+        <i class="w-6 justify-self-start margin-0 primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
+        <p class="margin-0 primary-txt text-base">
+          {{ if eq .type "oauth" }}
+            {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
+            {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
+            {{ if eq .provider_type "facebook" }}{{ template "settings-identity-oauth-facebook" }}{{ end }}
+            {{ if eq .provider_type "linkedin" }}{{ template "settings-identity-oauth-linkedin" }}{{ end }}
+            {{ if eq .provider_type "azureadv2" }}{{ template "settings-identity-oauth-azureadv2" }}{{ end }}
+            {{ if eq .provider_type "adfs" }}{{ template "settings-identity-oauth-adfs" }}{{ end }}
+            {{ if eq .provider_type "wechat" }}{{ template "settings-identity-oauth-wechat" }}{{ end }}
+          {{ end }}
+          {{ if eq .type "login_id" }}
+            {{ if eq .login_id_type "email" }}{{ template "settings-identity-login-id-email" }}{{ end }}
+            {{ if eq .login_id_type "phone" }}{{ template "settings-identity-login-id-phone" }}{{ end }}
+            {{ if eq .login_id_type "username" }}{{ template "settings-identity-login-id-username" }}{{ end }}
+            {{ if eq .login_id_type "raw" }}{{ template "settings-identity-login-id-raw" }}{{ end }}
+          {{ end }}
+        </p>
+      </div>
 
-      <!-- TODO(verification): show verification for all identity types -->
+      {{/* Row */}}
+      {{ if .display_id }}
+      <p class="text-sm margin-0 secondary-txt leading-normal">
+        {{ .display_id }}
+
+        <!-- TODO(verification): show verification for all identity types -->
+        {{ if eq .type "login_id" }}
+        {{ if .identity_id }}
+        {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
+        <span class="error-txt">
+          {{ template "verification-status-label--unverified" }}
+        </span>
+        {{ end }}
+        {{ if eq $verification_status "verified" }}
+        <span class="good-txt">
+          {{ template "verification-status-label--verified" }}
+        </span>
+        {{ end }}
+        {{ end }}
+        {{ end }}
+      </p>
+      {{ end }}
+
+      {{/* Row */}}
       {{ if eq .type "login_id" }}
       {{ if .identity_id }}
       {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-      <span class="error-txt">
-        {{ template "verification-status-label--unverified" }}
-      </span>
-      {{ end }}
-      {{ if eq $verification_status "verified" }}
-      <span class="good-txt">
-        {{ template "verification-status-label--verified" }}
-      </span>
-      {{ end }}
-      {{ end }}
-      {{ end }}
-    </p>
-    {{ end }}
+      <form class="" method="post" novalidate>
+        {{ $.CSRFField }}
+        <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
+        <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
+          {{ template "resend-verification-code-button-label" }}
+        </button>
+      </form>
+      {{ end }}{{ end }}{{ end }}
 
+    </div>
+
+    {{/* Action */}}
     {{ if eq .type "oauth" }}
-    <form class="col-start-3 col-span-1 row-span-full self-center justify-self-end" method="post" novalidate>
+    <form class="w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
       <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-      {{ if not .modify_disabled }}{{ if .identity_id }}
-        {{ if gt $.IdentityCount 1 }}
-      <button class="btn destructive-btn" type="submit" name="x_action" value="unlink_oauth">
-        <i class="ti ti-unlink margin-l-8 padding-v-16"></i>
-      </button>
+      {{ if not .modify_disabled }}
+        {{ if .identity_id }}
+          {{ if gt $.IdentityCount 1 }}
+            <button class="btn destructive-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="unlink_oauth">
+              <i class="ti ti-unlink"></i>
+            </button>
+          {{ end }}
+        {{ else }}
+        <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">
+          <i class="ti ti-circle-plus"></i>
+        </button>
         {{ end }}
-      {{ else }}
-      <button class="btn secondary-btn" type="submit" name="x_action" value="link_oauth" data-form-xhr="false">
-        <i class="ti ti-circle-plus margin-l-8 padding-v-16"></i>
-      </button>
-      {{ end }}{{ end }}
+      {{ end }}
     </form>
     {{ end }}
 
+    {{/* Action */}}
     {{ if eq .type "login_id" }}
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <a class="link col-start-3 col-span-1 row-span-full self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">
-      <i class="ti ti-edit margin-l-8 padding-v-16"></i>
+    <a class="link w-6 flex flex-col items-end justify-center" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">
+      <i class="ti ti-edit"></i>
     </a>
     {{ else }}
-    <a class="link col-start-3 col-span-1 row-span-full self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
-      <i class="ti ti-circle-plus margin-l-8 padding-v-16"></i>
+    <a class="link w-6 flex flex-col items-end justify-center" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+      <i class="ti ti-circle-plus"></i>
     </a>
     {{ end }}{{ end }}
     {{ end }}
-
-    {{ if eq .type "login_id" }}
-    {{ if .identity_id }}
-    {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-    <form class="col-start-1 col-span-2 self-center" method="post" novalidate>
-      {{ $.CSRFField }}
-      <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
-      <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
-        {{ template "resend-verification-code-button-label" }}
-      </button>
-    </form>
-    {{ end }}{{ end }}{{ end }}
 
   </section>
   {{ end }}
