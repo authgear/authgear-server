@@ -50,16 +50,16 @@
     <p class="col-start-1 col-span-2 margin-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
-    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex items-center justify-center" href="/settings/mfa/totp">
+    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="/settings/mfa/totp">
       <i class="ti ti-edit"></i>
     </a>
     {{ else }}
     <p class="col-start-1 col-span-2 margin-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
-    <form class="col-start-3 col-span-1 row-start-1 row-span-2 flex items-center justify-center" method="post" novalidate>
+    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="w-6 btn secondary-btn" type="submit" name="x_action" value="add_secondary_totp">
+      <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_totp">
         <i class="ti ti-edit"></i>
       </button>
     </form>
@@ -78,16 +78,16 @@
     <p class="col-start-1 col-span-2 margin-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
-    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex items-center justify-center" href="/settings/mfa/oob_otp_email">
+    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="/settings/mfa/oob_otp_email">
       <i class="ti ti-edit"></i>
     </a>
     {{ else }}
     <p class="col-start-1 col-span-2 margin-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
-    <form class="col-start-3 col-span-1 row-start-1 row-span-2 flex items-center justify-center" method="post" novalidate>
+    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="w-6 btn secondary-btn" type="submit" name="x_action" value="add_secondary_oob_otp_email">
+      <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_oob_otp_email">
         <i class="ti ti-edit"></i>
       </button>
     </form>
@@ -105,16 +105,16 @@
     <p class="col-start-1 col-span-2 margin-0 good-txt text-sm">
       {{ template "activated-label" }}
     </p>
-    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex items-center justify-center" href="/settings/mfa/oob_otp_sms">
+    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center" href="/settings/mfa/oob_otp_sms">
       <i class="ti ti-edit"></i>
     </a>
     {{ else }}
     <p class="col-start-1 col-span-2 margin-0 warn-txt text-sm">
       {{ template "inactive-label" }}
     </p>
-    <form class="col-start-3 col-span-1 row-start-1 row-span-2 flex items-center justify-center" method="post" novalidate>
+    <form class="col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="w-6 btn secondary-btn" type="submit" name="x_action" value="add_secondary_oob_otp_sms">
+      <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="add_secondary_oob_otp_sms">
         <i class="ti ti-edit"></i>
       </button>
     </form>
@@ -135,20 +135,20 @@
       <!-- FIXME(ui): Use user preferred timezone -->
       {{ template "settings-page-secondary-password-description" (dict "time" $secondary_password.UpdatedAt "rfc3339" (rfc3339 $secondary_password.UpdatedAt)) }}
     </p>
-    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex items-center justify-center btn secondary-btn" href="/settings/mfa/change_secondary_password">
+    <a class="link w-6 col-start-3 col-span-1 row-start-1 row-span-2 flex flex-col items-end justify-center btn secondary-btn" href="/settings/mfa/change_secondary_password">
       <i class="ti ti-edit"></i>
     </a>
-    <form class="col-start-4 col-span-1 row-start-1 row-span-2 flex items-center justify-center" method="post" novalidate>
+    <form class="col-start-4 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_authenticator_id" value="{{ $secondary_password.ID }}">
-      <button class="w-6 btn destructive-btn" type="submit" name="x_action" value="remove_secondary_password">
+      <button class="btn destructive-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="remove_secondary_password">
         <i class="ti ti-circle-minus"></i>
       </button>
     </form>
     {{ else }}
-    <form class="link col-start-3 col-span-1 row-start-1 row-span-2 flex items-center justify-center" method="post" novalidate>
+    <form class="link col-start-3 col-span-1 row-start-1 row-span-2 w-6 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
-      <button class="w-6 btn secondary-btn" type="submit" name="x_action" value="setup_secondary_password">
+      <button class="btn secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="setup_secondary_password">
         <i class="ti ti-edit"></i>
       </button>
     </form>
@@ -166,7 +166,7 @@
     <p class="col-start-1 col-span-2 margin-0 secondary-txt text-sm">
       {{ template "settings-page-recovery-code-description" }}
     </p>
-    <a class="link col-start-3 col-span-1 row-start-1 row-span-2 self-center justify-self-end text-sm as-btn not-a btn action-btn" href="/settings/mfa/recovery_code">
+    <a class="link col-start-3 col-span-1 row-start-1 row-span-2 self-center text-sm as-btn not-a btn action-btn" href="/settings/mfa/recovery_code">
       {{ template "show-recovery-code-button-label" }}
     </a>
   </div>

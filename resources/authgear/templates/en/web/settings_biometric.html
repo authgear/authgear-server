@@ -28,10 +28,10 @@
     <p class="col-span-2 col-start-2 self-center margin-0 secondary-txt truncate text-sm">
       {{ template "settings-biometric-identity-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
     </p>
-    <form class="w-6 col-start-3 row-start-1 row-span-2 self-center justify-self-end" method="post" novalidate>
+    <form class="w-6 col-start-3 row-start-1 row-span-2 flex flex-col" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_identity_id" value="{{ .ID }}">
-      <button class="btn destructive-btn" type="submit" name="x_action" value="remove">
+      <button class="btn destructive-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="remove">
         <i class="ti ti-unlink"></i>
       </button>
     </form>
