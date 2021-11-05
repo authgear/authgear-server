@@ -9,15 +9,20 @@
 
 <p class="text-sm primary-txt text-center margin-0">{{ template "setup-totp-description" }}</p>
 
-<p class="text-sm break-words primary-txt whitespace-pre-wrap text-center margin-0 leading-normal">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</p>
-
 <form class="flex flex-col row-gap-20" method="post" novalidate>
 
 {{ $.CSRFField }}
 
 <img class="qr-code-image" src="{{ $.ImageURI }}">
 
-<p class="text-sm break-words primary-txt text-center whitespace-pre-wrap margin-0">{{ template "setup-totp-code-description" }}</p>
+<div class="text-sm primary-txt border border-color border-solid font-mono flex flex-row items-center">
+	<span id="totp-code-key" class="flex-1 margin-h-12">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</span>
+	<button type="button" class="btn secondary-btn w-11 h-11 flex items-center justify-center" data-copy-button-target="#totp-code-key">
+		<i class="ti ti-copy"></i>
+	</button>
+</div>
+
+<p class="text-sm break-words primary-txt text-center whitespace-pre-wrap">{{ template "setup-totp-code-description" }}</p>
 
 <input
 	tabindex="0"
@@ -32,7 +37,7 @@
 	placeholder="{{ template "setup-totp-code-placeholder" }}"
 >
 
-<button class="btn primary-btn margin-v-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
 
 <p class="text-sm break-words primary-txt margin-0">{{ template "setup-totp-get-google-authenticator-description" }}</p>
 

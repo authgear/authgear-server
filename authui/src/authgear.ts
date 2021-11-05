@@ -75,9 +75,6 @@ window.api.onLoad(() => {
 
     const copyLabel = button.getAttribute("data-copy-button-copy-label");
     const copiedLabel = button.getAttribute("data-copy-button-copied-label");
-    if (copyLabel == null || copiedLabel == null) {
-      return;
-    }
 
     const target = document.querySelector(targetSelector);
     if (target == null) {
@@ -100,10 +97,16 @@ window.api.onLoad(() => {
       window.clearTimeout(Number(currentHandle));
       button.removeAttribute("data-copy-button-timeout-handle");
     }
-    button.textContent = copiedLabel;
+    // Changing label as feedback is optional
+    if (copyLabel != null && copiedLabel != null) {
+      button.textContent = copiedLabel;
+    }
     button.classList.add("outline");
     const newHandle = window.setTimeout(() => {
-      button.textContent = copyLabel;
+      // Changing label as feedback is optional
+      if (copyLabel != null && copiedLabel != null) {
+        button.textContent = copyLabel;
+      }
       button.classList.remove("outline");
       button.removeAttribute("data-copy-button-timeout-handle");
     }, 1000);

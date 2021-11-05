@@ -410,12 +410,18 @@ h1, h2, h3, h4, h5, h6 {
 .w-8 {
   width: 2rem;
 }
+.w-11 {
+  width: 2.75rem;
+}
 
 .h-6 {
   height: 1.5rem;
 }
 .h-8 {
   height: 2rem;
+}
+.h-11 {
+  height: 2.75rem;
 }
 
 .margin-0 {
@@ -924,6 +930,14 @@ h1, h2, h3, h4, h5, h6 {
   list-style-type: none;
 }
 
+.border {
+  border-width: 1px;
+}
+
+.border-solid {
+  border-style: solid;
+}
+
 .messages-bar .messages-txt {
   color: var(--color-black-shaded-4);
 }
@@ -1299,6 +1313,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .signin-signup-link {
   border-bottom: 2px solid var(--color-separator);
+}
+
+.border-color {
+  border-color: var(--color-separator);
 }
 
 .modal {
