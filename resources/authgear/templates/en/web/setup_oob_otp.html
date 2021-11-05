@@ -1,12 +1,9 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="content">
-<div class="pane flex flex-col">
+<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
-<div class="flex flex-col width-full margin-v-20">
-
-<h1 class="margin-t-20 margin-b-20 primary-txt text-center text-xl font-bold">
+<h1 class="margin-0 primary-txt text-center text-xl font-bold">
 	{{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
 	{{ template "setup-oob-otp-title--sms" }}
 	{{ end }}
@@ -15,15 +12,15 @@
 	{{ end }}
 </h1>
 
-<form class="flex flex-col" method="post" novalidate>
+<form class="flex flex-col row-gap-20" method="post" novalidate>
 
 {{ $.CSRFField }}
 
 {{ if eq $.OOBAuthenticatorType "oob_otp_sms" }}
 <input
 	data-intl-tel-input="true"
-	data-intl-tel-input-class="margin-b-20 flex flex-col"
-	class="margin-b-20 primary-txt input text-input"
+	data-intl-tel-input-class="flex flex-col"
+	class="primary-txt input text-input"
 	tabindex="0"
 	autofocus
 	type="text"
@@ -37,7 +34,7 @@
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-b-20"
+	class="input text-input primary-txt"
 	type="email"
 	name="x_email"
 	autocomplete="email"
@@ -46,17 +43,12 @@
 >
 {{ end }}
 
-<button class="btn primary-btn margin-b-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
+<button class="btn primary-btn margin-t-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
 
 </form>
 
-<div>
 {{ template "__alternatives.html" . }}
-</div>
 
-</div>
-
-<div class="margin-t-20">{{ template "__watermark.html" . }}</div>
-</div>
+{{ template "__watermark.html" . }}
 </div>
 {{ end }}

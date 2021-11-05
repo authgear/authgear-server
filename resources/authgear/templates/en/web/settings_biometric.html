@@ -1,43 +1,43 @@
-{{ template "__page_frame.html" . }}
+{{ template "__wide_page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content settings-content">
 <div class="pane flex flex-col">
-<div class="flex flex-col">
-  {{ template "__nav_bar.html" "/settings" }}
-  <section class="padding-20 gap-4 row-sep grid grid-title-desc">
-    <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
+  <div class="padding-h-16">
+    {{ template "__nav_bar.html" "/settings" }}
+  </div>
+
+  <div class="padding-h-20 padding-t-16 padding-b-20 row-sep gap-4 flex flex-col row-gap-4">
+    <h1 class="margin-0 primary-txt text-xl font-bold">
       {{ template "settings-biometric-title" }}
     </h1>
-    <p class="grid-area-desc margin-0 secondary-txt text-sm">
+    <p class="margin-0 secondary-txt text-sm">
       {{ template "settings-biometric-description" }}
     </p>
-  </section>
+  </div>
 
   {{ range $.BiometricIdentities }}
-  <section class="padding-20 row-sep grid grid-icon-title-desc-action1-action2">
-    <i class="ti ti-devices grid-area-icon margin-0 primary-txt text-base" aria-hidden="true"></i>
-    <h2 class="grid-area-title self-center margin-0 primary-txt text-base">
+  <div class="padding-20 row-sep grid grid-cols-auto-1fr-auto auto-rows-auto row-gap-4 column-gap-8">
+    <i class="ti ti-devices flex items-center justify-center col-span-1 col-start-1 w-6 margin-0 primary-txt text-base" aria-hidden="true"></i>
+    <h2 class="col-span-1 col-start-2 self-center margin-0 primary-txt text-base">
       {{ if .DisplayName }}
       {{ .DisplayName }}
       {{ else }}
       {{ template "settings-biometric-identity-unknown-name" }}
       {{ end }}
     </h2>
-    <p class="grid-area-desc margin-t-4 self-center margin-0 secondary-txt truncate text-sm">
+    <p class="col-span-2 col-start-2 self-center margin-0 secondary-txt truncate text-sm">
       {{ template "settings-biometric-identity-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) }}
     </p>
-    <form class="grid-area-action1 self-center justify-self-end" method="post" novalidate>
+    <form class="w-6 col-start-3 row-start-1 row-span-2 self-center justify-self-end" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_identity_id" value="{{ .ID }}">
       <button class="btn destructive-btn" type="submit" name="x_action" value="remove">
-        <i class="ti ti-unlink margin-l-8 padding-v-16"></i>
+        <i class="ti ti-unlink"></i>
       </button>
     </form>
-  </section>
+  </div>
   {{ end }}
 
 </div>
-</div>
-</main>
+
 {{ end }}

@@ -1,18 +1,20 @@
-{{ template "__page_frame.html" . }}
+{{ template "__wide_page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content settings-content">
 <div class="pane flex flex-col">
-<div class="flex flex-col">
-  {{ template "__nav_bar.html" "/settings" }}
-  <section class="padding-20 row-sep gap-4 grid grid-title-desc">
-    <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
+
+  <div class="padding-h-16">
+    {{ template "__nav_bar.html" "/settings" }}
+  </div>
+
+  <div class="padding-h-20 padding-t-16 padding-b-20 row-sep gap-4 flex flex-col row-gap-4">
+    <h1 class="margin-0 primary-txt text-xl font-bold">
       {{ template "settings-identity-title" }}
     </h1>
-    <p class="grid-area-desc margin-0 secondary-txt text-sm">
+    <p class="margin-0 secondary-txt text-sm">
       {{ template "settings-identity-description" }}
     </p>
-  </section>
+  </div>
 
   {{ range .IdentityCandidates }}
   {{ $claim_verification_statuses := index $.VerificationStatuses .identity_id }}
@@ -32,7 +34,7 @@
   {{ end }}
 
   {{- if not $skip -}}
-  <section class="padding-20 row-sep grid grid-icon-name-claim-action1-action2-action3">
+  <section class="padding-20 row-sep grid grid-cols-auto-1fr-auto row-gap-4">
     {{ $ti := "" }}
 
     {{ if eq .type "oauth" }}
@@ -52,8 +54,8 @@
 
     {{ end }}
 
-    <i class="grid-area-icon justify-self-start margin-0 primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
-    <p class="grid-area-name self-center margin-0 primary-txt text-base">
+    <i class="col-span-1 col-start-1 w-6 justify-self-start margin-0 primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
+    <p class="col-span-1 col-start-2 self-center margin-0 primary-txt text-base">
       {{ if eq .type "oauth" }}
         {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
         {{ if eq .provider_type "apple" }}{{ template "settings-identity-oauth-apple" }}{{ end }}
@@ -72,7 +74,7 @@
     </p>
 
     {{ if .display_id }}
-    <p class="grid-area-claim margin-t-4 self-center text-sm margin-0 secondary-txt truncate leading-normal">
+    <p class="col-span-2 col-start-1 self-center text-sm margin-0 secondary-txt truncate leading-normal">
       {{ .display_id }}
 
       <!-- TODO(verification): show verification for all identity types -->
@@ -94,7 +96,7 @@
     {{ end }}
 
     {{ if eq .type "oauth" }}
-    <form class="grid-area-action1 self-center justify-self-end" method="post" novalidate>
+    <form class="col-start-3 col-span-1 row-span-full self-center justify-self-end" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
@@ -114,11 +116,11 @@
 
     {{ if eq .type "login_id" }}
     {{ if not .modify_disabled }}{{ if .identity_id }}
-    <a class="link grid-area-action1 self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">
+    <a class="link col-start-3 col-span-1 row-span-full self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type "x_identity_id" .identity_id }}">
       <i class="ti ti-edit margin-l-8 padding-v-16"></i>
     </a>
     {{ else }}
-    <a class="link grid-area-action1 self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
+    <a class="link col-start-3 col-span-1 row-span-full self-center justify-self-end" href="{{ call $.MakeURL "/settings/enter_login_id" "x_login_id_key" .login_id_key "x_login_id_type" .login_id_type "x_login_id_input_type" .login_id_input_type }}">
       <i class="ti ti-circle-plus margin-l-8 padding-v-16"></i>
     </a>
     {{ end }}{{ end }}
@@ -127,16 +129,14 @@
     {{ if eq .type "login_id" }}
     {{ if .identity_id }}
     {{ if or (eq $verification_status "pending") (eq $verification_status "required") }}
-    <form class="grid-area-action3 margin-t-4 self-center" method="post" novalidate>
+    <form class="col-start-1 col-span-2 self-center" method="post" novalidate>
     {{ $.CSRFField }}
     <input type="hidden" name="x_identity_id" value="{{ .identity_id }}">
     <button class="btn action-btn text-xs" type="submit" name="x_action" value="verify_login_id">
       {{ template "resend-verification-code-button-label" }}
     </button>
     </form>
-    {{ end }}
-    {{ end }}
-    {{ end }}
+    {{ end }}{{ end }}{{ end }}
 
   </section>
   {{ end }}
@@ -144,7 +144,5 @@
   {{ end }}
 
 </div>
-</div>
 
-</main>
 {{ end }}

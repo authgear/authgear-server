@@ -1,38 +1,40 @@
-{{ template "__page_frame.html" . }}
+{{ template "__wide_page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content settings-content">
 <div class="pane flex flex-col">
-<div class="flex flex-col">
-{{ template "__nav_bar.html" "/settings" }}
-<div class="padding-20 gap-4 row-sep grid grid-title-desc">
-  <h1 class="grid-area-title margin-0 primary-txt text-xl font-bold">
+
+<div class="padding-h-16">
+  {{ template "__nav_bar.html" "/settings" }}
+</div>
+
+<div class="padding-h-20 padding-t-16 padding-b-20 row-sep gap-4 flex flex-col row-gap-4">
+  <h1 class="margin-0 primary-txt text-xl font-bold">
     {{ template "settings-sessions-title" }}
   </h1>
-  <p class="grid-area-desc margin-0 secondary-txt text-sm">
+  <p class="margin-0 secondary-txt text-sm">
     {{ template "settings-sessions-description" }}
   </p>
 </div>
 
-<div class="row-sep">
+<div class="flex flex-col row-gap-20 row-sep padding-v-20">
 {{ range $.SessionGroups }}
-<div class="padding-20 flex flex-col divide-y">
-  <div class="grid grid-icon-title padding-v-6">
+<div class="padding-h-20 flex flex-col divide-y">
+  <div class="flex flex-row padding-v-6 items-center">
     {{ $icon := "" }}
     {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
-    <i class="grid-area-icon ti ti-{{ $icon }} primary-txt text-sm" aria-hidden="true"></i>
-    <h2 class="grid-area-title primary-txt text-base margin-0 margin-h-4 truncate text-sm font-normal">{{ .DisplayName }}</h2>
+    <i class="w-6 ti ti-{{ $icon }} primary-txt text-sm flex items-center justify-center" aria-hidden="true"></i>
+    <h2 class="flex-1 primary-txt text-base margin-0 truncate text-sm font-normal">{{ .DisplayName }}</h2>
   </div>
   {{ range .Sessions }}
-  <div class="grid grid-name-desc-action padding-v-6">
-    <p class="grid-area-name text-sm leading-normal margin-0 secondary-txt">
+  <div class="grid grid-cols-1fr-auto padding-v-6">
+    <p class="col-start-1 text-sm leading-normal margin-0 secondary-txt">
       {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
       {{ template "settings-sessions-item-title" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
       {{ else }}
       {{ .LastAccessedByIP }}
       {{ end }}
     </p>
-    <p class="grid-area-desc text-sm leading-normal margin-0 secondary-txt">
+    <p class="col-start-1 row-start-2 text-sm leading-normal margin-0 secondary-txt">
       {{ $desc := .DisplayName }}
       {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
@@ -40,11 +42,11 @@
       {{ template "settings-sessions-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" (eq .ID $.CurrentSessionID)) }}
     </p>
     {{ if not (eq .ID $.CurrentSessionID) }}
-    <form class="grid-area-action self-center" method="post" novalidate>
+    <form class="col-start-2 row-start-1 row-span-2 self-center" method="post" novalidate>
       {{ $.CSRFField }}
       <input type="hidden" name="x_session_id" value="{{ .ID }}">
       <button
-        class="btn flex justify-end"
+        class="w-6 btn flex items-center justify-center"
         type="submit"
         name="x_action"
         value="revoke"
@@ -55,7 +57,7 @@
         data-modal-action-label="{{ template "settings-sessions-confirmation-action-label" }}"
         data-modal-cancel-label="{{ template "settings-sessions-confirmation-cancel-label" }}"
       >
-        <i class="ti ti-x margin-l-8 padding-v-16"></i>
+        <i class="ti ti-x"></i>
       </button>
     </form>
     {{ end }}
@@ -87,7 +89,7 @@
 </div>
 
 <div class="padding-20 row-sep">
-  <form class="grid-area-action primary-action" method="post" novalidate>
+  <form method="post" novalidate>
     {{ $.CSRFField }}
     <button
       class="btn destructive-btn text-sm"
@@ -106,9 +108,4 @@
 </div>
 
 </div>
-</div>
-
-
-
-</main>
 {{ end }}

@@ -274,12 +274,12 @@
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
 
   "setup-totp-title": "設置驗證器",
-  "setup-totp-code-placeholder": "驗證器應用程式／裝置所顯示的6位碼",
-  "setup-totp-description": "以你的驗證器應用程式／裝置掃描QR碼",
-  "setup-totp-fallback-description": "或者你可輸入此密鑰：\n<b>{secret}</b>\n請確認已選取基於時間的驗證碼",
+  "setup-totp-code-placeholder": "6位碼",
+  "setup-totp-description": "以驗證器應用程式／裝置掃描QR碼或輸入密鑰",
+  "setup-totp-fallback-description": "{secret}",
   "setup-totp-get-google-authenticator-description": "如果你沒有驗證器應用程式／裝置，你可從 <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> 或 <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a> 下載 Google Authenticator 應用程式",
-  "setup-totp-use-google-authenticator-description": "在應用程式中選擇<b>新增帳號</b>.\n然後<b>掃描QR碼</b>",
-  "setup-totp-code-description": "輸入驗證器應用程式／裝置所顯示的6位碼",
+  "setup-totp-use-google-authenticator-description": "在應用程式中選擇<b>新增帳號</b>，然後<b>掃描QR碼</b>",
+  "setup-totp-code-description": "完成掃描後，在下方輸入6位碼",
 
   "enter-totp-title": "雙重驗證",
   "enter-totp-description": "輸入驗證器應用程式／裝置所顯示的6位碼",

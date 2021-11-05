@@ -1,58 +1,50 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<main class="content">
-	<div class="pane flex flex-col">
-	{{ template "__nav_bar.html" "/settings" }}
-	<div class="flex flex-col width-full margin-v-20">
-		<h1 class="primary-txt text-center margin-t-0 margin-b-10 text-xl font-bold">
-			{{ template "recovery-code-title" }}
-		</h1>
+<div class="pane flex flex-col row-gap-20 padding-t-12 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+{{ template "__nav_bar.html" "/settings" }}
+	<h1 class="primary-txt text-center margin-0 text-xl font-bold">
+		{{ template "recovery-code-title" }}
+	</h1>
 
-		<section class="recovery-code-list-section">
-			<p class="primary-txt text-center margin-t-0 margin-b-20 text-sm whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
-			<div class="margin-b-20 code-list-container">
-				<ol class="margin-0 padding-0 code-list">
-					{{ range $.RecoveryCodes }}
-						<li class="code-item">{{ . }}</li>
-					{{ end }}
-				</ol>
+	<p class="primary-txt text-center margin-0 text-sm whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
+	<ol class="recovery-code-list margin-0 padding-v-20 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 column-gap-20">
+		{{ range $.RecoveryCodes }}
+			<li class="font-mono whitespace-pre text-base leading-none margin-h-20 place-self-center">{{ . }}</li>
+		{{ end }}
+	</ol>
+	<code id="recovery-code-content" class="hidden">{{ template "__recovery_code.html" . }}</code>
+
+	<p class="text-sm primary-txt text-center margin-0">{{ template "recovery-code-consumption-description" }}</p>
+
+	<div class="margin-t-20 grid gap-8 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
+		<form method="post" novalidate>
+			{{ $.CSRFField }}
+			<button class="btn primary-btn w-full" type="submit" name="x_action" value="regenerate">
+				{{ template "get-new-code-button-label" }}
+			</button>
+		</form>
+		{{ if $.IsSupportedMobilePlatform }}
+			<div>
+				<button
+					class="btn primary-btn w-full"
+					type="button"
+					data-copy-button-target="#recovery-code-content"
+					data-copy-button-copy-label="{{ template "copy-button-label" }}"
+					data-copy-button-copied-label="{{ template "copied-button-label" }}">
+					{{ template "copy-button-label" }}
+				</button>
 			</div>
-			<code id="recovery-code-content" class="hidden">{{ template "__recovery_code.html" . }}</code>
-
-			<p class="text-sm primary-txt text-center margin-t-0 margin-b-20">{{ template "recovery-code-consumption-description" }}</p>
-		</section>
-
-		<section class="margin-b-20 grid gap-8 recovery-code-action-section">
-			<form method="post" novalidate>
+		{{ else }}
+			<form method="post" novalidate target="_blank">
 				{{ $.CSRFField }}
-				<button class="btn primary-btn w-full" type="submit" name="x_action" value="regenerate">
-					{{ template "get-new-code-button-label" }}
+				<button class="btn primary-btn w-full" type="submit" name="x_action" value="download" data-form-xhr="false">
+					{{ template "download-button-label" }}
 				</button>
 			</form>
-			{{ if $.IsSupportedMobilePlatform }}
-				<div>
-					<button
-						class="btn primary-btn w-full"
-						type="button"
-						data-copy-button-target="#recovery-code-content"
-						data-copy-button-copy-label="{{ template "copy-button-label" }}"
-						data-copy-button-copied-label="{{ template "copied-button-label" }}">
-						{{ template "copy-button-label" }}
-					</button>
-				</div>
-			{{ else }}
-				<form method="post" novalidate target="_blank">
-					{{ $.CSRFField }}
-					<button class="btn primary-btn w-full" type="submit" name="x_action" value="download" data-form-xhr="false">
-						{{ template "download-button-label" }}
-					</button>
-				</form>
-			{{ end }}
-		</section>
+		{{ end }}
+	</div>
 
-	</div>
-	<div class="margin-t-20">{{ template "__watermark.html" . }}</div>
-	</div>
-</main>
+	{{ template "__watermark.html" . }}
+</div>
 {{ end }}

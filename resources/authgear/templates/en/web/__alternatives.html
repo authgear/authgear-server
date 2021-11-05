@@ -1,48 +1,56 @@
 {{ define "__alternatives.html" }}
+    {{ $rendered_separator := false }}
     {{ range .AlternativeSteps }}
-        <form method="post" novalidate>
-            {{ $.CSRFField }}
-            <input type="hidden" name="x_step_kind" value="{{ .Step }}">
-            {{ range $name, $value := .Input }}
-                <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+        {{ if (or (eq .Step "setup-totp")
+                  (eq .Step "setup-oob-otp-email")
+                  (eq .Step "setup-oob-otp-sms")
+                  (eq .Step "create-password")
+                  (eq .Step "enter-totp")
+                  (eq .Step "enter-password")
+                  (eq .Step "enter-oob-otp-authn-email")
+                  (eq .Step "enter-oob-otp-authn-sms")) }}
+            {{ if not $rendered_separator }}
+                {{ $rendered_separator = true }}
+                <div class="alternative-separator flex flex-row items-center">
+                    <span class="primary-txt margin-h-6 text-sm">{{ template "or-label" }}</span>
+                </div>
             {{ end }}
-            <input type="hidden" name="x_action" value="choose_step"/>
-            <div class="text-sm margin-b-20">
-            {{ if eq .Step "enter-recovery-code" }}
-            {{ if ($.Translations.HasKey "customer-support-link") }}
-                {{ template "enter-recovery-code-instead-with-customer-support-v1" (dict "customerSupportLink" ($.Translations.RenderText "customer-support-link" nil)) }}
-            {{ else }}
-                {{ template "enter-recovery-code-instead-v1" }}
-            {{ end }}
-            {{ else }}
-            <button class="btn secondary-btn" type="submit">
-                {{ if eq .Step "setup-totp" }}
-                    {{ template "setup-totp-instead" .Data }}
+            <form method="post" novalidate>
+                {{ $.CSRFField }}
+                <input type="hidden" name="x_step_kind" value="{{ .Step }}">
+                {{ range $name, $value := .Input }}
+                    <input type="hidden" name="{{ $name }}" value="{{ $value }}">
                 {{ end }}
-                {{ if eq .Step "setup-oob-otp-email" }}
-                    {{ template "setup-oob-otp-email-instead" .Data }}
-                {{ end }}
-                {{ if eq .Step "setup-oob-otp-sms" }}
-                    {{ template "setup-oob-otp-sms-instead" .Data }}
-                {{ end }}
-                {{ if eq .Step "create-password" }}
-                    {{ template "setup-password-instead" .Data }}
-                {{ end }}
-                {{ if eq .Step "enter-totp" }}
-                    {{ template "enter-totp-instead" .Data }}
-                {{ end }}
-                {{ if eq .Step "enter-password" }}
-                    {{ template "enter-password-instead" .Data }}
-                {{ end }}
-                {{ if eq .Step "enter-oob-otp-authn-email" }}
-                    {{ template "enter-oob-otp-email-instead" .Data }}
-                {{ end }}
-                {{ if eq .Step "enter-oob-otp-authn-sms" }}
-                    {{ template "enter-oob-otp-sms-instead" .Data }}
-                {{ end }}
-            </button>
-            {{ end }}
-            </div>
-        </form>
+                <input type="hidden" name="x_action" value="choose_step"/>
+                <div class="text-sm">
+                <button class="btn secondary-btn" type="submit">
+                    {{ if eq .Step "setup-totp" }}
+                        {{ template "setup-totp-instead" .Data }}
+                    {{ end }}
+                    {{ if eq .Step "setup-oob-otp-email" }}
+                        {{ template "setup-oob-otp-email-instead" .Data }}
+                    {{ end }}
+                    {{ if eq .Step "setup-oob-otp-sms" }}
+                        {{ template "setup-oob-otp-sms-instead" .Data }}
+                    {{ end }}
+                    {{ if eq .Step "create-password" }}
+                        {{ template "setup-password-instead" .Data }}
+                    {{ end }}
+                    {{ if eq .Step "enter-totp" }}
+                        {{ template "enter-totp-instead" .Data }}
+                    {{ end }}
+                    {{ if eq .Step "enter-password" }}
+                        {{ template "enter-password-instead" .Data }}
+                    {{ end }}
+                    {{ if eq .Step "enter-oob-otp-authn-email" }}
+                        {{ template "enter-oob-otp-email-instead" .Data }}
+                    {{ end }}
+                    {{ if eq .Step "enter-oob-otp-authn-sms" }}
+                        {{ template "enter-oob-otp-sms-instead" .Data }}
+                    {{ end }}
+                </button>
+                </div>
+            </form>
+        {{ end }}
     {{ end }}
 {{ end }}

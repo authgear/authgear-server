@@ -1,22 +1,19 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="content">
-<div class="pane flex flex-col">
+<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
-<div class="flex flex-col width-full margin-v-20">
+<h1 class="text-center margin-0 text-xl font-bold">{{ template "enter-totp-title" }}</h1>
 
-<h1 class="text-center margin-t-20 margin-b-10 text-xl font-bold">{{ template "enter-totp-title" }}</h1>
+<p class="text-sm break-words primary-txt text-center margin-0">{{ template "enter-totp-description" }}</p>
 
-<p class="text-sm break-words primary-txt text-center margin-t-0 margin-b-20">{{ template "enter-totp-description" }}</p>
-
-<form class="flex flex-col" method="post" novalidate>
+<form id="main-form" class="flex flex-col row-gap-20" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input
 	tabindex="0"
 	autofocus
-	class="input text-input primary-txt margin-b-20"
+	class="input text-input primary-txt"
 	type="text"
 	inputmode="numeric"
 	pattern="[0-9]*"
@@ -27,22 +24,20 @@
 >
 
 {{ if $.CanRequestDeviceToken }}
-<div class="flex flex-row items-center self-start margin-b-20">
+<div class="flex flex-row items-center self-start">
 <input class="device-token-input" id="device-token" type="checkbox" name="x_device_token" value="true">
 <label class="padding-4 text-sm primary-txt" for="device-token">{{ template "create-device-token-label" }}</label>
 </div>
 {{ end }}
 
-<button class="btn primary-btn margin-b-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
-
 </form>
 
-<div>
-{{ template "__alternatives.html" . }}
-</div>
+{{ template "__use_recovery_code.html" . }}
 
-</div>
-<div class="margin-t-20">{{ template "__watermark.html" . }}</div>
-</div>
+<button form="main-form" class="btn primary-btn margin-t-20" type="submit" name="x_action" value="">{{ template "next-button-label" }}</button>
+
+{{ template "__alternatives.html" . }}
+
+{{ template "__watermark.html" . }}
 </div>
 {{ end }}
