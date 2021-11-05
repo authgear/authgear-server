@@ -106,11 +106,6 @@ var _ = Schema.Add("StandardAttributesAccessControl", `
 			"portal_ui": "readwrite"
 		},
 		{
-			"end_user": "hidden",
-			"bearer": "readwrite",
-			"portal_ui": "readwrite"
-		},
-		{
 			"end_user": "readonly",
 			"bearer": "readonly",
 			"portal_ui": "readonly"
@@ -121,13 +116,8 @@ var _ = Schema.Add("StandardAttributesAccessControl", `
 			"portal_ui": "readwrite"
 		},
 		{
-			"end_user": "readonly",
-			"bearer": "readwrite",
-			"portal_ui": "readwrite"
-		},
-		{
 			"end_user": "readwrite",
-			"bearer": "readwrite",
+			"bearer": "readonly",
 			"portal_ui": "readwrite"
 		}
 	]
@@ -151,13 +141,13 @@ type StandardAttributesConfig struct {
 }
 
 func (c *StandardAttributesConfig) SetDefaults() {
-	readwrite := &StandardAttributesAccessControl{
+	defaultReadwrite := &StandardAttributesAccessControl{
 		EndUser:  AccessControlLevelStringReadwrite,
-		Bearer:   AccessControlLevelStringReadwrite,
+		Bearer:   AccessControlLevelStringReadonly,
 		PortalUI: AccessControlLevelStringReadwrite,
 	}
 
-	hidden := &StandardAttributesAccessControl{
+	defaultHidden := &StandardAttributesAccessControl{
 		EndUser:  AccessControlLevelStringHidden,
 		Bearer:   AccessControlLevelStringHidden,
 		PortalUI: AccessControlLevelStringHidden,
@@ -167,55 +157,55 @@ func (c *StandardAttributesConfig) SetDefaults() {
 		c.AccessControl = []*StandardAttributesAccessControlConfig{
 			{
 				Pointer:       "/family_name",
-				AccessControl: readwrite,
+				AccessControl: defaultReadwrite,
 			},
 			{
 				Pointer:       "/given_name",
-				AccessControl: readwrite,
+				AccessControl: defaultReadwrite,
 			},
 			{
 				Pointer:       "/picture",
-				AccessControl: readwrite,
+				AccessControl: defaultReadwrite,
 			},
 			{
 				Pointer:       "/gender",
-				AccessControl: readwrite,
+				AccessControl: defaultReadwrite,
 			},
 			{
 				Pointer:       "/birthdate",
-				AccessControl: readwrite,
+				AccessControl: defaultReadwrite,
 			},
 			{
 				Pointer:       "/zoneinfo",
-				AccessControl: readwrite,
+				AccessControl: defaultReadwrite,
 			},
 			{
 				Pointer:       "/locale",
-				AccessControl: readwrite,
+				AccessControl: defaultReadwrite,
 			},
 			{
 				Pointer:       "/name",
-				AccessControl: hidden,
+				AccessControl: defaultHidden,
 			},
 			{
 				Pointer:       "/nickname",
-				AccessControl: hidden,
+				AccessControl: defaultHidden,
 			},
 			{
 				Pointer:       "/middle_name",
-				AccessControl: hidden,
+				AccessControl: defaultHidden,
 			},
 			{
 				Pointer:       "/profile",
-				AccessControl: hidden,
+				AccessControl: defaultHidden,
 			},
 			{
 				Pointer:       "/website",
-				AccessControl: hidden,
+				AccessControl: defaultHidden,
 			},
 			{
 				Pointer:       "/address",
-				AccessControl: hidden,
+				AccessControl: defaultHidden,
 			},
 		}
 	}

@@ -344,37 +344,37 @@ user_profile:
       - pointer: /family_name
         access_control:
           end_user: readwrite
-          bearer: readwrite
+          bearer: readonly
           portal_ui: readwrite
       - pointer: /given_name
         access_control:
           end_user: readwrite
-          bearer: readwrite
+          bearer: readonly
           portal_ui: readwrite
       - pointer: /picture
         access_control:
           end_user: readwrite
-          bearer: readwrite
+          bearer: readonly
           portal_ui: readwrite
       - pointer: /gender
         access_control:
           end_user: readwrite
-          bearer: readwrite
+          bearer: readonly
           portal_ui: readwrite
       - pointer: /birthdate
         access_control:
           end_user: readwrite
-          bearer: readwrite
+          bearer: readonly
           portal_ui: readwrite
       - pointer: /zoneinfo
         access_control:
           end_user: readwrite
-          bearer: readwrite
+          bearer: readonly
           portal_ui: readwrite
       - pointer: /locale
         access_control:
           end_user: readwrite
-          bearer: readwrite
+          bearer: readonly
           portal_ui: readwrite
       - pointer: /name
         access_control:
