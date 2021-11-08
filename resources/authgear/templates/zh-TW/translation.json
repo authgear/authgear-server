@@ -102,6 +102,7 @@
   "oauth-branding-wechat": "使用 WeChat 帳戶登入",
 
   "sso-login-id-separator-both-present": "或",
+  "or-label": "或",
 
   "phone-number-placeholder": "電話號碼",
   "login-id-placeholder": "{variant, select, email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",
