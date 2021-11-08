@@ -324,21 +324,39 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          store,
+		Identities:     serviceService,
+		Authenticators: service4,
+		Verification:   verificationService,
 	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
+	userLoader := loader.NewUserLoader(queries)
+	identityLoader := loader.NewIdentityLoader(serviceService)
+	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
+	readHandle := appProvider.AuditReadDatabase
+	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
+	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(contextContext, readHandle)
+	readStore := &audit.ReadStore{
+		SQLBuilder:  auditdbSQLBuilderApp,
+		SQLExecutor: readSQLExecutor,
 	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
+	query := &audit.Query{
+		Database: readHandle,
+		Store:    readStore,
+	}
+	auditLogLoader := loader.NewAuditLogLoader(query)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
+	queue := appProvider.TaskQueue
+	elasticsearchService := &elasticsearch.Service{
+		AppID:     appID,
+		Client:    client,
+		Users:     store,
+		OAuth:     oauthStore,
+		LoginID:   loginidStore,
+		TaskQueue: queue,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
@@ -366,7 +384,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
@@ -391,8 +408,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
 	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
@@ -422,6 +437,26 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+	}
+	userProvider := &user.Provider{
+		Commands: commands,
+		Queries:  queries,
+	}
+	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	mfaService := &mfa.Service{
+		DeviceTokens:  storeDeviceTokenRedis,
+		RecoveryCodes: storeRecoveryCodePQ,
+		Clock:         clockClock,
+		Config:        authenticationConfig,
+		RateLimiter:   limiter,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -466,7 +501,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -474,52 +510,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IdentityConfig:    identityConfig,
 		UserProfileConfig: userProfileConfig,
 	}
+	userFacade := &facade.UserFacade{
+		UserProvider: userProvider,
+		Coordinator:  coordinator,
+	}
+	interactionLogger := interaction.NewLogger(factory)
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
 	}
 	authenticatorFacade := facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          store,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
-	userLoader := loader.NewUserLoader(queries)
-	identityLoader := loader.NewIdentityLoader(serviceService)
-	authenticatorLoader := loader.NewAuthenticatorLoader(service4)
-	readHandle := appProvider.AuditReadDatabase
-	readSQLExecutor := auditdb.NewReadSQLExecutor(contextContext, readHandle)
-	readStore := &audit.ReadStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: readSQLExecutor,
-	}
-	query := &audit.Query{
-		Database: readHandle,
-		Store:    readStore,
-	}
-	auditLogLoader := loader.NewAuditLogLoader(query)
-	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
-	elasticsearchService := &elasticsearch.Service{
-		AppID:     appID,
-		Client:    client,
-		Users:     store,
-		OAuth:     oauthStore,
-		LoginID:   loginidStore,
-		TaskQueue: queue,
-	}
-	userProvider := &user.Provider{
-		Commands: commands,
-		Queries:  queries,
-	}
-	userFacade := &facade.UserFacade{
-		UserProvider: userProvider,
-		Coordinator:  coordinator,
-	}
-	interactionLogger := interaction.NewLogger(factory)
 	webEndpoints := &WebEndpoints{}
 	messageSender := &otp.MessageSender{
 		Translation: translationService,
