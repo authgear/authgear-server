@@ -33,7 +33,7 @@ func NewHookHandle(ctx context.Context, pool *Pool, opts ConnectionOptions, lf *
 func (h *HookHandle) conn() (sqlx.ExtContext, error) {
 	tx := h.tx
 	if tx == nil {
-		panic("db: transaction not started")
+		panic("hook-handle: transaction not started")
 	}
 	return tx, nil
 }
@@ -44,18 +44,28 @@ func (h *HookHandle) UseHook(hook TransactionHook) {
 
 // WithTx commits if do finishes without error and rolls back otherwise.
 func (h *HookHandle) WithTx(do func() error) (err error) {
-	if err = h.beginTx(); err != nil {
+	tx, err := h.beginTx()
+	if err != nil {
 		return
 	}
 
+	// The assignment of h.tx can only be happen inside this method.
+	// An invarant that must be held is that h.tx must be nil when this method terminates.
+	// HookHandle can be used in multiple places.
+	// Sometimes it is constructed per every request, and sometimes it is used throughout the entire lifetime of the process.
+	// It is very important to make sure h.tx is nil after every call of WithTx or ReadOnly.
+	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
+	h.tx = tx
 	defer func() {
+		h.tx = nil
+
 		if r := recover(); r != nil {
-			_ = h.rollbackTx()
+			_ = rollbackTx(tx)
 			panic(r)
 		} else if err != nil {
-			_ = h.rollbackTx()
+			_ = rollbackTx(tx)
 		} else {
-			err = h.commitTx()
+			err = commitTx(tx, h.hooks)
 		}
 	}()
 
@@ -65,18 +75,28 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 
 // ReadOnly runs do in a transaction and rolls back always.
 func (h *HookHandle) ReadOnly(do func() error) (err error) {
-	if err = h.beginTx(); err != nil {
+	tx, err := h.beginTx()
+	if err != nil {
 		return
 	}
 
+	// The assignment of h.tx can only be happen inside this method.
+	// An invarant that must be held is that h.tx must be nil when this method terminates.
+	// HookHandle can be used in multiple places.
+	// Sometimes it is constructed per every request, and sometimes it is used throughout the entire lifetime of the process.
+	// It is very important to make sure h.tx is nil after every call of WithTx or ReadOnly.
+	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
+	h.tx = tx
 	defer func() {
+		h.tx = nil
+
 		if r := recover(); r != nil {
-			_ = h.rollbackTx()
+			_ = rollbackTx(tx)
 			panic(r)
 		} else if err != nil {
-			_ = h.rollbackTx()
+			_ = rollbackTx(tx)
 		} else {
-			err = h.rollbackTx()
+			err = commitTx(tx, h.hooks)
 		}
 	}()
 
@@ -84,66 +104,51 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	return
 }
 
-func (h *HookHandle) beginTx() error {
-	if h.tx != nil {
-		panic("db: a transaction has already begun")
-	}
-
+func (h *HookHandle) beginTx() (*sqlx.Tx, error) {
 	db, err := h.openDB()
 	if err != nil {
-		return err
+		return nil, err
 	}
+
 	tx, err := db.BeginTxx(h.Context, &sql.TxOptions{
 		Isolation: sql.LevelRepeatableRead,
 	})
 	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
+		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
 
-	h.tx = tx
-
-	return nil
+	return tx, nil
 }
 
-func (h *HookHandle) commitTx() error {
-	if h.tx == nil {
-		panic("db: a transaction has not begun")
-	}
-
-	for _, hook := range h.hooks {
+func commitTx(tx *sqlx.Tx, hooks []TransactionHook) error {
+	for _, hook := range hooks {
 		err := hook.WillCommitTx()
 		if err != nil {
-			if rbErr := h.tx.Rollback(); rbErr != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
 				err = errorutil.WithSecondaryError(err, rbErr)
 			}
 			return err
 		}
 	}
 
-	err := h.tx.Commit()
+	err := tx.Commit()
 	if err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
+		return fmt.Errorf("hook-handle: failed to commit transaction: %w", err)
 	}
-	h.tx = nil
 
-	for _, hook := range h.hooks {
+	for _, hook := range hooks {
 		hook.DidCommitTx()
 	}
 
 	return nil
 }
 
-func (h *HookHandle) rollbackTx() error {
-	if h.tx == nil {
-		panic("db: a transaction has not begun")
-	}
-
-	err := h.tx.Rollback()
+func rollbackTx(tx *sqlx.Tx) error {
+	err := tx.Rollback()
 	if err != nil {
-		return fmt.Errorf("failed to rollback transaction: %w", err)
+		return fmt.Errorf("hook-handle: failed to rollback transaction: %w", err)
 	}
 
-	h.tx = nil
 	return nil
 }
 
@@ -157,7 +162,7 @@ func (h *HookHandle) openDB() (*sqlx.DB, error) {
 
 	db, err := h.Pool.Open(h.ConnectionOptions)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
+		return nil, fmt.Errorf("hook-handle: failed to connect to database: %w", err)
 	}
 
 	return db, nil
