@@ -446,6 +446,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
@@ -465,7 +472,8 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -555,13 +563,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1045,6 +1046,13 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
@@ -1064,7 +1072,8 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -1154,13 +1163,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -1592,6 +1594,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  appredisHandle,
@@ -1620,7 +1629,8 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -1717,13 +1727,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -2024,50 +2027,49 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          store,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
 	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
+	oAuthConfig := appConfig.OAuth
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
@@ -2104,89 +2106,6 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		Store:    writeStore,
 	}
 	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
-	}
-	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	cookieDef := session.NewSessionCookieDef(sessionConfig)
-	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
-		Config:    sessionConfig,
-		Cookies:   cookieManager,
-		CookieDef: cookieDef,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	oAuthConfig := appConfig.OAuth
-	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
-	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       rawQueries,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          store,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
@@ -2433,167 +2352,11 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
-	}
-	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	cookieDef := session.NewSessionCookieDef(sessionConfig)
-	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
-		Config:    sessionConfig,
-		Cookies:   cookieManager,
-		CookieDef: cookieDef,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	oAuthConfig := appConfig.OAuth
-	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
-	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       rawQueries,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
 		Store:          store,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
+		Identities:     serviceService,
+		Authenticators: service3,
 		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -2810,167 +2573,11 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
-	}
-	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	cookieDef := session.NewSessionCookieDef(sessionConfig)
-	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
-		Config:    sessionConfig,
-		Cookies:   cookieManager,
-		CookieDef: cookieDef,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	oAuthConfig := appConfig.OAuth
-	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
-	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       rawQueries,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
 		Store:          store,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
+		Identities:     serviceService,
+		Authenticators: service3,
 		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -3191,50 +2798,48 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          store,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
 	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
+	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
+	idpsessionStoreRedis := &idpsession.StoreRedis{
+		Redis:  appredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: storeRedisLogger,
+	}
+	sessionConfig := appConfig.Session
+	httpConfig := appConfig.HTTP
+	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
+	cookieDef := session.NewSessionCookieDef(sessionConfig)
+	idpsessionManager := &idpsession.Manager{
+		Store:     idpsessionStoreRedis,
+		Clock:     clockClock,
+		Config:    sessionConfig,
+		Cookies:   cookieManager,
+		CookieDef: cookieDef,
+	}
+	redisLogger := redis.NewLogger(factory)
+	redisStore := &redis.Store{
+		Context:     contextContext,
+		Redis:       appredisHandle,
+		AppID:       appID,
+		Logger:      redisLogger,
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
+	sessionManager := &oauth2.SessionManager{
+		Store:  redisStore,
+		Clock:  clockClock,
+		Config: oAuthConfig,
 	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	resolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: resolver,
-	}
-	httpConfig := appConfig.HTTP
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
 	eventLogger := event.NewLogger(factory)
+	localizationConfig := appConfig.Localization
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
 		SQLBuilder:  sqlBuilder,
@@ -3271,88 +2876,6 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		Store:    writeStore,
 	}
 	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  store,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
-	}
-	authorizationStore := &pq.AuthorizationStore{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
-		Redis:  appredisHandle,
-		AppID:  appID,
-		Clock:  clockClock,
-		Logger: storeRedisLogger,
-	}
-	sessionConfig := appConfig.Session
-	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	cookieDef := session.NewSessionCookieDef(sessionConfig)
-	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
-		Clock:     clockClock,
-		Config:    sessionConfig,
-		Cookies:   cookieManager,
-		CookieDef: cookieDef,
-	}
-	redisLogger := redis.NewLogger(factory)
-	redisStore := &redis.Store{
-		Context:     contextContext,
-		Redis:       appredisHandle,
-		AppID:       appID,
-		Logger:      redisLogger,
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-		Clock:       clockClock,
-	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  redisStore,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
-	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       rawQueries,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          store,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
-	}
 	manager2 := &session.Manager{
 		Users:               queries,
 		IDPSessions:         idpsessionManager,
@@ -3720,6 +3243,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  appredisHandle,
@@ -3748,7 +3278,8 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -3845,13 +3376,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4290,6 +3814,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4332,7 +3863,8 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -4429,13 +3961,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -4894,6 +4419,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4936,7 +4468,8 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -5033,13 +4566,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -5498,6 +5024,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -5540,7 +5073,8 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -5637,13 +5171,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -6089,6 +5616,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -6131,7 +5665,8 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -6228,13 +5763,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -6681,6 +6209,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -6723,7 +6258,8 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -6820,13 +6356,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -7265,6 +6794,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -7307,7 +6843,8 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -7404,13 +6941,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -7852,6 +7382,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -7894,7 +7431,8 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -7991,13 +7529,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -8442,6 +7973,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -8484,7 +8022,8 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -8581,13 +8120,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -9029,6 +8561,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -9071,7 +8610,8 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -9168,13 +8708,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -9615,6 +9148,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -9657,7 +9197,8 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -9754,13 +9295,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -10202,6 +9736,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -10244,7 +9785,8 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -10341,13 +9883,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -10790,6 +10325,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -10832,7 +10374,8 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -10929,13 +10472,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -11376,6 +10912,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -11418,7 +10961,8 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -11515,13 +11059,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -11962,6 +11499,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -12004,7 +11548,8 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -12101,13 +11646,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -12550,6 +12088,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -12592,7 +12137,8 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -12689,13 +12235,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -13136,6 +12675,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -13178,7 +12724,8 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -13275,13 +12822,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -13722,6 +13262,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -13764,7 +13311,8 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -13861,13 +13409,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -14311,6 +13852,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -14353,7 +13901,8 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -14450,13 +13999,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -14897,6 +14439,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -14939,7 +14488,8 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -15036,13 +14586,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -15488,6 +15031,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -15530,7 +15080,8 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -15627,13 +15178,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -16074,6 +15618,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -16116,7 +15667,8 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -16213,13 +15765,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -16661,6 +16206,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -16703,7 +16255,8 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -16800,13 +16353,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -17247,6 +16793,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -17289,7 +16842,8 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -17386,13 +16940,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -17855,6 +17402,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -17897,7 +17451,8 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -17994,13 +17549,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -18451,6 +17999,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -18493,7 +18048,8 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -18590,13 +18146,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -19053,6 +18602,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -19095,7 +18651,8 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -19192,13 +18749,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -19641,6 +19191,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -19683,7 +19240,8 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -19780,13 +19338,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -20228,6 +19779,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -20270,7 +19828,8 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -20367,13 +19926,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -20824,6 +20376,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -20866,7 +20425,8 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -20963,13 +20523,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -21411,6 +20964,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -21453,7 +21013,8 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -21550,13 +21111,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -21998,6 +21552,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -22040,7 +21601,8 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -22137,13 +21699,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -22586,6 +22141,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -22628,7 +22190,8 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -22725,13 +22288,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -23179,6 +22735,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -23221,7 +22784,8 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -23318,13 +22882,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -23766,6 +23323,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -23808,7 +23372,8 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -23905,13 +23470,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -24353,6 +23911,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -24395,7 +23960,8 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -24492,13 +24058,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -24940,6 +24499,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -24982,7 +24548,8 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -25079,13 +24646,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -25527,6 +25087,13 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -25569,7 +25136,8 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -25666,13 +25234,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -26113,6 +25674,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -26155,7 +25723,8 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -26252,13 +25821,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -26719,6 +26281,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -26761,7 +26330,8 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -26858,13 +26428,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -27305,6 +26868,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -27347,7 +26917,8 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		MFA:               mfaService,
 		UserCommands:      commands,
-		UserQueries:       rawQueries,
+		UserQueries:       queries,
+		Events:            eventService,
 		PasswordHistory:   historyStore,
 		OAuth:             authorizationStore,
 		IDPSessions:       idpsessionManager,
@@ -27444,13 +27015,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Redis: appredisHandle,
 		AppID: appID,
 		Clock: clockClock,
-	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
-		Verification:   verificationService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -28034,141 +27598,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clockClock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: templateResolver,
-	}
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, appdbHandle, clockClock, localizationConfig, storeImpl, sink, auditSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clockClock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
-	}
-	idpsessionManager := &idpsession.Manager{
-		Store:     storeRedis,
-		Clock:     clockClock,
-		Config:    sessionConfig,
-		Cookies:   cookieManager,
-		CookieDef: cookieDef,
-	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clockClock,
-		Config: oAuthConfig,
-	}
-	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       rawQueries,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
 		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
+		Identities:     serviceService,
+		Authenticators: service3,
 		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{

@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -55,6 +58,7 @@ type MFAService interface {
 
 type UserQueries interface {
 	GetRaw(userID string) (*user.User, error)
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type UserCommands interface {
@@ -75,6 +79,10 @@ type SessionManager interface {
 	List(userID string) ([]session.Session, error)
 }
 
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
+
 type IDPSessionManager SessionManager
 type OAuthSessionManager SessionManager
 
@@ -93,6 +101,7 @@ type Coordinator struct {
 	MFA               MFAService
 	UserCommands      UserCommands
 	UserQueries       UserQueries
+	Events            EventService
 	PasswordHistory   PasswordHistoryStore
 	OAuth             OAuthService
 	IDPSessions       IDPSessionManager
@@ -387,6 +396,21 @@ func (c *Coordinator) UserUpdateStandardAttributes(role accesscontrol.Role, user
 
 	// In case email/phone_number/preferred_username was removed, we add them back.
 	err = c.populateIdentityAwareStandardAttributes(userID)
+	if err != nil {
+		return err
+	}
+
+	user, err := c.UserQueries.Get(userID, config.RolePortalUI)
+	if err != nil {
+		return err
+	}
+
+	eventPayload := &nonblocking.UserProfileUpdatedEventPayload{
+		User:     *user,
+		AdminAPI: role == config.RolePortalUI,
+	}
+
+	err = c.Events.DispatchEvent(eventPayload)
 	if err != nil {
 		return err
 	}

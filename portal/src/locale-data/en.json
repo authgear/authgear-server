@@ -772,6 +772,7 @@
   "AuditLogActivityType.USER_ANONYMOUS_PROMOTED": "Anonymous user promoted",
   "AuditLogActivityType.USER_AUTHENTICATED": "Logged in",
   "AuditLogActivityType.USER_CREATED": "Signed up",
+  "AuditLogActivityType.USER_PROFILE_UPDATED": "Profile updated",
   "AuditLogActivityType.USER_SIGNED_OUT": "Signed out",
   "AuditLogActivityType.EMAIL_SENT": "Email sent",
   "AuditLogActivityType.SMS_SENT": "SMS sent",
