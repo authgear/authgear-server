@@ -81,6 +81,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.EventService), new(*event.Service)),
 		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 		wire.Bind(new(welcomemessage.EventService), new(*event.Service)),
+		wire.Bind(new(facade.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(
@@ -125,6 +126,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
 
 		wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
+		wire.Bind(new(user.AuthenticatorService), new(*authenticatorservice.Service)),
 	),
 
 	wire.NewSet(
@@ -157,6 +159,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(identityservice.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
+		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
 	),
 
 	wire.NewSet(
@@ -165,8 +168,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(interaction.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.AuthenticatorService), new(facade.AuthenticatorFacade)),
-		wire.Bind(new(user.IdentityService), new(facade.IdentityFacade)),
-		wire.Bind(new(user.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.IdentityService), new(facade.IdentityFacade)),
 	),
 
@@ -175,7 +176,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
-		wire.Bind(new(facade.UserQueries), new(*user.RawQueries)),
+		wire.Bind(new(facade.UserQueries), new(*user.Queries)),
 		wire.Bind(new(facade.UserCommands), new(*user.Commands)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),

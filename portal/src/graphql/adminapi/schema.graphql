@@ -109,6 +109,9 @@ enum AuditLogActivityType {
   USER_CREATED
 
   """"""
+  USER_PROFILE_UPDATED
+
+  """"""
   USER_SIGNED_OUT
 }
 

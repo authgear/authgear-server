@@ -9,7 +9,6 @@ package resolver
 import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
-	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -19,17 +18,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
-	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/lib/event"
-	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
-	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -40,13 +33,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/lib/translation"
-	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/resolver/handler"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/rand"
-	"github.com/authgear/authgear-server/pkg/util/template"
 	"net/http"
 )
 
@@ -343,141 +333,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
-	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clock,
-	}
-	storeRecoveryCodePQ := &mfa.StoreRecoveryCodePQ{
-		SQLBuilder:  sqlBuilderApp,
-		SQLExecutor: sqlExecutor,
-	}
-	mfaService := &mfa.Service{
-		DeviceTokens:  storeDeviceTokenRedis,
-		RecoveryCodes: storeRecoveryCodePQ,
-		Clock:         clock,
-		Config:        authenticationConfig,
-		RateLimiter:   limiter,
-	}
-	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
-	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
-	templateResolver := &template.Resolver{
-		Resources:             manager,
-		DefaultLanguageTag:    defaultLanguageTag,
-		SupportedLanguageTags: supportedLanguageTags,
-	}
-	engine := &template.Engine{
-		Resolver: templateResolver,
-	}
-	localizationConfig := appConfig.Localization
-	staticAssetURLPrefix := environmentConfig.StaticAssetURLPrefix
-	staticAssetResolver := &web.StaticAssetResolver{
-		Context:            contextContext,
-		Config:             httpConfig,
-		Localization:       localizationConfig,
-		StaticAssetsPrefix: staticAssetURLPrefix,
-		Resources:          manager,
-	}
-	translationService := &translation.Service{
-		Context:        contextContext,
-		TemplateEngine: engine,
-		StaticAssets:   staticAssetResolver,
-	}
-	welcomeMessageConfig := appConfig.WelcomeMessage
-	queue := appProvider.TaskQueue
-	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := &event.StoreImpl{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	hookLogger := hook.NewLogger(factory)
-	hookConfig := appConfig.Hook
-	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
-	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
-	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
-	}
-	sink := &hook.Sink{
-		Logger:    hookLogger,
-		Deliverer: deliverer,
-	}
-	auditLogger := audit.NewLogger(factory)
-	writeHandle := appProvider.AuditWriteDatabase
-	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
-	writeStore := &audit.WriteStore{
-		SQLBuilder:  auditdbSQLBuilderApp,
-		SQLExecutor: writeSQLExecutor,
-	}
-	auditSink := &audit.Sink{
-		Logger:   auditLogger,
-		Database: writeHandle,
-		Store:    writeStore,
-	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, appdbHandle, clock, localizationConfig, storeImpl, sink, auditSink)
-	welcomemessageProvider := &welcomemessage.Provider{
-		Translation:          translationService,
-		RateLimiter:          limiter,
-		WelcomeMessageConfig: welcomeMessageConfig,
-		TaskQueue:            queue,
-		Events:               eventService,
-	}
-	rawCommands := &user.RawCommands{
-		Store:                  userStore,
-		Clock:                  clock,
-		WelcomeMessageProvider: welcomemessageProvider,
-	}
-	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
-	}
-	idpsessionManager := &idpsession.Manager{
-		Store:     storeRedis,
-		Clock:     clock,
-		Config:    sessionConfig,
-		Cookies:   cookieManager,
-		CookieDef: cookieDef,
-	}
-	sessionManager := &oauth2.SessionManager{
-		Store:  store,
-		Clock:  clock,
-		Config: oAuthConfig,
-	}
-	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       rawQueries,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
-	}
-	identityFacade := facade.IdentityFacade{
-		Coordinator: coordinator,
-	}
-	authenticatorFacade := facade.AuthenticatorFacade{
-		Coordinator: coordinator,
-	}
 	queries := &user.Queries{
 		RawQueries:     rawQueries,
 		Store:          userStore,
-		Identities:     identityFacade,
-		Authenticators: authenticatorFacade,
+		Identities:     serviceService,
+		Authenticators: service3,
 		Verification:   verificationService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
