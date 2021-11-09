@@ -262,5 +262,21 @@ func TestT(t *testing.T) {
 				"given_name": "Jane Doe",
 			}), ShouldBeNil)
 		})
+
+		Convey("WithDerivedAttributesRemoved", func() {
+			So(T{}.WithDerivedAttributesRemoved(), ShouldResemble, T{})
+
+			So(T{
+				"name": "John Doe",
+			}.WithDerivedAttributesRemoved(), ShouldResemble, T{
+				"name": "John Doe",
+			})
+
+			So(T{
+				"email_verified":        true,
+				"phone_number_verified": true,
+				"updated_at":            1,
+			}.WithDerivedAttributesRemoved(), ShouldResemble, T{})
+		})
 	})
 }
