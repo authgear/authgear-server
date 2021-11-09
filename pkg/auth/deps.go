@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -114,6 +115,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SettingsVerificationService), new(*verification.Service)),
 	wire.Bind(new(handlerwebapp.SettingsSessionManager), new(*session.Manager)),
 	wire.Bind(new(handlerwebapp.SettingsProfileEditUserService), new(*facade.UserFacade)),
+	wire.Bind(new(handlerwebapp.SettingsProfileEditStdAttrsService), new(*featurestdattrs.Service)),
 	wire.Bind(new(handlerwebapp.EnterLoginIDService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*session.Manager)),

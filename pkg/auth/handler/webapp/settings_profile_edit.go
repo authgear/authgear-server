@@ -29,6 +29,9 @@ func ConfigureSettingsProfileEditRoute(route httproute.Route) httproute.Route {
 
 type SettingsProfileEditUserService interface {
 	GetRaw(id string) (*user.User, error)
+}
+
+type SettingsProfileEditStdAttrsService interface {
 	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
@@ -38,6 +41,7 @@ type SettingsProfileEditHandler struct {
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Renderer                 Renderer
 	Users                    SettingsProfileEditUserService
+	StdAttrs                 SettingsProfileEditStdAttrsService
 	ErrorCookie              *webapp.ErrorCookie
 }
 
@@ -107,7 +111,7 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return writeErr(err)
 		}
 
-		err = h.Users.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
+		err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
 		if err != nil {
 			return writeErr(err)
 		}

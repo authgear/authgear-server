@@ -7,7 +7,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
@@ -22,24 +21,6 @@ type Commands struct {
 	Events            EventService
 	Verification      VerificationService
 	UserProfileConfig *config.UserProfileConfig
-}
-
-func (c *Commands) PopulateStandardAttributes(userID string, iden *identity.Info) error {
-	user, err := c.RawQueries.GetRaw(userID)
-	if err != nil {
-		return err
-	}
-
-	stdAttrsFromIden := stdattrs.T(iden.Claims).NonIdentityAware()
-	originalStdAttrs := stdattrs.T(user.StandardAttributes)
-	stdAttrs := originalStdAttrs.MergedWith(stdAttrsFromIden)
-
-	err = c.RawCommands.UpdateStandardAttributesUnsafe(userID, stdAttrs.ToClaims())
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (c *Commands) AfterCreate(

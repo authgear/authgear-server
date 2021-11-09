@@ -29,7 +29,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -37,6 +37,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -458,6 +459,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config:        authenticationConfig,
 		RateLimiter:   limiter,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -496,19 +504,17 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service4,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service4,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,
@@ -533,7 +539,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPMessageSender: messageSender,
 	}
 	oAuthClientCredentials := deps.ProvideOAuthClientCredentials(secretConfig)
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -634,6 +640,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -657,6 +664,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	facadeUserFacade := &facade2.UserFacade{
 		UserSearchService: elasticsearchService,
 		Users:             userFacade,
+		StdAttrsService:   stdattrsService,
 		Interaction:       serviceInteractionService,
 	}
 	auditLogFeatureConfig := featureConfig.AuditLog
