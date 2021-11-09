@@ -1,22 +1,12 @@
 package facade
 
 import (
-	"fmt"
-	"sort"
-
-	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type IdentityService interface {
@@ -56,14 +46,8 @@ type MFAService interface {
 	InvalidateAllRecoveryCode(userID string) error
 }
 
-type UserQueries interface {
-	GetRaw(userID string) (*user.User, error)
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
-}
-
 type UserCommands interface {
 	Delete(userID string) error
-	UpdateStandardAttributesUnsafe(userID string, stdAttrs map[string]interface{}) error
 }
 
 type PasswordHistoryStore interface {
@@ -79,8 +63,8 @@ type SessionManager interface {
 	List(userID string) ([]session.Session, error)
 }
 
-type EventService interface {
-	DispatchEvent(payload event.Payload) error
+type StdAttrsService interface {
+	PopulateIdentityAwareStandardAttributes(userID string) error
 }
 
 type IDPSessionManager SessionManager
@@ -95,19 +79,17 @@ type OAuthSessionManager SessionManager
 // FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
 //             removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
-	Identities        IdentityService
-	Authenticators    AuthenticatorService
-	Verification      VerificationService
-	MFA               MFAService
-	UserCommands      UserCommands
-	UserQueries       UserQueries
-	Events            EventService
-	PasswordHistory   PasswordHistoryStore
-	OAuth             OAuthService
-	IDPSessions       IDPSessionManager
-	OAuthSessions     OAuthSessionManager
-	IdentityConfig    *config.IdentityConfig
-	UserProfileConfig *config.UserProfileConfig
+	Identities      IdentityService
+	Authenticators  AuthenticatorService
+	Verification    VerificationService
+	MFA             MFAService
+	UserCommands    UserCommands
+	StdAttrsService StdAttrsService
+	PasswordHistory PasswordHistoryStore
+	OAuth           OAuthService
+	IDPSessions     IDPSessionManager
+	OAuthSessions   OAuthSessionManager
+	IdentityConfig  *config.IdentityConfig
 }
 
 func (c *Coordinator) IdentityGet(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
@@ -145,7 +127,7 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 		return err
 	}
 
-	err = c.populateIdentityAwareStandardAttributes(is.UserID)
+	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(is.UserID)
 	if err != nil {
 		return err
 	}
@@ -169,7 +151,7 @@ func (c *Coordinator) IdentityUpdate(info *identity.Info) error {
 		return err
 	}
 
-	err = c.populateIdentityAwareStandardAttributes(info.UserID)
+	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(info.UserID)
 	if err != nil {
 		return err
 	}
@@ -188,7 +170,7 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 		return err
 	}
 
-	err = c.populateIdentityAwareStandardAttributes(is.UserID)
+	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(is.UserID)
 	if err != nil {
 		return err
 	}
@@ -323,101 +305,6 @@ func (c *Coordinator) UserDelete(userID string) error {
 	return c.UserCommands.Delete(userID)
 }
 
-func (c *Coordinator) UserUpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
-	err := stdattrs.Validate(stdattrs.T(stdAttrs))
-	if err != nil {
-		return err
-	}
-
-	rawUser, err := c.UserQueries.GetRaw(userID)
-	if err != nil {
-		return err
-	}
-
-	accessControl := c.UserProfileConfig.StandardAttributes.GetAccessControl()
-	err = stdattrs.T(rawUser.StandardAttributes).CheckWrite(
-		accessControl,
-		role,
-		stdattrs.T(stdAttrs),
-	)
-	if err != nil {
-		return err
-	}
-
-	identities, err := c.Identities.ListByUser(userID)
-	if err != nil {
-		return err
-	}
-
-	ownedEmails := make(map[string]struct{})
-	ownedPhoneNumbers := make(map[string]struct{})
-	ownedPreferredUsernames := make(map[string]struct{})
-	for _, iden := range identities {
-		if email, ok := iden.Claims[stdattrs.Email].(string); ok && email != "" {
-			ownedEmails[email] = struct{}{}
-		}
-		if phoneNumber, ok := iden.Claims[stdattrs.PhoneNumber].(string); ok && phoneNumber != "" {
-			ownedPhoneNumbers[phoneNumber] = struct{}{}
-		}
-		if preferredUsername, ok := iden.Claims[stdattrs.PreferredUsername].(string); ok && preferredUsername != "" {
-			ownedPreferredUsernames[preferredUsername] = struct{}{}
-		}
-	}
-
-	check := func(key string, allowedValues map[string]struct{}) error {
-		if value, ok := stdAttrs[key].(string); ok {
-			_, allowed := allowedValues[value]
-			if !allowed {
-				return fmt.Errorf("unowned %v: %v", key, value)
-			}
-		}
-		return nil
-	}
-
-	err = check(stdattrs.Email, ownedEmails)
-	if err != nil {
-		return err
-	}
-
-	err = check(stdattrs.PhoneNumber, ownedPhoneNumbers)
-	if err != nil {
-		return err
-	}
-
-	err = check(stdattrs.PreferredUsername, ownedPreferredUsernames)
-	if err != nil {
-		return err
-	}
-
-	err = c.UserCommands.UpdateStandardAttributesUnsafe(userID, stdAttrs)
-	if err != nil {
-		return err
-	}
-
-	// In case email/phone_number/preferred_username was removed, we add them back.
-	err = c.populateIdentityAwareStandardAttributes(userID)
-	if err != nil {
-		return err
-	}
-
-	user, err := c.UserQueries.Get(userID, config.RolePortalUI)
-	if err != nil {
-		return err
-	}
-
-	eventPayload := &nonblocking.UserProfileUpdatedEventPayload{
-		User:     *user,
-		AdminAPI: role == config.RolePortalUI,
-	}
-
-	err = c.Events.DispatchEvent(eventPayload)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (c *Coordinator) removeOrphans(userID string) error {
 	identities, err := c.Identities.ListByUser(userID)
 	if err != nil {
@@ -506,77 +393,4 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	}
 
 	return nil
-}
-
-func (c *Coordinator) populateIdentityAwareStandardAttributes(userID string) (err error) {
-	// Get all the identities this user has.
-	identities, err := c.Identities.ListByUser(userID)
-	if err != nil {
-		return
-	}
-
-	// Sort the identities with newer ones ordered first.
-	sort.SliceStable(identities, func(i, j int) bool {
-		a := identities[i]
-		b := identities[j]
-		return a.CreatedAt.After(b.CreatedAt)
-	})
-
-	// Generate a list of emails, phone numbers and usernames belong to the user.
-	var emails []string
-	var phoneNumbers []string
-	var preferredUsernames []string
-	for _, iden := range identities {
-		if email, ok := iden.Claims[stdattrs.Email].(string); ok && email != "" {
-			emails = append(emails, email)
-		}
-		if phoneNumber, ok := iden.Claims[stdattrs.PhoneNumber].(string); ok && phoneNumber != "" {
-			phoneNumbers = append(phoneNumbers, phoneNumber)
-		}
-		if preferredUsername, ok := iden.Claims[stdattrs.PreferredUsername].(string); ok && preferredUsername != "" {
-			preferredUsernames = append(preferredUsernames, preferredUsername)
-		}
-	}
-
-	user, err := c.UserQueries.GetRaw(userID)
-	if err != nil {
-		return
-	}
-
-	updated := false
-
-	// Clear dangling standard attributes.
-	clear := func(key string, allowedValues []string) {
-		if value, ok := user.StandardAttributes[key].(string); ok {
-			if !slice.ContainsString(allowedValues, value) {
-				delete(user.StandardAttributes, key)
-				updated = true
-			}
-		}
-	}
-	clear(stdattrs.Email, emails)
-	clear(stdattrs.PhoneNumber, phoneNumbers)
-	clear(stdattrs.PreferredUsername, preferredUsernames)
-
-	// Populate standard attributes.
-	populate := func(key string, allowedValues []string) {
-		if _, ok := user.StandardAttributes[key].(string); !ok {
-			if len(allowedValues) > 0 {
-				user.StandardAttributes[key] = allowedValues[0]
-				updated = true
-			}
-		}
-	}
-	populate(stdattrs.Email, emails)
-	populate(stdattrs.PhoneNumber, phoneNumbers)
-	populate(stdattrs.PreferredUsername, preferredUsernames)
-
-	if updated {
-		err = c.UserCommands.UpdateStandardAttributesUnsafe(userID, user.StandardAttributes)
-		if err != nil {
-			return
-		}
-	}
-
-	return
 }

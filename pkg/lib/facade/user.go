@@ -3,7 +3,6 @@ package facade
 import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -22,8 +21,4 @@ type UserFacade struct {
 
 func (u UserFacade) Delete(userID string) error {
 	return u.Coordinator.UserDelete(userID)
-}
-
-func (u UserFacade) UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
-	return u.Coordinator.UserUpdateStandardAttributes(role, userID, stdAttrs)
 }

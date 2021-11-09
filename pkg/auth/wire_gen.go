@@ -28,7 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -36,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -453,6 +454,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
@@ -467,19 +475,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -504,7 +510,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -598,6 +604,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -1053,6 +1060,13 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
 		Store:     storeRedis,
@@ -1067,19 +1081,17 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1104,7 +1116,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -1198,6 +1210,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -1601,6 +1614,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  appredisHandle,
@@ -1624,19 +1644,17 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1668,7 +1686,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -1776,6 +1794,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -3250,6 +3269,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
 		Redis:  appredisHandle,
@@ -3273,19 +3299,17 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3317,7 +3341,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -3425,6 +3449,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -3821,6 +3846,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -3858,19 +3890,17 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3902,7 +3932,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -4016,6 +4046,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -4426,6 +4457,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -4463,19 +4501,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -4507,7 +4543,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -4621,6 +4657,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -5031,6 +5068,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -5068,19 +5112,17 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5112,7 +5154,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -5226,6 +5268,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -5623,6 +5666,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -5660,19 +5710,17 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5704,7 +5752,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -5818,6 +5866,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -6216,6 +6265,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -6253,19 +6309,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -6297,7 +6351,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -6411,6 +6465,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -6801,6 +6856,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -6838,19 +6900,17 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -6882,7 +6942,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -6996,6 +7056,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -7389,6 +7450,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -7426,19 +7494,17 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -7470,7 +7536,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -7584,6 +7650,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -7980,6 +8047,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -8017,19 +8091,17 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -8061,7 +8133,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -8175,6 +8247,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -8568,6 +8641,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -8605,19 +8685,17 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -8649,7 +8727,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -8763,6 +8841,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -9155,6 +9234,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -9192,19 +9278,17 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9236,7 +9320,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -9350,6 +9434,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -9743,6 +9828,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -9780,19 +9872,17 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9824,7 +9914,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -9938,6 +10028,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -10332,6 +10423,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -10369,19 +10467,17 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -10413,7 +10509,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -10527,6 +10623,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -10919,6 +11016,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -10956,19 +11060,17 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -11000,7 +11102,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -11114,6 +11216,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -11506,6 +11609,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -11543,19 +11653,17 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -11587,7 +11695,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -11701,6 +11809,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -12095,6 +12204,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -12132,19 +12248,17 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -12176,7 +12290,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -12290,6 +12404,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -12682,6 +12797,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -12719,19 +12841,17 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -12763,7 +12883,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -12877,6 +12997,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -13269,6 +13390,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -13306,19 +13434,17 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -13350,7 +13476,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -13464,6 +13590,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -13859,6 +13986,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -13896,19 +14030,17 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -13940,7 +14072,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -14054,6 +14186,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -14446,6 +14579,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -14483,19 +14623,17 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -14527,7 +14665,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -14641,6 +14779,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -15038,6 +15177,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -15075,19 +15221,17 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -15119,7 +15263,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -15233,6 +15377,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -15625,6 +15770,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -15662,19 +15814,17 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -15706,7 +15856,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -15820,6 +15970,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -16213,6 +16364,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -16250,19 +16408,17 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -16294,7 +16450,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -16408,6 +16564,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -16800,6 +16957,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -16837,19 +17001,17 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -16881,7 +17043,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -16995,6 +17157,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -17409,6 +17572,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -17446,19 +17616,17 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -17490,7 +17658,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -17604,6 +17772,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -18007,6 +18176,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -18044,19 +18220,17 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -18088,7 +18262,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -18202,6 +18376,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -18293,6 +18468,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SettingsProfileViewModel: settingsProfileViewModeler,
 		Renderer:                 responseRenderer,
 		Users:                    userFacade,
+		StdAttrs:                 stdattrsService,
 		ErrorCookie:              errorCookie,
 	}
 	return settingsProfileEditHandler
@@ -18611,6 +18787,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -18648,19 +18831,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -18692,7 +18873,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -18806,6 +18987,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -19200,6 +19382,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -19237,19 +19426,17 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -19281,7 +19468,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -19395,6 +19582,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -19788,6 +19976,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -19825,19 +20020,17 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -19869,7 +20062,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -19983,6 +20176,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -20385,6 +20579,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -20422,19 +20623,17 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -20466,7 +20665,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -20580,6 +20779,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -20973,6 +21173,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -21010,19 +21217,17 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -21054,7 +21259,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -21168,6 +21373,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -21561,6 +21767,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -21598,19 +21811,17 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -21642,7 +21853,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -21756,6 +21967,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -22150,6 +22362,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -22187,19 +22406,17 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -22231,7 +22448,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -22345,6 +22562,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -22744,6 +22962,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -22781,19 +23006,17 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -22825,7 +23048,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -22939,6 +23162,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -23332,6 +23556,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -23369,19 +23600,17 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -23413,7 +23642,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -23527,6 +23756,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -23920,6 +24150,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -23957,19 +24194,17 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -24001,7 +24236,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -24115,6 +24350,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -24508,6 +24744,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -24545,19 +24788,17 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -24589,7 +24830,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -24703,6 +24944,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -25096,6 +25338,13 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -25133,19 +25382,17 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -25177,7 +25424,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -25291,6 +25538,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -25683,6 +25931,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -25720,19 +25975,17 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -25764,7 +26017,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -25878,6 +26131,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -26290,6 +26544,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -26327,19 +26588,17 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -26371,7 +26630,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -26485,6 +26744,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -26877,6 +27137,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: service3,
 		Verification:   verificationService,
 	}
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserCommands:      rawCommands,
+		Events:            eventService,
+	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -26914,19 +27181,17 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -26958,7 +27223,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -27072,6 +27337,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,

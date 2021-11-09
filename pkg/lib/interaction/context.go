@@ -102,6 +102,9 @@ type UserService interface {
 	Create(userID string) (*user.User, error)
 	AfterCreate(user *user.User, identities []*identity.Info, authenticators []*authenticator.Info, isAdminAPI bool, webhookState string) error
 	UpdateLoginTime(userID string, lastLoginAt time.Time) error
+}
+
+type StdAttrsService interface {
 	PopulateStandardAttributes(userID string, iden *identity.Info) error
 }
 
@@ -212,6 +215,7 @@ type Context struct {
 
 	Challenges                ChallengeProvider
 	Users                     UserService
+	StdAttrsService           StdAttrsService
 	Events                    EventService
 	CookieManager             CookieManager
 	AuthenticationInfoService AuthenticationInfoService
