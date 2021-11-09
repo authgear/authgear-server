@@ -114,6 +114,25 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
+func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+	if mutations.User.StandardAttributes != nil {
+		copied := *e
+		copied.User.StandardAttributes = mutations.User.StandardAttributes
+		return &copied, true
+
+	}
+
+	return e, false
+}
+
+func (e *MockBlockingEvent1) GenerateFullMutations() event.Mutations {
+	return event.Mutations{
+		User: event.UserMutations{
+			StandardAttributes: e.User.StandardAttributes,
+		},
+	}
+}
+
 type MockBlockingEvent2 struct {
 	MockUserEventBase
 }
@@ -123,6 +142,25 @@ func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 }
 
 func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
+}
+
+func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+	if mutations.User.StandardAttributes != nil {
+		copied := *e
+		copied.User.StandardAttributes = mutations.User.StandardAttributes
+		return &copied, true
+
+	}
+
+	return e, false
+}
+
+func (e *MockBlockingEvent2) GenerateFullMutations() (out event.Mutations) {
+	return event.Mutations{
+		User: event.UserMutations{
+			StandardAttributes: e.User.StandardAttributes,
+		},
+	}
 }
 
 var _ event.NonBlockingPayload = &MockNonBlockingEvent1{}

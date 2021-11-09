@@ -13,6 +13,8 @@ type Payload interface {
 type BlockingPayload interface {
 	Payload
 	BlockingEventType() Type
+	ApplyMutations(mutations Mutations) (BlockingPayload, bool)
+	GenerateFullMutations() Mutations
 }
 
 type NonBlockingPayload interface {
@@ -52,4 +54,25 @@ func NewNonBlockingEvent(seqNo int64, payload NonBlockingPayload, context Contex
 	event.Type = payload.NonBlockingEventType()
 	event.IsNonBlocking = true
 	return event
+}
+
+func (e *Event) ApplyMutations(mutations Mutations) (*Event, bool) {
+	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
+		if payload, applied := blockingPayload.ApplyMutations(mutations); applied {
+			copied := *e
+			copied.Payload = payload
+			return &copied, true
+		}
+	}
+
+	return e, false
+}
+
+func (e *Event) GenerateFullMutations() (*Mutations, bool) {
+	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
+		mutations := blockingPayload.GenerateFullMutations()
+		return &mutations, true
+	}
+
+	return nil, false
 }

@@ -26,6 +26,7 @@ func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 	startTime := deliverer.Clock.NowMonotonic()
 	totalTimeout := deliverer.Config.SyncTotalTimeout.Duration()
 
+	mutationsEverApplied := false
 	for _, hook := range deliverer.Config.BlockingHandlers {
 		if hook.Event != string(e.Type) {
 			continue
@@ -53,6 +54,19 @@ func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 					Reason: resp.Reason,
 				}},
 			)
+		}
+
+		var applied bool
+		e, applied = e.ApplyMutations(resp.Mutations)
+		if applied {
+			mutationsEverApplied = true
+		}
+	}
+
+	// FIXME(mutations): persist mutations
+	if mutationsEverApplied {
+		// nolint: staticcheck
+		if _, ok := e.GenerateFullMutations(); ok {
 		}
 	}
 
