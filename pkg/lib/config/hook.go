@@ -34,7 +34,7 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"event": { "type": "string", "enum" : ["user.pre_create"] },
+		"event": { "type": "string", "enum" : ["user.pre_create", "user.profile.pre_update"] },
 		"url": { "type": "string", "format": "uri" }
 	},
 	"required": ["event", "url"]

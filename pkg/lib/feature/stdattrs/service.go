@@ -2,6 +2,7 @@ package stdattrs
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -70,14 +71,22 @@ func (s *Service) UpdateStandardAttributes(role accesscontrol.Role, userID strin
 		return err
 	}
 
-	eventPayload := &nonblocking.UserProfileUpdatedEventPayload{
-		User:     *user,
-		AdminAPI: role == config.RolePortalUI,
+	eventPayloads := []event.Payload{
+		&blocking.UserProfilePreUpdateBlockingEventPayload{
+			User:     *user,
+			AdminAPI: role == config.RolePortalUI,
+		},
+		&nonblocking.UserProfileUpdatedEventPayload{
+			User:     *user,
+			AdminAPI: role == config.RolePortalUI,
+		},
 	}
 
-	err = s.Events.DispatchEvent(eventPayload)
-	if err != nil {
-		return err
+	for _, eventPayload := range eventPayloads {
+		err = s.Events.DispatchEvent(eventPayload)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
