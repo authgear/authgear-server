@@ -151,9 +151,6 @@ func TestDeliverer(t *testing.T) {
 					JSON(map[string]interface{}{
 						"is_allowed": false,
 						"reason":     "nope",
-						"data": map[string]interface{}{
-							"extra": 123,
-						},
 					})
 				defer func() { gock.Flush() }()
 
