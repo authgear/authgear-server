@@ -37,12 +37,15 @@ func TestDeliverer(t *testing.T) {
 
 		httpClient := &http.Client{}
 		gock.InterceptClient(httpClient)
+		stdAttrsService := NewMockStdAttrsServiceNoEvent(ctrl)
+
 		deliverer := Deliverer{
-			Config:    cfg,
-			Secret:    secret,
-			Clock:     clock,
-			SyncHTTP:  SyncHTTPClient{httpClient},
-			AsyncHTTP: AsyncHTTPClient{httpClient},
+			Config:                 cfg,
+			Secret:                 secret,
+			Clock:                  clock,
+			SyncHTTP:               SyncHTTPClient{httpClient},
+			AsyncHTTP:              AsyncHTTPClient{httpClient},
+			StdAttrsServiceNoEvent: stdAttrsService,
 		}
 
 		defer gock.Off()

@@ -399,12 +399,29 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -437,9 +454,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -447,18 +461,12 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
@@ -1005,12 +1013,29 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -1043,9 +1068,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -1053,18 +1075,12 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
@@ -1559,12 +1575,29 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -1597,9 +1630,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -1607,18 +1637,12 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -2099,12 +2123,19 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         store,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -2869,12 +2900,19 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         store,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -3214,12 +3252,29 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -3252,9 +3307,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -3262,18 +3314,12 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
@@ -3791,12 +3837,29 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -3829,9 +3892,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -3839,18 +3899,12 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -4402,12 +4456,29 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -4440,9 +4511,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -4450,18 +4518,12 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -5013,12 +5075,29 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -5051,9 +5130,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -5061,18 +5137,12 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -5611,12 +5681,29 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -5649,9 +5736,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -5659,18 +5743,12 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -6210,12 +6288,29 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -6248,9 +6343,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -6258,18 +6350,12 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -6801,12 +6887,29 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -6839,9 +6942,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -6849,18 +6949,12 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -7395,12 +7489,29 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -7433,9 +7544,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -7443,18 +7551,12 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -7992,12 +8094,29 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -8030,9 +8149,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -8040,18 +8156,12 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -8586,12 +8696,29 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -8624,9 +8751,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -8634,18 +8758,12 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -9179,12 +9297,29 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -9217,9 +9352,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -9227,18 +9359,12 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -9773,12 +9899,29 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -9811,9 +9954,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -9821,18 +9961,12 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -10368,12 +10502,29 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -10406,9 +10557,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -10416,18 +10564,12 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -10961,12 +11103,29 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -10999,9 +11158,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -11009,18 +11165,12 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -11554,12 +11704,29 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -11592,9 +11759,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -11602,18 +11766,12 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -12149,12 +12307,29 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -12187,9 +12362,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -12197,18 +12369,12 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -12742,12 +12908,29 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -12780,9 +12963,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -12790,18 +12970,12 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -13335,12 +13509,29 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -13373,9 +13564,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -13383,18 +13571,12 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -13931,12 +14113,29 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -13969,9 +14168,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -13979,18 +14175,12 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -14524,12 +14714,29 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -14562,9 +14769,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -14572,18 +14776,12 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -15122,12 +15320,29 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -15160,9 +15375,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -15170,18 +15382,12 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -15715,12 +15921,29 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -15753,9 +15976,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -15763,18 +15983,12 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -16309,12 +16523,29 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -16347,9 +16578,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -16357,18 +16585,12 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -16902,12 +17124,29 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -16940,9 +17179,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -16950,18 +17186,12 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -17517,12 +17747,29 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -17555,9 +17802,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -17565,18 +17809,12 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -18121,12 +18359,29 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -18159,9 +18414,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -18169,18 +18421,12 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -18732,12 +18978,29 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -18770,9 +19033,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -18780,18 +19040,12 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -19327,12 +19581,29 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -19365,9 +19636,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -19375,18 +19643,12 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -19921,12 +20183,29 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -19959,9 +20238,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -19969,18 +20245,12 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -20524,12 +20794,29 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -20562,9 +20849,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -20572,18 +20856,12 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -21118,12 +21396,29 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -21156,9 +21451,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -21166,18 +21458,12 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -21712,12 +21998,29 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -21750,9 +22053,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -21760,18 +22060,12 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -22307,12 +22601,29 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -22345,9 +22656,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -22355,18 +22663,12 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -22907,12 +23209,29 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -22945,9 +23264,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -22955,18 +23271,12 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -23501,12 +23811,29 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -23539,9 +23866,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -23549,18 +23873,12 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -24095,12 +24413,29 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -24133,9 +24468,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -24143,18 +24475,12 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -24689,12 +25015,29 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -24727,9 +25070,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -24737,18 +25077,12 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -25283,12 +25617,29 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -25321,9 +25672,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -25331,18 +25679,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -25876,12 +26218,29 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -25914,9 +26273,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -25924,18 +26280,12 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -26489,12 +26839,29 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -26527,9 +26894,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -26537,18 +26901,12 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
@@ -27082,12 +27440,29 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -27120,9 +27495,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -27130,18 +27502,12 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
-	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         userStore,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
