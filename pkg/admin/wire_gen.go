@@ -396,12 +396,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         store,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -461,9 +468,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
 		UserQueries:       queries,
-		UserCommands:      rawCommands,
+		UserStore:         store,
 		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{

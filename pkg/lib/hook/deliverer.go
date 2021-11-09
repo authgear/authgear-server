@@ -9,17 +9,25 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 )
 
+//go:generate mockgen -source=deliverer.go -destination=deliverer_mock_test.go -package hook
+
+type StdAttrsServiceNoEvent interface {
+	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+}
+
 type Deliverer struct {
-	Config    *config.HookConfig
-	Secret    *config.WebhookKeyMaterials
-	Clock     clock.Clock
-	SyncHTTP  SyncHTTPClient
-	AsyncHTTP AsyncHTTPClient
+	Config                 *config.HookConfig
+	Secret                 *config.WebhookKeyMaterials
+	Clock                  clock.Clock
+	SyncHTTP               SyncHTTPClient
+	AsyncHTTP              AsyncHTTPClient
+	StdAttrsServiceNoEvent StdAttrsServiceNoEvent
 }
 
 func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
