@@ -71,10 +71,19 @@ func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 		}
 	}
 
-	// FIXME(mutations): persist mutations
 	if mutationsEverApplied {
-		// nolint: staticcheck
-		if _, ok := e.GenerateFullMutations(); ok {
+		if mutations, ok := e.GenerateFullMutations(); ok {
+			if mutations.User.StandardAttributes != nil {
+				userID := e.Payload.UserID()
+				err := deliverer.StdAttrsServiceNoEvent.UpdateStandardAttributes(
+					config.RolePortalUI,
+					userID,
+					mutations.User.StandardAttributes,
+				)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 

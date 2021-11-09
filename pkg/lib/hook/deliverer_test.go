@@ -200,6 +200,14 @@ func TestDeliverer(t *testing.T) {
 
 				defer func() { gock.Flush() }()
 
+				stdAttrsService.EXPECT().UpdateStandardAttributes(
+					config.RolePortalUI,
+					gomock.Any(),
+					map[string]interface{}{
+						"name": "John Doe",
+					},
+				).Times(1).Return(nil)
+
 				err := deliverer.DeliverBlockingEvent(originalEvent)
 
 				So(err, ShouldBeNil)
