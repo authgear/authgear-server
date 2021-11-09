@@ -91,6 +91,9 @@ func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) 
 }
 
 func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+	// Remove derived attributes to avoid failing the validation.
+	stdAttrs = stdattrs.T(stdAttrs).WithDerivedAttributesRemoved()
+
 	err := stdattrs.Validate(stdattrs.T(stdAttrs))
 	if err != nil {
 		return err
