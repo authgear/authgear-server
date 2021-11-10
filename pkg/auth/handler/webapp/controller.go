@@ -42,6 +42,7 @@ type ControllerDeps struct {
 	Publisher     *Publisher
 	Clock         clock.Clock
 	UIConfig      *config.UIConfig
+	ErrorCookie   *webapp.ErrorCookie
 
 	TrustProxy config.TrustProxy
 }
@@ -160,22 +161,24 @@ func (c *Controller) Serve() {
 }
 
 func (c *Controller) renderError(err error) {
-	// If the request is Authgear XHR request and the web session is invalid
-	// redirect to the same page to display fatal error
-	if c.request.Header.Get("X-Authgear-XHR") == "true" {
-		apierr := apierrors.AsAPIError(err)
-		if apierr != nil && apierr.Reason == webapp.WebUIInvalidSession.Reason {
-			result := webapp.Result{RedirectURI: c.request.URL.String()}
-			result.WriteResponse(c.response, c.request)
-			return
-		}
+	apierror := apierrors.AsAPIError(err)
+
+	// Show WebUIInvalidSession error in different page.
+	u := *c.request.URL
+	if apierror.Reason == webapp.WebUIInvalidSession.Reason {
+		u.Path = "/error"
 	}
 
-	data := make(map[string]interface{})
-	baseViewModel := c.BaseViewModel.ViewModel(c.request, c.response)
-	baseViewModel.SetError(err)
-	viewmodels.Embed(data, baseViewModel)
-	c.Renderer.RenderHTML(c.response, c.request, TemplateWebFatalErrorHTML, data)
+	cookie, err := c.ErrorCookie.SetError(c.request, apierror)
+	if err != nil {
+		panic(err)
+	}
+	result := webapp.Result{
+		RedirectURI:      u.String(),
+		NavigationAction: "replace",
+		Cookies:          []*http.Cookie{cookie},
+	}
+	result.WriteResponse(c.response, c.request)
 }
 
 func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Session {

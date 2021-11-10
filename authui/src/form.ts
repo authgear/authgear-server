@@ -132,32 +132,26 @@ export function xhrSubmitForm(): () => void {
   };
 }
 
-function setServerError() {
-  const errorBar = document.querySelector(".errors-messages-bar");
-  if (errorBar) {
-    const list = errorBar.querySelector(".error-txt");
-    var li = document.createElement("li");
-    li.appendChild(
-      document.createTextNode(errorBar.getAttribute("data-server-error") || "")
-    );
-    if (list) list.innerHTML = li.outerHTML;
-    errorBar.classList.add("flex");
-    errorBar.classList.remove("hidden");
+function setErrorMessage(id: string) {
+  const errorMessageBar = document.getElementById("error-message-bar");
+  if (errorMessageBar == null) {
+    return;
   }
+  const message = document.getElementById(id);
+  if (message == null) {
+    return;
+  }
+
+  errorMessageBar.classList.remove("hidden");
+  message.classList.remove("hidden");
+}
+
+function setServerError() {
+  setErrorMessage("error-message-server");
 }
 
 function setNetworkError() {
-  const errorBar = document.querySelector(".errors-messages-bar");
-  if (errorBar) {
-    const list = errorBar.querySelector(".error-txt");
-    var li = document.createElement("li");
-    li.appendChild(
-      document.createTextNode(errorBar.getAttribute("data-network-error") || "")
-    );
-    if (list) list.innerHTML = li.outerHTML;
-    errorBar.classList.add("flex");
-    errorBar.classList.remove("hidden");
-  }
+  setErrorMessage("error-message-network");
 }
 
 export function restoreForm() {
