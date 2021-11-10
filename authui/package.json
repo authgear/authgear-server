@@ -4,16 +4,18 @@
   "scripts": {
     "typecheck": "tsc -b",
     "format": "prettier --write --list-different ./src/*.ts",
-    "build": "parcel build src/authgear.ts --dist-dir ../resources/authgear/static"
+    "build": "parcel build src/authgear.ts src/tailwind.css --dist-dir ../resources/authgear/static"
   },
   "devDependencies": {
     "@types/luxon": "2.0.4",
     "@types/turbolinks": "5.2.0",
     "@types/zxcvbn": "4.4.1",
+    "autoprefixer": "10.4.0",
     "parcel": "2.0.1",
     "postcss": "8.3.8",
     "postcss-cli": "9.0.1",
     "prettier": "2.4.1",
+    "tailwindcss": "2.2.19",
     "typescript": "4.4.3"
   },
   "dependencies": {
