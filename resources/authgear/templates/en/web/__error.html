@@ -8,9 +8,6 @@
     {{ else if eq .Error.reason "WebUIInvalidSession" }}
         <!-- This error is handled as fatal error -->
         {{ $display_error = false }}
-    {{ else if eq .Error.reason "WebHookDisallowed" }}
-        <!-- This error is handled as fatal error -->
-        {{ $display_error = false }}
     {{ end }}
 {{ end }}
 <div class="messages-bar flew-row errors-messages-bar errors {{ if not $display_error }}hidden{{ else }}flex{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
@@ -128,6 +125,24 @@
                     {{ template "oob-otp-sms-is-not-supported-with-customer-support" (dict "customerSupportLink" ($.Translations.RenderText "customer-support-link" nil)) }}
                 {{ else }}
                     {{ template "oob-otp-sms-is-not-supported" }}
+                {{ end }}
+                </li>
+            {{ else if eq .Error.reason "WebHookDisallowed" }}
+                {{ $error_reason := index .Error.info.reasons 0 }}
+                <li>
+                {{ if $error_reason.title }}
+                    {{ $error_reason.title }}
+                {{ else }}
+                    <!-- title is not provided, use default title -->
+                    {{ if eq .Error.info.event_type "pre_signup" }}
+                        {{ template "error-webhook-pre-signup-disallowed" }}
+                    {{ else }}
+                        {{ template "error-webhook-disallowed" }}
+                    {{ end }}
+                {{ end }}
+                {{ if $error_reason.reason }}
+                    <br>
+                    {{ $error_reason.reason }}
                 {{ end }}
                 </li>
             {{ else }}

@@ -4436,6 +4436,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -5028,6 +5029,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -5620,6 +5622,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -6199,6 +6202,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -6779,6 +6783,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -7351,6 +7356,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -7926,6 +7932,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -8504,6 +8511,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -9079,6 +9087,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -9653,6 +9662,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -10228,6 +10238,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -10804,6 +10815,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -11378,6 +11390,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -11952,6 +11965,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -12528,6 +12542,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -13102,6 +13117,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -13676,6 +13692,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -14253,6 +14270,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -14827,6 +14845,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -15406,6 +15425,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -15980,6 +16000,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -16555,6 +16576,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -17129,6 +17151,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -17722,6 +17745,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -18298,6 +18322,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -18873,6 +18898,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -19457,6 +19483,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -20032,6 +20059,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -20607,6 +20635,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -21183,6 +21212,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -21764,6 +21794,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -22339,6 +22370,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -22914,6 +22946,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -23489,6 +23522,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -24064,6 +24098,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -24638,6 +24673,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -25232,6 +25268,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -25806,6 +25843,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
