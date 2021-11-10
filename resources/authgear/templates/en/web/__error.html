@@ -10,9 +10,11 @@
         {{ $display_error = false }}
     {{ end }}
 {{ end }}
-<div class="messages-bar flew-row errors-messages-bar errors {{ if not $display_error }}hidden{{ else }}flex{{ end }}" data-network-error="{{ template "error-network" }}" data-server-error="{{ template "error-server" }}">
+<div id="error-message-bar" class="messages-bar flex flew-row errors {{ if not $display_error }}hidden{{ end }}">
     <div class="w-8 h-8 flex justify-center items-center error-txt"><i class="ti ti-alert-circle"></i></div>
     <ul class="messages-txt list-none flex flex-col flex-1 margin-h-0 margin-v-6 padding-0 text-sm">
+        <li id="error-message-server" class="hidden">{{ template "error-server" }}</li>
+        <li id="error-message-network" class="hidden">{{ template "error-network" }}</li>
         {{ if $display_error }}
             {{ $info := .Error.info }}
             {{ if eq .Error.reason "ValidationFailed" }}
