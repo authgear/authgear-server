@@ -396,7 +396,7 @@ func (s *Service) DeriveStandardAttributes(role accesscontrol.Role, userID strin
 	}
 
 	// updated_at
-	out["updated_at"] = updatedAt.Unix()
+	out[stdattrs.UpdatedAt] = updatedAt.Unix()
 
 	accessControl := s.UserProfileConfig.StandardAttributes.GetAccessControl()
 	out = stdattrs.T(out).ReadWithAccessControl(

@@ -28,7 +28,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -36,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -398,12 +399,29 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -436,9 +454,6 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -446,12 +461,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
@@ -467,19 +483,17 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -504,7 +518,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -598,6 +612,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -998,12 +1013,29 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -1036,9 +1068,6 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -1046,12 +1075,13 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	cookieDef2 := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
@@ -1067,19 +1097,17 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1104,7 +1132,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -1198,6 +1226,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -1546,12 +1575,29 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -1584,9 +1630,6 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -1594,12 +1637,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
@@ -1624,19 +1668,17 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -1668,7 +1710,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -1776,6 +1818,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -2080,12 +2123,19 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         store,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -2850,12 +2900,19 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         store,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -3195,12 +3252,29 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -3233,9 +3307,6 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -3243,12 +3314,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
 	idpsessionStoreRedis := &idpsession.StoreRedis{
@@ -3273,19 +3345,17 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3317,7 +3387,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -3425,6 +3495,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -3766,12 +3837,29 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -3804,9 +3892,6 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -3814,12 +3899,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -3858,19 +3944,17 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -3902,7 +3986,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -4016,6 +4100,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -4371,12 +4456,29 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -4409,9 +4511,6 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -4419,12 +4518,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -4463,19 +4563,17 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -4507,7 +4605,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -4621,6 +4719,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -4976,12 +5075,29 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -5014,9 +5130,6 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -5024,12 +5137,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -5068,19 +5182,17 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5112,7 +5224,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -5226,6 +5338,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -5568,12 +5681,29 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -5606,9 +5736,6 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -5616,12 +5743,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -5660,19 +5788,17 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -5704,7 +5830,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -5818,6 +5944,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -6161,12 +6288,29 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -6199,9 +6343,6 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -6209,12 +6350,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -6253,19 +6395,17 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -6297,7 +6437,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -6411,6 +6551,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -6746,12 +6887,29 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -6784,9 +6942,6 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -6794,12 +6949,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -6838,19 +6994,17 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -6882,7 +7036,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -6996,6 +7150,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -7334,12 +7489,29 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -7372,9 +7544,6 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -7382,12 +7551,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -7426,19 +7596,17 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -7470,7 +7638,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -7584,6 +7752,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -7925,12 +8094,29 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -7963,9 +8149,6 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -7973,12 +8156,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -8017,19 +8201,17 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -8061,7 +8243,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -8175,6 +8357,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -8513,12 +8696,29 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -8551,9 +8751,6 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -8561,12 +8758,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -8605,19 +8803,17 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -8649,7 +8845,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -8763,6 +8959,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -9100,12 +9297,29 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -9138,9 +9352,6 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -9148,12 +9359,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -9192,19 +9404,17 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9236,7 +9446,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -9350,6 +9560,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -9688,12 +9899,29 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -9726,9 +9954,6 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -9736,12 +9961,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -9780,19 +10006,17 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -9824,7 +10048,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -9938,6 +10162,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -10277,12 +10502,29 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -10315,9 +10557,6 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -10325,12 +10564,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -10369,19 +10609,17 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -10413,7 +10651,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -10527,6 +10765,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -10864,12 +11103,29 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -10902,9 +11158,6 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -10912,12 +11165,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -10956,19 +11210,17 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -11000,7 +11252,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -11114,6 +11366,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -11451,12 +11704,29 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -11489,9 +11759,6 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -11499,12 +11766,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -11543,19 +11811,17 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -11587,7 +11853,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -11701,6 +11967,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -12040,12 +12307,29 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -12078,9 +12362,6 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -12088,12 +12369,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -12132,19 +12414,17 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -12176,7 +12456,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -12290,6 +12570,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -12627,12 +12908,29 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -12665,9 +12963,6 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -12675,12 +12970,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -12719,19 +13015,17 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -12763,7 +13057,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -12877,6 +13171,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -13214,12 +13509,29 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -13252,9 +13564,6 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -13262,12 +13571,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -13306,19 +13616,17 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -13350,7 +13658,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -13464,6 +13772,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -13804,12 +14113,29 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -13842,9 +14168,6 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -13852,12 +14175,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -13896,19 +14220,17 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -13940,7 +14262,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -14054,6 +14376,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -14391,12 +14714,29 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -14429,9 +14769,6 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -14439,12 +14776,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -14483,19 +14821,17 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -14527,7 +14863,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -14641,6 +14977,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -14983,12 +15320,29 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -15021,9 +15375,6 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -15031,12 +15382,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -15075,19 +15427,17 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -15119,7 +15469,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -15233,6 +15583,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -15570,12 +15921,29 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -15608,9 +15976,6 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -15618,12 +15983,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -15662,19 +16028,17 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -15706,7 +16070,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -15820,6 +16184,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -16158,12 +16523,29 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -16196,9 +16578,6 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -16206,12 +16585,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -16250,19 +16630,17 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -16294,7 +16672,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -16408,6 +16786,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -16745,12 +17124,29 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -16783,9 +17179,6 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -16793,12 +17186,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -16837,19 +17231,17 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -16881,7 +17273,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -16995,6 +17387,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -17354,12 +17747,29 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -17392,9 +17802,6 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -17402,12 +17809,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -17446,19 +17854,17 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -17490,7 +17896,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -17604,6 +18010,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -17952,12 +18359,29 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -17990,9 +18414,6 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -18000,12 +18421,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -18044,19 +18466,17 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -18088,7 +18508,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -18202,6 +18622,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -18293,6 +18714,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		SettingsProfileViewModel: settingsProfileViewModeler,
 		Renderer:                 responseRenderer,
 		Users:                    userFacade,
+		StdAttrs:                 stdattrsService,
 		ErrorCookie:              errorCookie,
 	}
 	return settingsProfileEditHandler
@@ -18556,12 +18978,29 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -18594,9 +19033,6 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -18604,12 +19040,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -18648,19 +19085,17 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -18692,7 +19127,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -18806,6 +19241,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -19145,12 +19581,29 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -19183,9 +19636,6 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -19193,12 +19643,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -19237,19 +19688,17 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -19281,7 +19730,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -19395,6 +19844,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -19733,12 +20183,29 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -19771,9 +20238,6 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -19781,12 +20245,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -19825,19 +20290,17 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -19869,7 +20332,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -19983,6 +20446,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -20330,12 +20794,29 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -20368,9 +20849,6 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -20378,12 +20856,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -20422,19 +20901,17 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -20466,7 +20943,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -20580,6 +21057,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -20918,12 +21396,29 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -20956,9 +21451,6 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -20966,12 +21458,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -21010,19 +21503,17 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -21054,7 +21545,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -21168,6 +21659,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -21506,12 +21998,29 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -21544,9 +22053,6 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -21554,12 +22060,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -21598,19 +22105,17 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -21642,7 +22147,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -21756,6 +22261,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -22095,12 +22601,29 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -22133,9 +22656,6 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -22143,12 +22663,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -22187,19 +22708,17 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -22231,7 +22750,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -22345,6 +22864,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -22689,12 +23209,29 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -22727,9 +23264,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -22737,12 +23271,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -22781,19 +23316,17 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -22825,7 +23358,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -22939,6 +23472,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -23277,12 +23811,29 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -23315,9 +23866,6 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -23325,12 +23873,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -23369,19 +23918,17 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -23413,7 +23960,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -23527,6 +24074,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -23865,12 +24413,29 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -23903,9 +24468,6 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -23913,12 +24475,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -23957,19 +24520,17 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -24001,7 +24562,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -24115,6 +24676,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -24453,12 +25015,29 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -24491,9 +25070,6 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -24501,12 +25077,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -24545,19 +25122,17 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -24589,7 +25164,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -24703,6 +25278,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -25041,12 +25617,29 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -25079,9 +25672,6 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -25089,12 +25679,13 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -25133,19 +25724,17 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -25177,7 +25766,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -25291,6 +25880,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -25628,12 +26218,29 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -25666,9 +26273,6 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -25676,12 +26280,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -25720,19 +26325,17 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -25764,7 +26367,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -25878,6 +26481,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -26235,12 +26839,29 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -26273,9 +26894,6 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -26283,12 +26901,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -26327,19 +26946,17 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -26371,7 +26988,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -26485,6 +27102,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,
@@ -26822,12 +27440,29 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
+	rawQueries := &user.RawQueries{
+		Store: userStore,
+	}
+	queries := &user.Queries{
+		RawQueries:     rawQueries,
+		Store:          userStore,
+		Identities:     serviceService,
+		Authenticators: service3,
+		Verification:   verificationService,
+	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+	}
 	deliverer := &hook.Deliverer{
-		Config:    hookConfig,
-		Secret:    webhookKeyMaterials,
-		Clock:     clockClock,
-		SyncHTTP:  syncHTTPClient,
-		AsyncHTTP: asyncHTTPClient,
+		Config:                 hookConfig,
+		Secret:                 webhookKeyMaterials,
+		Clock:                  clockClock,
+		SyncHTTP:               syncHTTPClient,
+		AsyncHTTP:              asyncHTTPClient,
+		StdAttrsServiceNoEvent: serviceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -26860,9 +27495,6 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                  clockClock,
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
-	rawQueries := &user.RawQueries{
-		Store: userStore,
-	}
 	commands := &user.Commands{
 		RawCommands:       rawCommands,
 		RawQueries:        rawQueries,
@@ -26870,12 +27502,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
 	}
-	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+	stdattrsService := &stdattrs.Service{
+		UserProfileConfig: userProfileConfig,
+		ServiceNoEvent:    serviceNoEvent,
+		Identities:        serviceService,
+		UserQueries:       queries,
+		UserStore:         userStore,
+		Events:            eventService,
 	}
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
@@ -26914,19 +27547,17 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
-		Identities:        serviceService,
-		Authenticators:    service3,
-		Verification:      verificationService,
-		MFA:               mfaService,
-		UserCommands:      commands,
-		UserQueries:       queries,
-		Events:            eventService,
-		PasswordHistory:   historyStore,
-		OAuth:             authorizationStore,
-		IDPSessions:       idpsessionManager,
-		OAuthSessions:     sessionManager,
-		IdentityConfig:    identityConfig,
-		UserProfileConfig: userProfileConfig,
+		Identities:      serviceService,
+		Authenticators:  service3,
+		Verification:    verificationService,
+		MFA:             mfaService,
+		UserCommands:    commands,
+		StdAttrsService: stdattrsService,
+		PasswordHistory: historyStore,
+		OAuth:           authorizationStore,
+		IDPSessions:     idpsessionManager,
+		OAuthSessions:   sessionManager,
+		IdentityConfig:  identityConfig,
 	}
 	identityFacade := facade.IdentityFacade{
 		Coordinator: coordinator,
@@ -26958,7 +27589,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	wechatURLProvider := &webapp.WechatURLProvider{
 		Endpoints: endpointsProvider,
 	}
-	normalizer := &stdattrs.Normalizer{
+	normalizer := &stdattrs2.Normalizer{
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
@@ -27072,6 +27703,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Search:                    elasticsearchService,
 		Challenges:                challengeProvider,
 		Users:                     userProvider,
+		StdAttrsService:           stdattrsService,
 		Events:                    eventService,
 		CookieManager:             cookieManager,
 		AuthenticationInfoService: authenticationinfoStoreRedis,

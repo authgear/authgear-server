@@ -9,23 +9,32 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 )
 
+//go:generate mockgen -source=deliverer.go -destination=deliverer_mock_test.go -package hook
+
+type StdAttrsServiceNoEvent interface {
+	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+}
+
 type Deliverer struct {
-	Config    *config.HookConfig
-	Secret    *config.WebhookKeyMaterials
-	Clock     clock.Clock
-	SyncHTTP  SyncHTTPClient
-	AsyncHTTP AsyncHTTPClient
+	Config                 *config.HookConfig
+	Secret                 *config.WebhookKeyMaterials
+	Clock                  clock.Clock
+	SyncHTTP               SyncHTTPClient
+	AsyncHTTP              AsyncHTTPClient
+	StdAttrsServiceNoEvent StdAttrsServiceNoEvent
 }
 
 func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 	startTime := deliverer.Clock.NowMonotonic()
 	totalTimeout := deliverer.Config.SyncTotalTimeout.Duration()
 
+	mutationsEverApplied := false
 	for _, hook := range deliverer.Config.BlockingHandlers {
 		if hook.Event != string(e.Type) {
 			continue
@@ -53,6 +62,28 @@ func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 					Reason: resp.Reason,
 				}},
 			)
+		}
+
+		var applied bool
+		e, applied = e.ApplyMutations(resp.Mutations)
+		if applied {
+			mutationsEverApplied = true
+		}
+	}
+
+	if mutationsEverApplied {
+		if mutations, ok := e.GenerateFullMutations(); ok {
+			if mutations.User.StandardAttributes != nil {
+				userID := e.Payload.UserID()
+				err := deliverer.StdAttrsServiceNoEvent.UpdateStandardAttributes(
+					config.RolePortalUI,
+					userID,
+					mutations.User.StandardAttributes,
+				)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 

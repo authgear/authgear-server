@@ -71,7 +71,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if !n.IsAddition && ctx.Config.UserProfile.StandardAttributes.Population.Strategy == config.StandardAttributesPopulationStrategyOnSignup {
-				err := ctx.Users.PopulateStandardAttributes(n.Identity.UserID, n.Identity)
+				err := ctx.StdAttrsService.PopulateStandardAttributes(n.Identity.UserID, n.Identity)
 				if err != nil {
 					return err
 				}

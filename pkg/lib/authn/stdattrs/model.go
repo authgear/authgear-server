@@ -252,6 +252,14 @@ func (t T) CheckWrite(accessControl accesscontrol.T, role accesscontrol.Role, th
 	return nil
 }
 
+func (t T) WithDerivedAttributesRemoved() T {
+	out := t.Clone()
+	delete(out, EmailVerified)
+	delete(out, PhoneNumberVerified)
+	delete(out, UpdatedAt)
+	return out
+}
+
 const (
 	// Sub is not used because we do not always use sub as the unique identifier for
 	// an user from the identity provider.
@@ -280,6 +288,7 @@ const (
 	Region              = "region"
 	PostalCode          = "postal_code"
 	Country             = "country"
+	UpdatedAt           = "updated_at"
 )
 
 var NonIdentityAwareKeys []string = []string{

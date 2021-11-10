@@ -98,9 +98,10 @@ function constructConfig(
   return [newConfig, secrets];
 }
 
-const blockingEventTypes: IDropdownOption[] = ["user.pre_create"].map(
-  (type): IDropdownOption => ({ key: type, text: type })
-);
+const blockingEventTypes: IDropdownOption[] = [
+  "user.pre_create",
+  "user.profile.pre_update",
+].map((type): IDropdownOption => ({ key: type, text: type }));
 
 interface BlockingHandlerItemEditProps {
   index: number;

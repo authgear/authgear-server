@@ -25,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/welcomemessage"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -81,7 +82,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.EventService), new(*event.Service)),
 		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 		wire.Bind(new(welcomemessage.EventService), new(*event.Service)),
-		wire.Bind(new(facade.EventService), new(*event.Service)),
+		wire.Bind(new(featurestdattrs.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(
@@ -160,6 +161,7 @@ var CommonDependencySet = wire.NewSet(
 
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
+		wire.Bind(new(featurestdattrs.IdentityService), new(*identityservice.Service)),
 	),
 
 	wire.NewSet(
@@ -176,7 +178,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
-		wire.Bind(new(facade.UserQueries), new(*user.Queries)),
+		wire.Bind(new(featurestdattrs.UserQueries), new(*user.Queries)),
+		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
 		wire.Bind(new(facade.UserCommands), new(*user.Commands)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),
@@ -274,5 +277,12 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		analytic.DependencySet,
 		wire.Bind(new(session.AnalyticService), new(*analytic.Service)),
+	),
+
+	wire.NewSet(
+		featurestdattrs.DependencySet,
+		wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
+		wire.Bind(new(interaction.StdAttrsService), new(*featurestdattrs.Service)),
+		wire.Bind(new(hook.StdAttrsServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
 	),
 )

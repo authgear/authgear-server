@@ -36,4 +36,22 @@ func (e *UserPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {
 	}
 }
 
+func (e *UserPreCreateBlockingEventPayload) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
+	if mutations.User.StandardAttributes != nil {
+		copied := *e
+		copied.User.StandardAttributes = mutations.User.StandardAttributes
+		return &copied, true
+	}
+
+	return e, false
+}
+
+func (e *UserPreCreateBlockingEventPayload) GenerateFullMutations() event.Mutations {
+	return event.Mutations{
+		User: event.UserMutations{
+			StandardAttributes: e.User.StandardAttributes,
+		},
+	}
+}
+
 var _ event.BlockingPayload = &UserPreCreateBlockingEventPayload{}

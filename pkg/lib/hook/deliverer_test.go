@@ -9,6 +9,7 @@ import (
 	"gopkg.in/h2non/gock.v1"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 
@@ -36,12 +37,15 @@ func TestDeliverer(t *testing.T) {
 
 		httpClient := &http.Client{}
 		gock.InterceptClient(httpClient)
+		stdAttrsService := NewMockStdAttrsServiceNoEvent(ctrl)
+
 		deliverer := Deliverer{
-			Config:    cfg,
-			Secret:    secret,
-			Clock:     clock,
-			SyncHTTP:  SyncHTTPClient{httpClient},
-			AsyncHTTP: AsyncHTTPClient{httpClient},
+			Config:                 cfg,
+			Secret:                 secret,
+			Clock:                  clock,
+			SyncHTTP:               SyncHTTPClient{httpClient},
+			AsyncHTTP:              AsyncHTTPClient{httpClient},
+			StdAttrsServiceNoEvent: stdAttrsService,
 		}
 
 		defer gock.Off()
@@ -124,6 +128,92 @@ func TestDeliverer(t *testing.T) {
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 
+			Convey("should apply mutations along the chain", func() {
+				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
+					{
+						Event: string(MockBlockingEventType1),
+						URL:   "https://example.com/do-not-mutate",
+					},
+					{
+						Event: string(MockBlockingEventType1),
+						URL:   "https://example.com/mutate-something",
+					},
+					{
+						Event: string(MockBlockingEventType1),
+						URL:   "https://example.com/see-mutated-thing",
+					},
+				}
+
+				originalEvent := &event.Event{
+					ID:      "event-id",
+					Type:    MockBlockingEventType1,
+					Payload: &MockBlockingEvent1{},
+				}
+
+				mutatedEvent := &event.Event{
+					ID:   "event-id",
+					Type: MockBlockingEventType1,
+					Payload: &MockBlockingEvent1{
+						MockUserEventBase: MockUserEventBase{
+							User: model.User{
+								StandardAttributes: map[string]interface{}{
+									"name": "John Doe",
+								},
+							},
+						},
+					},
+				}
+
+				gock.New("https://example.com").
+					Post("/do-not-mutate").
+					JSON(originalEvent).
+					HeaderPresent(HeaderRequestBodySignature).
+					Reply(200).
+					JSON(map[string]interface{}{
+						"is_allowed": true,
+					})
+
+				gock.New("https://example.com").
+					Post("/mutate-something").
+					JSON(originalEvent).
+					HeaderPresent(HeaderRequestBodySignature).
+					Reply(200).
+					JSON(map[string]interface{}{
+						"is_allowed": true,
+						"mutations": map[string]interface{}{
+							"user": map[string]interface{}{
+								"standard_attributes": map[string]interface{}{
+									"name": "John Doe",
+								},
+							},
+						},
+					})
+
+				gock.New("https://example.com").
+					Post("/see-mutated-thing").
+					JSON(mutatedEvent).
+					HeaderPresent(HeaderRequestBodySignature).
+					Reply(200).
+					JSON(map[string]interface{}{
+						"is_allowed": true,
+					})
+
+				defer func() { gock.Flush() }()
+
+				stdAttrsService.EXPECT().UpdateStandardAttributes(
+					config.RolePortalUI,
+					gomock.Any(),
+					map[string]interface{}{
+						"name": "John Doe",
+					},
+				).Times(1).Return(nil)
+
+				err := deliverer.DeliverBlockingEvent(originalEvent)
+
+				So(err, ShouldBeNil)
+				So(gock.IsDone(), ShouldBeTrue)
+			})
+
 			Convey("should disallow operation", func() {
 				cfg.BlockingHandlers = []config.BlockingHandlersConfig{
 					{
@@ -151,9 +241,6 @@ func TestDeliverer(t *testing.T) {
 					JSON(map[string]interface{}{
 						"is_allowed": false,
 						"reason":     "nope",
-						"data": map[string]interface{}{
-							"extra": 123,
-						},
 					})
 				defer func() { gock.Flush() }()
 

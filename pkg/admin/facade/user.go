@@ -20,8 +20,11 @@ type UserService interface {
 	Count() (uint64, error)
 	QueryPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
 	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
-	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 	Delete(userID string) error
+}
+
+type StdAttrsService interface {
+	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
 type UserSearchService interface {
@@ -32,6 +35,7 @@ type UserSearchService interface {
 type UserFacade struct {
 	UserSearchService UserSearchService
 	Users             UserService
+	StdAttrsService   StdAttrsService
 	Interaction       InteractionService
 }
 
@@ -126,7 +130,7 @@ func (f *UserFacade) Delete(id string) error {
 }
 
 func (f *UserFacade) UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error {
-	err := f.Users.UpdateStandardAttributes(role, id, stdAttrs)
+	err := f.StdAttrsService.UpdateStandardAttributes(role, id, stdAttrs)
 	if err != nil {
 		return err
 	}

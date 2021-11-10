@@ -19,6 +19,7 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	libfacade "github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
+	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -43,6 +44,7 @@ var DependencySet = wire.NewSet(
 
 	facade.DependencySet,
 	wire.Bind(new(facade.UserService), new(*libfacade.UserFacade)),
+	wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
 	wire.Bind(new(facade.UserSearchService), new(*libes.Service)),
 	wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),

@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
@@ -29,6 +28,9 @@ func ConfigureSettingsProfileEditRoute(route httproute.Route) httproute.Route {
 
 type SettingsProfileEditUserService interface {
 	GetRaw(id string) (*user.User, error)
+}
+
+type SettingsProfileEditStdAttrsService interface {
 	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
@@ -38,6 +40,7 @@ type SettingsProfileEditHandler struct {
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Renderer                 Renderer
 	Users                    SettingsProfileEditUserService
+	StdAttrs                 SettingsProfileEditStdAttrsService
 	ErrorCookie              *webapp.ErrorCookie
 }
 
@@ -84,32 +87,19 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		PatchGenderForm(r.Form)
 		m := JSONPointerFormToMap(r.Form)
 
-		writeErr := func(inputErr error) error {
-			result := webapp.Result{
-				RedirectURI: r.URL.Path,
-			}
-			cookie, err := h.ErrorCookie.SetError(r, apierrors.AsAPIError(inputErr))
-			if err != nil {
-				return err
-			}
-			result.Cookies = append(result.Cookies, cookie)
-			result.WriteResponse(w, r)
-			return nil
-		}
-
 		u, err := h.Users.GetRaw(userID)
 		if err != nil {
-			return writeErr(err)
+			return err
 		}
 
 		attrs, err := stdattrs.T(u.StandardAttributes).MergedWithJSONPointer(m)
 		if err != nil {
-			return writeErr(err)
+			return err
 		}
 
-		err = h.Users.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
+		err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
 		if err != nil {
-			return writeErr(err)
+			return err
 		}
 
 		result := webapp.Result{RedirectURI: "/settings/profile"}
