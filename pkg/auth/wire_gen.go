@@ -17668,6 +17668,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
@@ -18265,6 +18266,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Publisher:     publisher,
 		Clock:         clockClock,
 		UIConfig:      uiConfig,
+		ErrorCookie:   errorCookie,
 		TrustProxy:    trustProxy,
 	}
 	controllerFactory := webapp2.ControllerFactory{
