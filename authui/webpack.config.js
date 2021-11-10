@@ -6,24 +6,21 @@ module.exports = {
   target: "browserslist",
   entry: {
     authgear: path.resolve(__dirname, "src/authgear.ts"),
-    "password-policy": path.resolve(__dirname, "src/password-policy.ts"),
   },
   output: {
     path: path.resolve(__dirname, "../resources/authgear/static"),
-    filename: "[name].js"
+    filename: "[name].js",
   },
-  plugins: [
-    new webpack.ProgressPlugin(),
-  ],
+  plugins: [new webpack.ProgressPlugin()],
   module: {
     rules: [
       {
         test: /\.(js|ts)$/,
-        loader: "babel-loader"
+        loader: "babel-loader",
       },
-    ]
+    ],
   },
   resolve: {
-    extensions: [".js", ".ts"]
-  }
+    extensions: [".js", ".ts"],
+  },
 };

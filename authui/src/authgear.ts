@@ -1,6 +1,7 @@
 import Turbolinks from "turbolinks";
 import { init } from "./core";
 import { setupIntlTelInput } from "./intlTelInput";
+import { setupPasswordPolicy } from "./password-policy";
 import {
   clickLinkSubmitForm,
   autoSubmitForm,
@@ -17,6 +18,8 @@ init();
 window.api.onLoad(() => {
   document.body.classList.add("js");
 });
+
+window.api.onLoad(setupPasswordPolicy);
 
 window.api.onLoad(setupIntlTelInput);
 

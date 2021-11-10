@@ -16,10 +16,6 @@ var WebJS = resource.RegisterResource(JavaScriptDescriptor{
 	Path: StaticAssetResourcePrefix + "authgear.js",
 })
 
-var PasswordPolicyJS = resource.RegisterResource(JavaScriptDescriptor{
-	Path: StaticAssetResourcePrefix + "password-policy.js",
-})
-
 var AuthgearLightThemeCSS = resource.RegisterResource(CSSDescriptor{
 	Path: StaticAssetResourcePrefix + "authgear-light-theme.css",
 })

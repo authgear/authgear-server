@@ -1,4 +1,3 @@
-/// <reference path="./core.ts" />
 import zxcvbn from "zxcvbn";
 
 function checkPasswordLength(value: string, el: HTMLInputElement | null) {
@@ -93,7 +92,7 @@ function checkPasswordPolicy(e: Event) {
   checkPasswordStrength(value);
 }
 
-window.api.onLoad(() => {
+export function setupPasswordPolicy(): () => void {
   const elems = document.querySelectorAll("[data-password-policy-password]");
   for (let i = 0; i < elems.length; i++) {
     elems[i].addEventListener("input", checkPasswordPolicy);
@@ -104,4 +103,4 @@ window.api.onLoad(() => {
       elems[i].removeEventListener("input", checkPasswordPolicy);
     }
   };
-});
+}
