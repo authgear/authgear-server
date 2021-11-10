@@ -5,6 +5,7 @@
 /var/authgear.features.yaml
 /tls-cert.pem
 /tls-key.pem
+/authui/.parcel-cache
 
 # docker
 docker-compose.override.yaml
@@ -17,6 +18,5 @@ node_modules/
 
 # compiled static files
 resources/authgear/static/authgear.js
-resources/authgear/static/password-policy.js
 resources/portal/static/
 !resources/portal/static/img/logo.png
