@@ -133,36 +133,41 @@ window.api.onLoad(() => {
 
 // Handle message bar close button
 window.api.onLoad(() => {
-  const wrappers = document.querySelectorAll(".messages-bar");
   const disposers: Array<() => void> = [];
+  const closeButtons = document.querySelectorAll("[data-close-button-target]");
 
-  for (let i = 0; i < wrappers.length; i++) {
-    const wrapper = wrappers[i];
-    const close = wrapper.querySelector(".close");
-    if (!close) {
+  for (let i = 0; i < closeButtons.length; i++) {
+    const closeButton = closeButtons[i];
+
+    const targetID = closeButton.getAttribute("data-close-button-target");
+    if (targetID == null) {
+      continue;
+    }
+
+    const target = document.getElementById(targetID);
+    if (target == null) {
       continue;
     }
 
     const onCloseButtonClick = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
-      wrapper.classList.remove("flex");
-      wrapper.classList.add("hidden");
+      target.classList.add("hidden");
     };
 
     // Close the message bar before cache the page.
     // So that the cached page does not have the message bar shown.
     // See https://github.com/authgear/authgear-server/issues/1424
     const beforeCache = () => {
-      if (close instanceof HTMLElement) {
-        close.click();
+      if (closeButton instanceof HTMLElement) {
+        closeButton.click();
       }
     };
 
-    close.addEventListener("click", onCloseButtonClick);
+    closeButton.addEventListener("click", onCloseButtonClick);
     document.addEventListener("turbolinks:before-cache", beforeCache);
     disposers.push(() => {
-      close.removeEventListener("click", onCloseButtonClick);
+      closeButton.removeEventListener("click", onCloseButtonClick);
       document.removeEventListener("turbolinks:before-cache", beforeCache);
     });
   }
