@@ -24,8 +24,8 @@ var StaticAssetResources = map[string]resource.Descriptor{
 	"authgear-light-theme.css": AuthgearLightThemeCSS,
 	"authgear-dark-theme.css":  AuthgearDarkThemeCSS,
 
-	"normalize.min.css":     NormalizeCSS,
-	"normalize.min.css.map": NormalizeCSSMap,
+	"tailwind.css":     TailwindCSS,
+	"tailwind.css.map": TailwindCSSMap,
 
 	"tabler-icons.min.css":     IconsCSS,
 	"fonts/tabler-icons.eot":   IconsFontEOT,
