@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .twc-title-icon {
+    @apply w-5 flex items-center;
+  }
+}

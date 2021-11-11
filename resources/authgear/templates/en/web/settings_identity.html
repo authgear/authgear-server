@@ -57,8 +57,8 @@
     <div class="flex flex-col row-gap-4 flex-1">
 
       {{/* Row */}}
-      <div class="flex flex-row">
-        <i class="w-6 justify-self-start margin-0 primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
+      <div class="flex flex-row column-gap-8">
+        <i class="twc-title-icon primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
         <p class="margin-0 primary-txt text-base">
           {{ if eq .type "oauth" }}
             {{ if eq .provider_type "google" }}{{ template "settings-identity-oauth-google" }}{{ end }}
