@@ -1,28 +1,40 @@
 package tzutil
 
 import (
+	"fmt"
 	"sort"
 	"time"
 )
+
+func AsTimezone(name string, ref time.Time) (tz *Timezone, err error) {
+	loc, err := time.LoadLocation(name)
+	if err != nil {
+		return
+	}
+	t := ref.In(loc)
+	_, offset := t.Zone()
+	formattedOffset := t.Format("-07:00")
+	displayLabel := fmt.Sprintf("[UTC %s] %s", formattedOffset, name)
+	tz = &Timezone{
+		Name:            name,
+		Ref:             ref,
+		Offset:          offset,
+		FormattedOffset: formattedOffset,
+		Location:        loc,
+		DisplayLabel:    displayLabel,
+	}
+	return
+}
 
 // List returns a list of embedded timezones.
 func List(ref time.Time) ([]Timezone, error) {
 	var out []Timezone
 	for _, name := range timezoneNames {
-		loc, err := time.LoadLocation(name)
+		tz, err := AsTimezone(name, ref)
 		if err != nil {
 			return nil, err
 		}
-		t := ref.In(loc)
-		_, offset := t.Zone()
-		formattedOffset := t.Format("-07:00")
-		out = append(out, Timezone{
-			Name:            name,
-			Ref:             ref,
-			Offset:          offset,
-			FormattedOffset: formattedOffset,
-			Location:        loc,
-		})
+		out = append(out, *tz)
 	}
 
 	sort.Slice(out, func(i, j int) bool {
