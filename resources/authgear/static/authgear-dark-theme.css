@@ -258,3 +258,12 @@
     background-color: var(--color-wechat-shaded-2);
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-calendar-picker-indicator {
+    /* Chrome <= 95 show this icon as black even in dark mode. */
+    /* Chrome <= 95 requires the user to click this icon to open the picker. */
+    /* Other browsers do not have such icon */
+    filter: invert(100%);
+  }
+}
