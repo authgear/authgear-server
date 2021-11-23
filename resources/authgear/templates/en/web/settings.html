@@ -46,7 +46,7 @@
     </h1>
   </div>
 
-  <div class="padding-20 row-sep flex flex-col row-gap-4">
+  <div class="padding-20 row-sep grid grid-cols-1 auto-rows-auto gap-y-1">
     <h2 class="margin-0 primary-txt text-base font-semibold">
       {{ template "settings-identity-title" }}
     </h2>
@@ -92,7 +92,7 @@
     {{ if eq .login_id_type "phone" }}   {{ $ti = "ti ti-device-mobile" }}   {{ end }}
     {{ end }}
 
-    <div class="flex flex-col row-gap-4 flex-1">
+    <div class="grid grid-cols-1 auto-rows-auto gap-y-1 flex-1">
 
       {{/* Row */}}
       <div class="flex flex-row column-gap-8">
@@ -251,7 +251,7 @@
 
 <div class="pane grid grid grid-cols-1 auto-rows-auto gap-y-2.5 padding-t-16 padding-b-20">
 <!-- The title and the description -->
-<div class="padding-h-20 flex flex-col row-gap-4">
+<div class="padding-h-20 grid grid-cols-1 auto-rows-auto gap-y-1">
   <h1 class="margin-0 primary-txt text-xl font-bold">
     {{ template "settings-page-security-section-title" }}
   </h1>
