@@ -73,7 +73,7 @@
   {{ $show_more_button = (or ($show_more_button) ($is_hidden)) }}
 
   {{ if not $is_hidden }}
-  <section class="padding-20 row-sep flex flex-row column-gap-8">
+  <section class="padding-20 row-sep flex flex-row space-x-2">
     {{ $ti := "" }}
 
     {{ if eq .type "oauth" }}
@@ -95,7 +95,7 @@
     <div class="grid grid-cols-1 auto-rows-auto gap-y-1 flex-1">
 
       {{/* Row */}}
-      <div class="flex flex-row column-gap-8">
+      <div class="flex flex-row space-x-2">
         <i class="twc-title-icon primary-txt text-base {{ $ti }}" aria-hidden="true"></i>
         <p class="margin-0 primary-txt text-base">
           {{ if eq .type "oauth" }}

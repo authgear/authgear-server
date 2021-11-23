@@ -19,7 +19,7 @@
 <div class="twc-container-vertical row-sep padding-v-20">
 {{ range $.SessionGroups }}
 <div class="padding-h-20 flex flex-col divide-y">
-  <div class="flex flex-row padding-v-6 items-center column-gap-8">
+  <div class="flex flex-row space-x-2 padding-v-6 items-center">
     {{ $icon := "" }}
     {{ if eq .Type "grouped" }}{{ $icon = "devices" }}{{ else }}{{ $icon = "device-laptop" }}{{ end }}
     <i class="twc-title-icon ti ti-{{ $icon }} primary-txt text-sm" aria-hidden="true"></i>
