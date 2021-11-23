@@ -98,7 +98,7 @@
 			{{ end }}{{ end }}
 
 			{{ if $has_oauth }}
-			<div class="flex flex-col row-gap-8">
+			<div class="grid grid-cols-1 auto-rows-auto gap-y-2">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				<form class="flex flex-col" method="post" novalidate>

@@ -48,7 +48,7 @@
 >
 {{ end }}
 
-<div class="flex flex-col row-gap-8 margin-t-20">
+<div class="grid grid-cols-1 auto-rows-auto gap-y-2 margin-t-20">
 	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
 	{{ if .IdentityID }}{{ if gt $.IdentityCount 1 }}
