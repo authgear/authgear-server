@@ -17,31 +17,31 @@
   {{ if (call $.IsEditable "/name") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-name" }}
-    <input class="input text-input text-base" name="/name" value="{{ $.Name }}">
+    <input class="primary-txt input text-input text-base" name="/name" value="{{ $.Name }}">
   </label>
   {{ end }}
   {{ if (call $.IsEditable "/nickname") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-nickname" }}
-    <input class="input text-input text-base" name="/nickname" value="{{ $.Nickname }}">
+    <input class="primary-txt input text-input text-base" name="/nickname" value="{{ $.Nickname }}">
   </label>
   {{ end }}
   {{ if (call $.IsEditable "/given_name") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-given-name" }}
-    <input class="input text-input text-base" name="/given_name" value="{{ $.GivenName }}">
+    <input class="primary-txt input text-input text-base" name="/given_name" value="{{ $.GivenName }}">
   </label>
   {{ end }}
   {{ if (call $.IsEditable "/middle_name") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-middle-name" }}
-    <input class="input text-input text-base" name="/middle_name" value="{{ $.MiddleName }}">
+    <input class="primary-txt input text-input text-base" name="/middle_name" value="{{ $.MiddleName }}">
   </label>
   {{ end }}
   {{ if (call $.IsEditable "/family_name") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-family-name" }}
-    <input class="input text-input text-base" name="/family_name" value="{{ $.FamilyName }}">
+    <input class="primary-txt input text-input text-base" name="/family_name" value="{{ $.FamilyName }}">
   </label>
   {{ end }}
   {{ end }}
@@ -49,7 +49,7 @@
   {{ if (eq $.Variant "email") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-email" }}
-    <select class="select" name="/email" {{ if not $.Emails }}disabled{{ end }}>
+    <select class="primary-txt select" name="/email" {{ if not $.Emails }}disabled{{ end }}>
       {{ range $.Emails }}
       <option value="{{ . }}" {{ if (eq $.Email .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
@@ -64,7 +64,7 @@
   {{ if (eq $.Variant "phone_number") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-phone-number" }}
-    <select class="select" name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}>
+    <select class="primary-txt select" name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}>
       {{ range $.PhoneNumbers }}
       <option value="{{ . }}" {{ if (eq $.PhoneNumber .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
@@ -79,7 +79,7 @@
   {{ if (eq $.Variant "preferred_username") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-preferred-username" }}
-    <select class="select" name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}>
+    <select class="primary-txt select" name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}>
       {{ range $.PreferredUsernames }}
       <option value="{{ . }}" {{ if (eq $.PreferredUsername .) }}selected{{ end }}>{{ . }}</option>
       {{ end }}
@@ -95,7 +95,7 @@
   {{ if (call $.IsEditable "/profile") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-profile" }}
-    <input class="input text-input text-base" name="/profile" value="{{ $.Profile }}">
+    <input class="primary-txt input text-input text-base" name="/profile" value="{{ $.Profile }}">
   </label>
   {{ end }}
   {{ end }}
@@ -104,7 +104,7 @@
   {{ if (call $.IsEditable "/website") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-website" }}
-    <input class="input text-input text-base" name="/website" value="{{ $.Website }}">
+    <input class="primary-txt input text-input text-base" name="/website" value="{{ $.Website }}">
   </label>
   {{ end }}
   {{ end }}
@@ -113,25 +113,25 @@
   {{ if (call $.IsEditable "/address") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-street-address" }}
-    <textarea class="input text-base" rows="3" name="/address/street_address">
+    <textarea class="primary-txt input text-base" rows="3" name="/address/street_address">
       {{- $.AddressStreetAddress -}}
     </textarea>
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-locality" }}
-    <input class="input text-input text-base" name="/address/locality" value="{{ $.AddressLocality }}">
+    <input class="primary-txt input text-input text-base" name="/address/locality" value="{{ $.AddressLocality }}">
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-postal-code" }}
-    <input class="input text-input text-base" name="/address/postal_code" value="{{ $.AddressPostalCode }}">
+    <input class="primary-txt input text-input text-base" name="/address/postal_code" value="{{ $.AddressPostalCode }}">
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-region" }}
-    <input class="input text-input text-base" name="/address/region" value="{{ $.AddressRegion }}">
+    <input class="primary-txt input text-input text-base" name="/address/region" value="{{ $.AddressRegion }}">
   </label>
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-country" }}
-    <select class="select" name="/address/country">
+    <select class="primary-txt select" name="/address/country">
       <option value="" {{ if not $.AddressCountry }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Alpha2 }}
       {{ $label := (print "territory-" . ) }}
@@ -146,7 +146,7 @@
   {{ if (call $.IsEditable "/birthdate") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-birthdate" }}
-    <input class="input text-input text-base" type="date" name="/birthdate" value="{{ $.Birthdate }}" max="{{ $.Today }}">
+    <input class="primary-txt input text-input text-base" type="date" name="/birthdate" value="{{ $.Birthdate }}" max="{{ $.Today }}">
   </label>
   {{ end }}
   {{ end }}
@@ -155,14 +155,14 @@
   {{ if (call $.IsEditable "/gender") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-gender" }}
-    <select class="select" name="gender-select" data-gender-select="gender-input">
+    <select class="primary-txt select" name="gender-select" data-gender-select="gender-input">
       <option value="" {{ if not $.Gender }}selected{{ end }}>{{ template "unset-label" }}</option>
       <option value="female" {{ if (eq $.Gender "female") }}selected{{ end }}>{{ template "gender-female" }}</option>
       <option value="male" {{ if (eq $.Gender "male") }}selected{{ end }}>{{ template "gender-male" }}</option>
       <option value="other" {{ if (and (not (eq $.Gender "female")) (not (eq $.Gender "male")) $.Gender) }}selected{{ end }}>{{ template "settings-profile-edit-gender-other" }}</option>
     </select>
   </label>
-  <input id="gender-input" class="input text-input text-base" name="gender-input" value="{{ $.Gender }}">
+  <input id="gender-input" class="primary-txt input text-input text-base" name="gender-input" value="{{ $.Gender }}">
   {{ end }}
   {{ end }}
 
@@ -170,7 +170,7 @@
   {{ if (call $.IsEditable "/zoneinfo") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-zoneinfo" }}
-    <select class="select" name="/zoneinfo">
+    <select class="primary-txt select" name="/zoneinfo">
       <option value="" {{ if not $.Zoneinfo }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Timezones }}
       <option value="{{ .Name }}" {{ if (eq $.Zoneinfo .Name) }}selected{{ end }}>[UTC {{ .FormattedOffset }}] {{ .Name }}</option>
@@ -184,7 +184,7 @@
   {{ if (call $.IsEditable "/locale") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-locale" }}
-    <select class="select" name="/locale">
+    <select class="primary-txt select" name="/locale">
       <option value="" {{ if not $.Locale }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Languages }}
       {{ $label := (print "language-" . ) }}
