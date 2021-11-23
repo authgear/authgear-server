@@ -10,4 +10,5 @@ type Timezone struct {
 	Offset          int
 	FormattedOffset string
 	Location        *time.Location
+	DisplayLabel    string
 }

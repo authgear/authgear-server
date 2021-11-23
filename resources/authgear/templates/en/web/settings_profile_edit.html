@@ -173,7 +173,7 @@
     <select class="primary-txt select" name="/zoneinfo">
       <option value="" {{ if not $.Zoneinfo }}selected{{ end }}>{{ template "unset-label" }}</option>
       {{ range $.Timezones }}
-      <option value="{{ .Name }}" {{ if (eq $.Zoneinfo .Name) }}selected{{ end }}>[UTC {{ .FormattedOffset }}] {{ .Name }}</option>
+      <option value="{{ .Name }}" {{ if (eq $.Zoneinfo .Name) }}selected{{ end }}>{{ .DisplayLabel }}</option>
       {{ end }}
     </select>
   </label>

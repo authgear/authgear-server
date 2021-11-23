@@ -41,6 +41,7 @@ type SettingsProfileViewModel struct {
 	Gender               string
 	Birthdate            string
 	Zoneinfo             string
+	ZoneinfoTimezone     *tzutil.Timezone
 	Locale               string
 	AddressStreetAddress string
 	AddressLocality      string
@@ -131,6 +132,15 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		return level == config.AccessControlLevelReadwrite
 	}
 
+	zoneinfo := str(stdattrs.Zoneinfo)
+	var zoneinfoTimezone *tzutil.Timezone
+	if zoneinfo != "" {
+		zoneinfoTimezone, err = tzutil.AsTimezone(zoneinfo, now)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	viewModel := &SettingsProfileViewModel{
 		FormattedName:    stdattrs.T(stdAttrs).FormattedName(),
 		EndUserAccountID: stdattrs.T(stdAttrs).EndUserAccountID(),
@@ -160,7 +170,8 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		PreferredUsername:    str(stdattrs.PreferredUsername),
 		Gender:               str(stdattrs.Gender),
 		Birthdate:            str(stdattrs.Birthdate),
-		Zoneinfo:             str(stdattrs.Zoneinfo),
+		Zoneinfo:             zoneinfo,
+		ZoneinfoTimezone:     zoneinfoTimezone,
 		Locale:               str(stdattrs.Locale),
 		AddressStreetAddress: addressStr(stdattrs.StreetAddress),
 		AddressLocality:      addressStr(stdattrs.Locality),
