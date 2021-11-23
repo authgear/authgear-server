@@ -1,7 +1,7 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
 <h1 class="margin-0 primary-txt text-center text-xl font-bold">
 	{{ if $.IdentityID }}
@@ -17,7 +17,7 @@
 </p>
 {{ end }}
 
-<form id="main-form" class="flex flex-col row-gap-20" method="post" novalidate>
+<form id="main-form" class="twc-container-vertical" method="post" novalidate>
 
 {{ $.CSRFField }}
 
@@ -48,7 +48,7 @@
 >
 {{ end }}
 
-<div class="flex flex-col row-gap-8 margin-t-20">
+<div class="grid grid-cols-1 auto-rows-auto gap-y-2 margin-t-20">
 	<button form="main-form" class="btn primary-btn" type="submit" name="x_action" value="add_or_update">{{ template "next-button-label" }}</button>
 
 	{{ if .IdentityID }}{{ if gt $.IdentityCount 1 }}

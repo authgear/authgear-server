@@ -1,13 +1,13 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 	<h1 class="margin-0 primary-txt text-center text-xl font-bold">
 		{{ template "recovery-code-title" }}
 	</h1>
 
 	<p class="text-sm primary-txt text-center margin-0 whitespace-pre-wrap">{{ template "recovery-code-storage-description" }}</p>
-	<ol class="recovery-code-list margin-0 padding-v-20 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 column-gap-20">
+	<ol class="recovery-code-list margin-0 padding-v-20 padding-inline-end-20 grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2 gap-x-5">
 		{{ range $.RecoveryCodes }}
 			<li class="font-mono whitespace-pre text-base leading-none margin-h-20 place-self-center">{{ . }}</li>
 		{{ end }}
@@ -16,7 +16,7 @@
 
 	<p class="text-sm primary-txt text-center margin-0">{{ template "recovery-code-consumption-description" }}</p>
 
-	<div class="margin-t-20 grid gap-8 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
+	<div class="margin-t-20 grid gap-4 grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-2">
 		{{ if $.IsSupportedMobilePlatform }}
 			<div>
 				<button

@@ -4,7 +4,7 @@
   "scripts": {
     "typecheck": "tsc -b",
     "format": "prettier --write --list-different ./src/*.ts",
-    "build": "parcel build src/authgear.ts src/tailwind.css --dist-dir ../resources/authgear/static"
+    "build": "parcel build --no-cache src/authgear.ts src/tailwind.css --dist-dir ../resources/authgear/static"
   },
   "devDependencies": {
     "@types/luxon": "2.0.4",

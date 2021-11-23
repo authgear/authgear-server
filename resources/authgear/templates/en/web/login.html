@@ -20,8 +20,8 @@
 		</div>
 		{{ end }}{{ end }}
 
-		<div class="flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
-			<form class="flex flex-col row-gap-20" method="post" novalidate>
+		<div class="twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+			<form class="twc-container-vertical" method="post" novalidate>
 				{{ $.CSRFField }}
 
 				<h1 class="margin-0 primary-txt text-center text-xl font-bold">
@@ -88,7 +88,7 @@
 			{{ end }}{{ end }}
 
 			{{ if $has_oauth }}
-			<div class="flex flex-col row-gap-8">
+			<div class="grid grid-cols-1 auto-rows-auto gap-y-2">
 				{{ range $.IdentityCandidates }}
 				{{ if eq .type "oauth" }}
 				<form class="flex flex-col" method="post" novalidate>

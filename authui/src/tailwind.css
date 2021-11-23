@@ -6,4 +6,8 @@
   .twc-title-icon {
     @apply w-5 flex items-center;
   }
+
+  .twc-container-vertical {
+    @apply grid grid-cols-1 auto-rows-auto gap-y-5;
+  }
 }
