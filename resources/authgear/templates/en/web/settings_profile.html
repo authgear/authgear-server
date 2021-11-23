@@ -8,7 +8,7 @@
 
   {{/* picture */}}
   {{ if (call $.IsReadable "/picture") }}
-  <div class="padding-20 row-sep gap-12 grid grid-cols-1fr-auto grid-rows-auto-auto">
+  <div class="padding-20 row-sep gap-3 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <div class="col-start-1 col-span-1 row-start-1 row-span-1">{{ template "standard-attribute-picture" }}</div>
     <img class="col-start-1 col-span-1 row-start-2 row-span-1 rounded-full bg-center bg-cover bg-no-repeat w-20 h-20"
       {{ if $.Picture }}
