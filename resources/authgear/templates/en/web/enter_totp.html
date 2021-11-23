@@ -1,13 +1,13 @@
 {{ template "__page_frame.html" . }}
 
 {{ define "page-content" }}
-<div class="pane flex flex-col row-gap-20 padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
 
 <h1 class="text-center margin-0 text-xl font-bold">{{ template "enter-totp-title" }}</h1>
 
 <p class="text-sm break-words primary-txt text-center margin-0">{{ template "enter-totp-description" }}</p>
 
-<form id="main-form" class="flex flex-col row-gap-20" method="post" novalidate>
+<form id="main-form" class="twc-container-vertical" method="post" novalidate>
 {{ $.CSRFField }}
 
 <input
