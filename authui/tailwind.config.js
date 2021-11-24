@@ -6,6 +6,9 @@ module.exports = {
       spacing: {
         18: "4.5rem",
       },
+      maxWidth: {
+        90: "90rem",
+      },
     },
     screens: {
       tablet: "640px",
