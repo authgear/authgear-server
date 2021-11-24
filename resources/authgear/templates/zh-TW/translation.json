@@ -24,6 +24,7 @@
   "error-new-password-required": "請輸入新密碼",
   "error-confirm-password-required": "請再輸入新密碼",
   "error-email-required": "請輸入電郵地址",
+  "error-phone-number-required": "請輸入電話號碼",
   "error-phone-number-format": "你所輸入的電話號碼格式不正確。請先選擇你的國家或地區，然後以撥號的方式，輸入電話號碼",
   "error-invalid-email": "你所輸入的電郵地址格式不正確。請確保電郵地址有@字符，然後緊接著域名，例如user@example.com",
   "error-invalid-username": "你所輸入的用戶名稱格式不正確。請嘗試使用一個只含英數字(a-z, A-Z, and 0-9)的用戶名稱",

@@ -46,6 +46,8 @@
                             <li>{{ template "error-confirm-password-required" }}</li>
                         {{ else if (call $.SliceContains .details.missing "x_email" ) }}
                             <li>{{ template "error-email-required" }}</li>
+                        {{ else if (call $.SliceContains .details.missing "x_e164" ) }}
+                            <li>{{ template "error-phone-number-required" }}</li>
                         {{ else }}
                             <li>{{ . }}</li>
                         {{ end }}
