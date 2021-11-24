@@ -2,17 +2,19 @@
 <!DOCTYPE html>
 <html lang="{{ $.ResolvedLanguageTag }}">
 {{ template "__html_head.html" . }}
-<body class="page flex flex-col">
-    {{ template "__message_bar.html" . }}
-    <div class="grid grid-cols-6 tablet:grid-cols-12 desktop:grid-cols-12 gap-x-4 auto-rows-auto margin-h-16 tablet:margin-h-16 desktop:margin-h-24 margin-b-32">
-	<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4">
-	    {{ template "__header.html" . }}
+<body class="page">
+{{ template "__message_bar.html" . }}
+<div class="max-w-90 m-auto">
+	<div class="grid grid-cols-6 tablet:grid-cols-12 desktop:grid-cols-12 gap-x-4 auto-rows-auto margin-h-16 tablet:margin-h-16 desktop:margin-h-24 margin-b-32">
+		<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4">
+			{{ template "__header.html" . }}
+		</div>
+		<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4 twc-container-vertical">
+			{{ template "page-content" . }}
+		</div>
 	</div>
-	<div class="col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-5 desktop:col-span-4 twc-container-vertical">
-	{{ template "page-content" . }}
-	</div>
-    </div>
-    {{ template "__modal.html" }}
+</div>
+{{ template "__modal.html" }}
 </body>
 </html>
 {{ end }}
