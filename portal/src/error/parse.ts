@@ -184,27 +184,6 @@ function parseError(error: APIError): ParsedAPIError[] {
   return errors;
 }
 
-export function renderErrors(
-  errors: readonly ParsedAPIError[],
-  renderMessage: (id: string, args: Values) => string
-): string | undefined {
-  if (errors.length === 0) {
-    return undefined;
-  }
-  return errors.map((err) => renderError(err, renderMessage)).join("\n");
-}
-
-export function renderError(
-  error: ParsedAPIError,
-  renderMessage: (id: string, args: Values) => string
-): string {
-  if (error.messageID) {
-    const args: Values = { ...error.arguments };
-    return renderMessage(error.messageID, args);
-  }
-  return error.message ?? "";
-}
-
 interface BaseErrorParseRule {
   reason: string;
   errorMessageID: string;

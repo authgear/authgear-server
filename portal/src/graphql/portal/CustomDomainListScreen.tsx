@@ -37,7 +37,6 @@ import {
   ErrorParseRule,
   parseAPIErrors,
   parseRawError,
-  renderErrors,
 } from "../../error/parse";
 import ErrorDialog from "../../error/ErrorDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -53,6 +52,7 @@ import {
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import ScreenContent from "../../ScreenContent";
 import Widget from "../../Widget";
+import ErrorRenderer from "../../ErrorRenderer";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme
@@ -189,7 +189,6 @@ const AddDomainSection: React.FC = function AddDomainSection() {
     );
     return topErrors;
   }, [createDomainError, errorRules]);
-  const errorMessage = renderErrors(errors, renderToString);
 
   return (
     <form className={styles.addDomain} onSubmit={onAddClick}>
@@ -200,7 +199,9 @@ const AddDomainSection: React.FC = function AddDomainSection() {
         )}
         value={newDomain}
         onChange={onNewDomainChange}
-        errorMessage={errorMessage}
+        errorMessage={
+          errors.length > 0 ? <ErrorRenderer errors={errors} /> : undefined
+        }
       />
       <ButtonWithLoading
         type="submit"
