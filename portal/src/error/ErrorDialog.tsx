@@ -1,19 +1,14 @@
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { Dialog, DialogFooter, PrimaryButton } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
-
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ErrorParseRule,
-  parseAPIErrors,
-  parseRawError,
-  renderErrors,
-} from "./parse";
+  Dialog,
+  DialogFooter,
+  IDialogContentProps,
+  PrimaryButton,
+} from "@fluentui/react";
+import { FormattedMessage } from "@oursky/react-messageformat";
+
+import { ErrorParseRule, parseAPIErrors, parseRawError } from "./parse";
+import ErrorRenderer from "../ErrorRenderer";
 
 interface ErrorDialogProps {
   error: unknown;
@@ -25,32 +20,27 @@ const ErrorDialog: React.FC<ErrorDialogProps> = function ErrorDialog(
   props: ErrorDialogProps
 ) {
   const { error, rules, fallbackErrorMessageID } = props;
-  const { renderToString } = useContext(Context);
 
   const { topErrors } = useMemo(() => {
     const apiErrors = parseRawError(error);
     return parseAPIErrors(apiErrors, [], rules ?? [], fallbackErrorMessageID);
   }, [error, rules, fallbackErrorMessageID]);
 
-  const message = useMemo(
-    () => renderErrors(topErrors, renderToString),
-    [topErrors, renderToString]
-  );
-
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (message != null) {
+    if (error != null) {
       setVisible(true);
     }
-  }, [message]);
+  }, [error]);
 
-  const errorDialogContentProps = useMemo(() => {
+  // @ts-expect-error
+  const errorDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       title: <FormattedMessage id="error" />,
-      subText: message,
+      subText: <ErrorRenderer errors={topErrors} />,
     };
-  }, [message]);
+  }, [topErrors]);
 
   const onDismiss = useCallback(() => {
     setVisible(false);

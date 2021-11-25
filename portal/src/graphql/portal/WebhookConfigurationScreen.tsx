@@ -29,18 +29,17 @@ import {
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
-import { useFormField } from "../../form";
 import FieldList from "../../FieldList";
 import FormContainer from "../../FormContainer";
+import FormTextField from "../../FormTextField";
 import { clearEmptyObject } from "../../util/misc";
 import { parseIntegerAllowLeadingZeros } from "../../util/input";
 import styles from "./WebhookConfigurationScreen.module.scss";
-import { renderErrors } from "../../error/parse";
 import WidgetDescription from "../../WidgetDescription";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
-import { useErrorMessage } from "../../formbinding";
+import { useErrorMessage, useErrorMessageString } from "../../formbinding";
 
 interface BlockingEventHandler {
   event: string;
@@ -126,7 +125,7 @@ const BlockingHandlerItemEdit: React.FC<BlockingHandlerItemEditProps> =
       }),
       [index]
     );
-    const eventFieldProps = useErrorMessage(eventField);
+    const eventFieldProps = useErrorMessageString(eventField);
     const urlFieldProps = useErrorMessage(urlField);
 
     const onBlockingEventChange = useCallback(
@@ -198,21 +197,6 @@ interface NonBlockingHandlerItemEditProps {
 const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
   function NonBlockingHandlerItemEdit(props) {
     const { index, value, onChange } = props;
-    const { renderToString } = useContext(Context);
-
-    const urlField = useMemo(
-      () => ({
-        parentJSONPointer: `/hook/non_blocking_handlers/${index}`,
-        fieldName: "url",
-      }),
-      [index]
-    );
-    const { errors: urlErrors } = useFormField(urlField);
-    // FIXME: use formbinding
-    const urlErrorMessage = useMemo(
-      () => renderErrors(urlErrors, renderToString),
-      [urlErrors, renderToString]
-    );
 
     const onURLChange = useCallback(
       (_, url?: string) => {
@@ -223,11 +207,12 @@ const NonBlockingHandlerItemEdit: React.FC<NonBlockingHandlerItemEditProps> =
 
     return (
       <div className={styles.handlerEdit}>
-        <TextField
+        <FormTextField
+          parentJSONPointer={`/hook/non_blocking_handlers/${index}`}
+          fieldName="url"
           className={styles.handlerURLField}
           value={value.url}
           onChange={onURLChange}
-          errorMessage={urlErrorMessage}
           placeholder="https://example.com/callback"
         />
       </div>

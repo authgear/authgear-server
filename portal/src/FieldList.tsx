@@ -1,10 +1,10 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import cn from "classnames";
 import { ActionButton, IconButton, Stack, Text } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { useFormField } from "./form";
-import { renderErrors } from "./error/parse";
+import ErrorRenderer from "./ErrorRenderer";
 
 import styles from "./FieldList.module.scss";
 
@@ -44,7 +44,6 @@ const FieldList = function FieldList<T>(
   } = props;
 
   const { themes } = useSystemConfig();
-  const { renderToString } = useContext(Context);
 
   const field = useMemo(
     () => ({
@@ -54,10 +53,6 @@ const FieldList = function FieldList<T>(
     [parentJSONPointer, fieldName]
   );
   const { errors } = useFormField(field);
-  const errorMessage = useMemo(
-    () => renderErrors(errors, renderToString),
-    [errors, renderToString]
-  );
 
   const onItemChange = useCallback(
     (index: number, newValue: T) => {
@@ -98,7 +93,9 @@ const FieldList = function FieldList<T>(
           />
         ))}
       </Stack>
-      <Text className={styles.errorMessage}>{errorMessage}</Text>
+      <Text className={styles.errorMessage}>
+        <ErrorRenderer errors={errors} />
+      </Text>
       <ActionButton
         className={cn(styles.addButton, {
           [styles.readOnly]: addDisabled,

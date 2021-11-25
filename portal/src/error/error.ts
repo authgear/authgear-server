@@ -26,6 +26,11 @@ import {
   APIResourceNotFoundError,
   APIResourceTooLargeError,
 } from "./resources";
+import {
+  WebHookDisallowedError,
+  WebHookDeliveryTimeoutError,
+  WebHookInvalidResponseError,
+} from "./webhook";
 
 export interface NetworkError {
   errorName: "NetworkFailed";
@@ -43,6 +48,9 @@ export interface UnknownError {
 export type APIError =
   | NetworkError
   | UnknownError
+  | WebHookDisallowedError
+  | WebHookDeliveryTimeoutError
+  | WebHookInvalidResponseError
   | APIValidationError
   | APIInvariantViolationError
   | APIPasswordPolicyViolatedError

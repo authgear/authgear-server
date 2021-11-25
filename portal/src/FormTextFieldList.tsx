@@ -1,12 +1,11 @@
 import { ITextFieldProps, TextField } from "@fluentui/react";
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import FieldList from "./FieldList";
 import cn from "classnames";
-import { Context } from "@oursky/react-messageformat";
 import styles from "./FormTextFieldList.module.scss";
 import { useFormField } from "./form";
-import { renderErrors } from "./error/parse";
 import { joinParentChild } from "./util/jsonpointer";
+import ErrorRenderer from "./ErrorRenderer";
 
 interface TextFieldListItemProps {
   index: number;
@@ -25,8 +24,6 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> =
       ...reducedTextFieldProps
     } = textFieldProps ?? {};
 
-    const { renderToString } = useContext(Context);
-
     const field = useMemo(
       () => ({
         parentJSONPointer,
@@ -35,10 +32,6 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> =
       [parentJSONPointer, index]
     );
     const { errors } = useFormField(field);
-    const errorMessage = useMemo(
-      () => renderErrors(errors, renderToString),
-      [errors, renderToString]
-    );
 
     const _onChange = useCallback(
       (_event, newValue) => {
@@ -56,7 +49,9 @@ const TextFieldListItem: React.FC<TextFieldListItemProps> =
         className={cn(styles.inputField, inputClassName)}
         value={value}
         onChange={_onChange}
-        errorMessage={errorMessage}
+        errorMessage={
+          errors.length > 0 ? <ErrorRenderer errors={errors} /> : undefined
+        }
       />
     );
   };
