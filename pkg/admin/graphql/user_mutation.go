@@ -6,7 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -310,7 +310,7 @@ var _ = registerMutationField(
 
 			stdAttrs := input["standardAttributes"].(map[string]interface{})
 
-			err := gqlCtx.UserFacade.UpdateStandardAttributes(accesscontrol.EmptyRole, userID, stdAttrs)
+			err := gqlCtx.UserFacade.UpdateStandardAttributes(config.RolePortalUI, userID, stdAttrs)
 			if err != nil {
 				return nil, err
 			}
