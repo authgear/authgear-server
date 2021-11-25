@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useState, useCallback } from "react";
 import cn from "classnames";
 import {
   TooltipHost,
@@ -13,6 +13,32 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 interface TooltipProps {
   className?: string;
   tooltipMessageId: string;
+}
+
+export interface UseTooltipTargetElementResult {
+  id: string;
+  setRef: React.RefCallback<unknown>;
+  targetElement: HTMLElement | undefined;
+}
+
+export function useTooltipTargetElement(): UseTooltipTargetElementResult {
+  const { current: id } = useRef(String(Math.random()));
+  const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
+  const setRef = useCallback(
+    (ref) => {
+      if (ref == null) {
+        setTargetElement(null);
+      } else {
+        setTargetElement(document.getElementById(id));
+      }
+    },
+    [id, setTargetElement]
+  );
+  return {
+    id,
+    setRef,
+    targetElement: targetElement ?? undefined,
+  };
 }
 
 const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {
