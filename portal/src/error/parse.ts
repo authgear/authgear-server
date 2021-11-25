@@ -157,6 +157,24 @@ function parseError(error: APIError): ParsedAPIError[] {
       errors.push(...parsePasswordPolicyViolatedError(error));
       break;
     }
+    case "WebHookDisallowed": {
+      errors.push({
+        messageID: "errors.webhook.disallowed",
+      });
+      break;
+    }
+    case "WebHookDeliveryTimeout": {
+      errors.push({
+        messageID: "errors.webhook.timeout",
+      });
+      break;
+    }
+    case "WebHookInvalidResponse": {
+      errors.push({
+        messageID: "errors.webhook.invalid-response",
+      });
+      break;
+    }
     default:
       errors.push({
         messageID: "errors.unknown",
