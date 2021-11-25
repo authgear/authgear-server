@@ -10,6 +10,7 @@ import {
   Text,
   TooltipHost,
 } from "@fluentui/react";
+import { useTooltipTargetElement } from "./Tooltip";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 import styles from "./LabelWithTooltip.module.scss";
@@ -40,6 +41,8 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> =
       labelIIconProps,
     } = props;
 
+    const { id, setRef, targetElement } = useTooltipTargetElement();
+
     const tooltipProps: ITooltipProps = useMemo(() => {
       return {
         // eslint-disable-next-line react/no-unstable-nested-components
@@ -57,27 +60,38 @@ const LabelWithTooltip: React.FC<LabelWithTooltipProps> =
             </Text>
           </div>
         ),
+        targetElement,
       };
-    }, [tooltipHeaderClassName, tooltipHeaderId, tooltipMessageId]);
+    }, [
+      tooltipHeaderClassName,
+      tooltipHeaderId,
+      tooltipMessageId,
+      targetElement,
+    ]);
 
     return (
-      <div className={cn(styles.root, className)}>
-        <Label className={labelClassName} required={required}>
-          {labelIIconProps && (
-            <Icon {...labelIIconProps} className={styles.labelIcon} />
-          )}
-          <FormattedMessage id={labelId} />
-        </Label>
+      <div className={className}>
         <TooltipHost
           tooltipProps={tooltipProps}
           directionalHint={directionalHint ?? DirectionalHint.bottomCenter}
         >
-          <Icon
-            className={cn(styles.infoIcon, {
-              [styles.infoIconRequired]: required,
-            })}
-            iconName={"info"}
-          />
+          <div className={styles.root}>
+            <Label className={labelClassName} required={required}>
+              {labelIIconProps && (
+                <Icon {...labelIIconProps} className={styles.labelIcon} />
+              )}
+              <FormattedMessage id={labelId} />
+            </Label>
+            <Icon
+              id={id}
+              /* @ts-expect-error */
+              ref={setRef}
+              className={cn(styles.infoIcon, {
+                [styles.infoIconRequired]: required,
+              })}
+              iconName={"info"}
+            />
+          </div>
         </TooltipHost>
       </div>
     );

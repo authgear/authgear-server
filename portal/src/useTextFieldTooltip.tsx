@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useMemo, useCallback } from "react";
 import {
   TooltipHost,
   IconButton,
@@ -6,8 +6,10 @@ import {
   ITextFieldProps,
   IIconProps,
   IIconStyleProps,
+  ITooltipProps,
 } from "@fluentui/react";
 import { useSystemConfig } from "./context/SystemConfigContext";
+import { useTooltipTargetElement } from "./Tooltip";
 import styles from "./useTextFieldTooltip.module.scss";
 
 const iconButtonStyles = {
@@ -55,7 +57,14 @@ export function useTextFieldTooltip(
     },
   } = useSystemConfig();
 
-  const { current: id } = useRef(String(Math.random()));
+  const { id, setRef, targetElement } = useTooltipTargetElement();
+
+  const tooltipProps: ITooltipProps = useMemo(() => {
+    return {
+      content: tooltipLabel,
+      targetElement,
+    };
+  }, [tooltipLabel, targetElement]);
 
   const onRenderLabel = useCallback(
     (props?: ITextFieldProps) => {
@@ -63,25 +72,25 @@ export function useTextFieldTooltip(
         return null;
       }
       return (
-        <>
+        <TooltipHost tooltipProps={tooltipProps} content={tooltipLabel}>
           <div className={styles.labelContainer}>
             <Label>{props.label}</Label>
-            <TooltipHost content={tooltipLabel} id={id}>
-              <IconButton
-                iconProps={iconProps}
-                title={tooltipLabel}
-                ariaLabel={tooltipLabel}
-                styles={iconButtonStyles}
-              />
-            </TooltipHost>
+            <IconButton
+              id={id}
+              ref={setRef}
+              iconProps={iconProps}
+              title={tooltipLabel}
+              ariaLabel={tooltipLabel}
+              styles={iconButtonStyles}
+            />
             {props.required === true && (
               <span className={styles.required} style={{ color: errorText }} />
             )}
           </div>
-        </>
+        </TooltipHost>
       );
     },
-    [tooltipLabel, id, errorText]
+    [id, setRef, tooltipProps, tooltipLabel, errorText]
   );
 
   return {
