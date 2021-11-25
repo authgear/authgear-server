@@ -3,10 +3,12 @@ package hook
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net"
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -40,8 +42,12 @@ func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 			continue
 		}
 
-		if deliverer.Clock.NowMonotonic().Sub(startTime) > totalTimeout {
-			return errDeliveryTimeout
+		elapsed := deliverer.Clock.NowMonotonic().Sub(startTime)
+		if elapsed > totalTimeout {
+			return WebHookDeliveryTimeout.NewWithInfo("webhook delivery timeout", apierrors.Details{
+				"elapsed": elapsed,
+				"limit":   totalTimeout,
+			})
 		}
 
 		request, err := deliverer.prepareRequest(hook.URL, e)
@@ -153,24 +159,25 @@ func (deliverer *Deliverer) WillDeliverNonBlockingEvent(eventType event.Type) bo
 func (deliverer *Deliverer) prepareRequest(urlStr string, event *event.Event) (*http.Request, error) {
 	hookURL, err := url.Parse(urlStr)
 	if err != nil {
-		return nil, newErrorDeliveryFailed(err)
+		return nil, fmt.Errorf("webhook: %w", err)
 	}
 
 	body, err := json.Marshal(event)
 	if err != nil {
-		return nil, newErrorDeliveryFailed(err)
+		return nil, fmt.Errorf("webhook: %w", err)
 	}
 
 	key, err := jwkutil.ExtractOctetKey(deliverer.Secret.Set, "")
 	if err != nil {
-		panic("hook: web-hook key not found")
+		return nil, fmt.Errorf("webhook: %w", err)
 	}
 	signature := crypto.HMACSHA256String(key, body)
 
 	request, err := http.NewRequest("POST", hookURL.String(), bytes.NewReader(body))
 	if err != nil {
-		return nil, newErrorDeliveryFailed(err)
+		return nil, fmt.Errorf("webhook: %w", err)
 	}
+
 	request.Header.Add("Content-Type", "application/json")
 	request.Header.Add(HeaderRequestBodySignature, signature)
 
@@ -181,22 +188,19 @@ func performRequest(client *http.Client, request *http.Request, withResponse boo
 	var resp *http.Response
 	resp, err = client.Do(request)
 	if reqError, ok := err.(net.Error); ok && reqError.Timeout() {
-		err = errDeliveryTimeout
+		err = WebHookDeliveryTimeout.New("webhook delivery timeout")
 		return
 	} else if err != nil {
-		err = newErrorDeliveryFailed(err)
+		err = fmt.Errorf("webhook: %w", err)
 		return
 	}
 
-	defer func() {
-		closeError := resp.Body.Close()
-		if err == nil && closeError != nil {
-			err = newErrorDeliveryFailed(closeError)
-		}
-	}()
+	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		err = errDeliveryInvalidStatusCode
+		err = WebHookInvalidResponse.NewWithInfo("invalid status code", apierrors.Details{
+			"status_code": resp.StatusCode,
+		})
 		return
 	}
 
@@ -206,7 +210,8 @@ func performRequest(client *http.Client, request *http.Request, withResponse boo
 
 	hookResp, err = event.ParseHookResponse(resp.Body)
 	if err != nil {
-		err = newErrorDeliveryFailed(err)
+		apiError := apierrors.AsAPIError(err)
+		err = WebHookInvalidResponse.NewWithInfo("invalid response body", apiError.Info)
 		return
 	}
 

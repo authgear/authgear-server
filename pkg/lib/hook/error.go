@@ -1,20 +1,13 @@
 package hook
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 var WebHookDisallowed = apierrors.Forbidden.WithReason("WebHookDisallowed")
 
-var errDeliveryTimeout = errors.New("web-hook event delivery timed out")
-var errDeliveryInvalidStatusCode = errors.New("invalid status code")
-
-func newErrorDeliveryFailed(inner error) error {
-	return fmt.Errorf("web-hook event delivery failed: %w", inner)
-}
+var WebHookDeliveryTimeout = apierrors.InternalError.WithReason("WebHookDeliveryTimeout")
+var WebHookInvalidResponse = apierrors.InternalError.WithReason("WebHookInvalidResponse")
 
 type OperationDisallowedItem struct {
 	Title  string `json:"title"`

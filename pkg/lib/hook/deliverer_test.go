@@ -306,7 +306,7 @@ func TestDeliverer(t *testing.T) {
 
 				err := deliverer.DeliverBlockingEvent(&e)
 
-				So(err, ShouldBeError, "web-hook event delivery timed out")
+				So(err, ShouldBeError, "webhook delivery timeout")
 				So(gock.IsDone(), ShouldBeTrue)
 			})
 		})

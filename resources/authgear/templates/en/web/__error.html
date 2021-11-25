@@ -149,6 +149,10 @@
                     {{ $error_reason.reason }}
                 {{ end }}
                 </li>
+            {{ else if eq .Error.reason "WebHookInvalidResponse" }}
+                <li>{{ template "error-webhook-invalid-response" }}</li>
+            {{ else if eq .Error.reason "WebHookDeliveryTimeout" }}
+                <li>{{ template "error-webhook-delivery-timeout" }}</li>
             {{ else }}
                 <li>{{ .Error.message }}</li>
             {{ end }}
