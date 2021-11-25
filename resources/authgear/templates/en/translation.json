@@ -55,6 +55,8 @@
   "error-webhook-disallowed": "Operation is disallowed",
   "error-webhook-pre-signup-disallowed": "Signup is disallowed",
   "error-webhook-disallowed-action": "Return",
+  "error-webhook-invalid-response": "[To Developer] Your webhook handler did NOT return a valid response. Please visit https://docs.authgear.com/webhooks/webhooks",
+  "error-webhook-delivery-timeout": "Operation is disallowed because the webhook delivery resulted in timeout.",
   "error-disabled-user": "Administrator has disabled your account.",
   "error-disabled-user-reason": "Reason: {reason}",
   "error-disabled-user-no-reason": "Please contact administrator for details.",
