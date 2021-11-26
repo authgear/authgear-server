@@ -186,6 +186,9 @@
   "AddUserScreen.error.invalid-identity": "Invalid identity",
 
   "UserDetailsScreen.title": "User Details",
+  "UserDetailsScreen.remove-user": "Remove User",
+  "UserDetailsScreen.enable-user": "Enable User",
+  "UserDetailsScreen.disable-user": "Disable User",
 
   "UsersList.column.raw-id": "ID",
   "UsersList.column.username": "Username",

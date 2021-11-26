@@ -62,7 +62,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
     setRemovePortalAdminInvitationConfirmationDialogData,
   ] = useState<RemovePortalAdminInvitationConfirmationDialogData | null>(null);
 
-  const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
+  const primaryItems: ICommandBarItemProps[] = useMemo(() => {
     return [
       {
         key: "invite",
@@ -164,7 +164,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
   }
 
   return (
-    <CommandBarContainer isLoading={false} farItems={commandBarItems}>
+    <CommandBarContainer isLoading={false} primaryItems={primaryItems}>
       <div className={styles.content}>
         <NavBreadcrumb items={navBreadcrumbItems} />
         <PortalAdminList

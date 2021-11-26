@@ -35,8 +35,9 @@ export interface FormContainerProps {
   localError?: unknown;
   errorRules?: ErrorParseRule[];
   fallbackErrorMessageID?: string;
-  farItems?: ICommandBarItemProps[];
   messageBar?: React.ReactNode;
+  primaryItems?: ICommandBarItemProps[];
+  secondaryItems?: ICommandBarItemProps[];
 }
 
 const FormContainer: React.FC<FormContainerProps> = function FormContainer(
@@ -56,7 +57,8 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     localError,
     errorRules,
     fallbackErrorMessageID,
-    farItems,
+    primaryItems,
+    secondaryItems,
     messageBar,
   } = props;
 
@@ -84,8 +86,9 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
 
   const allowSave = formCanSave !== undefined ? formCanSave : isDirty;
   const disabled = isUpdating || !allowSave;
-  const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
-    return [
+
+  const items: ICommandBarItemProps[] = useMemo(() => {
+    let items: ICommandBarItemProps[] = [
       {
         key: "save",
         text: renderToString(saveButtonProps.labelId),
@@ -93,6 +96,15 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         disabled: disabled || !canSave,
         onClick: () => save(),
       },
+    ];
+    if (primaryItems != null) {
+      items = [...items, ...primaryItems];
+    }
+    return items;
+  }, [canSave, disabled, save, saveButtonProps, renderToString, primaryItems]);
+
+  const farItems: ICommandBarItemProps[] = useMemo(() => {
+    let farItems: ICommandBarItemProps[] = [
       {
         key: "reset",
         text: renderToString("discard-changes"),
@@ -102,7 +114,11 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         onClick: () => setIsResetDialogVisible(true),
       },
     ];
-  }, [canSave, disabled, save, saveButtonProps, renderToString, themes]);
+    if (secondaryItems != null) {
+      farItems = [...farItems, ...secondaryItems];
+    }
+    return farItems;
+  }, [disabled, renderToString, themes, secondaryItems]);
 
   const resetDialogContentProps = useMemo(() => {
     return {
@@ -123,8 +139,8 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     >
       <CommandBarContainer
         isLoading={isUpdating}
-        items={commandBarItems}
-        farItems={farItems}
+        primaryItems={items}
+        secondaryItems={farItems}
         messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
       >
         <form onSubmit={onFormSubmit}>{props.children}</form>

@@ -211,7 +211,7 @@ function useDeleteUserCommandBarItem(
   const itemProps: ICommandBarItemProps = useMemo(() => {
     return {
       key: "remove",
-      text: renderToString("remove"),
+      text: renderToString("UserDetailsScreen.remove-user"),
       iconProps: { iconName: "Delete" },
       onRender: (props) => {
         return (
@@ -237,8 +237,8 @@ function useSetUserDisabledCommandBarItem(
     return {
       key: "setDisabledStatus",
       text: userIsDisabled
-        ? renderToString("enable")
-        : renderToString("disable"),
+        ? renderToString("UserDetailsScreen.enable-user")
+        : renderToString("UserDetailsScreen.disable-user"),
       iconProps: {
         iconName: userIsDisabled ? "Play" : "CircleStop",
       },
@@ -299,7 +299,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
       onClickSetUserDisabled
     );
 
-    const farItems: ICommandBarItemProps[] = useMemo(() => {
+    const primaryItems: ICommandBarItemProps[] = useMemo(() => {
       return [deleteUserCommandBarItem, setUserDisabledCommandBarItem];
     }, [deleteUserCommandBarItem, setUserDisabledCommandBarItem]);
 
@@ -330,7 +330,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     });
 
     return (
-      <FormContainer form={form} farItems={farItems}>
+      <FormContainer form={form} primaryItems={primaryItems}>
         <main className={styles.root}>
           <NavBreadcrumb items={navBreadcrumbItems} />
           <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />

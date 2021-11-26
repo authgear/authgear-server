@@ -82,7 +82,7 @@ const UsersScreen: React.FC = function UsersScreen() {
     setOffset(0);
   }, []);
 
-  const commandBarItems: ICommandBarItemProps[] = useMemo(() => {
+  const secondaryItems: ICommandBarItemProps[] = useMemo(() => {
     if (searchEnabled) {
       return [
         {
@@ -111,7 +111,7 @@ const UsersScreen: React.FC = function UsersScreen() {
     onClearSearchKeyword,
   ]);
 
-  const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
+  const primaryItems: ICommandBarItemProps[] = useMemo(() => {
     return [
       {
         key: "addUser",
@@ -180,8 +180,8 @@ const UsersScreen: React.FC = function UsersScreen() {
     <CommandBarContainer
       isLoading={loading}
       className={styles.root}
-      items={commandBarItems}
-      farItems={commandBarFarItems}
+      primaryItems={primaryItems}
+      secondaryItems={secondaryItems}
       messageBar={messageBar}
     >
       <main className={styles.content}>

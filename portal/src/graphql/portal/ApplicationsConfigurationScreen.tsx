@@ -454,7 +454,7 @@ const ApplicationsConfigurationScreen: React.FC =
       return form.state.clients.length >= oauthClientsMaximum;
     }, [oauthClientsMaximum, form.state.clients.length]);
 
-    const commandBarFarItems: ICommandBarItemProps[] = useMemo(
+    const primaryItems: ICommandBarItemProps[] = useMemo(
       () => [
         {
           key: "save",
@@ -492,7 +492,7 @@ const ApplicationsConfigurationScreen: React.FC =
       <FormContainer
         form={form}
         messageBar={messageBar}
-        farItems={commandBarFarItems}
+        primaryItems={primaryItems}
       >
         <OAuthClientConfigurationContent
           form={form}

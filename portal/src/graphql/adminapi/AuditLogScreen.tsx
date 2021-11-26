@@ -360,7 +360,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
         isLoading={loading}
         className={styles.root}
         messageBar={messageBar}
-        farItems={commandBarFarItems}
+        primaryItems={commandBarFarItems}
       >
         <main className={styles.content}>
           <NavBreadcrumb items={items} />
