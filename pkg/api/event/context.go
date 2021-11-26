@@ -22,13 +22,14 @@ const (
 type Context struct {
 	Timestamp          int64           `json:"timestamp"`
 	UserID             *string         `json:"user_id"`
+	TriggeredBy        TriggeredByType `json:"triggered_by"`
 	PreferredLanguages []string        `json:"preferred_languages"`
 	Language           string          `json:"language"`
-	TriggeredBy        TriggeredByType `json:"triggered_by"`
-	OAuth              *OAuthContext   `json:"oauth,omitempty"`
-	IPAddress          string          `json:"ip_address,omitempty"`
-	UserAgent          string          `json:"user_agent,omitempty"`
-	ClientID           string          `json:"client_id,omitempty"`
+
+	OAuth     *OAuthContext `json:"oauth,omitempty"`
+	IPAddress string        `json:"ip_address,omitempty"`
+	UserAgent string        `json:"user_agent,omitempty"`
+	ClientID  string        `json:"client_id,omitempty"`
 }
 
 type OAuthContext struct {
