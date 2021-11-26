@@ -121,13 +121,17 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 	}
 
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
+	// Initialize this to an empty slice so that it is always present in the JSON.
+	if preferredLanguageTags == nil {
+		preferredLanguageTags = []string{}
+	}
 	resolvedLanguageIdx, _ := intl.Resolve(
 		preferredLanguageTags,
 		*s.Localization.FallbackLanguage,
 		s.Localization.SupportedLanguages,
 	)
 
-	resolvedLanguage := *s.Localization.FallbackLanguage
+	resolvedLanguage := ""
 	if resolvedLanguageIdx != -1 {
 		resolvedLanguage = s.Localization.SupportedLanguages[resolvedLanguageIdx]
 	}
@@ -144,9 +148,9 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 	ctx := &event.Context{
 		Timestamp:          s.Clock.NowUTC().Unix(),
 		UserID:             userID,
+		TriggeredBy:        triggeredBy,
 		PreferredLanguages: preferredLanguageTags,
 		Language:           resolvedLanguage,
-		TriggeredBy:        triggeredBy,
 		IPAddress:          ipAddress,
 		UserAgent:          userAgent,
 		ClientID:           clientID,
