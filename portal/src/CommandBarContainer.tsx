@@ -15,22 +15,23 @@ const progressIndicatorStyles = {
 export interface CommandBarContainerProps {
   className?: string;
   isLoading?: boolean;
-  items?: ICommandBarItemProps[];
-  farItems?: ICommandBarItemProps[];
   messageBar?: React.ReactNode;
+  primaryItems?: ICommandBarItemProps[];
+  secondaryItems?: ICommandBarItemProps[];
 }
 
 const CommandBarContainer: React.FC<CommandBarContainerProps> =
   function CommandBarContainer(props) {
-    const { className, isLoading, items, farItems, messageBar } = props;
+    const { className, isLoading, primaryItems, secondaryItems, messageBar } =
+      props;
 
     return (
       <div className={className}>
         <div className={styles.header}>
           <CommandBar
             className={styles.commandBar}
-            items={items ?? []}
-            farItems={farItems}
+            items={primaryItems ?? []}
+            farItems={secondaryItems}
           />
           {isLoading && (
             <ProgressIndicator

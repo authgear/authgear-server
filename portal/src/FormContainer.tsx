@@ -139,8 +139,8 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     >
       <CommandBarContainer
         isLoading={isUpdating}
-        items={items}
-        farItems={farItems}
+        primaryItems={items}
+        secondaryItems={farItems}
         messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
       >
         <form onSubmit={onFormSubmit}>{props.children}</form>
