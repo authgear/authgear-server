@@ -23,7 +23,6 @@ import ImageFilePicker from "../../ImageFilePicker";
 import { PortalAPIAppConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
-  renderPath,
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_FAVICON,
   RESOURCE_APP_LOGO,
@@ -32,6 +31,8 @@ import {
   RESOURCE_AUTHGEAR_DARK_THEME_CSS,
 } from "../../resources";
 import {
+  expandSpecifier,
+  expandDef,
   LanguageTag,
   Resource,
   ResourceDefinition,
@@ -259,46 +260,54 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
 
     const getValueIgnoreEmptyString = useCallback(
       (def: ResourceDefinition) => {
-        const specifier: ResourceSpecifier = {
-          def,
-          locale: state.selectedLanguage,
-        };
-        const value = state.resources[specifierId(specifier)]?.nullableValue;
-        if (value == null || value === "") {
-          return undefined;
+        for (const extension of def.extensions) {
+          const specifier: ResourceSpecifier = {
+            def,
+            extension,
+            locale: state.selectedLanguage,
+          };
+          const value = state.resources[specifierId(specifier)]?.nullableValue;
+          if (value != null && value !== "") {
+            return value;
+          }
         }
-        return value;
+        return undefined;
       },
       [state.resources, state.selectedLanguage]
     );
 
     const getOnChangeImage = useCallback(
       (def: ResourceDefinition) => {
-        const specifier: ResourceSpecifier = {
-          def,
-          locale: state.selectedLanguage,
-        };
         return (base64EncodedData?: string, extension?: string) => {
           setState((prev) => {
             const updatedResources = { ...prev.resources };
 
             // We always remove the old one first.
-            const oldResource = prev.resources[specifierId(specifier)];
-            if (oldResource != null) {
-              updatedResources[specifierId(specifier)] = {
-                ...oldResource,
-                nullableValue: "",
+            for (const extension of def.extensions) {
+              const specifier: ResourceSpecifier = {
+                def,
+                extension,
+                locale: state.selectedLanguage,
               };
+              const oldResource = prev.resources[specifierId(specifier)];
+              if (oldResource != null) {
+                updatedResources[specifierId(specifier)] = {
+                  ...oldResource,
+                  nullableValue: "",
+                };
+              }
             }
 
             // Add the new one.
             if (base64EncodedData != null && extension != null) {
+              const specifier = {
+                def,
+                extension,
+                locale: state.selectedLanguage,
+              };
               const resource: Resource = {
                 specifier,
-                path: renderPath(specifier.def.resourcePath, {
-                  locale: specifier.locale,
-                  extension,
-                }),
+                path: expandSpecifier(specifier),
                 nullableValue: base64EncodedData,
               };
               updatedResources[specifierId(specifier)] = resource;
@@ -316,6 +325,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         const specifier: ResourceSpecifier = {
           def: RESOURCE_TRANSLATION_JSON,
           locale: state.selectedLanguage,
+          extension: null,
         };
 
         const value = state.resources[specifierId(specifier)]?.nullableValue;
@@ -324,6 +334,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           const specifier: ResourceSpecifier = {
             def: RESOURCE_TRANSLATION_JSON,
             locale: state.fallbackLanguage,
+            extension: null,
           };
           const value = state.resources[specifierId(specifier)]?.nullableValue;
           if (value == null || value === "") {
@@ -344,10 +355,12 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         const selectedSpecifier: ResourceSpecifier = {
           def: RESOURCE_TRANSLATION_JSON,
           locale: state.selectedLanguage,
+          extension: null,
         };
         const fallbackSpecifier: ResourceSpecifier = {
           def: RESOURCE_TRANSLATION_JSON,
           locale: state.fallbackLanguage,
+          extension: null,
         };
         return (
           _e: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -373,9 +386,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
             jsonValue[key] = value;
             updatedResources[specifierId(selectedSpecifier)] = {
               specifier: selectedSpecifier,
-              path: renderPath(selectedSpecifier.def.resourcePath, {
-                locale: selectedSpecifier.locale,
-              }),
+              path: expandSpecifier(selectedSpecifier),
               nullableValue: JSON.stringify(jsonValue, null, 2),
             };
             return { ...prev, resources: updatedResources };
@@ -478,6 +489,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           const specifier: ResourceSpecifier = {
             def: RESOURCE_AUTHGEAR_LIGHT_THEME_CSS,
             locale: state.selectedLanguage,
+            extension: null,
           };
           const updatedResources = { ...prev.resources };
           const root = new Root();
@@ -490,9 +502,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           const css = root.toResult().css;
           const newResource: Resource = {
             specifier,
-            path: renderPath(specifier.def.resourcePath, {
-              locale: specifier.locale,
-            }),
+            path: expandSpecifier(specifier),
             nullableValue: css,
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
@@ -514,6 +524,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           const specifier: ResourceSpecifier = {
             def: RESOURCE_AUTHGEAR_DARK_THEME_CSS,
             locale: state.selectedLanguage,
+            extension: null,
           };
           const updatedResources = { ...prev.resources };
           const root = new Root();
@@ -526,9 +537,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           const css = root.toResult().css;
           const newResource: Resource = {
             specifier,
-            path: renderPath(specifier.def.resourcePath, {
-              locale: specifier.locale,
-            }),
+            path: expandSpecifier(specifier),
             nullableValue: css,
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
@@ -850,10 +859,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
     const specifiers = [];
     for (const locale of initialSupportedLanguages) {
       for (const def of ALL_LANGUAGES_TEMPLATES_AND_RESOURCES_ON_THIS_SCREEN) {
-        specifiers.push({
-          def,
-          locale,
-        });
+        specifiers.push(...expandDef(def, locale));
       }
     }
     return specifiers;

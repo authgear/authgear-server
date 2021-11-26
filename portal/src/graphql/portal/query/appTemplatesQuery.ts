@@ -6,12 +6,12 @@ import {
   AppTemplatesQuery,
   AppTemplatesQueryVariables,
 } from "./__generated__/AppTemplatesQuery";
-import { renderPath } from "../../../resources";
 import {
   Resource,
   ResourceSpecifier,
   decodeForText,
   binary,
+  expandSpecifier,
 } from "../../../util/resource";
 
 export const appTemplatesQuery = gql`
@@ -51,24 +51,11 @@ export function useAppTemplatesQuery(
   const pairs: SpecifierPathPair[] = useMemo(() => {
     const pairs = [];
     for (const specifier of specifiers) {
-      if (specifier.def.extensions.length === 0) {
-        pairs.push({
-          specifier,
-          path: renderPath(specifier.def.resourcePath, {
-            locale: specifier.locale,
-          }),
-        });
-      } else {
-        for (const extension of specifier.def.extensions) {
-          pairs.push({
-            specifier,
-            path: renderPath(specifier.def.resourcePath, {
-              extension,
-              locale: specifier.locale,
-            }),
-          });
-        }
-      }
+      const path = expandSpecifier(specifier);
+      pairs.push({
+        specifier,
+        path,
+      });
     }
     return pairs;
   }, [specifiers]);

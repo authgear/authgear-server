@@ -7,9 +7,13 @@ import {
   UpdateAppTemplatesMutation,
   UpdateAppTemplatesMutationVariables,
 } from "./__generated__/UpdateAppTemplatesMutation";
-import { renderPath } from "../../../resources";
 import { PortalAPIApp } from "../../../types";
-import { ResourceUpdate, binary, encodeForText } from "../../../util/resource";
+import {
+  ResourceUpdate,
+  binary,
+  encodeForText,
+  expandSpecifier,
+} from "../../../util/resource";
 
 const updateAppTemplatesMutation = gql`
   mutation UpdateAppTemplatesMutation(
@@ -55,22 +59,7 @@ export function useUpdateAppTemplatesMutation(appID: string): {
     async (updates: ResourceUpdate[]) => {
       const paths = [];
       for (const specifier of updates.map((u) => u.specifier)) {
-        if (specifier.def.extensions.length === 0) {
-          paths.push(
-            renderPath(specifier.def.resourcePath, {
-              locale: specifier.locale,
-            })
-          );
-        } else {
-          for (const extension of specifier.def.extensions) {
-            paths.push(
-              renderPath(specifier.def.resourcePath, {
-                locale: specifier.locale,
-                extension,
-              })
-            );
-          }
-        }
+        paths.push(expandSpecifier(specifier));
       }
 
       const updatePayload: AppResourceUpdate[] = updates.map((update) => {

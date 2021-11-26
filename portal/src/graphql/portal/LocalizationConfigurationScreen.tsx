@@ -18,7 +18,6 @@ import EditTemplatesWidget, {
 import { PortalAPIAppConfig } from "../../types";
 import {
   ALL_LANGUAGES_TEMPLATES,
-  renderPath,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_HTML,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_EMAIL_TXT,
   RESOURCE_AUTHENTICATE_PRIMARY_OOB_SMS_TXT,
@@ -36,6 +35,7 @@ import {
   ResourceDefinition,
   ResourceSpecifier,
   specifierId,
+  expandSpecifier,
 } from "../../util/resource";
 import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
@@ -206,6 +206,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         const specifier: ResourceSpecifier = {
           def,
           locale: state.selectedLanguage,
+          extension: null,
         };
         const value = state.resources[specifierId(specifier)]?.nullableValue;
 
@@ -213,6 +214,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           const specifier: ResourceSpecifier = {
             def,
             locale: state.fallbackLanguage,
+            extension: null,
           };
           return state.resources[specifierId(specifier)]?.nullableValue ?? "";
         }
@@ -227,15 +229,14 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
         const specifier: ResourceSpecifier = {
           def,
           locale: state.selectedLanguage,
+          extension: null,
         };
         return (_e: unknown, value?: string) => {
           setState((prev) => {
             const updatedResources = { ...prev.resources };
             const resource: Resource = {
               specifier,
-              path: renderPath(specifier.def.resourcePath, {
-                locale: specifier.locale,
-              }),
+              path: expandSpecifier(specifier),
               nullableValue: value ?? "",
             };
             updatedResources[specifierId(resource.specifier)] = resource;
@@ -448,6 +449,7 @@ const LocalizationConfigurationScreen: React.FC =
           specifiers.push({
             def,
             locale,
+            extension: null,
           });
         }
       }

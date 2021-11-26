@@ -30,7 +30,6 @@ import {
   PhoneInputConfig,
 } from "../../types";
 import {
-  renderPath,
   DEFAULT_TEMPLATE_LOCALE,
   RESOURCE_EMAIL_DOMAIN_BLOCKLIST,
   RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
@@ -38,7 +37,12 @@ import {
 } from "../../resources";
 import { fixTagPickerStyles } from "../../bugs";
 import CheckboxWithTooltip from "../../CheckboxWithTooltip";
-import { Resource, ResourceSpecifier, specifierId } from "../../util/resource";
+import {
+  Resource,
+  ResourceSpecifier,
+  specifierId,
+  expandSpecifier,
+} from "../../util/resource";
 import { useResourceForm } from "../../hook/useResourceForm";
 import CustomTagPicker from "../../CustomTagPicker";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
@@ -51,16 +55,19 @@ import styles from "./LoginIDConfigurationScreen.module.scss";
 const emailDomainBlocklistSpecifier: ResourceSpecifier = {
   def: RESOURCE_EMAIL_DOMAIN_BLOCKLIST,
   locale: DEFAULT_TEMPLATE_LOCALE,
+  extension: null,
 };
 
 const emailDomainAllowlistSpecifier: ResourceSpecifier = {
   def: RESOURCE_EMAIL_DOMAIN_ALLOWLIST,
   locale: DEFAULT_TEMPLATE_LOCALE,
+  extension: null,
 };
 
 const usernameExcludeKeywordsTXTSpecifier: ResourceSpecifier = {
   def: RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT,
   locale: DEFAULT_TEMPLATE_LOCALE,
+  extension: null,
 };
 
 const specifiers: ResourceSpecifier[] = [
@@ -640,7 +647,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           const specifier = emailDomainBlocklistSpecifier;
           const newResource: Resource = {
             specifier,
-            path: renderPath(specifier.def.resourcePath, {}),
+            path: expandSpecifier(specifier),
             nullableValue: joinByNewline(value),
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
@@ -667,7 +674,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           const specifier = emailDomainAllowlistSpecifier;
           const newResource: Resource = {
             specifier,
-            path: renderPath(specifier.def.resourcePath, {}),
+            path: expandSpecifier(specifier),
             nullableValue: joinByNewline(value),
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
@@ -854,7 +861,7 @@ const AuthenticationLoginIDSettingsContent: React.FC<AuthenticationLoginIDSettin
           const specifier = usernameExcludeKeywordsTXTSpecifier;
           const newResource: Resource = {
             specifier,
-            path: renderPath(specifier.def.resourcePath, {}),
+            path: expandSpecifier(specifier),
             nullableValue: joinByNewline(value),
           };
           updatedResources[specifierId(newResource.specifier)] = newResource;
