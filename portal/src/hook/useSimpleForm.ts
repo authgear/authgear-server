@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import deepEqual from "deep-equal";
 import { APIError } from "../error/error";
 
@@ -14,17 +14,28 @@ export interface SimpleFormModel<State, Result = unknown> {
   save: () => void;
 }
 
+export interface UseSimpleFormProps<State, Result> {
+  defaultState: State;
+  submit: (state: State) => Promise<Result>;
+  validate?: (state: State) => APIError | null;
+}
+
 export function useSimpleForm<State, Result = unknown>(
-  defaultState: State,
-  submit: (state: State) => Promise<Result>,
-  validate?: (state: State) => APIError | null
+  props: UseSimpleFormProps<State, Result>
 ): SimpleFormModel<State, Result> {
+  const { defaultState, submit, validate } = props;
+
   const [initialState, setInitialState] = useState(defaultState);
   const [currentState, setCurrentState] = useState(initialState);
   const [error, setError] = useState<unknown>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<unknown>(null);
+
+  useEffect(() => {
+    setInitialState(defaultState);
+    setCurrentState(defaultState);
+  }, [defaultState]);
 
   const isDirty = useMemo(
     () => !deepEqual(initialState, currentState, { strict: true }),

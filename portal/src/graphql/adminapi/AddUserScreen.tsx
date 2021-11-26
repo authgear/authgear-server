@@ -312,10 +312,9 @@ const AddUserScreen: React.FC = function AddUserScreen() {
     [effectiveAppConfig]
   );
 
-  const defaultFormState = useMemo(
-    () => makeDefaultFormState(loginIDTypes),
-    [loginIDTypes]
-  );
+  const defaultState = useMemo(() => {
+    return makeDefaultFormState(loginIDTypes);
+  }, [loginIDTypes]);
 
   const { createUser } = useCreateUserMutation();
 
@@ -348,7 +347,11 @@ const AddUserScreen: React.FC = function AddUserScreen() {
     [createUser, primaryAuthenticators]
   );
 
-  const form = useSimpleForm(defaultFormState, submit, validate);
+  const form = useSimpleForm({
+    defaultState,
+    submit,
+    validate,
+  });
 
   const canSave =
     form.state.selectedLoginIDType != null &&
