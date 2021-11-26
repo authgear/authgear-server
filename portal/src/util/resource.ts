@@ -18,7 +18,8 @@ export interface Resource {
 
 export interface ResourceSpecifier {
   def: ResourceDefinition;
-  locale?: LanguageTag;
+  locale: LanguageTag | null;
+  extension: string | null;
 }
 
 export interface ResourceDefinition {
@@ -36,6 +37,43 @@ export interface ResourceDefinition {
 export interface ResourcePath {
   parse(path: string): Record<string, string> | null;
   render(args: Record<string, string>): string;
+}
+
+export function expandSpecifier(specifier: ResourceSpecifier): string {
+  const { resourcePath } = specifier.def;
+  const renderArgs: Record<string, string> = {};
+  if (specifier.locale != null) {
+    renderArgs["locale"] = specifier.locale;
+  }
+  if (specifier.extension != null) {
+    renderArgs["extension"] = specifier.extension;
+  }
+  return resourcePath.render(renderArgs);
+}
+
+export function expandDef(
+  def: ResourceDefinition,
+  locale: LanguageTag
+): ResourceSpecifier[] {
+  if (def.extensions.length === 0) {
+    return [
+      {
+        def,
+        locale,
+        extension: null,
+      },
+    ];
+  }
+
+  const specifiers = [];
+  for (const extension of def.extensions) {
+    specifiers.push({
+      def,
+      locale,
+      extension,
+    });
+  }
+  return specifiers;
 }
 
 export function resourcePath(
@@ -103,7 +141,7 @@ export function encodeForText(a: string): string {
 export function specifierId(specifier: ResourceSpecifier): string {
   return specifier.def.resourcePath.render({
     locale: specifier.locale ?? "{locale}",
-    extension: "{extension}",
+    extension: specifier.extension ?? "{extension}",
   });
 }
 

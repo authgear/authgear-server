@@ -41,14 +41,14 @@ describe("diff resources update", () => {
     const diff = diffResourceUpdates(
       [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           nullableValue: "resource A",
         },
       ],
       [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           nullableValue: "resource A",
         },
@@ -66,7 +66,7 @@ describe("diff resources update", () => {
       [],
       [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           nullableValue: "resource A",
         },
@@ -76,7 +76,7 @@ describe("diff resources update", () => {
       needUpdate: true,
       newResources: [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           value: "resource A",
         },
@@ -89,7 +89,7 @@ describe("diff resources update", () => {
     const diff = diffResourceUpdates(
       [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           nullableValue: "resource A",
         },
@@ -102,7 +102,7 @@ describe("diff resources update", () => {
       editedResources: [],
       deletedResources: [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           value: null,
         },
@@ -113,14 +113,14 @@ describe("diff resources update", () => {
     const diff = diffResourceUpdates(
       [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           nullableValue: "resource A",
         },
       ],
       [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           nullableValue: "resource A!!",
         },
@@ -131,7 +131,7 @@ describe("diff resources update", () => {
       newResources: [],
       editedResources: [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           value: "resource A!!",
         },
@@ -143,24 +143,24 @@ describe("diff resources update", () => {
     const diff = diffResourceUpdates(
       [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           nullableValue: "resource A",
         },
         {
-          specifier: { def: ResourceB, locale: "en" },
+          specifier: { def: ResourceB, locale: "en", extension: null },
           path: "templates/en/b.html",
           nullableValue: "resource B",
         },
       ],
       [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           nullableValue: "resource A!!",
         },
         {
-          specifier: { def: ResourceB, locale: "zh" },
+          specifier: { def: ResourceB, locale: "zh", extension: null },
           path: "templates/zh/b.html",
           nullableValue: "resource B",
         },
@@ -170,21 +170,21 @@ describe("diff resources update", () => {
       needUpdate: true,
       newResources: [
         {
-          specifier: { def: ResourceB, locale: "zh" },
+          specifier: { def: ResourceB, locale: "zh", extension: null },
           path: "templates/zh/b.html",
           value: "resource B",
         },
       ],
       editedResources: [
         {
-          specifier: { def: ResourceA, locale: "en" },
+          specifier: { def: ResourceA, locale: "en", extension: null },
           path: "templates/en/a.html",
           value: "resource A!!",
         },
       ],
       deletedResources: [
         {
-          specifier: { def: ResourceB, locale: "en" },
+          specifier: { def: ResourceB, locale: "en", extension: null },
           path: "templates/en/b.html",
           value: null,
         },

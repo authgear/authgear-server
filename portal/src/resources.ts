@@ -1,9 +1,4 @@
-import {
-  ResourcePath,
-  resourcePath,
-  ResourceDefinition,
-  LanguageTag,
-} from "./util/resource";
+import { resourcePath, ResourceDefinition, LanguageTag } from "./util/resource";
 
 export const DEFAULT_TEMPLATE_LOCALE: LanguageTag = "en";
 
@@ -161,22 +156,3 @@ export const RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT: ResourceDefinition = {
   usesEffectiveDataAsFallbackValue: false,
   optional: true,
 };
-
-export interface RenderPathArguments {
-  locale?: LanguageTag;
-  extension?: string;
-}
-
-export function renderPath(
-  resourcePath: ResourcePath,
-  args: RenderPathArguments
-): string {
-  const renderArgs: Record<string, string> = {};
-  if (args.locale != null) {
-    renderArgs["locale"] = args.locale;
-  }
-  if (args.extension != null) {
-    renderArgs["extension"] = args.extension;
-  }
-  return resourcePath.render(renderArgs);
-}
