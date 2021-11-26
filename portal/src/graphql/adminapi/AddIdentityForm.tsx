@@ -23,7 +23,7 @@ interface FormState {
   password: string;
 }
 
-const defaultFormState: FormState = {
+const defaultState: FormState = {
   loginID: "",
   password: "",
 };
@@ -129,7 +129,11 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
       [loginIDType, requirePassword, createIdentity]
     );
 
-    const rawForm = useSimpleForm(defaultFormState, submit, validate);
+    const rawForm = useSimpleForm({
+      defaultState,
+      submit,
+      validate,
+    });
     const form = useMemo(
       () => ({
         ...rawForm,

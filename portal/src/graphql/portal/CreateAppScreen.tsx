@@ -17,7 +17,7 @@ interface FormState {
   appID: string;
 }
 
-const defaultFormState: FormState = {
+const defaultState: FormState = {
   appID: "",
 };
 
@@ -87,7 +87,11 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
     },
     [createApp]
   );
-  const form = useSimpleForm(defaultFormState, submit);
+
+  const form = useSimpleForm({
+    defaultState,
+    submit,
+  });
 
   useEffect(() => {
     if (form.submissionResult) {

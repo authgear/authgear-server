@@ -303,7 +303,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
       return [deleteUserCommandBarItem, setUserDisabledCommandBarItem];
     }, [deleteUserCommandBarItem, setUserDisabledCommandBarItem]);
 
-    const defaultFormState = useMemo(() => {
+    const defaultState = useMemo(() => {
       return {
         userID: user.id,
         standardAttributes: makeState(user.standardAttributes),
@@ -324,7 +324,10 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
       [updateUser]
     );
 
-    const form = useSimpleForm<FormState>(defaultFormState, submit);
+    const form = useSimpleForm({
+      defaultState,
+      submit,
+    });
 
     return (
       <FormContainer form={form} farItems={farItems}>

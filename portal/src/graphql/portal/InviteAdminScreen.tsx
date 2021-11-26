@@ -14,7 +14,7 @@ interface FormState {
   email: string;
 }
 
-const defaultFormState: FormState = {
+const defaultState: FormState = {
   email: "",
 };
 
@@ -73,7 +73,10 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
     [createCollaboratorInvitation]
   );
 
-  const form = useSimpleForm(defaultFormState, submit);
+  const form = useSimpleForm({
+    defaultState,
+    submit,
+  });
 
   useEffect(() => {
     if (form.isSubmitted) {
