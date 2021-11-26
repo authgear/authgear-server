@@ -90,6 +90,8 @@ All fields are guaranteed that only backward-compatible changes would be made.
 - [user.pre_create](#userpre_create)
 - [user.profile.pre_update](#userprofilepre_update)
 
+Blocking event handler can perform mutations. See [Webhook Blocking Event Mutations](./webhook.md#webhook-blocking-event-mutations).
+
 #### user.pre_create
 
 Occurs right before the user creation. User can be created by user signup, user signup as anonymous user, admin api or admin portal create an user.
@@ -173,8 +175,7 @@ Occurs when the user profile is updated.
 ```json5
 {
   "payload": {
-    "old_user": { /* ... */ },
-    "new_user": { /* ... */ }
+    "user": { /* ... */ }
   }
 }
 ```
