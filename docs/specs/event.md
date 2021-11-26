@@ -175,8 +175,7 @@ Occurs when the user profile is updated.
 ```json5
 {
   "payload": {
-    "old_user": { /* ... */ },
-    "new_user": { /* ... */ }
+    "user": { /* ... */ }
   }
 }
 ```
