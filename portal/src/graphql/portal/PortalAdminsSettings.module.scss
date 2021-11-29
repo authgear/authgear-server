@@ -1,9 +1,3 @@
-.content {
-  display: flex;
-  flex-direction: column;
-  padding: 0 32px;
-}
-
-.list {
-  flex: 1 1 0;
+.widget {
+  grid-column: 1 / span 12;
 }

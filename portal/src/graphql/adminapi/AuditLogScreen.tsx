@@ -22,6 +22,7 @@ import CommandBarDropdown, {
   CommandBarDropdownProps,
 } from "../../CommandBarDropdown";
 import CommandBarContainer from "../../CommandBarContainer";
+import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import useTransactionalState from "../../hook/useTransactionalState";
@@ -358,25 +359,27 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     <>
       <CommandBarContainer
         isLoading={loading}
-        className={styles.root}
         messageBar={messageBar}
         primaryItems={commandBarFarItems}
+        className={styles.root}
       >
-        <main className={styles.content}>
-          <NavBreadcrumb items={items} />
-          {logRetrievalDays !== -1 && (
-            <MessageBar>
-              <FormattedMessage
-                id="FeatureConfig.audit-log.retrieval-days"
-                values={{
-                  planPagePath: "../billing",
-                  logRetrievalDays: logRetrievalDays,
-                }}
-              />
-            </MessageBar>
-          )}
+        <ScreenContent className={styles.content} layout="list">
+          <div className={styles.widget}>
+            <NavBreadcrumb items={items} />
+            {logRetrievalDays !== -1 && (
+              <MessageBar className={styles.messageBar}>
+                <FormattedMessage
+                  id="FeatureConfig.audit-log.retrieval-days"
+                  values={{
+                    planPagePath: "../billing",
+                    logRetrievalDays: logRetrievalDays,
+                  }}
+                />
+              </MessageBar>
+            )}
+          </div>
           <AuditLogList
-            className={styles.list}
+            className={styles.widget}
             loading={loading}
             auditLogs={data?.auditLogs ?? null}
             offset={offset}
@@ -384,7 +387,7 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
             totalCount={data?.auditLogs?.totalCount ?? undefined}
             onChangeOffset={onChangeOffset}
           />
-        </main>
+        </ScreenContent>
       </CommandBarContainer>
       <Dialog
         hidden={dateRangeDialogHidden}
