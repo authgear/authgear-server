@@ -12,6 +12,13 @@ const progressIndicatorStyles = {
   },
 };
 
+const commandBarStyles = {
+  root: {
+    // Align the first item with the screen title.
+    padding: "0 14px",
+  },
+};
+
 export interface CommandBarContainerProps {
   className?: string;
   isLoading?: boolean;
@@ -30,6 +37,7 @@ const CommandBarContainer: React.FC<CommandBarContainerProps> =
         <div className={styles.header}>
           <CommandBar
             className={styles.commandBar}
+            styles={commandBarStyles}
             items={primaryItems ?? []}
             farItems={secondaryItems}
           />
