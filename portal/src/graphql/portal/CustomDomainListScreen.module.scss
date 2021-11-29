@@ -1,11 +1,3 @@
-.verifySuccessMessageBar {
-  visibility: hidden;
-
-  &.visible {
-    visibility: visible;
-  }
-}
-
 .widget {
   grid-column: 1 / span 8;
 }
