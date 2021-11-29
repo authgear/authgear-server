@@ -13,7 +13,7 @@
 
 {{ $.CSRFField }}
 
-<img class="qr-code-image" src="{{ $.ImageURI }}">
+<img class="w-48 place-self-center" src="{{ $.ImageURI }}">
 
 <div class="text-sm primary-txt border border-color border-solid font-mono flex flex-row items-center">
 	<span id="totp-code-key" class="flex-1 margin-h-12">{{ template "setup-totp-fallback-description" (dict "secret" $.Secret) }}</span>
