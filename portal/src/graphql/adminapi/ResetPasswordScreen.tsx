@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useResetPasswordMutation } from "./mutations/resetPasswordMutation";
@@ -13,6 +12,7 @@ import { useTextField } from "../../hook/useInput";
 import { PortalAPIAppConfig } from "../../types";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormContainer from "../../FormContainer";
+import ScreenContent from "../../ScreenContent";
 import FormTextField from "../../FormTextField";
 
 import styles from "./ResetPasswordScreen.module.scss";
@@ -58,11 +58,10 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
   });
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
+    <ScreenContent>
+      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
       <PasswordField
-        className={styles.newPasswordField}
-        textFieldClassName={styles.passwordField}
+        className={styles.widget}
         label={renderToString("ResetPasswordScreen.new-password")}
         value={state.newPassword}
         onChange={onNewPasswordChange}
@@ -71,7 +70,7 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
         fieldName="password"
       />
       <FormTextField
-        className={cn(styles.passwordField, styles.confirmPasswordField)}
+        className={styles.widget}
         label={renderToString("ResetPasswordScreen.confirm-password")}
         type="password"
         value={state.confirmPassword}
@@ -79,7 +78,7 @@ const ResetPasswordContent: React.FC<ResetPasswordContentProps> = function (
         parentJSONPointer=""
         fieldName="confirm_password"
       />
-    </div>
+    </ScreenContent>
   );
 };
 

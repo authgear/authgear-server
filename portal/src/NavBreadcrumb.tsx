@@ -1,11 +1,9 @@
 import React, { useContext, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useHref } from "react-router-dom";
-import cn from "classnames";
 import { Breadcrumb, IBreadcrumbItem, IRenderFunction } from "@fluentui/react";
 import { Context } from "@oursky/react-messageformat";
 import useNavIsActive from "./hook/useNavIsActive";
-import styles from "./NavBreadcrumb.module.scss";
 
 export interface BreadcrumbItem {
   to: string;
@@ -23,6 +21,9 @@ interface FuncLinkProps {
 }
 
 const breadcrumbStyles = {
+  root: {
+    margin: "0 -8px",
+  },
   itemLink: {
     fontSize: "28px",
     margin: "0px",
@@ -99,13 +100,14 @@ const NavBreadcrumb: React.FC<Props> = function NavBreadcrumb(props: Props) {
   const label = renderToString("NavBreadcrumb.label");
 
   return (
-    <Breadcrumb
-      styles={breadcrumbStyles}
-      ariaLabel={label}
-      className={cn(className, styles.root)}
-      items={breadcrumbItems}
-      onRenderItem={onRenderItem}
-    />
+    <div className={className}>
+      <Breadcrumb
+        styles={breadcrumbStyles}
+        ariaLabel={label}
+        items={breadcrumbItems}
+        onRenderItem={onRenderItem}
+      />
+    </div>
   );
 };
 

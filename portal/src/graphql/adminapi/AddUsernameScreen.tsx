@@ -40,7 +40,7 @@ const UsernameField: React.FC<UsernameFieldProps> = function UsernameField(
       parentJSONPointer=""
       fieldName="login_id"
       label={renderToString("AddUsernameScreen.username.label")}
-      className={styles.usernameField}
+      className={styles.widget}
       value={value}
       onChange={onUsernameChange}
       errorRules={errorRules}
@@ -70,7 +70,9 @@ const AddUsernameScreen: React.FC = function AddUsernameScreen() {
       { to: ".", label: <FormattedMessage id="AddUsernameScreen.title" /> },
     ];
   }, []);
-  const title = <NavBreadcrumb items={navBreadcrumbItems} />;
+  const title = (
+    <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+  );
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;

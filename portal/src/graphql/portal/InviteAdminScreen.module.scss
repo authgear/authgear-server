@@ -1,10 +1,3 @@
-.root {
-  display: flex;
-  flex-direction: column;
-  margin: 0 32px;
-}
-
-.emailField {
-  width: 320px;
-  margin-bottom: 20px;
+.widget {
+  grid-column: 1 / span 6;
 }

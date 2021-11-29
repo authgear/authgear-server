@@ -1,7 +1,3 @@
-.root {
-  margin: 0 32px;
-}
-
 .identityOption {
   padding: 2px 0 0 30px;
 }
@@ -10,12 +6,6 @@
   padding: 0 0 10px;
 }
 
-.textField {
-  width: 320px;
-  margin-bottom: 15px;
-}
-
-.userInfo {
-  margin-bottom: 15px;
-  width: 350px;
+.widget {
+  grid-column: 1 / span 6;
 }

@@ -5,6 +5,7 @@ import { ChoiceGroup, IChoiceGroupOption, Label, Text } from "@fluentui/react";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useCreateUserMutation } from "./mutations/createUserMutation";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import ScreenContent from "../../ScreenContent";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import PasswordField from "../../PasswordField";
@@ -266,10 +267,10 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
   }
 
   return (
-    <div className={styles.root}>
-      <NavBreadcrumb items={navBreadcrumbItems} />
+    <ScreenContent>
+      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
       <ChoiceGroup
-        className={styles.userInfo}
+        className={styles.widget}
         styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}
         selectedKey={selectedLoginIDType ?? undefined}
         options={loginIdTypeOptions}
@@ -277,7 +278,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         label={renderToString("AddUserScreen.user-info.label")}
       />
       <PasswordField
-        textFieldClassName={styles.textField}
+        className={styles.widget}
         disabled={passwordFieldDisabled}
         label={renderToString("AddUserScreen.password.label")}
         value={password}
@@ -286,7 +287,7 @@ const AddUserContent: React.FC<AddUserContentProps> = function AddUserContent(
         parentJSONPointer=""
         fieldName="password"
       />
-    </div>
+    </ScreenContent>
   );
 };
 
