@@ -30,7 +30,7 @@
 {{ else }}
 <p class="text-sm break-words margin-0 primary-txt text-center">{{ template "wechat-auth-with-qr-code-description" }}</p>
 
-<img class="qr-code-image" src="{{ $.ImageURI }}">
+<img class="w-48 place-self-center" src="{{ $.ImageURI }}">
 {{ end }}
 
 {{ template "__watermark.html" . }}
