@@ -134,6 +134,7 @@ function parseResourceTooLargeError(
   };
 }
 
+// eslint-disable-next-line complexity
 function parseError(error: APIError): ParsedAPIError[] {
   const errors: ParsedAPIError[] = [];
   switch (error.reason) {
@@ -160,6 +161,9 @@ function parseError(error: APIError): ParsedAPIError[] {
     case "WebHookDisallowed": {
       errors.push({
         messageID: "errors.webhook.disallowed",
+        arguments: {
+          info: JSON.stringify(error.info ?? {}),
+        },
       });
       break;
     }
