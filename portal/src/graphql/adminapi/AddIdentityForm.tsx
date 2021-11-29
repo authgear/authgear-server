@@ -12,6 +12,7 @@ import {
 import styles from "./AddIdentityForm.module.scss";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import FormContainer from "../../FormContainer";
+import ScreenContent from "../../ScreenContent";
 import { ErrorParseRule } from "../../error/parse";
 import { canCreateLoginIDIdentity } from "../../util/loginID";
 import { Text } from "@fluentui/react";
@@ -176,7 +177,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
 
     return (
       <FormContainer form={form} canSave={canSave}>
-        <div className={styles.root}>
+        <ScreenContent>
           {title}
           <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />
           {requirePassword && (
@@ -191,7 +192,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
               fieldName="password"
             />
           )}
-        </div>
+        </ScreenContent>
       </FormContainer>
     );
   };

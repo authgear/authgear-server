@@ -107,9 +107,7 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   return (
     <CommandBarContainer isLoading={loading} messageBar={messageBar}>
       <ScreenContent>
-        <div className={styles.widget}>
-          <NavBreadcrumb items={navBreadcrumbItems} />
-        </div>
+        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <Widget className={styles.widget}>
           {activityType && (
             <SummaryText>

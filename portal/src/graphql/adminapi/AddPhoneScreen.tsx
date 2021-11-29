@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import cn from "classnames";
 import { useParams } from "react-router-dom";
 import { Dropdown, Label } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -118,7 +119,7 @@ const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
   );
 
   return (
-    <section className={styles.phoneNumberFields}>
+    <section className={cn(styles.widget, styles.phoneNumberFields)}>
       <Label className={styles.phoneNumberLabel}>
         <FormattedMessage id="AddPhoneScreen.phone.label" />
       </Label>
@@ -164,7 +165,9 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
       { to: ".", label: <FormattedMessage id="AddPhoneScreen.title" /> },
     ];
   }, []);
-  const title = <NavBreadcrumb items={navBreadcrumbItems} />;
+  const title = (
+    <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+  );
 
   const [resetToken, setResetToken] = useState({});
   const renderPhoneField = useCallback(

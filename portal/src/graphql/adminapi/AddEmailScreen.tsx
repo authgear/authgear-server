@@ -34,10 +34,10 @@ const EmailField: React.FC<EmailFieldProps> = function EmailField(props) {
   );
   return (
     <FormTextField
+      className={styles.widget}
       parentJSONPointer=""
       fieldName="login_id"
       label={renderToString("AddEmailScreen.email.label")}
-      className={styles.emailField}
       value={value}
       onChange={onEmailChange}
       errorRules={errorRules}
@@ -67,7 +67,9 @@ const AddEmailScreen: React.FC = function AddEmailScreen() {
       { to: ".", label: <FormattedMessage id="AddEmailScreen.title" /> },
     ];
   }, []);
-  const title = <NavBreadcrumb items={navBreadcrumbItems} />;
+  const title = (
+    <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+  );
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;

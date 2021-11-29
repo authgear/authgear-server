@@ -670,9 +670,7 @@ const CustomDomainListContent: React.FC<CustomDomainListContentProps> =
 
     return (
       <ScreenContent>
-        <div className={styles.widget}>
-          <NavBreadcrumb items={navBreadcrumbItems} />
-        </div>
+        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <Widget className={cn(styles.widget, styles.controlGroup)}>
           <Text block={true}>
             <FormattedMessage id="CustomDomainListScreen.desc" />
@@ -764,23 +762,21 @@ const CustomDomainListScreen: React.FC = function CustomDomainListScreen() {
   }
 
   return (
-    <main>
-      <MessageBar
-        className={cn(
-          styles.verifySuccessMessageBar,
-          isVerifySuccessMessageVisible && styles.visible
-        )}
-        messageBarType={MessageBarType.success}
-        onDismiss={dismissVerifySuccessMessageBar}
-      >
-        <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
-      </MessageBar>
+    <div>
+      {isVerifySuccessMessageVisible && (
+        <MessageBar
+          messageBarType={MessageBarType.success}
+          onDismiss={dismissVerifySuccessMessageBar}
+        >
+          <FormattedMessage id="CustomDomainListScreen.verify-success-message" />
+        </MessageBar>
+      )}
       <CustomDomainListContent
         domains={domains ?? []}
         appConfigForm={form}
         featureConfig={featureConfig.effectiveFeatureConfig?.custom_domain}
       />
-    </main>
+    </div>
   );
 };
 

@@ -11,6 +11,7 @@ import { FormattedMessage, Context } from "@oursky/react-messageformat";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
+import ScreenContent from "../../ScreenContent";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import FormContainer from "../../FormContainer";
@@ -150,54 +151,48 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   );
 
   return (
-    <div className={styles.userDetails}>
+    <div className={styles.widget}>
       <UserDetailSummary
         profileImageURL={data?.standardAttributes.picture}
         endUserAccountIdentifier={endUserAccountIdentifier}
         createdAtISO={data?.createdAt ?? null}
         lastLoginAtISO={data?.lastLoginAt ?? null}
       />
-      <div className={styles.userDetailsTab}>
-        <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
-          <PivotItem
-            itemKey={STANDARD_ATTRIBUTES_KEY}
-            headerText={renderToString(
-              "UserDetails.standard-attributes.header"
-            )}
-          >
-            <UserDetailsStandardAttributes
-              identities={identities}
-              standardAttributes={state.standardAttributes}
-              onChangeStandardAttributes={onChangeStandardAttributes}
-              accessControl={accessControl}
-            />
-          </PivotItem>
-          <PivotItem
-            itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
-            headerText={renderToString("UserDetails.account-security.header")}
-          >
-            <UserDetailsAccountSecurity authenticators={authenticators} />
-          </PivotItem>
-          <PivotItem
-            itemKey={CONNECTED_IDENTITIES_PIVOT_KEY}
-            headerText={renderToString(
-              "UserDetails.connected-identities.header"
-            )}
-          >
-            <UserDetailsConnectedIdentities
-              identities={identities}
-              verifiedClaims={verifiedClaims}
-              availableLoginIdIdentities={availableLoginIdIdentities}
-            />
-          </PivotItem>
-          <PivotItem
-            itemKey={SESSION_PIVOT_KEY}
-            headerText={renderToString("UserDetails.session.header")}
-          >
-            <UserDetailsSession sessions={sessions} />
-          </PivotItem>
-        </Pivot>
-      </div>
+      <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
+        <PivotItem
+          itemKey={STANDARD_ATTRIBUTES_KEY}
+          headerText={renderToString("UserDetails.standard-attributes.header")}
+        >
+          <UserDetailsStandardAttributes
+            identities={identities}
+            standardAttributes={state.standardAttributes}
+            onChangeStandardAttributes={onChangeStandardAttributes}
+            accessControl={accessControl}
+          />
+        </PivotItem>
+        <PivotItem
+          itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
+          headerText={renderToString("UserDetails.account-security.header")}
+        >
+          <UserDetailsAccountSecurity authenticators={authenticators} />
+        </PivotItem>
+        <PivotItem
+          itemKey={CONNECTED_IDENTITIES_PIVOT_KEY}
+          headerText={renderToString("UserDetails.connected-identities.header")}
+        >
+          <UserDetailsConnectedIdentities
+            identities={identities}
+            verifiedClaims={verifiedClaims}
+            availableLoginIdIdentities={availableLoginIdIdentities}
+          />
+        </PivotItem>
+        <PivotItem
+          itemKey={SESSION_PIVOT_KEY}
+          headerText={renderToString("UserDetails.session.header")}
+        >
+          <UserDetailsSession sessions={sessions} />
+        </PivotItem>
+      </Pivot>
     </div>
   );
 };
@@ -331,10 +326,10 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
 
     return (
       <FormContainer form={form} primaryItems={primaryItems}>
-        <main className={styles.root}>
-          <NavBreadcrumb items={navBreadcrumbItems} />
+        <ScreenContent>
+          <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
           <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
-        </main>
+        </ScreenContent>
         <DeleteUserDialog
           isHidden={deleteUserDialogIsHidden}
           onDismiss={onDismissDeleteUserDialog}

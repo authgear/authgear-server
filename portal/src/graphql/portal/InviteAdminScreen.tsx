@@ -6,6 +6,7 @@ import { ErrorParseRule } from "../../error/parse";
 import { useCreateCollaboratorInvitationMutation } from "./mutations/createCollaboratorInvitationMutation";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormContainer from "../../FormContainer";
+import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 import styles from "./InviteAdminScreen.module.scss";
@@ -45,18 +46,18 @@ const InviteAdminContent: React.FC<InviteAdminContentProps> =
     );
 
     return (
-      <div className={styles.root}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
+      <ScreenContent>
+        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <FormTextField
           parentJSONPointer=""
           fieldName="inviteeEmail"
-          className={styles.emailField}
+          className={styles.widget}
           type="text"
           label={renderToString("InviteAdminScreen.email.label")}
           value={state.email}
           onChange={onEmailChange}
         />
-      </div>
+      </ScreenContent>
     );
   };
 

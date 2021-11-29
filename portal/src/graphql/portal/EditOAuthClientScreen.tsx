@@ -112,9 +112,7 @@ const EditOAuthClientContent: React.FC<EditOAuthClientContentProps> =
 
     return (
       <ScreenContent>
-        <div className={styles.widget}>
-          <NavBreadcrumb items={navBreadcrumbItems} />
-        </div>
+        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <ModifyOAuthClientForm
           className={styles.widget}
           isCreation={false}

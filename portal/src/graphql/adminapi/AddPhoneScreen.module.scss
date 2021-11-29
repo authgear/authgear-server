@@ -1,10 +1,14 @@
+.widget {
+  grid-column: 1 / span 6;
+}
+
 .phoneNumberFields {
   display: grid;
-  margin-bottom: 20px;
+  gap: 10px;
   grid-template:
     "label    label"
     "code     phone"
-    / 120px 200px;
+    / 120px 1fr;
 }
 
 .phoneNumberLabel {
@@ -17,5 +21,4 @@
 
 .phone {
   grid-area: phone;
-  margin-left: 10px;
 }

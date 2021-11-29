@@ -194,9 +194,7 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
 
   return (
     <ScreenContent>
-      <div className={styles.widget}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
-      </div>
+      <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
       <Widget className={styles.widget}>
         <Text className={styles.description} block={true}>
           <FormattedMessage
@@ -279,12 +277,10 @@ const VerifyDomainScreen: React.FC = function VerifyDomainScreen() {
   }
 
   return (
-    <main>
-      <VerifyDomain
-        domain={domain}
-        nonCustomVerifiedDomain={nonCustomVerifiedDomain}
-      />
-    </main>
+    <VerifyDomain
+      domain={domain}
+      nonCustomVerifiedDomain={nonCustomVerifiedDomain}
+    />
   );
 };
 

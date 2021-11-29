@@ -6,6 +6,7 @@ import { gql, useQuery } from "@apollo/client";
 import NavBreadcrumb from "../../NavBreadcrumb";
 import UsersList from "./UsersList";
 import CommandBarContainer from "../../CommandBarContainer";
+import ScreenContent from "../../ScreenContent";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import {
@@ -178,16 +179,16 @@ const UsersScreen: React.FC = function UsersScreen() {
 
   return (
     <CommandBarContainer
-      isLoading={loading}
       className={styles.root}
+      isLoading={loading}
       primaryItems={primaryItems}
       secondaryItems={secondaryItems}
       messageBar={messageBar}
     >
-      <main className={styles.content}>
-        <NavBreadcrumb items={items} />
+      <ScreenContent className={styles.content} layout="list">
+        <NavBreadcrumb className={styles.widget} items={items} />
         <UsersList
-          className={styles.usersList}
+          className={styles.widget}
           loading={loading}
           users={data?.users ?? null}
           offset={offset}
@@ -198,7 +199,7 @@ const UsersScreen: React.FC = function UsersScreen() {
           sortBy={sortBy}
           sortDirection={sortDirection}
         />
-      </main>
+      </ScreenContent>
     </CommandBarContainer>
   );
 };

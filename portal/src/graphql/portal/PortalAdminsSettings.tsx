@@ -19,6 +19,7 @@ import ErrorDialog from "../../error/ErrorDialog";
 
 import styles from "./PortalAdminsSettings.module.scss";
 import CommandBarContainer from "../../CommandBarContainer";
+import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 
 const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
@@ -165,10 +166,10 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
 
   return (
     <CommandBarContainer isLoading={false} primaryItems={primaryItems}>
-      <div className={styles.content}>
-        <NavBreadcrumb items={navBreadcrumbItems} />
+      <ScreenContent>
+        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
         <PortalAdminList
-          className={styles.list}
+          className={styles.widget}
           loading={false}
           collaborators={collaborators ?? []}
           collaboratorInvitations={collaboratorInvitations ?? []}
@@ -177,7 +178,7 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
             onRemoveCollaboratorInvitationClicked
           }
         />
-      </div>
+      </ScreenContent>
       <RemovePortalAdminConfirmationDialog
         visible={isRemovePortalAdminConfirmationDialogVisible}
         data={removePortalAdminConfirmationDialogData ?? undefined}
