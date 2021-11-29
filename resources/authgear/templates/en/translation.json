@@ -285,7 +285,7 @@
   "setup-totp-title": "Setup authenticator",
   "setup-totp-code-placeholder": "6-digit code",
   "setup-totp-description": "Scan the QR code or enter the key with your authenticator device / app",
-  "setup-totp-fallback-description": "{secret}",
+  "setup-totp-raw-secret": "{secret}",
   "setup-totp-get-google-authenticator-description": "If you don''t have any authenticator device / app, you can get the Google Authenticator App from <a class=\"link\" target=\"_blank\" href=\"https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2\">Google Play Store</a> or <a class=\"link\" target=\"_blank\" href=\"https://apps.apple.com/app/google-authenticator/id388497605\">Apple App Store</a>",
   "setup-totp-use-google-authenticator-description": "In the App, select <b>Set up account</b> and choose <b>Scan barcode</b>",
   "setup-totp-code-description": "After scanning the code, enter the 6-digit code below",
