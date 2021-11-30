@@ -56,6 +56,12 @@ func (u *User) GetMeta() model.Meta {
 	}
 }
 
+func (u *User) ToRef() *model.UserRef {
+	return &model.UserRef{
+		Meta: u.GetMeta(),
+	}
+}
+
 func (u *User) CheckStatus() error {
 	if u.IsDisabled {
 		return NewErrDisabledUser(u.DisableReason)

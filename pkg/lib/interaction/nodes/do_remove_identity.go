@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 func init() {
@@ -68,9 +67,10 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			return nil
 		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.EmptyRole)
-			if err != nil {
-				return err
+			userRef := model.UserRef{
+				Meta: model.Meta{
+					ID: n.Identity.ID,
+				},
 			}
 
 			var e event.Payload
@@ -78,21 +78,21 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			case model.IdentityTypeLoginID:
 				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 				e = nonblocking.NewIdentityLoginIDRemovedEventPayload(
-					*user,
+					userRef,
 					n.Identity.ToModel(),
 					loginIDType,
 					n.IsAdminAPI,
 				)
 			case model.IdentityTypeOAuth:
 				e = &nonblocking.IdentityOAuthDisconnectedEventPayload{
-					User:     *user,
+					UserRef:  userRef,
 					Identity: n.Identity.ToModel(),
 					AdminAPI: n.IsAdminAPI,
 				}
 			}
 
 			if e != nil {
-				err = ctx.Events.DispatchEvent(e)
+				err := ctx.Events.DispatchEvent(e)
 				if err != nil {
 					return err
 				}

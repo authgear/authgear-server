@@ -10,8 +10,9 @@ const (
 )
 
 type UserProfilePreUpdateBlockingEventPayload struct {
-	User     model.User `json:"user"`
-	AdminAPI bool       `json:"-"`
+	UserRef   model.UserRef `json:"-"`
+	UserModel model.User    `json:"user"`
+	AdminAPI  bool          `json:"-"`
 }
 
 func (e *UserProfilePreUpdateBlockingEventPayload) BlockingEventType() event.Type {
@@ -19,7 +20,7 @@ func (e *UserProfilePreUpdateBlockingEventPayload) BlockingEventType() event.Typ
 }
 
 func (e *UserProfilePreUpdateBlockingEventPayload) UserID() string {
-	return e.User.ID
+	return e.UserRef.ID
 }
 
 func (e *UserProfilePreUpdateBlockingEventPayload) IsAdminAPI() bool {
@@ -32,7 +33,7 @@ func (e *UserProfilePreUpdateBlockingEventPayload) FillContext(ctx *event.Contex
 func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
 	if mutations.User.StandardAttributes != nil {
 		copied := *e
-		copied.User.StandardAttributes = mutations.User.StandardAttributes
+		copied.UserModel.StandardAttributes = mutations.User.StandardAttributes
 		return &copied, true
 	}
 
@@ -42,7 +43,7 @@ func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(mutations even
 func (e *UserProfilePreUpdateBlockingEventPayload) GenerateFullMutations() event.Mutations {
 	return event.Mutations{
 		User: event.UserMutations{
-			StandardAttributes: e.User.StandardAttributes,
+			StandardAttributes: e.UserModel.StandardAttributes,
 		},
 	}
 }

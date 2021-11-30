@@ -19,21 +19,22 @@ const (
 )
 
 type IdentityLoginIDAddedEventPayload struct {
-	User        model.User     `json:"user"`
+	UserRef     model.UserRef  `json:"-"`
+	UserModel   model.User     `json:"user"`
 	Identity    model.Identity `json:"identity"`
 	LoginIDType string         `json:"-"`
 	AdminAPI    bool           `json:"-"`
 }
 
 func NewIdentityLoginIDAddedEventPayload(
-	user model.User,
+	userRef model.UserRef,
 	identity model.Identity,
 	loginIDType string,
 	adminAPI bool,
 ) *IdentityLoginIDAddedEventPayload {
 	if checkIdentityEventSupportLoginIDType(loginIDType) {
 		return &IdentityLoginIDAddedEventPayload{
-			User:        user,
+			UserRef:     userRef,
 			Identity:    identity,
 			LoginIDType: loginIDType,
 			AdminAPI:    adminAPI,
@@ -47,7 +48,7 @@ func (e *IdentityLoginIDAddedEventPayload) NonBlockingEventType() event.Type {
 }
 
 func (e *IdentityLoginIDAddedEventPayload) UserID() string {
-	return e.User.ID
+	return e.UserRef.ID
 }
 
 func (e *IdentityLoginIDAddedEventPayload) IsAdminAPI() bool {

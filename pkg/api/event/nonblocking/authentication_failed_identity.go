@@ -12,8 +12,9 @@ const (
 )
 
 type AuthenticationFailedIdentityEventPayload struct {
-	User         model.User `json:"user"`
-	IdentityType string     `json:"identity_type"`
+	UserRef      model.UserRef `json:"-"`
+	UserModel    model.User    `json:"user"`
+	IdentityType string        `json:"identity_type"`
 }
 
 func (e *AuthenticationFailedIdentityEventPayload) NonBlockingEventType() event.Type {
@@ -21,7 +22,7 @@ func (e *AuthenticationFailedIdentityEventPayload) NonBlockingEventType() event.
 }
 
 func (e *AuthenticationFailedIdentityEventPayload) UserID() string {
-	return e.User.ID
+	return e.UserRef.ID
 }
 
 func (e *AuthenticationFailedIdentityEventPayload) IsAdminAPI() bool {

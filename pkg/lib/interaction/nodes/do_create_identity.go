@@ -84,31 +84,34 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				return nil
 			}
 
-			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.EmptyRole)
-			if err != nil {
-				return err
-			}
-
 			var e event.Payload
 			switch n.Identity.Type {
 			case model.IdentityTypeLoginID:
 				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 				e = nonblocking.NewIdentityLoginIDAddedEventPayload(
-					*user,
+					model.UserRef{
+						Meta: model.Meta{
+							ID: n.Identity.ID,
+						},
+					},
 					n.Identity.ToModel(),
 					loginIDType,
 					n.IsAdminAPI,
 				)
 			case model.IdentityTypeOAuth:
 				e = &nonblocking.IdentityOAuthConnectedEventPayload{
-					User:     *user,
+					UserRef: model.UserRef{
+						Meta: model.Meta{
+							ID: n.Identity.ID,
+						},
+					},
 					Identity: n.Identity.ToModel(),
 					AdminAPI: n.IsAdminAPI,
 				}
 			}
 
 			if e != nil {
-				err = ctx.Events.DispatchEvent(e)
+				err := ctx.Events.DispatchEvent(e)
 				if err != nil {
 					return err
 				}

@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 )
 
@@ -79,12 +78,13 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 		if err != nil {
 			dispatchEvent := func() error {
 				userID := iden.UserID
-				user, err := ctx.Users.Get(userID, accesscontrol.EmptyRole)
-				if err != nil {
-					return err
+				userRef := model.UserRef{
+					Meta: model.Meta{
+						ID: userID,
+					},
 				}
 				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
-					User:         *user,
+					UserRef:      userRef,
 					IdentityType: string(model.IdentityTypeBiometric),
 				})
 				if err != nil {

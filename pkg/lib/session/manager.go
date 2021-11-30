@@ -35,7 +35,6 @@ type EventService interface {
 }
 
 type Manager struct {
-	Users               UserQuery
 	IDPSessions         IDPSessionManager
 	AccessTokenSessions AccessTokenSessionManager
 	Events              EventService
@@ -55,19 +54,18 @@ func (m *Manager) resolveManagementProvider(session Session) ManagementService {
 func (m *Manager) invalidate(session Session, reason DeleteReason, isAdminAPI bool) (ManagementService, error) {
 	sessionModel := session.ToAPIModel()
 
-	user, err := m.Users.Get(session.GetAuthenticationInfo().UserID, accesscontrol.EmptyRole)
-	if err != nil {
-		return nil, err
-	}
-
 	provider := m.resolveManagementProvider(session)
-	err = provider.Delete(session)
+	err := provider.Delete(session)
 	if err != nil {
 		return nil, err
 	}
 
 	err = m.Events.DispatchEvent(&nonblocking.UserSignedOutEventPayload{
-		User:     *user,
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: session.GetAuthenticationInfo().UserID,
+			},
+		},
 		Session:  *sessionModel,
 		AdminAPI: isAdminAPI,
 	})

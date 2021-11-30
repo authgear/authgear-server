@@ -693,7 +693,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	manager2 := &session.Manager{
-		Users:               queries,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,

@@ -10,8 +10,9 @@ const (
 )
 
 type UserProfileUpdatedEventPayload struct {
-	User     model.User `json:"user"`
-	AdminAPI bool       `json:"-"`
+	UserRef   model.UserRef `json:"-"`
+	UserModel model.User    `json:"user"`
+	AdminAPI  bool          `json:"-"`
 }
 
 func (e *UserProfileUpdatedEventPayload) NonBlockingEventType() event.Type {
@@ -19,7 +20,7 @@ func (e *UserProfileUpdatedEventPayload) NonBlockingEventType() event.Type {
 }
 
 func (e *UserProfileUpdatedEventPayload) UserID() string {
-	return e.User.ID
+	return e.UserRef.ID
 }
 
 func (e *UserProfileUpdatedEventPayload) IsAdminAPI() bool {
