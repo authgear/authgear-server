@@ -2,7 +2,7 @@ package model
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
 
@@ -14,12 +14,12 @@ type IdentityDefLoginID struct {
 var _ IdentityDef = &IdentityDefLoginID{}
 var _ nodes.InputUseIdentityLoginID = &IdentityDefLoginID{}
 
-func (i *IdentityDefLoginID) Type() authn.IdentityType { return authn.IdentityTypeLoginID }
+func (i *IdentityDefLoginID) Type() model.IdentityType { return model.IdentityTypeLoginID }
 func (i *IdentityDefLoginID) GetLoginIDKey() string    { return i.Key }
 func (i *IdentityDefLoginID) GetLoginID() string       { return i.Value }
 
 type IdentityDef interface {
-	Type() authn.IdentityType
+	Type() model.IdentityType
 }
 
 func ParseIdentityDef(data map[string]interface{}) (IdentityDef, error) {

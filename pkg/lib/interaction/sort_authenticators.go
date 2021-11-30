@@ -3,18 +3,18 @@ package interaction
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
 
 type SortableAuthenticator interface {
-	AuthenticatorType() authn.AuthenticatorType
+	AuthenticatorType() model.AuthenticatorType
 	IsDefaultAuthenticator() bool
 }
 
 type SortableAuthenticatorInfo authenticator.Info
 
-func (i *SortableAuthenticatorInfo) AuthenticatorType() authn.AuthenticatorType {
+func (i *SortableAuthenticatorInfo) AuthenticatorType() model.AuthenticatorType {
 	return i.Type
 }
 
@@ -25,11 +25,11 @@ func (i *SortableAuthenticatorInfo) IsDefaultAuthenticator() bool {
 // SortAuthenticators sorts slice in-place by considering preferred as the order.
 // The item in the slice must somehow associated with a single AuthenticatorType.
 func SortAuthenticators(
-	preferred []authn.AuthenticatorType,
+	preferred []model.AuthenticatorType,
 	slice interface{},
 	toSortable func(i int) SortableAuthenticator,
 ) {
-	rank := make(map[authn.AuthenticatorType]int)
+	rank := make(map[model.AuthenticatorType]int)
 	for i, typ := range preferred {
 		rank[typ] = i
 	}

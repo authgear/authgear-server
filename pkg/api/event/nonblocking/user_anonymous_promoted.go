@@ -10,10 +10,12 @@ const (
 )
 
 type UserAnonymousPromotedEventPayload struct {
-	AnonymousUser model.User       `json:"anonymous_user"`
-	User          model.User       `json:"user"`
-	Identities    []model.Identity `json:"identities"`
-	AdminAPI      bool             `json:"-"`
+	AnonymousUserRef   model.UserRef    `json:"-" resolve:"anonymous_user"`
+	AnonymousUserModel model.User       `json:"anonymous_user"`
+	UserRef            model.UserRef    `json:"-" resolve:"user"`
+	UserModel          model.User       `json:"user"`
+	Identities         []model.Identity `json:"identities"`
+	AdminAPI           bool             `json:"-"`
 }
 
 func (e *UserAnonymousPromotedEventPayload) NonBlockingEventType() event.Type {
@@ -21,7 +23,7 @@ func (e *UserAnonymousPromotedEventPayload) NonBlockingEventType() event.Type {
 }
 
 func (e *UserAnonymousPromotedEventPayload) UserID() string {
-	return e.User.ID
+	return e.UserRef.ID
 }
 
 func (e *UserAnonymousPromotedEventPayload) IsAdminAPI() bool {

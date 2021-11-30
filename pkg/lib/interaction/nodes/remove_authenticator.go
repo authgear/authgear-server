@@ -1,7 +1,7 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -11,7 +11,7 @@ func init() {
 }
 
 type InputRemoveAuthenticator interface {
-	GetAuthenticatorType() authn.AuthenticatorType
+	GetAuthenticatorType() model.AuthenticatorType
 	GetAuthenticatorID() string
 }
 

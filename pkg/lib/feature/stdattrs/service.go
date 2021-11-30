@@ -18,7 +18,6 @@ type IdentityService interface {
 
 type UserQueries interface {
 	GetRaw(userID string) (*user.User, error)
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type UserStore interface {
@@ -66,18 +65,21 @@ func (s *Service) UpdateStandardAttributes(role accesscontrol.Role, userID strin
 		return err
 	}
 
-	user, err := s.UserQueries.Get(userID, config.RolePortalUI)
-	if err != nil {
-		return err
-	}
-
 	eventPayloads := []event.Payload{
 		&blocking.UserProfilePreUpdateBlockingEventPayload{
-			User:     *user,
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: userID,
+				},
+			},
 			AdminAPI: role == config.RolePortalUI,
 		},
 		&nonblocking.UserProfileUpdatedEventPayload{
-			User:     *user,
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: userID,
+				},
+			},
 			AdminAPI: role == config.RolePortalUI,
 		},
 	}

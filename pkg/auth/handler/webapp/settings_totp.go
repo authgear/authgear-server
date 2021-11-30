@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -43,7 +44,7 @@ func (h *SettingsTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (
 	viewModel := SettingsTOTPViewModel{}
 	authenticators, err := h.Authenticators.List(*userID,
 		authenticator.KeepKind(authenticator.KindSecondary),
-		authenticator.KeepType(authn.AuthenticatorTypeTOTP),
+		authenticator.KeepType(model.AuthenticatorTypeTOTP),
 	)
 	if err != nil {
 		return nil, err
@@ -86,7 +87,7 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			input = &InputRemoveAuthenticator{
-				Type: authn.AuthenticatorTypeTOTP,
+				Type: model.AuthenticatorTypeTOTP,
 				ID:   authenticatorID,
 			}
 			return
@@ -106,7 +107,7 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
 			authn.AuthenticationStageSecondary,
-			authn.AuthenticatorTypeTOTP,
+			model.AuthenticatorTypeTOTP,
 		)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {

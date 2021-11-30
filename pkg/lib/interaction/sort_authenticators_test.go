@@ -5,19 +5,19 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
 
 func TestSortAuthenticators(t *testing.T) {
-	info := func(typ authn.AuthenticatorType, id string) *authenticator.Info {
+	info := func(typ model.AuthenticatorType, id string) *authenticator.Info {
 		return &authenticator.Info{
 			ID:   id,
 			Type: typ,
 		}
 	}
 
-	infoDefault := func(typ authn.AuthenticatorType, id string, isDefault bool) *authenticator.Info {
+	infoDefault := func(typ model.AuthenticatorType, id string, isDefault bool) *authenticator.Info {
 		i := &authenticator.Info{
 			ID:        id,
 			Type:      typ,
@@ -26,7 +26,7 @@ func TestSortAuthenticators(t *testing.T) {
 		return i
 	}
 
-	test := func(ais []*authenticator.Info, preferred []authn.AuthenticatorType, expected []*authenticator.Info) {
+	test := func(ais []*authenticator.Info, preferred []model.AuthenticatorType, expected []*authenticator.Info) {
 		actual := make([]*authenticator.Info, len(ais))
 		copy(actual, ais)
 		SortAuthenticators(preferred, actual, func(i int) SortableAuthenticator {
@@ -42,75 +42,75 @@ func TestSortAuthenticators(t *testing.T) {
 		test(nil, nil, []*authenticator.Info{})
 
 		// Sort empty
-		test([]*authenticator.Info{}, []authn.AuthenticatorType{}, []*authenticator.Info{})
+		test([]*authenticator.Info{}, []model.AuthenticatorType{}, []*authenticator.Info{})
 
 		// Sort singleton
 		test([]*authenticator.Info{
-			info(authn.AuthenticatorTypePassword, "password"),
-		}, []authn.AuthenticatorType{}, []*authenticator.Info{
-			info(authn.AuthenticatorTypePassword, "password"),
+			info(model.AuthenticatorTypePassword, "password"),
+		}, []model.AuthenticatorType{}, []*authenticator.Info{
+			info(model.AuthenticatorTypePassword, "password"),
 		})
 
 		// OTP comes before
 		test([]*authenticator.Info{
-			info(authn.AuthenticatorTypePassword, "password"),
-			info(authn.AuthenticatorTypeOOBEmail, "oob"),
-		}, []authn.AuthenticatorType{
-			authn.AuthenticatorTypeOOBEmail,
+			info(model.AuthenticatorTypePassword, "password"),
+			info(model.AuthenticatorTypeOOBEmail, "oob"),
+		}, []model.AuthenticatorType{
+			model.AuthenticatorTypeOOBEmail,
 		}, []*authenticator.Info{
-			info(authn.AuthenticatorTypeOOBEmail, "oob"),
-			info(authn.AuthenticatorTypePassword, "password"),
+			info(model.AuthenticatorTypeOOBEmail, "oob"),
+			info(model.AuthenticatorTypePassword, "password"),
 		})
 
 		// Sort is stable
 		test([]*authenticator.Info{
-			info(authn.AuthenticatorTypePassword, "password1"),
-			info(authn.AuthenticatorTypePassword, "password2"),
-			info(authn.AuthenticatorTypeOOBEmail, "oob1"),
-			info(authn.AuthenticatorTypeOOBEmail, "oob2"),
-			info(authn.AuthenticatorTypeOOBSMS, "oob_sms"),
-		}, []authn.AuthenticatorType{
-			authn.AuthenticatorTypeOOBEmail,
+			info(model.AuthenticatorTypePassword, "password1"),
+			info(model.AuthenticatorTypePassword, "password2"),
+			info(model.AuthenticatorTypeOOBEmail, "oob1"),
+			info(model.AuthenticatorTypeOOBEmail, "oob2"),
+			info(model.AuthenticatorTypeOOBSMS, "oob_sms"),
+		}, []model.AuthenticatorType{
+			model.AuthenticatorTypeOOBEmail,
 		}, []*authenticator.Info{
-			info(authn.AuthenticatorTypeOOBEmail, "oob1"),
-			info(authn.AuthenticatorTypeOOBEmail, "oob2"),
-			info(authn.AuthenticatorTypePassword, "password1"),
-			info(authn.AuthenticatorTypePassword, "password2"),
-			info(authn.AuthenticatorTypeOOBSMS, "oob_sms"),
+			info(model.AuthenticatorTypeOOBEmail, "oob1"),
+			info(model.AuthenticatorTypeOOBEmail, "oob2"),
+			info(model.AuthenticatorTypePassword, "password1"),
+			info(model.AuthenticatorTypePassword, "password2"),
+			info(model.AuthenticatorTypeOOBSMS, "oob_sms"),
 		})
 	})
 
 	Convey("SortAuthenticators by default", t, func() {
 		// Sort singleton
 		test([]*authenticator.Info{
-			infoDefault(authn.AuthenticatorTypePassword, "password", true),
-		}, []authn.AuthenticatorType{}, []*authenticator.Info{
-			infoDefault(authn.AuthenticatorTypePassword, "password", true),
+			infoDefault(model.AuthenticatorTypePassword, "password", true),
+		}, []model.AuthenticatorType{}, []*authenticator.Info{
+			infoDefault(model.AuthenticatorTypePassword, "password", true),
 		})
 
 		// Default comes first
 		test([]*authenticator.Info{
-			infoDefault(authn.AuthenticatorTypePassword, "password", true),
-			info(authn.AuthenticatorTypeOOBEmail, "oob"),
-		}, []authn.AuthenticatorType{
-			authn.AuthenticatorTypeOOBEmail,
+			infoDefault(model.AuthenticatorTypePassword, "password", true),
+			info(model.AuthenticatorTypeOOBEmail, "oob"),
+		}, []model.AuthenticatorType{
+			model.AuthenticatorTypeOOBEmail,
 		}, []*authenticator.Info{
-			infoDefault(authn.AuthenticatorTypePassword, "password", true),
-			info(authn.AuthenticatorTypeOOBEmail, "oob"),
+			infoDefault(model.AuthenticatorTypePassword, "password", true),
+			info(model.AuthenticatorTypeOOBEmail, "oob"),
 		})
 
 		test([]*authenticator.Info{
-			info(authn.AuthenticatorTypePassword, "password1"),
-			info(authn.AuthenticatorTypePassword, "password2"),
-			info(authn.AuthenticatorTypeOOBEmail, "oob1"),
-			infoDefault(authn.AuthenticatorTypeOOBEmail, "oob2", true),
-		}, []authn.AuthenticatorType{
-			authn.AuthenticatorTypeOOBEmail,
+			info(model.AuthenticatorTypePassword, "password1"),
+			info(model.AuthenticatorTypePassword, "password2"),
+			info(model.AuthenticatorTypeOOBEmail, "oob1"),
+			infoDefault(model.AuthenticatorTypeOOBEmail, "oob2", true),
+		}, []model.AuthenticatorType{
+			model.AuthenticatorTypeOOBEmail,
 		}, []*authenticator.Info{
-			infoDefault(authn.AuthenticatorTypeOOBEmail, "oob2", true),
-			info(authn.AuthenticatorTypeOOBEmail, "oob1"),
-			info(authn.AuthenticatorTypePassword, "password1"),
-			info(authn.AuthenticatorTypePassword, "password2"),
+			infoDefault(model.AuthenticatorTypeOOBEmail, "oob2", true),
+			info(model.AuthenticatorTypeOOBEmail, "oob1"),
+			info(model.AuthenticatorTypePassword, "password1"),
+			info(model.AuthenticatorTypePassword, "password2"),
 		})
 	})
 }

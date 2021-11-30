@@ -1,7 +1,7 @@
 package facade
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -10,7 +10,7 @@ import (
 )
 
 type IdentityService interface {
-	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
+	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
 	GetBySpec(spec *identity.Spec) (*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
@@ -23,7 +23,7 @@ type IdentityService interface {
 }
 
 type AuthenticatorService interface {
-	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
+	Get(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
@@ -92,7 +92,7 @@ type Coordinator struct {
 	IdentityConfig  *config.IdentityConfig
 }
 
-func (c *Coordinator) IdentityGet(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
+func (c *Coordinator) IdentityGet(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
 	return c.Identities.Get(userID, typ, id)
 }
 
@@ -182,7 +182,7 @@ func (c *Coordinator) IdentityCheckDuplicated(info *identity.Info) (*identity.In
 	return c.Identities.CheckDuplicated(info)
 }
 
-func (c *Coordinator) AuthenticatorGet(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
+func (c *Coordinator) AuthenticatorGet(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error) {
 	return c.Authenticators.Get(userID, typ, id)
 }
 
@@ -343,7 +343,7 @@ func (c *Coordinator) removeOrphans(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) markVerified(userID string, claims map[authn.ClaimName]string) error {
+func (c *Coordinator) markVerified(userID string, claims map[model.ClaimName]string) error {
 	for name, value := range claims {
 		name := string(name)
 		status, err := c.Verification.GetClaimVerificationStatus(userID, name, value)
@@ -364,7 +364,7 @@ func (c *Coordinator) markVerified(userID string, claims map[authn.ClaimName]str
 }
 
 func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
-	if info.Type != authn.IdentityTypeOAuth {
+	if info.Type != model.IdentityTypeOAuth {
 		return nil
 	}
 
@@ -384,8 +384,8 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	email, ok := info.Claims[identity.StandardClaimEmail].(string)
 	if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
 		// Mark as verified if OAuth email is assumed to be verified
-		err := c.markVerified(info.UserID, map[authn.ClaimName]string{
-			authn.ClaimEmail: email,
+		err := c.markVerified(info.UserID, map[model.ClaimName]string{
+			model.ClaimEmail: email,
 		})
 		if err != nil {
 			return err

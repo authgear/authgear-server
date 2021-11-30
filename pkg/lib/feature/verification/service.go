@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
@@ -168,7 +168,7 @@ func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string][]Cla
 }
 
 func (s *Service) GetAuthenticatorVerificationStatus(a *authenticator.Info) (AuthenticatorStatus, error) {
-	if a.Type != authn.AuthenticatorTypeOOBEmail && a.Type != authn.AuthenticatorTypeOOBSMS {
+	if a.Type != model.AuthenticatorTypeOOBEmail && a.Type != model.AuthenticatorTypeOOBSMS {
 		panic("verification: incompatible authenticator type: " + a.Type)
 	}
 
@@ -176,12 +176,12 @@ func (s *Service) GetAuthenticatorVerificationStatus(a *authenticator.Info) (Aut
 	var claimValue string
 	aClaims := a.StandardClaims()
 	switch a.Type {
-	case authn.AuthenticatorTypeOOBEmail:
-		claimName = string(authn.ClaimEmail)
-		claimValue = aClaims[authn.ClaimEmail]
-	case authn.AuthenticatorTypeOOBSMS:
-		claimName = string(authn.ClaimPhoneNumber)
-		claimValue = aClaims[authn.ClaimPhoneNumber]
+	case model.AuthenticatorTypeOOBEmail:
+		claimName = string(model.ClaimEmail)
+		claimValue = aClaims[model.ClaimEmail]
+	case model.AuthenticatorTypeOOBSMS:
+		claimName = string(model.ClaimPhoneNumber)
+		claimValue = aClaims[model.ClaimPhoneNumber]
 	}
 
 	_, err := s.ClaimStore.Get(a.UserID, claimName, claimValue)
@@ -233,7 +233,7 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 }
 
 func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID string, requestedByUser bool) (*Code, error) {
-	if info.Type != authn.IdentityTypeLoginID {
+	if info.Type != model.IdentityTypeLoginID {
 		panic("verification: expect login ID identity")
 	}
 

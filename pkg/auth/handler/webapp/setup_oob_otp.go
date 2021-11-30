@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -46,16 +46,16 @@ func ConfigureSetupOOBOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type SetupOOBOTPNode interface {
-	IsOOBAuthenticatorTypeAllowed(oobAuthenticatorType authn.AuthenticatorType) (bool, error)
+	IsOOBAuthenticatorTypeAllowed(oobAuthenticatorType model.AuthenticatorType) (bool, error)
 }
 
 type SetupOOBOTPViewModel struct {
 	// OOBAuthenticatorType is either AuthenticatorTypeOOBSMS or AuthenticatorTypeOOBEmail.
-	OOBAuthenticatorType authn.AuthenticatorType
+	OOBAuthenticatorType model.AuthenticatorType
 	AlternativeSteps     []viewmodels.AlternativeStep
 }
 
-func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType authn.AuthenticatorType) (*SetupOOBOTPViewModel, error) {
+func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType model.AuthenticatorType) (*SetupOOBOTPViewModel, error) {
 	var node SetupOOBOTPNode
 	if !graph.FindLastNode(&node) {
 		panic("setup_oob_otp: expected graph has node implementing SetupOOBOTPNode")
@@ -72,9 +72,9 @@ func NewSetupOOBOTPViewModel(session *webapp.Session, graph *interaction.Graph, 
 
 	var stepKind webapp.SessionStepKind
 	switch oobAuthenticatorType {
-	case authn.AuthenticatorTypeOOBSMS:
+	case model.AuthenticatorTypeOOBSMS:
 		stepKind = webapp.SessionStepSetupOOBOTPSMS
-	case authn.AuthenticatorTypeOOBEmail:
+	case model.AuthenticatorTypeOOBEmail:
 		stepKind = webapp.SessionStepSetupOOBOTPEmail
 	}
 
@@ -96,7 +96,7 @@ type SetupOOBOTPHandler struct {
 	Renderer          Renderer
 }
 
-func (h *SetupOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType authn.AuthenticatorType) (map[string]interface{}, error) {
+func (h *SetupOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph, oobAuthenticatorType model.AuthenticatorType) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewModel, err := NewSetupOOBOTPViewModel(session, graph, oobAuthenticatorType)
@@ -116,7 +116,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	oc := httproute.GetParam(r, "channel")
-	oobAuthenticatorType, err := authn.GetOOBAuthenticatorType(authn.AuthenticatorOOBChannel(oc))
+	oobAuthenticatorType, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
 	if err != nil {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
@@ -169,19 +169,19 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	handleAlternativeSteps(ctrl)
 }
 
-func GetValidationSchema(oobAuthenticatorType authn.AuthenticatorType) *validation.SimpleSchema {
+func GetValidationSchema(oobAuthenticatorType model.AuthenticatorType) *validation.SimpleSchema {
 	switch oobAuthenticatorType {
-	case authn.AuthenticatorTypeOOBEmail:
+	case model.AuthenticatorTypeOOBEmail:
 		return SetupOOBOTPEmailSchema
-	case authn.AuthenticatorTypeOOBSMS:
+	case model.AuthenticatorTypeOOBSMS:
 		return SetupOOBOTPSMSSchema
 	}
 
 	return nil
 }
 
-func FormToOOBTarget(oobAuthenticatorType authn.AuthenticatorType, form url.Values) (target string, inputType string, err error) {
-	if oobAuthenticatorType == authn.AuthenticatorTypeOOBSMS {
+func FormToOOBTarget(oobAuthenticatorType model.AuthenticatorType, form url.Values) (target string, inputType string, err error) {
+	if oobAuthenticatorType == model.AuthenticatorTypeOOBSMS {
 		target = form.Get("x_e164")
 		inputType = "phone"
 		return

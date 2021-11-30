@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -15,7 +16,7 @@ type EdgeEnsurePasswordChange struct {
 
 func (e *EdgeEnsurePasswordChange) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	authenticator, ok := graph.GetRequireUpdateAuthenticator(e.Stage)
-	if ok && authenticator.Type == authn.AuthenticatorTypePassword {
+	if ok && authenticator.Type == model.AuthenticatorTypePassword {
 		return &NodeChangePasswordBegin{
 			Force: true,
 			Stage: e.Stage,

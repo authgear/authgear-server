@@ -1,7 +1,7 @@
 package facade
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
@@ -9,7 +9,7 @@ type IdentityFacade struct {
 	Coordinator *Coordinator
 }
 
-func (i IdentityFacade) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
+func (i IdentityFacade) Get(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
 	return i.Coordinator.IdentityGet(userID, typ, id)
 }
 

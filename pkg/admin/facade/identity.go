@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -13,8 +13,8 @@ import (
 )
 
 type IdentityService interface {
-	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
-	ListRefsByUsers(userIDs []string) ([]*identity.Ref, error)
+	Get(userID string, typ apimodel.IdentityType, id string) (*identity.Info, error)
+	ListRefsByUsers(userIDs []string) ([]*apimodel.IdentityRef, error)
 }
 
 type IdentityFacade struct {
@@ -22,11 +22,11 @@ type IdentityFacade struct {
 	Interaction InteractionService
 }
 
-func (f *IdentityFacade) Get(ref *identity.Ref) (*identity.Info, error) {
+func (f *IdentityFacade) Get(ref *apimodel.IdentityRef) (*identity.Info, error) {
 	return f.Identities.Get(ref.UserID, ref.Type, ref.ID)
 }
 
-func (f *IdentityFacade) List(userID string) ([]*identity.Ref, error) {
+func (f *IdentityFacade) List(userID string) ([]*apimodel.IdentityRef, error) {
 	refs, err := f.Identities.ListRefsByUsers([]string{userID})
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (f *IdentityFacade) Remove(identityInfo *identity.Info) error {
 	return nil
 }
 
-func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*identity.Ref, error) {
+func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error) {
 	var input interface{} = &addIdentityInput{identityDef: identityDef}
 	if password != "" {
 		input = &addPasswordInput{inner: input, password: password}

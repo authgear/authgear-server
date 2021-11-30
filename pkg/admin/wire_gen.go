@@ -391,6 +391,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
 	}
+	resolverImpl := &event.ResolverImpl{
+		Users: queries,
+	}
 	hookLogger := hook.NewLogger(factory)
 	hookConfig := appConfig.Hook
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
@@ -426,7 +429,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
@@ -693,7 +696,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification: verificationService,
 	}
 	manager2 := &session.Manager{
-		Users:               queries,
 		IDPSessions:         idpsessionManager,
 		AccessTokenSessions: sessionManager,
 		Events:              eventService,

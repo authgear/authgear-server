@@ -1,6 +1,8 @@
-package authn
+package model
 
-import "errors"
+import (
+	"errors"
+)
 
 type AuthenticatorType string
 

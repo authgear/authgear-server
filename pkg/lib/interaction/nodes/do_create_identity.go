@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -52,7 +52,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
-			if n.Identity.Type == authn.IdentityTypeBiometric && user.IsAnonymous {
+			if n.Identity.Type == model.IdentityTypeBiometric && user.IsAnonymous {
 				return interaction.NewInvariantViolated(
 					"AnonymousUserAddIdentity",
 					"anonymous user cannot add identity",
@@ -84,31 +84,34 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				return nil
 			}
 
-			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.EmptyRole)
-			if err != nil {
-				return err
-			}
-
 			var e event.Payload
 			switch n.Identity.Type {
-			case authn.IdentityTypeLoginID:
+			case model.IdentityTypeLoginID:
 				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 				e = nonblocking.NewIdentityLoginIDAddedEventPayload(
-					*user,
+					model.UserRef{
+						Meta: model.Meta{
+							ID: n.Identity.ID,
+						},
+					},
 					n.Identity.ToModel(),
 					loginIDType,
 					n.IsAdminAPI,
 				)
-			case authn.IdentityTypeOAuth:
+			case model.IdentityTypeOAuth:
 				e = &nonblocking.IdentityOAuthConnectedEventPayload{
-					User:     *user,
+					UserRef: model.UserRef{
+						Meta: model.Meta{
+							ID: n.Identity.ID,
+						},
+					},
 					Identity: n.Identity.ToModel(),
 					AdminAPI: n.IsAdminAPI,
 				}
 			}
 
 			if e != nil {
-				err = ctx.Events.DispatchEvent(e)
+				err := ctx.Events.DispatchEvent(e)
 				if err != nil {
 					return err
 				}

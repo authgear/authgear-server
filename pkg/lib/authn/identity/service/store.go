@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 
@@ -30,7 +30,7 @@ func (s *Store) Count(userID string) (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) ListRefsByUsers(userIDs []string) ([]*identity.Ref, error) {
+func (s *Store) ListRefsByUsers(userIDs []string) ([]*model.IdentityRef, error) {
 	builder := s.SQLBuilder.
 		Select("id", "type", "user_id", "created_at", "updated_at").
 		Where("user_id = ANY (?)", pq.Array(userIDs)).
@@ -42,9 +42,9 @@ func (s *Store) ListRefsByUsers(userIDs []string) ([]*identity.Ref, error) {
 	}
 	defer rows.Close()
 
-	var refs []*identity.Ref
+	var refs []*model.IdentityRef
 	for rows.Next() {
-		ref := &identity.Ref{}
+		ref := &model.IdentityRef{}
 		if err := rows.Scan(
 			&ref.ID,
 			&ref.Type,

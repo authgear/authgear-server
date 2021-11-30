@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -29,7 +29,7 @@ type EnterLoginIDViewModel struct {
 }
 
 type EnterLoginIDService interface {
-	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
+	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
 	ListCandidates(userID string) ([]identity.Candidate, error)
 }
 
@@ -91,7 +91,7 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	var enterLoginIDViewModel EnterLoginIDViewModel
 	if identityID != "" {
-		idnInfo, err := h.Identities.Get(userID, authn.IdentityTypeLoginID, identityID)
+		idnInfo, err := h.Identities.Get(userID, model.IdentityTypeLoginID, identityID)
 		if errors.Is(err, identity.ErrIdentityNotFound) {
 			return nil, webapp.ErrInvalidSession
 		} else if err != nil {
@@ -148,7 +148,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			}
 
 			input = &InputRemoveIdentity{
-				Type: authn.IdentityTypeLoginID,
+				Type: model.IdentityTypeLoginID,
 				ID:   identityID,
 			}
 			return

@@ -47,10 +47,10 @@ type UserFacade interface {
 }
 
 type IdentityFacade interface {
-	Get(ref *identity.Ref) (*identity.Info, error)
-	List(userID string) ([]*identity.Ref, error)
+	Get(ref *apimodel.IdentityRef) (*identity.Info, error)
+	List(userID string) ([]*apimodel.IdentityRef, error)
 	Remove(identityInfo *identity.Info) error
-	Create(userID string, identityDef model.IdentityDef, password string) (*identity.Ref, error)
+	Create(userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error)
 }
 
 type AuthenticatorFacade interface {

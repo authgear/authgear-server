@@ -1,7 +1,7 @@
 package oob
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 )
 
@@ -15,7 +15,7 @@ type CodeSender struct {
 }
 
 func (s *CodeSender) SendCode(
-	channel authn.AuthenticatorOOBChannel,
+	channel model.AuthenticatorOOBChannel,
 	target string,
 	code string,
 	messageType otp.MessageType,
@@ -26,9 +26,9 @@ func (s *CodeSender) SendCode(
 		MessageType: messageType,
 	}
 	switch channel {
-	case authn.AuthenticatorOOBChannelEmail:
+	case model.AuthenticatorOOBChannelEmail:
 		err = s.OTPMessageSender.SendEmail(target, opts)
-	case authn.AuthenticatorOOBChannelSMS:
+	case model.AuthenticatorOOBChannelSMS:
 		err = s.OTPMessageSender.SendSMS(target, opts)
 	default:
 		panic("oob: unknown channel type: " + channel)

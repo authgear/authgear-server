@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -83,29 +83,29 @@ type Service struct {
 	Biometric             BiometricIdentityProvider
 }
 
-func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
+func (s *Service) Get(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
 	switch typ {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		l, err := s.LoginID.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return loginIDToIdentityInfo(l), nil
 
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		o, err := s.OAuth.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return s.toIdentityInfo(o), nil
 
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		a, err := s.Anonymous.Get(userID, id)
 		if err != nil {
 			return nil, err
 		}
 		return anonymousToIdentityInfo(a), nil
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		b, err := s.Biometric.Get(userID, id)
 		if err != nil {
 			return nil, err
@@ -116,17 +116,17 @@ func (s *Service) Get(userID string, typ authn.IdentityType, id string) (*identi
 	panic("identity: unknown identity type " + typ)
 }
 
-func (s *Service) GetMany(refs []*identity.Ref) ([]*identity.Info, error) {
+func (s *Service) GetMany(refs []*model.IdentityRef) ([]*identity.Info, error) {
 	var loginIDs, oauthIDs, anonymousIDs, biometricIDs []string
 	for _, ref := range refs {
 		switch ref.Type {
-		case authn.IdentityTypeLoginID:
+		case model.IdentityTypeLoginID:
 			loginIDs = append(loginIDs, ref.ID)
-		case authn.IdentityTypeOAuth:
+		case model.IdentityTypeOAuth:
 			oauthIDs = append(oauthIDs, ref.ID)
-		case authn.IdentityTypeAnonymous:
+		case model.IdentityTypeAnonymous:
 			anonymousIDs = append(anonymousIDs, ref.ID)
-		case authn.IdentityTypeBiometric:
+		case model.IdentityTypeBiometric:
 			biometricIDs = append(biometricIDs, ref.ID)
 		default:
 			panic("identity: unknown identity type " + ref.Type)
@@ -173,7 +173,7 @@ func (s *Service) GetMany(refs []*identity.Ref) ([]*identity.Info, error) {
 // GetBySpec return user ID and information about the identity that matches the provided spec.
 func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
 	switch spec.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		loginID := extractLoginIDValue(spec.Claims)
 		l, err := s.LoginID.GetByValue(loginID)
 		if err != nil {
@@ -183,7 +183,7 @@ func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
 		}
 		return loginIDToIdentityInfo(l[0]), nil
 
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		providerID, subjectID := extractOAuthClaims(spec.Claims)
 		o, err := s.OAuth.GetByProviderSubject(providerID, subjectID)
 		if err != nil {
@@ -191,7 +191,7 @@ func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
 		}
 		return s.toIdentityInfo(o), nil
 
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		keyID, _ := extractAnonymousClaims(spec.Claims)
 		a, err := s.Anonymous.GetByKeyID(keyID)
 		if err != nil {
@@ -199,7 +199,7 @@ func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
 		}
 		return anonymousToIdentityInfo(a), nil
 
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		keyID, _, _ := extractBiometricClaims(spec.Claims)
 		b, err := s.Biometric.GetByKeyID(keyID)
 		if err != nil {
@@ -257,7 +257,7 @@ func (s *Service) Count(userID string) (uint64, error) {
 	return s.Store.Count(userID)
 }
 
-func (s *Service) ListRefsByUsers(userIDs []string) ([]*identity.Ref, error) {
+func (s *Service) ListRefsByUsers(userIDs []string) ([]*model.IdentityRef, error) {
 	return s.Store.ListRefsByUsers(userIDs)
 }
 
@@ -305,7 +305,7 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 
 func (s *Service) New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch spec.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		loginID := extractLoginIDSpec(spec.Claims)
 		l, err := s.LoginID.New(userID, loginID, loginid.CheckerOptions{
 			EmailByPassBlocklistAllowlist: options.LoginIDEmailByPassBlocklistAllowlist,
@@ -314,16 +314,16 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 			return nil, err
 		}
 		return loginIDToIdentityInfo(l), nil
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		providerID, subjectID := extractOAuthClaims(spec.Claims)
 		rawProfile, standardClaims := extractOAuthProfile(spec.Claims)
 		o := s.OAuth.New(userID, providerID, subjectID, rawProfile, standardClaims)
 		return s.toIdentityInfo(o), nil
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		keyID, key := extractAnonymousClaims(spec.Claims)
 		a := s.Anonymous.New(userID, keyID, []byte(key))
 		return anonymousToIdentityInfo(a), nil
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		keyID, key, deviceInfo := extractBiometricClaims(spec.Claims)
 		b := s.Biometric.New(userID, keyID, []byte(key), deviceInfo)
 		return biometricToIdentityInfo(b), nil
@@ -335,28 +335,28 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 func (s *Service) Create(info *identity.Info) error {
 	// TODO(verification): make OAuth verified according to config.
 	switch info.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		i := loginIDFromIdentityInfo(info)
 		if err := s.LoginID.Create(i); err != nil {
 			return err
 		}
 		*info = *loginIDToIdentityInfo(i)
 
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		i := oauthFromIdentityInfo(info)
 		if err := s.OAuth.Create(i); err != nil {
 			return err
 		}
 		*info = *s.toIdentityInfo(i)
 
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		i := anonymousFromIdentityInfo(info)
 		if err := s.Anonymous.Create(i); err != nil {
 			return err
 		}
 		*info = *anonymousToIdentityInfo(i)
 
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		i := biometricFromIdentityInfo(info)
 		if err := s.Biometric.Create(i); err != nil {
 			return err
@@ -371,7 +371,7 @@ func (s *Service) Create(info *identity.Info) error {
 
 func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch info.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		i, err := s.LoginID.WithValue(loginIDFromIdentityInfo(info), extractLoginIDValue(spec.Claims), loginid.CheckerOptions{
 			EmailByPassBlocklistAllowlist: options.LoginIDEmailByPassBlocklistAllowlist,
 		})
@@ -379,7 +379,7 @@ func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, optio
 			return nil, err
 		}
 		return loginIDToIdentityInfo(i), nil
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		rawProfile, standardClaims := extractOAuthProfile(spec.Claims)
 		i := s.OAuth.WithUpdate(
 			oauthFromIdentityInfo(info),
@@ -394,23 +394,23 @@ func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, optio
 
 func (s *Service) Update(info *identity.Info) error {
 	switch info.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		i := loginIDFromIdentityInfo(info)
 		if err := s.LoginID.Update(i); err != nil {
 			return err
 		}
 		*info = *loginIDToIdentityInfo(i)
 
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		i := oauthFromIdentityInfo(info)
 		if err := s.OAuth.Update(i); err != nil {
 			return err
 		}
 		*info = *s.toIdentityInfo(i)
 
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		panic("identity: update no support for identity type " + info.Type)
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		panic("identity: update no support for identity type " + info.Type)
 	default:
 		panic("identity: unknown identity type " + info.Type)
@@ -421,22 +421,22 @@ func (s *Service) Update(info *identity.Info) error {
 
 func (s *Service) Delete(info *identity.Info) error {
 	switch info.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		i := loginIDFromIdentityInfo(info)
 		if err := s.LoginID.Delete(i); err != nil {
 			return err
 		}
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		i := oauthFromIdentityInfo(info)
 		if err := s.OAuth.Delete(i); err != nil {
 			return err
 		}
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		i := anonymousFromIdentityInfo(info)
 		if err := s.Anonymous.Delete(i); err != nil {
 			return err
 		}
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		i := biometricFromIdentityInfo(info)
 		if err := s.Biometric.Delete(i); err != nil {
 			return err
@@ -451,7 +451,7 @@ func (s *Service) Delete(info *identity.Info) error {
 func (s *Service) CheckDuplicated(is *identity.Info) (dupeIdentity *identity.Info, err error) {
 	// extract login id unique key
 	loginIDUniqueKey := ""
-	if is.Type == authn.IdentityTypeLoginID {
+	if is.Type == model.IdentityTypeLoginID {
 		li := loginIDFromIdentityInfo(is)
 		loginIDUniqueKey = li.UniqueKey
 	}
@@ -501,7 +501,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 
 	for _, i := range s.Authentication.Identities {
 		switch i {
-		case authn.IdentityTypeOAuth:
+		case model.IdentityTypeOAuth:
 			for _, providerConfig := range s.Identity.OAuth.Providers {
 				pc := providerConfig
 				if identity.IsOAuthSSOProviderTypeDisabled(pc.Type, s.IdentityFeatureConfig.OAuth.Providers) {
@@ -526,7 +526,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 					out = append(out, candidate)
 				}
 			}
-		case authn.IdentityTypeLoginID:
+		case model.IdentityTypeLoginID:
 			for _, loginIDKeyConfig := range s.Identity.LoginID.Keys {
 				lkc := loginIDKeyConfig
 				candidate := identity.NewLoginIDCandidate(&lkc)
@@ -588,7 +588,7 @@ func (s *Service) toIdentityInfo(o *oauth.Identity) *identity.Info {
 		UserID:    o.UserID,
 		CreatedAt: o.CreatedAt,
 		UpdatedAt: o.UpdatedAt,
-		Type:      authn.IdentityTypeOAuth,
+		Type:      model.IdentityTypeOAuth,
 		Claims:    claims,
 	}
 }

@@ -1,10 +1,10 @@
 package identity
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 type Spec struct {
-	Type   authn.IdentityType     `json:"type"`
+	Type   model.IdentityType     `json:"type"`
 	Claims map[string]interface{} `json:"claims"`
 }

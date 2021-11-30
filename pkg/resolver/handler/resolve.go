@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -81,7 +80,7 @@ func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
 
 		isAnonymous := false
 		for _, i := range identities {
-			if i.Type == authn.IdentityTypeAnonymous {
+			if i.Type == model.IdentityTypeAnonymous {
 				isAnonymous = true
 				break
 			}

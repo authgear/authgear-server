@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -56,7 +56,7 @@ func (h *SettingsBiometricHandler) GetData(r *http.Request, rw http.ResponseWrit
 
 	identityInfos = identity.ApplyFilters(
 		identityInfos,
-		identity.KeepType(authn.IdentityTypeBiometric),
+		identity.KeepType(model.IdentityTypeBiometric),
 	)
 
 	viewModel := SettingsBiometricViewModel{}
@@ -111,7 +111,7 @@ func (h *SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			}
 
 			input = &InputRemoveIdentity{
-				Type: authn.IdentityTypeBiometric,
+				Type: model.IdentityTypeBiometric,
 				ID:   identityID,
 			}
 			return

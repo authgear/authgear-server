@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -28,7 +28,7 @@ func loginIDToIdentityInfo(l *loginid.Identity) *identity.Info {
 		ID:        l.ID,
 		CreatedAt: l.CreatedAt,
 		UpdatedAt: l.UpdatedAt,
-		Type:      authn.IdentityTypeLoginID,
+		Type:      model.IdentityTypeLoginID,
 		Claims:    claims,
 	}
 }
@@ -94,7 +94,7 @@ func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
 		UserID:    a.UserID,
 		CreatedAt: a.CreatedAt,
 		UpdatedAt: a.UpdatedAt,
-		Type:      authn.IdentityTypeAnonymous,
+		Type:      model.IdentityTypeAnonymous,
 		Claims:    claims,
 	}
 }
@@ -130,7 +130,7 @@ func biometricToIdentityInfo(b *biometric.Identity) *identity.Info {
 		UserID:    b.UserID,
 		CreatedAt: b.CreatedAt,
 		UpdatedAt: b.UpdatedAt,
-		Type:      authn.IdentityTypeBiometric,
+		Type:      model.IdentityTypeBiometric,
 		Claims:    claims,
 	}
 }

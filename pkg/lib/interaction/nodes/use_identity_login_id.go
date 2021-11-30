@@ -3,7 +3,7 @@ package nodes
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -81,7 +81,7 @@ func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *in
 	}
 
 	spec := &identity.Spec{
-		Type:   authn.IdentityTypeLoginID,
+		Type:   model.IdentityTypeLoginID,
 		Claims: claims,
 	}
 

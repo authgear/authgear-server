@@ -29,6 +29,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 		database := NewMockDatabase(ctrl)
 		sink := NewMockSink(ctrl)
 		store := NewMockStore(ctrl)
+		resolver := NewMockResolver(ctrl)
 		fallbackLanguage := "en"
 		supportedLanguages := []string{"en"}
 		logger := Logger{log.Null}
@@ -46,11 +47,13 @@ func TestServiceDispatchEvent(t *testing.T) {
 			Clock:        clock,
 			Localization: localization,
 			Store:        store,
+			Resolver:     resolver,
 			Sinks:        []Sink{sink},
 		}
 
 		var seq0 int64
 		store.EXPECT().NextSequenceNumber().AnyTimes().Return(seq0, nil)
+		resolver.EXPECT().Resolve(gomock.Any()).AnyTimes().Return(nil)
 
 		Convey("only use database hook once", func() {
 			user := model.User{
@@ -96,7 +99,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 
 			err := service.DispatchEvent(payload)
 			So(err, ShouldBeNil)
-			So(service.NonBlockingEvents, ShouldBeEmpty)
+			So(service.NonBlockingPayloads, ShouldBeEmpty)
 		})
 
 		Convey("include user", func() {
@@ -166,45 +169,20 @@ func TestServiceDispatchEvent(t *testing.T) {
 			database.EXPECT().UseHook(service).AnyTimes()
 			err := service.DispatchEvent(payload)
 			So(err, ShouldBeNil)
-			So(service.NonBlockingEvents, ShouldResemble, []*event.Event{
-				&event.Event{
-					ID:      "0000000000000000",
-					Type:    payload.NonBlockingEventType(),
-					Seq:     0,
-					Payload: payload,
-					Context: event.Context{
-						Timestamp:          1136214245,
-						UserID:             &userID,
-						Language:           fallbackLanguage,
-						PreferredLanguages: []string{},
-						TriggeredBy:        event.TriggeredByTypeUser,
-					},
-					IsNonBlocking: true,
-				},
+			So(service.NonBlockingPayloads, ShouldResemble, []event.NonBlockingPayload{
+				payload,
 			})
 		})
 
 		Convey("send events to sink when transaction was committed", func() {
+			userID := "user-id"
 			payload := &MockNonBlockingEvent1{
 				MockUserEventBase: MockUserEventBase{model.User{
-					Meta: model.Meta{ID: "user-id"},
+					Meta: model.Meta{ID: userID},
 				}},
 			}
-			service.NonBlockingEvents = []*event.Event{
-				&event.Event{
-					ID:      "0000000000000000",
-					Type:    payload.NonBlockingEventType(),
-					Seq:     0,
-					Payload: payload,
-					Context: event.Context{
-						Timestamp:          1136214245,
-						UserID:             nil,
-						Language:           fallbackLanguage,
-						PreferredLanguages: []string{},
-						TriggeredBy:        event.TriggeredByTypeUser,
-					},
-					IsNonBlocking: true,
-				},
+			service.NonBlockingPayloads = []event.NonBlockingPayload{
+				payload,
 			}
 
 			sink.EXPECT().ReceiveNonBlockingEvent(&event.Event{
@@ -214,13 +192,16 @@ func TestServiceDispatchEvent(t *testing.T) {
 				Payload: payload,
 				Context: event.Context{
 					Timestamp:          1136214245,
-					UserID:             nil,
+					UserID:             &userID,
 					Language:           fallbackLanguage,
 					PreferredLanguages: []string{},
 					TriggeredBy:        event.TriggeredByTypeUser,
 				},
 				IsNonBlocking: true,
 			})
+
+			err := service.WillCommitTx()
+			So(err, ShouldBeNil)
 
 			service.DidCommitTx()
 		})

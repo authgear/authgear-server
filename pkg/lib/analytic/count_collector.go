@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -320,20 +319,20 @@ func (c *CountCollector) querySignupCount(appID string, rangeFrom *time.Time, ra
 				log.Fatal("missing user identities")
 			}
 			iden := payload.Identities[0]
-			switch authn.IdentityType(iden.Type) {
-			case authn.IdentityTypeLoginID:
+			switch model.IdentityType(iden.Type) {
+			case model.IdentityTypeLoginID:
 				loginIDType := iden.Claims[identity.IdentityClaimLoginIDType].(string)
 				if loginIDType == "" {
 					log.Fatal("missing type in login id identity claims")
 				}
 				result.CountByLoginID[loginIDType]++
-			case authn.IdentityTypeOAuth:
+			case model.IdentityTypeOAuth:
 				provider := iden.Claims[identity.IdentityClaimOAuthProviderType].(string)
 				if provider == "" {
 					log.Fatal("missing provider in oauth identity claims")
 				}
 				result.CountByOAuthProvider[provider]++
-			case authn.IdentityTypeAnonymous:
+			case model.IdentityTypeAnonymous:
 				result.AnonymousCount++
 			}
 		}

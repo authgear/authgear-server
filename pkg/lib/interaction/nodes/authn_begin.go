@@ -3,6 +3,7 @@ package nodes
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -60,8 +61,8 @@ func (n *NodeAuthenticationBegin) GetAuthenticationStage() authn.AuthenticationS
 func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, error) {
 	var edges []interaction.Edge
 	var availableAuthenticators []*authenticator.Info
-	var preferred []authn.AuthenticatorType
-	var required []authn.AuthenticatorType
+	var preferred []model.AuthenticatorType
+	var required []model.AuthenticatorType
 
 	switch n.Stage {
 	case authn.AuthenticationStagePrimary:
@@ -86,7 +87,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 			// Require secondary authentication if any authenticator exists.
 			// For Required mode: treat same as IfExists, so user will not
 			// be locked out when requirement changed.
-			existingAuths := map[authn.AuthenticatorType]struct{}{}
+			existingAuths := map[model.AuthenticatorType]struct{}{}
 			for _, a := range availableAuthenticators {
 				existingAuths[a.Type] = struct{}{}
 			}
@@ -105,7 +106,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 
 	passwords := authenticator.ApplyFilters(
 		availableAuthenticators,
-		authenticator.KeepType(authn.AuthenticatorTypePassword),
+		authenticator.KeepType(model.AuthenticatorTypePassword),
 	)
 	interaction.SortAuthenticators(
 		nil,
@@ -118,7 +119,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 
 	totps := authenticator.ApplyFilters(
 		availableAuthenticators,
-		authenticator.KeepType(authn.AuthenticatorTypeTOTP),
+		authenticator.KeepType(model.AuthenticatorTypeTOTP),
 	)
 	interaction.SortAuthenticators(
 		nil,
@@ -131,7 +132,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 
 	emailoobs := authenticator.ApplyFilters(
 		availableAuthenticators,
-		authenticator.KeepType(authn.AuthenticatorTypeOOBEmail),
+		authenticator.KeepType(model.AuthenticatorTypeOOBEmail),
 	)
 	interaction.SortAuthenticators(
 		nil,
@@ -144,7 +145,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 
 	smsoobs := authenticator.ApplyFilters(
 		availableAuthenticators,
-		authenticator.KeepType(authn.AuthenticatorTypeOOBSMS),
+		authenticator.KeepType(model.AuthenticatorTypeOOBSMS),
 	)
 	interaction.SortAuthenticators(
 		nil,
@@ -173,7 +174,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		edges = append(edges, &EdgeAuthenticationOOBTrigger{
 			Stage:                n.Stage,
 			Authenticators:       emailoobs,
-			OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
+			OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
 		})
 	}
 
@@ -181,7 +182,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		edges = append(edges, &EdgeAuthenticationOOBTrigger{
 			Stage:                n.Stage,
 			Authenticators:       smsoobs,
-			OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
+			OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
 		})
 	}
 

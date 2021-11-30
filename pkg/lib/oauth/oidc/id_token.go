@@ -14,7 +14,6 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -135,11 +134,11 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	// Note that we MUST NOT include any personal identifiable information (PII) here.
 	// The ID token may be included in the GET request in form of `id_token_hint`.
 	if sid := opts.SID; sid != "" {
-		_ = claims.Set(string(authn.ClaimSID), sid)
+		_ = claims.Set(string(model.ClaimSID), sid)
 	}
-	_ = claims.Set(string(authn.ClaimAuthTime), info.AuthenticatedAt.Unix())
+	_ = claims.Set(string(model.ClaimAuthTime), info.AuthenticatedAt.Unix())
 	if amr := info.AMR; len(amr) > 0 {
-		_ = claims.Set(string(authn.ClaimAMR), amr)
+		_ = claims.Set(string(model.ClaimAMR), amr)
 	}
 
 	// Populate authorization flow specific claims
@@ -205,9 +204,9 @@ func (ti *IDTokenIssuer) PopulateNonPIIUserClaims(token jwt.Token, userID string
 
 	_ = token.Set(jwt.IssuerKey, ti.Iss())
 	_ = token.Set(jwt.SubjectKey, userID)
-	_ = token.Set(string(authn.ClaimUserIsAnonymous), user.IsAnonymous)
-	_ = token.Set(string(authn.ClaimUserIsVerified), user.IsVerified)
-	_ = token.Set(string(authn.ClaimUserCanReauthenticate), user.CanReauthenticate)
+	_ = token.Set(string(model.ClaimUserIsAnonymous), user.IsAnonymous)
+	_ = token.Set(string(model.ClaimUserIsVerified), user.IsVerified)
+	_ = token.Set(string(model.ClaimUserCanReauthenticate), user.CanReauthenticate)
 
 	return nil
 }
@@ -220,9 +219,9 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, err
 
 	out := make(map[string]interface{})
 	out[jwt.SubjectKey] = userID
-	out[string(authn.ClaimUserIsAnonymous)] = user.IsAnonymous
-	out[string(authn.ClaimUserIsVerified)] = user.IsVerified
-	out[string(authn.ClaimUserCanReauthenticate)] = user.CanReauthenticate
+	out[string(model.ClaimUserIsAnonymous)] = user.IsAnonymous
+	out[string(model.ClaimUserIsVerified)] = user.IsVerified
+	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
 	for k, v := range user.StandardAttributes {
 		out[k] = v
 	}

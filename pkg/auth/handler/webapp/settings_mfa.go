@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -82,7 +83,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
 			authn.AuthenticationStageSecondary,
-			authn.AuthenticatorTypePassword,
+			model.AuthenticatorTypePassword,
 		)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
@@ -104,7 +105,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			return &InputRemoveAuthenticator{
-				Type: authn.AuthenticatorTypePassword,
+				Type: model.AuthenticatorTypePassword,
 				ID:   authenticatorID,
 			}, nil
 		})
@@ -123,7 +124,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
 			authn.AuthenticationStageSecondary,
-			authn.AuthenticatorTypeTOTP,
+			model.AuthenticatorTypeTOTP,
 		)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
@@ -145,7 +146,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
 			authn.AuthenticationStageSecondary,
-			authn.AuthenticatorTypeOOBEmail,
+			model.AuthenticatorTypeOOBEmail,
 		)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
@@ -167,7 +168,7 @@ func (h *SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		intent := intents.NewIntentAddAuthenticator(
 			userID,
 			authn.AuthenticationStageSecondary,
-			authn.AuthenticatorTypeOOBSMS,
+			model.AuthenticatorTypeOOBSMS,
 		)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {

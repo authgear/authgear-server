@@ -57,7 +57,11 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
 	h.tx = tx
 	defer func() {
-		h.tx = nil
+		// WillCommitTx of hook is allowed to access the database.
+		// So the assignment to nil should happen last.
+		defer func() {
+			h.tx = nil
+		}()
 
 		if r := recover(); r != nil {
 			_ = rollbackTx(tx)
@@ -88,7 +92,11 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
 	h.tx = tx
 	defer func() {
-		h.tx = nil
+		// WillCommitTx of hook is allowed to access the database.
+		// So the assignment to nil should happen last.
+		defer func() {
+			h.tx = nil
+		}()
 
 		if r := recover(); r != nil {
 			_ = rollbackTx(tx)

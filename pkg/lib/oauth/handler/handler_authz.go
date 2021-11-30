@@ -12,8 +12,8 @@ import (
 	"github.com/lestrrat-go/jwx/jwt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -495,7 +495,7 @@ func (h *AuthorizationHandler) handleIDTokenHint(
 		return
 	}
 
-	sidInterface, ok := idToken.Get(string(authn.ClaimSID))
+	sidInterface, ok := idToken.Get(string(model.ClaimSID))
 	if !ok {
 		return
 	}

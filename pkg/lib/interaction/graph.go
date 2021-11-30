@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -254,7 +255,7 @@ func (g *Graph) GetAMR() []string {
 		ai, ok := g.GetUserAuthenticator(stage)
 		if ok {
 			if stage == authn.AuthenticationStageSecondary {
-				amr = append(amr, authn.AMRMFA)
+				amr = append(amr, model.AMRMFA)
 			}
 
 			for _, value := range ai.AMR() {

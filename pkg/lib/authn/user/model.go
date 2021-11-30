@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -57,6 +56,12 @@ func (u *User) GetMeta() model.Meta {
 	}
 }
 
+func (u *User) ToRef() *model.UserRef {
+	return &model.UserRef{
+		Meta: u.GetMeta(),
+	}
+}
+
 func (u *User) CheckStatus() error {
 	if u.IsDisabled {
 		return NewErrDisabledUser(u.DisableReason)
@@ -73,7 +78,7 @@ func newUserModel(
 ) *model.User {
 	isAnonymous := false
 	for _, i := range identities {
-		if i.Type == authn.IdentityTypeAnonymous {
+		if i.Type == model.IdentityTypeAnonymous {
 			isAnonymous = true
 			break
 		}

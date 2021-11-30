@@ -10,9 +10,10 @@ const (
 )
 
 type IdentityOAuthConnectedEventPayload struct {
-	User     model.User     `json:"user"`
-	Identity model.Identity `json:"identity"`
-	AdminAPI bool           `json:"-"`
+	UserRef   model.UserRef  `json:"-" resolve:"user"`
+	UserModel model.User     `json:"user"`
+	Identity  model.Identity `json:"identity"`
+	AdminAPI  bool           `json:"-"`
 }
 
 func (e *IdentityOAuthConnectedEventPayload) NonBlockingEventType() event.Type {
@@ -20,7 +21,7 @@ func (e *IdentityOAuthConnectedEventPayload) NonBlockingEventType() event.Type {
 }
 
 func (e *IdentityOAuthConnectedEventPayload) UserID() string {
-	return e.User.ID
+	return e.UserRef.ID
 }
 
 func (e *IdentityOAuthConnectedEventPayload) IsAdminAPI() bool {

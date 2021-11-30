@@ -5,10 +5,9 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 func init() {
@@ -60,17 +59,18 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 			return nil
 		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			user, err := ctx.Users.Get(n.IdentityAfterUpdate.UserID, accesscontrol.EmptyRole)
-			if err != nil {
-				return err
+			userRef := model.UserRef{
+				Meta: model.Meta{
+					ID: n.IdentityAfterUpdate.UserID,
+				},
 			}
 
 			var e event.Payload
 			switch n.IdentityAfterUpdate.Type {
-			case authn.IdentityTypeLoginID:
+			case model.IdentityTypeLoginID:
 				loginIDType := n.IdentityAfterUpdate.Claims[identity.IdentityClaimLoginIDType].(string)
 				e = nonblocking.NewIdentityLoginIDUpdatedEventPayload(
-					*user,
+					userRef,
 					n.IdentityAfterUpdate.ToModel(),
 					n.IdentityBeforeUpdate.ToModel(),
 					loginIDType,
@@ -79,7 +79,7 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if e != nil {
-				err = ctx.Events.DispatchEvent(e)
+				err := ctx.Events.DispatchEvent(e)
 				if err != nil {
 					return err
 				}

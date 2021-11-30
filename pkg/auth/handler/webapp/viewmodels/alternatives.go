@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -76,12 +77,12 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 		case *nodes.EdgeAuthenticationOOBTrigger:
 			show := false
 			oobAuthenticatorType := edge.OOBAuthenticatorType
-			if oobAuthenticatorType == authn.AuthenticatorTypeOOBSMS &&
+			if oobAuthenticatorType == model.AuthenticatorTypeOOBSMS &&
 				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnSMS {
 				show = true
 			}
 
-			if oobAuthenticatorType == authn.AuthenticatorTypeOOBEmail &&
+			if oobAuthenticatorType == model.AuthenticatorTypeOOBEmail &&
 				currentStepKind != webapp.SessionStepEnterOOBOTPAuthnEmail {
 				show = true
 			}
@@ -99,10 +100,10 @@ func (m *AlternativeStepsViewModel) AddAuthenticationAlternatives(graph *interac
 					var maskedTarget string
 					var sessionStep webapp.SessionStepKind
 					switch oobAuthenticatorType {
-					case authn.AuthenticatorTypeOOBSMS:
+					case model.AuthenticatorTypeOOBSMS:
 						maskedTarget = corephone.Mask(target)
 						sessionStep = webapp.SessionStepEnterOOBOTPAuthnSMS
-					case authn.AuthenticatorTypeOOBEmail:
+					case model.AuthenticatorTypeOOBEmail:
 						maskedTarget = mail.MaskAddress(target)
 						sessionStep = webapp.SessionStepEnterOOBOTPAuthnEmail
 					default:
@@ -156,14 +157,14 @@ func (m *AlternativeStepsViewModel) AddCreateAuthenticatorAlternatives(graph *in
 		case *nodes.EdgeCreateAuthenticatorOOBSetup:
 			oobType := edge.AuthenticatorType()
 			switch oobType {
-			case authn.AuthenticatorTypeOOBEmail:
+			case model.AuthenticatorTypeOOBEmail:
 				if currentStepKind != webapp.SessionStepSetupOOBOTPEmail &&
 					currentStepKind != webapp.SessionStepEnterOOBOTPSetupEmail {
 					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{
 						Step: webapp.SessionStepSetupOOBOTPEmail,
 					})
 				}
-			case authn.AuthenticatorTypeOOBSMS:
+			case model.AuthenticatorTypeOOBSMS:
 				if currentStepKind != webapp.SessionStepSetupOOBOTPSMS &&
 					currentStepKind != webapp.SessionStepEnterOOBOTPSetupSMS {
 					m.AlternativeSteps = append(m.AlternativeSteps, AlternativeStep{

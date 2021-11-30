@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -53,21 +54,21 @@ func (p *SendOOBCode) Do() (*otp.CodeSendResult, error) {
 		panic("interaction: unknown authentication stage: " + p.Stage)
 	}
 
-	var channel authn.AuthenticatorOOBChannel
+	var channel model.AuthenticatorOOBChannel
 	var target string
 	switch p.AuthenticatorInfo.Type {
-	case authn.AuthenticatorTypeOOBSMS:
-		channel = authn.AuthenticatorOOBChannelSMS
+	case model.AuthenticatorTypeOOBSMS:
+		channel = model.AuthenticatorOOBChannelSMS
 		target = p.AuthenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPPhone].(string)
-	case authn.AuthenticatorTypeOOBEmail:
-		channel = authn.AuthenticatorOOBChannelEmail
+	case model.AuthenticatorTypeOOBEmail:
+		channel = model.AuthenticatorOOBChannelEmail
 		target = p.AuthenticatorInfo.Claims[authenticator.AuthenticatorClaimOOBOTPEmail].(string)
 	default:
 		panic("interaction: incompatible authenticator type for sending oob code: " + p.AuthenticatorInfo.Type)
 	}
 
 	// check for feature disabled
-	if p.AuthenticatorInfo.Type == authn.AuthenticatorTypeOOBSMS {
+	if p.AuthenticatorInfo.Type == model.AuthenticatorTypeOOBSMS {
 		fc := p.Context.FeatureConfig
 		switch p.Stage {
 		case authn.AuthenticationStagePrimary:

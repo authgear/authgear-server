@@ -1,4 +1,4 @@
-package authn
+package model
 
 type ClaimName string
 

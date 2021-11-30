@@ -3,6 +3,7 @@ package nodes
 import (
 	"errors"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -21,8 +22,8 @@ type EdgeAuthenticationPassword struct {
 	Authenticators []*authenticator.Info
 }
 
-func (e *EdgeAuthenticationPassword) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypePassword
+func (e *EdgeAuthenticationPassword) AuthenticatorType() model.AuthenticatorType {
+	return model.AuthenticatorTypePassword
 }
 
 func (e *EdgeAuthenticationPassword) IsDefaultAuthenticator() bool {

@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -220,9 +221,9 @@ func (s *Service2) doPost(
 			case *nodes.EdgeCreateAuthenticatorOOBSetup:
 				var stepKind SessionStepKind
 				switch defaultEdge.AuthenticatorType() {
-				case authn.AuthenticatorTypeOOBEmail:
+				case model.AuthenticatorTypeOOBEmail:
 					stepKind = SessionStepSetupOOBOTPEmail
-				case authn.AuthenticatorTypeOOBSMS:
+				case model.AuthenticatorTypeOOBSMS:
 					stepKind = SessionStepSetupOOBOTPSMS
 				default:
 					panic(fmt.Errorf("webapp: unexpected authenticator type in oob edge: %s", defaultEdge.AuthenticatorType()))
@@ -435,18 +436,18 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 		return SessionStepCreateAuthenticator
 	case *nodes.NodeAuthenticationOOBTrigger:
 		switch currentNode.Authenticator.Type {
-		case authn.AuthenticatorTypeOOBEmail:
+		case model.AuthenticatorTypeOOBEmail:
 			return SessionStepEnterOOBOTPAuthnEmail
-		case authn.AuthenticatorTypeOOBSMS:
+		case model.AuthenticatorTypeOOBSMS:
 			return SessionStepEnterOOBOTPAuthnSMS
 		default:
 			panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", currentNode.Authenticator.Type))
 		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
 		switch currentNode.Authenticator.Type {
-		case authn.AuthenticatorTypeOOBEmail:
+		case model.AuthenticatorTypeOOBEmail:
 			return SessionStepEnterOOBOTPSetupEmail
-		case authn.AuthenticatorTypeOOBSMS:
+		case model.AuthenticatorTypeOOBSMS:
 			return SessionStepEnterOOBOTPSetupSMS
 		default:
 			panic(fmt.Errorf("webapp: unexpected oob authenticator type: %s", currentNode.Authenticator.Type))

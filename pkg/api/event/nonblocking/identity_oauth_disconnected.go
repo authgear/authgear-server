@@ -10,9 +10,10 @@ const (
 )
 
 type IdentityOAuthDisconnectedEventPayload struct {
-	User     model.User     `json:"user"`
-	Identity model.Identity `json:"identity"`
-	AdminAPI bool           `json:"-"`
+	UserRef   model.UserRef  `json:"-" resolve:"user"`
+	UserModel model.User     `json:"user"`
+	Identity  model.Identity `json:"identity"`
+	AdminAPI  bool           `json:"-"`
 }
 
 func (e *IdentityOAuthDisconnectedEventPayload) NonBlockingEventType() event.Type {
@@ -20,7 +21,7 @@ func (e *IdentityOAuthDisconnectedEventPayload) NonBlockingEventType() event.Typ
 }
 
 func (e *IdentityOAuthDisconnectedEventPayload) UserID() string {
-	return e.User.ID
+	return e.UserRef.ID
 }
 
 func (e *IdentityOAuthDisconnectedEventPayload) IsAdminAPI() bool {

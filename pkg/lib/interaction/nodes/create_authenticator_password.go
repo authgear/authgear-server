@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -19,8 +20,8 @@ type EdgeCreateAuthenticatorPassword struct {
 	IsDefault bool
 }
 
-func (e *EdgeCreateAuthenticatorPassword) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypePassword
+func (e *EdgeCreateAuthenticatorPassword) AuthenticatorType() model.AuthenticatorType {
+	return model.AuthenticatorTypePassword
 }
 
 func (e *EdgeCreateAuthenticatorPassword) IsDefaultAuthenticator() bool {
@@ -47,7 +48,7 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, 
 		UserID:    userID,
 		IsDefault: e.IsDefault,
 		Kind:      stageToAuthenticatorKind(e.Stage),
-		Type:      authn.AuthenticatorTypePassword,
+		Type:      model.AuthenticatorTypePassword,
 		Claims:    map[string]interface{}{},
 	}
 

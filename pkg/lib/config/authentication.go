@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 var _ = Schema.Add("AuthenticationConfig", `
@@ -56,9 +56,9 @@ var _ = Schema.Add("SecondaryAuthenticatorType", `
 `)
 
 type AuthenticationConfig struct {
-	Identities                  []authn.IdentityType        `json:"identities,omitempty"`
-	PrimaryAuthenticators       []authn.AuthenticatorType   `json:"primary_authenticators,omitempty"`
-	SecondaryAuthenticators     []authn.AuthenticatorType   `json:"secondary_authenticators,omitempty"`
+	Identities                  []model.IdentityType        `json:"identities,omitempty"`
+	PrimaryAuthenticators       []model.AuthenticatorType   `json:"primary_authenticators,omitempty"`
+	SecondaryAuthenticators     []model.AuthenticatorType   `json:"secondary_authenticators,omitempty"`
 	SecondaryAuthenticationMode SecondaryAuthenticationMode `json:"secondary_authentication_mode,omitempty"`
 	DeviceToken                 *DeviceTokenConfig          `json:"device_token,omitempty"`
 	RecoveryCode                *RecoveryCodeConfig         `json:"recovery_code,omitempty"`
@@ -67,19 +67,19 @@ type AuthenticationConfig struct {
 
 func (c *AuthenticationConfig) SetDefaults() {
 	if c.Identities == nil {
-		c.Identities = []authn.IdentityType{
-			authn.IdentityTypeOAuth,
-			authn.IdentityTypeLoginID,
+		c.Identities = []model.IdentityType{
+			model.IdentityTypeOAuth,
+			model.IdentityTypeLoginID,
 		}
 	}
 	if c.PrimaryAuthenticators == nil {
-		c.PrimaryAuthenticators = []authn.AuthenticatorType{
-			authn.AuthenticatorTypePassword,
+		c.PrimaryAuthenticators = []model.AuthenticatorType{
+			model.AuthenticatorTypePassword,
 		}
 	}
 	if c.SecondaryAuthenticators == nil {
-		c.SecondaryAuthenticators = []authn.AuthenticatorType{
-			authn.AuthenticatorTypeTOTP,
+		c.SecondaryAuthenticators = []model.AuthenticatorType{
+			model.AuthenticatorTypeTOTP,
 		}
 	}
 	if c.SecondaryAuthenticationMode == "" {

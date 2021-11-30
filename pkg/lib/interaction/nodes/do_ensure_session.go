@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 func init() {
@@ -132,30 +131,32 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 
 			userID := graph.MustGetUserID()
 
-			newUser, err := ctx.Users.Get(userID, accesscontrol.EmptyRole)
-			if err != nil {
-				return err
+			newUserRef := model.UserRef{
+				Meta: model.Meta{
+					ID: userID,
+				},
 			}
 
-			anonUser := newUser
+			anonUserRef := newUserRef
 			if identityCheck, ok := getIdentityConflictNode(graph); ok && identityCheck.DuplicatedIdentity != nil {
 				// Logging as existing user when promoting: old user is different.
-				anonUser, err = ctx.Users.Get(identityCheck.NewIdentity.UserID, accesscontrol.EmptyRole)
-				if err != nil {
-					return err
+				anonUserRef = model.UserRef{
+					Meta: model.Meta{
+						ID: identityCheck.NewIdentity.UserID,
+					},
 				}
 			}
 
-			var identities []model.Identity
+			var identityModels []model.Identity
 			for _, info := range graph.GetUserNewIdentities() {
-				identities = append(identities, info.ToModel())
+				identityModels = append(identityModels, info.ToModel())
 			}
 
-			err = ctx.Events.DispatchEvent(&nonblocking.UserAnonymousPromotedEventPayload{
-				AnonymousUser: *anonUser,
-				User:          *newUser,
-				Identities:    identities,
-				AdminAPI:      n.IsAdminAPI,
+			err := ctx.Events.DispatchEvent(&nonblocking.UserAnonymousPromotedEventPayload{
+				AnonymousUserRef: anonUserRef,
+				UserRef:          newUserRef,
+				Identities:       identityModels,
+				AdminAPI:         n.IsAdminAPI,
 			})
 			if err != nil {
 				return err
@@ -174,15 +175,16 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 				}
 			}
 
-			user, err := ctx.Users.Get(userID, accesscontrol.EmptyRole)
-			if err != nil {
-				return err
+			userRef := model.UserRef{
+				Meta: model.Meta{
+					ID: userID,
+				},
 			}
 
 			if n.SessionToCreate != nil {
 				if n.CreateReason == session.CreateReasonLogin || n.CreateReason == session.CreateReasonReauthenticate {
 					err = ctx.Events.DispatchEvent(&nonblocking.UserAuthenticatedEventPayload{
-						User:     *user,
+						UserRef:  userRef,
 						Session:  *n.SessionToCreate.ToAPIModel(),
 						AdminAPI: n.IsAdminAPI,
 					})
