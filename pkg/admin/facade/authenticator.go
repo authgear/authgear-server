@@ -3,13 +3,13 @@ package facade
 import (
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 )
 
 type AuthenticatorService interface {
-	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
+	Get(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error)
 	Count(userID string) (uint64, error)
 	ListRefsByUsers(userIDs []string) ([]*authenticator.Ref, error)
 }

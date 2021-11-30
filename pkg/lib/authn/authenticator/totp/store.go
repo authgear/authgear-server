@@ -6,7 +6,7 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -146,7 +146,7 @@ func (s *Store) Create(a *Authenticator) (err error) {
 		).
 		Values(
 			a.ID,
-			authn.AuthenticatorTypeTOTP,
+			model.AuthenticatorTypeTOTP,
 			a.UserID,
 			a.CreatedAt,
 			a.UpdatedAt,

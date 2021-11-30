@@ -3,6 +3,7 @@ package nodes
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -16,7 +17,7 @@ func init() {
 
 type EdgeCreateAuthenticatorBegin struct {
 	Stage             authn.AuthenticationStage
-	AuthenticatorType *authn.AuthenticatorType
+	AuthenticatorType *model.AuthenticatorType
 }
 
 func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
@@ -42,7 +43,7 @@ func (e *EdgeCreateAuthenticatorBegin) Instantiate(ctx *interaction.Context, gra
 
 type NodeCreateAuthenticatorBegin struct {
 	Stage             authn.AuthenticationStage `json:"stage"`
-	AuthenticatorType *authn.AuthenticatorType  `json:"authenticator_type"`
+	AuthenticatorType *model.AuthenticatorType  `json:"authenticator_type"`
 	SkipMFASetup      bool                      `json:"skip_mfa_setup"`
 	RequestedByUser   bool                      `json:"requested_by_user"`
 
@@ -82,7 +83,7 @@ func (n *NodeCreateAuthenticatorBegin) DeriveEdges(graph *interaction.Graph) ([]
 }
 
 // IsOOBAuthenticatorTypeAllowed implements SetupOOBOTPNode.
-func (n *NodeCreateAuthenticatorBegin) IsOOBAuthenticatorTypeAllowed(oobAuthenticatorType authn.AuthenticatorType) (bool, error) {
+func (n *NodeCreateAuthenticatorBegin) IsOOBAuthenticatorTypeAllowed(oobAuthenticatorType model.AuthenticatorType) (bool, error) {
 	edges, err := n.deriveEdges()
 	if err != nil {
 		return false, err
@@ -167,19 +168,19 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 	var edges []interaction.Edge
 	for _, t := range types {
 		switch t {
-		case authn.AuthenticatorTypePassword:
+		case model.AuthenticatorTypePassword:
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{
 				Stage:     n.Stage,
 				IsDefault: isDefault,
 			})
 
-		case authn.AuthenticatorTypeTOTP:
+		case model.AuthenticatorTypeTOTP:
 			edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
 				Stage:     n.Stage,
 				IsDefault: isDefault,
 			})
 
-		case authn.AuthenticatorTypeOOBSMS:
+		case model.AuthenticatorTypeOOBSMS:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
 
@@ -189,12 +190,12 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
 					Target:               loginID,
-					Channel:              authn.AuthenticatorOOBChannelSMS,
-					OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
+					Channel:              model.AuthenticatorOOBChannelSMS,
+					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
 				})
 			}
 
-		case authn.AuthenticatorTypeOOBEmail:
+		case model.AuthenticatorTypeOOBEmail:
 			loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 			loginID := n.Identity.Claims[identity.IdentityClaimLoginIDValue].(string)
 
@@ -204,8 +205,8 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
 					Target:               loginID,
-					Channel:              authn.AuthenticatorOOBChannelEmail,
-					OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
+					Channel:              model.AuthenticatorOOBChannelEmail,
+					OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
 				})
 			}
 		default:
@@ -292,13 +293,13 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 	oobEmailCount := 0
 	for _, a := range ais {
 		switch a.Type {
-		case authn.AuthenticatorTypePassword:
+		case model.AuthenticatorTypePassword:
 			passwordCount++
-		case authn.AuthenticatorTypeTOTP:
+		case model.AuthenticatorTypeTOTP:
 			totpCount++
-		case authn.AuthenticatorTypeOOBEmail:
+		case model.AuthenticatorTypeOOBEmail:
 			oobEmailCount++
-		case authn.AuthenticatorTypeOOBSMS:
+		case model.AuthenticatorTypeOOBSMS:
 			oobSMSCount++
 		default:
 			panic("interaction: unknown authenticator type: " + a.Type)
@@ -308,13 +309,13 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 	// Condition A.
 	for _, typ := range n.AuthenticationConfig.SecondaryAuthenticators {
 		switch typ {
-		case authn.AuthenticatorTypePassword:
+		case model.AuthenticatorTypePassword:
 			// Condition B.
 			edges = append(edges, &EdgeCreateAuthenticatorPassword{
 				Stage:     n.Stage,
 				IsDefault: isDefault,
 			})
-		case authn.AuthenticatorTypeTOTP:
+		case model.AuthenticatorTypeTOTP:
 			// Condition B and C.
 			if totpCount < *n.AuthenticatorConfig.TOTP.Maximum {
 				edges = append(edges, &EdgeCreateAuthenticatorTOTPSetup{
@@ -322,22 +323,22 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 					IsDefault: isDefault,
 				})
 			}
-		case authn.AuthenticatorTypeOOBEmail:
+		case model.AuthenticatorTypeOOBEmail:
 			// Condition B and C.
 			if oobEmailCount < *n.AuthenticatorConfig.OOB.Email.Maximum {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
-					OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
+					OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
 				})
 			}
-		case authn.AuthenticatorTypeOOBSMS:
+		case model.AuthenticatorTypeOOBSMS:
 			// Condition B and C.
 			if oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
 				edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 					Stage:                n.Stage,
 					IsDefault:            isDefault,
-					OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
+					OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
 				})
 			}
 		default:

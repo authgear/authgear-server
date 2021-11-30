@@ -3,6 +3,7 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -26,7 +27,7 @@ func ConfigureSettingsOOBOTPRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsOOBOTPViewModel struct {
-	OOBAuthenticatorType authn.AuthenticatorType
+	OOBAuthenticatorType model.AuthenticatorType
 	Authenticators       []*authenticator.Info
 }
 
@@ -43,7 +44,7 @@ func (h *SettingsOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter)
 	userID := session.GetUserID(r.Context())
 	viewModel := SettingsOOBOTPViewModel{}
 	oc := httproute.GetParam(r, "channel")
-	t, err := authn.GetOOBAuthenticatorType(authn.AuthenticatorOOBChannel(oc))
+	t, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 	oc := httproute.GetParam(r, "channel")
-	oobAuthenticatorType, err := authn.GetOOBAuthenticatorType(authn.AuthenticatorOOBChannel(oc))
+	oobAuthenticatorType, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
 	if err != nil {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return

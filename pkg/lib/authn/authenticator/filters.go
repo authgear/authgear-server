@@ -2,7 +2,6 @@ package authenticator
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
@@ -42,7 +41,7 @@ func KeepKind(kind Kind) Filter {
 	})
 }
 
-func KeepType(types ...authn.AuthenticatorType) Filter {
+func KeepType(types ...model.AuthenticatorType) Filter {
 	return FilterFunc(func(ai *Info) bool {
 		for _, t := range types {
 			if ai.Type == t {
@@ -63,7 +62,7 @@ func KeepPrimaryAuthenticatorOfIdentity(ii *identity.Info) Filter {
 			if ai.Type == typ {
 				switch {
 				case ii.Type == model.IdentityTypeLoginID &&
-					(ai.Type == authn.AuthenticatorTypeOOBEmail || ai.Type == authn.AuthenticatorTypeOOBSMS):
+					(ai.Type == model.AuthenticatorTypeOOBEmail || ai.Type == model.AuthenticatorTypeOOBSMS):
 					loginID := ii.Claims[identity.IdentityClaimLoginIDValue]
 					email, _ := ai.Claims[AuthenticatorClaimOOBOTPEmail].(string)
 					phone, _ := ai.Claims[AuthenticatorClaimOOBOTPPhone].(string)

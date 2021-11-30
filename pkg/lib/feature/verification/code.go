@@ -3,7 +3,7 @@ package verification
 import (
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/base32"
@@ -30,9 +30,9 @@ func (c *Code) SendResult() *otp.CodeSendResult {
 	var channel string
 	switch config.LoginIDKeyType(c.LoginIDType) {
 	case config.LoginIDKeyTypeEmail:
-		channel = string(authn.AuthenticatorOOBChannelEmail)
+		channel = string(model.AuthenticatorOOBChannelEmail)
 	case config.LoginIDKeyTypePhone:
-		channel = string(authn.AuthenticatorOOBChannelSMS)
+		channel = string(model.AuthenticatorOOBChannelSMS)
 	default:
 		panic("verification: unsupported login ID type: " + c.LoginIDType)
 	}

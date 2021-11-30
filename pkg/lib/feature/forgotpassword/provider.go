@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -112,7 +111,7 @@ func (p *Provider) SendCode(loginID string) error {
 	for _, info := range allIdentities {
 		authenticators, err := p.Authenticators.List(
 			info.UserID,
-			authenticator.KeepType(authn.AuthenticatorTypePassword),
+			authenticator.KeepType(model.AuthenticatorTypePassword),
 			authenticator.KeepKind(authenticator.KindPrimary),
 		)
 		if err != nil {
@@ -288,7 +287,7 @@ func (p *Provider) ResetPassword(userID string, newPassword string) (oldInfo *au
 	// First see if the user has password authenticator.
 	ais, err := p.Authenticators.List(
 		userID,
-		authenticator.KeepType(authn.AuthenticatorTypePassword),
+		authenticator.KeepType(model.AuthenticatorTypePassword),
 		authenticator.KeepKind(authenticator.KindPrimary),
 	)
 	if err != nil {

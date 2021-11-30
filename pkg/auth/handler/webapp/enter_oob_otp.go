@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -73,10 +73,10 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		viewModel.OOBOTPChannel = n.GetOOBOTPChannel()
 		target := n.GetOOBOTPTarget()
 		oobType := n.GetOOBOTPOOBType()
-		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
-		case authn.AuthenticatorOOBChannelEmail:
+		switch model.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
+		case model.AuthenticatorOOBChannelEmail:
 			viewModel.OOBOTPTarget = mail.MaskAddress(target)
-		case authn.AuthenticatorOOBChannelSMS:
+		case model.AuthenticatorOOBChannelSMS:
 			viewModel.OOBOTPTarget = phone.Mask(target)
 		}
 
@@ -97,23 +97,23 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 	alternatives := viewmodels.AlternativeStepsViewModel{}
 	switch currentNode.(type) {
 	case *nodes.NodeAuthenticationOOBTrigger:
-		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
-		case authn.AuthenticatorOOBChannelEmail:
+		switch model.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
+		case model.AuthenticatorOOBChannelEmail:
 			if err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthnEmail); err != nil {
 				return nil, err
 			}
-		case authn.AuthenticatorOOBChannelSMS:
+		case model.AuthenticatorOOBChannelSMS:
 			if err := alternatives.AddAuthenticationAlternatives(graph, webapp.SessionStepEnterOOBOTPAuthnSMS); err != nil {
 				return nil, err
 			}
 		}
 	case *nodes.NodeCreateAuthenticatorOOBSetup:
-		switch authn.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
-		case authn.AuthenticatorOOBChannelEmail:
+		switch model.AuthenticatorOOBChannel(viewModel.OOBOTPChannel) {
+		case model.AuthenticatorOOBChannelEmail:
 			if err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetupEmail); err != nil {
 				return nil, err
 			}
-		case authn.AuthenticatorOOBChannelSMS:
+		case model.AuthenticatorOOBChannelSMS:
 			if err := alternatives.AddCreateAuthenticatorAlternatives(graph, webapp.SessionStepEnterOOBOTPSetupSMS); err != nil {
 				return nil, err
 			}

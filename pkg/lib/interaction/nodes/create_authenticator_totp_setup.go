@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -19,8 +20,8 @@ type EdgeCreateAuthenticatorTOTPSetup struct {
 	IsDefault bool
 }
 
-func (e *EdgeCreateAuthenticatorTOTPSetup) AuthenticatorType() authn.AuthenticatorType {
-	return authn.AuthenticatorTypeTOTP
+func (e *EdgeCreateAuthenticatorTOTPSetup) AuthenticatorType() model.AuthenticatorType {
+	return model.AuthenticatorTypeTOTP
 }
 
 func (e *EdgeCreateAuthenticatorTOTPSetup) IsDefaultAuthenticator() bool {
@@ -38,7 +39,7 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(ctx *interaction.Context,
 		UserID:    userID,
 		IsDefault: e.IsDefault,
 		Kind:      stageToAuthenticatorKind(e.Stage),
-		Type:      authn.AuthenticatorTypeTOTP,
+		Type:      model.AuthenticatorTypeTOTP,
 		Claims: map[string]interface{}{
 			// The display name will be filled in in a later node.
 			authenticator.AuthenticatorClaimTOTPDisplayName: "",

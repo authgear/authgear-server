@@ -1,7 +1,7 @@
 package facade
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 )
 
@@ -9,7 +9,7 @@ type AuthenticatorFacade struct {
 	Coordinator *Coordinator
 }
 
-func (a AuthenticatorFacade) Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
+func (a AuthenticatorFacade) Get(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error) {
 	return a.Coordinator.AuthenticatorGet(userID, typ, id)
 }
 

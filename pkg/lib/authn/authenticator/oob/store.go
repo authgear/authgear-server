@@ -6,7 +6,7 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -131,8 +131,8 @@ func (s *Store) Delete(id string) error {
 }
 
 func (s *Store) Create(a *Authenticator) (err error) {
-	if a.OOBAuthenticatorType != authn.AuthenticatorTypeOOBEmail &&
-		a.OOBAuthenticatorType != authn.AuthenticatorTypeOOBSMS {
+	if a.OOBAuthenticatorType != model.AuthenticatorTypeOOBEmail &&
+		a.OOBAuthenticatorType != model.AuthenticatorTypeOOBSMS {
 		return errors.New("invalid oob authenticator type")
 	}
 

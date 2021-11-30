@@ -8,7 +8,6 @@ import (
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -112,7 +111,7 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		oauthProviderAliases[provider.Alias] = struct{}{}
 	}
 
-	authenticatorTypes := map[authn.AuthenticatorType]struct{}{}
+	authenticatorTypes := map[model.AuthenticatorType]struct{}{}
 	for _, a := range c.Authentication.PrimaryAuthenticators {
 		authenticatorTypes[a] = struct{}{}
 	}
@@ -122,9 +121,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		var loginIDKeyType LoginIDKeyType
 		switch it {
 		case model.IdentityTypeLoginID:
-			_, hasPassword := authenticatorTypes[authn.AuthenticatorTypePassword]
-			_, hasOOBEmail := authenticatorTypes[authn.AuthenticatorTypeOOBEmail]
-			_, hasOOBSMS := authenticatorTypes[authn.AuthenticatorTypeOOBSMS]
+			_, hasPassword := authenticatorTypes[model.AuthenticatorTypePassword]
+			_, hasOOBEmail := authenticatorTypes[model.AuthenticatorTypeOOBEmail]
+			_, hasOOBSMS := authenticatorTypes[model.AuthenticatorTypeOOBSMS]
 			for _, k := range c.Identity.LoginID.Keys {
 				switch k.Type {
 				case LoginIDKeyTypeEmail:

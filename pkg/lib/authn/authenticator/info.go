@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 )
 
 type Info struct {
@@ -14,7 +13,7 @@ type Info struct {
 	UserID    string                  `json:"user_id"`
 	CreatedAt time.Time               `json:"created_at"`
 	UpdatedAt time.Time               `json:"updated_at"`
-	Type      authn.AuthenticatorType `json:"type"`
+	Type      model.AuthenticatorType `json:"type"`
 	Secret    string                  `json:"secret"`
 	IsDefault bool                    `json:"is_default"`
 	Kind      Kind                    `json:"kind"`
@@ -53,13 +52,13 @@ func (i *Info) GetMeta() model.Meta {
 
 func (i *Info) AMR() []string {
 	switch i.Type {
-	case authn.AuthenticatorTypePassword:
+	case model.AuthenticatorTypePassword:
 		return []string{model.AMRPWD}
-	case authn.AuthenticatorTypeTOTP:
+	case model.AuthenticatorTypeTOTP:
 		return []string{model.AMROTP}
-	case authn.AuthenticatorTypeOOBEmail:
+	case model.AuthenticatorTypeOOBEmail:
 		return []string{model.AMROTP}
-	case authn.AuthenticatorTypeOOBSMS:
+	case model.AuthenticatorTypeOOBSMS:
 		return []string{model.AMROTP, model.AMRSMS}
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
@@ -76,17 +75,17 @@ func (i *Info) Equal(that *Info) bool {
 	}
 
 	switch i.Type {
-	case authn.AuthenticatorTypePassword:
+	case model.AuthenticatorTypePassword:
 		// If they are password, they have the same primary/secondary tag.
 		return i.Kind == that.Kind
-	case authn.AuthenticatorTypeTOTP:
+	case model.AuthenticatorTypeTOTP:
 		// If they are TOTP, they have the same secret, and primary/secondary tag.
 		if i.Kind != that.Kind {
 			return false
 		}
 
 		return subtle.ConstantTimeCompare([]byte(i.Secret), []byte(that.Secret)) == 1
-	case authn.AuthenticatorTypeOOBEmail:
+	case model.AuthenticatorTypeOOBEmail:
 		// If they are OOB, they have the same channel, target, and primary/secondary tag.
 		if i.Kind != that.Kind {
 			return false
@@ -95,7 +94,7 @@ func (i *Info) Equal(that *Info) bool {
 		iEmail := i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
 		thatEmail := that.Claims[AuthenticatorClaimOOBOTPEmail].(string)
 		return iEmail == thatEmail
-	case authn.AuthenticatorTypeOOBSMS:
+	case model.AuthenticatorTypeOOBSMS:
 		// If they are OOB, they have the same channel, target, and primary/secondary tag.
 		if i.Kind != that.Kind {
 			return false
@@ -112,13 +111,13 @@ func (i *Info) Equal(that *Info) bool {
 func (i *Info) StandardClaims() map[model.ClaimName]string {
 	claims := map[model.ClaimName]string{}
 	switch i.Type {
-	case authn.AuthenticatorTypePassword:
+	case model.AuthenticatorTypePassword:
 		break
-	case authn.AuthenticatorTypeTOTP:
+	case model.AuthenticatorTypeTOTP:
 		break
-	case authn.AuthenticatorTypeOOBEmail:
+	case model.AuthenticatorTypeOOBEmail:
 		claims[model.ClaimEmail] = i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
-	case authn.AuthenticatorTypeOOBSMS:
+	case model.AuthenticatorTypeOOBSMS:
 		claims[model.ClaimPhoneNumber] = i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))

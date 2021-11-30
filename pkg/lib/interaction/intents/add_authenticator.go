@@ -3,6 +3,7 @@ package intents
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -15,10 +16,10 @@ func init() {
 type IntentAddAuthenticator struct {
 	UserID            string                    `json:"user_id"`
 	Stage             authn.AuthenticationStage `json:"stage"`
-	AuthenticatorType authn.AuthenticatorType   `json:"authenticator_type"`
+	AuthenticatorType model.AuthenticatorType   `json:"authenticator_type"`
 }
 
-func NewIntentAddAuthenticator(userID string, stage authn.AuthenticationStage, t authn.AuthenticatorType) *IntentAddAuthenticator {
+func NewIntentAddAuthenticator(userID string, stage authn.AuthenticationStage, t model.AuthenticatorType) *IntentAddAuthenticator {
 	return &IntentAddAuthenticator{
 		UserID:            userID,
 		Stage:             stage,

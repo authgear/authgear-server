@@ -2,7 +2,6 @@ package facade
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -24,7 +23,7 @@ type IdentityService interface {
 }
 
 type AuthenticatorService interface {
-	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
+	Get(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
@@ -183,7 +182,7 @@ func (c *Coordinator) IdentityCheckDuplicated(info *identity.Info) (*identity.In
 	return c.Identities.CheckDuplicated(info)
 }
 
-func (c *Coordinator) AuthenticatorGet(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error) {
+func (c *Coordinator) AuthenticatorGet(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error) {
 	return c.Authenticators.Get(userID, typ, id)
 }
 

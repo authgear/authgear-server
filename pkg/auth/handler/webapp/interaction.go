@@ -40,12 +40,12 @@ var _ nodes.InputCreateAuthenticatorOOBSetup = &InputNewLoginID{}
 
 func (i *InputNewLoginID) GetLoginIDKey() string { return i.LoginIDKey }
 func (i *InputNewLoginID) GetLoginID() string    { return i.LoginIDValue }
-func (i *InputNewLoginID) GetOOBChannel() authn.AuthenticatorOOBChannel {
+func (i *InputNewLoginID) GetOOBChannel() model.AuthenticatorOOBChannel {
 	switch i.LoginIDType {
 	case string(config.LoginIDKeyTypeEmail):
-		return authn.AuthenticatorOOBChannelEmail
+		return model.AuthenticatorOOBChannelEmail
 	case string(config.LoginIDKeyTypePhone):
-		return authn.AuthenticatorOOBChannelSMS
+		return model.AuthenticatorOOBChannelSMS
 	default:
 		return ""
 	}
@@ -57,13 +57,13 @@ type InputCreateAuthenticator struct{}
 func (i *InputCreateAuthenticator) RequestedByUser() bool { return true }
 
 type InputRemoveAuthenticator struct {
-	Type authn.AuthenticatorType
+	Type model.AuthenticatorType
 	ID   string
 }
 
 var _ nodes.InputRemoveAuthenticator = &InputRemoveAuthenticator{}
 
-func (i *InputRemoveAuthenticator) GetAuthenticatorType() authn.AuthenticatorType { return i.Type }
+func (i *InputRemoveAuthenticator) GetAuthenticatorType() model.AuthenticatorType { return i.Type }
 func (i *InputRemoveAuthenticator) GetAuthenticatorID() string                    { return i.ID }
 
 type InputRemoveIdentity struct {
@@ -162,12 +162,12 @@ type InputSetupOOB struct {
 
 var _ nodes.InputCreateAuthenticatorOOBSetup = &InputSetupOOB{}
 
-func (i *InputSetupOOB) GetOOBChannel() authn.AuthenticatorOOBChannel {
+func (i *InputSetupOOB) GetOOBChannel() model.AuthenticatorOOBChannel {
 	switch i.InputType {
 	case "email":
-		return authn.AuthenticatorOOBChannelEmail
+		return model.AuthenticatorOOBChannelEmail
 	case "phone":
-		return authn.AuthenticatorOOBChannelSMS
+		return model.AuthenticatorOOBChannelSMS
 	default:
 		panic("webapp: unknown input type: " + i.InputType)
 	}

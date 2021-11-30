@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -84,7 +85,7 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 	userID := graph.MustGetUserID()
 	ais, err := ctx.Authenticators.List(
 		userID,
-		authenticator.KeepType(authn.AuthenticatorTypePassword),
+		authenticator.KeepType(model.AuthenticatorTypePassword),
 		authenticator.KeepKind(stageToAuthenticatorKind(e.Stage)),
 	)
 	if err != nil {

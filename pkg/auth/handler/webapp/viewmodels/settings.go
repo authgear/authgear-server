@@ -2,7 +2,6 @@ package viewmodels
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -70,13 +69,13 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	if someIdentityCanHaveMFA {
 		for _, typ := range m.Authentication.SecondaryAuthenticators {
 			switch typ {
-			case authn.AuthenticatorTypePassword:
+			case model.AuthenticatorTypePassword:
 				password = true
-			case authn.AuthenticatorTypeTOTP:
+			case model.AuthenticatorTypeTOTP:
 				totp = true
-			case authn.AuthenticatorTypeOOBEmail:
+			case model.AuthenticatorTypeOOBEmail:
 				oobotpemail = true
-			case authn.AuthenticatorTypeOOBSMS:
+			case model.AuthenticatorTypeOOBSMS:
 				oobotpsms = true
 			}
 		}

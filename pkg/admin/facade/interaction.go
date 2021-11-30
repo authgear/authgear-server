@@ -86,7 +86,7 @@ type removeAuthenticatorInput struct {
 
 var _ nodes.InputRemoveAuthenticator = &removeAuthenticatorInput{}
 
-func (i *removeAuthenticatorInput) GetAuthenticatorType() authn.AuthenticatorType {
+func (i *removeAuthenticatorInput) GetAuthenticatorType() apimodel.AuthenticatorType {
 	return i.authenticatorInfo.Type
 }
 func (i *removeAuthenticatorInput) GetAuthenticatorID() string {

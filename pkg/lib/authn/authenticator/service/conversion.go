@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
@@ -10,7 +10,7 @@ import (
 
 func passwordToAuthenticatorInfo(p *password.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
-		Type:      authn.AuthenticatorTypePassword,
+		Type:      model.AuthenticatorTypePassword,
 		ID:        p.ID,
 		UserID:    p.UserID,
 		CreatedAt: p.CreatedAt,
@@ -36,7 +36,7 @@ func passwordFromAuthenticatorInfo(a *authenticator.Info) *password.Authenticato
 
 func totpToAuthenticatorInfo(t *totp.Authenticator) *authenticator.Info {
 	return &authenticator.Info{
-		Type:      authn.AuthenticatorTypeTOTP,
+		Type:      model.AuthenticatorTypeTOTP,
 		ID:        t.ID,
 		UserID:    t.UserID,
 		CreatedAt: t.CreatedAt,
@@ -76,9 +76,9 @@ func oobotpToAuthenticatorInfo(o *oob.Authenticator) *authenticator.Info {
 		Kind:      authenticator.Kind(o.Kind),
 	}
 	switch o.OOBAuthenticatorType {
-	case authn.AuthenticatorTypeOOBSMS:
+	case model.AuthenticatorTypeOOBSMS:
 		info.Claims[authenticator.AuthenticatorClaimOOBOTPPhone] = o.Phone
-	case authn.AuthenticatorTypeOOBEmail:
+	case model.AuthenticatorTypeOOBEmail:
 		info.Claims[authenticator.AuthenticatorClaimOOBOTPEmail] = o.Email
 	default:
 		panic("authenticator: incompatible authenticator type for oob: " + o.OOBAuthenticatorType)

@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
@@ -154,23 +153,23 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	return claims
 }
 
-func (i *Info) PrimaryAuthenticatorTypes() []authn.AuthenticatorType {
+func (i *Info) PrimaryAuthenticatorTypes() []model.AuthenticatorType {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
 		switch config.LoginIDKeyType(i.Claims[IdentityClaimLoginIDType].(string)) {
 		case config.LoginIDKeyTypeUsername:
-			return []authn.AuthenticatorType{
-				authn.AuthenticatorTypePassword,
+			return []model.AuthenticatorType{
+				model.AuthenticatorTypePassword,
 			}
 		case config.LoginIDKeyTypeEmail:
-			return []authn.AuthenticatorType{
-				authn.AuthenticatorTypePassword,
-				authn.AuthenticatorTypeOOBEmail,
+			return []model.AuthenticatorType{
+				model.AuthenticatorTypePassword,
+				model.AuthenticatorTypeOOBEmail,
 			}
 		case config.LoginIDKeyTypePhone:
-			return []authn.AuthenticatorType{
-				authn.AuthenticatorTypePassword,
-				authn.AuthenticatorTypeOOBSMS,
+			return []model.AuthenticatorType{
+				model.AuthenticatorTypePassword,
+				model.AuthenticatorTypeOOBSMS,
 			}
 		default:
 			panic(fmt.Sprintf("identity: unexpected login ID type: %s", i.Claims[IdentityClaimLoginIDType]))

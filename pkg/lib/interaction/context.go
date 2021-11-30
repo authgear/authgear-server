@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -43,7 +42,7 @@ type IdentityService interface {
 }
 
 type AuthenticatorService interface {
-	Get(userID string, typ authn.AuthenticatorType, id string) (*authenticator.Info, error)
+	Get(userID string, typ model.AuthenticatorType, id string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec, secret string) (*authenticator.Info, error)
 	WithSecret(authenticatorInfo *authenticator.Info, secret string) (changed bool, info *authenticator.Info, err error)
@@ -60,7 +59,7 @@ type OOBAuthenticatorProvider interface {
 
 type OOBCodeSender interface {
 	SendCode(
-		channel authn.AuthenticatorOOBChannel,
+		channel model.AuthenticatorOOBChannel,
 		target string,
 		code string,
 		messageType otp.MessageType,

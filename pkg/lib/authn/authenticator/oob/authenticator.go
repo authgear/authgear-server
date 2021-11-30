@@ -3,7 +3,7 @@ package oob
 import (
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
@@ -21,7 +21,7 @@ type Authenticator struct {
 	UserID               string
 	CreatedAt            time.Time
 	UpdatedAt            time.Time
-	OOBAuthenticatorType authn.AuthenticatorType
+	OOBAuthenticatorType model.AuthenticatorType
 	Phone                string
 	Email                string
 }

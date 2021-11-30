@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -111,10 +111,10 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 		viewModel.VerificationCodeLength = n.GetVerificationCodeLength()
 		viewModel.VerificationCodeChannel = n.GetVerificationCodeChannel()
 		target := n.GetVerificationCodeTarget()
-		switch authn.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel) {
-		case authn.AuthenticatorOOBChannelSMS:
+		switch model.AuthenticatorOOBChannel(viewModel.VerificationCodeChannel) {
+		case model.AuthenticatorOOBChannelSMS:
 			viewModel.IdentityDisplayID = phone.Mask(rawIdentityDisplayID)
-		case authn.AuthenticatorOOBChannelEmail:
+		case model.AuthenticatorOOBChannelEmail:
 			viewModel.IdentityDisplayID = mail.MaskAddress(rawIdentityDisplayID)
 		default:
 			panic("webapp: unknown verification channel")

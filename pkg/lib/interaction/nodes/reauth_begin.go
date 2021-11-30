@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -42,17 +43,17 @@ func (e *EdgeReauthenticationBegin) getAuthenticators(ctx *interaction.Context, 
 		// Primary password
 		{
 			authenticator.KeepKind(authenticator.KindPrimary),
-			authenticator.KeepType(authn.AuthenticatorTypePassword),
+			authenticator.KeepType(model.AuthenticatorTypePassword),
 		},
 		// Primary OOB email
 		{
 			authenticator.KeepKind(authenticator.KindPrimary),
-			authenticator.KeepType(authn.AuthenticatorTypeOOBEmail),
+			authenticator.KeepType(model.AuthenticatorTypeOOBEmail),
 		},
 		// Primary OOB SMS
 		{
 			authenticator.KeepKind(authenticator.KindPrimary),
-			authenticator.KeepType(authn.AuthenticatorTypeOOBSMS),
+			authenticator.KeepType(model.AuthenticatorTypeOOBSMS),
 		},
 	}
 
@@ -60,22 +61,22 @@ func (e *EdgeReauthenticationBegin) getAuthenticators(ctx *interaction.Context, 
 		// Secondary TOTP
 		{
 			authenticator.KeepKind(authenticator.KindSecondary),
-			authenticator.KeepType(authn.AuthenticatorTypeTOTP),
+			authenticator.KeepType(model.AuthenticatorTypeTOTP),
 		},
 		// Secondary password
 		{
 			authenticator.KeepKind(authenticator.KindSecondary),
-			authenticator.KeepType(authn.AuthenticatorTypePassword),
+			authenticator.KeepType(model.AuthenticatorTypePassword),
 		},
 		// Secondary OOB email
 		{
 			authenticator.KeepKind(authenticator.KindSecondary),
-			authenticator.KeepType(authn.AuthenticatorTypeOOBEmail),
+			authenticator.KeepType(model.AuthenticatorTypeOOBEmail),
 		},
 		// Secondary OOB SMS
 		{
 			authenticator.KeepKind(authenticator.KindSecondary),
-			authenticator.KeepType(authn.AuthenticatorTypeOOBSMS),
+			authenticator.KeepType(model.AuthenticatorTypeOOBSMS),
 		},
 	}
 
@@ -154,27 +155,27 @@ func (n *NodeReauthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge
 
 	for _, a := range n.Authenticators {
 		switch a.Type {
-		case authn.AuthenticatorTypePassword:
+		case model.AuthenticatorTypePassword:
 			edges = append(edges, &EdgeAuthenticationPassword{
 				Stage:          n.Stage,
 				Authenticators: []*authenticator.Info{a},
 			})
-		case authn.AuthenticatorTypeTOTP:
+		case model.AuthenticatorTypeTOTP:
 			edges = append(edges, &EdgeAuthenticationTOTP{
 				Stage:          n.Stage,
 				Authenticators: []*authenticator.Info{a},
 			})
-		case authn.AuthenticatorTypeOOBEmail:
+		case model.AuthenticatorTypeOOBEmail:
 			edges = append(edges, &EdgeAuthenticationOOBTrigger{
 				Stage:                n.Stage,
 				Authenticators:       []*authenticator.Info{a},
-				OOBAuthenticatorType: authn.AuthenticatorTypeOOBEmail,
+				OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
 			})
-		case authn.AuthenticatorTypeOOBSMS:
+		case model.AuthenticatorTypeOOBSMS:
 			edges = append(edges, &EdgeAuthenticationOOBTrigger{
 				Stage:                n.Stage,
 				Authenticators:       []*authenticator.Info{a},
-				OOBAuthenticatorType: authn.AuthenticatorTypeOOBSMS,
+				OOBAuthenticatorType: model.AuthenticatorTypeOOBSMS,
 			})
 		}
 	}

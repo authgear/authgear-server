@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -53,7 +53,7 @@ func (p *Provider) List(userID string) ([]*Authenticator, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(userID string, oobAuthenticatorType authn.AuthenticatorType, target string, isDefault bool, kind string) *Authenticator {
+func (p *Provider) New(userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) *Authenticator {
 	a := &Authenticator{
 		ID:                   uuid.New(),
 		UserID:               userID,
@@ -63,9 +63,9 @@ func (p *Provider) New(userID string, oobAuthenticatorType authn.AuthenticatorTy
 	}
 
 	switch oobAuthenticatorType {
-	case authn.AuthenticatorTypeOOBEmail:
+	case model.AuthenticatorTypeOOBEmail:
 		a.Email = target
-	case authn.AuthenticatorTypeOOBSMS:
+	case model.AuthenticatorTypeOOBSMS:
 		a.Phone = target
 	default:
 		panic("oob: incompatible authenticator type:" + oobAuthenticatorType)
