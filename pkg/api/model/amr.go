@@ -1,4 +1,4 @@
-package authn
+package model
 
 const (
 	// AMRPWD is from https://tools.ietf.org/html/rfc8176#section-2

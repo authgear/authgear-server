@@ -53,7 +53,7 @@ func (i *Info) AMR() []string {
 	case model.IdentityTypeAnonymous:
 		return nil
 	case model.IdentityTypeBiometric:
-		return []string{authn.AMRXBiometric}
+		return []string{model.AMRXBiometric}
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}

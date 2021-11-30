@@ -54,13 +54,13 @@ func (i *Info) GetMeta() model.Meta {
 func (i *Info) AMR() []string {
 	switch i.Type {
 	case authn.AuthenticatorTypePassword:
-		return []string{authn.AMRPWD}
+		return []string{model.AMRPWD}
 	case authn.AuthenticatorTypeTOTP:
-		return []string{authn.AMROTP}
+		return []string{model.AMROTP}
 	case authn.AuthenticatorTypeOOBEmail:
-		return []string{authn.AMROTP}
+		return []string{model.AMROTP}
 	case authn.AuthenticatorTypeOOBSMS:
-		return []string{authn.AMROTP, authn.AMRSMS}
+		return []string{model.AMROTP, model.AMRSMS}
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
 	}
