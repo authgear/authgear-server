@@ -12,7 +12,7 @@ const (
 )
 
 type AuthenticationFailedIdentityEventPayload struct {
-	UserRef      model.UserRef `json:"-"`
+	UserRef      model.UserRef `json:"-" resolve:"user"`
 	UserModel    model.User    `json:"user"`
 	IdentityType string        `json:"identity_type"`
 }

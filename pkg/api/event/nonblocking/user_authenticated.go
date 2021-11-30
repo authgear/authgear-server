@@ -10,7 +10,7 @@ const (
 )
 
 type UserAuthenticatedEventPayload struct {
-	UserRef   model.UserRef `json:"-"`
+	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
 	Session   model.Session `json:"session"`
 	AdminAPI  bool          `json:"-"`

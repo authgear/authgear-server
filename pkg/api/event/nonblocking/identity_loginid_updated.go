@@ -12,7 +12,7 @@ const (
 )
 
 type IdentityLoginIDUpdatedEventPayload struct {
-	UserRef     model.UserRef  `json:"-"`
+	UserRef     model.UserRef  `json:"-" resolve:"user"`
 	UserModel   model.User     `json:"user"`
 	NewIdentity model.Identity `json:"new_identity"`
 	OldIdentity model.Identity `json:"old_identity"`

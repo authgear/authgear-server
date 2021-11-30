@@ -10,7 +10,7 @@ const (
 )
 
 type IdentityOAuthConnectedEventPayload struct {
-	UserRef   model.UserRef  `json:"-"`
+	UserRef   model.UserRef  `json:"-" resolve:"user"`
 	UserModel model.User     `json:"user"`
 	Identity  model.Identity `json:"identity"`
 	AdminAPI  bool           `json:"-"`

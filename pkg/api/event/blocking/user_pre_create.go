@@ -10,7 +10,7 @@ const (
 )
 
 type UserPreCreateBlockingEventPayload struct {
-	UserRef    model.UserRef    `json:"-"`
+	UserRef    model.UserRef    `json:"-" resolve:"user"`
 	UserModel  model.User       `json:"user"`
 	Identities []model.Identity `json:"identities"`
 	OAuthState string           `json:"-"`

@@ -10,9 +10,9 @@ const (
 )
 
 type UserAnonymousPromotedEventPayload struct {
-	AnonymousUserRef   model.UserRef    `json:"-"`
+	AnonymousUserRef   model.UserRef    `json:"-" resolve:"anonymous_user"`
 	AnonymousUserModel model.User       `json:"anonymous_user"`
-	UserRef            model.UserRef    `json:"-"`
+	UserRef            model.UserRef    `json:"-" resolve:"user"`
 	UserModel          model.User       `json:"user"`
 	Identities         []model.Identity `json:"identities"`
 	AdminAPI           bool             `json:"-"`
