@@ -116,7 +116,7 @@ func (s *Service) Get(userID string, typ model.IdentityType, id string) (*identi
 	panic("identity: unknown identity type " + typ)
 }
 
-func (s *Service) GetMany(refs []*identity.Ref) ([]*identity.Info, error) {
+func (s *Service) GetMany(refs []*model.IdentityRef) ([]*identity.Info, error) {
 	var loginIDs, oauthIDs, anonymousIDs, biometricIDs []string
 	for _, ref := range refs {
 		switch ref.Type {
@@ -257,7 +257,7 @@ func (s *Service) Count(userID string) (uint64, error) {
 	return s.Store.Count(userID)
 }
 
-func (s *Service) ListRefsByUsers(userIDs []string) ([]*identity.Ref, error) {
+func (s *Service) ListRefsByUsers(userIDs []string) ([]*model.IdentityRef, error) {
 	return s.Store.ListRefsByUsers(userIDs)
 }
 

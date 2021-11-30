@@ -7,6 +7,7 @@ import (
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/admin/loader"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -40,7 +41,7 @@ var nodeIdentity = node(
 		},
 		Fields: graphql.Fields{
 			"id": entityIDField(typeIdentity, func(obj interface{}) (string, error) {
-				ref := obj.(interface{ ToRef() *identity.Ref }).ToRef()
+				ref := obj.(interface{ ToRef() *model.IdentityRef }).ToRef()
 				return loader.EncodeIdentityID(ref), nil
 			}),
 			"createdAt": entityCreatedAtField(loadIdentity),
@@ -48,7 +49,7 @@ var nodeIdentity = node(
 			"type": &graphql.Field{
 				Type: graphql.NewNonNull(identityType),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ref := p.Source.(interface{ ToRef() *identity.Ref }).ToRef()
+					ref := p.Source.(interface{ ToRef() *model.IdentityRef }).ToRef()
 					return string(ref.Type), nil
 				},
 			},
@@ -91,7 +92,7 @@ func loadIdentity(ctx context.Context, obj interface{}) *graphqlutil.Lazy {
 	switch obj := obj.(type) {
 	case *identity.Info:
 		return graphqlutil.NewLazyValue(obj)
-	case *identity.Ref:
+	case *model.IdentityRef:
 		return GQLContext(ctx).Identities.Load(loader.EncodeIdentityID(obj))
 	default:
 		panic(fmt.Sprintf("graphql: unknown identity type: %T", obj))

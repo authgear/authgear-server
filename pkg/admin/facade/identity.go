@@ -14,7 +14,7 @@ import (
 
 type IdentityService interface {
 	Get(userID string, typ apimodel.IdentityType, id string) (*identity.Info, error)
-	ListRefsByUsers(userIDs []string) ([]*identity.Ref, error)
+	ListRefsByUsers(userIDs []string) ([]*apimodel.IdentityRef, error)
 }
 
 type IdentityFacade struct {
@@ -22,11 +22,11 @@ type IdentityFacade struct {
 	Interaction InteractionService
 }
 
-func (f *IdentityFacade) Get(ref *identity.Ref) (*identity.Info, error) {
+func (f *IdentityFacade) Get(ref *apimodel.IdentityRef) (*identity.Info, error) {
 	return f.Identities.Get(ref.UserID, ref.Type, ref.ID)
 }
 
-func (f *IdentityFacade) List(userID string) ([]*identity.Ref, error) {
+func (f *IdentityFacade) List(userID string) ([]*apimodel.IdentityRef, error) {
 	refs, err := f.Identities.ListRefsByUsers([]string{userID})
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func (f *IdentityFacade) Remove(identityInfo *identity.Info) error {
 	return nil
 }
 
-func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*identity.Ref, error) {
+func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error) {
 	var input interface{} = &addIdentityInput{identityDef: identityDef}
 	if password != "" {
 		input = &addPasswordInput{inner: input, password: password}

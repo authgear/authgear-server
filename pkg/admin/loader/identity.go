@@ -9,7 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
-func EncodeIdentityID(ref *identity.Ref) string {
+func EncodeIdentityID(ref *model.IdentityRef) string {
 	return strings.Join([]string{
 		ref.UserID,
 		string(ref.Type),
@@ -17,12 +17,12 @@ func EncodeIdentityID(ref *identity.Ref) string {
 	}, "|")
 }
 
-func DecodeIdentityID(id string) (*identity.Ref, error) {
+func DecodeIdentityID(id string) (*model.IdentityRef, error) {
 	parts := strings.Split(id, "|")
 	if len(parts) != 3 {
 		return nil, apierrors.NewInvalid("invalid ID")
 	}
-	return &identity.Ref{
+	return &model.IdentityRef{
 		UserID: parts[0],
 		Type:   model.IdentityType(parts[1]),
 		Meta:   model.Meta{ID: parts[2]},
@@ -30,7 +30,7 @@ func DecodeIdentityID(id string) (*identity.Ref, error) {
 }
 
 type IdentityLoaderIdentityService interface {
-	GetMany(refs []*identity.Ref) ([]*identity.Info, error)
+	GetMany(refs []*model.IdentityRef) ([]*identity.Info, error)
 }
 
 type IdentityLoader struct {
@@ -49,7 +49,7 @@ func NewIdentityLoader(identities IdentityLoaderIdentityService) *IdentityLoader
 
 func (l *IdentityLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	// Prepare refs.
-	refs := make([]*identity.Ref, len(keys))
+	refs := make([]*model.IdentityRef, len(keys))
 	for i, key := range keys {
 		ref, err := DecodeIdentityID(key.(string))
 		if err != nil {

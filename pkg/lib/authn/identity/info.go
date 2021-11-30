@@ -23,8 +23,8 @@ func (i *Info) ToSpec() Spec {
 	return Spec{Type: i.Type, Claims: i.Claims}
 }
 
-func (i *Info) ToRef() *Ref {
-	return &Ref{
+func (i *Info) ToRef() *model.IdentityRef {
+	return &model.IdentityRef{
 		Meta: model.Meta{
 			ID:        i.ID,
 			CreatedAt: i.CreatedAt,
