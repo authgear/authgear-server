@@ -15,6 +15,10 @@ type User struct {
 	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
 }
 
+type UserRef struct {
+	Meta
+}
+
 type ElasticsearchUserRaw struct {
 	ID                string
 	AppID             string
