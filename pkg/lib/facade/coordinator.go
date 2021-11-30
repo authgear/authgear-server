@@ -344,7 +344,7 @@ func (c *Coordinator) removeOrphans(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) markVerified(userID string, claims map[authn.ClaimName]string) error {
+func (c *Coordinator) markVerified(userID string, claims map[model.ClaimName]string) error {
 	for name, value := range claims {
 		name := string(name)
 		status, err := c.Verification.GetClaimVerificationStatus(userID, name, value)
@@ -385,8 +385,8 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	email, ok := info.Claims[identity.StandardClaimEmail].(string)
 	if ok && cfg != nil && *cfg.Claims.Email.AssumeVerified {
 		// Mark as verified if OAuth email is assumed to be verified
-		err := c.markVerified(info.UserID, map[authn.ClaimName]string{
-			authn.ClaimEmail: email,
+		err := c.markVerified(info.UserID, map[model.ClaimName]string{
+			model.ClaimEmail: email,
 		})
 		if err != nil {
 			return err

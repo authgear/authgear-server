@@ -126,23 +126,23 @@ func (i *Info) DisplayID() string {
 	}
 }
 
-func (i *Info) StandardClaims() map[authn.ClaimName]string {
-	claims := map[authn.ClaimName]string{}
+func (i *Info) StandardClaims() map[model.ClaimName]string {
+	claims := map[model.ClaimName]string{}
 	switch i.Type {
 	case model.IdentityTypeLoginID:
 		loginIDType, _ := i.Claims[IdentityClaimLoginIDType].(string)
 		loginIDValue, _ := i.Claims[IdentityClaimLoginIDOriginalValue].(string)
 		switch config.LoginIDKeyType(loginIDType) {
 		case config.LoginIDKeyTypeEmail:
-			claims[authn.ClaimEmail] = loginIDValue
+			claims[model.ClaimEmail] = loginIDValue
 		case config.LoginIDKeyTypePhone:
-			claims[authn.ClaimPhoneNumber] = loginIDValue
+			claims[model.ClaimPhoneNumber] = loginIDValue
 		case config.LoginIDKeyTypeUsername:
-			claims[authn.ClaimPreferredUsername] = loginIDValue
+			claims[model.ClaimPreferredUsername] = loginIDValue
 		}
 	case model.IdentityTypeOAuth:
 		if email, ok := i.Claims[StandardClaimEmail].(string); ok {
-			claims[authn.ClaimEmail] = email
+			claims[model.ClaimEmail] = email
 		}
 	case model.IdentityTypeAnonymous:
 		break

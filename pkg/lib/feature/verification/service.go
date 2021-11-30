@@ -178,11 +178,11 @@ func (s *Service) GetAuthenticatorVerificationStatus(a *authenticator.Info) (Aut
 	aClaims := a.StandardClaims()
 	switch a.Type {
 	case authn.AuthenticatorTypeOOBEmail:
-		claimName = string(authn.ClaimEmail)
-		claimValue = aClaims[authn.ClaimEmail]
+		claimName = string(model.ClaimEmail)
+		claimValue = aClaims[model.ClaimEmail]
 	case authn.AuthenticatorTypeOOBSMS:
-		claimName = string(authn.ClaimPhoneNumber)
-		claimValue = aClaims[authn.ClaimPhoneNumber]
+		claimName = string(model.ClaimPhoneNumber)
+		claimValue = aClaims[model.ClaimPhoneNumber]
 	}
 
 	_, err := s.ClaimStore.Get(a.UserID, claimName, claimValue)

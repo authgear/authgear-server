@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -94,11 +95,11 @@ func (p *Provider) SendCode(loginID string) error {
 		return err
 	}
 
-	emailIdentities, err := p.Identities.ListByClaim(string(authn.ClaimEmail), loginID)
+	emailIdentities, err := p.Identities.ListByClaim(string(model.ClaimEmail), loginID)
 	if err != nil {
 		return err
 	}
-	phoneIdentities, err := p.Identities.ListByClaim(string(authn.ClaimPhoneNumber), loginID)
+	phoneIdentities, err := p.Identities.ListByClaim(string(model.ClaimPhoneNumber), loginID)
 	if err != nil {
 		return err
 	}
@@ -122,7 +123,7 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range emailIdentities {
-		email := info.Claims[string(authn.ClaimEmail)].(string)
+		email := info.Claims[string(model.ClaimEmail)].(string)
 		code, codeStr := p.newCode(info.UserID)
 
 		if err := p.Store.Create(code); err != nil {
@@ -136,7 +137,7 @@ func (p *Provider) SendCode(loginID string) error {
 	}
 
 	for _, info := range phoneIdentities {
-		phone := info.Claims[string(authn.ClaimPhoneNumber)].(string)
+		phone := info.Claims[string(model.ClaimPhoneNumber)].(string)
 		code, codeStr := p.newCode(info.UserID)
 
 		if err := p.Store.Create(code); err != nil {

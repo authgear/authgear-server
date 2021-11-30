@@ -109,17 +109,17 @@ func (i *Info) Equal(that *Info) bool {
 	}
 }
 
-func (i *Info) StandardClaims() map[authn.ClaimName]string {
-	claims := map[authn.ClaimName]string{}
+func (i *Info) StandardClaims() map[model.ClaimName]string {
+	claims := map[model.ClaimName]string{}
 	switch i.Type {
 	case authn.AuthenticatorTypePassword:
 		break
 	case authn.AuthenticatorTypeTOTP:
 		break
 	case authn.AuthenticatorTypeOOBEmail:
-		claims[authn.ClaimEmail] = i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
+		claims[model.ClaimEmail] = i.Claims[AuthenticatorClaimOOBOTPEmail].(string)
 	case authn.AuthenticatorTypeOOBSMS:
-		claims[authn.ClaimPhoneNumber] = i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
+		claims[model.ClaimPhoneNumber] = i.Claims[AuthenticatorClaimOOBOTPPhone].(string)
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
