@@ -1,7 +1,5 @@
 package event
 
-import "fmt"
-
 type Type string
 
 type Payload interface {
@@ -31,29 +29,6 @@ type Event struct {
 	Payload       Payload `json:"payload"`
 	Context       Context `json:"context"`
 	IsNonBlocking bool    `json:"-"`
-}
-
-func newEvent(seq int64, payload Payload, context Context) *Event {
-	e := &Event{
-		Payload: payload,
-		Context: context,
-	}
-	e.Seq = seq
-	e.ID = fmt.Sprintf("%016x", seq)
-	return e
-}
-
-func NewBlockingEvent(seqNo int64, payload BlockingPayload, context Context) *Event {
-	event := newEvent(seqNo, payload, context)
-	event.Type = payload.BlockingEventType()
-	return event
-}
-
-func NewNonBlockingEvent(seqNo int64, payload NonBlockingPayload, context Context) *Event {
-	event := newEvent(seqNo, payload, context)
-	event.Type = payload.NonBlockingEventType()
-	event.IsNonBlocking = true
-	return event
 }
 
 func (e *Event) ApplyMutations(mutations Mutations) (*Event, bool) {

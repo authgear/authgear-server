@@ -72,7 +72,7 @@ func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 
 	switch typedPayload := payload.(type) {
 	case event.BlockingPayload:
-		e := event.NewBlockingEvent(seq, typedPayload, eventContext)
+		e := newBlockingEvent(seq, typedPayload, eventContext)
 		for _, sink := range s.Sinks {
 			err = sink.ReceiveBlockingEvent(e)
 			if err != nil {
@@ -80,7 +80,7 @@ func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 			}
 		}
 	case event.NonBlockingPayload:
-		e := event.NewNonBlockingEvent(seq, typedPayload, eventContext)
+		e := newNonBlockingEvent(seq, typedPayload, eventContext)
 		s.NonBlockingEvents = append(s.NonBlockingEvents, e)
 	default:
 		panic(fmt.Sprintf("event: invalid event payload: %T", payload))
