@@ -46,9 +46,9 @@ type Service struct {
 	Store        Store
 	Sinks        []Sink
 
-	NonBlockingEvents  []*event.Event `wire:"-"`
-	DatabaseHooked     bool           `wire:"-"`
-	IsDispatchEventErr bool           `wire:"-"`
+	NonBlockingPayloads []event.NonBlockingPayload `wire:"-"`
+	DatabaseHooked      bool                       `wire:"-"`
+	IsDispatchEventErr  bool                       `wire:"-"`
 }
 
 func (s *Service) DispatchEvent(payload event.Payload) (err error) {
@@ -63,15 +63,20 @@ func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 		s.DatabaseHooked = true
 	}
 
-	eventContext := s.makeContext(payload)
-	var seq int64
-	seq, err = s.Store.NextSequenceNumber()
-	if err != nil {
-		return
-	}
+	// FIXME: Resolve refs once here
+	// If the event is about entity deletion,
+	// then it is not possible to resolve the entity in DidCommitTx.
 
 	switch typedPayload := payload.(type) {
 	case event.BlockingPayload:
+		eventContext := s.makeContext(payload)
+		var seq int64
+		seq, err = s.nextSeq()
+		if err != nil {
+			return
+		}
+		// FIXME: Resolve refs again just before delivery
+		// Note that resolution failure should not be considered as fatal error.
 		e := newBlockingEvent(seq, typedPayload, eventContext)
 		for _, sink := range s.Sinks {
 			err = sink.ReceiveBlockingEvent(e)
@@ -80,8 +85,7 @@ func (s *Service) DispatchEvent(payload event.Payload) (err error) {
 			}
 		}
 	case event.NonBlockingPayload:
-		e := newNonBlockingEvent(seq, typedPayload, eventContext)
-		s.NonBlockingEvents = append(s.NonBlockingEvents, e)
+		s.NonBlockingPayloads = append(s.NonBlockingPayloads, typedPayload)
 	default:
 		panic(fmt.Sprintf("event: invalid event payload: %T", payload))
 	}
@@ -100,7 +104,16 @@ func (s *Service) DidCommitTx() {
 		return
 	}
 
-	for _, e := range s.NonBlockingEvents {
+	for _, payload := range s.NonBlockingPayloads {
+		eventContext := s.makeContext(payload)
+		seq, err := s.nextSeq()
+		if err != nil {
+			s.Logger.WithError(err).Error("failed to acquire seq number")
+			return
+		}
+		// FIXME: Resolve refs again just before delivery
+		// Note that resolution failure should not be considered as fatal error.
+		e := newNonBlockingEvent(seq, payload, eventContext)
 		for _, sink := range s.Sinks {
 			err := sink.ReceiveNonBlockingEvent(e)
 			if err != nil {
@@ -108,7 +121,15 @@ func (s *Service) DidCommitTx() {
 			}
 		}
 	}
-	s.NonBlockingEvents = nil
+	s.NonBlockingPayloads = nil
+}
+
+func (s *Service) nextSeq() (seq int64, err error) {
+	seq, err = s.Store.NextSequenceNumber()
+	if err != nil {
+		return
+	}
+	return
 }
 
 func (s *Service) makeContext(payload event.Payload) event.Context {
