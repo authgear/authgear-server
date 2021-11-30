@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -13,7 +13,7 @@ import (
 )
 
 type IdentityService interface {
-	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
+	Get(userID string, typ apimodel.IdentityType, id string) (*identity.Info, error)
 	ListRefsByUsers(userIDs []string) ([]*identity.Ref, error)
 }
 

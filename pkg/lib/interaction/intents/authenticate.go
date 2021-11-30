@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -72,7 +73,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			if node.IdentityInfo == nil {
 				switch node.IdentitySpec.Type {
 				// Special case: login with new OAuth/anonymous identity means signup.
-				case authn.IdentityTypeOAuth, authn.IdentityTypeAnonymous:
+				case model.IdentityTypeOAuth, model.IdentityTypeAnonymous:
 					return []interaction.Edge{
 						&nodes.EdgeDoCreateUser{},
 					}, nil
@@ -91,7 +92,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			if node.IdentityInfo != nil {
 				switch node.IdentitySpec.Type {
 				// Special case: signup with existing OAuth identity means login.
-				case authn.IdentityTypeOAuth:
+				case model.IdentityTypeOAuth:
 					return []interaction.Edge{
 						&nodes.EdgeDoUseIdentity{
 							Identity:   node.IdentityInfo,
@@ -107,7 +108,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 				&nodes.EdgeDoCreateUser{},
 			}, nil
 		case IntentAuthenticateKindPromote:
-			if node.IdentityInfo == nil || node.IdentityInfo.Type != authn.IdentityTypeAnonymous {
+			if node.IdentityInfo == nil || node.IdentityInfo.Type != model.IdentityTypeAnonymous {
 				return nil, errors.New("promote intent is used to select non-anonymous identity")
 			}
 
@@ -193,7 +194,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 
 	case *nodes.NodeDoUseIdentity:
 		if i.Kind == IntentAuthenticateKindPromote {
-			if node.Identity.Type == authn.IdentityTypeAnonymous {
+			if node.Identity.Type == model.IdentityTypeAnonymous {
 				// Create new identity for the anonymous user
 				return []interaction.Edge{
 					&nodes.EdgeCreateIdentityBegin{},
@@ -201,7 +202,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			}
 
 			selectIdentity := mustFindNodeSelectIdentity(graph)
-			if selectIdentity.IdentityInfo.Type != authn.IdentityTypeAnonymous {
+			if selectIdentity.IdentityInfo.Type != model.IdentityTypeAnonymous {
 				panic("interaction: expect anonymous identity")
 			}
 
@@ -229,7 +230,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		}, nil
 
 	case *nodes.NodeDoRemoveIdentity:
-		if node.Identity.Type != authn.IdentityTypeAnonymous {
+		if node.Identity.Type != model.IdentityTypeAnonymous {
 			panic("interaction: expect anonymous identity")
 		}
 

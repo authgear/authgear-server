@@ -1,6 +1,7 @@
 package viewmodels
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -83,7 +84,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 
 	showBiometric := false
 	for _, typ := range m.Authentication.Identities {
-		if typ == authn.IdentityTypeBiometric && *m.Biometric.ListEnabled {
+		if typ == model.IdentityTypeBiometric && *m.Biometric.ListEnabled {
 			showBiometric = true
 		}
 	}

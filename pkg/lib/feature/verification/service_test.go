@@ -7,7 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
@@ -51,7 +51,7 @@ func TestService(t *testing.T) {
 			i := &identity.Info{
 				UserID: "user-id",
 				ID:     "login-id-" + loginIDValue,
-				Type:   authn.IdentityTypeLoginID,
+				Type:   model.IdentityTypeLoginID,
 				Claims: map[string]interface{}{},
 			}
 			switch loginIDKey {
@@ -65,7 +65,7 @@ func TestService(t *testing.T) {
 			return i
 		}
 
-		identityOfType := func(t authn.IdentityType, claims map[string]interface{}) *identity.Info {
+		identityOfType := func(t model.IdentityType, claims map[string]interface{}) *identity.Info {
 			return &identity.Info{
 				UserID: "user-id",
 				ID:     string(t),
@@ -126,13 +126,13 @@ func TestService(t *testing.T) {
 				},
 				{
 					Identities: []*identity.Info{
-						identityOfType(authn.IdentityTypeAnonymous, nil),
+						identityOfType(model.IdentityTypeAnonymous, nil),
 					},
 					AnyResult: false, AllResult: false,
 				},
 				{
 					Identities: []*identity.Info{
-						identityOfType(authn.IdentityTypeOAuth, nil),
+						identityOfType(model.IdentityTypeOAuth, nil),
 					},
 					AnyResult: false, AllResult: false,
 				},
@@ -148,7 +148,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(authn.IdentityTypeOAuth, nil),
+						identityOfType(model.IdentityTypeOAuth, nil),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),
@@ -158,7 +158,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(authn.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
+						identityOfType(model.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),
@@ -168,7 +168,7 @@ func TestService(t *testing.T) {
 				{
 					Identities: []*identity.Info{
 						identityLoginID("email", "foo@example.com"),
-						identityOfType(authn.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
+						identityOfType(model.IdentityTypeOAuth, map[string]interface{}{"email": "bar@example.com"}),
 					},
 					Claims: []*Claim{
 						verifiedClaim("user-id", "email", "foo@example.com"),

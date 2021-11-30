@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -10,7 +11,7 @@ import (
 )
 
 type IdentityService interface {
-	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
+	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
 	GetBySpec(spec *identity.Spec) (*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
@@ -92,7 +93,7 @@ type Coordinator struct {
 	IdentityConfig  *config.IdentityConfig
 }
 
-func (c *Coordinator) IdentityGet(userID string, typ authn.IdentityType, id string) (*identity.Info, error) {
+func (c *Coordinator) IdentityGet(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
 	return c.Identities.Get(userID, typ, id)
 }
 
@@ -364,7 +365,7 @@ func (c *Coordinator) markVerified(userID string, claims map[authn.ClaimName]str
 }
 
 func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
-	if info.Type != authn.IdentityTypeOAuth {
+	if info.Type != model.IdentityTypeOAuth {
 		return nil
 	}
 

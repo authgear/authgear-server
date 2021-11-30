@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -66,13 +67,13 @@ func (i *InputRemoveAuthenticator) GetAuthenticatorType() authn.AuthenticatorTyp
 func (i *InputRemoveAuthenticator) GetAuthenticatorID() string                    { return i.ID }
 
 type InputRemoveIdentity struct {
-	Type authn.IdentityType
+	Type model.IdentityType
 	ID   string
 }
 
 var _ nodes.InputRemoveIdentity = &InputRemoveIdentity{}
 
-func (i *InputRemoveIdentity) GetIdentityType() authn.IdentityType { return i.Type }
+func (i *InputRemoveIdentity) GetIdentityType() model.IdentityType { return i.Type }
 func (i *InputRemoveIdentity) GetIdentityID() string               { return i.ID }
 
 type InputTriggerOOB struct {

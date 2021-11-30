@@ -3,7 +3,7 @@ package intents
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
@@ -14,11 +14,11 @@ func init() {
 
 type IntentVerifyIdentity struct {
 	UserID       string             `json:"user_id"`
-	IdentityType authn.IdentityType `json:"identity_type"`
+	IdentityType model.IdentityType `json:"identity_type"`
 	IdentityID   string             `json:"identity_id"`
 }
 
-func NewIntentVerifyIdentity(userID string, identityType authn.IdentityType, identityID string) *IntentVerifyIdentity {
+func NewIntentVerifyIdentity(userID string, identityType model.IdentityType, identityID string) *IntentVerifyIdentity {
 	return &IntentVerifyIdentity{
 		UserID:       userID,
 		IdentityType: identityType,

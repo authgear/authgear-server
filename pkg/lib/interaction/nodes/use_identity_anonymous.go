@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -32,7 +32,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 
 	enabled := false
 	for _, t := range ctx.Config.Authentication.Identities {
-		if t == authn.IdentityTypeAnonymous {
+		if t == model.IdentityTypeAnonymous {
 			enabled = true
 			break
 		}
@@ -78,7 +78,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 				}
 				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
 					User:         *user,
-					IdentityType: string(authn.IdentityTypeAnonymous),
+					IdentityType: string(model.IdentityTypeAnonymous),
 				})
 				if err != nil {
 					return err
@@ -100,7 +100,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	spec := &identity.Spec{
-		Type: authn.IdentityTypeAnonymous,
+		Type: model.IdentityTypeAnonymous,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimAnonymousKeyID: request.KeyID,
 			identity.IdentityClaimAnonymousKey:   string(key),

@@ -3,9 +3,9 @@ package webapp
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -119,7 +119,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			input = &InputRemoveIdentity{
-				Type: authn.IdentityTypeOAuth,
+				Type: model.IdentityTypeOAuth,
 				ID:   identityID,
 			}
 			return
@@ -136,7 +136,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			RedirectURI:     redirectURI,
 			KeepAfterFinish: true,
 		}
-		intent := intents.NewIntentVerifyIdentity(userID, authn.IdentityTypeLoginID, identityID)
+		intent := intents.NewIntentVerifyIdentity(userID, model.IdentityTypeLoginID, identityID)
 
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			input = nil

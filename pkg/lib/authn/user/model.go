@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -73,7 +72,7 @@ func newUserModel(
 ) *model.User {
 	isAnonymous := false
 	for _, i := range identities {
-		if i.Type == authn.IdentityTypeAnonymous {
+		if i.Type == model.IdentityTypeAnonymous {
 			isAnonymous = true
 			break
 		}

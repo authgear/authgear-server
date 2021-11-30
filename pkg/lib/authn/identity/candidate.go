@@ -3,7 +3,7 @@ package identity
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -30,7 +30,7 @@ const (
 func NewOAuthCandidate(c *config.OAuthSSOProviderConfig) Candidate {
 	return Candidate{
 		CandidateKeyIdentityID:        "",
-		CandidateKeyType:              string(authn.IdentityTypeOAuth),
+		CandidateKeyType:              string(model.IdentityTypeOAuth),
 		CandidateKeyProviderType:      string(c.Type),
 		CandidateKeyProviderAlias:     c.Alias,
 		CandidateKeyProviderSubjectID: "",
@@ -43,7 +43,7 @@ func NewOAuthCandidate(c *config.OAuthSSOProviderConfig) Candidate {
 func NewLoginIDCandidate(c *config.LoginIDKeyConfig) Candidate {
 	return Candidate{
 		CandidateKeyIdentityID:     "",
-		CandidateKeyType:           string(authn.IdentityTypeLoginID),
+		CandidateKeyType:           string(model.IdentityTypeLoginID),
 		CandidateKeyLoginIDType:    string(c.Type),
 		CandidateKeyLoginIDKey:     c.Key,
 		CandidateKeyLoginIDValue:   "",

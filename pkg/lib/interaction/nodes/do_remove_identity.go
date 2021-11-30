@@ -3,7 +3,7 @@ package nodes
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -75,7 +75,7 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			var e event.Payload
 			switch n.Identity.Type {
-			case authn.IdentityTypeLoginID:
+			case model.IdentityTypeLoginID:
 				loginIDType := n.Identity.Claims[identity.IdentityClaimLoginIDType].(string)
 				e = nonblocking.NewIdentityLoginIDRemovedEventPayload(
 					*user,
@@ -83,7 +83,7 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 					loginIDType,
 					n.IsAdminAPI,
 				)
-			case authn.IdentityTypeOAuth:
+			case model.IdentityTypeOAuth:
 				e = &nonblocking.IdentityOAuthDisconnectedEventPayload{
 					User:     *user,
 					Identity: n.Identity.ToModel(),

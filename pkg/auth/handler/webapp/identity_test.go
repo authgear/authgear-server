@@ -5,21 +5,21 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 func TestIdentitiesDisplayName(t *testing.T) {
 	emailIdentity := &identity.Info{
-		Type: authn.IdentityTypeLoginID,
+		Type: model.IdentityTypeLoginID,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimLoginIDOriginalValue: "user@example.com",
 		},
 	}
 
 	oauthProviderIdentity := &identity.Info{
-		Type: authn.IdentityTypeOAuth,
+		Type: model.IdentityTypeOAuth,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimOAuthProviderType: "provider",
 			identity.StandardClaimEmail:             "user@oauth-provider.com",
@@ -27,18 +27,18 @@ func TestIdentitiesDisplayName(t *testing.T) {
 	}
 
 	oauthProviderIdentityWithStandardClaims := &identity.Info{
-		Type: authn.IdentityTypeOAuth,
+		Type: model.IdentityTypeOAuth,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimOAuthProviderType: "provider2",
 		},
 	}
 
 	anonymousIdentity := &identity.Info{
-		Type: authn.IdentityTypeAnonymous,
+		Type: model.IdentityTypeAnonymous,
 	}
 
 	biometricIdentity := &identity.Info{
-		Type: authn.IdentityTypeBiometric,
+		Type: model.IdentityTypeBiometric,
 	}
 
 	Convey("identitiesDisplayName", t, func() {

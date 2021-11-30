@@ -7,6 +7,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -270,7 +271,7 @@ func TestGraphGetAMR(t *testing.T) {
 			Nodes: []Node{
 				&testGraphGetAMRnode{
 					Identity: &identity.Info{
-						Type: authn.IdentityTypeBiometric,
+						Type: model.IdentityTypeBiometric,
 					},
 				},
 			},

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 )
 
@@ -56,7 +57,7 @@ var _ = Schema.Add("SecondaryAuthenticatorType", `
 `)
 
 type AuthenticationConfig struct {
-	Identities                  []authn.IdentityType        `json:"identities,omitempty"`
+	Identities                  []model.IdentityType        `json:"identities,omitempty"`
 	PrimaryAuthenticators       []authn.AuthenticatorType   `json:"primary_authenticators,omitempty"`
 	SecondaryAuthenticators     []authn.AuthenticatorType   `json:"secondary_authenticators,omitempty"`
 	SecondaryAuthenticationMode SecondaryAuthenticationMode `json:"secondary_authentication_mode,omitempty"`
@@ -67,9 +68,9 @@ type AuthenticationConfig struct {
 
 func (c *AuthenticationConfig) SetDefaults() {
 	if c.Identities == nil {
-		c.Identities = []authn.IdentityType{
-			authn.IdentityTypeOAuth,
-			authn.IdentityTypeLoginID,
+		c.Identities = []model.IdentityType{
+			model.IdentityTypeOAuth,
+			model.IdentityTypeLoginID,
 		}
 	}
 	if c.PrimaryAuthenticators == nil {

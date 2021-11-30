@@ -3,16 +3,16 @@ package webapp
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 // identitiesDisplayNamePriorities indicates which identity type will be shown
 // as the identitiesDisplayName
 // Higher level means more willing to be shown
-var identitiesDisplayNamePriorities = map[authn.IdentityType]int{
-	authn.IdentityTypeLoginID: 2,
-	authn.IdentityTypeOAuth:   1,
+var identitiesDisplayNamePriorities = map[model.IdentityType]int{
+	model.IdentityTypeLoginID: 2,
+	model.IdentityTypeOAuth:   1,
 }
 
 func IdentitiesDisplayName(identities []*identity.Info) string {
@@ -31,18 +31,18 @@ func IdentitiesDisplayName(identities []*identity.Info) string {
 	}
 
 	switch i.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		return i.DisplayID()
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		providerType, _ := i.Claims[identity.IdentityClaimOAuthProviderType].(string)
 		displayID := i.DisplayID()
 		if displayID != "" {
 			return fmt.Sprintf("%s:%s", providerType, i.DisplayID())
 		}
 		return providerType
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		return "anonymous"
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		return "biometric"
 	default:
 		return ""

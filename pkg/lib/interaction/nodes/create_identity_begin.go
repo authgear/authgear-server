@@ -1,7 +1,7 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -18,7 +18,7 @@ func (e *EdgeCreateIdentityBegin) Instantiate(ctx *interaction.Context, graph *i
 }
 
 type NodeCreateIdentityBegin struct {
-	IdentityTypes         []authn.IdentityType          `json:"-"`
+	IdentityTypes         []model.IdentityType          `json:"-"`
 	IdentityConfig        *config.IdentityConfig        `json:"-"`
 	IdentityFeatureConfig *config.IdentityFeatureConfig `json:"-"`
 }
@@ -49,19 +49,19 @@ func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 
 	for _, t := range n.IdentityTypes {
 		switch t {
-		case authn.IdentityTypeAnonymous:
+		case model.IdentityTypeAnonymous:
 			break
 
-		case authn.IdentityTypeBiometric:
+		case model.IdentityTypeBiometric:
 			break
 
-		case authn.IdentityTypeLoginID:
+		case model.IdentityTypeLoginID:
 			edges = append(edges, &EdgeUseIdentityLoginID{
 				Mode:    UseIdentityLoginIDModeCreate,
 				Configs: n.IdentityConfig.LoginID.Keys,
 			})
 
-		case authn.IdentityTypeOAuth:
+		case model.IdentityTypeOAuth:
 			edges = append(edges, &EdgeUseIdentityOAuthProvider{
 				IsCreating:    true,
 				Configs:       n.IdentityConfig.OAuth.Providers,

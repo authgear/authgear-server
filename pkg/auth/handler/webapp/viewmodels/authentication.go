@@ -1,7 +1,7 @@
 package viewmodels
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -38,7 +38,7 @@ func NewAuthenticationViewModelWithCandidates(candidates []identity.Candidate) A
 
 	for _, c := range candidates {
 		typ, _ := c[identity.CandidateKeyType].(string)
-		if typ == string(authn.IdentityTypeLoginID) {
+		if typ == string(model.IdentityTypeLoginID) {
 			loginIDType, _ := c[identity.CandidateKeyLoginIDType].(string)
 			switch loginIDType {
 			case "phone":

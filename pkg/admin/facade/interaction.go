@@ -2,6 +2,7 @@ package facade
 
 import (
 	"github.com/authgear/authgear-server/pkg/admin/model"
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -62,7 +63,7 @@ type removeIdentityInput struct {
 
 var _ nodes.InputRemoveIdentity = &removeIdentityInput{}
 
-func (i *removeIdentityInput) GetIdentityType() authn.IdentityType {
+func (i *removeIdentityInput) GetIdentityType() apimodel.IdentityType {
 	return i.identityInfo.Type
 }
 func (i *removeIdentityInput) GetIdentityID() string {

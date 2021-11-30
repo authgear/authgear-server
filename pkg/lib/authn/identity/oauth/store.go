@@ -8,7 +8,7 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -193,7 +193,7 @@ func (s *Store) Create(i *Identity) (err error) {
 		).
 		Values(
 			i.ID,
-			authn.IdentityTypeOAuth,
+			model.IdentityTypeOAuth,
 			i.UserID,
 			i.CreatedAt,
 			i.UpdatedAt,

@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -43,13 +43,13 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 
 		if e.IsAuthentication {
 			switch e.IdentitySpec.Type {
-			case authn.IdentityTypeOAuth:
+			case model.IdentityTypeOAuth:
 				// This branch should be unreachable.
 				break
-			case authn.IdentityTypeAnonymous, authn.IdentityTypeBiometric:
+			case model.IdentityTypeAnonymous, model.IdentityTypeBiometric:
 				// Anonymous and biometric are handled in their own node.
 				break
-			case authn.IdentityTypeLoginID:
+			case model.IdentityTypeLoginID:
 				loginIDValue := e.IdentitySpec.Claims[identity.IdentityClaimLoginIDValue].(string)
 				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedLoginIDEventPayload{
 					LoginID: loginIDValue,
@@ -66,7 +66,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	}
 
 	// Ensure info is up-to-date.
-	if info != nil && info.Type == authn.IdentityTypeOAuth {
+	if info != nil && info.Type == model.IdentityTypeOAuth {
 		info, err = ctx.Identities.UpdateWithSpec(info, e.IdentitySpec, identity.NewIdentityOptions{})
 		if err != nil {
 			return nil, err
@@ -91,7 +91,7 @@ func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interac
 func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 	// Update OAuth identity
 	eff := func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-		if n.IdentityInfo != nil && n.IdentityInfo.Type == authn.IdentityTypeOAuth {
+		if n.IdentityInfo != nil && n.IdentityInfo.Type == model.IdentityTypeOAuth {
 			_, err := ctx.Identities.CheckDuplicated(n.IdentityInfo)
 			if err != nil {
 				if errors.Is(err, identity.ErrIdentityAlreadyExists) {

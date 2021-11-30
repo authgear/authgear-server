@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
@@ -34,7 +34,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 
 	enabled := false
 	for _, t := range ctx.Config.Authentication.Identities {
-		if t == authn.IdentityTypeBiometric {
+		if t == model.IdentityTypeBiometric {
 			enabled = true
 			break
 		}
@@ -85,7 +85,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 				}
 				err = ctx.Events.DispatchEvent(&nonblocking.AuthenticationFailedIdentityEventPayload{
 					User:         *user,
-					IdentityType: string(authn.IdentityTypeBiometric),
+					IdentityType: string(model.IdentityTypeBiometric),
 				})
 				if err != nil {
 					return err
@@ -105,7 +105,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	spec := &identity.Spec{
-		Type: authn.IdentityTypeBiometric,
+		Type: model.IdentityTypeBiometric,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimBiometricKeyID:      request.KeyID,
 			identity.IdentityClaimBiometricKey:        string(key),

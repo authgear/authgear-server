@@ -7,6 +7,7 @@ import (
 
 	"sigs.k8s.io/yaml"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -120,7 +121,7 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		hasPrimaryAuth := true
 		var loginIDKeyType LoginIDKeyType
 		switch it {
-		case authn.IdentityTypeLoginID:
+		case model.IdentityTypeLoginID:
 			_, hasPassword := authenticatorTypes[authn.AuthenticatorTypePassword]
 			_, hasOOBEmail := authenticatorTypes[authn.AuthenticatorTypeOOBEmail]
 			_, hasOOBSMS := authenticatorTypes[authn.AuthenticatorTypeOOBSMS]
@@ -143,7 +144,7 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 					}
 				}
 			}
-		case authn.IdentityTypeOAuth, authn.IdentityTypeAnonymous:
+		case model.IdentityTypeOAuth, model.IdentityTypeAnonymous:
 			// Primary authenticator is not needed for these types of identity.
 			break
 		}

@@ -8,7 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -41,7 +41,7 @@ func TestResolveHandler(t *testing.T) {
 
 			Convey("for normal user", func() {
 				userIdentities := []*identity.Info{
-					{Type: authn.IdentityTypeLoginID},
+					{Type: model.IdentityTypeLoginID},
 				}
 				identities.EXPECT().ListByUser("user-id").Return(userIdentities, nil)
 				verificationService.EXPECT().IsUserVerified(userIdentities).Return(true, nil)
@@ -61,8 +61,8 @@ func TestResolveHandler(t *testing.T) {
 
 			Convey("for anonymous user", func() {
 				userIdentities := []*identity.Info{
-					{Type: authn.IdentityTypeAnonymous},
-					{Type: authn.IdentityTypeLoginID},
+					{Type: model.IdentityTypeAnonymous},
+					{Type: model.IdentityTypeLoginID},
 				}
 				identities.EXPECT().ListByUser("user-id").Return(userIdentities, nil)
 				verificationService.EXPECT().IsUserVerified(userIdentities).Return(false, nil)

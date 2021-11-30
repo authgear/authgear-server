@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -83,7 +84,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, 
 	if e.Stage == authn.AuthenticationStagePrimary {
 		// Primary OOB authenticators must be bound to login ID identity
 		identityInfo = graph.MustGetUserLastIdentity()
-		if identityInfo.Type != authn.IdentityTypeLoginID {
+		if identityInfo.Type != model.IdentityTypeLoginID {
 			panic("interaction: OOB authenticator identity must be login ID")
 		}
 

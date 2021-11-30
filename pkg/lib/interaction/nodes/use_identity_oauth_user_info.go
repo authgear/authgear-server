@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -88,7 +88,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 	providerConfig := oauthProvider.Config()
 	providerID := providerConfig.ProviderID()
 	spec := &identity.Spec{
-		Type: authn.IdentityTypeOAuth,
+		Type: model.IdentityTypeOAuth,
 		Claims: map[string]interface{}{
 			identity.IdentityClaimOAuthProviderKeys: providerID.Claims(),
 			identity.IdentityClaimOAuthSubjectID:    userInfo.ProviderUserID,

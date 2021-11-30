@@ -1,7 +1,7 @@
 package nodes
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -11,7 +11,7 @@ func init() {
 }
 
 type InputRemoveIdentity interface {
-	GetIdentityType() authn.IdentityType
+	GetIdentityType() model.IdentityType
 	GetIdentityID() string
 }
 

@@ -6,7 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
@@ -51,7 +51,7 @@ func TestProviderListCandidates(t *testing.T) {
 		})
 
 		Convey("oauth", func() {
-			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeOAuth}
+			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeOAuth}
 			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
 					Alias:          "google",
@@ -77,7 +77,7 @@ func TestProviderListCandidates(t *testing.T) {
 		})
 
 		Convey("loginid", func() {
-			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeLoginID}
+			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeLoginID}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
 					Type:           "email",
@@ -125,7 +125,7 @@ func TestProviderListCandidates(t *testing.T) {
 		Convey("associate login ID identity", func() {
 			userID := "a"
 
-			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeLoginID}
+			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeLoginID}
 			p.Identity.LoginID.Keys = []config.LoginIDKeyConfig{
 				{
 					Type:           "email",
@@ -164,7 +164,7 @@ func TestProviderListCandidates(t *testing.T) {
 		Convey("associate oauth identity", func() {
 			userID := "a"
 
-			p.Authentication.Identities = []authn.IdentityType{authn.IdentityTypeOAuth}
+			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeOAuth}
 			p.Identity.OAuth.Providers = []config.OAuthSSOProviderConfig{
 				{
 					Alias:          "google",

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -233,7 +234,7 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 }
 
 func (s *Service) CreateNewCode(id string, info *identity.Info, webSessionID string, requestedByUser bool) (*Code, error) {
-	if info.Type != authn.IdentityTypeLoginID {
+	if info.Type != model.IdentityTypeLoginID {
 		panic("verification: expect login ID identity")
 	}
 

@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -25,7 +24,7 @@ func DecodeIdentityID(id string) (*identity.Ref, error) {
 	}
 	return &identity.Ref{
 		UserID: parts[0],
-		Type:   authn.IdentityType(parts[1]),
+		Type:   model.IdentityType(parts[1]),
 		Meta:   model.Meta{ID: parts[2]},
 	}, nil
 }

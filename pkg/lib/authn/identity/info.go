@@ -16,7 +16,7 @@ type Info struct {
 	UserID    string                 `json:"user_id"`
 	CreatedAt time.Time              `json:"created_at"`
 	UpdatedAt time.Time              `json:"updated_at"`
-	Type      authn.IdentityType     `json:"type"`
+	Type      model.IdentityType     `json:"type"`
 	Claims    map[string]interface{} `json:"claims"`
 }
 
@@ -46,13 +46,13 @@ func (i *Info) GetMeta() model.Meta {
 
 func (i *Info) AMR() []string {
 	switch i.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		return nil
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		return nil
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		return nil
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		return []string{authn.AMRXBiometric}
 	default:
 		panic("identity: unknown identity type: " + i.Type)
@@ -101,10 +101,10 @@ func (i *Info) ToModel() model.Identity {
 // If it is a biometric identity, the kid is returned.
 func (i *Info) DisplayID() string {
 	switch i.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		displayID, _ := i.Claims[IdentityClaimLoginIDOriginalValue].(string)
 		return displayID
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		if email, ok := i.Claims[StandardClaimEmail].(string); ok {
 			return email
 		}
@@ -115,10 +115,10 @@ func (i *Info) DisplayID() string {
 			return preferredUsername
 		}
 		return ""
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		displayID, _ := i.Claims[IdentityClaimAnonymousKeyID].(string)
 		return displayID
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		displayID, _ := i.Claims[IdentityClaimBiometricKeyID].(string)
 		return displayID
 	default:
@@ -129,7 +129,7 @@ func (i *Info) DisplayID() string {
 func (i *Info) StandardClaims() map[authn.ClaimName]string {
 	claims := map[authn.ClaimName]string{}
 	switch i.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		loginIDType, _ := i.Claims[IdentityClaimLoginIDType].(string)
 		loginIDValue, _ := i.Claims[IdentityClaimLoginIDOriginalValue].(string)
 		switch config.LoginIDKeyType(loginIDType) {
@@ -140,13 +140,13 @@ func (i *Info) StandardClaims() map[authn.ClaimName]string {
 		case config.LoginIDKeyTypeUsername:
 			claims[authn.ClaimPreferredUsername] = loginIDValue
 		}
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		if email, ok := i.Claims[StandardClaimEmail].(string); ok {
 			claims[authn.ClaimEmail] = email
 		}
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		break
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		break
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
@@ -156,7 +156,7 @@ func (i *Info) StandardClaims() map[authn.ClaimName]string {
 
 func (i *Info) PrimaryAuthenticatorTypes() []authn.AuthenticatorType {
 	switch i.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		switch config.LoginIDKeyType(i.Claims[IdentityClaimLoginIDType].(string)) {
 		case config.LoginIDKeyTypeUsername:
 			return []authn.AuthenticatorType{
@@ -175,11 +175,11 @@ func (i *Info) PrimaryAuthenticatorTypes() []authn.AuthenticatorType {
 		default:
 			panic(fmt.Sprintf("identity: unexpected login ID type: %s", i.Claims[IdentityClaimLoginIDType]))
 		}
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		return nil
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		return nil
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		return nil
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
@@ -188,13 +188,13 @@ func (i *Info) PrimaryAuthenticatorTypes() []authn.AuthenticatorType {
 
 func (i *Info) CanHaveMFA() bool {
 	switch i.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		return true
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		return false
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		return false
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		return false
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
@@ -203,7 +203,7 @@ func (i *Info) CanHaveMFA() bool {
 
 func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 	switch i.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		loginIDKey := i.Claims[IdentityClaimLoginIDKey].(string)
 		var keyConfig *config.LoginIDKeyConfig
 		for _, kc := range c.LoginID.Keys {
@@ -216,7 +216,7 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 			return true
 		}
 		return *keyConfig.ModifyDisabled
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		alias := i.Claims[IdentityClaimOAuthProviderAlias].(string)
 		var providerConfig *config.OAuthSSOProviderConfig
 		for _, pc := range c.OAuth.Providers {
@@ -229,11 +229,11 @@ func (i *Info) ModifyDisabled(c *config.IdentityConfig) bool {
 			return true
 		}
 		return *providerConfig.ModifyDisabled
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		// modify_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		// modify_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false
@@ -247,7 +247,7 @@ func (i *Info) FillDetails(err error) error {
 		"IdentityType": apierrors.APIErrorDetail.Value(i.Type),
 	}
 	switch i.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		details["LoginIDType"] = apierrors.APIErrorDetail.Value(i.Claims[IdentityClaimLoginIDType])
 	}
 	return errorutil.WithDetails(err, details)

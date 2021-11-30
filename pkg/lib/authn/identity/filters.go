@@ -3,7 +3,7 @@ package identity
 import (
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 type Filter interface {
@@ -32,7 +32,7 @@ func ApplyFilters(iis []*Info, filters ...Filter) (out []*Info) {
 	return
 }
 
-func KeepType(types ...authn.IdentityType) Filter {
+func KeepType(types ...model.IdentityType) Filter {
 	return FilterFunc(func(ii *Info) bool {
 		for _, t := range types {
 			if ii.Type == t {
@@ -46,13 +46,13 @@ func KeepType(types ...authn.IdentityType) Filter {
 // KeepIdentifiable keeps Login ID identity and OAuth identity.
 var KeepIdentifiable FilterFunc = func(ii *Info) bool {
 	switch ii.Type {
-	case authn.IdentityTypeLoginID:
+	case model.IdentityTypeLoginID:
 		return true
-	case authn.IdentityTypeOAuth:
+	case model.IdentityTypeOAuth:
 		return true
-	case authn.IdentityTypeAnonymous:
+	case model.IdentityTypeAnonymous:
 		return false
-	case authn.IdentityTypeBiometric:
+	case model.IdentityTypeBiometric:
 		return false
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", ii.Type))

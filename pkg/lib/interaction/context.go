@@ -31,7 +31,7 @@ import (
 )
 
 type IdentityService interface {
-	Get(userID string, typ authn.IdentityType, id string) (*identity.Info, error)
+	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
 	GetBySpec(spec *identity.Spec) (*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)

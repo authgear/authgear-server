@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
-	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -67,7 +67,7 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			var e event.Payload
 			switch n.IdentityAfterUpdate.Type {
-			case authn.IdentityTypeLoginID:
+			case model.IdentityTypeLoginID:
 				loginIDType := n.IdentityAfterUpdate.Claims[identity.IdentityClaimLoginIDType].(string)
 				e = nonblocking.NewIdentityLoginIDUpdatedEventPayload(
 					*user,
