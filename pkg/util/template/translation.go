@@ -53,7 +53,7 @@ func (t *translationJSON) ViewResources(resources []resource.ResourceFile, rawVi
 	}
 }
 
-func (t *translationJSON) UpdateResource(resrc *resource.ResourceFile, data []byte, view resource.View) (*resource.ResourceFile, error) {
+func (t *translationJSON) UpdateResource(resrc *resource.ResourceFile, data []byte, _ resource.View) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
