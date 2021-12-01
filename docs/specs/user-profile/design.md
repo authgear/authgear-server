@@ -147,49 +147,98 @@ In addition to standard attributes, the developer can define their own custom at
 
 ### Defining custom attributes
 
-The custom attributes are defined as a single JSON schema written against a subset of JSON schema 2019-09.
+The custom attributes are defined with a configuration.
 
-Here is an example of the schema of the custom attributes.
+Here is an example of the configuration.
 
-```yaml
+```
 user_profile:
   custom_attributes:
-    schema:
-      properties:
-        stripe_customer_id:
-          type: string
-        hobby:
-          type: string
+    attributes:
+    - pointer: /x_phone_number
+      type: phone_number
+    - pointer: /x_email
+      type: email
 ```
 
-All changes made to custom attributes must be valid against the schema.
+Each custom attribute MUST have an unique pointer and of one of the defined types.
 
-#### Supported subset of JSON schema 2019-09
+The pointer of custom attribute MUST have exactly ONE level, as in `/this_is_one_level`.
+The pointer MUST also be non-empty, so `/` is not a valid pointer.
 
-- `type`: `boolean`, `string`, `number`, `integer`
-- `format`: `email`, `phone`, `uri`, `date-time`
-- `enum`
-- `multipleOf`
-- `maximum`
-- `exclusiveMaximum`
-- `minimum`
-- `exclusiveMinimum`
-- `maxLength`
-- `minLength`
-- `properties`
+The pointer MUST NOT conflict with the pointer of any standard attributes,
+so the developer CANNOT define a custom attribute with pointer `/email`.
 
-### Editing custom attributes in the settings page and in the portal
+NO data migration is ever done when the configuration is changed.
+This means if the developer change the pointer, existing data WILL BE lost.
 
-The UI control of the custom attribute is determined by the `type` and the `format`.
+The label of the custom attribute can be localized with the translation key `custom-attribute-label-{pointer}`.
+For example, if the custom attribute is `/x_email`, then the translation key is `custom-attribute-label-/x_email`.
 
-- `type: string` is `<input type="text">`.
-- `type: boolean` is `<input type="checkbox">`.
-- `type: number` is `<input type="text">` but restricted to be a number.
-- `type: integer` is `<input type="text">` but restricted to be an integer.
-- `type: string` and `format: email` is `<input type="email">`.
-- `type: string` and `format: phone` is rendered using a phone input library.
-- `type: string` and `format: uri` is `<input type="text">` with validation.
-- `type: string` and `format: date-time` is rendered using a library.
+#### Custom Attribute type `string`
+
+The custom attribute is of type string.
+The UI control of it is a text field.
+
+#### Custom Attribute type `integer`
+
+The custom attribute is of type integer.
+Optionally, the developer can define the minimum and the maximum allowed value.
+
+For example, if the developer wants to define a custom attribute of non-negative integer, they write
+
+```
+- pointer: /x_age
+  type: integer
+  minimum: 0
+  maximum: 200
+```
+
+The UI control of it is a text field restricted to integers.
+
+#### Custom Attribute type `enum`
+
+`enum` is a string, but can only take one of the values defined by the developer.
+
+For example,
+
+```
+- pointer: /x_rank
+  type: enum
+  enum: ["junior", "senior", "staff"]
+```
+
+The UI control of it is a dropdown.
+
+The label of the values can be localized with the translation key `custom-attribute-enum-label-{pointer}-{value}`.
+
+For example, to localize the label of `junior`, provide the translation key `custom-attribute-enum-label-/x_rank-junior`.
+
+If localization is not provided, the value itself is used as label.
+
+#### Custom Attribute type `phone_number`
+
+`phone_number` is a string, and the value must be in the format of E.164.
+
+The UI control of it is a text field with validation.
+
+#### Custom Attribute type `email`
+
+`email` is a string, and the value must be an email address without name.
+
+The UI control of it is a text field with validation.
+
+#### Custom Attribute type `url`
+
+`url` is a string, and the value must be an URL of any scheme.
+
+The UI control of it is a text field with validation.
+
+#### Custom Attribute type `alpha2`
+
+`alpha2` is a string, and the value must be one of the ISO 3166-1 alpha-2 codes.
+
+The UI control of it is a dropdown.
 
 ## Roles
 
@@ -269,8 +318,9 @@ user_profile:
         bearer: readwrite
         portal_ui: readwrite
   custom_attributes:
-    access_control:
+    attributes:
     - pointer: /hobby
+      type: string
       access_control:
         end_user: hidden
         bearer: readwrite
