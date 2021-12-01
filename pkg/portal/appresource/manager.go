@@ -1,6 +1,7 @@
 package appresource
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -17,17 +18,6 @@ import (
 )
 
 const ConfigFileMaxSize = 100 * 1024
-
-type AppFileWithConfig struct {
-	resource.AppFileView
-	FeatureConfig *config.FeatureConfig
-}
-
-func (f AppFileWithConfig) AppFeatureConfig() *config.FeatureConfig {
-	return f.FeatureConfig
-}
-
-var _ configsource.ViewWithConfig = AppFileWithConfig{}
 
 type Manager struct {
 	AppResourceManager *resource.Manager
@@ -99,10 +89,7 @@ func (m *Manager) AssociateDescriptor(paths ...string) ([]DescriptedPath, error)
 }
 
 func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileView) (interface{}, error) {
-	return m.AppResourceManager.Read(desc, AppFileWithConfig{
-		AppFileView:   view,
-		FeatureConfig: m.AppFeatureConfig,
-	})
+	return m.AppResourceManager.Read(desc, view)
 }
 
 func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.ResourceFile, error) {
@@ -195,14 +182,10 @@ func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.M
 			return nil, nil, err
 		}
 
-		resrc, err = desc.UpdateResource(resrc, u.Data,
-			AppFileWithConfig{
-				AppFileView: &resource.AppFile{
-					Path: u.Path,
-				},
-				FeatureConfig: m.AppFeatureConfig,
-			},
-		)
+		ctx := context.Background()
+		ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
+
+		resrc, err = desc.UpdateResource(ctx, resrc, u.Data)
 		if err != nil {
 			return nil, nil, err
 		}

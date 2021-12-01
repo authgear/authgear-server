@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 
@@ -89,7 +90,7 @@ func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, r
 	}
 }
 
-func (d JavaScriptDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, _ resource.View) (*resource.ResourceFile, error) {
+func (d JavaScriptDescriptor) UpdateResource(_ context.Context, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,

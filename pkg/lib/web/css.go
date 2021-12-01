@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 
@@ -88,7 +89,7 @@ func (d CSSDescriptor) ViewResources(resources []resource.ResourceFile, rawView 
 	}
 }
 
-func (d CSSDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, _ resource.View) (*resource.ResourceFile, error) {
+func (d CSSDescriptor) UpdateResource(_ context.Context, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
