@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/Masterminds/squirrel v1.5.1
+	github.com/Masterminds/squirrel v1.5.2
 	github.com/abadojack/whatlanggo v1.0.1
 	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892
 	github.com/boombuler/barcode v1.0.1
@@ -30,30 +30,27 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	// jwx >= 1.2.1 fix the bug that `alg` and `use` are NOT required.
-	github.com/lestrrat-go/jwx v1.2.9
-	github.com/lib/pq v1.10.3
+	github.com/lestrrat-go/jwx v1.2.12
+	github.com/lib/pq v1.10.4
 	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/nyaruka/phonenumbers v1.0.73
 	github.com/oschwald/geoip2-golang v1.5.0
 	github.com/pquerna/otp v1.3.0
-	// The changes are compatible. See https://github.com/rubenv/sql-migrate/compare/8d140a17f351..55d5740dbbcc
-	github.com/rubenv/sql-migrate v0.0.0-20210614095031-55d5740dbbcc
-	// The changes are compatible. See https://github.com/sfreiberg/gotwilio/compare/169c4cd5c691..c426a3710ab5
-	github.com/sfreiberg/gotwilio v0.0.0-20201211181435-c426a3710ab5
+	github.com/rubenv/sql-migrate v0.0.0-20211023115951-9f02b1e13857
+	github.com/sfreiberg/gotwilio v1.0.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
-	github.com/smartystreets/goconvey v1.6.7
+	github.com/smartystreets/goconvey v1.7.2
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.9.0
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/ua-parser/uap-go v0.0.0-20210824134941-3b2ceb1c75a3
-	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
-	golang.org/x/net v0.0.0-20211011170408-caeb26a5c8c0
-	golang.org/x/oauth2 v0.0.0-20211005180243-6b3c2da341f1
+	github.com/ua-parser/uap-go v0.0.0-20211112212520-00c877edfe0f
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
+	golang.org/x/net v0.0.0-20211123203042-d83791d6bcd9
+	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	golang.org/x/text v0.3.7
 	google.golang.org/api v0.58.0
 	gopkg.in/fsnotify.v1 v1.4.7
@@ -81,7 +78,6 @@ require (
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/evanphx/json-patch v4.9.0+incompatible // indirect
@@ -92,6 +88,7 @@ require (
 	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/goccy/go-json v0.7.10 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-cmp v0.5.6 // indirect
