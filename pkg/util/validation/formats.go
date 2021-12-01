@@ -10,6 +10,7 @@ import (
 	"time"
 
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
+	"github.com/iawaknahc/originmatcher"
 	"golang.org/x/text/language"
 
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -21,6 +22,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["email-name-addr"] = FormatEmail{AllowName: true}
 	jsonschemaformat.DefaultChecker["uri"] = FormatURI{}
 	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}
+	jsonschemaformat.DefaultChecker["http_origin_spec"] = FormatHTTPOriginSpec{}
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
 	jsonschemaformat.DefaultChecker["timezone"] = FormatTimezone{}
@@ -142,6 +144,22 @@ func (f FormatHTTPOrigin) CheckFormat(value interface{}) error {
 		return err
 	}
 	if u.Fragment != "" || u.RawFragment != "" {
+		return err
+	}
+
+	return nil
+}
+
+type FormatHTTPOriginSpec struct{}
+
+func (FormatHTTPOriginSpec) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	err := originmatcher.CheckValidSpecStrict(str)
+	if err != nil {
 		return err
 	}
 
