@@ -352,7 +352,7 @@ user_profile:
 
 ### Exhaustive list of access control combination
 
-|end\_user|bearer|admin\_user|
+|end\_user|bearer|portal\_ui|
 |---------|------|-----------|
 |hidden|hidden|hidden|
 |hidden|hidden|readonly|
