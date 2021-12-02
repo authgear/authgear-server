@@ -54,9 +54,82 @@ func (t *translationJSON) ViewResources(resources []resource.ResourceFile, rawVi
 	}
 }
 
-func (t *translationJSON) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (t *translationJSON) UpdateResource(_ context.Context, all []resource.ResourceFile, fileToUpdate *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	path := fileToUpdate.Location.Path
+
+	// Compute requestedLangTag
+	matches := templateLanguageTagRegex.FindStringSubmatch(path)
+	if len(matches) < 2 {
+		return nil, resource.ErrResourceNotFound
+	}
+	requestedLangTag := matches[1]
+
+	// View translation.json on all Fss but the app FS.
+	// That is, the default translation.json.
+	defaultTranslationObj := make(map[string]string)
+	for _, r := range all {
+		// Skip the app FS.
+		if r.Location.Fs.GetFsLevel() == fileToUpdate.Location.Fs.GetFsLevel() {
+			continue
+		}
+
+		// Skip file in different language.
+		langTag := templateLanguageTagRegex.FindStringSubmatch(r.Location.Path)[1]
+		if langTag != requestedLangTag {
+			continue
+		}
+
+		var jsonObj map[string]interface{}
+		err := json.Unmarshal(r.Data, &jsonObj)
+		if err != nil {
+			return nil, fmt.Errorf("translation file must be JSON: %w", err)
+		}
+
+		for key, val := range jsonObj {
+			value, ok := val.(string)
+			if !ok {
+				return nil, fmt.Errorf("translation value must be string: %s %T", key, val)
+			}
+			defaultTranslationObj[key] = value
+		}
+	}
+
+	appTranslationRaw := make(map[string]interface{})
+	err := json.Unmarshal(data, &appTranslationRaw)
+	if err != nil {
+		return nil, fmt.Errorf("translation file must be JSON: %w", err)
+	}
+	appTranslationObj := make(map[string]string)
+	for key, val := range appTranslationRaw {
+		value, ok := val.(string)
+		if !ok {
+			return nil, fmt.Errorf("translation value must be string: %s %T", key, val)
+		}
+		appTranslationObj[key] = value
+	}
+
+	for key, val := range appTranslationObj {
+		// If the value is the same as default, delete it.
+		defaultValue := defaultTranslationObj[key]
+		if defaultValue == val {
+			delete(appTranslationObj, key)
+		}
+
+		// Note that we allow the app translation.json to contain unknown keys.
+	}
+
+	// If the translation is empty, delete the file instead.
+	if len(appTranslationObj) <= 0 {
+		data = nil
+	} else {
+		data, err = json.Marshal(appTranslationObj)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &resource.ResourceFile{
-		Location: resrc.Location,
+		Location: fileToUpdate.Location,
 		Data:     data,
 	}, nil
 }

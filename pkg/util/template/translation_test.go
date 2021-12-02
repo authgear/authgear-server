@@ -2,6 +2,7 @@ package template_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"testing"
 
@@ -431,6 +432,90 @@ func TestTranslationResource(t *testing.T) {
 				"b": "en b in fs B",
 				"c": "en c in fs B"
 			}`))
+		})
+	})
+
+	Convey("TranslationJSON UpdateResource", t, func() {
+		path := "templates/en/translation.json"
+		builtin := resource.LeveledAferoFs{FsLevel: resource.FsLevelBuiltin}
+		app := resource.LeveledAferoFs{FsLevel: resource.FsLevelApp}
+
+		Convey("it should only write value that is not equal to default value", func() {
+			ctx := context.Background()
+			updated, err := template.TranslationJSON.UpdateResource(
+				ctx,
+				[]resource.ResourceFile{
+					resource.ResourceFile{
+						Location: resource.Location{
+							Fs:   builtin,
+							Path: path,
+						},
+						Data: []byte(`{
+							"a": "default a",
+							"b": "default b"
+						}`),
+					},
+				},
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: nil,
+				},
+				[]byte(`{
+					"a": "default a",
+					"b": "new b",
+					"unknown": "key"
+				}`),
+			)
+
+			So(err, ShouldBeNil)
+			So(updated, ShouldResemble, &resource.ResourceFile{
+				Location: resource.Location{
+					Fs:   app,
+					Path: path,
+				},
+				Data: []byte(`{"b":"new b","unknown":"key"}`),
+			})
+		})
+
+		Convey("it should delete the file if the file is empty", func() {
+			ctx := context.Background()
+			updated, err := template.TranslationJSON.UpdateResource(
+				ctx,
+				[]resource.ResourceFile{
+					resource.ResourceFile{
+						Location: resource.Location{
+							Fs:   builtin,
+							Path: path,
+						},
+						Data: []byte(`{
+							"a": "default a",
+							"b": "default b"
+						}`),
+					},
+				},
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: nil,
+				},
+				[]byte(`{
+					"a": "default a"
+				}`),
+			)
+
+			So(err, ShouldBeNil)
+			So(updated, ShouldResemble, &resource.ResourceFile{
+				Location: resource.Location{
+					Fs:   app,
+					Path: path,
+				},
+				Data: nil,
+			})
 		})
 	})
 }
