@@ -166,6 +166,8 @@ Each custom attribute MUST have an unique pointer and of one of the defined type
 The pointer of custom attribute MUST have exactly ONE level, as in `/this_is_one_level`.
 The pointer MUST also be non-empty, so `/` is not a valid pointer.
 
+Only `a-z`, `A-Z` and `_` character are allowed in the pointer of custom attribute.
+
 The pointer MUST NOT conflict with the pointer of any standard attributes,
 so the developer CANNOT define a custom attribute with pointer `/email`.
 
@@ -174,6 +176,10 @@ This means if the developer change the pointer, existing data WILL BE lost.
 
 The label of the custom attribute can be localized with the translation key `custom-attribute-label-{pointer}`.
 For example, if the custom attribute is `/x_email`, then the translation key is `custom-attribute-label-/x_email`.
+
+If the label of the custom attribute is not localized, a default label is generated based on the pointer.
+`_` are replaced by space character, and the first character of each word is capitalized.
+For example, the default label of `/job_title` is `Job Title`.
 
 #### Custom Attribute type `string`
 
