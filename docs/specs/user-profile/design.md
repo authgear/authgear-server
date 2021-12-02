@@ -196,6 +196,23 @@ For example, if the developer wants to define a custom attribute of non-negative
 
 The UI control of it is a text field restricted to integers.
 
+#### Custom Attribute type `number`
+
+The custom attribute is of type number.
+
+Optionally, the developer can define the minimum and the maximum allowed value.
+
+For example, if the developer wants to define a custom attribute of non-negative number, they write
+
+```
+- pointer: /hourly_wage
+  type: number
+  minimum: 0.0
+  maximum: 100.0
+```
+
+The UI control of it is a text field restricted to numbers.
+
 #### Custom Attribute type `enum`
 
 `enum` is a string, but can only take one of the values defined by the developer.
