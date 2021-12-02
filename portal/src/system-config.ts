@@ -12,6 +12,7 @@ export interface SystemConfig {
   translations: SystemConfigTranslations;
   searchEnabled: boolean;
   auditLogEnabled: boolean;
+  gitCommitHash: string;
 }
 
 export interface SystemConfigThemes {
@@ -256,5 +257,6 @@ export function instantiateSystemConfig(
     },
     searchEnabled: config.searchEnabled ?? false,
     auditLogEnabled: config.auditLogEnabled ?? false,
+    gitCommitHash: config.gitCommitHash ?? "",
   };
 }

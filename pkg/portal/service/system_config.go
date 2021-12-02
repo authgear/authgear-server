@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 
 	configlib "github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/portal/config"
@@ -11,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/timeutil"
+	"github.com/authgear/authgear-server/pkg/version"
 )
 
 type ResourceManager interface {
@@ -54,6 +56,7 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		AuditLogEnabled:    p.AuditLogConfig.Enabled,
 		AnalyticEnabled:    p.AnalyticConfig.Enabled,
 		AnalyticEpoch:      analyticEpoch,
+		GitCommitHash:      strings.TrimPrefix(version.Version, "git-"),
 	}, nil
 }
 

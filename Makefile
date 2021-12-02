@@ -8,6 +8,10 @@ LDFLAGS ?= "-X github.com/authgear/authgear-server/pkg/version.Version=${GIT_HAS
 start:
 	go run -ldflags ${LDFLAGS} ./cmd/authgear start
 
+.PHONY: start-portal
+start-portal:
+	go run -ldflags ${LDFLAGS} ./cmd/portal start
+
 .PHONY: vendor
 vendor:
 	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.41.1
