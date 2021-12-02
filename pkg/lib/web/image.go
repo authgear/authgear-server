@@ -118,7 +118,7 @@ func (a ImageDescriptor) ViewResources(resources []resource.ResourceFile, rawVie
 	}
 }
 
-func (a ImageDescriptor) UpdateResource(_ context.Context, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (a ImageDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,

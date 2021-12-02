@@ -132,6 +132,54 @@ func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.Reso
 	return files, nil
 }
 
+func (m *Manager) getFromAppFs(newAppFs resource.LeveledAferoFs, location resource.Location) (*resource.ResourceFile, error) {
+	f, err := newAppFs.Fs.Open(location.Path)
+	if os.IsNotExist(err) {
+		return &resource.ResourceFile{
+			Location: location,
+			Data:     nil,
+		}, nil
+	} else if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resource.ResourceFile{
+		Location: location,
+		Data:     data,
+	}, nil
+}
+
+func (m *Manager) getFromAllFss(desc resource.Descriptor) ([]resource.ResourceFile, error) {
+	var locations []resource.Location
+	for _, fs := range m.AppResourceManager.Fs {
+		ls, err := desc.FindResources(fs)
+		if err != nil {
+			return nil, err
+		}
+		locations = append(locations, ls...)
+	}
+
+	files := make([]resource.ResourceFile, len(locations))
+	for idx, location := range locations {
+		data, err := resource.ReadLocation(location)
+		if err != nil {
+			return nil, err
+		}
+		files[idx] = resource.ResourceFile{
+			Location: location,
+			Data:     data,
+		}
+	}
+
+	return files, nil
+}
+
 func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
 	manager := m.AppResourceManager
 
@@ -150,28 +198,7 @@ func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.M
 		}
 
 		// Retrieve the original file.
-		resrc, err := func() (*resource.ResourceFile, error) {
-			f, err := newFs.Open(u.Path)
-			if os.IsNotExist(err) {
-				return &resource.ResourceFile{
-					Location: location,
-					Data:     nil,
-				}, nil
-			} else if err != nil {
-				return nil, err
-			}
-			defer f.Close()
-
-			data, err := ioutil.ReadAll(f)
-			if err != nil {
-				return nil, err
-			}
-
-			return &resource.ResourceFile{
-				Location: location,
-				Data:     data,
-			}, nil
-		}()
+		resrc, err := m.getFromAppFs(newAppFs, location)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -182,10 +209,16 @@ func (m *Manager) applyUpdates(appFs resource.Fs, updates []Update) (*resource.M
 			return nil, nil, err
 		}
 
+		// Retrieve the file in all FSs.
+		all, err := m.getFromAllFss(desc)
+		if err != nil {
+			return nil, nil, err
+		}
+
 		ctx := context.Background()
 		ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
 
-		resrc, err = desc.UpdateResource(ctx, resrc, u.Data)
+		resrc, err = desc.UpdateResource(ctx, all, resrc, u.Data)
 		if err != nil {
 			return nil, nil, err
 		}

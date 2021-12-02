@@ -90,7 +90,7 @@ func (d JavaScriptDescriptor) ViewResources(resources []resource.ResourceFile, r
 	}
 }
 
-func (d JavaScriptDescriptor) UpdateResource(_ context.Context, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (d JavaScriptDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
