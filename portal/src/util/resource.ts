@@ -22,13 +22,28 @@ export interface ResourceSpecifier {
   extension: string | null;
 }
 
+export interface FallbackStrategyEffectiveData {
+  kind: "EffectiveData";
+}
+
+export const FALLBACK_EFFECTIVE_DATA: FallbackStrategyEffectiveData = {
+  kind: "EffectiveData",
+};
+
+export interface FallbackStrategyConst {
+  kind: "Const";
+  fallbackValue: string;
+}
+
+export type FallbackStrategy =
+  | FallbackStrategyEffectiveData
+  | FallbackStrategyConst;
+
 export interface ResourceDefinition {
   type: "text" | "binary";
   resourcePath: ResourcePath;
   extensions: string[];
-  // If this is true, then the effectiveData is used as value when the raw data is unavailable.
-  // This is useful for templates.
-  usesEffectiveDataAsFallbackValue: boolean;
+  fallback?: FallbackStrategy;
   // Indicates whether the resource is optional.
   // The default locale must have all non-optional resources configured.
   optional?: boolean;
