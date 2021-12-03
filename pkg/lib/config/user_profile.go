@@ -283,7 +283,34 @@ var _ = Schema.Add("CustomAttributesAttributeConfig", `
 
 type UserProfileConfig struct {
 	StandardAttributes *StandardAttributesConfig `json:"standard_attributes,omitempty"`
+	CustomAttributes   *CustomAttributesConfig   `json:"custom_attributes,omitempty"`
 }
+
+type CustomAttributesConfig struct {
+	Attributes []*CustomAttributesAttributeConfig `json:"attributes,omitempty"`
+}
+
+type CustomAttributesAttributeConfig struct {
+	ID      string              `json:"id,omitempty"`
+	Pointer string              `json:"pointer,omitempty"`
+	Type    CustomAttributeType `json:"type,omitempty"`
+	Minimum *float64            `json:"minimum,omitempty"`
+	Maximum *float64            `json:"maximum,omitempty"`
+	Enum    []string            `json:"enum,omitempty"`
+}
+
+type CustomAttributeType string
+
+const (
+	CustomAttributeTypeString      CustomAttributeType = "string"
+	CustomAttributeTypeNumber      CustomAttributeType = "number"
+	CustomAttributeTypeInteger     CustomAttributeType = "integer"
+	CustomAttributeTypeEnum        CustomAttributeType = "enum"
+	CustomAttributeTypePhoneNumber CustomAttributeType = "phone_number"
+	CustomAttributeTypeEmail       CustomAttributeType = "email"
+	CustomAttributeTypeURL         CustomAttributeType = "url"
+	CustomAttributeTypeAlpha2      CustomAttributeType = "alpha2"
+)
 
 type StandardAttributesConfig struct {
 	Population    *StandardAttributesPopulationConfig      `json:"population,omitempty"`
