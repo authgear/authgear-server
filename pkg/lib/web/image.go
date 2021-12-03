@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"mime"
@@ -117,7 +118,7 @@ func (a ImageDescriptor) ViewResources(resources []resource.ResourceFile, rawVie
 	}
 }
 
-func (a ImageDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, view resource.View) (*resource.ResourceFile, error) {
+func (a ImageDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,

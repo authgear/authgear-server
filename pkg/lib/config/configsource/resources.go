@@ -1,6 +1,7 @@
 package configsource
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -19,10 +20,9 @@ const (
 
 var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective secret config")
 
-type ViewWithConfig interface {
-	resource.View
-	AppFeatureConfig() *config.FeatureConfig
-}
+type contextKeyFeatureConfigType string
+
+const ContextKeyFeatureConfig = contextKeyFeatureConfigType(AuthgearFeatureYAML)
 
 type AuthgearYAMLDescriptor struct{}
 
@@ -92,22 +92,15 @@ func (d AuthgearYAMLDescriptor) ViewResources(resources []resource.ResourceFile,
 	}
 }
 
-func (d AuthgearYAMLDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, rawView resource.View) (*resource.ResourceFile, error) {
+func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	if data == nil {
 		return nil, fmt.Errorf("cannot delete '%v'", AuthgearYAML)
 	}
 
-	view, ok := rawView.(resource.AppFileView)
-	if !ok {
-		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	fc, ok := ctx.Value(ContextKeyFeatureConfig).(*config.FeatureConfig)
+	if !ok || fc == nil {
+		return nil, fmt.Errorf("missing feature config in context")
 	}
-
-	viewWithConfig, ok := view.(interface{}).(ViewWithConfig)
-	if !ok {
-		panic("resource: missing config in the app file view")
-	}
-
-	fc := viewWithConfig.AppFeatureConfig()
 
 	original, err := config.Parse(resrc.Data)
 	if err != nil {
@@ -262,37 +255,32 @@ func (d AuthgearSecretYAMLDescriptor) viewEffectiveResource(resources []resource
 	return secretConfig, nil
 }
 
-func (d AuthgearSecretYAMLDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, rawView resource.View) (*resource.ResourceFile, error) {
+func (d AuthgearSecretYAMLDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	if data == nil {
 		return nil, fmt.Errorf("cannot delete '%v'", AuthgearSecretYAML)
 	}
 
-	switch rawView.(type) {
-	case resource.AppFileView:
-		var original config.SecretConfig
-		err := yaml.Unmarshal(resrc.Data, &original)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse original secret config: %w", err)
-		}
-
-		var incoming config.SecretConfig
-		err = yaml.Unmarshal(data, &incoming)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse incoming secret config: %w", err)
-		}
-
-		updatedConfig := original.UpdateWith(&incoming)
-		updatedYAML, err := yaml.Marshal(updatedConfig)
-		if err != nil {
-			return nil, err
-		}
-
-		newResrc := *resrc
-		newResrc.Data = updatedYAML
-		return &newResrc, nil
-	default:
-		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	var original config.SecretConfig
+	err := yaml.Unmarshal(resrc.Data, &original)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse original secret config: %w", err)
 	}
+
+	var incoming config.SecretConfig
+	err = yaml.Unmarshal(data, &incoming)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse incoming secret config: %w", err)
+	}
+
+	updatedConfig := original.UpdateWith(&incoming)
+	updatedYAML, err := yaml.Marshal(updatedConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	newResrc := *resrc
+	newResrc.Data = updatedYAML
+	return &newResrc, nil
 }
 
 var SecretConfig = resource.RegisterResource(AuthgearSecretYAMLDescriptor{})
@@ -365,7 +353,7 @@ func (d AuthgearFeatureYAMLDescriptor) ViewResources(resources []resource.Resour
 	}
 }
 
-func (d AuthgearFeatureYAMLDescriptor) UpdateResource(resrc *resource.ResourceFile, data []byte, _ resource.View) (*resource.ResourceFile, error) {
+func (d AuthgearFeatureYAMLDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return nil, fmt.Errorf("cannot update '%v'", AuthgearFeatureYAML)
 }
 

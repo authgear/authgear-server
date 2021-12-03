@@ -24,14 +24,12 @@ describe("render and parse template string", () => {
 const ResourceA: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/a.html`,
   type: "text",
-  usesEffectiveDataAsFallbackValue: true,
   extensions: [],
 };
 
 const ResourceB: ResourceDefinition = {
   resourcePath: resourcePath`templates/${"locale"}/b.html`,
   type: "text",
-  usesEffectiveDataAsFallbackValue: true,
   extensions: [],
   optional: true,
 };

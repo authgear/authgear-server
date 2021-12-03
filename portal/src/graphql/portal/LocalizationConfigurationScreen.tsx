@@ -41,6 +41,7 @@ import { useAppConfigForm } from "../../hook/useAppConfigForm";
 import { clearEmptyObject } from "../../util/misc";
 import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./LocalizationConfigurationScreen.module.scss";
 
 interface ConfigFormState {
@@ -145,6 +146,7 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
     const { state, setState } = props.form;
     const { supportedLanguages } = props;
     const { renderToString } = useContext(Context);
+    const { gitCommitHash } = useSystemConfig();
 
     const setSelectedLanguage = useCallback(
       (selectedLanguage: LanguageTag) => {
@@ -257,7 +259,12 @@ const ResourcesConfigurationContent: React.FC<ResourcesConfigurationContentProps
           {
             key: "translation.json",
             title: (
-              <FormattedMessage id="EditTemplatesWidget.translationjson.subtitle" />
+              <FormattedMessage
+                id="EditTemplatesWidget.translationjson.subtitle"
+                values={{
+                  COMMIT: gitCommitHash,
+                }}
+              />
             ),
             language: "json",
             value: getValue(RESOURCE_TRANSLATION_JSON),

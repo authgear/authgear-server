@@ -1,6 +1,7 @@
 package template
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	htmltemplate "html/template"
@@ -42,7 +43,7 @@ func (t *HTML) ViewResources(resources []resource.ResourceFile, view resource.Vi
 	return viewHTMLTemplates(t.Name, resources, view)
 }
 
-func (t *HTML) UpdateResource(resrc *resource.ResourceFile, data []byte, view resource.View) (*resource.ResourceFile, error) {
+func (t *HTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,
@@ -73,7 +74,7 @@ func (t *PlainText) ViewResources(resources []resource.ResourceFile, view resour
 	return viewTextTemplates(t.Name, resources, view)
 }
 
-func (t *PlainText) UpdateResource(resrc *resource.ResourceFile, data []byte, view resource.View) (*resource.ResourceFile, error) {
+func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return &resource.ResourceFile{
 		Location: resrc.Location,
 		Data:     data,

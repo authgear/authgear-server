@@ -96,10 +96,12 @@ export function useAppTemplatesQuery(
       if (resource?.data != null) {
         value = transform(resource.data);
       } else if (
-        resource?.effectiveData != null &&
-        specifier.def.usesEffectiveDataAsFallbackValue
+        specifier.def.fallback?.kind === "EffectiveData" &&
+        resource?.effectiveData != null
       ) {
         value = transform(resource.effectiveData);
+      } else if (specifier.def.fallback?.kind === "Const") {
+        value = specifier.def.fallback.fallbackValue;
       }
 
       resources.push({

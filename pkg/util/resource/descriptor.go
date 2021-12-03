@@ -2,6 +2,7 @@ package resource
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 )
@@ -25,7 +26,7 @@ type Descriptor interface {
 	MatchResource(path string) (*Match, bool)
 	FindResources(fs Fs) ([]Location, error)
 	ViewResources(resources []ResourceFile, view View) (interface{}, error)
-	UpdateResource(resource *ResourceFile, data []byte, view View) (*ResourceFile, error)
+	UpdateResource(ctx context.Context, resourcesInAllFss []ResourceFile, resourceInTargetFs *ResourceFile, data []byte) (*ResourceFile, error)
 }
 
 // SimpleDescriptor does not support view.
@@ -86,7 +87,7 @@ func (d SimpleDescriptor) viewResources(resources []ResourceFile) (interface{}, 
 	return last.Data, nil
 }
 
-func (d SimpleDescriptor) UpdateResource(resource *ResourceFile, data []byte, _ View) (*ResourceFile, error) {
+func (d SimpleDescriptor) UpdateResource(_ context.Context, _ []ResourceFile, resource *ResourceFile, data []byte) (*ResourceFile, error) {
 	return &ResourceFile{
 		Location: resource.Location,
 		Data:     data,
@@ -170,7 +171,7 @@ func (d NewlineJoinedDescriptor) viewResources(resources []ResourceFile) ([]byte
 	return output.Bytes(), nil
 }
 
-func (d NewlineJoinedDescriptor) UpdateResource(resource *ResourceFile, data []byte, _ View) (*ResourceFile, error) {
+func (d NewlineJoinedDescriptor) UpdateResource(_ context.Context, _ []ResourceFile, resource *ResourceFile, data []byte) (*ResourceFile, error) {
 	return &ResourceFile{
 		Location: resource.Location,
 		Data:     data,
