@@ -171,8 +171,17 @@ Only `a-z`, `A-Z` and `_` character are allowed in the pointer of custom attribu
 The pointer MUST NOT conflict with the pointer of any standard attributes,
 so the developer CANNOT define a custom attribute with pointer `/email`.
 
-NO data migration is ever done when the configuration is changed.
-This means if the developer change the pointer, existing data WILL BE lost.
+Once a custom attribute is defined, it CANNOT be removed.
+The pointer and the type CANNOT be changed.
+
+> If custom attribute were allowed to be removed, or its type were allowed to be changed, the developer can remove it and define
+> a new custom attribute with the same pointer but a incompatible type.
+> This will result in a situation that is very complicated to handle.
+> Given that it is extremely easy to define custom attribute with just a few clicks,
+> a few clicks should never lead to such a complicated scenario.
+
+Other than `pointer` and `type`, the developer is allowed to freely change other supplementary configuration of a particular type of custom attribute.
+However, it is the developer's responsible to make sure they can handle that situation.
 
 The label of the custom attribute can be localized with the translation key `custom-attribute-label-{pointer}`.
 For example, if the custom attribute is `/x_email`, then the translation key is `custom-attribute-label-/x_email`.
@@ -189,8 +198,8 @@ The UI control of it is a text field.
 #### Custom Attribute type `integer`
 
 The custom attribute is of type integer.
-Optionally, the developer can define the minimum and the maximum allowed value.
 
+Optionally, the developer can define the minimum and the maximum allowed value.
 For example, if the developer wants to define a custom attribute of non-negative integer, they write
 
 ```
@@ -200,6 +209,8 @@ For example, if the developer wants to define a custom attribute of non-negative
   maximum: 200
 ```
 
+If the valid range is narrowed, future write of the value will fail validation.
+
 The UI control of it is a text field restricted to integers.
 
 #### Custom Attribute type `number`
@@ -207,7 +218,6 @@ The UI control of it is a text field restricted to integers.
 The custom attribute is of type number.
 
 Optionally, the developer can define the minimum and the maximum allowed value.
-
 For example, if the developer wants to define a custom attribute of non-negative number, they write
 
 ```
@@ -216,6 +226,8 @@ For example, if the developer wants to define a custom attribute of non-negative
   minimum: 0.0
   maximum: 100.0
 ```
+
+If the valid range is narrowed, future write of the value will fail validation.
 
 The UI control of it is a text field restricted to numbers.
 
@@ -230,6 +242,9 @@ For example,
   type: enum
   enum: ["junior", "senior", "staff"]
 ```
+
+If any of the value is removed, the value can still be displayed.
+But future write will reject that removed value.
 
 The UI control of it is a dropdown.
 
