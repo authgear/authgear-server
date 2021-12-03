@@ -582,3 +582,41 @@ config:
       access_control:
       - pointer: /name
         access_control: {}
+
+---
+name: dupe-custom-attribute-id
+error: |-
+  invalid configuration:
+  /user_profile/custom_attributes/attributes/1: duplicated custom attribute ID
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+      - id: "0000"
+        pointer: /a
+        type: string
+      - id: "0000"
+        pointer: /b
+        type: string
+
+---
+name: dupe-custom-attribute-pointer
+error: |-
+  invalid configuration:
+  /user_profile/custom_attributes/attributes/1: duplicated custom attribute pointer
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+      - id: "0000"
+        pointer: /a
+        type: string
+      - id: "0001"
+        pointer: /a
+        type: string
