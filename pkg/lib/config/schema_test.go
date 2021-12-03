@@ -36,6 +36,7 @@ func TestAppConfigSchema(t *testing.T) {
 		"testdata/hook_tests.yaml",
 		"testdata/database_tests.yaml",
 		"testdata/redis_tests.yaml",
+		"testdata/custom_attributes_tests.yaml",
 	}
 
 	type TestCase struct {
