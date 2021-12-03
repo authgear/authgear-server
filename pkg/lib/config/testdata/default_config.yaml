@@ -337,6 +337,7 @@ authenticator:
       message:
         subject: Email Verification Instruction
 user_profile:
+  custom_attributes: {}
   standard_attributes:
     population:
       strategy: on_signup
