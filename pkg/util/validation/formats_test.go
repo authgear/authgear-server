@@ -80,6 +80,17 @@ func TestFormatHTTPOrigin(t *testing.T) {
 	})
 }
 
+func TestFormatHTTPOriginSpec(t *testing.T) {
+	Convey("FormatHTTPOriginSpec", t, func() {
+		f := FormatHTTPOriginSpec{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f(""), ShouldBeNil)
+		So(f("127.0.0.1"), ShouldBeNil)
+		So(f("127.0.0.1/"), ShouldBeError, "127.0.0.1/ is not strict")
+	})
+}
+
 func TestFormatWeChatAccountID(t *testing.T) {
 	Convey("TestFormatWeChatAccountID", t, func() {
 		f := FormatWeChatAccountID{}.CheckFormat

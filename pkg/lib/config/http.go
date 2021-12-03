@@ -11,7 +11,14 @@ var _ = Schema.Add("HTTPConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"public_origin": { "type": "string", "format": "http_origin" },
-		"allowed_origins": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+		"allowed_origins": {
+			"type": "array",
+			"items": {
+				"type": "string",
+				"format": "http_origin_spec",
+				"minLength": 1
+			}
+		},
 		"cookie_prefix": { "type": "string" },
 		"cookie_domain": { "type": "string" },
 		"csp_directives": { "type": "array", "items": { "type": "string", "minLength": 1 } }
