@@ -9,7 +9,8 @@ var _ = Schema.Add("UserProfileConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"standard_attributes": { "$ref": "#/$defs/StandardAttributesConfig" }
+		"standard_attributes": { "$ref": "#/$defs/StandardAttributesConfig" },
+		"custom_attributes": { "$ref": "#/$defs/CustomAttributesConfig" }
 	}
 }
 `)
@@ -155,6 +156,155 @@ var defaultHiddenStandardAttributesPointers []string = []string{
 	"/website",
 	"/address",
 }
+
+var _ = Schema.Add("CustomAttributesConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"attributes": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/CustomAttributesAttributeConfig"
+			}
+		}
+	}
+}
+`)
+
+// It seems impossible to write additionalProperties: false without duplicating the common schema in every variant :(
+// See https://json-schema.org/understanding-json-schema/reference/combining.html
+var _ = Schema.Add("CustomAttributesAttributeConfig", `
+{
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"pointer": {
+			"type": "string",
+			"pattern": "^/[a-zA-Z0-9_]+$",
+			"not": {
+				"enum": [
+					"/iss",
+					"/sub",
+					"/aud",
+					"/exp",
+					"/nbf",
+					"/iat",
+					"/jti",
+
+					"/sub",
+
+					"/email",
+					"/email_verified",
+					"/phone_number",
+					"/phone_number_verified",
+					"/preferred_username",
+
+					"/family_name",
+					"/given_name",
+					"/picture",
+					"/gender",
+					"/birthdate",
+					"/zoneinfo",
+					"/locale",
+					"/name",
+					"/nickname",
+					"/middle_name",
+					"/profile",
+					"/website",
+					"/address",
+
+					"/updated_at"
+				]
+			}
+		},
+		"type": {
+			"type": "string",
+			"enum": [
+				"string",
+				"number",
+				"integer",
+				"enum",
+				"phone_number",
+				"email",
+				"url",
+				"alpha2"
+			]
+		}
+	},
+	"required": ["id", "pointer", "type"],
+	"allOf": [
+		{
+			"if": {
+				"properties": { "type": { "const": "number" } }
+			},
+			"then": {
+				"properties": {
+					"minimum": {
+						"type": "number"
+					},
+					"maximum": {
+						"type": "number"
+					}
+				}
+			}
+		},
+		{
+			"if": {
+				"properties": { "type": { "const": "integer" } }
+			},
+			"then": {
+				"properties": {
+					"minimum": {
+						"type": "integer"
+					},
+					"maximum": {
+						"type": "integer"
+					}
+				}
+			}
+		},
+		{
+			"if": {
+				"properties": { "type": { "const": "enum" } }
+			},
+			"then": {
+				"properties": {
+					"enum": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"minLength": 1
+						},
+						"minItems": 1,
+						"uniqueItems": true
+					}
+				},
+				"required": ["enum"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"type": {
+						"not": {
+							"enum": [
+								"number",
+								"integer",
+								"enum"
+							]
+						}
+					}
+				}
+			},
+			"then": true
+		}
+	]
+}
+`)
 
 type UserProfileConfig struct {
 	StandardAttributes *StandardAttributesConfig `json:"standard_attributes,omitempty"`
