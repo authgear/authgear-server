@@ -155,13 +155,24 @@ Here is an example of the configuration.
 user_profile:
   custom_attributes:
     attributes:
-    - pointer: /x_phone_number
+    - id: "0001"
+      pointer: /x_phone_number
       type: phone_number
-    - pointer: /x_email
+    - id: "0002"
+      pointer: /x_email
       type: email
 ```
 
-Each custom attribute MUST have an unique pointer and of one of the defined types.
+Each custom attribute MUST have an unique ID, an unique pointer, and of one of the defined types.
+
+Internally, all custom attributes are stored in a JSON object using the ID as the key.
+Given the above configuration, the custom attributes in storage form may appear as
+```json
+{
+  "0001": "+85298765432",
+  "0002": "user@example.com"
+}
+```
 
 The pointer of custom attribute MUST have exactly ONE level, as in `/this_is_one_level`.
 The pointer MUST also be non-empty, so `/` is not a valid pointer.
@@ -172,15 +183,18 @@ The pointer MUST NOT conflict with the pointer of any standard attributes,
 so the developer CANNOT define a custom attribute with pointer `/email`.
 
 Once a custom attribute is defined, it CANNOT be removed.
-The pointer and the type CANNOT be changed.
+The `id` and the `type` CANNOT be changed.
 
 > If custom attribute were allowed to be removed, or its type were allowed to be changed, the developer can remove it and define
-> a new custom attribute with the same pointer but a incompatible type.
+> a new custom attribute with the same ID but a incompatible type.
 > This will result in a situation that is very complicated to handle.
 > Given that it is extremely easy to define custom attribute with just a few clicks,
 > a few clicks should never lead to such a complicated scenario.
 
-Other than `pointer` and `type`, the developer is allowed to freely change other supplementary configuration of a particular type of custom attribute.
+The `pointer` can be changed as long as the developer is aware of the consequence of the rename.
+They have to be prepared for receiving custom attributes shown in the new pointer.
+
+The developer is allowed to freely change other supplementary configuration of a particular type of custom attribute.
 However, it is the developer's responsible to make sure they can handle that situation.
 
 The label of the custom attribute can be localized with the translation key `custom-attribute-label-{pointer}`.
@@ -203,7 +217,8 @@ Optionally, the developer can define the minimum and the maximum allowed value.
 For example, if the developer wants to define a custom attribute of non-negative integer, they write
 
 ```
-- pointer: /x_age
+- id: "0000"
+  pointer: /x_age
   type: integer
   minimum: 0
   maximum: 200
@@ -221,7 +236,8 @@ Optionally, the developer can define the minimum and the maximum allowed value.
 For example, if the developer wants to define a custom attribute of non-negative number, they write
 
 ```
-- pointer: /hourly_wage
+- id: "0000"
+  pointer: /hourly_wage
   type: number
   minimum: 0.0
   maximum: 100.0
@@ -238,7 +254,8 @@ The UI control of it is a text field restricted to numbers.
 For example,
 
 ```
-- pointer: /x_rank
+- id: "0000"
+  pointer: /x_rank
   type: enum
   enum: ["junior", "senior", "staff"]
 ```
@@ -357,7 +374,8 @@ user_profile:
         portal_ui: readwrite
   custom_attributes:
     attributes:
-    - pointer: /hobby
+    - id: "0000"
+      pointer: /hobby
       type: string
       access_control:
         end_user: hidden
