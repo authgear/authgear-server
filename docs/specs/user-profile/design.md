@@ -166,7 +166,7 @@ Each custom attribute MUST have an unique pointer and of one of the defined type
 The pointer of custom attribute MUST have exactly ONE level, as in `/this_is_one_level`.
 The pointer MUST also be non-empty, so `/` is not a valid pointer.
 
-Only `a-z`, `A-Z` and `_` character are allowed in the pointer of custom attribute.
+Only `a-z`, `A-Z`, `0-9` and `_` character are allowed in the pointer of custom attribute.
 
 The pointer MUST NOT conflict with the pointer of any standard attributes,
 so the developer CANNOT define a custom attribute with pointer `/email`.
