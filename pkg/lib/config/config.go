@@ -70,6 +70,7 @@ type AppConfig struct {
 	Verification   *VerificationConfig   `json:"verification,omitempty"`
 }
 
+// nolint: gocyclo
 func (c *AppConfig) Validate(ctx *validation.Context) {
 	for i, client := range c.OAuth.Clients {
 		if client.RefreshTokenLifetime < client.AccessTokenLifetime {
