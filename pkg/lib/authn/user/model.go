@@ -46,6 +46,7 @@ type User struct {
 	IsDisabled         bool
 	DisableReason      *string
 	StandardAttributes map[string]interface{}
+	CustomAttributes   map[string]interface{}
 }
 
 func (u *User) GetMeta() model.Meta {
@@ -75,6 +76,7 @@ func newUserModel(
 	authenticators []*authenticator.Info,
 	isVerified bool,
 	derivedStandardAttributes map[string]interface{},
+	customAttributes map[string]interface{},
 ) *model.User {
 	isAnonymous := false
 	for _, i := range identities {
@@ -107,5 +109,6 @@ func newUserModel(
 		CanReauthenticate:  canReauthenticate,
 		DisableReason:      user.DisableReason,
 		StandardAttributes: derivedStandardAttributes,
+		CustomAttributes:   customAttributes,
 	}
 }
