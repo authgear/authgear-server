@@ -8,6 +8,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -68,6 +69,10 @@ type StandardAttributesFacade interface {
 	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
+type CustomAttributesFacade interface {
+	FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error)
+}
+
 type SessionFacade interface {
 	List(userID string) ([]session.Session, error)
 	Get(id string) (session.Session, error)
@@ -94,6 +99,7 @@ type Context struct {
 	VerificationFacade       VerificationFacade
 	SessionFacade            SessionFacade
 	StandardAttributesFacade StandardAttributesFacade
+	CustomAttributesFacade   CustomAttributesFacade
 }
 
 func (c *Context) Logger() *log.Logger {

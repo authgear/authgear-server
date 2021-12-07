@@ -715,6 +715,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	standardAttributesFacade := &facade2.StandardAttributesFacade{
 		StandardAttributes: stdattrsService,
 	}
+	customAttributesFacade := &facade2.CustomAttributesFacade{
+		CustomAttributes: customattrsService,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:                logger,
 		Users:                    userLoader,
@@ -728,6 +731,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		VerificationFacade:       verificationFacade,
 		SessionFacade:            sessionFacade,
 		StandardAttributesFacade: standardAttributesFacade,
+		CustomAttributesFacade:   customAttributesFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,

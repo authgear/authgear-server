@@ -11,6 +11,7 @@ import (
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -50,6 +51,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
 	wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 	wire.Bind(new(facade.StandardAttributesService), new(*featurestdattrs.Service)),
+	wire.Bind(new(facade.CustomAttributesService), new(*customattrs.Service)),
 	wire.Bind(new(facade.SessionManager), new(*session.Manager)),
 	wire.Bind(new(facade.AuditLogQuery), new(*audit.Query)),
 
@@ -65,6 +67,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.SessionFacade), new(*facade.SessionFacade)),
 	wire.Bind(new(graphql.AuditLogFacade), new(*facade.AuditLogFacade)),
 	wire.Bind(new(graphql.StandardAttributesFacade), new(*facade.StandardAttributesFacade)),
+	wire.Bind(new(graphql.CustomAttributesFacade), new(*facade.CustomAttributesFacade)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),
