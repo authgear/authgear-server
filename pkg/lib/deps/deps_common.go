@@ -184,7 +184,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
-		wire.Bind(new(featurestdattrs.UserQueries), new(*user.Queries)),
+		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
 		wire.Bind(new(facade.UserCommands), new(*user.Commands)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
@@ -246,6 +246,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		verification.DependencySet,
+		wire.Bind(new(featurestdattrs.ClaimStore), new(*verification.StorePQ)),
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
 		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
@@ -288,6 +289,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		featurestdattrs.DependencySet,
+		wire.Bind(new(user.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 		wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(interaction.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(hook.StdAttrsServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),

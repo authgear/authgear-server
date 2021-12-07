@@ -23,20 +23,16 @@ type UserService interface {
 	Delete(userID string) error
 }
 
-type StdAttrsService interface {
-	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
-}
-
 type UserSearchService interface {
 	ReindexUser(userID string, isDelete bool) error
 	QueryUser(searchKeyword string, sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *libes.Stats, error)
 }
 
 type UserFacade struct {
-	UserSearchService UserSearchService
-	Users             UserService
-	StdAttrsService   StdAttrsService
-	Interaction       InteractionService
+	UserSearchService  UserSearchService
+	Users              UserService
+	StandardAttributes StandardAttributesService
+	Interaction        InteractionService
 }
 
 func (f *UserFacade) ListPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
@@ -130,7 +126,7 @@ func (f *UserFacade) Delete(id string) error {
 }
 
 func (f *UserFacade) UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error {
-	err := f.StdAttrsService.UpdateStandardAttributes(role, id, stdAttrs)
+	err := f.StandardAttributes.UpdateStandardAttributes(role, id, stdAttrs)
 	if err != nil {
 		return err
 	}
