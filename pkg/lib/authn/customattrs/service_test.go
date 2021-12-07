@@ -48,6 +48,47 @@ func TestService(t *testing.T) {
 			})
 		})
 
+		Convey("ToStorageForm", func() {
+			s := &Service{
+				Config: &config.CustomAttributesConfig{
+					Attributes: []*config.CustomAttributesAttributeConfig{
+						&config.CustomAttributesAttributeConfig{
+							ID:      "0000",
+							Pointer: "/a",
+							Type:    "string",
+						},
+						&config.CustomAttributesAttributeConfig{
+							ID:      "0001",
+							Pointer: "/b",
+							Type:    "string",
+						},
+					},
+				},
+			}
+
+			Convey("transform to storage form", func() {
+				actual, err := s.ToStorageForm(T{
+					"a": "a",
+					"b": "b",
+				})
+				So(err, ShouldBeNil)
+				So(actual, ShouldResemble, map[string]interface{}{
+					"0000": "a",
+					"0001": "b",
+				})
+			})
+
+			Convey("ignore absent attributes", func() {
+				actual, err := s.ToStorageForm(T{
+					"a": "a",
+				})
+				So(err, ShouldBeNil)
+				So(actual, ShouldResemble, map[string]interface{}{
+					"0000": "a",
+				})
+			})
+		})
+
 		Convey("GenerateSchemaString", func() {
 			newFloat := func(f float64) *float64 {
 				return &f

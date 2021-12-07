@@ -35,6 +35,21 @@ func (s *Service) FromStorageForm(storageForm map[string]interface{}) (T, error)
 	return out, nil
 }
 
+func (s *Service) ToStorageForm(t T) (map[string]interface{}, error) {
+	out := make(map[string]interface{})
+	for _, c := range s.Config.Attributes {
+		ptr, err := jsonpointer.Parse(c.Pointer)
+		if err != nil {
+			return nil, err
+		}
+
+		if val, err := ptr.Traverse(t); err == nil {
+			out[c.ID] = val
+		}
+	}
+	return out, nil
+}
+
 func (s *Service) GenerateSchemaString(pointers []string) (schemaStr string, err error) {
 	properties := make(map[string]interface{})
 
