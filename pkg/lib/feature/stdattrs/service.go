@@ -1,6 +1,8 @@
 package stdattrs
 
 import (
+	"time"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -92,4 +94,8 @@ func (s *Service) UpdateStandardAttributes(role accesscontrol.Role, userID strin
 	}
 
 	return nil
+}
+
+func (s *Service) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+	return s.ServiceNoEvent.DeriveStandardAttributes(role, userID, updatedAt, attrs)
 }

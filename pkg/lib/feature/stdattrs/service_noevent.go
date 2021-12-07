@@ -3,18 +3,25 @@ package stdattrs
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 )
+
+type ClaimStore interface {
+	ListByClaimName(userID string, claimName string) ([]*verification.Claim, error)
+}
 
 type ServiceNoEvent struct {
 	UserProfileConfig *config.UserProfileConfig
 	Identities        IdentityService
 	UserQueries       UserQueries
 	UserStore         UserStore
+	ClaimStore        ClaimStore
 }
 
 func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) (err error) {
@@ -171,4 +178,60 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 	}
 
 	return nil
+}
+
+// DeriveStandardAttributes populates email_verified and phone_number_verified,
+// if email or phone_number are found in attrs.
+func (s *ServiceNoEvent) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+	out := make(map[string]interface{})
+
+	for key, value := range attrs {
+		// Copy
+		out[key] = value
+
+		// Email
+		if key == stdattrs.Email {
+			verified := false
+			if str, ok := value.(string); ok {
+				claims, err := s.ClaimStore.ListByClaimName(userID, stdattrs.Email)
+				if err != nil {
+					return nil, err
+				}
+				for _, claim := range claims {
+					if claim.Value == str {
+						verified = true
+					}
+				}
+			}
+			out[stdattrs.EmailVerified] = verified
+		}
+
+		// Phone number
+		if key == stdattrs.PhoneNumber {
+			verified := false
+			if str, ok := value.(string); ok {
+				claims, err := s.ClaimStore.ListByClaimName(userID, stdattrs.PhoneNumber)
+				if err != nil {
+					return nil, err
+				}
+				for _, claim := range claims {
+					if claim.Value == str {
+						verified = true
+					}
+				}
+			}
+			out[stdattrs.PhoneNumberVerified] = verified
+		}
+	}
+
+	// updated_at
+	out[stdattrs.UpdatedAt] = updatedAt.Unix()
+
+	accessControl := s.UserProfileConfig.StandardAttributes.GetAccessControl()
+	out = stdattrs.T(out).ReadWithAccessControl(
+		accessControl,
+		role,
+	).ToClaims()
+
+	return out, nil
 }
