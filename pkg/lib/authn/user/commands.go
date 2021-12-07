@@ -21,6 +21,7 @@ type Commands struct {
 	Events            EventService
 	Verification      VerificationService
 	UserProfileConfig *config.UserProfileConfig
+	CustomAttributes  CustomAttributesService
 }
 
 func (c *Commands) AfterCreate(
@@ -40,7 +41,12 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs)
+	customAttrs, err := c.CustomAttributes.FromStorageForm(user.CustomAttributes)
+	if err != nil {
+		return err
+	}
+
+	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())
