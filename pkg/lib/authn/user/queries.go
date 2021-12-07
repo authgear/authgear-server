@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
@@ -22,12 +23,17 @@ type VerificationService interface {
 	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
+type CustomAttributesService interface {
+	FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error)
+}
+
 type Queries struct {
 	*RawQueries
-	Store          store
-	Identities     IdentityService
-	Authenticators AuthenticatorService
-	Verification   VerificationService
+	Store            store
+	Identities       IdentityService
+	Authenticators   AuthenticatorService
+	Verification     VerificationService
+	CustomAttributes CustomAttributesService
 }
 
 func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
@@ -56,5 +62,10 @@ func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 		return nil, err
 	}
 
-	return newUserModel(user, identities, authenticators, isVerified, stdAttrs), nil
+	customAttrs, err := p.CustomAttributes.FromStorageForm(user.CustomAttributes)
+	if err != nil {
+		return nil, err
+	}
+
+	return newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs), nil
 }

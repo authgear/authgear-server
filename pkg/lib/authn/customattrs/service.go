@@ -14,12 +14,12 @@ import (
 )
 
 type Service struct {
-	Config *config.CustomAttributesConfig
+	Config *config.UserProfileConfig
 }
 
 func (s *Service) FromStorageForm(storageForm map[string]interface{}) (T, error) {
 	out := make(T)
-	for _, c := range s.Config.Attributes {
+	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
 		if err != nil {
 			return nil, err
@@ -37,7 +37,7 @@ func (s *Service) FromStorageForm(storageForm map[string]interface{}) (T, error)
 
 func (s *Service) ToStorageForm(t T) (map[string]interface{}, error) {
 	out := make(map[string]interface{})
-	for _, c := range s.Config.Attributes {
+	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
 		if err != nil {
 			return nil, err
@@ -54,7 +54,7 @@ func (s *Service) GenerateSchemaString(pointers []string) (schemaStr string, err
 	properties := make(map[string]interface{})
 
 	for _, ptrStr := range pointers {
-		for _, customAttr := range s.Config.Attributes {
+		for _, customAttr := range s.Config.CustomAttributes.Attributes {
 			if ptrStr != customAttr.Pointer {
 				continue
 			}

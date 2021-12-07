@@ -20,6 +20,7 @@ import (
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -397,12 +398,16 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -463,6 +468,7 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -1014,12 +1020,16 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -1080,6 +1090,7 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -1579,12 +1590,16 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -1645,6 +1660,7 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -2120,12 +2136,16 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -2413,12 +2433,16 @@ func newOAuthJWKSHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          store,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            store,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
@@ -2634,12 +2658,16 @@ func newOAuthUserInfoHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          store,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            store,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
@@ -2899,12 +2927,16 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -3263,12 +3295,16 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -3329,6 +3365,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -3851,12 +3888,16 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -3917,6 +3958,7 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -4473,12 +4515,16 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -4539,6 +4585,7 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -5095,12 +5142,16 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -5161,6 +5212,7 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -5704,12 +5756,16 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -5770,6 +5826,7 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -6314,12 +6371,16 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -6380,6 +6441,7 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -6916,12 +6978,16 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -6982,6 +7048,7 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -7521,12 +7588,16 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -7587,6 +7658,7 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -8129,12 +8201,16 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -8195,6 +8271,7 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -8734,12 +8811,16 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -8800,6 +8881,7 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -9338,12 +9420,16 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -9404,6 +9490,7 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -9943,12 +10030,16 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -10009,6 +10100,7 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -10549,12 +10641,16 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -10615,6 +10711,7 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -11153,12 +11250,16 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -11219,6 +11320,7 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -11757,12 +11859,16 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -11823,6 +11929,7 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -12363,12 +12470,16 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -12429,6 +12540,7 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -12967,12 +13079,16 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -13033,6 +13149,7 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -13571,12 +13688,16 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -13637,6 +13758,7 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -14178,12 +14300,16 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -14244,6 +14370,7 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -14782,12 +14909,16 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -14848,6 +14979,7 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -15391,12 +15523,16 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -15457,6 +15593,7 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -15995,12 +16132,16 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -16061,6 +16202,7 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -16600,12 +16742,16 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -16666,6 +16812,7 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -17204,12 +17351,16 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -17270,6 +17421,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -17830,12 +17982,16 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -17896,6 +18052,7 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -18445,12 +18602,16 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -18511,6 +18672,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -19067,12 +19229,16 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -19133,6 +19299,7 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -19673,12 +19840,16 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -19739,6 +19910,7 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -20278,12 +20450,16 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -20344,6 +20520,7 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -20892,12 +21069,16 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -20958,6 +21139,7 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -21497,12 +21679,16 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -21563,6 +21749,7 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -22102,12 +22289,16 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -22168,6 +22359,7 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -22708,12 +22900,16 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -22774,6 +22970,7 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -23318,12 +23515,16 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -23384,6 +23585,7 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -23923,12 +24125,16 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -23989,6 +24195,7 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -24528,12 +24735,16 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -24594,6 +24805,7 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -25133,12 +25345,16 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -25199,6 +25415,7 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -25738,12 +25955,16 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -25804,6 +26025,7 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -26342,12 +26564,16 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -26408,6 +26634,7 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -26965,12 +27192,16 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -27031,6 +27262,7 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -27569,12 +27801,16 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	rawQueries := &user.RawQueries{
 		Store: userStore,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	resolverImpl := &event.ResolverImpl{
 		Users: queries,
@@ -27635,6 +27871,7 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
@@ -28366,12 +28603,16 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,

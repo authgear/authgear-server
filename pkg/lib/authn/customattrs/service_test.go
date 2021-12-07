@@ -11,17 +11,19 @@ func TestService(t *testing.T) {
 	Convey("Service", t, func() {
 		Convey("FromStorageForm", func() {
 			s := &Service{
-				Config: &config.CustomAttributesConfig{
-					Attributes: []*config.CustomAttributesAttributeConfig{
-						&config.CustomAttributesAttributeConfig{
-							ID:      "0000",
-							Pointer: "/a",
-							Type:    "string",
-						},
-						&config.CustomAttributesAttributeConfig{
-							ID:      "0001",
-							Pointer: "/b",
-							Type:    "string",
+				Config: &config.UserProfileConfig{
+					CustomAttributes: &config.CustomAttributesConfig{
+						Attributes: []*config.CustomAttributesAttributeConfig{
+							&config.CustomAttributesAttributeConfig{
+								ID:      "0000",
+								Pointer: "/a",
+								Type:    "string",
+							},
+							&config.CustomAttributesAttributeConfig{
+								ID:      "0001",
+								Pointer: "/b",
+								Type:    "string",
+							},
 						},
 					},
 				},
@@ -50,17 +52,19 @@ func TestService(t *testing.T) {
 
 		Convey("ToStorageForm", func() {
 			s := &Service{
-				Config: &config.CustomAttributesConfig{
-					Attributes: []*config.CustomAttributesAttributeConfig{
-						&config.CustomAttributesAttributeConfig{
-							ID:      "0000",
-							Pointer: "/a",
-							Type:    "string",
-						},
-						&config.CustomAttributesAttributeConfig{
-							ID:      "0001",
-							Pointer: "/b",
-							Type:    "string",
+				Config: &config.UserProfileConfig{
+					CustomAttributes: &config.CustomAttributesConfig{
+						Attributes: []*config.CustomAttributesAttributeConfig{
+							&config.CustomAttributesAttributeConfig{
+								ID:      "0000",
+								Pointer: "/a",
+								Type:    "string",
+							},
+							&config.CustomAttributesAttributeConfig{
+								ID:      "0001",
+								Pointer: "/b",
+								Type:    "string",
+							},
 						},
 					},
 				},
@@ -95,44 +99,47 @@ func TestService(t *testing.T) {
 			}
 
 			s := &Service{
-				Config: &config.CustomAttributesConfig{
-					Attributes: []*config.CustomAttributesAttributeConfig{
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/string",
-							Type:    "string",
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/number",
-							Type:    "number",
-							Minimum: newFloat(1),
-							Maximum: newFloat(2),
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/integer",
-							Type:    "integer",
-							Minimum: newFloat(3),
-							Maximum: newFloat(4),
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/enum",
-							Type:    "enum",
-							Enum:    []string{"a", "b"},
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/x_phone",
-							Type:    "phone_number",
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/x_email",
-							Type:    "email",
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/x_url",
-							Type:    "url",
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/alpha2",
-							Type:    "alpha2",
+				Config: &config.UserProfileConfig{
+					CustomAttributes: &config.CustomAttributesConfig{
+
+						Attributes: []*config.CustomAttributesAttributeConfig{
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/string",
+								Type:    "string",
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/number",
+								Type:    "number",
+								Minimum: newFloat(1),
+								Maximum: newFloat(2),
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/integer",
+								Type:    "integer",
+								Minimum: newFloat(3),
+								Maximum: newFloat(4),
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/enum",
+								Type:    "enum",
+								Enum:    []string{"a", "b"},
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/x_phone",
+								Type:    "phone_number",
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/x_email",
+								Type:    "email",
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/x_url",
+								Type:    "url",
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/alpha2",
+								Type:    "alpha2",
+							},
 						},
 					},
 				},
@@ -223,44 +230,46 @@ func TestService(t *testing.T) {
 			}
 
 			s := &Service{
-				Config: &config.CustomAttributesConfig{
-					Attributes: []*config.CustomAttributesAttributeConfig{
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/string",
-							Type:    "string",
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/number",
-							Type:    "number",
-							Minimum: newFloat(1),
-							Maximum: newFloat(2),
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/integer",
-							Type:    "integer",
-							Minimum: newFloat(3),
-							Maximum: newFloat(4),
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/enum",
-							Type:    "enum",
-							Enum:    []string{"a", "b"},
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/x_phone",
-							Type:    "phone_number",
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/x_email",
-							Type:    "email",
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/x_url",
-							Type:    "url",
-						},
-						&config.CustomAttributesAttributeConfig{
-							Pointer: "/alpha2",
-							Type:    "alpha2",
+				Config: &config.UserProfileConfig{
+					CustomAttributes: &config.CustomAttributesConfig{
+						Attributes: []*config.CustomAttributesAttributeConfig{
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/string",
+								Type:    "string",
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/number",
+								Type:    "number",
+								Minimum: newFloat(1),
+								Maximum: newFloat(2),
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/integer",
+								Type:    "integer",
+								Minimum: newFloat(3),
+								Maximum: newFloat(4),
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/enum",
+								Type:    "enum",
+								Enum:    []string{"a", "b"},
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/x_phone",
+								Type:    "phone_number",
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/x_email",
+								Type:    "email",
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/x_url",
+								Type:    "url",
+							},
+							&config.CustomAttributesAttributeConfig{
+								Pointer: "/alpha2",
+								Type:    "alpha2",
+							},
 						},
 					},
 				},
