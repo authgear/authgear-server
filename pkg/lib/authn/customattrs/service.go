@@ -1,6 +1,9 @@
 package customattrs
 
 import (
+	"encoding/json"
+	"fmt"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -27,4 +30,88 @@ func (s *Service) FromStorageForm(storageForm map[string]interface{}) (T, error)
 		}
 	}
 	return out, nil
+}
+
+func (s *Service) GenerateSchemaString(pointers []string) (schemaStr string, err error) {
+	properties := make(map[string]interface{})
+
+	for _, ptrStr := range pointers {
+		for _, customAttr := range s.Config.Attributes {
+			if ptrStr != customAttr.Pointer {
+				continue
+			}
+
+			var ptr jsonpointer.T
+			ptr, err = jsonpointer.Parse(ptrStr)
+			if err != nil {
+				return
+			}
+			head := ptr[0]
+
+			var schema map[string]interface{}
+			schema, err = CustomAttributeConfigToSchema(customAttr)
+			if err != nil {
+				return
+			}
+
+			properties[head] = schema
+		}
+	}
+
+	schemaObj := map[string]interface{}{
+		"type":       "object",
+		"properties": properties,
+	}
+
+	schemaBytes, err := json.MarshalIndent(schemaObj, "", "  ")
+	if err != nil {
+		return
+	}
+
+	schemaStr = string(schemaBytes)
+	return
+}
+
+func CustomAttributeConfigToSchema(customAttr *config.CustomAttributesAttributeConfig) (schema map[string]interface{}, err error) {
+	schema = make(map[string]interface{})
+
+	switch customAttr.Type {
+	case config.CustomAttributeTypeString:
+		schema["type"] = "string"
+	case config.CustomAttributeTypeNumber:
+		schema["type"] = "number"
+		if customAttr.Minimum != nil {
+			schema["minimum"] = *customAttr.Minimum
+		}
+		if customAttr.Maximum != nil {
+			schema["maximum"] = *customAttr.Maximum
+		}
+	case config.CustomAttributeTypeInteger:
+		schema["type"] = "integer"
+		if customAttr.Minimum != nil {
+			schema["minimum"] = int64(*customAttr.Minimum)
+		}
+		if customAttr.Maximum != nil {
+			schema["maximum"] = int64(*customAttr.Maximum)
+		}
+	case config.CustomAttributeTypeEnum:
+		schema["type"] = "string"
+		schema["enum"] = customAttr.Enum
+	case config.CustomAttributeTypePhoneNumber:
+		schema["type"] = "string"
+		schema["format"] = "phone"
+	case config.CustomAttributeTypeEmail:
+		schema["type"] = "string"
+		schema["format"] = "email"
+	case config.CustomAttributeTypeURL:
+		schema["type"] = "string"
+		schema["format"] = "uri"
+	case config.CustomAttributeTypeAlpha2:
+		schema["type"] = "string"
+		schema["format"] = "iso3166-1-alpha-2"
+	default:
+		err = fmt.Errorf("unknown type: %v", customAttr.Type)
+	}
+
+	return
 }
