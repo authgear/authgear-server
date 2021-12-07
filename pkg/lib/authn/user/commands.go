@@ -17,11 +17,12 @@ type EventService interface {
 
 type Commands struct {
 	*RawCommands
-	RawQueries        *RawQueries
-	Events            EventService
-	Verification      VerificationService
-	UserProfileConfig *config.UserProfileConfig
-	CustomAttributes  CustomAttributesService
+	RawQueries         *RawQueries
+	Events             EventService
+	Verification       VerificationService
+	UserProfileConfig  *config.UserProfileConfig
+	StandardAttributes StandardAttributesService
+	CustomAttributes   CustomAttributesService
 }
 
 func (c *Commands) AfterCreate(
@@ -36,7 +37,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	stdAttrs, err := c.Verification.DeriveStandardAttributes(accesscontrol.EmptyRole, user.ID, user.UpdatedAt, user.StandardAttributes)
+	stdAttrs, err := c.StandardAttributes.DeriveStandardAttributes(accesscontrol.EmptyRole, user.ID, user.UpdatedAt, user.StandardAttributes)
 	if err != nil {
 		return err
 	}
