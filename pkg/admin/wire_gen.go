@@ -21,6 +21,7 @@ import (
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -325,12 +326,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          store,
-		Identities:     serviceService,
-		Authenticators: service4,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            store,
+		Identities:       serviceService,
+		Authenticators:   service4,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
@@ -448,6 +453,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:            eventService,
 		Verification:      verificationService,
 		UserProfileConfig: userProfileConfig,
+		CustomAttributes:  customattrsService,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,

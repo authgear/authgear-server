@@ -11,6 +11,7 @@ import (
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -140,6 +141,11 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		stdattrs.DependencySet,
 		wire.Bind(new(sso.StandardAttributesNormalizer), new(*stdattrs.Normalizer)),
+	),
+
+	wire.NewSet(
+		customattrs.DependencySet,
+		wire.Bind(new(user.CustomAttributesService), new(*customattrs.Service)),
 	),
 
 	wire.NewSet(
