@@ -3,11 +3,14 @@ package customattrs
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type Service struct {
@@ -70,6 +73,30 @@ func (s *Service) GenerateSchemaString(pointers []string) (schemaStr string, err
 
 	schemaStr = string(schemaBytes)
 	return
+}
+
+func (s *Service) Validate(pointers []string, input T) error {
+	schemaStr, err := s.GenerateSchemaString(pointers)
+	if err != nil {
+		return err
+	}
+
+	col := jsonschema.NewCollection()
+	err = col.AddSchema(strings.NewReader(schemaStr), "")
+	if err != nil {
+		return err
+	}
+
+	validator := &validation.SchemaValidator{
+		Schema: col,
+	}
+
+	err = validator.ValidateValue(map[string]interface{}(input))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func CustomAttributeConfigToSchema(customAttr *config.CustomAttributesAttributeConfig) (schema map[string]interface{}, err error) {
