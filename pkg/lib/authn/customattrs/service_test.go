@@ -175,5 +175,140 @@ func TestService(t *testing.T) {
 }
 			`)
 		})
+
+		Convey("Validate", func() {
+			newFloat := func(f float64) *float64 {
+				return &f
+			}
+
+			s := &Service{
+				Config: &config.CustomAttributesConfig{
+					Attributes: []*config.CustomAttributesAttributeConfig{
+						&config.CustomAttributesAttributeConfig{
+							Pointer: "/string",
+							Type:    "string",
+						},
+						&config.CustomAttributesAttributeConfig{
+							Pointer: "/number",
+							Type:    "number",
+							Minimum: newFloat(1),
+							Maximum: newFloat(2),
+						},
+						&config.CustomAttributesAttributeConfig{
+							Pointer: "/integer",
+							Type:    "integer",
+							Minimum: newFloat(3),
+							Maximum: newFloat(4),
+						},
+						&config.CustomAttributesAttributeConfig{
+							Pointer: "/enum",
+							Type:    "enum",
+							Enum:    []string{"a", "b"},
+						},
+						&config.CustomAttributesAttributeConfig{
+							Pointer: "/x_phone",
+							Type:    "phone_number",
+						},
+						&config.CustomAttributesAttributeConfig{
+							Pointer: "/x_email",
+							Type:    "email",
+						},
+						&config.CustomAttributesAttributeConfig{
+							Pointer: "/x_url",
+							Type:    "url",
+						},
+						&config.CustomAttributesAttributeConfig{
+							Pointer: "/alpha2",
+							Type:    "alpha2",
+						},
+					},
+				},
+			}
+
+			test := func(pointers []string, value map[string]interface{}, errStr string) {
+				err := s.Validate(pointers, T(value))
+				if errStr == "" {
+					So(err, ShouldBeNil)
+				} else {
+					So(err, ShouldBeError, errStr)
+				}
+			}
+
+			// Validate the only invalid value.
+			test([]string{"/number"}, map[string]interface{}{
+				"number": 3,
+			}, `invalid value:
+/number: maximum
+  map[actual:3 maximum:2]`)
+
+			// Only validate listed pointers.
+			test([]string{"/number"}, map[string]interface{}{
+				"number":  3, // invalid, should be validated.
+				"integer": 0, // invalid, but should not be validated
+			}, `invalid value:
+/number: maximum
+  map[actual:3 maximum:2]`)
+
+			// Validate all invalid values.
+			test([]string{"/number", "/integer"}, map[string]interface{}{
+				"number":  3, // invalid, should be validated.
+				"integer": 0, // invalid, should be validated.
+			}, `invalid value:
+/integer: minimum
+  map[actual:0 minimum:3]
+/number: maximum
+  map[actual:3 maximum:2]`)
+
+			// Validate enum
+			test([]string{"/enum"}, map[string]interface{}{
+				"enum": "foobar",
+			}, `invalid value:
+/enum: enum
+  map[actual:foobar expected:[a b]]`)
+			test([]string{"/enum"}, map[string]interface{}{
+				"enum": "a",
+			}, ``)
+
+			// Validate phone number
+			test([]string{"/x_phone"}, map[string]interface{}{
+				"x_phone": "foobar",
+			}, `invalid value:
+/x_phone: format
+  map[error:not in E.164 format format:phone]`)
+			test([]string{"/x_phone"}, map[string]interface{}{
+				"x_phone": "+85298765432",
+			}, ``)
+
+			// Validate email
+			test([]string{"/x_email"}, map[string]interface{}{
+				"x_email": "foobar",
+			}, `invalid value:
+/x_email: format
+  map[error:invalid email address: mail: missing '@' or angle-addr format:email]`)
+			test([]string{"/x_email"}, map[string]interface{}{
+				"x_email": "user@example.com",
+			}, ``)
+
+			// Validate url
+			test([]string{"/x_url"}, map[string]interface{}{
+				"x_url": "foobar",
+			}, `invalid value:
+/x_url: format
+  map[error:input URL must be absolute format:uri]`)
+			test([]string{"/x_url"}, map[string]interface{}{
+				"x_url": "http://127.0.0.1",
+			}, ``)
+
+			// Validate alpha2
+			test([]string{"/alpha2"}, map[string]interface{}{
+				"alpha2": "foobar",
+			}, `invalid value:
+/alpha2: format
+  map[error:invalid ISO 3166-1 alpha-2 code: "foobar" format:iso3166-1-alpha-2]`)
+			test([]string{"/x_url"}, map[string]interface{}{
+				"alpha2": "US",
+			}, ``)
+
+		})
 	})
 }
