@@ -15,6 +15,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
+	"github.com/authgear/authgear-server/pkg/util/territoryutil"
 )
 
 func init() {
@@ -27,6 +28,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
 	jsonschemaformat.DefaultChecker["timezone"] = FormatTimezone{}
 	jsonschemaformat.DefaultChecker["birthdate"] = FormatBirthdate{}
+	jsonschemaformat.DefaultChecker["iso3166-1-alpha-2"] = FormatAlpha2{}
 	jsonschemaformat.DefaultChecker["x_totp_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_oob_otp_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_verification_code"] = secretcode.OOBOTPSecretCode
@@ -250,4 +252,21 @@ func (FormatBirthdate) CheckFormat(value interface{}) error {
 	}
 
 	return fmt.Errorf("invalid birthdate: %#v", str)
+}
+
+type FormatAlpha2 struct{}
+
+func (FormatAlpha2) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	for _, allowed := range territoryutil.Alpha2 {
+		if allowed == str {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("invalid ISO 3166-1 alpha-2 code: %#v", str)
 }
