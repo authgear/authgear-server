@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	service2 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -333,12 +334,16 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	customattrsService := &customattrs.Service{
+		Config: userProfileConfig,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          userStore,
-		Identities:     serviceService,
-		Authenticators: service3,
-		Verification:   verificationService,
+		RawQueries:       rawQueries,
+		Store:            userStore,
+		Identities:       serviceService,
+		Authenticators:   service3,
+		Verification:     verificationService,
+		CustomAttributes: customattrsService,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
