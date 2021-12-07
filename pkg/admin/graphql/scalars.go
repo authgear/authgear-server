@@ -21,3 +21,8 @@ var UserStandardAttributes = graphqlutil.NewJSONObjectScalar(
 	"UserStandardAttributes",
 	"The `UserStandardAttributes` scalar type represents the standard attributes of the user",
 )
+
+var UserCustomAttributes = graphqlutil.NewJSONObjectScalar(
+	"UserCustomAttributes",
+	"The `UserCustomAttributes` scalar type represents the custom attributes of the user",
+)

@@ -119,6 +119,18 @@ var nodeUser = node(
 					return attrs, nil
 				},
 			},
+			"customAttributes": &graphql.Field{
+				Type: graphql.NewNonNull(UserCustomAttributes),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*user.User)
+					gqlCtx := GQLContext(p.Context)
+					attrs, err := gqlCtx.CustomAttributesFacade.FromStorageForm(source.CustomAttributes)
+					if err != nil {
+						return nil, err
+					}
+					return attrs, nil
+				},
+			},
 		},
 	}),
 	&user.User{},
