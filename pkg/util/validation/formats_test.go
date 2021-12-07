@@ -150,3 +150,20 @@ func TestFormatBirthdate(t *testing.T) {
 		So(f("2021-01-01"), ShouldBeNil)
 	})
 }
+
+func TestFormatAlpha2(t *testing.T) {
+	f := FormatAlpha2{}.CheckFormat
+
+	Convey("FormatAlpha2", t, func() {
+		So(f(1), ShouldBeNil)
+
+		So(f(""), ShouldBeError, `invalid ISO 3166-1 alpha-2 code: ""`)
+		So(f("foobar"), ShouldBeError, `invalid ISO 3166-1 alpha-2 code: "foobar"`)
+
+		So(f("US"), ShouldBeNil)
+		So(f("HK"), ShouldBeNil)
+		So(f("CN"), ShouldBeNil)
+		So(f("TW"), ShouldBeNil)
+		So(f("JP"), ShouldBeNil)
+	})
+}
