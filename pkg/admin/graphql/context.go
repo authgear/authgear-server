@@ -62,6 +62,9 @@ type AuthenticatorFacade interface {
 type VerificationFacade interface {
 	Get(userID string) ([]model.Claim, error)
 	SetVerified(userID string, claimName string, claimValue string, isVerified bool) error
+}
+
+type StandardAttributesFacade interface {
 	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
@@ -84,12 +87,13 @@ type Context struct {
 	Authenticators AuthenticatorLoader
 	AuditLogs      AuditLogLoader
 
-	UserFacade          UserFacade
-	AuditLogFacade      AuditLogFacade
-	IdentityFacade      IdentityFacade
-	AuthenticatorFacade AuthenticatorFacade
-	VerificationFacade  VerificationFacade
-	SessionFacade       SessionFacade
+	UserFacade               UserFacade
+	AuditLogFacade           AuditLogFacade
+	IdentityFacade           IdentityFacade
+	AuthenticatorFacade      AuthenticatorFacade
+	VerificationFacade       VerificationFacade
+	SessionFacade            SessionFacade
+	StandardAttributesFacade StandardAttributesFacade
 }
 
 func (c *Context) Logger() *log.Logger {
