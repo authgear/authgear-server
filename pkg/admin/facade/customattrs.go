@@ -6,7 +6,7 @@ import (
 
 type CustomAttributesService interface {
 	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
-	UpdateCustomAttributes(id string, customAttrs map[string]interface{}) error
+	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, customAttrs map[string]interface{}) error
 }
 
 type CustomAttributesFacade struct {
@@ -21,6 +21,6 @@ func (f *CustomAttributesFacade) ReadCustomAttributesInStorageForm(
 	return f.CustomAttributes.ReadCustomAttributesInStorageForm(role, userID, storageForm)
 }
 
-func (f *CustomAttributesFacade) UpdateCustomAttributes(id string, customAttrs map[string]interface{}) error {
-	return f.CustomAttributes.UpdateCustomAttributes(id, customAttrs)
+func (f *CustomAttributesFacade) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, customAttrs map[string]interface{}) error {
+	return f.CustomAttributes.UpdateAllCustomAttributes(role, userID, customAttrs)
 }

@@ -343,8 +343,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 	}
 	customattrsService := &customattrs.Service{
-		Config:    userProfileConfig,
-		UserStore: userStore,
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   userStore,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
