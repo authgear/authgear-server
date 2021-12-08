@@ -3,8 +3,10 @@ package customattrs
 import (
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func TestService(t *testing.T) {
@@ -35,7 +37,7 @@ func TestService(t *testing.T) {
 					"0001": "b",
 				})
 				So(err, ShouldBeNil)
-				So(actual, ShouldResemble, T{
+				So(actual, ShouldResemble, customattrs.T{
 					"a": "a",
 					"b": "b",
 				})
@@ -46,7 +48,7 @@ func TestService(t *testing.T) {
 					"0002": "c",
 				})
 				So(err, ShouldBeNil)
-				So(actual, ShouldResemble, T{})
+				So(actual, ShouldResemble, customattrs.T{})
 			})
 		})
 
@@ -71,7 +73,7 @@ func TestService(t *testing.T) {
 			}
 
 			Convey("transform to storage form", func() {
-				actual, err := s.ToStorageForm(T{
+				actual, err := s.ToStorageForm(customattrs.T{
 					"a": "a",
 					"b": "b",
 				})
@@ -83,7 +85,7 @@ func TestService(t *testing.T) {
 			})
 
 			Convey("ignore absent attributes", func() {
-				actual, err := s.ToStorageForm(T{
+				actual, err := s.ToStorageForm(customattrs.T{
 					"a": "a",
 				})
 				So(err, ShouldBeNil)
@@ -276,7 +278,7 @@ func TestService(t *testing.T) {
 			}
 
 			test := func(pointers []string, value map[string]interface{}, errStr string) {
-				err := s.Validate(pointers, T(value))
+				err := s.Validate(pointers, customattrs.T(value))
 				if errStr == "" {
 					So(err, ShouldBeNil)
 				} else {

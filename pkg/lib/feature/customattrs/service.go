@@ -8,6 +8,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -17,8 +18,8 @@ type Service struct {
 	Config *config.UserProfileConfig
 }
 
-func (s *Service) FromStorageForm(storageForm map[string]interface{}) (T, error) {
-	out := make(T)
+func (s *Service) FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
+	out := make(customattrs.T)
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
 		if err != nil {
@@ -35,7 +36,7 @@ func (s *Service) FromStorageForm(storageForm map[string]interface{}) (T, error)
 	return out, nil
 }
 
-func (s *Service) ToStorageForm(t T) (map[string]interface{}, error) {
+func (s *Service) ToStorageForm(t customattrs.T) (map[string]interface{}, error) {
 	out := make(map[string]interface{})
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
@@ -90,7 +91,7 @@ func (s *Service) GenerateSchemaString(pointers []string) (schemaStr string, err
 	return
 }
 
-func (s *Service) Validate(pointers []string, input T) error {
+func (s *Service) Validate(pointers []string, input customattrs.T) error {
 	schemaStr, err := s.GenerateSchemaString(pointers)
 	if err != nil {
 		return err
