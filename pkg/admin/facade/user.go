@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
-	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -119,18 +118,6 @@ func (f *UserFacade) Delete(id string) error {
 		return err
 	}
 	err = f.UserSearchService.ReindexUser(id, true)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (f *UserFacade) UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error {
-	err := f.StandardAttributes.UpdateStandardAttributes(role, id, stdAttrs)
-	if err != nil {
-		return err
-	}
-	err = f.UserSearchService.ReindexUser(id, false)
 	if err != nil {
 		return err
 	}
