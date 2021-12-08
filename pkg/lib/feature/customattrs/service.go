@@ -8,19 +8,25 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+type UserQueries interface {
+	GetRaw(userID string) (*user.User, error)
+}
+
 type UserStore interface {
 	UpdateCustomAttributes(userID string, storageForm map[string]interface{}) error
 }
 
 type Service struct {
-	Config    *config.UserProfileConfig
-	UserStore UserStore
+	Config      *config.UserProfileConfig
+	UserQueries UserQueries
+	UserStore   UserStore
 }
 
 func (s *Service) fromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
@@ -127,16 +133,37 @@ func (s *Service) allPointers() (out []string) {
 	return
 }
 
-func (s *Service) UpdateCustomAttributes(userID string, reprForm map[string]interface{}) error {
-	customAttrs := customattrs.T(reprForm)
+func (s *Service) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
 	pointers := s.allPointers()
+	return s.UpdateCustomAttributes(role, userID, pointers, reprForm)
+}
 
-	err := s.Validate(pointers, customAttrs)
+func (s *Service) UpdateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
+	incoming := customattrs.T(reprForm)
+
+	err := s.Validate(pointers, incoming)
 	if err != nil {
 		return err
 	}
 
-	storageForm, err := s.ToStorageForm(customAttrs)
+	user, err := s.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	original, err := s.fromStorageForm(user.CustomAttributes)
+	if err != nil {
+		return err
+	}
+
+	accessControl := s.Config.CustomAttributes.GetAccessControl()
+
+	updated, err := original.Update(accessControl, role, pointers, incoming)
+	if err != nil {
+		return err
+	}
+
+	storageForm, err := s.ToStorageForm(updated)
 	if err != nil {
 		return err
 	}

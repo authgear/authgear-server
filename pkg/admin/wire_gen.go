@@ -334,8 +334,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 	}
 	customattrsService := &customattrs.Service{
-		Config:    userProfileConfig,
-		UserStore: store,
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
 	}
 	queries := &user.Queries{
 		RawQueries:         rawQueries,
