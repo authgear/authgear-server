@@ -43,6 +43,8 @@ func TestGetLevel(t *testing.T) {
 		So(f(Gender, EndUser, 0), ShouldEqual, Readonly)
 		So(f(Name, AdminUser, 0), ShouldEqual, Readwrite)
 		So(f(Gender, AdminUser, 0), ShouldEqual, Readwrite)
+
+		So(f(Name, RoleGreatest, 0), ShouldEqual, LevelGreatest)
 	})
 
 	Convey("GetLevel default", t, func() {
@@ -52,5 +54,7 @@ func TestGetLevel(t *testing.T) {
 		So(f(Gender, EndUser, 0), ShouldEqual, 0)
 		So(f(Name, AdminUser, 0), ShouldEqual, 0)
 		So(f(Gender, AdminUser, 0), ShouldEqual, 0)
+
+		So(f(Name, RoleGreatest, 0), ShouldEqual, LevelGreatest)
 	})
 }

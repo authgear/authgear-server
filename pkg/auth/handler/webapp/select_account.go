@@ -191,7 +191,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				// 3. canUseIntentReauthenticate
 				// 4. user.CanReauthenticate
 
-				user, err := h.Users.Get(userIDHint, accesscontrol.EmptyRole)
+				user, err := h.Users.Get(userIDHint, accesscontrol.RoleGreatest)
 				if err != nil {
 					return err
 				}
