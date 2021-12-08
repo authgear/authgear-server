@@ -310,7 +310,7 @@ var _ = registerMutationField(
 
 			stdAttrs := input["standardAttributes"].(map[string]interface{})
 
-			err := gqlCtx.UserFacade.UpdateStandardAttributes(config.RolePortalUI, userID, stdAttrs)
+			err := gqlCtx.StandardAttributesFacade.UpdateStandardAttributes(config.RolePortalUI, userID, stdAttrs)
 			if err != nil {
 				return nil, err
 			}
