@@ -6,6 +6,7 @@ import (
 
 type CustomAttributesService interface {
 	FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error)
+	UpdateCustomAttributes(id string, customAttrs map[string]interface{}) error
 }
 
 type CustomAttributesFacade struct {
@@ -14,4 +15,8 @@ type CustomAttributesFacade struct {
 
 func (f *CustomAttributesFacade) FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
 	return f.CustomAttributes.FromStorageForm(storageForm)
+}
+
+func (f *CustomAttributesFacade) UpdateCustomAttributes(id string, customAttrs map[string]interface{}) error {
+	return f.CustomAttributes.UpdateCustomAttributes(id, customAttrs)
 }
