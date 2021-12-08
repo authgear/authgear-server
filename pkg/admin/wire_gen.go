@@ -333,7 +333,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:         store,
 		ClaimStore:        storePQ,
 	}
-	customattrsService := &customattrs.Service{
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
 		UserStore:   store,
@@ -345,7 +345,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:     service4,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsService,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
@@ -458,7 +458,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsService,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -718,7 +718,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StandardAttributes: stdattrsService,
 	}
 	customAttributesFacade := &facade2.CustomAttributesFacade{
-		CustomAttributes: customattrsService,
+		CustomAttributes: customattrsServiceNoEvent,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:                logger,
