@@ -342,7 +342,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserStore:         userStore,
 		ClaimStore:        storePQ,
 	}
-	customattrsService := &customattrs.Service{
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
 		Config:      userProfileConfig,
 		UserQueries: rawQueries,
 		UserStore:   userStore,
@@ -354,7 +354,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Authenticators:     service3,
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
-		CustomAttributes:   customattrsService,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
 		Secrets: oAuthKeyMaterials,
