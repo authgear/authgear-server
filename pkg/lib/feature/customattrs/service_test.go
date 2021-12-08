@@ -52,7 +52,7 @@ func TestService(t *testing.T) {
 			})
 		})
 
-		Convey("ToStorageForm", func() {
+		Convey("toStorageForm", func() {
 			s := &Service{
 				Config: &config.UserProfileConfig{
 					CustomAttributes: &config.CustomAttributesConfig{
@@ -73,7 +73,7 @@ func TestService(t *testing.T) {
 			}
 
 			Convey("transform to storage form", func() {
-				actual, err := s.ToStorageForm(customattrs.T{
+				actual, err := s.toStorageForm(customattrs.T{
 					"a": "a",
 					"b": "b",
 				})
@@ -85,7 +85,7 @@ func TestService(t *testing.T) {
 			})
 
 			Convey("ignore absent attributes", func() {
-				actual, err := s.ToStorageForm(customattrs.T{
+				actual, err := s.toStorageForm(customattrs.T{
 					"a": "a",
 				})
 				So(err, ShouldBeNil)
@@ -95,7 +95,7 @@ func TestService(t *testing.T) {
 			})
 		})
 
-		Convey("GenerateSchemaString", func() {
+		Convey("generateSchemaString", func() {
 			newFloat := func(f float64) *float64 {
 				return &f
 			}
@@ -148,7 +148,7 @@ func TestService(t *testing.T) {
 			}
 
 			test := func(pointers []string, schemaStr string) {
-				actual, err := s.GenerateSchemaString(pointers)
+				actual, err := s.generateSchemaString(pointers)
 				So(err, ShouldBeNil)
 				So(actual, ShouldEqualJSON, schemaStr)
 			}
@@ -226,7 +226,7 @@ func TestService(t *testing.T) {
 			`)
 		})
 
-		Convey("Validate", func() {
+		Convey("validate", func() {
 			newFloat := func(f float64) *float64 {
 				return &f
 			}
@@ -278,7 +278,7 @@ func TestService(t *testing.T) {
 			}
 
 			test := func(pointers []string, value map[string]interface{}, errStr string) {
-				err := s.Validate(pointers, customattrs.T(value))
+				err := s.validate(pointers, customattrs.T(value))
 				if errStr == "" {
 					So(err, ShouldBeNil)
 				} else {
