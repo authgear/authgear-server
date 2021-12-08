@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -320,7 +321,7 @@ var _ = registerMutationField(
 			}
 
 			customAttrs := input["customAttributes"].(map[string]interface{})
-			err = gqlCtx.CustomAttributesFacade.UpdateCustomAttributes(userID, customAttrs)
+			err = gqlCtx.CustomAttributesFacade.UpdateAllCustomAttributes(accesscontrol.RoleGreatest, userID, customAttrs)
 			if err != nil {
 				return nil, err
 			}
