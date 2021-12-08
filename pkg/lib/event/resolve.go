@@ -30,7 +30,7 @@ func (r *ResolverImpl) Resolve(anything interface{}) (err error) {
 						userRef := struc.Field(i).Interface().(model.UserRef)
 
 						var u *model.User
-						u, err = r.Users.Get(userRef.ID, accesscontrol.EmptyRole)
+						u, err = r.Users.Get(userRef.ID, accesscontrol.RoleGreatest)
 						if errors.Is(err, user.ErrUserNotFound) {
 							continue
 						}
