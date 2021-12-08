@@ -13,8 +13,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+type UserStore interface {
+	UpdateCustomAttributes(userID string, storageForm map[string]interface{}) error
+}
+
 type Service struct {
-	Config *config.UserProfileConfig
+	Config    *config.UserProfileConfig
+	UserStore UserStore
 }
 
 func (s *Service) FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
@@ -107,6 +112,35 @@ func (s *Service) Validate(pointers []string, input customattrs.T) error {
 	}
 
 	err = validator.ValidateValue(map[string]interface{}(input))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) allPointers() (out []string) {
+	for _, c := range s.Config.CustomAttributes.Attributes {
+		out = append(out, c.Pointer)
+	}
+	return
+}
+
+func (s *Service) UpdateCustomAttributes(userID string, reprForm map[string]interface{}) error {
+	customAttrs := customattrs.T(reprForm)
+	pointers := s.allPointers()
+
+	err := s.Validate(pointers, customAttrs)
+	if err != nil {
+		return err
+	}
+
+	storageForm, err := s.ToStorageForm(customAttrs)
+	if err != nil {
+		return err
+	}
+
+	err = s.UserStore.UpdateCustomAttributes(userID, storageForm)
 	if err != nil {
 		return err
 	}

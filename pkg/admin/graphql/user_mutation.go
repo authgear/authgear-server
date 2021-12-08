@@ -274,6 +274,10 @@ var updateUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(UserStandardAttributes),
 			Description: "Whole standard attributes to be set on the user.",
 		},
+		"customAttributes": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(UserCustomAttributes),
+			Description: "Whole custom attributes to be set on the user.",
+		},
 	},
 })
 
@@ -311,6 +315,12 @@ var _ = registerMutationField(
 			stdAttrs := input["standardAttributes"].(map[string]interface{})
 
 			err := gqlCtx.StandardAttributesFacade.UpdateStandardAttributes(config.RolePortalUI, userID, stdAttrs)
+			if err != nil {
+				return nil, err
+			}
+
+			customAttrs := input["customAttributes"].(map[string]interface{})
+			err = gqlCtx.CustomAttributesFacade.UpdateCustomAttributes(userID, customAttrs)
 			if err != nil {
 				return nil, err
 			}
