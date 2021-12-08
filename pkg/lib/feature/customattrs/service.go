@@ -47,7 +47,7 @@ func (s *Service) fromStorageForm(storageForm map[string]interface{}) (customatt
 	return out, nil
 }
 
-func (s *Service) ToStorageForm(t customattrs.T) (map[string]interface{}, error) {
+func (s *Service) toStorageForm(t customattrs.T) (map[string]interface{}, error) {
 	out := make(map[string]interface{})
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
@@ -62,7 +62,7 @@ func (s *Service) ToStorageForm(t customattrs.T) (map[string]interface{}, error)
 	return out, nil
 }
 
-func (s *Service) GenerateSchemaString(pointers []string) (schemaStr string, err error) {
+func (s *Service) generateSchemaString(pointers []string) (schemaStr string, err error) {
 	properties := make(map[string]interface{})
 
 	for _, ptrStr := range pointers {
@@ -102,8 +102,8 @@ func (s *Service) GenerateSchemaString(pointers []string) (schemaStr string, err
 	return
 }
 
-func (s *Service) Validate(pointers []string, input customattrs.T) error {
-	schemaStr, err := s.GenerateSchemaString(pointers)
+func (s *Service) validate(pointers []string, input customattrs.T) error {
+	schemaStr, err := s.generateSchemaString(pointers)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (s *Service) UpdateAllCustomAttributes(role accesscontrol.Role, userID stri
 func (s *Service) UpdateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
 	incoming := customattrs.T(reprForm)
 
-	err := s.Validate(pointers, incoming)
+	err := s.validate(pointers, incoming)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (s *Service) UpdateCustomAttributes(role accesscontrol.Role, userID string,
 		return err
 	}
 
-	storageForm, err := s.ToStorageForm(updated)
+	storageForm, err := s.toStorageForm(updated)
 	if err != nil {
 		return err
 	}
