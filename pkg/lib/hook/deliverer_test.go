@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -201,7 +202,7 @@ func TestDeliverer(t *testing.T) {
 				defer func() { gock.Flush() }()
 
 				stdAttrsService.EXPECT().UpdateStandardAttributes(
-					config.RolePortalUI,
+					accesscontrol.RoleGreatest,
 					gomock.Any(),
 					map[string]interface{}{
 						"name": "John Doe",
