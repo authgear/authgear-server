@@ -82,7 +82,7 @@ func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 			if mutations.User.StandardAttributes != nil {
 				userID := e.Payload.UserID()
 				err := deliverer.StdAttrsServiceNoEvent.UpdateStandardAttributes(
-					config.RolePortalUI,
+					accesscontrol.RoleGreatest,
 					userID,
 					mutations.User.StandardAttributes,
 				)
