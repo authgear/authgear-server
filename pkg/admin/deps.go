@@ -51,7 +51,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
 	wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 	wire.Bind(new(facade.StandardAttributesService), new(*featurestdattrs.Service)),
-	wire.Bind(new(facade.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
+	wire.Bind(new(facade.CustomAttributesService), new(*featurecustomattrs.Service)),
 	wire.Bind(new(facade.SessionManager), new(*session.Manager)),
 	wire.Bind(new(facade.AuditLogQuery), new(*audit.Query)),
 
