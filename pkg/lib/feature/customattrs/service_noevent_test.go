@@ -9,10 +9,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func TestService(t *testing.T) {
-	Convey("Service", t, func() {
+func TestServiceNoEvent(t *testing.T) {
+	Convey("ServiceNoEvent", t, func() {
 		Convey("fromStorageForm", func() {
-			s := &Service{
+			s := &ServiceNoEvent{
 				Config: &config.UserProfileConfig{
 					CustomAttributes: &config.CustomAttributesConfig{
 						Attributes: []*config.CustomAttributesAttributeConfig{
@@ -53,7 +53,7 @@ func TestService(t *testing.T) {
 		})
 
 		Convey("toStorageForm", func() {
-			s := &Service{
+			s := &ServiceNoEvent{
 				Config: &config.UserProfileConfig{
 					CustomAttributes: &config.CustomAttributesConfig{
 						Attributes: []*config.CustomAttributesAttributeConfig{
@@ -100,7 +100,7 @@ func TestService(t *testing.T) {
 				return &f
 			}
 
-			s := &Service{
+			s := &ServiceNoEvent{
 				Config: &config.UserProfileConfig{
 					CustomAttributes: &config.CustomAttributesConfig{
 
@@ -231,7 +231,7 @@ func TestService(t *testing.T) {
 				return &f
 			}
 
-			s := &Service{
+			s := &ServiceNoEvent{
 				Config: &config.UserProfileConfig{
 					CustomAttributes: &config.CustomAttributesConfig{
 						Attributes: []*config.CustomAttributesAttributeConfig{
