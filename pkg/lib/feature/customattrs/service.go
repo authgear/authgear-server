@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/jsonpointerutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -22,7 +23,7 @@ type Service struct {
 	UserStore UserStore
 }
 
-func (s *Service) FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
+func (s *Service) fromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
 	out := make(customattrs.T)
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
@@ -146,4 +147,18 @@ func (s *Service) UpdateCustomAttributes(userID string, reprForm map[string]inte
 	}
 
 	return nil
+}
+
+func (s *Service) ReadCustomAttributesInStorageForm(
+	role accesscontrol.Role,
+	userID string,
+	storageForm map[string]interface{},
+) (map[string]interface{}, error) {
+	accessControl := s.Config.CustomAttributes.GetAccessControl()
+	repr, err := s.fromStorageForm(storageForm)
+	if err != nil {
+		return nil, err
+	}
+	repr = repr.ReadWithAccessControl(accessControl, role)
+	return repr.ToMap(), nil
 }

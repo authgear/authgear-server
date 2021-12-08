@@ -11,7 +11,7 @@ import (
 
 func TestService(t *testing.T) {
 	Convey("Service", t, func() {
-		Convey("FromStorageForm", func() {
+		Convey("fromStorageForm", func() {
 			s := &Service{
 				Config: &config.UserProfileConfig{
 					CustomAttributes: &config.CustomAttributesConfig{
@@ -32,7 +32,7 @@ func TestService(t *testing.T) {
 			}
 
 			Convey("transform to representation from", func() {
-				actual, err := s.FromStorageForm(map[string]interface{}{
+				actual, err := s.fromStorageForm(map[string]interface{}{
 					"0000": "a",
 					"0001": "b",
 				})
@@ -44,7 +44,7 @@ func TestService(t *testing.T) {
 			})
 
 			Convey("ignore unknown attributes", func() {
-				actual, err := s.FromStorageForm(map[string]interface{}{
+				actual, err := s.fromStorageForm(map[string]interface{}{
 					"0002": "c",
 				})
 				So(err, ShouldBeNil)
