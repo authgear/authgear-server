@@ -8,7 +8,6 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -70,7 +69,7 @@ type StandardAttributesFacade interface {
 }
 
 type CustomAttributesFacade interface {
-	FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error)
+	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
 	UpdateCustomAttributes(id string, customAttrs map[string]interface{}) error
 }
 

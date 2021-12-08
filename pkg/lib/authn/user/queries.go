@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
@@ -27,7 +26,7 @@ type StandardAttributesService interface {
 }
 
 type CustomAttributesService interface {
-	FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error)
+	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
 }
 
 type Queries struct {
@@ -66,7 +65,7 @@ func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 		return nil, err
 	}
 
-	customAttrs, err := p.CustomAttributes.FromStorageForm(user.CustomAttributes)
+	customAttrs, err := p.CustomAttributes.ReadCustomAttributesInStorageForm(role, id, user.CustomAttributes)
 	if err != nil {
 		return nil, err
 	}
