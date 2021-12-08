@@ -24,6 +24,30 @@ func TestStandardAttributesConfig(t *testing.T) {
 	})
 }
 
+func TestCustomAttributesConfig(t *testing.T) {
+	Convey("CustomAttributesConfig", t, func() {
+		c := &CustomAttributesConfig{
+			Attributes: []*CustomAttributesAttributeConfig{
+				&CustomAttributesAttributeConfig{
+					Type:    CustomAttributeTypeString,
+					Pointer: "/a",
+					AccessControl: &UserProfileAttributesAccessControl{
+						EndUser:  AccessControlLevelStringHidden,
+						Bearer:   AccessControlLevelStringHidden,
+						PortalUI: AccessControlLevelStringHidden,
+					},
+				},
+			},
+		}
+
+		accessControl := c.GetAccessControl()
+
+		So(accessControl.GetLevel("/a", RoleEndUser, 0), ShouldEqual, AccessControlLevelHidden)
+		So(accessControl.GetLevel("/a", RoleBearer, 0), ShouldEqual, AccessControlLevelHidden)
+		So(accessControl.GetLevel("/a", RolePortalUI, 0), ShouldEqual, AccessControlLevelHidden)
+	})
+}
+
 func TestCustomAttributesAttributeConfig(t *testing.T) {
 	newFloat := func(f float64) *float64 {
 		return &f

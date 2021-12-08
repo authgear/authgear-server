@@ -210,7 +210,8 @@ var _ = Schema.Add("CustomAttributesAttributeConfig", `
 				"url",
 				"alpha2"
 			]
-		}
+		},
+		"access_control": { "$ref": "#/$defs/UserProfileAttributesAccessControl" }
 	},
 	"required": ["id", "pointer", "type"],
 	"allOf": [
@@ -292,13 +293,42 @@ type CustomAttributesConfig struct {
 	Attributes []*CustomAttributesAttributeConfig `json:"attributes,omitempty"`
 }
 
+func (c *CustomAttributesConfig) GetAccessControl() accesscontrol.T {
+	t := accesscontrol.T{}
+	for _, a := range c.Attributes {
+		subject := accesscontrol.Subject(a.Pointer)
+		t[subject] = map[accesscontrol.Role]accesscontrol.Level{
+			RoleEndUser:  a.AccessControl.EndUser.Level(),
+			RoleBearer:   a.AccessControl.Bearer.Level(),
+			RolePortalUI: a.AccessControl.PortalUI.Level(),
+		}
+	}
+	return t
+}
+
 type CustomAttributesAttributeConfig struct {
-	ID      string              `json:"id,omitempty"`
-	Pointer string              `json:"pointer,omitempty"`
-	Type    CustomAttributeType `json:"type,omitempty"`
-	Minimum *float64            `json:"minimum,omitempty"`
-	Maximum *float64            `json:"maximum,omitempty"`
-	Enum    []string            `json:"enum,omitempty"`
+	ID            string                              `json:"id,omitempty"`
+	Pointer       string                              `json:"pointer,omitempty"`
+	Type          CustomAttributeType                 `json:"type,omitempty"`
+	AccessControl *UserProfileAttributesAccessControl `json:"access_control,omitempty"`
+	Minimum       *float64                            `json:"minimum,omitempty"`
+	Maximum       *float64                            `json:"maximum,omitempty"`
+	Enum          []string                            `json:"enum,omitempty"`
+}
+
+func (c *CustomAttributesAttributeConfig) SetDefaults() {
+	if c.AccessControl == nil {
+		c.AccessControl = &UserProfileAttributesAccessControl{}
+	}
+	if c.AccessControl.EndUser == AccessControlLevelStringDefault {
+		c.AccessControl.EndUser = AccessControlLevelStringHidden
+	}
+	if c.AccessControl.Bearer == AccessControlLevelStringDefault {
+		c.AccessControl.Bearer = AccessControlLevelStringHidden
+	}
+	if c.AccessControl.PortalUI == AccessControlLevelStringDefault {
+		c.AccessControl.PortalUI = AccessControlLevelStringReadwrite
+	}
 }
 
 func (c *CustomAttributesAttributeConfig) ToJSONSchema() (schema map[string]interface{}, err error) {
