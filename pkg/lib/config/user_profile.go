@@ -68,12 +68,12 @@ var _ = Schema.Add("StandardAttributesAccessControlConfig", `
 				"/address"
 			]
 		},
-		"access_control": { "$ref": "#/$defs/StandardAttributesAccessControl" }
+		"access_control": { "$ref": "#/$defs/UserProfileAttributesAccessControl" }
 	}
 }
 `)
 
-var _ = Schema.Add("StandardAttributesAccessControl", `
+var _ = Schema.Add("UserProfileAttributesAccessControl", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -364,13 +364,13 @@ type StandardAttributesConfig struct {
 }
 
 func (c *StandardAttributesConfig) SetDefaults() {
-	defaultReadwrite := &StandardAttributesAccessControl{
+	defaultReadwrite := &UserProfileAttributesAccessControl{
 		EndUser:  AccessControlLevelStringReadwrite,
 		Bearer:   AccessControlLevelStringReadonly,
 		PortalUI: AccessControlLevelStringReadwrite,
 	}
 
-	defaultHidden := &StandardAttributesAccessControl{
+	defaultHidden := &UserProfileAttributesAccessControl{
 		EndUser:  AccessControlLevelStringHidden,
 		Bearer:   AccessControlLevelStringHidden,
 		PortalUI: AccessControlLevelStringHidden,
@@ -448,11 +448,11 @@ func (c *StandardAttributesConfig) GetAccessControl() accesscontrol.T {
 }
 
 type StandardAttributesAccessControlConfig struct {
-	Pointer       string                           `json:"pointer,omitempty"`
-	AccessControl *StandardAttributesAccessControl `json:"access_control,omitempty"`
+	Pointer       string                              `json:"pointer,omitempty"`
+	AccessControl *UserProfileAttributesAccessControl `json:"access_control,omitempty"`
 }
 
-type StandardAttributesAccessControl struct {
+type UserProfileAttributesAccessControl struct {
 	EndUser  AccessControlLevelString `json:"end_user,omitempty"`
 	Bearer   AccessControlLevelString `json:"bearer,omitempty"`
 	PortalUI AccessControlLevelString `json:"portal_ui,omitempty"`
