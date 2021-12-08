@@ -71,6 +71,7 @@ type StandardAttributesFacade interface {
 
 type CustomAttributesFacade interface {
 	FromStorageForm(storageForm map[string]interface{}) (customattrs.T, error)
+	UpdateCustomAttributes(id string, customAttrs map[string]interface{}) error
 }
 
 type SessionFacade interface {
