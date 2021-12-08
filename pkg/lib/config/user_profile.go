@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -297,6 +299,50 @@ type CustomAttributesAttributeConfig struct {
 	Minimum *float64            `json:"minimum,omitempty"`
 	Maximum *float64            `json:"maximum,omitempty"`
 	Enum    []string            `json:"enum,omitempty"`
+}
+
+func (c *CustomAttributesAttributeConfig) ToJSONSchema() (schema map[string]interface{}, err error) {
+	schema = make(map[string]interface{})
+
+	switch c.Type {
+	case CustomAttributeTypeString:
+		schema["type"] = "string"
+	case CustomAttributeTypeNumber:
+		schema["type"] = "number"
+		if c.Minimum != nil {
+			schema["minimum"] = *c.Minimum
+		}
+		if c.Maximum != nil {
+			schema["maximum"] = *c.Maximum
+		}
+	case CustomAttributeTypeInteger:
+		schema["type"] = "integer"
+		if c.Minimum != nil {
+			schema["minimum"] = int64(*c.Minimum)
+		}
+		if c.Maximum != nil {
+			schema["maximum"] = int64(*c.Maximum)
+		}
+	case CustomAttributeTypeEnum:
+		schema["type"] = "string"
+		schema["enum"] = c.Enum
+	case CustomAttributeTypePhoneNumber:
+		schema["type"] = "string"
+		schema["format"] = "phone"
+	case CustomAttributeTypeEmail:
+		schema["type"] = "string"
+		schema["format"] = "email"
+	case CustomAttributeTypeURL:
+		schema["type"] = "string"
+		schema["format"] = "uri"
+	case CustomAttributeTypeAlpha2:
+		schema["type"] = "string"
+		schema["format"] = "iso3166-1-alpha-2"
+	default:
+		err = fmt.Errorf("unknown type: %v", c.Type)
+	}
+
+	return
 }
 
 type CustomAttributeType string

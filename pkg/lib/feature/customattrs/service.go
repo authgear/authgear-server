@@ -2,7 +2,6 @@ package customattrs
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -68,7 +67,7 @@ func (s *Service) GenerateSchemaString(pointers []string) (schemaStr string, err
 			head := ptr[0]
 
 			var schema map[string]interface{}
-			schema, err = CustomAttributeConfigToSchema(customAttr)
+			schema, err = customAttr.ToJSONSchema()
 			if err != nil {
 				return
 			}
@@ -113,48 +112,4 @@ func (s *Service) Validate(pointers []string, input customattrs.T) error {
 	}
 
 	return nil
-}
-
-func CustomAttributeConfigToSchema(customAttr *config.CustomAttributesAttributeConfig) (schema map[string]interface{}, err error) {
-	schema = make(map[string]interface{})
-
-	switch customAttr.Type {
-	case config.CustomAttributeTypeString:
-		schema["type"] = "string"
-	case config.CustomAttributeTypeNumber:
-		schema["type"] = "number"
-		if customAttr.Minimum != nil {
-			schema["minimum"] = *customAttr.Minimum
-		}
-		if customAttr.Maximum != nil {
-			schema["maximum"] = *customAttr.Maximum
-		}
-	case config.CustomAttributeTypeInteger:
-		schema["type"] = "integer"
-		if customAttr.Minimum != nil {
-			schema["minimum"] = int64(*customAttr.Minimum)
-		}
-		if customAttr.Maximum != nil {
-			schema["maximum"] = int64(*customAttr.Maximum)
-		}
-	case config.CustomAttributeTypeEnum:
-		schema["type"] = "string"
-		schema["enum"] = customAttr.Enum
-	case config.CustomAttributeTypePhoneNumber:
-		schema["type"] = "string"
-		schema["format"] = "phone"
-	case config.CustomAttributeTypeEmail:
-		schema["type"] = "string"
-		schema["format"] = "email"
-	case config.CustomAttributeTypeURL:
-		schema["type"] = "string"
-		schema["format"] = "uri"
-	case config.CustomAttributeTypeAlpha2:
-		schema["type"] = "string"
-		schema["format"] = "iso3166-1-alpha-2"
-	default:
-		err = fmt.Errorf("unknown type: %v", customAttr.Type)
-	}
-
-	return
 }
