@@ -23,13 +23,13 @@ type UserStore interface {
 	UpdateCustomAttributes(userID string, storageForm map[string]interface{}) error
 }
 
-type Service struct {
+type ServiceNoEvent struct {
 	Config      *config.UserProfileConfig
 	UserQueries UserQueries
 	UserStore   UserStore
 }
 
-func (s *Service) fromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
+func (s *ServiceNoEvent) fromStorageForm(storageForm map[string]interface{}) (customattrs.T, error) {
 	out := make(customattrs.T)
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
@@ -47,7 +47,7 @@ func (s *Service) fromStorageForm(storageForm map[string]interface{}) (customatt
 	return out, nil
 }
 
-func (s *Service) toStorageForm(t customattrs.T) (map[string]interface{}, error) {
+func (s *ServiceNoEvent) toStorageForm(t customattrs.T) (map[string]interface{}, error) {
 	out := make(map[string]interface{})
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		ptr, err := jsonpointer.Parse(c.Pointer)
@@ -62,7 +62,7 @@ func (s *Service) toStorageForm(t customattrs.T) (map[string]interface{}, error)
 	return out, nil
 }
 
-func (s *Service) generateSchemaString(pointers []string) (schemaStr string, err error) {
+func (s *ServiceNoEvent) generateSchemaString(pointers []string) (schemaStr string, err error) {
 	properties := make(map[string]interface{})
 
 	for _, ptrStr := range pointers {
@@ -102,7 +102,7 @@ func (s *Service) generateSchemaString(pointers []string) (schemaStr string, err
 	return
 }
 
-func (s *Service) validate(pointers []string, input customattrs.T) error {
+func (s *ServiceNoEvent) validate(pointers []string, input customattrs.T) error {
 	schemaStr, err := s.generateSchemaString(pointers)
 	if err != nil {
 		return err
@@ -126,19 +126,19 @@ func (s *Service) validate(pointers []string, input customattrs.T) error {
 	return nil
 }
 
-func (s *Service) allPointers() (out []string) {
+func (s *ServiceNoEvent) allPointers() (out []string) {
 	for _, c := range s.Config.CustomAttributes.Attributes {
 		out = append(out, c.Pointer)
 	}
 	return
 }
 
-func (s *Service) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
+func (s *ServiceNoEvent) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
 	pointers := s.allPointers()
 	return s.UpdateCustomAttributes(role, userID, pointers, reprForm)
 }
 
-func (s *Service) UpdateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
+func (s *ServiceNoEvent) UpdateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
 	incoming := customattrs.T(reprForm)
 
 	err := s.validate(pointers, incoming)
@@ -176,7 +176,7 @@ func (s *Service) UpdateCustomAttributes(role accesscontrol.Role, userID string,
 	return nil
 }
 
-func (s *Service) ReadCustomAttributesInStorageForm(
+func (s *ServiceNoEvent) ReadCustomAttributesInStorageForm(
 	role accesscontrol.Role,
 	userID string,
 	storageForm map[string]interface{},
