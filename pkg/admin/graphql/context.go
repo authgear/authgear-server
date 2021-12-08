@@ -63,14 +63,15 @@ type VerificationFacade interface {
 	SetVerified(userID string, claimName string, claimValue string, isVerified bool) error
 }
 
-type StandardAttributesFacade interface {
-	UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error
+type UserProfileFacade interface {
 	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
-}
-
-type CustomAttributesFacade interface {
 	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
-	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, customAttrs map[string]interface{}) error
+	UpdateUserProfile(
+		role accesscontrol.Role,
+		userID string,
+		stdAttrs map[string]interface{},
+		customAttrs map[string]interface{},
+	) error
 }
 
 type SessionFacade interface {
@@ -92,14 +93,13 @@ type Context struct {
 	Authenticators AuthenticatorLoader
 	AuditLogs      AuditLogLoader
 
-	UserFacade               UserFacade
-	AuditLogFacade           AuditLogFacade
-	IdentityFacade           IdentityFacade
-	AuthenticatorFacade      AuthenticatorFacade
-	VerificationFacade       VerificationFacade
-	SessionFacade            SessionFacade
-	StandardAttributesFacade StandardAttributesFacade
-	CustomAttributesFacade   CustomAttributesFacade
+	UserFacade          UserFacade
+	AuditLogFacade      AuditLogFacade
+	IdentityFacade      IdentityFacade
+	AuthenticatorFacade AuthenticatorFacade
+	VerificationFacade  VerificationFacade
+	SessionFacade       SessionFacade
+	UserProfileFacade   UserProfileFacade
 }
 
 func (c *Context) Logger() *log.Logger {
