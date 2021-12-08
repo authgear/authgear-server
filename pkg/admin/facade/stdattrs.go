@@ -18,3 +18,7 @@ type StandardAttributesFacade struct {
 func (f *StandardAttributesFacade) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
 	return f.StandardAttributes.DeriveStandardAttributes(role, userID, updatedAt, attrs)
 }
+
+func (f *StandardAttributesFacade) UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error {
+	return f.StandardAttributes.UpdateStandardAttributes(role, id, stdAttrs)
+}

@@ -44,7 +44,6 @@ type UserFacade interface {
 	ResetPassword(id string, password string) error
 	SetDisabled(id string, isDisabled bool, reason *string) error
 	Delete(id string) error
-	UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error
 }
 
 type IdentityFacade interface {
@@ -66,6 +65,7 @@ type VerificationFacade interface {
 }
 
 type StandardAttributesFacade interface {
+	UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error
 	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
