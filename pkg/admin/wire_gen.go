@@ -717,8 +717,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	standardAttributesFacade := &facade2.StandardAttributesFacade{
 		StandardAttributes: stdattrsService,
 	}
+	customattrsService := &customattrs.Service{
+		Config:         userProfileConfig,
+		ServiceNoEvent: customattrsServiceNoEvent,
+		Events:         eventService,
+	}
 	customAttributesFacade := &facade2.CustomAttributesFacade{
-		CustomAttributes: customattrsServiceNoEvent,
+		CustomAttributes: customattrsService,
 	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:                logger,
