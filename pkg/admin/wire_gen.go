@@ -686,7 +686,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	facadeUserFacade := &facade2.UserFacade{
 		UserSearchService:  elasticsearchService,
 		Users:              userFacade,
-		StandardAttributes: stdattrsService,
+		StandardAttributes: serviceNoEvent,
 		Interaction:        serviceInteractionService,
 	}
 	auditLogFeatureConfig := featureConfig.AuditLog
@@ -714,31 +714,24 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sessionFacade := &facade2.SessionFacade{
 		Sessions: manager2,
 	}
-	standardAttributesFacade := &facade2.StandardAttributesFacade{
-		StandardAttributes: stdattrsService,
-	}
-	customattrsService := &customattrs.Service{
-		Config:         userProfileConfig,
-		ServiceNoEvent: customattrsServiceNoEvent,
-		Events:         eventService,
-	}
-	customAttributesFacade := &facade2.CustomAttributesFacade{
-		CustomAttributes: customattrsService,
+	userProfileFacade := &facade2.UserProfileFacade{
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		Events:             eventService,
 	}
 	graphqlContext := &graphql.Context{
-		GQLLogger:                logger,
-		Users:                    userLoader,
-		Identities:               identityLoader,
-		Authenticators:           authenticatorLoader,
-		AuditLogs:                auditLogLoader,
-		UserFacade:               facadeUserFacade,
-		AuditLogFacade:           auditLogFacade,
-		IdentityFacade:           facadeIdentityFacade,
-		AuthenticatorFacade:      facadeAuthenticatorFacade,
-		VerificationFacade:       verificationFacade,
-		SessionFacade:            sessionFacade,
-		StandardAttributesFacade: standardAttributesFacade,
-		CustomAttributesFacade:   customAttributesFacade,
+		GQLLogger:           logger,
+		Users:               userLoader,
+		Identities:          identityLoader,
+		Authenticators:      authenticatorLoader,
+		AuditLogs:           auditLogLoader,
+		UserFacade:          facadeUserFacade,
+		AuditLogFacade:      auditLogFacade,
+		IdentityFacade:      facadeIdentityFacade,
+		AuthenticatorFacade: facadeAuthenticatorFacade,
+		VerificationFacade:  verificationFacade,
+		SessionFacade:       sessionFacade,
+		UserProfileFacade:   userProfileFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
