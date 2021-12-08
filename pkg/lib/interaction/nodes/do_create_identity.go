@@ -47,7 +47,7 @@ func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interact
 func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.EmptyRole)
+			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.RoleGreatest)
 			if err != nil {
 				return err
 			}

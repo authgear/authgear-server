@@ -37,12 +37,12 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	stdAttrs, err := c.StandardAttributes.DeriveStandardAttributes(accesscontrol.EmptyRole, user.ID, user.UpdatedAt, user.StandardAttributes)
+	stdAttrs, err := c.StandardAttributes.DeriveStandardAttributes(accesscontrol.RoleGreatest, user.ID, user.UpdatedAt, user.StandardAttributes)
 	if err != nil {
 		return err
 	}
 
-	customAttrs, err := c.CustomAttributes.ReadCustomAttributesInStorageForm(accesscontrol.EmptyRole, user.ID, user.CustomAttributes)
+	customAttrs, err := c.CustomAttributes.ReadCustomAttributesInStorageForm(accesscontrol.RoleGreatest, user.ID, user.CustomAttributes)
 	if err != nil {
 		return err
 	}
