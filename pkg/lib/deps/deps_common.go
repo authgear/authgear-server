@@ -11,7 +11,6 @@ import (
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	authenticatortotp "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
-	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -25,6 +24,7 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -144,8 +144,8 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		customattrs.DependencySet,
-		wire.Bind(new(user.CustomAttributesService), new(*customattrs.Service)),
+		featurecustomattrs.DependencySet,
+		wire.Bind(new(user.CustomAttributesService), new(*featurecustomattrs.Service)),
 	),
 
 	wire.NewSet(

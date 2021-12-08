@@ -11,7 +11,6 @@ import (
 	adminauthz "github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
-	"github.com/authgear/authgear-server/pkg/lib/authn/customattrs"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
@@ -19,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	libfacade "github.com/authgear/authgear-server/pkg/lib/facade"
+	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -51,7 +51,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
 	wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 	wire.Bind(new(facade.StandardAttributesService), new(*featurestdattrs.Service)),
-	wire.Bind(new(facade.CustomAttributesService), new(*customattrs.Service)),
+	wire.Bind(new(facade.CustomAttributesService), new(*featurecustomattrs.Service)),
 	wire.Bind(new(facade.SessionManager), new(*session.Manager)),
 	wire.Bind(new(facade.AuditLogQuery), new(*audit.Query)),
 
