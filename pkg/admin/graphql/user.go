@@ -112,7 +112,7 @@ var nodeUser = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*user.User)
 					gqlCtx := GQLContext(p.Context)
-					attrs, err := gqlCtx.StandardAttributesFacade.DeriveStandardAttributes(accesscontrol.RoleGreatest, source.ID, source.UpdatedAt, source.StandardAttributes)
+					attrs, err := gqlCtx.UserProfileFacade.DeriveStandardAttributes(accesscontrol.RoleGreatest, source.ID, source.UpdatedAt, source.StandardAttributes)
 					if err != nil {
 						return nil, err
 					}
@@ -124,7 +124,7 @@ var nodeUser = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*user.User)
 					gqlCtx := GQLContext(p.Context)
-					attrs, err := gqlCtx.CustomAttributesFacade.ReadCustomAttributesInStorageForm(accesscontrol.RoleGreatest, source.ID, source.CustomAttributes)
+					attrs, err := gqlCtx.UserProfileFacade.ReadCustomAttributesInStorageForm(accesscontrol.RoleGreatest, source.ID, source.CustomAttributes)
 					if err != nil {
 						return nil, err
 					}

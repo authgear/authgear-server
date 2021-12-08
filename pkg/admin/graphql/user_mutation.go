@@ -313,14 +313,14 @@ var _ = registerMutationField(
 			gqlCtx := GQLContext(p.Context)
 
 			stdAttrs := input["standardAttributes"].(map[string]interface{})
-
-			err := gqlCtx.StandardAttributesFacade.UpdateStandardAttributes(accesscontrol.RoleGreatest, userID, stdAttrs)
-			if err != nil {
-				return nil, err
-			}
-
 			customAttrs := input["customAttributes"].(map[string]interface{})
-			err = gqlCtx.CustomAttributesFacade.UpdateAllCustomAttributes(accesscontrol.RoleGreatest, userID, customAttrs)
+
+			err := gqlCtx.UserProfileFacade.UpdateUserProfile(
+				accesscontrol.RoleGreatest,
+				userID,
+				stdAttrs,
+				customAttrs,
+			)
 			if err != nil {
 				return nil, err
 			}
