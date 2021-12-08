@@ -124,7 +124,7 @@ var nodeUser = node(
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*user.User)
 					gqlCtx := GQLContext(p.Context)
-					attrs, err := gqlCtx.CustomAttributesFacade.FromStorageForm(source.CustomAttributes)
+					attrs, err := gqlCtx.CustomAttributesFacade.ReadCustomAttributesInStorageForm(accesscontrol.EmptyRole, source.ID, source.CustomAttributes)
 					if err != nil {
 						return nil, err
 					}

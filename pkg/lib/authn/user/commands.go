@@ -42,7 +42,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	customAttrs, err := c.CustomAttributes.FromStorageForm(user.CustomAttributes)
+	customAttrs, err := c.CustomAttributes.ReadCustomAttributesInStorageForm(accesscontrol.EmptyRole, user.ID, user.CustomAttributes)
 	if err != nil {
 		return err
 	}
