@@ -428,12 +428,13 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -1055,12 +1056,13 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -1630,12 +1632,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -2181,12 +2184,13 @@ func newOAuthRevokeHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -2996,12 +3000,13 @@ func newOAuthEndSessionHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -3368,12 +3373,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -3966,12 +3972,13 @@ func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -4598,12 +4605,13 @@ func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -5230,12 +5238,13 @@ func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -5849,12 +5858,13 @@ func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -6469,12 +6479,13 @@ func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -7081,12 +7092,13 @@ func newWechatAuthHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -7696,12 +7708,13 @@ func newWechatCallbackHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -8314,12 +8327,13 @@ func newWebAppEnterLoginIDHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -8929,12 +8943,13 @@ func newWebAppEnterPasswordHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -9543,12 +9558,13 @@ func newWebAppCreatePasswordHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -10158,12 +10174,13 @@ func newWebAppSetupTOTPHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -10774,12 +10791,13 @@ func newWebAppEnterTOTPHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -11388,12 +11406,13 @@ func newWebAppSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -12002,12 +12021,13 @@ func newWebAppEnterOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -12618,12 +12638,13 @@ func newWebAppEnterRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -13232,12 +13253,13 @@ func newWebAppSetupRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -13846,12 +13868,13 @@ func newWebAppVerifyIdentityHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -14463,12 +14486,13 @@ func newWebAppVerifyIdentitySuccessHandler(p *deps.RequestProvider) http.Handler
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -15077,12 +15101,13 @@ func newWebAppForgotPasswordHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -15696,12 +15721,13 @@ func newWebAppForgotPasswordSuccessHandler(p *deps.RequestProvider) http.Handler
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -16310,12 +16336,13 @@ func newWebAppResetPasswordHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -16925,12 +16952,13 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -17539,12 +17567,13 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -18175,12 +18204,13 @@ func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -18800,12 +18830,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -19432,12 +19463,13 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -20048,12 +20080,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -20663,12 +20696,13 @@ func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -21287,12 +21321,13 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -21902,12 +21937,13 @@ func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -22517,12 +22553,13 @@ func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler 
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -23133,12 +23170,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -23753,12 +23791,13 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -24368,12 +24407,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -24983,12 +25023,13 @@ func newWebAppForceChangeSecondaryPasswordHandler(p *deps.RequestProvider) http.
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -25598,12 +25639,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -26213,12 +26255,13 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -26827,12 +26870,13 @@ func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -27460,12 +27504,13 @@ func newWebAppReturnHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -28074,12 +28119,13 @@ func newWebAppErrorHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,

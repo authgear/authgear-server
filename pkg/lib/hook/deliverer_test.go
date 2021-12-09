@@ -38,15 +38,17 @@ func TestDeliverer(t *testing.T) {
 
 		httpClient := &http.Client{}
 		gock.InterceptClient(httpClient)
-		stdAttrsService := NewMockStdAttrsServiceNoEvent(ctrl)
+		stdAttrsService := NewMockStandardAttributesServiceNoEvent(ctrl)
+		customAttrsService := NewMockCustomAttributesServiceNoEvent(ctrl)
 
 		deliverer := Deliverer{
-			Config:                 cfg,
-			Secret:                 secret,
-			Clock:                  clock,
-			SyncHTTP:               SyncHTTPClient{httpClient},
-			AsyncHTTP:              AsyncHTTPClient{httpClient},
-			StdAttrsServiceNoEvent: stdAttrsService,
+			Config:             cfg,
+			Secret:             secret,
+			Clock:              clock,
+			SyncHTTP:           SyncHTTPClient{httpClient},
+			AsyncHTTP:          AsyncHTTPClient{httpClient},
+			StandardAttributes: stdAttrsService,
+			CustomAttributes:   customAttrsService,
 		}
 
 		defer gock.Off()
@@ -160,6 +162,9 @@ func TestDeliverer(t *testing.T) {
 								StandardAttributes: map[string]interface{}{
 									"name": "John Doe",
 								},
+								CustomAttributes: map[string]interface{}{
+									"a": "a",
+								},
 							},
 						},
 					},
@@ -186,6 +191,9 @@ func TestDeliverer(t *testing.T) {
 								"standard_attributes": map[string]interface{}{
 									"name": "John Doe",
 								},
+								"custom_attributes": map[string]interface{}{
+									"a": "a",
+								},
 							},
 						},
 					})
@@ -206,6 +214,14 @@ func TestDeliverer(t *testing.T) {
 					gomock.Any(),
 					map[string]interface{}{
 						"name": "John Doe",
+					},
+				).Times(1).Return(nil)
+
+				customAttrsService.EXPECT().UpdateAllCustomAttributes(
+					accesscontrol.RoleGreatest,
+					gomock.Any(),
+					map[string]interface{}{
+						"a": "a",
 					},
 				).Times(1).Return(nil)
 
