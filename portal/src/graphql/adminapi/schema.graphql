@@ -619,8 +619,11 @@ enum SortDirection {
 
 """"""
 input UpdateUserInput {
+  """Whole custom attributes to be set on the user."""
+  customAttributes: UserCustomAttributes
+
   """Whole standard attributes to be set on the user."""
-  standardAttributes: UserStandardAttributes!
+  standardAttributes: UserStandardAttributes
 
   """Target user ID."""
   userID: ID!
