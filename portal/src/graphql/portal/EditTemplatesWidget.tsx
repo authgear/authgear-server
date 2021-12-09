@@ -1,5 +1,5 @@
 import React, { Fragment } from "react";
-import { Label } from "@fluentui/react";
+import { Label, Text } from "@fluentui/react";
 import CodeEditor from "../../CodeEditor";
 import cn from "classnames";
 import styles from "./EditTemplatesWidget.module.scss";
@@ -36,7 +36,9 @@ const EditTemplatesWidget: React.FC<EditTemplatesWidgetProps> =
               {section.items.map((item) => {
                 return (
                   <Fragment key={item.key}>
-                    <Label className={styles.label}>{item.title}</Label>
+                    <Text className={styles.label} block={true}>
+                      {item.title}
+                    </Text>
                     <CodeEditor
                       className={styles.codeEditor}
                       language={item.language}
