@@ -47,42 +47,51 @@ func (f *UserProfileFacade) UpdateUserProfile(
 	userID string,
 	stdAttrs map[string]interface{},
 	customAttrs map[string]interface{},
-) error {
-	err := f.StandardAttributes.UpdateStandardAttributes(role, userID, stdAttrs)
-	if err != nil {
-		return err
-	}
-
-	err = f.CustomAttributes.UpdateAllCustomAttributes(role, userID, customAttrs)
-	if err != nil {
-		return err
-	}
-
-	eventPayloads := []event.Payload{
-		&blocking.UserProfilePreUpdateBlockingEventPayload{
-			UserRef: model.UserRef{
-				Meta: model.Meta{
-					ID: userID,
-				},
-			},
-			AdminAPI: role == accesscontrol.RoleGreatest,
-		},
-		&nonblocking.UserProfileUpdatedEventPayload{
-			UserRef: model.UserRef{
-				Meta: model.Meta{
-					ID: userID,
-				},
-			},
-			AdminAPI: role == accesscontrol.RoleGreatest,
-		},
-	}
-
-	for _, eventPayload := range eventPayloads {
-		err = f.Events.DispatchEvent(eventPayload)
+) (err error) {
+	updated := false
+	if stdAttrs != nil {
+		updated = true
+		err = f.StandardAttributes.UpdateStandardAttributes(role, userID, stdAttrs)
 		if err != nil {
-			return err
+			return
 		}
 	}
 
-	return nil
+	if customAttrs != nil {
+		updated = true
+		err = f.CustomAttributes.UpdateAllCustomAttributes(role, userID, customAttrs)
+		if err != nil {
+			return
+		}
+	}
+
+	if updated {
+		eventPayloads := []event.Payload{
+			&blocking.UserProfilePreUpdateBlockingEventPayload{
+				UserRef: model.UserRef{
+					Meta: model.Meta{
+						ID: userID,
+					},
+				},
+				AdminAPI: role == accesscontrol.RoleGreatest,
+			},
+			&nonblocking.UserProfileUpdatedEventPayload{
+				UserRef: model.UserRef{
+					Meta: model.Meta{
+						ID: userID,
+					},
+				},
+				AdminAPI: role == accesscontrol.RoleGreatest,
+			},
+		}
+
+		for _, eventPayload := range eventPayloads {
+			err = f.Events.DispatchEvent(eventPayload)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
 }
