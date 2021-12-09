@@ -11,7 +11,6 @@ import {
   DatePicker,
   DayOfWeek,
   FirstWeekOfYear,
-  Label,
   Text,
   ITextProps,
   ITheme,
@@ -681,11 +680,6 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         </Div>
         {isReadable("address") && (
           <Div className={styles.addressGroup}>
-            <Label className={styles.gridAreaLabel}>
-              <Text variant="xLarge">
-                <FormattedMessage id="standard-attribute.address" />
-              </Text>
-            </Label>
             <FormTextField
               className={styles.gridAreaStreet}
               value={standardAttributes.address.street_address}

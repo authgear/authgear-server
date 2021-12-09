@@ -37,15 +37,10 @@
   gap: 8px;
 
   grid-template:
-    "label       label   label" auto
     "street      street  street" auto
     "city        city    city" auto
     "postalCode  state   country" auto
     / 1fr 1fr 1fr;
-}
-
-.gridAreaLabel {
-  grid-area: label;
 }
 
 .gridAreaStreet {
