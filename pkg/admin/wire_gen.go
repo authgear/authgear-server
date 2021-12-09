@@ -415,12 +415,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
