@@ -11,31 +11,31 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockStdAttrsServiceNoEvent is a mock of StdAttrsServiceNoEvent interface.
-type MockStdAttrsServiceNoEvent struct {
+// MockStandardAttributesServiceNoEvent is a mock of StandardAttributesServiceNoEvent interface.
+type MockStandardAttributesServiceNoEvent struct {
 	ctrl     *gomock.Controller
-	recorder *MockStdAttrsServiceNoEventMockRecorder
+	recorder *MockStandardAttributesServiceNoEventMockRecorder
 }
 
-// MockStdAttrsServiceNoEventMockRecorder is the mock recorder for MockStdAttrsServiceNoEvent.
-type MockStdAttrsServiceNoEventMockRecorder struct {
-	mock *MockStdAttrsServiceNoEvent
+// MockStandardAttributesServiceNoEventMockRecorder is the mock recorder for MockStandardAttributesServiceNoEvent.
+type MockStandardAttributesServiceNoEventMockRecorder struct {
+	mock *MockStandardAttributesServiceNoEvent
 }
 
-// NewMockStdAttrsServiceNoEvent creates a new mock instance.
-func NewMockStdAttrsServiceNoEvent(ctrl *gomock.Controller) *MockStdAttrsServiceNoEvent {
-	mock := &MockStdAttrsServiceNoEvent{ctrl: ctrl}
-	mock.recorder = &MockStdAttrsServiceNoEventMockRecorder{mock}
+// NewMockStandardAttributesServiceNoEvent creates a new mock instance.
+func NewMockStandardAttributesServiceNoEvent(ctrl *gomock.Controller) *MockStandardAttributesServiceNoEvent {
+	mock := &MockStandardAttributesServiceNoEvent{ctrl: ctrl}
+	mock.recorder = &MockStandardAttributesServiceNoEventMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockStdAttrsServiceNoEvent) EXPECT() *MockStdAttrsServiceNoEventMockRecorder {
+func (m *MockStandardAttributesServiceNoEvent) EXPECT() *MockStandardAttributesServiceNoEventMockRecorder {
 	return m.recorder
 }
 
 // UpdateStandardAttributes mocks base method.
-func (m *MockStdAttrsServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (m *MockStandardAttributesServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateStandardAttributes", role, userID, stdAttrs)
 	ret0, _ := ret[0].(error)
@@ -43,7 +43,44 @@ func (m *MockStdAttrsServiceNoEvent) UpdateStandardAttributes(role accesscontrol
 }
 
 // UpdateStandardAttributes indicates an expected call of UpdateStandardAttributes.
-func (mr *MockStdAttrsServiceNoEventMockRecorder) UpdateStandardAttributes(role, userID, stdAttrs interface{}) *gomock.Call {
+func (mr *MockStandardAttributesServiceNoEventMockRecorder) UpdateStandardAttributes(role, userID, stdAttrs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStandardAttributes", reflect.TypeOf((*MockStdAttrsServiceNoEvent)(nil).UpdateStandardAttributes), role, userID, stdAttrs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStandardAttributes", reflect.TypeOf((*MockStandardAttributesServiceNoEvent)(nil).UpdateStandardAttributes), role, userID, stdAttrs)
+}
+
+// MockCustomAttributesServiceNoEvent is a mock of CustomAttributesServiceNoEvent interface.
+type MockCustomAttributesServiceNoEvent struct {
+	ctrl     *gomock.Controller
+	recorder *MockCustomAttributesServiceNoEventMockRecorder
+}
+
+// MockCustomAttributesServiceNoEventMockRecorder is the mock recorder for MockCustomAttributesServiceNoEvent.
+type MockCustomAttributesServiceNoEventMockRecorder struct {
+	mock *MockCustomAttributesServiceNoEvent
+}
+
+// NewMockCustomAttributesServiceNoEvent creates a new mock instance.
+func NewMockCustomAttributesServiceNoEvent(ctrl *gomock.Controller) *MockCustomAttributesServiceNoEvent {
+	mock := &MockCustomAttributesServiceNoEvent{ctrl: ctrl}
+	mock.recorder = &MockCustomAttributesServiceNoEventMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCustomAttributesServiceNoEvent) EXPECT() *MockCustomAttributesServiceNoEventMockRecorder {
+	return m.recorder
+}
+
+// UpdateAllCustomAttributes mocks base method.
+func (m *MockCustomAttributesServiceNoEvent) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateAllCustomAttributes", role, userID, reprForm)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateAllCustomAttributes indicates an expected call of UpdateAllCustomAttributes.
+func (mr *MockCustomAttributesServiceNoEventMockRecorder) UpdateAllCustomAttributes(role, userID, reprForm interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAllCustomAttributes", reflect.TypeOf((*MockCustomAttributesServiceNoEvent)(nil).UpdateAllCustomAttributes), role, userID, reprForm)
 }

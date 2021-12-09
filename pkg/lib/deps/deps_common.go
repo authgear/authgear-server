@@ -147,6 +147,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		featurecustomattrs.DependencySet,
 		wire.Bind(new(user.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
+		wire.Bind(new(hook.CustomAttributesServiceNoEvent), new(*featurecustomattrs.ServiceNoEvent)),
 	),
 
 	wire.NewSet(
@@ -295,6 +296,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 		wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(interaction.StdAttrsService), new(*featurestdattrs.Service)),
-		wire.Bind(new(hook.StdAttrsServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
+		wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
 	),
 )
