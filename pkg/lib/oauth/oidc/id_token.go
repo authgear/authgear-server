@@ -225,5 +225,6 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string) (map[string]interface{}, err
 	for k, v := range user.StandardAttributes {
 		out[k] = v
 	}
+	out["custom_attributes"] = user.CustomAttributes
 	return out, nil
 }
