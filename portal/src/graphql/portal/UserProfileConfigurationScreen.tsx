@@ -34,7 +34,7 @@ import ShowLoading from "../../ShowLoading";
 import {
   PortalAPIAppConfig,
   StandardAttributesAccessControlConfig,
-  StandardAttributesAccessControl,
+  UserProfileAttributesAccessControl,
   AccessControlLevelString,
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
@@ -142,13 +142,13 @@ function accessControlLevelStringOfInt(
 }
 
 type StandardAttributesAccessControlAdjustment = [
-  keyof StandardAttributesAccessControl,
+  keyof UserProfileAttributesAccessControl,
   AccessControlLevelString
 ];
 
 function adjustAccessControl(
-  accessControl: StandardAttributesAccessControl,
-  target: keyof StandardAttributesAccessControl,
+  accessControl: UserProfileAttributesAccessControl,
+  target: keyof UserProfileAttributesAccessControl,
   refValue: AccessControlLevelString
 ): StandardAttributesAccessControlAdjustment | undefined {
   const targetLevelInt = intOfAccessControlLevelString(accessControl[target]);
@@ -162,7 +162,7 @@ function adjustAccessControl(
 
 interface PendingUpdate {
   index: number;
-  key: keyof StandardAttributesAccessControl;
+  key: keyof UserProfileAttributesAccessControl;
   mainAdjustment: StandardAttributesAccessControlAdjustment;
   otherAdjustments: StandardAttributesAccessControlAdjustment[];
 }
@@ -170,7 +170,7 @@ interface PendingUpdate {
 function makeUpdate(
   prev: FormState,
   index: number,
-  key: keyof StandardAttributesAccessControl,
+  key: keyof UserProfileAttributesAccessControl,
   newValue: AccessControlLevelString
 ): PendingUpdate {
   const accessControl = prev.standardAttributesItems[index].access_control;
@@ -348,7 +348,7 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
     );
 
     const makeDropdownOnChange = useCallback(
-      (index: number, key: keyof StandardAttributesAccessControl) => {
+      (index: number, key: keyof UserProfileAttributesAccessControl) => {
         return (
           _e: React.FormEvent<unknown>,
           option?: IDropdownOption<AccessControlLevelString>,
@@ -379,7 +379,7 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
     );
 
     const makeRenderDropdown = useCallback(
-      (key: keyof StandardAttributesAccessControl) => {
+      (key: keyof UserProfileAttributesAccessControl) => {
         return (
           item?: StandardAttributesAccessControlConfig,
           index?: number,

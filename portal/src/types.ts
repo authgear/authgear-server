@@ -344,7 +344,7 @@ export interface StandardAttributesPopulationConfig {
 
 export type AccessControlLevelString = "hidden" | "readonly" | "readwrite";
 
-export interface StandardAttributesAccessControl {
+export interface UserProfileAttributesAccessControl {
   end_user: AccessControlLevelString;
   bearer: AccessControlLevelString;
   portal_ui: AccessControlLevelString;
@@ -352,7 +352,7 @@ export interface StandardAttributesAccessControl {
 
 export interface StandardAttributesAccessControlConfig {
   pointer: string;
-  access_control: StandardAttributesAccessControl;
+  access_control: UserProfileAttributesAccessControl;
 }
 
 export interface StandardAttributesConfig {
