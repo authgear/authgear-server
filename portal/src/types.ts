@@ -360,8 +360,33 @@ export interface StandardAttributesConfig {
   access_control?: StandardAttributesAccessControlConfig[];
 }
 
+export interface CustomAttributesConfig {
+  attributes?: CustomAttributesAttributeConfig[];
+}
+
+export interface CustomAttributesAttributeConfig {
+  id: string;
+  pointer: string;
+  type: CustomAttributeType;
+  access_control: UserProfileAttributesAccessControl;
+  minimum?: number;
+  maximum?: number;
+  enum?: string[];
+}
+
+export type CustomAttributeType =
+  | "string"
+  | "number"
+  | "integer"
+  | "enum"
+  | "phone_number"
+  | "email"
+  | "url"
+  | "alpha2";
+
 export interface UserProfileConfig {
   standard_attributes?: StandardAttributesConfig;
+  custom_attributes?: CustomAttributesConfig;
 }
 
 // PortalAPIAppConfig
