@@ -69,7 +69,7 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			userRef := model.UserRef{
 				Meta: model.Meta{
-					ID: n.Identity.ID,
+					ID: n.Identity.UserID,
 				},
 			}
 

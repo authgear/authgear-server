@@ -91,7 +91,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				e = nonblocking.NewIdentityLoginIDAddedEventPayload(
 					model.UserRef{
 						Meta: model.Meta{
-							ID: n.Identity.ID,
+							ID: n.Identity.UserID,
 						},
 					},
 					n.Identity.ToModel(),
@@ -102,7 +102,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				e = &nonblocking.IdentityOAuthConnectedEventPayload{
 					UserRef: model.UserRef{
 						Meta: model.Meta{
-							ID: n.Identity.ID,
+							ID: n.Identity.UserID,
 						},
 					},
 					Identity: n.Identity.ToModel(),
