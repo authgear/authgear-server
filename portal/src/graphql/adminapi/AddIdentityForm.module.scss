@@ -3,3 +3,7 @@
   margin: 10px 20px;
   font-size: 15px;
 }
+
+.widget {
+  grid-column: 1 / span 6;
+}

@@ -184,8 +184,7 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
           <LoginIDField value={form.state.loginID} onChange={onLoginIDChange} />
           {requirePassword && (
             <PasswordField
-              className={styles.password}
-              textFieldClassName={styles.passwordField}
+              className={styles.widget}
               passwordPolicy={passwordPolicy}
               label={renderToString("AddUsernameScreen.password.label")}
               value={form.state.password}
