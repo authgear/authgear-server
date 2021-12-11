@@ -320,6 +320,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     );
 
     const form = useSimpleForm({
+      stateMode: "UpdateInitialStateWithUseEffect",
       defaultState,
       submit,
     });

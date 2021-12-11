@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { gql, useMutation } from "@apollo/client";
+import { produce } from "immer";
 import { StandardAttributes } from "../../../types";
 import { UpdateUserMutation } from "./__generated__/UpdateUserMutation";
 
@@ -30,38 +31,34 @@ export interface UseUpdateUserMutationReturnType {
 }
 
 function sanitize(attrs: StandardAttributes): StandardAttributes {
-  const output: StandardAttributes = {
-    ...attrs,
-  };
+  return produce(attrs, (attrs) => {
+    delete attrs.updated_at;
+    delete attrs.email_verified;
+    delete attrs.phone_number_verified;
 
-  delete output.updated_at;
-  delete output.email_verified;
-  delete output.phone_number_verified;
-
-  for (const key of Object.keys(output)) {
-    // @ts-expect-error
-    const value = output[key];
-    if (value === "") {
+    for (const key of Object.keys(attrs)) {
       // @ts-expect-error
-      delete output[key];
-    }
-  }
-
-  if (output.address != null) {
-    for (const key of Object.keys(output.address)) {
-      // @ts-expect-error
-      const value = output.address[key];
+      const value = attrs[key];
       if (value === "") {
         // @ts-expect-error
-        delete output.address[key];
+        delete attrs[key];
       }
     }
-    if (Object.keys(output.address).length === 0) {
-      delete output.address;
-    }
-  }
 
-  return output;
+    if (attrs.address != null) {
+      for (const key of Object.keys(attrs.address)) {
+        // @ts-expect-error
+        const value = attrs.address[key];
+        if (value === "") {
+          // @ts-expect-error
+          delete attrs.address[key];
+        }
+      }
+      if (Object.keys(attrs.address).length === 0) {
+        delete attrs.address;
+      }
+    }
+  });
 }
 
 export function useUpdateUserMutation(): UseUpdateUserMutationReturnType {
