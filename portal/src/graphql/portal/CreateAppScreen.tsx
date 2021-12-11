@@ -89,6 +89,8 @@ const CreateAppScreen: React.FC = function CreateAppScreen() {
   );
 
   const form = useSimpleForm({
+    stateMode:
+      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
     defaultState,
     submit,
   });

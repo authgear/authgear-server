@@ -17,13 +17,20 @@ export interface SimpleFormModel<State, Result = unknown> {
 export interface UseSimpleFormProps<State, Result> {
   defaultState: State;
   submit: (state: State) => Promise<Result>;
+  stateMode: // This state mode is for forms where multiple submission is desired.
+  // For each submission, the form should be reset to initial state.
+  | "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave"
+    // This state mode is for forms where the state will be updated externally after save.
+    // For example, the updated_at of user profile form will be updated after save.
+    // So the initial state must be able to be re-initialized again.
+    | "UpdateInitialStateWithUseEffect";
   validate?: (state: State) => APIError | null;
 }
 
 export function useSimpleForm<State, Result = unknown>(
   props: UseSimpleFormProps<State, Result>
 ): SimpleFormModel<State, Result> {
-  const { defaultState, submit, validate } = props;
+  const { defaultState, stateMode, submit, validate } = props;
 
   const [initialState, setInitialState] = useState(defaultState);
   const [currentState, setCurrentState] = useState(initialState);
@@ -33,9 +40,11 @@ export function useSimpleForm<State, Result = unknown>(
   const [submissionResult, setSubmissionResult] = useState<unknown>(null);
 
   useEffect(() => {
-    setInitialState(defaultState);
-    setCurrentState(defaultState);
-  }, [defaultState]);
+    if (stateMode === "UpdateInitialStateWithUseEffect") {
+      setInitialState(defaultState);
+      setCurrentState(defaultState);
+    }
+  }, [stateMode, defaultState]);
 
   const isDirty = useMemo(
     () => !deepEqual(initialState, currentState, { strict: true }),
@@ -65,13 +74,26 @@ export function useSimpleForm<State, Result = unknown>(
     submit(currentState)
       .then((result) => {
         setError(null);
-        setInitialState(currentState);
+        if (
+          stateMode ===
+          "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave"
+        ) {
+          setCurrentState(initialState);
+        }
         setSubmissionResult(result);
         setIsSubmitted(true);
       })
       .catch((e) => setError(e))
       .finally(() => setIsLoading(false));
-  }, [isLoading, isDirty, submit, validate, currentState]);
+  }, [
+    isLoading,
+    isDirty,
+    submit,
+    validate,
+    currentState,
+    initialState,
+    stateMode,
+  ]);
 
   const setState = useCallback(
     (fn: (state: State) => State) => {

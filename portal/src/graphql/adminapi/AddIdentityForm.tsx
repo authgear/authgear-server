@@ -131,6 +131,8 @@ const AddIdentityForm: React.FC<AddIdentityFormProps> =
     );
 
     const rawForm = useSimpleForm({
+      stateMode:
+        "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
       defaultState,
       submit,
       validate,

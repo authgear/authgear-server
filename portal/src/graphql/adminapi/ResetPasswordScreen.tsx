@@ -114,7 +114,13 @@ const ResetPasswordScreen: React.FC = function ResetPasswordScreen() {
     [resetPassword]
   );
 
-  const form = useSimpleForm({ defaultState, submit, validate });
+  const form = useSimpleForm({
+    stateMode:
+      "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave",
+    defaultState,
+    submit,
+    validate,
+  });
 
   const canSave =
     form.state.newPassword.length > 0 && form.state.confirmPassword.length > 0;
