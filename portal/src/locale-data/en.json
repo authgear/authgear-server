@@ -219,7 +219,7 @@
   "UserDetails.command-bar.login-as-user": "Login as this user",
   "UserDetails.command-bar.invalidate-sessions": "Invalidate all sessions",
 
-  "UserDetails.standard-attributes.header": "Profile",
+  "UserDetails.user-profile.header": "Profile",
 
   "UserDetails.account-security.header": "Account Security",
   "UserDetails.account-security.last-updated": "Last updated at {datetime}",
@@ -259,10 +259,10 @@
   "UserDetails.connected-identities.remove-identity-error.connot-remove-last": "Cannot remove last identity",
   "UserDetails.connected-identities.verify-identity-error.generic": "Failed to set verified status of identity claim",
 
-  "UserDetailsStandardAttributes.picture.placeholder": "URL to the profile picture",
-  "UserDetailsStandardAttributes.profile.placeholder": "URL to the profile webpage",
-  "UserDetailsStandardAttributes.website.placeholder": "URL to the personal website",
-  "UserDetailsStandardAttributes.gender.other.label": "Others (Please specify)",
+  "UserProfileForm.picture.placeholder": "URL to the profile picture",
+  "UserProfileForm.profile.placeholder": "URL to the profile webpage",
+  "UserProfileForm.website.placeholder": "URL to the personal website",
+  "UserProfileForm.gender.other.label": "Others (Please specify)",
 
   "CreateIdentity.require-login-id": "You need to add \"login_id\" to identities list in authgear config",
 
