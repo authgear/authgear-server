@@ -18,9 +18,7 @@ import FormContainer from "../../FormContainer";
 import DeleteUserDialog from "./DeleteUserDialog";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import UserDetailSummary from "./UserDetailSummary";
-import UserDetailsStandardAttributes, {
-  StandardAttributesState,
-} from "./UserDetailsStandardAttributes";
+import UserProfileForm, { StandardAttributesState } from "./UserProfileForm";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
@@ -47,7 +45,7 @@ interface UserDetailsProps {
   appConfig: PortalAPIAppConfig | null;
 }
 
-const STANDARD_ATTRIBUTES_KEY = "standard-attributes";
+const USER_PROFILE_KEY = "user-profile";
 const ACCOUNT_SECURITY_PIVOT_KEY = "account-security";
 const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
@@ -90,7 +88,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { selectedKey, onLinkClick } = usePivotNavigation([
-    STANDARD_ATTRIBUTES_KEY,
+    USER_PROFILE_KEY,
     ACCOUNT_SECURITY_PIVOT_KEY,
     CONNECTED_IDENTITIES_PIVOT_KEY,
     SESSION_PIVOT_KEY,
@@ -111,7 +109,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
   }, [appConfig]);
 
-  const accessControl = useMemo(() => {
+  const standardAttributeAccessControl = useMemo(() => {
     const record: Record<string, AccessControlLevelString> = {};
     for (const item of appConfig?.user_profile?.standard_attributes
       ?.access_control ?? []) {
@@ -160,14 +158,14 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
       />
       <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
         <PivotItem
-          itemKey={STANDARD_ATTRIBUTES_KEY}
-          headerText={renderToString("UserDetails.standard-attributes.header")}
+          itemKey={USER_PROFILE_KEY}
+          headerText={renderToString("UserDetails.user-profile.header")}
         >
-          <UserDetailsStandardAttributes
+          <UserProfileForm
             identities={identities}
             standardAttributes={state.standardAttributes}
             onChangeStandardAttributes={onChangeStandardAttributes}
-            accessControl={accessControl}
+            standardAttributeAccessControl={standardAttributeAccessControl}
           />
         </PivotItem>
         <PivotItem
