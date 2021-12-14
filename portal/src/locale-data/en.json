@@ -259,6 +259,7 @@
   "UserDetails.connected-identities.remove-identity-error.connot-remove-last": "Cannot remove last identity",
   "UserDetails.connected-identities.verify-identity-error.generic": "Failed to set verified status of identity claim",
 
+  "UserProfileForm.standard-attributes.title": "Standard Attributes",
   "UserProfileForm.picture.placeholder": "URL to the profile picture",
   "UserProfileForm.profile.placeholder": "URL to the profile webpage",
   "UserProfileForm.website.placeholder": "URL to the personal website",
