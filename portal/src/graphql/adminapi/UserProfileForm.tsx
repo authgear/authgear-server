@@ -196,11 +196,7 @@ interface CustomAttributeControlProps {
 
 // eslint-disable-next-line complexity
 function CustomAttributeControl(props: CustomAttributeControlProps) {
-  const {
-    attributeConfig,
-    customAttributes,
-    // onChangeCustomAttributes
-  } = props;
+  const { attributeConfig, customAttributes, onChangeCustomAttributes } = props;
   const {
     pointer,
     type: typ,
@@ -209,6 +205,20 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     // maximum,
     // enum,
   } = attributeConfig;
+
+  const onChange = useCallback(
+    (_: React.FormEvent<unknown>, newValue?: string) => {
+      if (newValue == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: newValue,
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
 
   const value = customAttributes[pointer];
   if (accessControl !== "readonly" && accessControl !== "readwrite") {
@@ -228,6 +238,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
+          onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
@@ -239,6 +250,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
+          onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
@@ -250,6 +262,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
+          onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
@@ -261,6 +274,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
+          onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
@@ -272,6 +286,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
+          onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
@@ -283,6 +298,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
+          onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
@@ -294,6 +310,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
+          onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
@@ -305,6 +322,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
+          onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
