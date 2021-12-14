@@ -27,6 +27,7 @@ import {
   Identity,
   IdentityClaims,
   AccessControlLevelString,
+  CustomAttributesAttributeConfig,
 } from "../../types";
 import { makeTimezoneOptions } from "../../util/timezone";
 import { makeAlpha2Options } from "../../util/alpha2";
@@ -65,11 +66,16 @@ export interface StandardAttributesState {
   updated_at?: number;
 }
 
+export type CustomAttributesState = Record<string, string>;
+
 export interface UserProfileFormProps {
   identities: Identity[];
   standardAttributes: StandardAttributesState;
   onChangeStandardAttributes?: (attrs: StandardAttributesState) => void;
   standardAttributeAccessControl: Record<string, AccessControlLevelString>;
+  customAttributesConfig: CustomAttributesAttributeConfig[];
+  customAttributes: CustomAttributesState;
+  onChangeCustomAttributes?: (attrs: CustomAttributesState) => void;
 }
 
 type GenderVariant = "" | "male" | "female" | "other";
