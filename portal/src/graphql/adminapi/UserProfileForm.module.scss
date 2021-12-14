@@ -66,3 +66,15 @@
 .gridAreaCountry {
   grid-area: country;
 }
+
+.customAttributesForm {
+  display: grid;
+  row-gap: 30px;
+  column-gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: auto;
+}
+
+.customAttributeControl {
+  grid-column: 1 / span 1;
+}

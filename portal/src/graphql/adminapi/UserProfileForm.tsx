@@ -32,7 +32,10 @@ import {
 import { makeTimezoneOptions } from "../../util/timezone";
 import { makeAlpha2Options } from "../../util/alpha2";
 import { formatDatetime } from "../../util/formatDatetime";
-import { jsonPointerToString } from "../../util/jsonpointer";
+import {
+  jsonPointerToString,
+  parseJSONPointerIntoParentChild,
+} from "../../util/jsonpointer";
 
 import styles from "./UserProfileForm.module.scss";
 
@@ -139,7 +142,7 @@ function Div(props: DivProps) {
   return <div className={className}>{children}</div>;
 }
 
-interface FormTextFieldShortcutProps {
+interface StandardAttributeTextFieldProps {
   standardAttributes: StandardAttributesState;
   fieldName: keyof StandardAttributes;
   makeOnChangeText: (
@@ -150,7 +153,7 @@ interface FormTextFieldShortcutProps {
   className?: string;
 }
 
-function FormTextFieldShortcut(props: FormTextFieldShortcutProps) {
+function StandardAttributeTextField(props: StandardAttributeTextFieldProps) {
   const {
     standardAttributes,
     fieldName,
@@ -183,6 +186,132 @@ function FormTextFieldShortcut(props: FormTextFieldShortcutProps) {
       disabled={disabled}
     />
   );
+}
+
+interface CustomAttributeControlProps {
+  attributeConfig: CustomAttributesAttributeConfig;
+  customAttributes: CustomAttributesState;
+  onChangeCustomAttributes?: (attrs: CustomAttributesState) => void;
+}
+
+// eslint-disable-next-line complexity
+function CustomAttributeControl(props: CustomAttributeControlProps) {
+  const {
+    attributeConfig,
+    customAttributes,
+    // onChangeCustomAttributes
+  } = props;
+  const {
+    pointer,
+    type: typ,
+    access_control: { portal_ui: accessControl },
+    // minimum,
+    // maximum,
+    // enum,
+  } = attributeConfig;
+
+  const value = customAttributes[pointer];
+  if (accessControl !== "readonly" && accessControl !== "readwrite") {
+    return null;
+  }
+  const disabled = accessControl === "readonly";
+
+  const parentChild = parseJSONPointerIntoParentChild(pointer);
+  if (parentChild == null) {
+    return null;
+  }
+  const [parent, fieldName] = parentChild;
+
+  switch (typ) {
+    case "string":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={pointer}
+          disabled={disabled}
+        />
+      );
+    case "number":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={pointer}
+          disabled={disabled}
+        />
+      );
+    case "integer":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={pointer}
+          disabled={disabled}
+        />
+      );
+    case "enum":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={pointer}
+          disabled={disabled}
+        />
+      );
+    case "phone_number":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={pointer}
+          disabled={disabled}
+        />
+      );
+    case "email":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={pointer}
+          disabled={disabled}
+        />
+      );
+    case "url":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={pointer}
+          disabled={disabled}
+        />
+      );
+    case "alpha2":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={pointer}
+          disabled={disabled}
+        />
+      );
+  }
 }
 
 interface StandardAttributesFormProps {
@@ -547,7 +676,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
         </Label>
         <Div className={styles.nameGroup}>
           {isReadable("name") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -555,7 +684,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
             />
           )}
           {isReadable("nickname") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="nickname"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -563,7 +692,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
             />
           )}
           {isReadable("given_name") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="given_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -571,7 +700,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
             />
           )}
           {isReadable("middle_name") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="middle_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -579,7 +708,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
             />
           )}
           {isReadable("family_name") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="family_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -588,7 +717,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
           )}
         </Div>
         {isReadable("picture") && (
-          <FormTextFieldShortcut
+          <StandardAttributeTextField
             fieldName="picture"
             standardAttributes={standardAttributes}
             makeOnChangeText={makeOnChangeText}
@@ -599,7 +728,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
         )}
         <Div className={styles.singleColumnGroup}>
           {isReadable("profile") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="profile"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -610,7 +739,7 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
             />
           )}
           {isReadable("website") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="website"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -749,6 +878,43 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
     );
   };
 
+interface CustomAttributesFormProps {
+  customAttributes: CustomAttributesState;
+  onChangeCustomAttributes?: (attrs: CustomAttributesState) => void;
+  customAttributesConfig: CustomAttributesAttributeConfig[];
+}
+
+const CustomAttributesForm: React.FC<CustomAttributesFormProps> =
+  function CustomAttributesForm(props: CustomAttributesFormProps) {
+    const {
+      customAttributes,
+      onChangeCustomAttributes,
+      customAttributesConfig,
+    } = props;
+
+    return (
+      <>
+        <Label className={styles.standardAttributesTitle}>
+          <Text variant="xLarge">
+            <FormattedMessage id="UserProfileForm.custom-attributes.title" />
+          </Text>
+        </Label>
+        <div className={styles.customAttributesForm}>
+          {customAttributesConfig.map((c) => {
+            return (
+              <CustomAttributeControl
+                key={c.id}
+                attributeConfig={c}
+                customAttributes={customAttributes}
+                onChangeCustomAttributes={onChangeCustomAttributes}
+              />
+            );
+          })}
+        </div>
+      </>
+    );
+  };
+
 const UserProfileForm: React.FC<UserProfileFormProps> =
   function UserProfileForm(props: UserProfileFormProps) {
     const {
@@ -756,6 +922,9 @@ const UserProfileForm: React.FC<UserProfileFormProps> =
       standardAttributes,
       onChangeStandardAttributes,
       standardAttributeAccessControl,
+      customAttributes,
+      onChangeCustomAttributes,
+      customAttributesConfig,
     } = props;
     const { locale: appLocale } = useContext(Context);
 
@@ -777,6 +946,11 @@ const UserProfileForm: React.FC<UserProfileFormProps> =
           standardAttributeAccessControl={standardAttributeAccessControl}
         />
         <HorizontalDivider />
+        <CustomAttributesForm
+          customAttributes={customAttributes}
+          onChangeCustomAttributes={onChangeCustomAttributes}
+          customAttributesConfig={customAttributesConfig}
+        />
         {updatedAtFormatted != null && (
           <Text
             className={styles.standalone}
