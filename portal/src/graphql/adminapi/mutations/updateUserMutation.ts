@@ -16,6 +16,7 @@ const updateUserMutation = gql`
         id
         updatedAt
         standardAttributes
+        customAttributes
       }
     }
   }
