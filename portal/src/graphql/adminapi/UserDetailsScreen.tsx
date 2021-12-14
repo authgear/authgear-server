@@ -1,3 +1,4 @@
+/* global GQL_UserCustomAttributes */
 import React, { useMemo, useState, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -18,7 +19,10 @@ import FormContainer from "../../FormContainer";
 import DeleteUserDialog from "./DeleteUserDialog";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import UserDetailSummary from "./UserDetailSummary";
-import UserProfileForm, { StandardAttributesState } from "./UserProfileForm";
+import UserProfileForm, {
+  CustomAttributesState,
+  StandardAttributesState,
+} from "./UserProfileForm";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
@@ -35,7 +39,9 @@ import {
   PortalAPIAppConfig,
   StandardAttributes,
   AccessControlLevelString,
+  CustomAttributesAttributeConfig,
 } from "../../types";
+import { parseJSONPointer } from "../../util/jsonpointer";
 
 import styles from "./UserDetailsScreen.module.scss";
 
@@ -53,10 +59,13 @@ const SESSION_PIVOT_KEY = "session";
 interface FormState {
   userID: string;
   standardAttributes: StandardAttributesState;
+  customAttributes: CustomAttributesState;
 }
 
 // eslint-disable-next-line complexity
-function makeState(attrs: StandardAttributes): StandardAttributesState {
+function makeStandardAttributes(
+  attrs: StandardAttributes
+): StandardAttributesState {
   return {
     email: attrs.email ?? "",
     phone_number: attrs.phone_number ?? "",
@@ -82,6 +91,24 @@ function makeState(attrs: StandardAttributes): StandardAttributesState {
     },
     updated_at: attrs.updated_at,
   };
+}
+
+function makeCustomAttributes(
+  attrs: GQL_UserCustomAttributes,
+  config: CustomAttributesAttributeConfig[]
+): CustomAttributesState {
+  const state: CustomAttributesState = {};
+  for (const c of config) {
+    const ptr = parseJSONPointer(c.pointer);
+    // FIXME(custom-attributes): support any-level jsonpointer.
+    const unknownValue = attrs[ptr[0]];
+    if (unknownValue == null) {
+      state[c.pointer] = "";
+    } else {
+      state[c.pointer] = String(unknownValue);
+    }
+  }
+  return state;
 }
 
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
@@ -118,12 +145,29 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     return record;
   }, [appConfig]);
 
+  const customAttributesConfig: CustomAttributesAttributeConfig[] =
+    useMemo(() => {
+      return appConfig?.user_profile?.custom_attributes?.attributes ?? [];
+    }, [appConfig]);
+
   const onChangeStandardAttributes = useCallback(
     (attrs: StandardAttributesState) => {
       setState((state) => {
         return {
           ...state,
           standardAttributes: attrs,
+        };
+      });
+    },
+    [setState]
+  );
+
+  const onChangeCustomAttributes = useCallback(
+    (attrs: CustomAttributesState) => {
+      setState((state) => {
+        return {
+          ...state,
+          customAttributes: attrs,
         };
       });
     },
@@ -166,6 +210,9 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
             standardAttributes={state.standardAttributes}
             onChangeStandardAttributes={onChangeStandardAttributes}
             standardAttributeAccessControl={standardAttributeAccessControl}
+            customAttributesConfig={customAttributesConfig}
+            customAttributes={state.customAttributes}
+            onChangeCustomAttributes={onChangeCustomAttributes}
           />
         </PivotItem>
         <PivotItem
@@ -253,6 +300,11 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
   function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
     const { user, effectiveAppConfig } = props;
     const navigate = useNavigate();
+    const customAttributesConfig = useMemo(() => {
+      return (
+        effectiveAppConfig.user_profile?.custom_attributes?.attributes ?? []
+      );
+    }, [effectiveAppConfig.user_profile?.custom_attributes?.attributes]);
 
     const navBreadcrumbItems = React.useMemo(() => {
       return [
@@ -299,9 +351,18 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     const defaultState = useMemo(() => {
       return {
         userID: user.id,
-        standardAttributes: makeState(user.standardAttributes),
+        standardAttributes: makeStandardAttributes(user.standardAttributes),
+        customAttributes: makeCustomAttributes(
+          user.customAttributes,
+          customAttributesConfig
+        ),
       };
-    }, [user.id, user.standardAttributes]);
+    }, [
+      user.id,
+      user.standardAttributes,
+      user.customAttributes,
+      customAttributesConfig,
+    ]);
 
     const endUserAccountIdentifier = useMemo(
       () => getEndUserAccountIdentifier(user.standardAttributes),
