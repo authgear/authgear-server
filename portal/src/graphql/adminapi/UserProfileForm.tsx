@@ -33,6 +33,7 @@ import {
 import { makeTimezoneOptions } from "../../util/timezone";
 import { makeAlpha2Options } from "../../util/alpha2";
 import { formatDatetime } from "../../util/formatDatetime";
+import { generateLabel } from "../../util/label";
 import { checkNumberInput, checkIntegerInput } from "../../util/input";
 import {
   jsonPointerToString,
@@ -216,7 +217,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     for (const variant of enu ?? []) {
       options.push({
         key: variant,
-        text: variant,
+        text: generateLabel(variant),
       });
     }
     return options;
@@ -296,16 +297,32 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
   );
 
   const value = customAttributes[pointer];
+  const disabled = accessControl === "readonly";
+
+  const parentChild = useMemo(() => {
+    return parseJSONPointerIntoParentChild(pointer);
+  }, [pointer]);
+
+  const { parent, fieldName, label } = useMemo(() => {
+    if (parentChild == null) {
+      return {
+        parent: "",
+        fieldName: "",
+        label: "",
+      };
+    }
+    const [parent, fieldName] = parentChild;
+    const label = generateLabel(fieldName);
+    return {
+      parent,
+      fieldName,
+      label,
+    };
+  }, [parentChild]);
+
   if (accessControl !== "readonly" && accessControl !== "readwrite") {
     return null;
   }
-  const disabled = accessControl === "readonly";
-
-  const parentChild = parseJSONPointerIntoParentChild(pointer);
-  if (parentChild == null) {
-    return null;
-  }
-  const [parent, fieldName] = parentChild;
 
   switch (typ) {
     case "string":
@@ -316,7 +333,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
-          label={pointer}
+          label={label}
           disabled={disabled}
         />
       );
@@ -328,7 +345,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           onChange={onChangeNumber}
           parentJSONPointer={parent}
           fieldName={fieldName}
-          label={pointer}
+          label={label}
           disabled={disabled}
         />
       );
@@ -340,7 +357,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           onChange={onChangeInteger}
           parentJSONPointer={parent}
           fieldName={fieldName}
-          label={pointer}
+          label={label}
           disabled={disabled}
         />
       );
@@ -353,7 +370,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           options={enumOptions}
           parentJSONPointer={parent}
           fieldName={fieldName}
-          label={pointer}
+          label={label}
           disabled={disabled}
         />
       );
@@ -365,7 +382,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
-          label={pointer}
+          label={label}
           disabled={disabled}
         />
       );
@@ -377,7 +394,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
-          label={pointer}
+          label={label}
           disabled={disabled}
         />
       );
@@ -389,7 +406,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           onChange={onChange}
           parentJSONPointer={parent}
           fieldName={fieldName}
-          label={pointer}
+          label={label}
           disabled={disabled}
         />
       );
@@ -402,7 +419,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           options={alpha2Options}
           parentJSONPointer={parent}
           fieldName={fieldName}
-          label={pointer}
+          label={label}
           disabled={disabled}
         />
       );
