@@ -222,6 +222,10 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     return options;
   }, [enu]);
 
+  const alpha2Options: IDropdownOption[] = useMemo(() => {
+    return [{ key: "", text: "" }, ...makeAlpha2Options()];
+  }, []);
+
   const onChange = useCallback(
     (_: React.FormEvent<unknown>, newValue?: string) => {
       if (newValue == null || onChangeCustomAttributes == null) {
@@ -274,7 +278,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     [customAttributes, onChangeCustomAttributes, pointer]
   );
 
-  const onChangeEnum = useCallback(
+  const onChangeDropdown = useCallback(
     (_: React.FormEvent<unknown>, option?: IDropdownOption) => {
       if (option == null || onChangeCustomAttributes == null) {
         return;
@@ -345,7 +349,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormDropdown
           className={styles.customAttributeControl}
           selectedKey={value}
-          onChange={onChangeEnum}
+          onChange={onChangeDropdown}
           options={enumOptions}
           parentJSONPointer={parent}
           fieldName={fieldName}
@@ -391,10 +395,11 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
       );
     case "alpha2":
       return (
-        <FormTextField
+        <FormDropdown
           className={styles.customAttributeControl}
-          value={value}
-          onChange={onChange}
+          selectedKey={value}
+          onChange={onChangeDropdown}
+          options={alpha2Options}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
