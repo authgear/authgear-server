@@ -23,3 +23,6 @@ declare type GQL_FeatureConfig = import("./types").PortalAPIFeatureConfig;
 
 // eslint-disable-next-line no-undef
 declare type GQL_UserStandardAttributes = import("./types").StandardAttributes;
+
+// eslint-disable-next-line no-undef
+declare type GQL_UserCustomAttributes = Record<string, unknown>;
