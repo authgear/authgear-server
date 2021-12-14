@@ -19,6 +19,7 @@ import {
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import FormTextField from "../../FormTextField";
+import FormDropdown from "../../FormDropdown";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import {
@@ -202,8 +203,24 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     pointer,
     type: typ,
     access_control: { portal_ui: accessControl },
-    // enum,
+    enum: enu,
   } = attributeConfig;
+
+  const enumOptions: IDropdownOption[] = useMemo(() => {
+    const options = [
+      {
+        key: "",
+        text: "",
+      },
+    ];
+    for (const variant of enu ?? []) {
+      options.push({
+        key: variant,
+        text: variant,
+      });
+    }
+    return options;
+  }, [enu]);
 
   const onChange = useCallback(
     (_: React.FormEvent<unknown>, newValue?: string) => {
@@ -253,6 +270,23 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         ...customAttributes,
         [pointer]: newValue,
       });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
+  const onChangeEnum = useCallback(
+    (_: React.FormEvent<unknown>, option?: IDropdownOption) => {
+      if (option == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      const { key } = option;
+      if (typeof key === "string") {
+        onChangeCustomAttributes({
+          ...customAttributes,
+          [pointer]: key,
+        });
+      }
     },
     [customAttributes, onChangeCustomAttributes, pointer]
   );
@@ -308,10 +342,11 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
       );
     case "enum":
       return (
-        <FormTextField
+        <FormDropdown
           className={styles.customAttributeControl}
-          value={value}
-          onChange={onChange}
+          selectedKey={value}
+          onChange={onChangeEnum}
+          options={enumOptions}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
