@@ -32,6 +32,7 @@ import {
 import { makeTimezoneOptions } from "../../util/timezone";
 import { makeAlpha2Options } from "../../util/alpha2";
 import { formatDatetime } from "../../util/formatDatetime";
+import { checkNumberInput, checkIntegerInput } from "../../util/input";
 import {
   jsonPointerToString,
   parseJSONPointerIntoParentChild,
@@ -201,14 +202,50 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     pointer,
     type: typ,
     access_control: { portal_ui: accessControl },
-    // minimum,
-    // maximum,
     // enum,
   } = attributeConfig;
 
   const onChange = useCallback(
     (_: React.FormEvent<unknown>, newValue?: string) => {
       if (newValue == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: newValue,
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
+  const onChangeNumber = useCallback(
+    (_: React.FormEvent<unknown>, newValue?: string) => {
+      if (newValue == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      const good = checkNumberInput(newValue);
+      if (!good) {
+        return;
+      }
+
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: newValue,
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
+  const onChangeInteger = useCallback(
+    (_: React.FormEvent<unknown>, newValue?: string) => {
+      if (newValue == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      const good = checkIntegerInput(newValue);
+      if (!good) {
         return;
       }
 
@@ -250,7 +287,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
-          onChange={onChange}
+          onChange={onChangeNumber}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
@@ -262,7 +299,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
         <FormTextField
           className={styles.customAttributeControl}
           value={value}
-          onChange={onChange}
+          onChange={onChangeInteger}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={pointer}
