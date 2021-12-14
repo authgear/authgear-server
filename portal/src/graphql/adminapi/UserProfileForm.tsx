@@ -15,6 +15,7 @@ import {
   ITextProps,
   ITheme,
   TextField,
+  Label,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import FormTextField from "../../FormTextField";
@@ -102,6 +103,19 @@ function UPDATED_AT_STYLES(_props: ITextProps, theme: ITheme) {
       padding: "8px 0",
     },
   };
+}
+
+function HorizontalDivider() {
+  const { themes } = useSystemConfig();
+  const theme = themes.main;
+  return (
+    <div
+      style={{
+        backgroundColor: `${theme.palette.neutralTertiaryAlt}`,
+        height: "1px",
+      }}
+    />
+  );
 }
 
 interface DivProps {
@@ -520,6 +534,11 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
 
     return (
       <>
+        <Label className={styles.standardAttributesTitle}>
+          <Text variant="xLarge">
+            <FormattedMessage id="UserProfileForm.standard-attributes.title" />
+          </Text>
+        </Label>
         <Div className={styles.nameGroup}>
           {isReadable("name") && (
             <FormTextFieldShortcut
@@ -751,6 +770,7 @@ const UserProfileForm: React.FC<UserProfileFormProps> =
           onChangeStandardAttributes={onChangeStandardAttributes}
           standardAttributeAccessControl={standardAttributeAccessControl}
         />
+        <HorizontalDivider />
         {updatedAtFormatted != null && (
           <Text
             className={styles.standalone}
