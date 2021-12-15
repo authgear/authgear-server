@@ -559,6 +559,8 @@ export interface StandardAttributes {
   updated_at?: number;
 }
 
+export type CustomAttributes = Record<string, unknown>;
+
 export interface StandardAttributesAddress {
   formatted?: string;
   street_address?: string;
