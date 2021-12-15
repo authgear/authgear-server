@@ -1,4 +1,3 @@
-/* global GQL_UserCustomAttributes */
 import React, { useMemo, useState, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -9,6 +8,7 @@ import {
   CommandButton,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { produce } from "immer";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
@@ -38,6 +38,7 @@ import { getEndUserAccountIdentifier } from "../../util/user";
 import {
   PortalAPIAppConfig,
   StandardAttributes,
+  CustomAttributes,
   AccessControlLevelString,
   CustomAttributesAttributeConfig,
 } from "../../types";
@@ -63,7 +64,7 @@ interface FormState {
 }
 
 // eslint-disable-next-line complexity
-function makeStandardAttributes(
+function makeStandardAttributesState(
   attrs: StandardAttributes
 ): StandardAttributesState {
   return {
@@ -93,8 +94,8 @@ function makeStandardAttributes(
   };
 }
 
-function makeCustomAttributes(
-  attrs: GQL_UserCustomAttributes,
+function makeCustomAttributesState(
+  attrs: CustomAttributes,
   config: CustomAttributesAttributeConfig[]
 ): CustomAttributesState {
   const state: CustomAttributesState = {};
@@ -109,6 +110,84 @@ function makeCustomAttributes(
     }
   }
   return state;
+}
+
+function makeStandardAttributesFromState(
+  state: StandardAttributesState
+): StandardAttributes {
+  return produce(state, (state) => {
+    delete state.updated_at;
+
+    for (const key of Object.keys(state)) {
+      // @ts-expect-error
+      const value = state[key];
+      if (value === "") {
+        // @ts-expect-error
+        delete state[key];
+      }
+    }
+
+    for (const key of Object.keys(state.address)) {
+      // @ts-expect-error
+      const value = state.address[key];
+      if (value === "") {
+        // @ts-expect-error
+        delete state.address[key];
+      }
+    }
+    if (Object.keys(state.address).length === 0) {
+      // @ts-expect-error
+      delete state.address;
+    }
+  });
+}
+
+// eslint-disable-next-line complexity
+function makeCustomAttributesFromState(
+  state: CustomAttributesState,
+  config: CustomAttributesAttributeConfig[]
+): CustomAttributes {
+  const out: CustomAttributes = {};
+  for (const c of config) {
+    const value = state[c.pointer];
+
+    if (value === "") {
+      continue;
+    }
+
+    // FIXME(custom-attributes): support any-level jsonpointer.
+    const ptr = parseJSONPointer(c.pointer);
+    const fieldName = ptr[0];
+
+    switch (c.type) {
+      case "string":
+        out[fieldName] = value;
+        break;
+      case "number":
+        out[fieldName] = parseFloat(value);
+        break;
+      case "integer":
+        out[fieldName] = parseInt(value, 10);
+        break;
+      case "enum":
+        out[fieldName] = value;
+        break;
+      case "phone_number":
+        out[fieldName] = value;
+        break;
+      case "email":
+        out[fieldName] = value;
+        break;
+      case "url":
+        out[fieldName] = value;
+        break;
+      case "alpha2":
+        out[fieldName] = value;
+        break;
+    }
+  }
+
+  return out;
 }
 
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
@@ -351,8 +430,10 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     const defaultState = useMemo(() => {
       return {
         userID: user.id,
-        standardAttributes: makeStandardAttributes(user.standardAttributes),
-        customAttributes: makeCustomAttributes(
+        standardAttributes: makeStandardAttributesState(
+          user.standardAttributes
+        ),
+        customAttributes: makeCustomAttributesState(
           user.customAttributes,
           customAttributesConfig
         ),
@@ -373,9 +454,16 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
 
     const submit = useCallback(
       async (state: FormState) => {
-        await updateUser(state.userID, state.standardAttributes);
+        await updateUser(
+          state.userID,
+          makeStandardAttributesFromState(state.standardAttributes),
+          makeCustomAttributesFromState(
+            state.customAttributes,
+            customAttributesConfig
+          )
+        );
       },
-      [updateUser]
+      [updateUser, customAttributesConfig]
     );
 
     const form = useSimpleForm({
