@@ -108,6 +108,14 @@ function makeCustomAttributesState(
     } else {
       state[c.pointer] = String(unknownValue);
     }
+
+    if (c.type === "phone_number") {
+      if (unknownValue == null) {
+        state["phone_number" + c.pointer] = "";
+      } else {
+        state["phone_number" + c.pointer] = String(unknownValue);
+      }
+    }
   }
   return state;
 }
