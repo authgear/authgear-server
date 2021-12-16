@@ -52,6 +52,7 @@
     "history": "5.1.0",
     "i18n-iso-countries": "7.2.0",
     "immer": "9.0.7",
+    "intl-tel-input": "17.0.15",
     "js-yaml": "4.1.0",
     "luxon": "2.2.0",
     "monaco-editor": "0.21.3",

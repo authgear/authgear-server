@@ -56,7 +56,7 @@ function isPasswordRequired(
   return needPrimaryPassword && !hasPrimaryPassword;
 }
 
-interface LoginIDFieldProps {
+export interface LoginIDFieldProps {
   value: string;
   onChange: (value: string) => void;
 }
