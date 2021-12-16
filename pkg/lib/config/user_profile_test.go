@@ -144,7 +144,7 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		})
 
 		test(&CustomAttributesAttributeConfig{
-			Type: CustomAttributeTypeAlpha2,
+			Type: CustomAttributeTypeCountryCode,
 		}, map[string]interface{}{
 			"type":   "string",
 			"format": "iso3166-1-alpha-2",

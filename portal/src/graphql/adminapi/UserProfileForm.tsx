@@ -426,7 +426,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
           disabled={disabled}
         />
       );
-    case "alpha2":
+    case "country_code":
       return (
         <FormDropdown
           className={styles.customAttributeControl}

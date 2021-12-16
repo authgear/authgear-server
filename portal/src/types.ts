@@ -382,7 +382,7 @@ export type CustomAttributeType =
   | "phone_number"
   | "email"
   | "url"
-  | "alpha2";
+  | "country_code";
 
 export interface UserProfileConfig {
   standard_attributes?: StandardAttributesConfig;

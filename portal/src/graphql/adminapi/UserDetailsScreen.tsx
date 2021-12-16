@@ -189,7 +189,7 @@ function makeCustomAttributesFromState(
       case "url":
         out[fieldName] = value;
         break;
-      case "alpha2":
+      case "country_code":
         out[fieldName] = value;
         break;
     }
