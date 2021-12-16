@@ -234,4 +234,4 @@ error: null
 value:
   id: "0000"
   pointer: /alpha2
-  type: alpha2
+  type: country_code

@@ -208,7 +208,7 @@ var _ = Schema.Add("CustomAttributesAttributeConfig", `
 				"phone_number",
 				"email",
 				"url",
-				"alpha2"
+				"country_code"
 			]
 		},
 		"access_control": { "$ref": "#/$defs/UserProfileAttributesAccessControl" }
@@ -365,7 +365,7 @@ func (c *CustomAttributesAttributeConfig) ToJSONSchema() (schema map[string]inte
 	case CustomAttributeTypeURL:
 		schema["type"] = "string"
 		schema["format"] = "uri"
-	case CustomAttributeTypeAlpha2:
+	case CustomAttributeTypeCountryCode:
 		schema["type"] = "string"
 		schema["format"] = "iso3166-1-alpha-2"
 	default:
@@ -385,7 +385,7 @@ const (
 	CustomAttributeTypePhoneNumber CustomAttributeType = "phone_number"
 	CustomAttributeTypeEmail       CustomAttributeType = "email"
 	CustomAttributeTypeURL         CustomAttributeType = "url"
-	CustomAttributeTypeAlpha2      CustomAttributeType = "alpha2"
+	CustomAttributeTypeCountryCode CustomAttributeType = "country_code"
 )
 
 type StandardAttributesConfig struct {
