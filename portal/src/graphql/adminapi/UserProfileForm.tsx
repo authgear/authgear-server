@@ -20,6 +20,7 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import FormTextField from "../../FormTextField";
 import FormDropdown from "../../FormDropdown";
+import FormPhoneTextField from "../../FormPhoneTextField";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import {
@@ -296,6 +297,21 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     [customAttributes, onChangeCustomAttributes, pointer]
   );
 
+  const onChangePhoneNumber = useCallback(
+    (valid: string, input: string) => {
+      if (onChangeCustomAttributes == null) {
+        return;
+      }
+
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: valid,
+        ["phone_number" + pointer]: input,
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
   const value = customAttributes[pointer];
   const disabled = accessControl === "readonly";
 
@@ -376,10 +392,10 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
       );
     case "phone_number":
       return (
-        <FormTextField
+        <FormPhoneTextField
           className={styles.customAttributeControl}
-          value={value}
-          onChange={onChange}
+          inputValue={customAttributes["phone_number" + pointer]}
+          onChange={onChangePhoneNumber}
           parentJSONPointer={parent}
           fieldName={fieldName}
           label={label}
