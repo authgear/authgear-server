@@ -140,7 +140,7 @@ func TestServiceNoEvent(t *testing.T) {
 							},
 							&config.CustomAttributesAttributeConfig{
 								Pointer: "/alpha2",
-								Type:    "alpha2",
+								Type:    "country_code",
 							},
 						},
 					},
@@ -270,7 +270,7 @@ func TestServiceNoEvent(t *testing.T) {
 							},
 							&config.CustomAttributesAttributeConfig{
 								Pointer: "/alpha2",
-								Type:    "alpha2",
+								Type:    "country_code",
 							},
 						},
 					},
