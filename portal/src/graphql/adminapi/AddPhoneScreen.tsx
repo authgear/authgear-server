@@ -1,26 +1,23 @@
 import React, {
-  useCallback,
-  useContext,
-  useEffect,
+  createContext,
   useMemo,
   useState,
+  useContext,
+  useCallback,
+  useEffect,
 } from "react";
-import cn from "classnames";
 import { useParams } from "react-router-dom";
-import { Dropdown, Label } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "@oursky/react-messageformat";
 
 import NavBreadcrumb from "../../NavBreadcrumb";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import FormTextField from "../../FormTextField";
-import AddIdentityForm from "./AddIdentityForm";
-import { useDropdown } from "../../hook/useInput";
+import AddIdentityForm, { LoginIDFieldProps } from "./AddIdentityForm";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
-import { PortalAPIAppConfig } from "../../types";
 import { ErrorParseRule } from "../../error/parse";
-import ALL_COUNTRIES from "../../data/country.json";
+import { PortalAPIAppConfig } from "../../types";
+import FormPhoneTextField from "../../FormPhoneTextField";
 
 import styles from "./AddPhoneScreen.module.scss";
 
@@ -32,116 +29,40 @@ const errorRules: ErrorParseRule[] = [
   },
 ];
 
-type Country = typeof ALL_COUNTRIES[number];
-type CountryMap = Record<string, Country>;
-
-const COUNTRY_MAP = ALL_COUNTRIES.reduce<CountryMap>(
-  (acc: CountryMap, country: Country) => {
-    acc[country.Alpha2] = country;
-    return acc;
-  },
-  {}
-);
-
-function makePhoneNumber(alpha2: string, phone: string) {
-  if (phone.length === 0) {
-    return "";
-  }
-  const countryCallingCode = COUNTRY_MAP[alpha2].CountryCallingCode;
-  return `+${countryCallingCode}${phone}`;
+interface PhoneContextValue {
+  effectiveAppConfig?: PortalAPIAppConfig;
+  resetToken?: unknown;
 }
 
-function getAlpha2(pinned: string[], allowed: string[]): string[] {
-  const list = [...pinned];
-  const pinnedSet = new Set(pinned);
-  for (const alpha2 of allowed) {
-    if (!pinnedSet.has(alpha2)) {
-      list.push(alpha2);
-    }
-  }
-  return list;
-}
+const PhoneContext = createContext<PhoneContextValue>({});
 
-interface PhoneFieldProps {
-  config: PortalAPIAppConfig | null;
-  resetToken: unknown;
-
-  value: string;
-  onChange: (value: string) => void;
-}
-
-const PhoneField: React.FC<PhoneFieldProps> = function PhoneField(props) {
-  const { config, resetToken, onChange } = props;
-  const { renderToString } = useContext(Context);
-
-  const alpha2List = useMemo(() => {
-    const phoneInputConfig = config?.ui?.phone_input;
-    const allowList = phoneInputConfig?.allowlist ?? [];
-    const pinnedList = phoneInputConfig?.pinned_list ?? [];
-    return getAlpha2(pinnedList, allowList);
-  }, [config]);
-  const defaultAlpha2 = alpha2List[0];
-
-  const [alpha2, setAlpha2] = useState(defaultAlpha2);
-  const [phone, setPhone] = useState("");
-  useEffect(() => {
-    // Reset internal state when form is reset.
-    setPhone("");
-    setAlpha2(defaultAlpha2);
-  }, [resetToken, defaultAlpha2]);
-
-  const getLabel = useCallback((alpha2: string) => {
-    const country = COUNTRY_MAP[alpha2];
-    return `${country.Alpha2} +${country.CountryCallingCode}`;
-  }, []);
-
-  const { options: countryCodeOptions, onChange: onCountryCodeChange } =
-    useDropdown(
-      alpha2List,
-      (option) => {
-        setAlpha2(option);
-        onChange(makePhoneNumber(option, phone));
-      },
-      alpha2,
-      getLabel
-    );
-
-  const onPhoneChange = useCallback(
-    (_, value?: string) => {
-      if (value != null) {
-        if (/^\d*$/.test(value)) {
-          setPhone(value);
-          onChange(makePhoneNumber(alpha2, value));
-        }
-      }
+function LoginIDField(props: LoginIDFieldProps) {
+  const { effectiveAppConfig, resetToken } = useContext(PhoneContext);
+  const [inputValue, setInputValue] = useState("");
+  const { onChange } = props;
+  const onChangeValues = useCallback(
+    (valid: string, input: string) => {
+      onChange(valid);
+      setInputValue(input);
     },
-    [alpha2, onChange]
+    [onChange]
   );
-
+  useEffect(() => {
+    setInputValue("");
+  }, [resetToken]);
   return (
-    <section className={cn(styles.widget, styles.phoneNumberFields)}>
-      <Label className={styles.phoneNumberLabel}>
-        <FormattedMessage id="AddPhoneScreen.phone.label" />
-      </Label>
-      <Dropdown
-        className={styles.countryCode}
-        options={countryCodeOptions}
-        selectedKey={alpha2}
-        onChange={onCountryCodeChange}
-        ariaLabel={renderToString("AddPhoneScreen.country-code.label")}
-      />
-      <FormTextField
-        parentJSONPointer=""
-        fieldName="login_id"
-        errorRules={errorRules}
-        className={styles.phone}
-        value={phone}
-        onChange={onPhoneChange}
-        ariaLabel={renderToString("AddPhoneScreen.phone.label")}
-      />
-    </section>
+    <FormPhoneTextField
+      parentJSONPointer=""
+      fieldName="login_id"
+      errorRules={errorRules}
+      className={styles.widget}
+      allowlist={effectiveAppConfig?.ui?.phone_input?.allowlist}
+      pinnedList={effectiveAppConfig?.ui?.phone_input?.pinned_list}
+      inputValue={inputValue}
+      onChange={onChangeValues}
+    />
   );
-};
+}
 
 const AddPhoneScreen: React.FC = function AddPhoneScreen() {
   const { appID, userID } = useParams();
@@ -165,26 +86,23 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
       { to: ".", label: <FormattedMessage id="AddPhoneScreen.title" /> },
     ];
   }, []);
-  const title = (
-    <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-  );
 
   const [resetToken, setResetToken] = useState({});
-  const renderPhoneField = useCallback(
-    (props: Pick<PhoneFieldProps, "value" | "onChange">) => {
-      return (
-        <PhoneField
-          config={effectiveAppConfig}
-          resetToken={resetToken}
-          {...props}
-        />
-      );
-    },
-    [effectiveAppConfig, resetToken]
-  );
+
   const onReset = useCallback(() => {
     setResetToken({});
   }, []);
+
+  const contextValue = useMemo(() => {
+    return {
+      effectiveAppConfig: effectiveAppConfig ?? undefined,
+      resetToken,
+    };
+  }, [resetToken, effectiveAppConfig]);
+
+  const title = (
+    <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+  );
 
   if (loadingUser || loadingAppConfig) {
     return <ShowLoading />;
@@ -199,14 +117,16 @@ const AddPhoneScreen: React.FC = function AddPhoneScreen() {
   }
 
   return (
-    <AddIdentityForm
-      appConfig={effectiveAppConfig}
-      rawUser={user}
-      loginIDType="phone"
-      title={title}
-      loginIDField={renderPhoneField}
-      onReset={onReset}
-    />
+    <PhoneContext.Provider value={contextValue}>
+      <AddIdentityForm
+        appConfig={effectiveAppConfig}
+        rawUser={user}
+        loginIDType="phone"
+        title={title}
+        loginIDField={LoginIDField}
+        onReset={onReset}
+      />
+    </PhoneContext.Provider>
   );
 };
 
