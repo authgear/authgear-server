@@ -202,6 +202,19 @@ value:
 
 ---
 part: CustomAttributesAttributeConfig
+name: enum-invalid-value
+error: |-
+  invalid value:
+  /enum/0: pattern
+    map[actual:! expected:^[a-zA-Z0-9_]*$]
+value:
+  id: "0000"
+  pointer: /enum
+  type: enum
+  enum: ["!"]
+
+---
+part: CustomAttributesAttributeConfig
 name: valid-phone-number
 error: null
 value:
