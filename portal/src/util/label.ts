@@ -31,6 +31,8 @@ function titlecase(word: string, index: number, length: number): string {
     shouldCapitalize = true;
   } else if (MINOR_WORDS.indexOf(lowercase) >= 0) {
     shouldCapitalize = false;
+  } else {
+    shouldCapitalize = true;
   }
 
   if (shouldCapitalize) {
