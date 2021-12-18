@@ -255,6 +255,7 @@ var _ = Schema.Add("CustomAttributesAttributeConfig", `
 						"type": "array",
 						"items": {
 							"type": "string",
+							"pattern": "^[a-zA-Z0-9_]*$",
 							"minLength": 1
 						},
 						"minItems": 1,
