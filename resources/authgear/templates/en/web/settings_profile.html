@@ -171,10 +171,45 @@
       {{- if $.AddressLocality }}{{ $.AddressLocality }}<br>{{ end }}
       {{- if $.AddressRegion }}{{ $.AddressRegion }}<br>{{ end }}
       {{- if $.AddressPostalCode }}{{ $.AddressPostalCode }}<br>{{ end }}
-      {{- if $.AddressCountry }}{{ $.AddressCountry }}<br>{{ end }}
+      {{- if $.AddressCountry }}{{ $.Translations.RenderText (printf "territory-%s" $.AddressCountry) nil }}<br>{{ end }}
     </span>
     {{ if (call $.IsEditable "/address") }}
     <a class="link col-start-2 row-span-full self-center" href="/settings/profile/address/edit">
+      <i class="ti ti-edit"></i>
+    </a>
+    {{ end }}
+  </div>
+  {{ end }}
+
+  {{ range $.CustomAttributes }}
+  <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
+    {{ $label_key := printf "custom-attribute-label-%s" .Pointer }}
+    {{ $has_key := $.Translations.HasKey $label_key }}
+    <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">
+      {{ if $has_key }}
+        {{ $.Translations.RenderText $label_key nil }}
+      {{ else }}
+        {{ .Label }}
+      {{ end }}
+    </span>
+    <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">
+      {{ if .Value }}
+        {{ if eq .Type "enum" }}
+          {{ $variant_label_key := printf "%s-%s" $label_key .Value }}
+          {{ if $.Translations.HasKey $variant_label_key }}
+            {{ $.Translations.RenderText $variant_label_key nil }}
+          {{ else }}
+            {{ .EnumValueLabel }}
+          {{ end }}
+        {{ else if eq .Type "country_code" }}
+          {{ $.Translations.RenderText (printf "territory-%s" .Value) nil }}
+        {{ else }}
+          {{ .Value }}
+        {{ end }}
+      {{ end }}
+    </span>
+    {{ if .IsEditable }}
+    <a class="link col-start-2 row-span-full self-center" href="#">
       <i class="ti ti-edit"></i>
     </a>
     {{ end }}
