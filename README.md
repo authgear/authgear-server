@@ -171,6 +171,10 @@ graphql must be 15 otherwise `npm run gentype` will fail.
 When graphql is ^15.0.0, we will see missing peer dependency of graphql@^14.0.0
 See https://github.com/apollographql/apollo-tooling/issues/2232
 
+apollo-language-server may include its own graphql.
+That copy must be removed manually from package-lock.json,
+otherwise, `npm run gentype` will fail.
+
 @monaco-editor/react>=4 is slow in our usage. We need to adjust how we use it when we upgrade.
 
 react-router-dom>6.0.0-beta.0 introduces a lot of breaking changes. It is better to wait for the RC version.
