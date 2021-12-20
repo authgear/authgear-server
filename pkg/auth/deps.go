@@ -3,6 +3,7 @@ package auth
 import (
 	"github.com/google/wire"
 
+	handlerapi "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -97,6 +98,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handleroauth.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handleroauth.AppSessionTokenIssuer), new(*oauthhandler.TokenHandler)),
 	ProvideOAuthMetadataProviders,
+
+	handlerapi.DependencySet,
+	wire.Bind(new(handlerapi.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
