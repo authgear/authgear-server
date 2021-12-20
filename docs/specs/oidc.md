@@ -176,14 +176,18 @@ The following are recognized query parameters:
 - `oauth_provider`: OAuth provider ID
 - `oauth_sub`: Subject ID of OAuth provider
 - `jwt`: JWT object
+- `promotion_code`: Anonymous user promotion code
 
 For examples:
 - To login with email `user@example.com`:
     `https://authgear.com/login_hint?type=login_id&email=user%40example.com`
 - To login with Google OAuth provider:
     `https://authgear.com/login_hint?oauth_provider=google`
-- To signup/login as anonymous user:
+- To auth or promote an anonymous user with the jwt:
     `https://authgear.com/login_hint?type=anonymous&jwt=...`
+- To promote an anonymous user with the promotion code:
+    `https://authgear.com/login_hint?type=anonymous&promotion_code=...`
+
 
 The UI tries to match an appropriate identity according to the provided parameters. If exactly one identity is matched, the identity is selected. Otherwise `login_hint` is ignored.
 

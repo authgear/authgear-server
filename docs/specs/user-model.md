@@ -103,6 +103,12 @@ Anonymous identity has the following fields:
 - Private Key: It is kept privately and securely in the device storage.
 - Key ID: A unique random string for efficient lookup.
 
+The key-pair of an anonymous identity is optional. The anonymous identity which created through the web SDK should not has key-pair, as there is no encrypted store for storing key-pair in web browser. That means we won't be able to re-login the same anonymous user again in the web SDK, and the anonymous user account lifetime will be the same as the logged in session.
+
+Anonymous user creation should be rate limited.
+
+Re-login the same anonymous user is supported in the native SDK.
+
 From the user point of view, they do not perform any explicit authentication. Therefore
 
 - Anonymous user cannot have secondary authenticators
@@ -135,6 +141,8 @@ Anonymous user can be promoted to normal user by adding a new identity. When an 
 - A new session is created.
 
 The promotion flow is the same as the normal OIDC authorization code flow.
+
+The promotion flow can be triggered by using the signed JWT or promotion code.
 
 ### Biometric Identity
 
