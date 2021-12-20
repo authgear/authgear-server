@@ -8,6 +8,7 @@ package auth
 
 import (
 	"context"
+	"github.com/authgear/authgear-server/pkg/auth/handler/api"
 	"github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapp2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -3568,6 +3569,23 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		AppSessionTokens: tokenHandler,
 	}
 	return appSessionTokenHandler
+}
+
+func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	anonymousUserSignupAPIHandlerLogger := api.NewAnonymousUserSignupAPIHandler(factory)
+	handle := appProvider.AppDatabase
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	anonymousUserSignupAPIHandler := &api.AnonymousUserSignupAPIHandler{
+		Logger:   anonymousUserSignupAPIHandlerLogger,
+		Database: handle,
+		JSON:     jsonResponseWriter,
+	}
+	return anonymousUserSignupAPIHandler
 }
 
 func newWebAppOAuthEntrypointHandler(p *deps.RequestProvider) http.Handler {
