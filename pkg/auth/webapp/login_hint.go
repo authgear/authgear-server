@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -20,6 +21,10 @@ import (
 type anonymousTokenInput struct{ JWT string }
 
 func (i *anonymousTokenInput) GetAnonymousRequestToken() string { return i.JWT }
+
+func (i *anonymousTokenInput) SignUpAnonymousUserWithoutKey() bool { return false }
+
+var _ nodes.InputUseIdentityAnonymous = &anonymousTokenInput{}
 
 type AnonymousIdentityProvider interface {
 	ParseRequestUnverified(requestJWT string) (r *anonymous.Request, err error)
