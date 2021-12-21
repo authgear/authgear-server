@@ -34,19 +34,25 @@ func (s *Store) selectQuery() db.SelectBuilder {
 func (s *Store) scan(scn db.Scanner) (*Identity, error) {
 	i := &Identity{}
 
+	var keyID sql.NullString
+	var key sql.NullString
+
 	err := scn.Scan(
 		&i.ID,
 		&i.UserID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.KeyID,
-		&i.Key,
+		&keyID,
+		&key,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, identity.ErrIdentityNotFound
 	} else if err != nil {
 		return nil, err
 	}
+
+	i.KeyID = keyID.String
+	i.Key = []byte(key.String)
 
 	return i, nil
 }
@@ -129,6 +135,10 @@ func (s *Store) Get(userID, id string) (*Identity, error) {
 }
 
 func (s *Store) GetByKeyID(keyID string) (*Identity, error) {
+	if keyID == "" {
+		return nil, identity.ErrIdentityNotFound
+	}
+
 	q := s.selectQuery().Where("a.key_id = ?", keyID)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {
@@ -162,17 +172,29 @@ func (s *Store) Create(i *Identity) (err error) {
 	}
 
 	q := s.SQLBuilder.
-		Insert(s.SQLBuilder.TableName("_auth_identity_anonymous")).
-		Columns(
-			"id",
-			"key_id",
-			"key",
-		).
-		Values(
-			i.ID,
-			i.KeyID,
-			i.Key,
-		)
+		Insert(s.SQLBuilder.TableName("_auth_identity_anonymous"))
+
+	if i.KeyID != "" {
+		q = q.
+			Columns(
+				"id",
+				"key_id",
+				"key",
+			).
+			Values(
+				i.ID,
+				i.KeyID,
+				i.Key,
+			)
+	} else {
+		q = q.
+			Columns(
+				"id",
+			).
+			Values(
+				i.ID,
+			)
+	}
 
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
