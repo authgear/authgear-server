@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -16,6 +17,15 @@ func ConfigureAnonymousUserSignupRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("POST", "OPTIONS").
 		WithPathPattern("/api/anonymous_user/signup")
+}
+
+type AnonymousUserHandler interface {
+	SignupAnonymousUser(
+		req *http.Request,
+		clientID string,
+		sessionType oauthhandler.WebSessionType,
+		refreshToken string,
+	) (*oauthhandler.SignupAnonymousUserResult, error)
 }
 
 var AnonymousUserSignupAPIRequestSchema = validation.NewSimpleSchema(`
@@ -68,9 +78,10 @@ func NewAnonymousUserSignupAPIHandler(lf *log.Factory) AnonymousUserSignupAPIHan
 }
 
 type AnonymousUserSignupAPIHandler struct {
-	Logger   AnonymousUserSignupAPIHandlerLogger
-	Database *appdb.Handle
-	JSON     JSONResponseWriter
+	Logger               AnonymousUserSignupAPIHandlerLogger
+	Database             *appdb.Handle
+	JSON                 JSONResponseWriter
+	AnonymousUserHandler AnonymousUserHandler
 }
 
 func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -81,9 +92,23 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 		return
 	}
 
+	var result *oauthhandler.SignupAnonymousUserResult
 	err = h.Database.WithTx(func() error {
-		return nil
+		result, err = h.AnonymousUserHandler.SignupAnonymousUser(
+			req,
+			payload.ClientID,
+			payload.SessionType,
+			"",
+		)
+		return err
 	})
 
-	h.JSON.WriteResponse(resp, &api.Response{Result: nil})
+	if err == nil {
+		h.JSON.WriteResponse(resp, &api.Response{Result: result.TokenResponse})
+	} else {
+		if !apierrors.IsAPIError(err) {
+			h.Logger.WithError(err).Error("anonymous user signup handler failed")
+		}
+		h.JSON.WriteResponse(resp, &api.Response{Error: err})
+	}
 }
