@@ -17,6 +17,7 @@ func init() {
 
 type InputUseIdentityAnonymous interface {
 	GetAnonymousRequestToken() string
+	SignUpAnonymousUserWithoutKey() bool
 }
 
 type EdgeUseIdentityAnonymous struct {
@@ -43,6 +44,26 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 			"anonymous users are not allowed",
 			nil,
 		)
+	}
+
+	if input.SignUpAnonymousUserWithoutKey() {
+		if !e.IsAuthentication {
+			// except signup, all the other actions require key
+			return nil, interaction.ErrInvalidCredentials
+		}
+
+		spec := &identity.Spec{
+			Type: model.IdentityTypeAnonymous,
+			Claims: map[string]interface{}{
+				identity.IdentityClaimAnonymousKeyID: "",
+				identity.IdentityClaimAnonymousKey:   "",
+			},
+		}
+
+		return &NodeUseIdentityAnonymous{
+			IsAuthentication: e.IsAuthentication,
+			IdentitySpec:     spec,
+		}, nil
 	}
 
 	jwt := input.GetAnonymousRequestToken()

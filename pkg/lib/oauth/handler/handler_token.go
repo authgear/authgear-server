@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -324,6 +325,12 @@ type anonymousTokenInput struct {
 func (i *anonymousTokenInput) GetAnonymousRequestToken() string {
 	return i.JWT
 }
+
+func (i *anonymousTokenInput) SignUpAnonymousUserWithoutKey() bool {
+	return false
+}
+
+var _ nodes.InputUseIdentityAnonymous = &anonymousTokenInput{}
 
 func (h *TokenHandler) handleAnonymousRequest(
 	client *config.OAuthClientConfig,
