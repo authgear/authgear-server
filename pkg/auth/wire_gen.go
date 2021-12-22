@@ -1319,18 +1319,15 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 	factory := appProvider.LoggerFactory
 	tokenHandlerLogger := oauth.NewTokenHandlerLogger(factory)
 	handle := appProvider.AppDatabase
-	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	handlerTokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
@@ -1349,15 +1346,11 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
 	interactionLogger := interaction.NewLogger(factory)
 	featureConfig := config.FeatureConfig
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -1789,6 +1782,13 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
 		Context:      contextContext,
@@ -1860,24 +1860,32 @@ func newOAuthTokenHandler(p *deps.RequestProvider) http.Handler {
 		BaseURL:    endpointsProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenHandler := &handler.TokenHandler{
+	tokenService := handler.TokenService{
 		Request:           request,
 		AppID:             appID,
 		Config:            oAuthConfig,
 		TrustProxy:        trustProxy,
-		Logger:            handlerTokenHandlerLogger,
 		Authorizations:    authorizationStore,
-		CodeGrants:        store,
 		OfflineGrants:     store,
 		AccessGrants:      store,
-		AppSessionTokens:  store,
 		AccessEvents:      eventProvider,
-		Graphs:            interactionService,
-		IDTokenIssuer:     idTokenIssuer,
 		AccessTokenIssuer: accessTokenEncoding,
 		GenerateToken:     tokenGenerator,
 		Clock:             clockClock,
 		Users:             queries,
+	}
+	tokenHandler := &handler.TokenHandler{
+		AppID:            appID,
+		Config:           oAuthConfig,
+		Logger:           handlerTokenHandlerLogger,
+		Authorizations:   authorizationStore,
+		CodeGrants:       store,
+		OfflineGrants:    store,
+		AppSessionTokens: store,
+		Graphs:           interactionService,
+		IDTokenIssuer:    idTokenIssuer,
+		Clock:            clockClock,
+		TokenService:     tokenService,
 	}
 	oauthTokenHandler := &oauth.TokenHandler{
 		Logger:       tokenHandlerLogger,
@@ -3003,18 +3011,15 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
 	}
-	request := p.Request
 	config := appProvider.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	oAuthConfig := appConfig.OAuth
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	tokenHandlerLogger := handler.NewTokenHandlerLogger(factory)
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
+	request := p.Request
 	contextContext := deps.ProvideRequestContext(request)
 	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
 	authorizationStore := &pq.AuthorizationStore{
@@ -3033,15 +3038,11 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 		Clock:       clockClock,
 	}
-	eventStoreRedis := &access.EventStoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-	}
-	eventProvider := &access.EventProvider{
-		Store: eventStoreRedis,
-	}
 	interactionLogger := interaction.NewLogger(factory)
 	featureConfig := config.FeatureConfig
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
 	authenticationConfig := appConfig.Authentication
 	identityConfig := appConfig.Identity
 	identityFeatureConfig := featureConfig.Identity
@@ -3473,6 +3474,13 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 	}
+	eventStoreRedis := &access.EventStoreRedis{
+		Redis: appredisHandle,
+		AppID: appID,
+	}
+	eventProvider := &access.EventProvider{
+		Store: eventStoreRedis,
+	}
 	idpsessionRand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
 		Context:      contextContext,
@@ -3544,24 +3552,32 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 		BaseURL:    endpointsProvider,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
-	tokenHandler := &handler.TokenHandler{
+	tokenService := handler.TokenService{
 		Request:           request,
 		AppID:             appID,
 		Config:            oAuthConfig,
 		TrustProxy:        trustProxy,
-		Logger:            tokenHandlerLogger,
 		Authorizations:    authorizationStore,
-		CodeGrants:        store,
 		OfflineGrants:     store,
 		AccessGrants:      store,
-		AppSessionTokens:  store,
 		AccessEvents:      eventProvider,
-		Graphs:            interactionService,
-		IDTokenIssuer:     idTokenIssuer,
 		AccessTokenIssuer: accessTokenEncoding,
 		GenerateToken:     tokenGenerator,
 		Clock:             clockClock,
 		Users:             queries,
+	}
+	tokenHandler := &handler.TokenHandler{
+		AppID:            appID,
+		Config:           oAuthConfig,
+		Logger:           tokenHandlerLogger,
+		Authorizations:   authorizationStore,
+		CodeGrants:       store,
+		OfflineGrants:    store,
+		AppSessionTokens: store,
+		Graphs:           interactionService,
+		IDTokenIssuer:    idTokenIssuer,
+		Clock:            clockClock,
+		TokenService:     tokenService,
 	}
 	appSessionTokenHandler := &oauth.AppSessionTokenHandler{
 		Database:         handle,
