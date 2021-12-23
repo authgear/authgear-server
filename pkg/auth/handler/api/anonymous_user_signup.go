@@ -37,7 +37,8 @@ var AnonymousUserSignupAPIRequestSchema = validation.NewSimpleSchema(`
 			"session_type": {
 				"type": "string",
 				"enum": ["cookie", "refresh_token"]
-			}
+			},
+			"refresh_token": { "type": "string" }
 		},
 		"required": ["client_id", "session_type"]
 	}
@@ -57,8 +58,9 @@ var AnonymousUserSignupAPIResponseSchema = validation.NewSimpleSchema(`
 `)
 
 type AnonymousUserSignupAPIRequest struct {
-	ClientID    string                      `json:"client_id"`
-	SessionType oauthhandler.WebSessionType `json:"session_type"`
+	ClientID     string                      `json:"client_id"`
+	SessionType  oauthhandler.WebSessionType `json:"session_type"`
+	RefreshToken string                      `json:"refresh_token"`
 }
 
 func (p *AnonymousUserSignupAPIRequest) Validate(ctx *validation.Context) {
@@ -98,13 +100,22 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 			req,
 			payload.ClientID,
 			payload.SessionType,
-			"",
+			payload.RefreshToken,
 		)
 		return err
 	})
 
 	if err == nil {
-		h.JSON.WriteResponse(resp, &api.Response{Result: result.TokenResponse})
+		if result.Cookies != nil {
+			// cookie
+			for _, cookie := range result.Cookies {
+				httputil.UpdateCookie(resp, cookie)
+			}
+			h.JSON.WriteResponse(resp, &api.Response{Result: struct{}{}})
+		} else {
+			// refresh token
+			h.JSON.WriteResponse(resp, &api.Response{Result: result.TokenResponse})
+		}
 	} else {
 		if !apierrors.IsAPIError(err) {
 			h.Logger.WithError(err).Error("anonymous user signup handler failed")
