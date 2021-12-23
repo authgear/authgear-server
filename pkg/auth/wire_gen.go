@@ -4250,6 +4250,7 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Authorizations: authorizationStore,
 		Clock:          clockClock,
 		TokenService:   tokenService,
+		UserProvider:   queries,
 	}
 	anonymousUserSignupAPIHandler := &api.AnonymousUserSignupAPIHandler{
 		Logger:               anonymousUserSignupAPIHandlerLogger,
