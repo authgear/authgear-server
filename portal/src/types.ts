@@ -217,6 +217,7 @@ export const identityTypes = [
 export type IdentityType = typeof identityTypes[number];
 
 export const secondaryAuthenticationModes = [
+  "disabled",
   "if_requested",
   "if_exists",
   "required",

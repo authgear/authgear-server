@@ -246,7 +246,7 @@
 {{ $show_secondary_oob_otp_email := (or $has_secondary_oob_otp_email $.SecondaryOOBOTPEmailAllowed) }}
 {{ $show_secondary_oob_otp_sms := (or $has_secondary_oob_otp_sms $.SecondaryOOBOTPSMSAllowed) }}
 {{ $show_secondary_password := (or $secondary_password $.SecondaryPasswordAllowed) }}
-{{ $show_mfa := (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password) }}
+{{ $show_mfa := (and (not $.SecondaryAuthenticationDisabled) (or $show_secondary_totp $show_secondary_oob_otp_email $show_secondary_oob_otp_sms $show_secondary_password)) }}
 
 
 <div class="pane grid grid grid-cols-1 auto-rows-auto gap-y-2.5 padding-t-16 padding-b-20">

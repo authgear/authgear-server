@@ -289,6 +289,8 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
     const renderSecondaryAuthenticatorMode = useCallback(
       (key: SecondaryAuthenticationMode) => {
         const messageIdMap: Record<SecondaryAuthenticationMode, string> = {
+          disabled:
+            "AuthenticatorConfigurationScreen.policy.require-mfa.disabled",
           required:
             "AuthenticatorConfigurationScreen.policy.require-mfa.required",
           if_exists:

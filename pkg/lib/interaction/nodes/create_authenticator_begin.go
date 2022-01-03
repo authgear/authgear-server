@@ -251,18 +251,16 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		return nil
 	}
 
-	// 2. Check secondary authentication mode.
+	// 1.2. Skip setup if MFA is disabled
 	mode := n.AuthenticationConfig.SecondaryAuthenticationMode
-	switch mode {
-	case config.SecondaryAuthenticationModeIfRequested:
-		// Create only if requested by user
-		if !n.RequestedByUser {
-			return nil
-		}
+	if mode.IsDisabled() {
+		return nil
+	}
 
+	// 2. Check secondary authentication mode.
+	switch mode {
 	case config.SecondaryAuthenticationModeIfExists:
-		// Same as IfRequested:
-		// Create only if requested by user
+		// No need to create authenticator if not requested by user.
 		if !n.RequestedByUser {
 			return nil
 		}

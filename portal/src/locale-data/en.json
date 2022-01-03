@@ -143,9 +143,10 @@
 
   "Onboarding.secondary-authentication-mode.title": "Is Multi-factor authentication required?",
   "Onboarding.secondary-authentication-mode.desc": "Multi-Factor Authentication (MFA) enhance security of your end-user greatly! According to {ExternalLink, react, href{https://security.googleblog.com/2019/05/new-research-how-effective-is-basic.html} children{research}} simply having SMS as 2FA block 100% of automated bots, 96% of bulk phishing attacks, and 76% of targeted attacks. Using on-device 2FA is even better at handling targeted attacks!",
+  "Onboarding.secondary-authentication-mode.disabled": "Disabled",
   "Onboarding.secondary-authentication-mode.required": "Always required",
   "Onboarding.secondary-authentication-mode.if-exists": "Required if user has Mutli-factor Authenticator",
-  "Onboarding.secondary-authentication-mode.if-requested": "Optional",
+  "Onboarding.secondary-authentication-mode.if-requested": "Disabled (Deprecated)",
 
   "Onboarding.verification.email-enabled.title" :"Should we verify email?",
   "Onboarding.verification.phone-enabled.title" :"Should we verify phone?",
@@ -341,9 +342,10 @@
   "AuthenticatorConfigurationScreen.secondary-authenticators.title": "Secondary Authenticator",
   "AuthenticatorConfigurationScreen.policy.title": "Policy",
   "AuthenticatorConfigurationScreen.policy.require-mfa": "Require Multi-factor Auth",
+  "AuthenticatorConfigurationScreen.policy.require-mfa.disabled": "Disabled",
   "AuthenticatorConfigurationScreen.policy.require-mfa.required": "Always Required",
   "AuthenticatorConfigurationScreen.policy.require-mfa.if-exists": "Required if user has Multi-factor Authenticator",
-  "AuthenticatorConfigurationScreen.policy.require-mfa.if-requested": "Required if user enabled Multi-factor Authenticator",
+  "AuthenticatorConfigurationScreen.policy.require-mfa.if-requested": "Disabled (Deprecated)",
   "AuthenticatorConfigurationScreen.policy.recovery-code-number": "Number of Recovery Code",
   "AuthenticatorConfigurationScreen.policy.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
   "AuthenticatorConfigurationScreen.policy.disable-device-token": "Disable \"Do not ask again on this device\" for the Multi-factor Auth",
