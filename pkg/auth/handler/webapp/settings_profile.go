@@ -27,23 +27,6 @@ type SettingsProfileHandler struct {
 	Renderer                 Renderer
 }
 
-func (h *SettingsProfileHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	userID := session.GetUserID(r.Context())
-
-	data := map[string]interface{}{}
-
-	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	viewmodels.Embed(data, baseViewModel)
-
-	viewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
-	if err != nil {
-		return nil, err
-	}
-	viewmodels.Embed(data, *viewModelPtr)
-
-	return data, nil
-}
-
 func (h *SettingsProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
@@ -53,12 +36,25 @@ func (h *SettingsProfileHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		userID := session.GetUserID(r.Context())
+
+		data := map[string]interface{}{}
+
+		baseViewModel := h.BaseViewModel.ViewModel(r, w)
+		viewmodels.Embed(data, baseViewModel)
+
+		viewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
 		if err != nil {
 			return err
 		}
+		viewmodels.Embed(data, *viewModelPtr)
 
-		h.Renderer.RenderHTML(w, r, TemplateWebSettingsProfileHTML, data)
+		if viewModelPtr.IsStandardAttributesAllHidden {
+			http.Redirect(w, r, "/settings", http.StatusFound)
+		} else {
+			h.Renderer.RenderHTML(w, r, TemplateWebSettingsProfileHTML, data)
+		}
+
 		return nil
 	})
 }

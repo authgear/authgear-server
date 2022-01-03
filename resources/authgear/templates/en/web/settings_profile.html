@@ -37,31 +37,43 @@
   {{ end }}
 
   {{/* email */}}
+  {{ if (call $.IsReadable "/email") }}
   <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-email" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.Email }}</span>
+    {{ if (call $.IsEditable "/email") }}
     <a class="link col-start-2 row-span-full self-center" href="/settings/profile/email/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* phone_number */}}
+  {{ if (call $.IsReadable "/phone_number") }}
   <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-phone-number" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PhoneNumber }}</span>
+    {{ if (call $.IsEditable "/phone_number") }}
     <a class="link col-start-2 row-span-full self-center" href="/settings/profile/phone_number/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* preferred_username */}}
+  {{ if (call $.IsReadable "/preferred_username") }}
   <div class="padding-20 row-sep gap-1.5 grid grid-cols-1fr-auto grid-rows-auto-auto">
     <span class="col-start-1 col-span-1 row-start-1 row-span-1 primary-txt">{{ template "standard-attribute-preferred-username" }}</span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">{{ $.PreferredUsername }}</span>
+    {{ if (call $.IsEditable "/preferred_username") }}
     <a class="link col-start-2 row-span-full self-center" href="/settings/profile/preferred_username/edit">
       <i class="ti ti-edit"></i>
     </a>
+    {{ end }}
   </div>
+  {{ end }}
 
   {{/* profile */}}
   {{ if (call $.IsReadable "/profile") }}

@@ -3,6 +3,7 @@
 {{ define "page-content" }}
 
 {{/* Profile */}}
+{{ if not $.IsStandardAttributesAllHidden }}
 <div class="pane flex flex-col">
 
   <div class="padding-h-20 margin-t-16 margin-b-4">
@@ -36,6 +37,7 @@
     </a>
   </div>
 </div>
+{{ end }}
 
 {{/* Identity */}}
 <div class="pane flex flex-col">

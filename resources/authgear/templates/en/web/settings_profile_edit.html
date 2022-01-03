@@ -47,6 +47,7 @@
   {{ end }}
 
   {{ if (eq $.Variant "email") }}
+  {{ if (call $.IsEditable "/email") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-email" }}
     <select class="primary-txt select" name="/email" {{ if not $.Emails }}disabled{{ end }}>
@@ -60,8 +61,10 @@
     {{ end }}
   </label>
   {{ end }}
+  {{ end }}
 
   {{ if (eq $.Variant "phone_number") }}
+  {{ if (call $.IsEditable "/phone_number") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-phone-number" }}
     <select class="primary-txt select" name="/phone_number" {{ if not $.PhoneNumbers }}disabled{{ end }}>
@@ -75,8 +78,10 @@
     {{ end }}
   </label>
   {{ end }}
+  {{ end }}
 
   {{ if (eq $.Variant "preferred_username") }}
+  {{ if (call $.IsEditable "/preferred_username") }}
   <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
     {{ template "standard-attribute-preferred-username" }}
     <select class="primary-txt select" name="/preferred_username" {{ if not $.PreferredUsernames }}disabled{{ end }}>
@@ -89,6 +94,7 @@
       <span class="text-base primary-txt">{{ template "settings-profile-edit-preferred-username-placeholder" }}</span>
     {{ end }}
   </label>
+  {{ end }}
   {{ end }}
 
   {{ if (eq $.Variant "profile") }}
