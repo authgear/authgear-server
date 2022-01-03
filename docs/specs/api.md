@@ -2,6 +2,28 @@
 
 Here are the endpoints that are not part of OIDC, but essential to provide some features of Authgear.
 
+If the api request is success, the response of the API will be a JSON body with key `result`.
+
+```json
+{
+  "result": { /* the result object */ }
+}
+```
+
+If the api request is failed, the response of the API will be a JSON body with key `error`.
+
+```json
+{
+  "error": {
+    "name": "Invalid",
+    "reason": "ValidationFailed",
+    "message": "invalid request body",
+    "code": 400,
+    "info": { /* the error info */ }
+  }
+}
+```
+
 ## /oauth2/challenge
 
 This endpoint is for requesting a one-time use, short-lived challenge.
@@ -20,7 +42,7 @@ The challenge is used in anonymous user and biometric authentication.
 }
 ```
 
-### Response Schema
+### Response Result Object Schema
 
 ```json
 {
@@ -54,7 +76,7 @@ This api is for signing up an new anonymous user in the Web SDK.
 }
 ```
 
-### Response Schema
+### Response Result Object Schema
 
 When the `session_type` is `cookie`, the server will return the `Set-Cookie` header and the response body will be empty.
 
@@ -92,7 +114,7 @@ When the `session_type` is `refresh_token`, the refresh token should be provided
   "required": ["refresh_token"]
 }
 ```
-### Response Schema
+### Response Result Object Schema
 
 ```json
 {
