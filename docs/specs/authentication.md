@@ -12,9 +12,10 @@
 - The developer can configure enabled primary authenticators. By default, Password Authenticator is enabled.
 - The developer can configure enabled secondary authenticators. By default, TOTP, OOB-OTP and Bearer Token Authenticator are enabled.
 - The developer can configure whether secondary authentication is necessary.
+  - `disabled`: secondary authentication is disabled.
+  - `if_requested`: Deprecated. It will be removed very soon. For now, it is equivalent to `disabled`.
   - `required`: secondary authentication is required. Every user must have at least one secondary authenticator.
   - `if_exists`: secondary authentication is opt-in. If the user has at least one secondary authenticator, then the user must perform secondary authentication.
-  - `if_requested`: secondary authentication is purely optional even the user has at least one secondary authenticator.
 
 ## Interaction
 

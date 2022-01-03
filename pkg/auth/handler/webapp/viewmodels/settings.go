@@ -8,14 +8,15 @@ import (
 )
 
 type SettingsViewModel struct {
-	Authenticators              []*authenticator.Info
-	SecondaryTOTPAllowed        bool
-	SecondaryOOBOTPEmailAllowed bool
-	SecondaryOOBOTPSMSAllowed   bool
-	SecondaryPasswordAllowed    bool
-	HasDeviceTokens             bool
-	ListRecoveryCodesAllowed    bool
-	ShowBiometric               bool
+	Authenticators                  []*authenticator.Info
+	SecondaryAuthenticationDisabled bool
+	SecondaryTOTPAllowed            bool
+	SecondaryOOBOTPEmailAllowed     bool
+	SecondaryOOBOTPSMSAllowed       bool
+	SecondaryPasswordAllowed        bool
+	HasDeviceTokens                 bool
+	ListRecoveryCodesAllowed        bool
+	ShowBiometric                   bool
 }
 
 type SettingsIdentityService interface {
@@ -89,14 +90,15 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	}
 
 	viewModel := &SettingsViewModel{
-		Authenticators:              authenticators,
-		SecondaryTOTPAllowed:        totp,
-		SecondaryOOBOTPEmailAllowed: oobotpemail,
-		SecondaryOOBOTPSMSAllowed:   oobotpsms,
-		SecondaryPasswordAllowed:    password,
-		HasDeviceTokens:             hasDeviceTokens,
-		ListRecoveryCodesAllowed:    m.Authentication.RecoveryCode.ListEnabled,
-		ShowBiometric:               showBiometric,
+		Authenticators:                  authenticators,
+		SecondaryAuthenticationDisabled: m.Authentication.SecondaryAuthenticationMode.IsDisabled(),
+		SecondaryTOTPAllowed:            totp,
+		SecondaryOOBOTPEmailAllowed:     oobotpemail,
+		SecondaryOOBOTPSMSAllowed:       oobotpsms,
+		SecondaryPasswordAllowed:        password,
+		HasDeviceTokens:                 hasDeviceTokens,
+		ListRecoveryCodesAllowed:        m.Authentication.RecoveryCode.ListEnabled,
+		ShowBiometric:                   showBiometric,
 	}
 	return viewModel, nil
 }
