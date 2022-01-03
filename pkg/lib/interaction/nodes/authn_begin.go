@@ -94,9 +94,10 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 			for t := range existingAuths {
 				required = append(required, t)
 			}
-
-		case config.SecondaryAuthenticationModeIfRequested:
-			// Never require unless explicitly requested.
+		case config.SecondaryAuthenticationModeDisabled,
+			config.SecondaryAuthenticationModeIfRequested:
+			// When MFA is disabled, treat it as if the user has no authenticators.
+			availableAuthenticators = nil
 			required = nil
 		}
 
