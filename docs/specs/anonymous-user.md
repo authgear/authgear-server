@@ -19,6 +19,10 @@ In this page we are going to explain how the SDKs authenticate and promote an an
 ### Authentication
 
 1. Web SDK calls the [/api/anonymous_user/signup](./api.md/#apianonymous_usersignup) api to signup an new user.
+1. The app should call `authenticateAnonymously` only if the user has not logged in.
+1. If the app calls `authenticateAnonymously` if the user has logged in.
+    1. If the logged in user is a anonymous user, current user info will be returned.
+    2. If the logged in user is a normal user, error will be returned.
 
 ### Promotion
 
