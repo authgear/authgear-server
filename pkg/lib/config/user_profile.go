@@ -50,6 +50,9 @@ var _ = Schema.Add("StandardAttributesAccessControlConfig", `
 			"type": "string",
 			"format": "json-pointer",
 			"enum": [
+				"/email",
+				"/phone_number",
+				"/preferred_username",
 				"/family_name",
 				"/given_name",
 				"/picture",
@@ -131,6 +134,28 @@ var _ = Schema.Add("AccessControlLevelString", `
 }
 `)
 
+var defaultReadwriteStandardAttributesPointers []string = []string{
+	"/email",
+	"/phone_number",
+	"/preferred_username",
+	"/family_name",
+	"/given_name",
+	"/picture",
+	"/gender",
+	"/birthdate",
+	"/zoneinfo",
+	"/locale",
+}
+
+var defaultHiddenStandardAttributesPointers []string = []string{
+	"/name",
+	"/nickname",
+	"/middle_name",
+	"/profile",
+	"/website",
+	"/address",
+}
+
 type UserProfileConfig struct {
 	StandardAttributes *StandardAttributesConfig `json:"standard_attributes,omitempty"`
 }
@@ -153,60 +178,32 @@ func (c *StandardAttributesConfig) SetDefaults() {
 		PortalUI: AccessControlLevelStringHidden,
 	}
 
-	if c.AccessControl == nil {
-		c.AccessControl = []*StandardAttributesAccessControlConfig{
-			{
-				Pointer:       "/family_name",
+	for _, pointer := range defaultReadwriteStandardAttributesPointers {
+		found := false
+		for _, a := range c.AccessControl {
+			if pointer == a.Pointer {
+				found = true
+			}
+		}
+		if !found {
+			c.AccessControl = append(c.AccessControl, &StandardAttributesAccessControlConfig{
+				Pointer:       pointer,
 				AccessControl: defaultReadwrite,
-			},
-			{
-				Pointer:       "/given_name",
-				AccessControl: defaultReadwrite,
-			},
-			{
-				Pointer:       "/picture",
-				AccessControl: defaultReadwrite,
-			},
-			{
-				Pointer:       "/gender",
-				AccessControl: defaultReadwrite,
-			},
-			{
-				Pointer:       "/birthdate",
-				AccessControl: defaultReadwrite,
-			},
-			{
-				Pointer:       "/zoneinfo",
-				AccessControl: defaultReadwrite,
-			},
-			{
-				Pointer:       "/locale",
-				AccessControl: defaultReadwrite,
-			},
-			{
-				Pointer:       "/name",
+			})
+		}
+	}
+	for _, pointer := range defaultHiddenStandardAttributesPointers {
+		found := false
+		for _, a := range c.AccessControl {
+			if pointer == a.Pointer {
+				found = true
+			}
+		}
+		if !found {
+			c.AccessControl = append(c.AccessControl, &StandardAttributesAccessControlConfig{
+				Pointer:       pointer,
 				AccessControl: defaultHidden,
-			},
-			{
-				Pointer:       "/nickname",
-				AccessControl: defaultHidden,
-			},
-			{
-				Pointer:       "/middle_name",
-				AccessControl: defaultHidden,
-			},
-			{
-				Pointer:       "/profile",
-				AccessControl: defaultHidden,
-			},
-			{
-				Pointer:       "/website",
-				AccessControl: defaultHidden,
-			},
-			{
-				Pointer:       "/address",
-				AccessControl: defaultHidden,
-			},
+			})
 		}
 	}
 }
@@ -222,6 +219,18 @@ func (c *StandardAttributesConfig) GetAccessControl() accesscontrol.T {
 		}
 	}
 	return t
+}
+
+func (c *StandardAttributesConfig) IsEndUserAllHidden() bool {
+	if len(c.AccessControl) <= 0 {
+		return false
+	}
+	for _, a := range c.AccessControl {
+		if a.AccessControl.EndUser.Level() != AccessControlLevelHidden {
+			return false
+		}
+	}
+	return true
 }
 
 type StandardAttributesAccessControlConfig struct {

@@ -50,6 +50,9 @@ interface UserProfileConfigurationScreenContentProps {
 }
 
 const naturalOrder = [
+  "/email",
+  "/phone_number",
+  "/preferred_username",
   "/name",
   "/given_name",
   "/family_name",

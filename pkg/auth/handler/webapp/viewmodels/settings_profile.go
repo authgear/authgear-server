@@ -24,8 +24,9 @@ type SettingsProfileViewModel struct {
 	PhoneNumbers       []string
 	PreferredUsernames []string
 
-	IsReadable func(jsonpointer string) bool
-	IsEditable func(jsonpointer string) bool
+	IsReadable                    func(jsonpointer string) bool
+	IsEditable                    func(jsonpointer string) bool
+	IsStandardAttributesAllHidden bool
 
 	Name                 string
 	GivenName            string
@@ -154,8 +155,9 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		PhoneNumbers:       phoneNumbers,
 		PreferredUsernames: preferredUsernames,
 
-		IsReadable: isReadable,
-		IsEditable: isEditable,
+		IsReadable:                    isReadable,
+		IsEditable:                    isEditable,
+		IsStandardAttributesAllHidden: m.UserProfileConfig.StandardAttributes.IsEndUserAllHidden(),
 
 		Name:                 str(stdattrs.Name),
 		GivenName:            str(stdattrs.GivenName),
