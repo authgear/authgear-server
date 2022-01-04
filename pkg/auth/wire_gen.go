@@ -4261,6 +4261,23 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	return anonymousUserSignupAPIHandler
 }
 
+func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	factory := appProvider.LoggerFactory
+	anonymousUserPromotionCodeAPIHandlerLogger := api.NewAnonymousUserPromotionCodeAPILogger(factory)
+	handle := appProvider.AppDatabase
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	anonymousUserPromotionCodeAPIHandler := &api.AnonymousUserPromotionCodeAPIHandler{
+		Logger:   anonymousUserPromotionCodeAPIHandlerLogger,
+		Database: handle,
+		JSON:     jsonResponseWriter,
+	}
+	return anonymousUserPromotionCodeAPIHandler
+}
+
 func newWebAppOAuthEntrypointHandler(p *deps.RequestProvider) http.Handler {
 	oAuthEntrypointHandler := &webapp2.OAuthEntrypointHandler{}
 	return oAuthEntrypointHandler
