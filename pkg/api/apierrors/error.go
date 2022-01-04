@@ -198,6 +198,10 @@ func NewInvalid(msg string) error {
 	return Invalid.WithReason(string(Invalid)).New(msg)
 }
 
+func NewUnauthorized(msg string) error {
+	return Unauthorized.WithReason(string(Unauthorized)).New(msg)
+}
+
 func NewForbidden(msg string) error {
 	return Forbidden.WithReason(string(Forbidden)).New(msg)
 }
