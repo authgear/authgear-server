@@ -51,9 +51,9 @@ var AnonymousUserSignupAPIResponseSchema = validation.NewSimpleSchema(`
 			"token_type": { "type": "string" },
 			"access_token": { "type": "string" },
 			"refresh_token": { "type": "string" },
-			"expires_in": { "type": "string" }
+			"expires_in": { "type": "integer" }
 		},
-		"required": ["token_type", "access_token", "refresh_token", "expires_in"]
+		"required": ["token_type", "access_token", "expires_in"]
 	}
 `)
 
