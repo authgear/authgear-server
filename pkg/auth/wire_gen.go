@@ -3590,7 +3590,7 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
-	anonymousUserSignupAPIHandlerLogger := api.NewAnonymousUserSignupAPIHandler(factory)
+	anonymousUserSignupAPIHandlerLogger := api.NewAnonymousUserSignupAPIHandlerLogger(factory)
 	handle := appProvider.AppDatabase
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
