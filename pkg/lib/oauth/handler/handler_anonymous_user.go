@@ -19,6 +19,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
+var ErrLoggedInAsNormalUser = apierrors.NewInvalid("user logged in as normal user")
+
 type anonymousSignupWithoutKeyInput struct{}
 
 func (i *anonymousSignupWithoutKeyInput) GetAnonymousRequestToken() string { return "" }
@@ -99,7 +101,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithCookieSessionType(
 		if user.IsAnonymous {
 			return &SignupAnonymousUserResult{}, nil
 		}
-		return nil, apierrors.NewInvalid("user logged in as normal user, please logout first")
+		return nil, ErrLoggedInAsNormalUser
 	}
 
 	graph, err := h.runSignupAnonymousUserGraph(false)
@@ -132,6 +134,14 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			return nil, apierrors.NewInvalid("invalid refresh token")
 		} else if err != nil {
 			return nil, err
+		}
+
+		user, err := h.UserProvider.Get(authz.UserID, accesscontrol.EmptyRole)
+		if err != nil {
+			return nil, err
+		}
+		if !user.IsAnonymous {
+			return nil, ErrLoggedInAsNormalUser
 		}
 
 		resp := protocol.TokenResponse{}
