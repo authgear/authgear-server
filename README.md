@@ -286,7 +286,23 @@ git tag -a YYYY-MM-DD.0
 make logs-summary A=<previous tag> B=<current tag>
 ```
 
-## Updating Auth UI tabler-icons and normalize.css version
+## Keep dependencies up-to-date
+
+Various files in this project have versioned dependencies.
+
+- [The go directive in go.mod](./go.mod)
+- [The dependencies listed in go.mod](./go.mod)
+- [The tool versions listed in .tool-versions](./.tool-versions)
+- [The versions appearing in ./github/workflows/ci.yaml](./github/workflows/ci.yaml)
+- [The FROM directives in ./cmd/authgear/Dockerfile](./cmd/authgear/Dockerfile)
+- [The FROM directives in ./cmd/portal/Dockerfile](./cmd/portal/Dockerfile)
+- [The dependencies in ./authui/package.json](./authui/package.json)
+- [The dependencies in ./portal/package.json](./portal/package.json)
+- [The dependencies in ./scripts/npm/package.json](./scripts/npm/package.json)
+- [The intl-tel-input static resources in ./resources/authgear/static](./resources/authgear/static)
+- [The tabler static resources in ./resources/authgear/static](./resources/authgear/static)
+
+## Update third party static resources
 
 The static asset handler requires the file path to have the hash. e.g. authgear.0ab41e6d21d590d0f06589f06a82d876.css.
 
@@ -295,5 +311,4 @@ For URLs rendered in the HTML, the hash will be inserted into the path automatic
 When we update libraries that reference to other static asset files, we should update the file paths with hash.
 
 - In `tabler-icons.min.css`, update all fonts file names with hashes
-- In `normalize.min.css`, update `normalize.min.css.map` with hash
 - In `authgear.css`, update intl-tel-input flag image names with hashes.
