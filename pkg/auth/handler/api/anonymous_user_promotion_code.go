@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -59,6 +60,14 @@ type AnonymousUserPromotionCodeResponse struct {
 	ExpireAt      time.Time `json:"expire_at"`
 }
 
+type PromotionCodeIssuer interface {
+	IssuePromotionCode(
+		req *http.Request,
+		sessionType oauthhandler.WebSessionType,
+		refreshToken string,
+	) (code string, codeObj *anonymous.PromotionCode, err error)
+}
+
 type AnonymousUserPromotionCodeAPIHandlerLogger struct{ *log.Logger }
 
 func NewAnonymousUserPromotionCodeAPILogger(lf *log.Factory) AnonymousUserPromotionCodeAPIHandlerLogger {
@@ -66,9 +75,10 @@ func NewAnonymousUserPromotionCodeAPILogger(lf *log.Factory) AnonymousUserPromot
 }
 
 type AnonymousUserPromotionCodeAPIHandler struct {
-	Logger   AnonymousUserPromotionCodeAPIHandlerLogger
-	Database *appdb.Handle
-	JSON     JSONResponseWriter
+	Logger         AnonymousUserPromotionCodeAPIHandlerLogger
+	Database       *appdb.Handle
+	JSON           JSONResponseWriter
+	PromotionCodes PromotionCodeIssuer
 }
 
 func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
@@ -81,7 +91,16 @@ func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWrite
 
 	result := &AnonymousUserPromotionCodeResponse{}
 	err = h.Database.WithTx(func() error {
-		// FIXME(anonymous-user): promotion code implementation
+		code, codeObj, err := h.PromotionCodes.IssuePromotionCode(
+			req,
+			payload.SessionType,
+			payload.RefreshToken,
+		)
+		if err != nil {
+			return err
+		}
+		result.PromotionCode = code
+		result.ExpireAt = codeObj.ExpireAt
 		return nil
 	})
 
