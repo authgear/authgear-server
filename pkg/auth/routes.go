@@ -1,6 +1,7 @@
 package auth
 
 import (
+	apihandler "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -172,6 +173,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureAppSessionTokenRoute(apiRoute), p.Handler(newOAuthAppSessionTokenHandler))
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
+
+	router.Add(apihandler.ConfigureAnonymousUserSignupRoute(apiRoute), p.Handler(newAPIAnonymousUserSignupHandler))
+
 	router.Add(webapphandler.ConfigureWebsocketRoute(webappWebsocketRoute), p.Handler(newWebAppWebsocketHandler))
 
 	router.Add(webapphandler.ConfigureStaticAssetsRoute(staticRoute), p.Handler(newWebAppStaticAssetsHandler))

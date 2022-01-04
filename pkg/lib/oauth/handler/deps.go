@@ -10,4 +10,7 @@ var DependencySet = wire.NewSet(
 	NewTokenHandlerLogger,
 	wire.Struct(new(TokenHandler), "*"),
 	wire.Struct(new(RevokeHandler), "*"),
+	NewAnonymousUserHandlerLogger,
+	wire.Struct(new(AnonymousUserHandler), "*"),
+	wire.Struct(new(TokenService), "*"),
 )
