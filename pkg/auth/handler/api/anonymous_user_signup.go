@@ -75,7 +75,7 @@ type JSONResponseWriter interface {
 
 type AnonymousUserSignupAPIHandlerLogger struct{ *log.Logger }
 
-func NewAnonymousUserSignupAPIHandler(lf *log.Factory) AnonymousUserSignupAPIHandlerLogger {
+func NewAnonymousUserSignupAPIHandlerLogger(lf *log.Factory) AnonymousUserSignupAPIHandlerLogger {
 	return AnonymousUserSignupAPIHandlerLogger{lf.New("handler-anonymous-user-signup")}
 }
 
