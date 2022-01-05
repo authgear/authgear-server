@@ -125,6 +125,9 @@ func (s *Store) ListByClaim(name string, value string) ([]*Identity, error) {
 }
 
 func (s *Store) Get(userID, id string) (*Identity, error) {
+	if userID == "" || id == "" {
+		return nil, identity.ErrIdentityNotFound
+	}
 	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
 	if err != nil {

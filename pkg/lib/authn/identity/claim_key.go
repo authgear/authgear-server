@@ -29,6 +29,13 @@ const (
 	// IdentityClaimLoginIDUniqueKey is a claim with a string value containing the unique normalized login ID.
 	IdentityClaimLoginIDUniqueKey string = "https://authgear.com/claims/login_id/unique_key"
 
+	// IdentityClaimAnonymousExistingUserID and IdentityClaimAnonymousExistingIdentityID are used for retrieving the anonymous identity if the identity doesn't have key.
+	// IdentityClaimAnonymousExistingUserID is a claim with a string value containing the existing anonymous user id.
+	// This claim is intended for internal use.
+	IdentityClaimAnonymousExistingUserID string = "https://authgear.com/claims/anonymous/existing_user_id"
+	// IdentityClaimAnonymousExistingIdentityID is a claim with a string value containing the existing anonymous identity id.
+	// This claim is intended for internal use.
+	IdentityClaimAnonymousExistingIdentityID string = "https://authgear.com/claims/anonymous/existing_identity_id"
 	// IdentityClaimAnonymousKeyID is a claim with a string value containing anonymous key ID.
 	IdentityClaimAnonymousKeyID string = "https://authgear.com/claims/anonymous/key_id"
 	// IdentityClaimAnonymousKey is a claim with a string value containing anonymous public key JWK.
