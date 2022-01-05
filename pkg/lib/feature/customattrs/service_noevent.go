@@ -135,10 +135,10 @@ func (s *ServiceNoEvent) allPointers() (out []string) {
 
 func (s *ServiceNoEvent) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
 	pointers := s.allPointers()
-	return s.UpdateCustomAttributes(role, userID, pointers, reprForm)
+	return s.updateCustomAttributes(role, userID, pointers, reprForm)
 }
 
-func (s *ServiceNoEvent) UpdateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
+func (s *ServiceNoEvent) updateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
 	incoming := customattrs.T(reprForm)
 
 	err := s.validate(pointers, incoming)

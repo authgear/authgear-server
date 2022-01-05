@@ -54,41 +54,6 @@ func (s *Service) UpdateAllCustomAttributes(role accesscontrol.Role, userID stri
 	return nil
 }
 
-func (s *Service) UpdateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
-	err := s.ServiceNoEvent.UpdateCustomAttributes(role, userID, pointers, reprForm)
-	if err != nil {
-		return err
-	}
-
-	eventPayloads := []event.Payload{
-		&blocking.UserProfilePreUpdateBlockingEventPayload{
-			UserRef: model.UserRef{
-				Meta: model.Meta{
-					ID: userID,
-				},
-			},
-			AdminAPI: role == accesscontrol.RoleGreatest,
-		},
-		&nonblocking.UserProfileUpdatedEventPayload{
-			UserRef: model.UserRef{
-				Meta: model.Meta{
-					ID: userID,
-				},
-			},
-			AdminAPI: role == accesscontrol.RoleGreatest,
-		},
-	}
-
-	for _, eventPayload := range eventPayloads {
-		err = s.Events.DispatchEvent(eventPayload)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (s *Service) ReadCustomAttributesInStorageForm(
 	role accesscontrol.Role,
 	userID string,
