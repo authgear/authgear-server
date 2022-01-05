@@ -20,8 +20,8 @@ func FormToJSON(form url.Values) map[string]interface{} {
 	return j
 }
 
-func JSONPointerFormToMap(form url.Values) map[string]interface{} {
-	out := make(map[string]interface{})
+func JSONPointerFormToMap(form url.Values) map[string]string {
+	out := make(map[string]string)
 	for ptrStr := range form {
 		val := form.Get(ptrStr)
 		_, err := jsonpointer.Parse(ptrStr)

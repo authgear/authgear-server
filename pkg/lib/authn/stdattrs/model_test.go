@@ -161,7 +161,7 @@ func TestT(t *testing.T) {
 		})
 
 		Convey("MergedWithJSONPointer", func() {
-			test := func(original T, ptrs map[string]interface{}, expected T) {
+			test := func(original T, ptrs map[string]string, expected T) {
 				actual, err := original.MergedWithJSONPointer(ptrs)
 				So(err, ShouldBeNil)
 				So(actual, ShouldResemble, expected)
@@ -174,7 +174,7 @@ func TestT(t *testing.T) {
 				"address": map[string]interface{}{
 					"street_address": "Some street",
 				},
-			}, map[string]interface{}{
+			}, map[string]string{
 				"/given_name":             "",
 				"/family_name":            "Lee",
 				"/middle_name":            "William",

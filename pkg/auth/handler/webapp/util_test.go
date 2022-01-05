@@ -9,7 +9,7 @@ import (
 
 func TestJSONPointerFormToMap(t *testing.T) {
 	Convey("TestJSONPointerFormToMap", t, func() {
-		test := func(input map[string]string, expected map[string]interface{}) {
+		test := func(input map[string]string, expected map[string]string) {
 			form := url.Values{}
 			for key, value := range input {
 				form[key] = []string{value}
@@ -22,7 +22,7 @@ func TestJSONPointerFormToMap(t *testing.T) {
 			"/name":       "John Doe",
 			"/given_name": "",
 			"x_action":    "save",
-		}, map[string]interface{}{
+		}, map[string]string{
 			"/name":       "John Doe",
 			"/given_name": "",
 		})
