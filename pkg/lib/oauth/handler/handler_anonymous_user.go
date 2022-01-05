@@ -33,6 +33,10 @@ func (i *anonymousSignupWithoutKeyInput) GetAnonymousRequestToken() string { ret
 
 func (i *anonymousSignupWithoutKeyInput) SignUpAnonymousUserWithoutKey() bool { return true }
 
+func (i *anonymousSignupWithoutKeyInput) GetPromoteUserAndIdentityID() (string, string) {
+	return "", ""
+}
+
 var _ nodes.InputUseIdentityAnonymous = &anonymousSignupWithoutKeyInput{}
 
 type AnonymousUserHandlerLogger struct{ *log.Logger }

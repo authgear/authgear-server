@@ -24,6 +24,8 @@ func (i *anonymousTokenInput) GetAnonymousRequestToken() string { return i.JWT }
 
 func (i *anonymousTokenInput) SignUpAnonymousUserWithoutKey() bool { return false }
 
+func (i *anonymousTokenInput) GetPromoteUserAndIdentityID() (string, string) { return "", "" }
+
 var _ nodes.InputUseIdentityAnonymous = &anonymousTokenInput{}
 
 type AnonymousIdentityProvider interface {
