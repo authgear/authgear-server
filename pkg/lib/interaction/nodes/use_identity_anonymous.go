@@ -85,7 +85,11 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		return nil, err
 	}
 
+	existingUserID := ""
+	existingIdentityID := ""
 	if anonIdentity != nil {
+		existingUserID = anonIdentity.UserID
+		existingIdentityID = anonIdentity.ID
 		// Key ID has associated identity =>
 		// verify the JWT signature before proceeding to use the key ID.
 		request, err = ctx.AnonymousIdentities.ParseRequest(jwt, anonIdentity)
@@ -123,8 +127,10 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	spec := &identity.Spec{
 		Type: model.IdentityTypeAnonymous,
 		Claims: map[string]interface{}{
-			identity.IdentityClaimAnonymousKeyID: request.KeyID,
-			identity.IdentityClaimAnonymousKey:   string(key),
+			identity.IdentityClaimAnonymousExistingUserID:     existingUserID,
+			identity.IdentityClaimAnonymousExistingIdentityID: existingIdentityID,
+			identity.IdentityClaimAnonymousKeyID:              request.KeyID,
+			identity.IdentityClaimAnonymousKey:                string(key),
 		},
 	}
 
