@@ -325,7 +325,7 @@
 
   "settings-profile-formatted-names-label": "Name",
 
-  "settings-profile-edit-title": "Edit {variant, select, name{Name} email{Email} phone_number{Phone Number} preferred_username{Username} profile{Profile URL} website{Website URL} gender{Gender} birthdate{Birthdate} zoneinfo{Timezone} locale{Preferred Language} address{Address} other{}}",
+  "settings-profile-edit-title": "Edit {variant, select, name{Name} email{Email} phone_number{Phone Number} preferred_username{Username} profile{Profile URL} website{Website URL} gender{Gender} birthdate{Birthdate} zoneinfo{Timezone} locale{Preferred Language} address{Address} other{{label}}}",
   "settings-profile-edit-gender-other": "Other (Please specify)",
   "settings-profile-edit-email-placeholder": "No email addresses available",
   "settings-profile-edit-phone-number-placeholder": "No phone numbers available",
