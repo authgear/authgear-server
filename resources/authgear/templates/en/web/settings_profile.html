@@ -202,7 +202,7 @@
             {{ .EnumValueLabel }}
           {{ end }}
         {{ else if eq .Type "country_code" }}
-          {{ $.Translations.RenderText (printf "territory-%s" .Value) nil }}
+          {{ .Value }} - {{ $.Translations.RenderText (printf "territory-%s" .Value) nil }}
         {{ else }}
           {{ .Value }}
         {{ end }}
