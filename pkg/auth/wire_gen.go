@@ -4249,15 +4249,16 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
-		AppID:          appID,
-		OAuthConfig:    oAuthConfig,
-		Logger:         anonymousUserHandlerLogger,
-		Graphs:         interactionService,
-		Authorizations: authorizationStore,
-		Clock:          clockClock,
-		TokenService:   tokenService,
-		UserProvider:   queries,
-		PromotionCodes: anonymousStoreRedis,
+		AppID:               appID,
+		OAuthConfig:         oAuthConfig,
+		Logger:              anonymousUserHandlerLogger,
+		Graphs:              interactionService,
+		Authorizations:      authorizationStore,
+		Clock:               clockClock,
+		TokenService:        tokenService,
+		UserProvider:        queries,
+		AnonymousIdentities: anonymousProvider,
+		PromotionCodes:      anonymousStoreRedis,
 	}
 	anonymousUserSignupAPIHandler := &api.AnonymousUserSignupAPIHandler{
 		Logger:               anonymousUserSignupAPIHandlerLogger,
@@ -4839,15 +4840,16 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:   clockClock,
 	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
-		AppID:          appID,
-		OAuthConfig:    oAuthConfig,
-		Logger:         anonymousUserHandlerLogger,
-		Graphs:         interactionService,
-		Authorizations: authorizationStore,
-		Clock:          clockClock,
-		TokenService:   tokenService,
-		UserProvider:   queries,
-		PromotionCodes: anonymousStoreRedis,
+		AppID:               appID,
+		OAuthConfig:         oAuthConfig,
+		Logger:              anonymousUserHandlerLogger,
+		Graphs:              interactionService,
+		Authorizations:      authorizationStore,
+		Clock:               clockClock,
+		TokenService:        tokenService,
+		UserProvider:        queries,
+		AnonymousIdentities: anonymousProvider,
+		PromotionCodes:      anonymousStoreRedis,
 	}
 	anonymousUserPromotionCodeAPIHandler := &api.AnonymousUserPromotionCodeAPIHandler{
 		Logger:         anonymousUserPromotionCodeAPIHandlerLogger,
