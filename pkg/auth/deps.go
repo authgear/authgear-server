@@ -83,6 +83,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(sso.WechatURLProvider), new(*webapp.WechatURLProvider)),
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
+	wire.Bind(new(webapp.AnonymousPromotionCodeStore), new(*identityanonymous.StoreRedis)),
 
 	middleware.DependencySet,
 
