@@ -46,6 +46,7 @@ type SettingsProfileViewModel struct {
 
 	IsReadable                    func(jsonpointer string) bool
 	IsEditable                    func(jsonpointer string) bool
+	GetCustomAttributeByPointer   func(jsonpointer string) *CustomAttribute
 	IsStandardAttributesAllHidden bool
 
 	Name                 string
@@ -135,7 +136,9 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		return nil, err
 	}
 
-	accessControl := m.UserProfileConfig.StandardAttributes.GetAccessControl()
+	accessControl := m.UserProfileConfig.StandardAttributes.GetAccessControl().MergedWith(
+		m.UserProfileConfig.CustomAttributes.GetAccessControl(),
+	)
 
 	isReadable := func(jsonpointer string) bool {
 		level := accessControl.GetLevel(
@@ -164,10 +167,9 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		}
 	}
 
-	customAttrsAccessControl := m.UserProfileConfig.CustomAttributes.GetAccessControl()
 	var customAttrs []CustomAttribute
 	for _, c := range m.UserProfileConfig.CustomAttributes.Attributes {
-		level := customAttrsAccessControl.GetLevel(
+		level := accessControl.GetLevel(
 			accesscontrol.Subject(c.Pointer),
 			config.RoleEndUser,
 			config.AccessControlLevelHidden,
@@ -213,6 +215,16 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		}
 	}
 
+	getCustomAttributeByPointer := func(jsonpointer string) *CustomAttribute {
+		for _, ca := range customAttrs {
+			if ca.Pointer == jsonpointer {
+				out := ca
+				return &out
+			}
+		}
+		return nil
+	}
+
 	viewModel := &SettingsProfileViewModel{
 		FormattedName:    stdattrs.T(stdAttrs).FormattedName(),
 		EndUserAccountID: stdattrs.T(stdAttrs).EndUserAccountID(),
@@ -228,6 +240,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 
 		IsReadable:                    isReadable,
 		IsEditable:                    isEditable,
+		GetCustomAttributeByPointer:   getCustomAttributeByPointer,
 		IsStandardAttributesAllHidden: m.UserProfileConfig.StandardAttributes.IsEndUserAllHidden(),
 
 		Name:                 str(stdattrs.Name),
