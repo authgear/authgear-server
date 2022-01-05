@@ -19165,6 +19165,11 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		UserProvider: userProvider,
 		Coordinator:  coordinator,
 	}
+	customattrsService := &customattrs.Service{
+		Config:         userProfileConfig,
+		ServiceNoEvent: customattrsServiceNoEvent,
+		Events:         eventService,
+	}
 	settingsProfileEditHandler := &webapp2.SettingsProfileEditHandler{
 		ControllerFactory:        controllerFactory,
 		BaseViewModel:            baseViewModeler,
@@ -19172,6 +19177,7 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:                 responseRenderer,
 		Users:                    userFacade,
 		StdAttrs:                 stdattrsService,
+		CustomAttrs:              customattrsService,
 		ErrorCookie:              errorCookie,
 	}
 	return settingsProfileEditHandler
