@@ -167,7 +167,8 @@ func TestServiceNoEvent(t *testing.T) {
     "type": "object",
     "properties": {
         "string": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
         },
         "number": {
             "maximum": 2,
@@ -219,7 +220,8 @@ func TestServiceNoEvent(t *testing.T) {
     "type": "object",
     "properties": {
         "string": {
-            "type": "string"
+            "type": "string",
+	    "minLength": 1
         }
     }
 }

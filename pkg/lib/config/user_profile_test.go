@@ -67,7 +67,8 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		test(&CustomAttributesAttributeConfig{
 			Type: CustomAttributeTypeString,
 		}, map[string]interface{}{
-			"type": "string",
+			"type":      "string",
+			"minLength": 1,
 		})
 
 		test(&CustomAttributesAttributeConfig{
