@@ -307,6 +307,18 @@
     </select>
     {{ end }}
   </label>
+
+  {{ if (or (eq $ca.Type "number") (eq $ca.Type "integer")) }}
+  {{ if (and $ca.MinimumNil $ca.MaximumNil) }}
+  {{ else if (and (not $ca.MinimumNil) $ca.MaximumNil) }}
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-minimum" (dict "minimum" $ca.Minimum) }}</span>
+  {{ else if (and $ca.MinimumNil (not $ca.MaximumNil)) }}
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-maximum" (dict "maximum" $ca.Maximum) }}</span>
+  {{ else }}
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-minimum-maximum" (dict "minimum" $ca.Minimum "maximum" $ca.Maximum) }}</span>
+  {{ end }}
+  {{ end }}
+
   {{ end }}
   {{ end }}
 

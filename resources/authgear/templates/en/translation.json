@@ -39,8 +39,8 @@
   "error-invalid-credentials": "{AuthenticationType, select, password{Incorrect password} totp{Incorrect 6-digit code from the authenticator app / device} oob_otp_sms {Incorrect SMS one-time password} oob_otp_email{Incorrect Email one-time password} recovery_code {Incorrect recovery code} other {Invalid credentials}}",
   "error-max-length": "Expect string with length less than or equal to {expected, plural, one{# character} other{# characters}}",
   "error-type": "Please enter {expected, select, number{a number} integer{an integer} other{}}",
-  "error-minimum": "The value must be greater than or equal to {minimum}",
-  "error-maximum": "The value must be less than or equal to {maximum}",
+  "error-minimum": "Please enter a number greater than or equal to {minimum}",
+  "error-maximum": "Please enter a number less than or equal to {maximum}",
   "error-password-reset-failed": "This reset password link is invalid, used or expired. Please request a new one.",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {This email address} phone {This phone number} username {This username} other {This identity}} has been registered. Maybe you want to sign in?} other {This external account has been registered. Maybe you want to sign in?}}} other {This identity has been registered. Maybe you want to sign in?}}",
   "error-duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{You have already set up this phone number for authentication. Maybe you want to set up another phone number?} oob_otp_email{You have already set up this email address for authentication. Maybe you want to set up another email address?} other{You have already set up this authenticator. Maybe want to setup another one?}}",
@@ -355,6 +355,10 @@
   "standard-attribute-postal-code": "Postal Code",
   "standard-attribute-region": "State / Province / Prefecture / Region",
   "standard-attribute-country": "Territory",
+
+  "custom-attribute-numeric-hint-minimum": "Please enter a number greater than or equal to {minimum}",
+  "custom-attribute-numeric-hint-maximum": "Please enter a number less than or equal to {maximum}",
+  "custom-attribute-numeric-hint-minimum-maximum": "Please enter a number between {minimum} and {maximum}",
 
   "gender-female": "Female",
   "gender-male": "Male",

@@ -22,7 +22,9 @@ type CustomAttribute struct {
 	Type           string
 	IsEditable     bool
 	Minimum        *float64
+	MinimumNil     bool
 	Maximum        *float64
+	MaximumNil     bool
 	Enum           []CustomAttributeEnum
 }
 
@@ -209,7 +211,9 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 				Type:           string(c.Type),
 				IsEditable:     level >= config.AccessControlLevelReadwrite,
 				Minimum:        c.Minimum,
+				MinimumNil:     c.Minimum == nil,
 				Maximum:        c.Maximum,
+				MaximumNil:     c.Maximum == nil,
 				Enum:           enum,
 			})
 		}
