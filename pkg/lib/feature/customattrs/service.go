@@ -25,6 +25,29 @@ func (s *Service) UpdateAllCustomAttributes(role accesscontrol.Role, userID stri
 		return err
 	}
 
+	err = s.dispatchEvents(role, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) UpdateCustomAttributesWithJSONPointerMap(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
+	err := s.ServiceNoEvent.UpdateCustomAttributesWithJSONPointerMap(role, userID, jsonPointerMap)
+	if err != nil {
+		return err
+	}
+
+	err = s.dispatchEvents(role, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) dispatchEvents(role accesscontrol.Role, userID string) (err error) {
 	eventPayloads := []event.Payload{
 		&blocking.UserProfilePreUpdateBlockingEventPayload{
 			UserRef: model.UserRef{

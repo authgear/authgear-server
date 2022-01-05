@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
@@ -400,6 +401,29 @@ func (c *CustomAttributesAttributeConfig) ToJSONSchema() (schema map[string]inte
 	}
 
 	return
+}
+
+func (c *CustomAttributesAttributeConfig) ParseString(strRepr string) (interface{}, error) {
+	switch c.Type {
+	case CustomAttributeTypeString:
+		return strRepr, nil
+	case CustomAttributeTypeNumber:
+		return strconv.ParseFloat(strRepr, 64)
+	case CustomAttributeTypeInteger:
+		return strconv.ParseInt(strRepr, 10, 64)
+	case CustomAttributeTypeEnum:
+		return strRepr, nil
+	case CustomAttributeTypePhoneNumber:
+		return strRepr, nil
+	case CustomAttributeTypeEmail:
+		return strRepr, nil
+	case CustomAttributeTypeURL:
+		return strRepr, nil
+	case CustomAttributeTypeCountryCode:
+		return strRepr, nil
+	default:
+		panic(fmt.Errorf("unknown custom attribute type: %v", c.Type))
+	}
 }
 
 type CustomAttributeType string

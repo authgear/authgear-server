@@ -34,6 +34,10 @@ type SettingsProfileEditStdAttrsService interface {
 	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
+type SettingsProfileEditCustomAttrsService interface {
+	UpdateCustomAttributesWithJSONPointerMap(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error
+}
+
 type SettingsProfileEditHandler struct {
 	ControllerFactory        ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
@@ -41,6 +45,7 @@ type SettingsProfileEditHandler struct {
 	Renderer                 Renderer
 	Users                    SettingsProfileEditUserService
 	StdAttrs                 SettingsProfileEditStdAttrsService
+	CustomAttrs              SettingsProfileEditCustomAttrsService
 	ErrorCookie              *webapp.ErrorCookie
 }
 
@@ -93,14 +98,22 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
-		attrs, err := stdattrs.T(u.StandardAttributes).MergedWithJSONPointer(m)
-		if err != nil {
-			return err
-		}
+		variant := httproute.GetParam(r, "variant")
+		if variant == "custom_attributes" {
+			err = h.CustomAttrs.UpdateCustomAttributesWithJSONPointerMap(config.RoleEndUser, userID, m)
+			if err != nil {
+				return err
+			}
+		} else {
+			attrs, err := stdattrs.T(u.StandardAttributes).MergedWithJSONPointer(m)
+			if err != nil {
+				return err
+			}
 
-		err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
-		if err != nil {
-			return err
+			err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
+			if err != nil {
+				return err
+			}
 		}
 
 		result := webapp.Result{RedirectURI: "/settings/profile"}

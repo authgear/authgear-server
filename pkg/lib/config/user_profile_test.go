@@ -57,7 +57,7 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 		return i
 	}
 
-	Convey("CustomAttributesAttributeConfig", t, func() {
+	Convey("ToJSONSchema", t, func() {
 		test := func(c *CustomAttributesAttributeConfig, schema map[string]interface{}) {
 			actual, err := c.ToJSONSchema()
 			So(err, ShouldBeNil)
@@ -150,5 +150,25 @@ func TestCustomAttributesAttributeConfig(t *testing.T) {
 			"type":   "string",
 			"format": "iso3166-1-alpha-2",
 		})
+	})
+
+	Convey("ParseString", t, func() {
+		test := func(typ CustomAttributeType, str string, expected interface{}) {
+			c := &CustomAttributesAttributeConfig{
+				Type: typ,
+			}
+			actual, err := c.ParseString(str)
+			So(err, ShouldBeNil)
+			So(actual, ShouldEqual, expected)
+		}
+
+		test(CustomAttributeTypeString, "a", "a")
+		test(CustomAttributeTypeNumber, "1.2", 1.2)
+		test(CustomAttributeTypeInteger, "1", 1)
+		test(CustomAttributeTypeEnum, "a", "a")
+		test(CustomAttributeTypePhoneNumber, "+85298765432", "+85298765432")
+		test(CustomAttributeTypeEmail, "user@example.com", "user@example.com")
+		test(CustomAttributeTypeURL, "https://example.com", "https://example.com")
+		test(CustomAttributeTypeCountryCode, "HK", "HK")
 	})
 }

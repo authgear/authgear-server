@@ -138,6 +138,44 @@ func (s *ServiceNoEvent) UpdateAllCustomAttributes(role accesscontrol.Role, user
 	return s.updateCustomAttributes(role, userID, pointers, reprForm)
 }
 
+func (s *ServiceNoEvent) UpdateCustomAttributesWithJSONPointerMap(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
+	var pointers []string
+	reprForm := make(map[string]interface{})
+
+	for ptrStr, strRepr := range jsonPointerMap {
+		for _, c := range s.Config.CustomAttributes.Attributes {
+			if ptrStr == c.Pointer {
+				ptr, err := jsonpointer.Parse(c.Pointer)
+				if err != nil {
+					return err
+				}
+
+				pointers = append(pointers, c.Pointer)
+
+				// Empty string means deletion
+				if strRepr == "" {
+					continue
+				}
+
+				// In case of error, use the string representation as value.
+				if val, err := c.ParseString(strRepr); err == nil {
+					err = jsonpointerutil.AssignToJSONObject(ptr, reprForm, val)
+					if err != nil {
+						return err
+					}
+				} else {
+					err = jsonpointerutil.AssignToJSONObject(ptr, reprForm, strRepr)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+
+	return s.updateCustomAttributes(role, userID, pointers, reprForm)
+}
+
 func (s *ServiceNoEvent) updateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
 	incoming := customattrs.T(reprForm)
 
