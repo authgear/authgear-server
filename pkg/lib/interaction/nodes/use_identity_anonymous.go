@@ -18,6 +18,7 @@ func init() {
 type InputUseIdentityAnonymous interface {
 	GetAnonymousRequestToken() string
 	SignUpAnonymousUserWithoutKey() bool
+	GetPromoteUserAndIdentityID() (string, string)
 }
 
 type EdgeUseIdentityAnonymous struct {
