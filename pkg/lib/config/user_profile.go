@@ -363,6 +363,7 @@ func (c *CustomAttributesAttributeConfig) ToJSONSchema() (schema map[string]inte
 	switch c.Type {
 	case CustomAttributeTypeString:
 		schema["type"] = "string"
+		schema["minLength"] = 1
 	case CustomAttributeTypeNumber:
 		schema["type"] = "number"
 		if c.Minimum != nil {
