@@ -1,5 +1,11 @@
 /* global JSX */
-import React, { useMemo, useCallback, useContext, useState } from "react";
+import React, {
+  useMemo,
+  useCallback,
+  useContext,
+  useState,
+  useRef,
+} from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   DetailsList,
@@ -20,6 +26,7 @@ import {
   IDetailsColumnRenderTooltipProps,
   IRenderFunction,
   IIconProps,
+  IDragDropEvents,
 } from "@fluentui/react";
 import LabelWithTooltip from "./LabelWithTooltip";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -46,6 +53,7 @@ export interface UserProfileAttributesListProps<
   items: T[];
   onChangeItems: (items: T[]) => void;
   onEditButtonClick?: (index: number) => void;
+  onReorderItems?: (items: T[]) => void;
 }
 
 export interface UserProfileAttributesListPendingUpdate {
@@ -175,13 +183,49 @@ function applyUpdate<T extends UserProfileAttributesListItem>(
 function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   props: UserProfileAttributesListProps<T>
 ): React.ReactElement<any, any> | null {
-  const { items, onChangeItems, onEditButtonClick } = props;
+  const { items, onChangeItems, onEditButtonClick, onReorderItems } = props;
   const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   const descriptionColor = themes.main.palette.neutralTertiary;
   const [pendingUpdate, setPendingUpdate] = useState<
     UserProfileAttributesListPendingUpdate | undefined
   >();
+  const dndIndex = useRef<number | undefined>(undefined);
+
+  const reorder = useCallback(
+    (index: number, item: T) => {
+      const itemsWithoutIndex = [
+        ...items.slice(0, index),
+        ...items.slice(index + 1),
+      ];
+      const insertIndex = items.indexOf(item);
+      if (insertIndex >= 0) {
+        itemsWithoutIndex.splice(insertIndex, 0, items[index]);
+        onReorderItems?.(itemsWithoutIndex);
+      }
+    },
+    [items, onReorderItems]
+  );
+
+  const dragDropEvents: IDragDropEvents = useMemo(() => {
+    return {
+      canDrop: () => true,
+      canDrag: () => true,
+      onDragEnter: () => "",
+      onDragLeave: () => {},
+      onDragStart: (_item?: T, index?: number) => {
+        dndIndex.current = index;
+      },
+      onDragEnd: (_item?: T) => {
+        dndIndex.current = undefined;
+      },
+      onDrop: (item?: T) => {
+        if (dndIndex.current != null && item != null) {
+          reorder(dndIndex.current, item);
+        }
+      },
+    };
+  }, [reorder]);
 
   const onClickConfirmPendingUpdate = useCallback(
     (e: React.MouseEvent<unknown>) => {
@@ -366,7 +410,9 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
       const { pointer } = item;
       const fieldName = parseJSONPointer(pointer)[0];
       return (
-        <div>
+        <div
+          className={onReorderItems != null ? styles.dragAndDrop : undefined}
+        >
           <Text className={styles.fieldName} block={true}>
             <FormattedMessage id={"standard-attribute." + fieldName} />
           </Text>
@@ -384,7 +430,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
         </div>
       );
     },
-    [descriptionColor]
+    [descriptionColor, onReorderItems]
   );
 
   const onRenderEditButton = useCallback(
@@ -523,6 +569,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
         items={items}
         selectionMode={SelectionMode.none}
         onRenderDetailsHeader={onRenderDetailsHeader}
+        dragDropEvents={onReorderItems != null ? dragDropEvents : undefined}
       />
       <Dialog
         hidden={pendingUpdate == null}
