@@ -865,15 +865,17 @@
   "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
 
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
-  "StandardAttributesConfigurationScreen.header.label.attribute-name": "Attribute Name",
-  "StandardAttributesConfigurationScreen.header.label.end_user": "End-user Access Right",
-  "StandardAttributesConfigurationScreen.header.tooltip.end_user": "Access control for the standard attributes in the {ExternalLink, react, href{https://docs.authgear.com/integrate/auth-ui} children{End-user settings page}}",
-  "StandardAttributesConfigurationScreen.header.label.bearer": "Token Bearer Access Right",
-  "StandardAttributesConfigurationScreen.header.tooltip.bearer": "Access control for the standard attributes in the {ExternalLink, react, href{https://docs.authgear.com/integrate/user-info} children{UserInfo endpoint}}",
-  "StandardAttributesConfigurationScreen.header.label.portal_ui": "Portal Admin Access Right",
-  "StandardAttributesConfigurationScreen.header.tooltip.portal_ui": "Access control for the standard attributes in Admin Portal > User Management",
-  "StandardAttributesConfigurationScreen.dialog.title.pending-update": "Are you sure to change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}”?",
-  "StandardAttributesConfigurationScreen.dialog.description.pending-update": "If you change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}” to {strong, react, children{{level}}}, the Access Right of {affected, select, bearer{Token Bearer} end_user{End-user} other{Token Bearer and End-user}} will also be changed to {strong, react, children{{level}}}.",
+
+  "UserProfileAttributesList.header.label.attribute-name": "Attribute Name",
+  "UserProfileAttributesList.header.label.end_user": "End-user Access Right",
+  "UserProfileAttributesList.header.tooltip.end_user": "Access control for the user profile attributes in the {ExternalLink, react, href{https://docs.authgear.com/integrate/auth-ui} children{End-user settings page}}",
+  "UserProfileAttributesList.header.label.bearer": "Token Bearer Access Right",
+  "UserProfileAttributesList.header.tooltip.bearer": "Access control for the user profile attributes in the {ExternalLink, react, href{https://docs.authgear.com/integrate/user-info} children{UserInfo endpoint}}",
+  "UserProfileAttributesList.header.label.portal_ui": "Portal Admin Access Right",
+  "UserProfileAttributesList.header.tooltip.portal_ui": "Access control for the user profile attributes in Admin Portal > User Management",
+
+  "UserProfileAttributesList.dialog.title.pending-update": "Are you sure to change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}”?",
+  "UserProfileAttributesList.dialog.description.pending-update": "If you change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}” to {strong, react, children{{level}}}, the Access Right of {affected, select, bearer{Token Bearer} end_user{End-user} other{Token Bearer and End-user}} will also be changed to {strong, react, children{{level}}}.",
 
   "standard-attribute.name": "Name",
   "standard-attribute.given_name": "Given Name",
@@ -915,9 +917,9 @@
   "standard-attribute.description.locale": "End-user's locale, represented as a BCP47 language tag. The options are the supported language of the project. For example, zh-HK",
   "standard-attribute.description.address": "End-user''s address",
 
-  "standard-attribute.access-control-level.hidden": "Hidden",
-  "standard-attribute.access-control-level.readonly": "Read-only",
-  "standard-attribute.access-control-level.readwrite": "Editable",
+  "user-profile.access-control-level.hidden": "Hidden",
+  "user-profile.access-control-level.readonly": "Read-only",
+  "user-profile.access-control-level.readwrite": "Editable",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
