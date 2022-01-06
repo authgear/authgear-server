@@ -38,14 +38,14 @@ import {
   AccessControlLevelString,
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
-import styles from "./UserProfileConfigurationScreen.module.scss";
+import styles from "./StandardAttributesConfigurationScreen.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
 interface FormState {
   standardAttributesItems: StandardAttributesAccessControlConfig[];
 }
 
-interface UserProfileConfigurationScreenContentProps {
+interface StandardAttributesConfigurationScreenContentProps {
   form: AppConfigFormModel<FormState>;
 }
 
@@ -237,8 +237,8 @@ function applyUpdate(prev: FormState, update: PendingUpdate): FormState {
   };
 }
 
-const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationScreenContentProps> =
-  function UserProfileConfigurationScreenContent(props) {
+const StandardAttributesConfigurationScreenContent: React.FC<StandardAttributesConfigurationScreenContentProps> =
+  function StandardAttributesConfigurationScreenContent(props) {
     const items = props.form.state.standardAttributesItems;
     const { state, setState } = props.form;
     const { renderToString } = useContext(Context);
@@ -293,7 +293,7 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
       return {
         title: (
           <FormattedMessage
-            id="UserProfileConfigurationScreen.dialog.title.pending-update"
+            id="StandardAttributesConfigurationScreen.dialog.title.pending-update"
             values={{
               fieldName,
               party: pendingUpdate.mainAdjustment[0],
@@ -302,7 +302,7 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
         ),
         subText: (
           <FormattedMessage
-            id="UserProfileConfigurationScreen.dialog.description.pending-update"
+            id="StandardAttributesConfigurationScreen.dialog.description.pending-update"
             values={{
               fieldName,
               affected,
@@ -465,7 +465,7 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
           key: "pointer",
           minWidth: 200,
           name: renderToString(
-            "UserProfileConfigurationScreen.header.label.attribute-name"
+            "StandardAttributesConfigurationScreen.header.label.attribute-name"
           ),
           onRender: onRenderPointer,
           isMultiline: true,
@@ -517,11 +517,11 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
             return (
               <LabelWithTooltip
                 labelId={
-                  "UserProfileConfigurationScreen.header.label." +
+                  "StandardAttributesConfigurationScreen.header.label." +
                   props.column.key
                 }
                 tooltipMessageId={
-                  "UserProfileConfigurationScreen.header.tooltip." +
+                  "StandardAttributesConfigurationScreen.header.tooltip." +
                   props.column.key
                 }
                 directionalHint={DirectionalHint.topCenter}
@@ -553,7 +553,7 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
       <>
         <ScreenContent>
           <ScreenTitle className={styles.widget}>
-            <FormattedMessage id="UserProfileConfigurationScreen.title" />
+            <FormattedMessage id="StandardAttributesConfigurationScreen.title" />
           </ScreenTitle>
           <div className={styles.widget}>
             <DetailsList
@@ -582,8 +582,8 @@ const UserProfileConfigurationScreenContent: React.FC<UserProfileConfigurationSc
     );
   };
 
-const UserProfileConfigurationScreen: React.FC =
-  function UserProfileConfigurationScreen() {
+const StandardAttributesConfigurationScreen: React.FC =
+  function StandardAttributesConfigurationScreen() {
     const { appID } = useParams();
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
@@ -597,9 +597,9 @@ const UserProfileConfigurationScreen: React.FC =
 
     return (
       <FormContainer form={form}>
-        <UserProfileConfigurationScreenContent form={form} />
+        <StandardAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );
   };
 
-export default UserProfileConfigurationScreen;
+export default StandardAttributesConfigurationScreen;
