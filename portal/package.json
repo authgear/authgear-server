@@ -33,7 +33,7 @@
     "normalize.css": "8.0.1",
     "parcel": "2.1.0",
     "postcss-modules": "4.3.0",
-    "prettier": "2.4.1",
+    "prettier": "2.5.1",
     "sass": "1.46.0",
     "stylelint": "13.13.1",
     "typescript": "4.5.4"
