@@ -702,4 +702,3 @@ enum UserSortBy {
 The `UserStandardAttributes` scalar type represents the standard attributes of the user
 """
 scalar UserStandardAttributes
-

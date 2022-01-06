@@ -1,5 +1,5 @@
 # Stage 1: Build the Go binary
-FROM golang:1.17.2-bullseye as stage1
+FROM golang:1.17.5-bullseye as stage1
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -30,7 +30,7 @@ COPY . .
 RUN make authui GIT_HASH=$GIT_HASH
 
 # Stage 3: Build the portal static files
-FROM node:16.13.0-bullseye as stage3
+FROM node:16.13.1-bullseye as stage3
 ARG GIT_HASH
 # If the working directory is /src, Parcel will have some problem with it.
 WORKDIR /usr/src/app
@@ -40,7 +40,7 @@ COPY ./portal .
 RUN npm run build
 
 # Stage 4: Prepare the actual fs we use to run the program
-FROM debian:bullseye-slim
+FROM debian:bullseye-20211220-slim
 ARG GIT_HASH
 WORKDIR /app
 # /etc/mime.types (mime-support)
