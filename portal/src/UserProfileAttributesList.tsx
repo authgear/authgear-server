@@ -10,6 +10,7 @@ import {
   DialogFooter,
   PrimaryButton,
   DefaultButton,
+  IconButton,
   SelectionMode,
   Text,
   IColumn,
@@ -18,6 +19,7 @@ import {
   IDetailsHeaderProps,
   IDetailsColumnRenderTooltipProps,
   IRenderFunction,
+  IIconProps,
 } from "@fluentui/react";
 import LabelWithTooltip from "./LabelWithTooltip";
 import { useSystemConfig } from "./context/SystemConfigContext";
@@ -43,6 +45,7 @@ export interface UserProfileAttributesListProps<
 > {
   items: T[];
   onChangeItems: (items: T[]) => void;
+  onEditButtonClick?: (index: number) => void;
 }
 
 export interface UserProfileAttributesListPendingUpdate {
@@ -51,6 +54,10 @@ export interface UserProfileAttributesListPendingUpdate {
   mainAdjustment: UserProfileAttributesListAccessControlAdjustment;
   otherAdjustments: UserProfileAttributesListAccessControlAdjustment[];
 }
+
+const EDIT_BUTTON_ICON_PROPS: IIconProps = {
+  iconName: "Edit",
+};
 
 function intOfAccessControlLevelString(
   level: AccessControlLevelString
@@ -168,7 +175,7 @@ function applyUpdate<T extends UserProfileAttributesListItem>(
 function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   props: UserProfileAttributesListProps<T>
 ): React.ReactElement<any, any> | null {
-  const { items, onChangeItems } = props;
+  const { items, onChangeItems, onEditButtonClick } = props;
   const { renderToString } = useContext(Context);
   const { themes } = useSystemConfig();
   const descriptionColor = themes.main.palette.neutralTertiary;
@@ -380,8 +387,34 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     [descriptionColor]
   );
 
-  const columns: IColumn[] = useMemo(
-    () => [
+  const onRenderEditButton = useCallback(
+    (
+      _item?: UserProfileAttributesListItem,
+      index?: number,
+      _column?: IColumn
+    ) => {
+      if (index == null) {
+        return null;
+      }
+      const onClick = (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onEditButtonClick?.(index);
+      };
+      return (
+        <IconButton
+          iconProps={EDIT_BUTTON_ICON_PROPS}
+          title={renderToString("edit")}
+          ariaLabel={renderToString("edit")}
+          onClick={onClick}
+        />
+      );
+    },
+    [onEditButtonClick, renderToString]
+  );
+
+  const columns: IColumn[] = useMemo(() => {
+    const columns: IColumn[] = [
       {
         key: "pointer",
         minWidth: 200,
@@ -412,9 +445,24 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
         name: "",
         onRender: makeRenderDropdown("end_user"),
       },
-    ],
-    [renderToString, makeRenderDropdown, onRenderPointer]
-  );
+    ];
+    if (onEditButtonClick != null) {
+      columns.push({
+        key: "edit",
+        minWidth: 44,
+        maxWidth: 44,
+        name: "",
+        onRender: onRenderEditButton,
+      });
+    }
+    return columns;
+  }, [
+    onEditButtonClick,
+    renderToString,
+    makeRenderDropdown,
+    onRenderPointer,
+    onRenderEditButton,
+  ]);
 
   const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
     useCallback(
