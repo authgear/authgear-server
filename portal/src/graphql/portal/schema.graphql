@@ -597,4 +597,3 @@ input sendTestSMTPConfigurationEmailInput {
   """The recipient email address."""
   to: String!
 }
-
