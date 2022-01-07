@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import produce from "immer";
+import { Text, PrimaryButton } from "@fluentui/react";
 import FormContainer from "../../FormContainer";
 import {
   AppConfigFormModel,
@@ -46,6 +47,19 @@ function constructConfig(
   });
 }
 
+function EmptyState() {
+  return (
+    <div className={styles.emptyState}>
+      <Text className={styles.emptyStateMessage} block={true}>
+        <FormattedMessage id="CustomAttributesConfigurationScreen.empty-message" />
+      </Text>
+      <PrimaryButton className={styles.addNewAttributeButton}>
+        <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
+      </PrimaryButton>
+    </div>
+  );
+}
+
 const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfigurationScreenContentProps> =
   function CustomAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
@@ -71,6 +85,7 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
               items={state.items}
               onChangeItems={onChangeItems}
             />
+            {state.items.length <= 0 ? <EmptyState /> : null}
           </div>
         </ScreenContent>
       </>

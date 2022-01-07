@@ -868,6 +868,8 @@
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
 
   "CustomAttributesConfigurationScreen.title": "Custom Attributes",
+  "CustomAttributesConfigurationScreen.empty-message": "No custom attributes",
+  "CustomAttributesConfigurationScreen.label.add-new-attribute": "Add New Attribute",
 
   "UserProfileAttributesList.header.label.attribute-name": "Attribute Name",
   "UserProfileAttributesList.header.label.end_user": "End-user Access Right",
