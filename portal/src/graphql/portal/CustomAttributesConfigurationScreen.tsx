@@ -80,6 +80,7 @@ function ItemComponent(
 const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfigurationScreenContentProps> =
   function CustomAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
+
     const onChangeItems = useCallback(
       (newItems: CustomAttributesAttributeConfig[]) => {
         setState((prev) => {
@@ -91,6 +92,11 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
       },
       [setState]
     );
+
+    const onEditButtonClick = useCallback((_index: number) => {
+      return;
+    }, []);
+
     return (
       <>
         <ScreenContent>
@@ -102,6 +108,7 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
               items={state.items}
               onChangeItems={onChangeItems}
               onReorderItems={onChangeItems}
+              onEditButtonClick={onEditButtonClick}
               ItemComponent={ItemComponent}
             />
             {state.items.length <= 0 ? <EmptyState /> : null}
