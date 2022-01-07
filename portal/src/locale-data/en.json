@@ -99,6 +99,7 @@
   "ScreenNav.localization": "Localization",
   "ScreenNav.user-profile": "User Profile",
   "ScreenNav.standard-attributes": "Standard Attributes",
+  "ScreenNav.custom-attributes": "Custom Attributes",
   "ScreenNav.webhooks": "Webhooks",
   "ScreenNav.billing": "Billing",
   "ScreenNav.advanced": "Advanced",
@@ -865,6 +866,8 @@
   "SMTPConfigurationScreen.custom.description": "Set your SMTP provider manually. Check {ExternalLink, react, href{https://docs.authgear.com/customize/custom-email-provider} children{our instructions}} if you need help.",
 
   "StandardAttributesConfigurationScreen.title": "Standard Attributes",
+
+  "CustomAttributesConfigurationScreen.title": "Custom Attributes",
 
   "UserProfileAttributesList.header.label.attribute-name": "Attribute Name",
   "UserProfileAttributesList.header.label.end_user": "End-user Access Right",
