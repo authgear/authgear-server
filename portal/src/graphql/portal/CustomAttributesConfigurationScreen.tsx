@@ -1,6 +1,6 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo, useContext } from "react";
 import { useParams } from "react-router-dom";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import produce from "immer";
 import cn from "classnames";
 import { Text, PrimaryButton } from "@fluentui/react";
@@ -115,6 +115,20 @@ const CustomAttributesConfigurationScreen: React.FC =
   function CustomAttributesConfigurationScreen() {
     const { appID } = useParams();
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const { renderToString } = useContext(Context);
+
+    const primaryItems = useMemo(
+      () => [
+        {
+          key: "add",
+          text: renderToString(
+            "CustomAttributesConfigurationScreen.label.add-new-attribute"
+          ),
+          iconProps: { iconName: "CirclePlus" },
+        },
+      ],
+      [renderToString]
+    );
 
     if (form.isLoading) {
       return <ShowLoading />;
@@ -125,7 +139,7 @@ const CustomAttributesConfigurationScreen: React.FC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} primaryItems={primaryItems}>
         <CustomAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );
