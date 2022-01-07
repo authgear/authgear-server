@@ -18,7 +18,6 @@ import {
   DefaultButton,
   IconButton,
   SelectionMode,
-  Text,
   IColumn,
   IDropdownOption,
   IDialogContentProps,
@@ -29,7 +28,6 @@ import {
   IDragDropEvents,
 } from "@fluentui/react";
 import LabelWithTooltip from "./LabelWithTooltip";
-import { useSystemConfig } from "./context/SystemConfigContext";
 import {
   UserProfileAttributesAccessControl,
   AccessControlLevelString,
@@ -47,10 +45,16 @@ export interface UserProfileAttributesListItem {
   access_control: UserProfileAttributesAccessControl;
 }
 
+export interface ItemComponentProps<T> {
+  className: string;
+  item: T;
+}
+
 export interface UserProfileAttributesListProps<
   T extends UserProfileAttributesListItem
 > {
   items: T[];
+  ItemComponent: React.ComponentType<ItemComponentProps<T>>;
   onChangeItems: (items: T[]) => void;
   onEditButtonClick?: (index: number) => void;
   onReorderItems?: (items: T[]) => void;
@@ -183,10 +187,14 @@ function applyUpdate<T extends UserProfileAttributesListItem>(
 function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   props: UserProfileAttributesListProps<T>
 ): React.ReactElement<any, any> | null {
-  const { items, onChangeItems, onEditButtonClick, onReorderItems } = props;
+  const {
+    items,
+    onChangeItems,
+    ItemComponent,
+    onEditButtonClick,
+    onReorderItems,
+  } = props;
   const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
-  const descriptionColor = themes.main.palette.neutralTertiary;
   const [pendingUpdate, setPendingUpdate] = useState<
     UserProfileAttributesListPendingUpdate | undefined
   >();
@@ -399,38 +407,14 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   );
 
   const onRenderPointer = useCallback(
-    (
-      item?: UserProfileAttributesListItem,
-      _index?: number,
-      _column?: IColumn
-    ) => {
+    (item?: T, _index?: number, _column?: IColumn) => {
       if (item == null) {
         return null;
       }
-      const { pointer } = item;
-      const fieldName = parseJSONPointer(pointer)[0];
-      return (
-        <div
-          className={onReorderItems != null ? styles.dragAndDrop : undefined}
-        >
-          <Text className={styles.fieldName} block={true}>
-            <FormattedMessage id={"standard-attribute." + fieldName} />
-          </Text>
-          <Text
-            variant="small"
-            block={true}
-            style={{
-              color: descriptionColor,
-            }}
-          >
-            <FormattedMessage
-              id={"standard-attribute.description." + fieldName}
-            />
-          </Text>
-        </div>
-      );
+      const className = onReorderItems != null ? styles.dragAndDrop : "";
+      return <ItemComponent className={className} item={item} />;
     },
-    [descriptionColor, onReorderItems]
+    [onReorderItems, ItemComponent]
   );
 
   const onRenderEditButton = useCallback(

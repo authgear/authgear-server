@@ -60,6 +60,10 @@ function EmptyState() {
   );
 }
 
+function ItemComponent() {
+  return null;
+}
+
 const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfigurationScreenContentProps> =
   function CustomAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
@@ -84,6 +88,7 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
             <UserProfileAttributesList
               items={state.items}
               onChangeItems={onChangeItems}
+              ItemComponent={ItemComponent}
             />
             {state.items.length <= 0 ? <EmptyState /> : null}
           </div>

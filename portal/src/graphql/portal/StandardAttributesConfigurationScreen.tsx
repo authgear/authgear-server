@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import { useParams } from "react-router-dom";
+import { Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import produce from "immer";
 import FormContainer from "../../FormContainer";
@@ -13,11 +14,14 @@ import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import UserProfileAttributesList, {
   UserProfileAttributesListItem,
+  ItemComponentProps,
 } from "../../UserProfileAttributesList";
 import {
   PortalAPIAppConfig,
   StandardAttributesAccessControlConfig,
 } from "../../types";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./StandardAttributesConfigurationScreen.module.scss";
 
 interface FormState {
@@ -91,6 +95,32 @@ function constructConfig(
   });
 }
 
+function ItemComponent(
+  props: ItemComponentProps<StandardAttributesAccessControlConfig>
+) {
+  const { className, item } = props;
+  const { pointer } = item;
+  const fieldName = parseJSONPointer(pointer)[0];
+  const { themes } = useSystemConfig();
+  const descriptionColor = themes.main.palette.neutralTertiary;
+  return (
+    <div className={className}>
+      <Text className={styles.fieldName} block={true}>
+        <FormattedMessage id={"standard-attribute." + fieldName} />
+      </Text>
+      <Text
+        variant="small"
+        block={true}
+        style={{
+          color: descriptionColor,
+        }}
+      >
+        <FormattedMessage id={"standard-attribute.description." + fieldName} />
+      </Text>
+    </div>
+  );
+}
+
 const StandardAttributesConfigurationScreenContent: React.FC<StandardAttributesConfigurationScreenContentProps> =
   function StandardAttributesConfigurationScreenContent(props) {
     const { state, setState } = props.form;
@@ -115,6 +145,7 @@ const StandardAttributesConfigurationScreenContent: React.FC<StandardAttributesC
             <UserProfileAttributesList
               items={state.standardAttributesItems}
               onChangeItems={onChangeItems}
+              ItemComponent={ItemComponent}
             />
           </div>
         </ScreenContent>
