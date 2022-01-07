@@ -101,6 +101,7 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
             <UserProfileAttributesList
               items={state.items}
               onChangeItems={onChangeItems}
+              onReorderItems={onChangeItems}
               ItemComponent={ItemComponent}
             />
             {state.items.length <= 0 ? <EmptyState /> : null}
