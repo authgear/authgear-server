@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import produce from "immer";
+import cn from "classnames";
 import { Text, PrimaryButton } from "@fluentui/react";
 import FormContainer from "../../FormContainer";
 import {
@@ -12,11 +13,14 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
-import UserProfileAttributesList from "../../UserProfileAttributesList";
+import UserProfileAttributesList, {
+  ItemComponentProps,
+} from "../../UserProfileAttributesList";
 import {
   PortalAPIAppConfig,
   CustomAttributesAttributeConfig,
 } from "../../types";
+import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./CustomAttributesConfigurationScreen.module.scss";
 
 interface FormState {
@@ -60,8 +64,17 @@ function EmptyState() {
   );
 }
 
-function ItemComponent() {
-  return null;
+function ItemComponent(
+  props: ItemComponentProps<CustomAttributesAttributeConfig>
+) {
+  const { className, item } = props;
+  const { pointer } = item;
+  const fieldName = parseJSONPointer(pointer)[0];
+  return (
+    <Text className={cn(className, styles.fieldName)} block={true}>
+      {fieldName}
+    </Text>
+  );
 }
 
 const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfigurationScreenContentProps> =
