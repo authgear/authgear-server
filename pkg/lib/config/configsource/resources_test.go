@@ -45,7 +45,7 @@ http:
 `),
 			)
 			So(err, ShouldBeError, `invalid authgear.yaml:
-/user_profile/custom_attributes/attributes: length of custom attributes was shortened, actual: 0, expected: 1`)
+/user_profile/custom_attributes/attributes: custom attribute of id '0000' was deleted`)
 		})
 
 		Convey("Custom attribute ID cannot be changed", func() {
@@ -80,7 +80,7 @@ user_profile:
 `),
 			)
 			So(err, ShouldBeError, `invalid authgear.yaml:
-/user_profile/custom_attributes/attributes/0: changed ID, actual: 0001, expected: 0000`)
+/user_profile/custom_attributes/attributes: custom attribute of id '0000' was deleted`)
 		})
 
 		Convey("Custom attribute type cannot be changed", func() {
@@ -115,7 +115,7 @@ user_profile:
 `),
 			)
 			So(err, ShouldBeError, `invalid authgear.yaml:
-/user_profile/custom_attributes/attributes/0: changed type, actual: integer, expected: string`)
+/user_profile/custom_attributes/attributes/0: custom attribute of id '0000' has type changed; original: string, incoming: integer`)
 		})
 
 		Convey("Custom attribute can be added", func() {
@@ -149,6 +149,46 @@ user_profile:
       type: string
     - id: "0001"
       pointer: /b
+      type: string
+`),
+			)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("Custom attribute can be reordered", func() {
+			_, err := descriptor.UpdateResource(
+				ctx,
+				nil,
+				&resource.ResourceFile{
+					Location: resource.Location{
+						Fs:   app,
+						Path: path,
+					},
+					Data: []byte(`id: test
+http:
+  public_origin: http://test
+user_profile:
+  custom_attributes:
+    attributes:
+    - id: "0000"
+      pointer: /a
+      type: string
+    - id: "0001"
+      pointer: /b
+      type: string
+`),
+				},
+				[]byte(`id: test
+http:
+  public_origin: http://test
+user_profile:
+  custom_attributes:
+    attributes:
+    - id: "0001"
+      pointer: /b
+      type: string
+    - id: "0000"
+      pointer: /a
       type: string
 `),
 			)

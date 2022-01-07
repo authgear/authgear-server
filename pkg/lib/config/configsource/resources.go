@@ -184,50 +184,35 @@ func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *c
 	}
 
 	// Check custom attributes not removed nor edited.
-	originalCustomAttributes := original.UserProfile.CustomAttributes.Attributes
-	incomingCustomAttributes := incoming.UserProfile.CustomAttributes.Attributes
-
-	if len(incomingCustomAttributes) < len(originalCustomAttributes) {
-		validationCtx.Child(
-			"user_profile",
-			"custom_attributes",
-			"attributes",
-		).EmitErrorMessage(
-			fmt.Sprintf("length of custom attributes was shortened, actual: %d, expected: %d",
-				len(incomingCustomAttributes),
-				len(originalCustomAttributes),
-			),
-		)
-	} else {
-		for i := 0; i < len(originalCustomAttributes); i++ {
-			a := originalCustomAttributes[i]
-			b := incomingCustomAttributes[i]
-			if a.ID != b.ID {
-				validationCtx.Child(
-					"user_profile",
-					"custom_attributes",
-					"attributes",
-					strconv.Itoa(i),
-				).EmitErrorMessage(
-					fmt.Sprintf("changed ID, actual: %v, expected: %v",
-						b.ID,
-						a.ID,
-					),
-				)
+	for _, originalCustomAttr := range original.UserProfile.CustomAttributes.Attributes {
+		found := false
+		for i, incomingCustomAttr := range incoming.UserProfile.CustomAttributes.Attributes {
+			if originalCustomAttr.ID == incomingCustomAttr.ID {
+				found = true
+				if originalCustomAttr.Type != incomingCustomAttr.Type {
+					validationCtx.Child(
+						"user_profile",
+						"custom_attributes",
+						"attributes",
+						strconv.Itoa(i),
+					).EmitErrorMessage(
+						fmt.Sprintf("custom attribute of id '%v' has type changed; original: %v, incoming: %v",
+							originalCustomAttr.ID,
+							originalCustomAttr.Type,
+							incomingCustomAttr.Type,
+						),
+					)
+				}
 			}
-			if a.Type != b.Type {
-				validationCtx.Child(
-					"user_profile",
-					"custom_attributes",
-					"attributes",
-					strconv.Itoa(i),
-				).EmitErrorMessage(
-					fmt.Sprintf("changed type, actual: %v, expected: %v",
-						b.Type,
-						a.Type,
-					),
-				)
-			}
+		}
+		if !found {
+			validationCtx.Child(
+				"user_profile",
+				"custom_attributes",
+				"attributes",
+			).EmitErrorMessage(
+				fmt.Sprintf("custom attribute of id '%v' was deleted", originalCustomAttr.ID),
+			)
 		}
 	}
 
