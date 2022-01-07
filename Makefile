@@ -18,9 +18,11 @@ vendor:
 	go mod download
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
-	(cd scripts/npm && npm ci)
-	(cd authui && npm ci)
+	npm --prefix ./scripts/npm ci
+	npm --prefix ./authui ci
+	npm --prefix ./portal ci
 	$(MAKE) authui
+	$(MAKE) portal
 
 .PHONY: go-mod-outdated
 go-mod-outdated:
