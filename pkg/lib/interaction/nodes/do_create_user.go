@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -79,6 +80,30 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				return err
 			}
 
+			newIdentities := graph.GetUserNewIdentities()
+			ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
+			isAnonymous := false
+			for _, i := range newIdentities {
+				if i.Type == model.IdentityTypeAnonymous {
+					isAnonymous = true
+				}
+			}
+
+			if !n.BypassRateLimit && isAnonymous {
+				// `graph.GetUserNewIdentities` is used to identify if the
+				// new user is anonymous user.
+				// Therefore this checking need to be done in `EffectOnCommit`
+				// to ensure all nodes are run.
+				// check the rate limit only before running the effects
+				pass, _, err := ctx.RateLimiter.CheckToken(interaction.SignupAnonymousUserRateLimitBucket(ip))
+				if err != nil {
+					return err
+				}
+				if !pass {
+					return ratelimit.ErrTooManyRequests
+				}
+			}
+
 			webhookState := ""
 			if intentWithWebhook, ok := graph.Intent.(interaction.IntentWithWebhookState); ok {
 				webhookState = intentWithWebhook.GetWebhookState()
@@ -98,10 +123,16 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 
 			// take the token after running the effects successfully
 			if !n.BypassRateLimit {
-				ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
 				err := ctx.RateLimiter.TakeToken(interaction.SignupRateLimitBucket(ip))
 				if err != nil {
 					return err
+				}
+
+				if isAnonymous {
+					err := ctx.RateLimiter.TakeToken(interaction.SignupAnonymousUserRateLimitBucket(ip))
+					if err != nil {
+						return err
+					}
 				}
 			}
 			return nil

@@ -34,6 +34,14 @@ func SignupRateLimitBucket(ip string) ratelimit.Bucket {
 	}
 }
 
+func SignupAnonymousUserRateLimitBucket(ip string) ratelimit.Bucket {
+	return ratelimit.Bucket{
+		Key:         fmt.Sprintf("signup-anonymous-user:%s", ip),
+		Size:        60,
+		ResetPeriod: duration.PerHour,
+	}
+}
+
 func AccountEnumerationRateLimitBucket(ip string) ratelimit.Bucket {
 	return ratelimit.Bucket{
 		Key:         fmt.Sprintf("account-enumeration:%s", ip),
