@@ -26,7 +26,10 @@ var AnonymousUserPromotionCodeAPIRequestSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"additionalProperties": false,
 		"properties": {
-			"session_type": { "type": "string" },
+			"session_type": {
+				"type": "string",
+				"enum": ["cookie", "refresh_token"]
+			},
 			"refresh_token": { "type": "string" }
 		},
 		"required": ["session_type"]
@@ -47,12 +50,6 @@ var AnonymousUserPromotionCodeResponseSchema = validation.NewSimpleSchema(`
 type AnonymousUserPromotionCodeRequest struct {
 	SessionType  oauthhandler.WebSessionType `json:"session_type"`
 	RefreshToken string                      `json:"refresh_token"`
-}
-
-func (p *AnonymousUserPromotionCodeRequest) Validate(ctx *validation.Context) {
-	if !p.SessionType.IsValid() {
-		ctx.Child("session_type").EmitErrorMessage("unknown session type")
-	}
 }
 
 type AnonymousUserPromotionCodeResponse struct {
