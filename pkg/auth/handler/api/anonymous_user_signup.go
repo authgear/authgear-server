@@ -40,7 +40,15 @@ var AnonymousUserSignupAPIRequestSchema = validation.NewSimpleSchema(`
 			},
 			"refresh_token": { "type": "string" }
 		},
-		"required": ["client_id", "session_type"]
+		"required": ["session_type"],
+		"allOf": [
+			{
+				"if": { "properties": { "session_type": { "const": "refresh_token" } } },
+				"then": {
+					"required": ["client_id"]
+				}
+			}
+		]
 	}
 `)
 
