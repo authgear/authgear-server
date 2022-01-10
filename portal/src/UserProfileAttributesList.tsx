@@ -26,6 +26,7 @@ import {
   IRenderFunction,
   IIconProps,
   IDragDropEvents,
+  Icon,
 } from "@fluentui/react";
 import LabelWithTooltip from "./LabelWithTooltip";
 import {
@@ -411,10 +412,9 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
       if (item == null) {
         return null;
       }
-      const className = onReorderItems != null ? styles.dragAndDrop : "";
-      return <ItemComponent className={className} item={item} />;
+      return <ItemComponent className="" item={item} />;
     },
-    [onReorderItems, ItemComponent]
+    [ItemComponent]
   );
 
   const onRenderEditButton = useCallback(
@@ -442,6 +442,14 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     },
     [onEditButtonClick, renderToString]
   );
+
+  const onRenderReorderHandle = useCallback(() => {
+    return (
+      <div className={styles.reorderHandle}>
+        <Icon iconName="GlobalNavButton" />
+      </div>
+    );
+  }, []);
 
   const columns: IColumn[] = useMemo(() => {
     const columns: IColumn[] = [
@@ -479,19 +487,30 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     if (onEditButtonClick != null) {
       columns.push({
         key: "edit",
-        minWidth: 44,
-        maxWidth: 44,
+        minWidth: 24,
+        maxWidth: 24,
         name: "",
         onRender: onRenderEditButton,
+      });
+    }
+    if (onReorderItems != null) {
+      columns.push({
+        key: "reorder",
+        minWidth: 24,
+        maxWidth: 24,
+        name: "",
+        onRender: onRenderReorderHandle,
       });
     }
     return columns;
   }, [
     onEditButtonClick,
+    onReorderItems,
     renderToString,
     makeRenderDropdown,
     onRenderPointer,
     onRenderEditButton,
+    onRenderReorderHandle,
   ]);
 
   const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
