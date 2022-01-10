@@ -1,15 +1,10 @@
 /* global JSX */
-import React, {
-  useMemo,
-  useCallback,
-  useContext,
-  useState,
-  useRef,
-} from "react";
+import React, { useMemo, useCallback, useContext, useState } from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import {
   DetailsList,
   DetailsHeader,
+  DetailsRow,
   DirectionalHint,
   Dropdown,
   Dialog,
@@ -22,6 +17,7 @@ import {
   IDropdownOption,
   IDialogContentProps,
   IDetailsHeaderProps,
+  IDetailsRowProps,
   IDetailsColumnRenderTooltipProps,
   IRenderFunction,
   IIconProps,
@@ -199,7 +195,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
   const [pendingUpdate, setPendingUpdate] = useState<
     UserProfileAttributesListPendingUpdate | undefined
   >();
-  const dndIndex = useRef<number | undefined>(undefined);
+  const [dndIndex, setDNDIndex] = useState<number | undefined>(undefined);
 
   const reorder = useCallback(
     (index: number, item: T) => {
@@ -220,21 +216,23 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     return {
       canDrop: () => true,
       canDrag: () => true,
-      onDragEnter: () => "",
+      onDragEnter: () => styles.onDragEnter,
       onDragLeave: () => {},
       onDragStart: (_item?: T, index?: number) => {
-        dndIndex.current = index;
+        if (index != null) {
+          setDNDIndex(index);
+        }
       },
       onDragEnd: (_item?: T) => {
-        dndIndex.current = undefined;
+        setDNDIndex(undefined);
       },
       onDrop: (item?: T) => {
-        if (dndIndex.current != null && item != null) {
-          reorder(dndIndex.current, item);
+        if (dndIndex != null && item != null) {
+          reorder(dndIndex, item);
         }
       },
     };
-  }, [reorder]);
+  }, [reorder, dndIndex]);
 
   const onClickConfirmPendingUpdate = useCallback(
     (e: React.MouseEvent<unknown>) => {
@@ -565,6 +563,25 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
       [onRenderColumnHeaderTooltip]
     );
 
+  const onRenderRow: IRenderFunction<IDetailsRowProps> = useCallback(
+    (props?: IDetailsRowProps) => {
+      if (props == null) {
+        return null;
+      }
+      let className = "";
+      const { itemIndex } = props;
+      if (dndIndex != null) {
+        if (itemIndex < dndIndex) {
+          className = styles.before;
+        } else if (itemIndex > dndIndex) {
+          className = styles.after;
+        }
+      }
+      return <DetailsRow {...props} className={className} />;
+    },
+    [dndIndex]
+  );
+
   return (
     <>
       <DetailsList
@@ -572,6 +589,7 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
         items={items}
         selectionMode={SelectionMode.none}
         onRenderDetailsHeader={onRenderDetailsHeader}
+        onRenderRow={onRenderRow}
         dragDropEvents={onReorderItems != null ? dragDropEvents : undefined}
       />
       <Dialog

@@ -5,3 +5,11 @@
   justify-content: center;
   height: 100%;
 }
+
+.onDragEnter.before {
+  box-shadow: inset 0 4px black;
+}
+
+.onDragEnter.after {
+  box-shadow: inset 0 -4px black;
+}
