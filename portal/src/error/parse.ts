@@ -60,6 +60,7 @@ const errorCauseMessageIDs = {
   required: "errors.validation.required",
   general: "errors.validation.general",
   format: "errors.validation.format",
+  pattern: "errors.validation.pattern",
   minItems: "errors.validation.minItems",
   minimum: "errors.validation.minimum",
   maximum: "errors.validation.maximum",
