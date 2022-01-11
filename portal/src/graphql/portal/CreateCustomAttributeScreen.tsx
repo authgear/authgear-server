@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useMemo, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { v4 as uuidv4 } from "uuid";
 import produce from "immer";
@@ -119,6 +119,11 @@ function CreateCustomAttributeContent(
 const CreateCustomAttributeScreen: React.FC =
   function CreateCustomAttributeScreen() {
     const { appID } = useParams();
+    const navigate = useNavigate();
+
+    const afterSave = useCallback(() => {
+      navigate("..");
+    }, [navigate]);
 
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
 
@@ -131,11 +136,11 @@ const CreateCustomAttributeScreen: React.FC =
     }
 
     const index =
-      form.effectiveConfig?.user_profile?.custom_attributes?.attributes
+      form.effectiveConfig.user_profile?.custom_attributes?.attributes
         ?.length ?? 0;
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} afterSave={afterSave}>
         <CreateCustomAttributeContent form={form} index={index} />
       </FormContainer>
     );

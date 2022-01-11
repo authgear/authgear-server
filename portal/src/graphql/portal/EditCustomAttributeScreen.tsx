@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useMemo, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import produce from "immer";
 import ScreenContent from "../../ScreenContent";
@@ -130,6 +130,7 @@ function EditCustomAttributeContent(props: EditCustomAttributeContentProps) {
 const EditCustomAttributeScreen: React.FC =
   function EditCustomAttributeScreen() {
     const { appID, index: indexString } = useParams();
+    const navigate = useNavigate();
 
     const index = parseInt(indexString, 10);
 
@@ -138,6 +139,10 @@ const EditCustomAttributeScreen: React.FC =
       makeConstructFormState(index),
       makeConstructConfig(index)
     );
+
+    const afterSave = useCallback(() => {
+      navigate("../..");
+    }, [navigate]);
 
     if (isNaN(index)) {
       return null;
@@ -152,7 +157,7 @@ const EditCustomAttributeScreen: React.FC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} afterSave={afterSave}>
         <EditCustomAttributeContent form={form} index={index} />
       </FormContainer>
     );
