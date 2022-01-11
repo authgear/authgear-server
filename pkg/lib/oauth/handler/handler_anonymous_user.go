@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -32,6 +33,10 @@ func (i *anonymousSignupWithoutKeyInput) GetAnonymousRequestToken() string { ret
 
 func (i *anonymousSignupWithoutKeyInput) SignUpAnonymousUserWithoutKey() bool { return true }
 
+func (i *anonymousSignupWithoutKeyInput) GetPromoteUserAndIdentityID() (string, string) {
+	return "", ""
+}
+
 var _ nodes.InputUseIdentityAnonymous = &anonymousSignupWithoutKeyInput{}
 
 type AnonymousUserHandlerLogger struct{ *log.Logger }
@@ -42,6 +47,10 @@ func NewAnonymousUserHandlerLogger(lf *log.Factory) AnonymousUserHandlerLogger {
 
 type UserProvider interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
+}
+
+type AnonymousIdentityProvider interface {
+	List(userID string) ([]*anonymous.Identity, error)
 }
 
 type PromotionCodeStore interface {
@@ -62,12 +71,13 @@ type AnonymousUserHandler struct {
 	OAuthConfig *config.OAuthConfig
 	Logger      AnonymousUserHandlerLogger
 
-	Graphs         GraphService
-	Authorizations oauth.AuthorizationStore
-	Clock          clock.Clock
-	TokenService   TokenService
-	UserProvider   UserProvider
-	PromotionCodes PromotionCodeStore
+	Graphs              GraphService
+	Authorizations      oauth.AuthorizationStore
+	Clock               clock.Clock
+	TokenService        TokenService
+	UserProvider        UserProvider
+	AnonymousIdentities AnonymousIdentityProvider
+	PromotionCodes      PromotionCodeStore
 }
 
 // SignupAnonymousUser return token response or api errors
@@ -309,14 +319,20 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 		return
 	}
 
+	identities, err := h.AnonymousIdentities.List(userID)
+	if len(identities) != 1 {
+		panic(fmt.Errorf("api: expected has 1 anonymous identity for anonymous user, got %d", len(identities)))
+	}
+
 	now := h.Clock.NowUTC()
 	c := anonymous.GeneratePromotionCode()
 	cObj := &anonymous.PromotionCode{
-		AppID:     appID,
-		UserID:    userID,
-		CreatedAt: now,
-		ExpireAt:  now.Add(PromotionCodeDuration),
-		CodeHash:  anonymous.HashPromotionCode(c),
+		AppID:      appID,
+		UserID:     userID,
+		IdentityID: identities[0].ID,
+		CreatedAt:  now,
+		ExpireAt:   now.Add(PromotionCodeDuration),
+		CodeHash:   anonymous.HashPromotionCode(c),
 	}
 	err = h.PromotionCodes.CreatePromotionCode(cObj)
 	if err != nil {

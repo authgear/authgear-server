@@ -85,8 +85,10 @@ func oauthFromIdentityInfo(i *identity.Info) *oauth.Identity {
 
 func anonymousToIdentityInfo(a *anonymous.Identity) *identity.Info {
 	claims := map[string]interface{}{
-		identity.IdentityClaimAnonymousKeyID: a.KeyID,
-		identity.IdentityClaimAnonymousKey:   string(a.Key),
+		identity.IdentityClaimAnonymousExistingUserID:     a.UserID,
+		identity.IdentityClaimAnonymousExistingIdentityID: a.ID,
+		identity.IdentityClaimAnonymousKeyID:              a.KeyID,
+		identity.IdentityClaimAnonymousKey:                string(a.Key),
 	}
 
 	return &identity.Info{

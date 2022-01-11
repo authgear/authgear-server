@@ -652,15 +652,22 @@ func newOAuthAuthorizeHandler(p *deps.RequestProvider) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Clock:   clock,
+	}
 	loginHintHandler := &webapp.LoginHintHandler{
-		Config:           oAuthConfig,
-		Anonymous:        anonymousProvider,
-		OfflineGrants:    store,
-		AppSessionTokens: store,
-		AppSessions:      store,
-		Clock:            clock,
-		Cookies:          cookieManager,
-		Pages:            webappService2,
+		Config:                  oAuthConfig,
+		Anonymous:               anonymousProvider,
+		AnonymousPromotionCodes: anonymousStoreRedis,
+		OfflineGrants:           store,
+		AppSessionTokens:        store,
+		AppSessions:             store,
+		Clock:                   clock,
+		Cookies:                 cookieManager,
+		Pages:                   webappService2,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -1269,15 +1276,22 @@ func newOAuthFromWebAppHandler(p *deps.RequestProvider) http.Handler {
 	}
 	scopesValidator := _wireScopesValidatorValue
 	tokenGenerator := _wireTokenGeneratorValue
+	anonymousStoreRedis := &anonymous.StoreRedis{
+		Context: contextContext,
+		Redis:   appredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+	}
 	loginHintHandler := &webapp.LoginHintHandler{
-		Config:           oAuthConfig,
-		Anonymous:        anonymousProvider,
-		OfflineGrants:    store,
-		AppSessionTokens: store,
-		AppSessions:      store,
-		Clock:            clockClock,
-		Cookies:          cookieManager,
-		Pages:            webappService2,
+		Config:                  oAuthConfig,
+		Anonymous:               anonymousProvider,
+		AnonymousPromotionCodes: anonymousStoreRedis,
+		OfflineGrants:           store,
+		AppSessionTokens:        store,
+		AppSessions:             store,
+		Clock:                   clockClock,
+		Cookies:                 cookieManager,
+		Pages:                   webappService2,
 	}
 	oAuthKeyMaterials := deps.ProvideOAuthKeyMaterials(secretConfig)
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -4158,15 +4172,16 @@ func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
-		AppID:          appID,
-		OAuthConfig:    oAuthConfig,
-		Logger:         anonymousUserHandlerLogger,
-		Graphs:         interactionService,
-		Authorizations: authorizationStore,
-		Clock:          clockClock,
-		TokenService:   tokenService,
-		UserProvider:   queries,
-		PromotionCodes: anonymousStoreRedis,
+		AppID:               appID,
+		OAuthConfig:         oAuthConfig,
+		Logger:              anonymousUserHandlerLogger,
+		Graphs:              interactionService,
+		Authorizations:      authorizationStore,
+		Clock:               clockClock,
+		TokenService:        tokenService,
+		UserProvider:        queries,
+		AnonymousIdentities: anonymousProvider,
+		PromotionCodes:      anonymousStoreRedis,
 	}
 	anonymousUserSignupAPIHandler := &api.AnonymousUserSignupAPIHandler{
 		Logger:               anonymousUserSignupAPIHandlerLogger,
@@ -4748,15 +4763,16 @@ func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handl
 		Clock:   clockClock,
 	}
 	anonymousUserHandler := &handler.AnonymousUserHandler{
-		AppID:          appID,
-		OAuthConfig:    oAuthConfig,
-		Logger:         anonymousUserHandlerLogger,
-		Graphs:         interactionService,
-		Authorizations: authorizationStore,
-		Clock:          clockClock,
-		TokenService:   tokenService,
-		UserProvider:   queries,
-		PromotionCodes: anonymousStoreRedis,
+		AppID:               appID,
+		OAuthConfig:         oAuthConfig,
+		Logger:              anonymousUserHandlerLogger,
+		Graphs:              interactionService,
+		Authorizations:      authorizationStore,
+		Clock:               clockClock,
+		TokenService:        tokenService,
+		UserProvider:        queries,
+		AnonymousIdentities: anonymousProvider,
+		PromotionCodes:      anonymousStoreRedis,
 	}
 	anonymousUserPromotionCodeAPIHandler := &api.AnonymousUserPromotionCodeAPIHandler{
 		Logger:         anonymousUserPromotionCodeAPIHandlerLogger,

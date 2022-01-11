@@ -270,6 +270,8 @@ func (i *anonymousTokenInput) SignUpAnonymousUserWithoutKey() bool {
 	return false
 }
 
+func (i *anonymousTokenInput) GetPromoteUserAndIdentityID() (string, string) { return "", "" }
+
 var _ nodes.InputUseIdentityAnonymous = &anonymousTokenInput{}
 
 func (h *TokenHandler) handleAnonymousRequest(

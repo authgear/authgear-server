@@ -67,6 +67,7 @@ type OOBCodeSender interface {
 }
 
 type AnonymousIdentityProvider interface {
+	Get(userID string, id string) (*anonymous.Identity, error)
 	ParseRequestUnverified(requestJWT string) (*anonymous.Request, error)
 	GetByKeyID(keyID string) (*anonymous.Identity, error)
 	ParseRequest(requestJWT string, identity *anonymous.Identity) (*anonymous.Request, error)

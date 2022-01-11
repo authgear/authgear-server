@@ -12,8 +12,9 @@ const (
 )
 
 type PromotionCode struct {
-	AppID  string `json:"app_id"`
-	UserID string `json:"user_id"`
+	AppID      string `json:"app_id"`
+	UserID     string `json:"user_id"`
+	IdentityID string `json:"identity_id"`
 
 	CreatedAt time.Time `json:"created_at"`
 	ExpireAt  time.Time `json:"expire_at"`
