@@ -77,22 +77,11 @@ func (h *AnonymousUserHandler) SignupAnonymousUser(
 	sessionType WebSessionType,
 	refreshToken string,
 ) (*SignupAnonymousUserResult, error) {
-	client, ok := h.OAuthConfig.GetClient(clientID)
-	if !ok {
-		// "invalid_client"
-		return nil, apierrors.NewInvalid("invalid client ID")
-	}
-
-	if !*client.IsFirstParty {
-		// unauthorized_client
-		return nil, apierrors.NewInvalid("third-party clients may not use anonymous user")
-	}
-
 	switch sessionType {
 	case WebSessionTypeCookie:
 		return h.signupAnonymousUserWithCookieSessionType(req)
 	case WebSessionTypeRefreshToken:
-		return h.signupAnonymousUserWithRefreshTokenSessionType(client, refreshToken)
+		return h.signupAnonymousUserWithRefreshTokenSessionType(clientID, refreshToken)
 	default:
 		panic("unknown web session type")
 	}
@@ -132,9 +121,20 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithCookieSessionType(
 }
 
 func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
-	client *config.OAuthClientConfig,
+	clientID string,
 	refreshToken string,
 ) (*SignupAnonymousUserResult, error) {
+	client, ok := h.OAuthConfig.GetClient(clientID)
+	if !ok {
+		// "invalid_client"
+		return nil, apierrors.NewInvalid("invalid client ID")
+	}
+
+	if !*client.IsFirstParty {
+		// unauthorized_client
+		return nil, apierrors.NewInvalid("third-party clients may not use anonymous user")
+	}
+
 	// TODO(oauth): allow specifying scopes for anonymous user signup
 	scopes := []string{"openid", oauth.FullAccessScope}
 
