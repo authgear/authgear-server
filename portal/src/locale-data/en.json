@@ -64,6 +64,7 @@
   "errors.validation.pattern": "Expect the value to match {expected}",
   "errors.validation.format": "{format, select, email{Please enter an email address} phone{Please enter a phone number} uri{Please enter an URL} wechat_account_id{Wechat account ID starts with gh_} http_origin_spec{An origin is a hostname without userinfo, path, query or fragment. Optionally it can start with http: or https: to enforce a scheme, otherwise HTTP or HTTPS is allowed} other{Invalid format}}",
   "errors.validation.minItems": "Expect at least {expected} items",
+  "errors.validation.uniqueItems": "Expect unique items in the list",
   "errors.validation.minimum": "Expect number larger than or equal to {minimum}",
   "errors.validation.maximum": "Expect number smaller than or equal to {maximum}",
   "errors.validation.minLength": "Expect string with length greater than or equal to {expected, plural, one{1 character} other{# characters}}",
