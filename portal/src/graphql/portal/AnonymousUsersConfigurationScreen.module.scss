@@ -1,3 +1,16 @@
 .widget {
   grid-column: 1 / span 6;
 }
+
+.title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.sessionItem {
+  margin-bottom: 5px;
+}
+
+.detailsHeader {
+  padding: 0;
+}

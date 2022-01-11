@@ -2,12 +2,23 @@ import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { Dropdown, IDropdownOption, Toggle } from "@fluentui/react";
+import {
+  Dropdown,
+  IDropdownOption,
+  Toggle,
+  Text,
+  DetailsList,
+  SelectionMode,
+  IColumn,
+  IDetailsHeaderProps,
+  DetailsHeader,
+} from "@fluentui/react";
 import {
   isPromotionConflictBehaviour,
   PortalAPIAppConfig,
   PromotionConflictBehaviour,
   promotionConflictBehaviours,
+  OAuthClientConfig,
 } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
@@ -33,6 +44,11 @@ const dropDownStyles = {
 interface FormState {
   enabled: boolean;
   promotionConflictBehaviour: PromotionConflictBehaviour;
+  oauthClients: OAuthClientConfig[];
+  sessionPersistentCookie: boolean;
+  sessionLifetimeSeconds: number | undefined;
+  sessionIdleTimeoutEnabled: boolean;
+  sessionIdleTimeoutSeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -40,7 +56,16 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     config.authentication?.identities?.includes("anonymous") ?? false;
   const promotionConflictBehaviour =
     config.identity?.on_conflict?.promotion ?? "error";
-  return { enabled, promotionConflictBehaviour };
+  const oauthClients = config.oauth?.clients ?? [];
+  return {
+    enabled,
+    promotionConflictBehaviour,
+    oauthClients,
+    sessionPersistentCookie: !(config.session?.cookie_non_persistent ?? false),
+    sessionLifetimeSeconds: config.session?.lifetime_seconds,
+    sessionIdleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
+    sessionIdleTimeoutSeconds: config.session?.idle_timeout_seconds,
+  };
 }
 
 function constructConfig(
@@ -82,6 +107,159 @@ const conflictBehaviourMessageId: Record<PromotionConflictBehaviour, string> = {
   login: "AnonymousIdentityConflictBehaviour.login",
   error: "AnonymousIdentityConflictBehaviour.error",
 };
+
+interface OAuthClientListItem {
+  name: string;
+  refreshTokenIdleTimeout: string;
+  refreshTokenLifetime: string;
+}
+
+interface AnonymousUserLifeTimeDescriptionProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptionProps> =
+  function AnonymousUserLifeTimeDescription(props) {
+    const { renderToString } = useContext(Context);
+    const {
+      sessionIdleTimeoutEnabled,
+      sessionIdleTimeoutSeconds,
+      sessionLifetimeSeconds,
+      sessionPersistentCookie,
+      oauthClients,
+    } = props.form.state;
+
+    const columns: IColumn[] = useMemo(
+      () => [
+        {
+          key: "name",
+          name: renderToString(
+            "AnonymousUsersConfigurationScreen.user-lifetime.token.application-name.label"
+          ),
+          minWidth: 150,
+          maxWidth: 150,
+          isMultiline: true,
+        },
+        {
+          key: "refreshTokenIdleTimeout",
+          name: renderToString(
+            "AnonymousUsersConfigurationScreen.user-lifetime.token.refresh-token-idle-timeout.label"
+          ),
+          minWidth: 150,
+          maxWidth: 150,
+        },
+        {
+          key: "refreshTokenLifetime",
+          name: renderToString(
+            "AnonymousUsersConfigurationScreen.user-lifetime.token.refresh-token-lifetime.label"
+          ),
+          minWidth: 150,
+          maxWidth: 150,
+        },
+      ],
+      [renderToString]
+    );
+
+    const items: OAuthClientListItem[] = useMemo(() => {
+      return oauthClients.map((client) => {
+        return {
+          name: client.name ?? "",
+          refreshTokenIdleTimeout: client.refresh_token_idle_timeout_enabled
+            ? client.refresh_token_idle_timeout_seconds?.toFixed(0) ?? ""
+            : "-",
+          refreshTokenLifetime:
+            client.refresh_token_lifetime_seconds?.toFixed(0) ?? "",
+        };
+      });
+    }, [oauthClients]);
+
+    const onRenderItemColumn = useCallback(
+      (item?: OAuthClientListItem, _index?: number, column?: IColumn) => {
+        if (item == null) {
+          return null;
+        }
+        switch (column?.key) {
+          case "name":
+            return item.name;
+          case "refreshTokenIdleTimeout":
+            return item.refreshTokenIdleTimeout;
+          case "refreshTokenLifetime":
+            return item.refreshTokenLifetime;
+          default:
+            return null;
+        }
+      },
+      []
+    );
+
+    const onRenderDetailsHeader = useCallback((props?: IDetailsHeaderProps) => {
+      if (props == null) {
+        return null;
+      }
+      return <DetailsHeader {...props} className={styles.detailsHeader} />;
+    }, []);
+
+    return (
+      <Widget className={styles.widget}>
+        <WidgetTitle>
+          <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.title" />
+        </WidgetTitle>
+        <Text variant="medium" block={true}>
+          <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.description" />
+        </Text>
+        <div>
+          <Text className={styles.title} variant="medium" block={true}>
+            <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.title" />
+          </Text>
+          {sessionIdleTimeoutEnabled && (
+            <Text variant="medium" block={true} className={styles.sessionItem}>
+              <FormattedMessage
+                id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.idle-timeout.description"
+                values={{
+                  seconds: sessionIdleTimeoutSeconds?.toFixed(0) ?? "",
+                }}
+              />
+            </Text>
+          )}
+          <Text variant="medium" block={true} className={styles.sessionItem}>
+            <FormattedMessage
+              id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.session-lifetime.description"
+              values={{
+                seconds: sessionLifetimeSeconds?.toFixed(0) ?? "",
+              }}
+            />
+          </Text>
+          <Text variant="medium" block={true} className={styles.sessionItem}>
+            <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.persistent-cookie.label" />{" "}
+            :{" "}
+            <FormattedMessage
+              id={sessionPersistentCookie ? "enabled" : "disabled"}
+            />
+          </Text>
+        </div>
+        <div>
+          <Text className={styles.title} variant="medium" block={true}>
+            <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.token.title" />
+          </Text>
+          <DetailsList
+            columns={columns}
+            items={items}
+            selectionMode={SelectionMode.none}
+            onRenderItemColumn={onRenderItemColumn}
+            onRenderDetailsHeader={onRenderDetailsHeader}
+          />
+        </div>
+        <Text variant="medium" block={true}>
+          <FormattedMessage
+            id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
+            values={{
+              applicationsPath: "../apps",
+            }}
+          />
+        </Text>
+      </Widget>
+    );
+  };
 
 interface AnonymousUserConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
@@ -159,6 +337,7 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
             onChange={onConflictOptionChange}
           />
         </Widget>
+        <AnonymousUserLifeTimeDescription form={props.form} />
       </ScreenContent>
     );
   };
