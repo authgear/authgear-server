@@ -874,6 +874,7 @@
   "CustomAttributesConfigurationScreen.empty-message": "No custom attributes",
   "CustomAttributesConfigurationScreen.label.add-new-attribute": "Add New Attribute",
 
+  "CreateCustomAttributeScreen.title": "Add Custom Attribute",
   "EditCustomAttributeScreen.title": "Edit Custom Attribute",
 
   "EditCustomAttributeForm.label.attribute-name": "Attribute Name",

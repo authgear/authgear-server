@@ -52,12 +52,21 @@ function constructConfig(
 }
 
 function EmptyState() {
+  const navigate = useNavigate();
+  const onClick = useCallback(
+    (e: React.MouseEvent<unknown>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate("./add");
+    },
+    [navigate]
+  );
   return (
     <div className={styles.emptyState}>
       <Text className={styles.emptyStateMessage} block={true}>
         <FormattedMessage id="CustomAttributesConfigurationScreen.empty-message" />
       </Text>
-      <PrimaryButton className={styles.addNewAttributeButton}>
+      <PrimaryButton className={styles.addNewAttributeButton} onClick={onClick}>
         <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
       </PrimaryButton>
     </div>
@@ -127,6 +136,7 @@ const CustomAttributesConfigurationScreen: React.FC =
   function CustomAttributesConfigurationScreen() {
     const { appID } = useParams();
     const form = useAppConfigForm(appID, constructFormState, constructConfig);
+    const navigate = useNavigate();
     const { renderToString } = useContext(Context);
 
     const primaryItems = useMemo(
@@ -137,9 +147,14 @@ const CustomAttributesConfigurationScreen: React.FC =
             "CustomAttributesConfigurationScreen.label.add-new-attribute"
           ),
           iconProps: { iconName: "CirclePlus" },
+          onClick: (e?: React.SyntheticEvent<unknown>) => {
+            e?.preventDefault();
+            e?.stopPropagation();
+            navigate("./add");
+          },
         },
       ],
-      [renderToString]
+      [renderToString, navigate]
     );
 
     if (form.isLoading) {
