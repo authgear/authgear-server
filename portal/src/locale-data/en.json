@@ -58,7 +58,7 @@
 
   "show-error.retry": "Retry",
 
-  "errors.validation.unknown": "Invalid input at {location}: {kind} {details}",
+  "errors.validation.unknown": "Invalid input at {location}: {kind}",
   "errors.validation.required": "Please fill in this field",
   "errors.validation.general": "Invalid value",
   "errors.validation.pattern": "Expect the value to match {expected}",
