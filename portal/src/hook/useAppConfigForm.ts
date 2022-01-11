@@ -83,6 +83,7 @@ export function useAppConfigForm<State>(
     setIsSubmitted(false);
   }, [isUpdating]);
 
+  // eslint-disable-next-line complexity
   const save = useCallback(async () => {
     const allowSave = canSave !== undefined ? canSave : isDirty;
     if (!rawConfig || !initialState || secretConfig == null) {
@@ -106,13 +107,15 @@ export function useAppConfigForm<State>(
 
     setIsUpdating(true);
     setUpdateError(null);
-    await updateConfig(newConfig, secretConfig)
-      .then(() => {
-        setCurrentState(null);
-        setIsSubmitted(true);
-      })
-      .catch((err) => setUpdateError(err))
-      .finally(() => setIsUpdating(false));
+    try {
+      await updateConfig(newConfig, secretConfig);
+      setCurrentState(null);
+      setIsSubmitted(true);
+    } catch (e: unknown) {
+      setUpdateError(e);
+    } finally {
+      setIsUpdating(false);
+    }
   }, [
     isDirty,
     isUpdating,

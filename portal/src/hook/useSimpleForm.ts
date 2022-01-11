@@ -11,7 +11,7 @@ export interface SimpleFormModel<State, Result = unknown> {
   state: State;
   setState: (fn: (state: State) => State) => void;
   reset: () => void;
-  save: () => void;
+  save: () => Promise<void>;
 }
 
 export interface UseSimpleFormProps<State, Result> {
@@ -59,7 +59,7 @@ export function useSimpleForm<State, Result = unknown>(
     setCurrentState(initialState);
   }, [isLoading, isDirty, initialState]);
 
-  const save = useCallback(() => {
+  const save = useCallback(async () => {
     if (isLoading || !isDirty) {
       return;
     }
@@ -71,20 +71,22 @@ export function useSimpleForm<State, Result = unknown>(
     }
 
     setIsLoading(true);
-    submit(currentState)
-      .then((result) => {
-        setError(null);
-        if (
-          stateMode ===
-          "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave"
-        ) {
-          setCurrentState(initialState);
-        }
-        setSubmissionResult(result);
-        setIsSubmitted(true);
-      })
-      .catch((e) => setError(e))
-      .finally(() => setIsLoading(false));
+    try {
+      const result = await submit(currentState);
+      setError(null);
+      if (
+        stateMode ===
+        "ConstantInitialStateAndResetCurrentStatetoInitialStateAfterSave"
+      ) {
+        setCurrentState(initialState);
+      }
+      setSubmissionResult(result);
+      setIsSubmitted(true);
+    } catch (e: unknown) {
+      setError(e);
+    } finally {
+      setIsLoading(false);
+    }
   }, [
     isLoading,
     isDirty,
