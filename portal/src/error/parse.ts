@@ -440,5 +440,3 @@ export function parseAPIErrors(
 
   return { fieldErrors, topErrors };
 }
-
-

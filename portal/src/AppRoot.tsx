@@ -40,6 +40,7 @@ import SubscriptionScreen from "./graphql/portal/SubscriptionScreen";
 import SMTPConfigurationScreen from "./graphql/portal/SMTPConfigurationScreen";
 import StandardAttributesConfigurationScreen from "./graphql/portal/StandardAttributesConfigurationScreen";
 import CustomAttributesConfigurationScreen from "./graphql/portal/CustomAttributesConfigurationScreen";
+import EditCustomAttributeScreen from "./graphql/portal/EditCustomAttributeScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -158,6 +159,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/configuration/user-profile/custom-attributes"
             element={<CustomAttributesConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/user-profile/custom-attributes/:index/edit"
+            element={<EditCustomAttributeScreen />}
           />
           <Route
             path="/configuration/smtp"

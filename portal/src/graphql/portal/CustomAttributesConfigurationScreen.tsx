@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import produce from "immer";
 import cn from "classnames";
@@ -79,7 +79,9 @@ function ItemComponent(
 
 const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfigurationScreenContentProps> =
   function CustomAttributesConfigurationScreenContent(props) {
+    const navigate = useNavigate();
     const { state, setState } = props.form;
+    const { items } = state;
 
     const onChangeItems = useCallback(
       (newItems: CustomAttributesAttributeConfig[]) => {
@@ -93,9 +95,12 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
       [setState]
     );
 
-    const onEditButtonClick = useCallback((_index: number) => {
-      return;
-    }, []);
+    const onEditButtonClick = useCallback(
+      (index: number) => {
+        navigate(`./${index}/edit`);
+      },
+      [navigate]
+    );
 
     return (
       <>
@@ -105,7 +110,7 @@ const CustomAttributesConfigurationScreenContent: React.FC<CustomAttributesConfi
           </ScreenTitle>
           <div className={styles.widget}>
             <UserProfileAttributesList
-              items={state.items}
+              items={items}
               onChangeItems={onChangeItems}
               onReorderItems={onChangeItems}
               onEditButtonClick={onEditButtonClick}
