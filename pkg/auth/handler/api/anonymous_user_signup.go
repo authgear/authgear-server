@@ -63,12 +63,6 @@ type AnonymousUserSignupAPIRequest struct {
 	RefreshToken string                      `json:"refresh_token"`
 }
 
-func (p *AnonymousUserSignupAPIRequest) Validate(ctx *validation.Context) {
-	if !p.SessionType.IsValid() {
-		ctx.Child("session_type").EmitErrorMessage("unknown session type")
-	}
-}
-
 type JSONResponseWriter interface {
 	WriteResponse(rw http.ResponseWriter, resp *api.Response)
 }

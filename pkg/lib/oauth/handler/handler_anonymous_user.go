@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -16,10 +17,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
+var ErrUnauthenticated = apierrors.NewUnauthorized("authentication required")
 var ErrLoggedInAsNormalUser = apierrors.NewInvalid("user logged in as normal user")
+
+const PromotionCodeDuration = duration.Short
 
 type anonymousSignupWithoutKeyInput struct{}
 
@@ -37,6 +42,10 @@ func NewAnonymousUserHandlerLogger(lf *log.Factory) AnonymousUserHandlerLogger {
 
 type UserProvider interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
+}
+
+type PromotionCodeStore interface {
+	CreatePromotionCode(code *anonymous.PromotionCode) error
 }
 
 type CookiesGetter interface {
@@ -58,6 +67,7 @@ type AnonymousUserHandler struct {
 	Clock          clock.Clock
 	TokenService   TokenService
 	UserProvider   UserProvider
+	PromotionCodes PromotionCodeStore
 }
 
 // SignupAnonymousUser return token response or api errors
@@ -246,4 +256,73 @@ func (h *AnonymousUserHandler) runSignupAnonymousUserGraph(
 	}
 
 	return graph, nil
+}
+
+func (h *AnonymousUserHandler) IssuePromotionCode(
+	req *http.Request,
+	sessionType WebSessionType,
+	refreshToken string,
+) (code string, codeObj *anonymous.PromotionCode, err error) {
+	var appID, userID string
+	switch sessionType {
+	case WebSessionTypeRefreshToken:
+		if refreshToken == "" {
+			err = ErrUnauthenticated
+			return
+		}
+		authz, _, e := h.TokenService.ParseRefreshToken(refreshToken)
+		var oauthError *protocol.OAuthProtocolError
+		if errors.As(e, &oauthError) {
+			err = apierrors.NewForbidden(oauthError.Error())
+			return
+		} else if e != nil {
+			err = e
+			return
+		}
+		// Ensure client is authorized with full user access (i.e. first-party client)
+		if !authz.IsAuthorized([]string{oauth.FullAccessScope}) {
+			err = apierrors.NewForbidden("the client is not authorized to have full user access")
+			return
+		}
+
+		appID = authz.AppID
+		userID = authz.UserID
+	case WebSessionTypeCookie:
+		s := session.GetSession(req.Context())
+		if s != nil && s.SessionType() == session.TypeIdentityProvider {
+			appID = string(h.AppID)
+			userID = s.GetAuthenticationInfo().UserID
+		} else {
+			err = ErrUnauthenticated
+			return
+		}
+	default:
+		panic("unknown web session type")
+	}
+
+	user, err := h.UserProvider.Get(userID, accesscontrol.EmptyRole)
+	if err != nil {
+		return
+	}
+	if !user.IsAnonymous {
+		err = ErrLoggedInAsNormalUser
+		return
+	}
+
+	now := h.Clock.NowUTC()
+	c := anonymous.GeneratePromotionCode()
+	cObj := &anonymous.PromotionCode{
+		AppID:     appID,
+		UserID:    userID,
+		CreatedAt: now,
+		ExpireAt:  now.Add(PromotionCodeDuration),
+		CodeHash:  anonymous.HashPromotionCode(c),
+	}
+	err = h.PromotionCodes.CreatePromotionCode(cObj)
+	if err != nil {
+		return
+	}
+	code = c
+	codeObj = cObj
+	return
 }
