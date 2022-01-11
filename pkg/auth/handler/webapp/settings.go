@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -18,6 +19,11 @@ import (
 
 var TemplateWebSettingsHTML = template.RegisterHTML(
 	"web/settings.html",
+	components...,
+)
+
+var TemplateWebSettingsAnonymousUserHTML = template.RegisterHTML(
+	"web/settings_anonymous_user.html",
 	components...,
 )
 
@@ -114,17 +120,47 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	identityID := r.Form.Get("x_identity_id")
 	userID := ctrl.RequireUserID()
 
+	// check if the user is anonymous user
+	getIsAnonymous := func() (bool, error) {
+		identities, err := h.Identities.ListByUser(userID)
+		if err != nil {
+			return false, err
+		}
+		for _, i := range identities {
+			if i.Type == model.IdentityTypeAnonymous {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
 		}
+		isAnonymous, err := getIsAnonymous()
+		if err != nil {
+			return err
+		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebSettingsHTML, data)
+		if isAnonymous {
+			h.Renderer.RenderHTML(w, r, TemplateWebSettingsAnonymousUserHTML, data)
+		} else {
+			h.Renderer.RenderHTML(w, r, TemplateWebSettingsHTML, data)
+		}
 		return nil
 	})
 
 	ctrl.PostAction("unlink_oauth", func() error {
+		isAnonymous, err := getIsAnonymous()
+		if err != nil {
+			return err
+		}
+		if isAnonymous {
+			return errors.New("unexpected unlink oauth for anonymous user")
+		}
+
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}
@@ -145,6 +181,14 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("verify_login_id", func() error {
+		isAnonymous, err := getIsAnonymous()
+		if err != nil {
+			return err
+		}
+		if isAnonymous {
+			return errors.New("unexpected verify login id for anonymous user")
+		}
+
 		opts := webapp.SessionOptions{
 			RedirectURI:     redirectURI,
 			KeepAfterFinish: true,
