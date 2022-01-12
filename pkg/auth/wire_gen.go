@@ -29879,8 +29879,12 @@ func newAuthEntryPointMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
+	config := appProvider.Config
+	appConfig := config.AppConfig
+	uiConfig := appConfig.UI
 	authEntryPointMiddleware := &webapp.AuthEntryPointMiddleware{
 		TrustProxy: trustProxy,
+		UIConfig:   uiConfig,
 	}
 	return authEntryPointMiddleware
 }
