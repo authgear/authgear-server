@@ -4,6 +4,7 @@
   * [Disabled user session](#disabled-user-session)
   * [Disabled status](#disabled-status)
   * [Clarification](#clarification)
+  * [Events](#events)
   * [Future works](#future-works)
 
 ## Disabling user
@@ -80,7 +81,11 @@ This section aims to clarify some common concepts related to this feature.
 > Should Authgear consider this use case as disable as well?
 > IMO, this use case should be called protected account.
 
+## Events
+
+- [user.disabled](./event.md#userdisabled)
+- [user.reenabled](./event.md#userreenabled)
+
 ## Future works
 
-- Web-hooks
 - Automatic expiry of disable status.

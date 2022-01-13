@@ -7,12 +7,18 @@
     + [Blocking Events](#blocking-events)
       - [user.pre_create](#userpre_create)
       - [user.profile.pre_update](#userprofilepre_update)
+      - [user.pre_schedule_deletion](#userpre_schedule_deletion)
     + [Non-blocking Events](#non-blocking-events)
       - [user.created](#usercreated)
       - [user.profile.updated](#userprofileupdated)
       - [user.authenticated](#userauthenticated)
       - [user.signed_out](#usersigned_out)
       - [user.anonymous.promoted](#useranonymouspromoted)
+      - [user.disabled](#userdisabled)
+      - [user.reenabled](#userreenabled)
+      - [user.deletion_scheduled](#userdeletion_scheduled)
+      - [user.deletion_unscheduled](#userdeletion_unscheduled)
+      - [user.deleted](#userdeleted)
       - [authentication.identity.login_id.failed](#authenticationidentitylogin_idfailed)
       - [authentication.identity.anonymous.failed](#authenticationidentityanonymousfailed)
       - [authentication.identity.biometric.failed](#authenticationidentitybiometricfailed)
@@ -125,6 +131,18 @@ Occurs right before the update of user profile.
 }
 ```
 
+#### user.pre_schedule_deletion
+
+Occurs right before the end-user schedules account deletion.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
 ### Non-blocking Events
 
 - [user.created](#usercreated)
@@ -217,6 +235,66 @@ Occurs whenever an anonymous user is promoted to normal user.
     "anonymous_user": { /* ... */ },
     "user": { /* ... */ },
     "identities": [{ /* ... */ }]
+  }
+}
+```
+
+#### user.disabled
+
+Occurs when the user was disabled.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### user.reenabled
+
+Occurs when the user was re-enabled.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### user.deletion_scheduled
+
+Occurs when an account deletion was scheduled.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### user.deletion_unscheduled
+
+Occurs when an account deletion was unscheduled.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### user.deleted
+
+Occurs when the user was deleted.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
   }
 }
 ```

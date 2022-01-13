@@ -3,6 +3,7 @@
   * [Deleting user](#deleting-user)
   * [Scheduled deletion](#scheduled-deletion)
   * [Cached data](#cached-data)
+  * [Events](#events)
   * [Future works](#future-works)
 
 ## Deleting user
@@ -41,8 +42,13 @@ Some internal data may be present in cache (Redis), such as OAuth states,
 MFA device tokens, rate limit counter. These data would remain in the cache
 until its natural expiry.
 
+## Events
+
+- [user.pre\_schedule_deletion](./event.md#userpre_schedule_deletion)
+- [user.deletion_scheduled](./event.md#userdeletion_scheduled)
+- [user.deleted](./event.md#userdeleted)
+
 ## Future works
 
-- Web-hooks
 - Reserve deleted login ID
 - Soft-delete
