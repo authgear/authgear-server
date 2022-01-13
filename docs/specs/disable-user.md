@@ -20,12 +20,12 @@ required.
 
 ## Disabled user session
 
-When a user is disabled, the user can no longer create new sessions. However,
-there may be existing logged in sessions.
+When a user is disabled, all sessions are deleted.
+When the user is re-enabled, they have to sign in again.
 
-The authentication tokens (i.e. sessions, access token, refresh tokens, etc.)
-would be treated as invalidated. However, these tokens may still be manipulated
-through admin API, and would become valid again if user is re-enabled.
+> Rationale: Disabled account could be treated the same as Deactivated account.
+> Tested that deactivating Facebook account will terminate all sessions.
+> Tested that deactivating Twitter account will terminate all sessions.
 
 ## Disabled status
 
@@ -33,8 +33,8 @@ The disabled status of a user can be accessed or changed through admin API.
 However, it would not be visible in OIDC ID token, since OAuth flow cannot be
 performed by a disabled user.
 
-Resolver would also not return the disabled status of user in HTTP headers;
-instead, the sessions of disabled users would be reported as invalid.
+The resolver does not return the disabled status of a user in HTTP headers.
+It is because all sessions of the user were deleted upon disable.
 
 ## Clarification
 
