@@ -1,13 +1,20 @@
 package facade
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
+
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
 
 type IdentityService interface {
 	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
@@ -46,6 +53,10 @@ type MFAService interface {
 	InvalidateAllRecoveryCode(userID string) error
 }
 
+type UserQueries interface {
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
+}
+
 type UserCommands interface {
 	Delete(userID string) error
 }
@@ -79,11 +90,13 @@ type OAuthSessionManager SessionManager
 // FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
 //             removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
+	Events          EventService
 	Identities      IdentityService
 	Authenticators  AuthenticatorService
 	Verification    VerificationService
 	MFA             MFAService
 	UserCommands    UserCommands
+	UserQueries     UserQueries
 	StdAttrsService StdAttrsService
 	PasswordHistory PasswordHistoryStore
 	OAuth           OAuthService
@@ -301,8 +314,25 @@ func (c *Coordinator) UserDelete(userID string) error {
 		}
 	}
 
+	userModel, err := c.UserQueries.Get(userID, accesscontrol.RoleGreatest)
+	if err != nil {
+		return err
+	}
+
 	// Finally, delete the user.
-	return c.UserCommands.Delete(userID)
+	err = c.UserCommands.Delete(userID)
+	if err != nil {
+		return err
+	}
+
+	err = c.Events.DispatchEvent(&nonblocking.UserDeletedEventPayload{
+		UserModel: *userModel,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Coordinator) removeOrphans(userID string) error {

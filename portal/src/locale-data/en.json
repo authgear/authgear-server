@@ -815,6 +815,7 @@
   "AuditLogActivityType.USER_DISABLED": "User disabled",
   "AuditLogActivityType.USER_REENABLED": "User re-enabled",
   "AuditLogActivityType.USER_SIGNED_OUT": "Signed out",
+  "AuditLogActivityType.USER_DELETED": "User deleted",
   "AuditLogActivityType.EMAIL_SENT": "Email sent",
   "AuditLogActivityType.SMS_SENT": "SMS sent",
 

@@ -1,0 +1,40 @@
+package nonblocking
+
+import (
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
+)
+
+const (
+	UserDeleted event.Type = "user.deleted"
+)
+
+type UserDeletedEventPayload struct {
+	// We cannot use UserRef here because the user will be deleted BEFORE retrieval.
+	UserModel model.User `json:"user"`
+}
+
+func (e *UserDeletedEventPayload) NonBlockingEventType() event.Type {
+	return UserDeleted
+}
+
+func (e *UserDeletedEventPayload) UserID() string {
+	return e.UserModel.ID
+}
+
+func (e *UserDeletedEventPayload) IsAdminAPI() bool {
+	return true
+}
+
+func (e *UserDeletedEventPayload) FillContext(ctx *event.Context) {
+}
+
+func (e *UserDeletedEventPayload) ForWebHook() bool {
+	return true
+}
+
+func (e *UserDeletedEventPayload) ForAudit() bool {
+	return true
+}
+
+var _ event.NonBlockingPayload = &UserDeletedEventPayload{}
