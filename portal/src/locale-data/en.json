@@ -26,6 +26,7 @@
   "remove": "Remove",
   "delete": "Delete",
   "disable": "Disable",
+  "reenable": "Re-enable",
   "enable": "Enable",
   "disabled": "Disabled",
   "enabled": "Enabled",
@@ -195,7 +196,7 @@
 
   "UserDetailsScreen.title": "User Details",
   "UserDetailsScreen.remove-user": "Remove User",
-  "UserDetailsScreen.enable-user": "Enable User",
+  "UserDetailsScreen.reenable-user": "Re-enable User",
   "UserDetailsScreen.disable-user": "Disable User",
 
   "UsersList.column.raw-id": "ID",
@@ -206,14 +207,12 @@
   "UsersList.column.last-login-at": "Last Login",
 
   "UsersList.disable-user": "Disable User",
-  "UsersList.enable-user": "Enable User",
+  "UsersList.reenable-user": "Re-enable User",
 
-  "SetUserDisabledDialog.disableUser.title": "Disable User",
-  "SetUserDisabledDialog.disableUser.text": "Do you really want to disable user {username}? Disabling the user {username} will forbid them from logging in. Their existing sessions will also become invalid.",
-  "SetUserDisabledDialog.disableUser.action": "Disable",
-  "SetUserDisabledDialog.enableUser.title": "Enable User",
-  "SetUserDisabledDialog.enableUser.text": "Do you really want to enable user {username}? Enable the user {username} so that they can login again. Their existing sessions can resume.",
-  "SetUserDisabledDialog.enableUser.action": "Enable",
+  "SetUserDisabledDialog.disable-user.title": "Disable User",
+  "SetUserDisabledDialog.disable-user.description": "Do you really want to disable user {username}? Disabling the user {username} will forbid them from logging in. Their existing sessions will also be removed.",
+  "SetUserDisabledDialog.reenable-user.title": "Re-enable User",
+  "SetUserDisabledDialog.reenable-user.description": "Do you really want to re-enable user {username}? Re-enable the user {username} so that they can login again.",
   "SetUserDisabledDialog.generic-error": "Failed to set user disabled status.",
 
   "DeleteUserDialog.title": "Remove User",

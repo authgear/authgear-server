@@ -52,16 +52,22 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
     const dialogContentProps: IDialogContentProps = useMemo(() => {
       return isDisablingUser
         ? {
-            title: renderToString("SetUserDisabledDialog.disableUser.title"),
-            subText: renderToString("SetUserDisabledDialog.disableUser.text", {
-              username: endUserAccountIdentifier ?? userID,
-            }),
+            title: renderToString("SetUserDisabledDialog.disable-user.title"),
+            subText: renderToString(
+              "SetUserDisabledDialog.disable-user.description",
+              {
+                username: endUserAccountIdentifier ?? userID,
+              }
+            ),
           }
         : {
-            title: renderToString("SetUserDisabledDialog.enableUser.title"),
-            subText: renderToString("SetUserDisabledDialog.enableUser.text", {
-              username: endUserAccountIdentifier ?? userID,
-            }),
+            title: renderToString("SetUserDisabledDialog.reenable-user.title"),
+            subText: renderToString(
+              "SetUserDisabledDialog.reenable-user.description",
+              {
+                username: endUserAccountIdentifier ?? userID,
+              }
+            ),
           };
     }, [renderToString, isDisablingUser, endUserAccountIdentifier, userID]);
 
@@ -77,11 +83,7 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
             <ButtonWithLoading
               theme={isDisablingUser ? themes.destructive : themes.main}
               onClick={onConfirm}
-              labelId={
-                isDisablingUser
-                  ? "SetUserDisabledDialog.disableUser.action"
-                  : "SetUserDisabledDialog.enableUser.action"
-              }
+              labelId={isDisablingUser ? "disable" : "reenable"}
               loading={loading}
             />
 
