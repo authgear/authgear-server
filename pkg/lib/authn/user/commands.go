@@ -80,3 +80,35 @@ func (c *Commands) AfterCreate(
 
 	return nil
 }
+
+func (c *Commands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+	err := c.RawCommands.UpdateDisabledStatus(userID, isDisabled, reason)
+	if err != nil {
+		return err
+	}
+
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: userID,
+		},
+	}
+
+	var events []event.Payload
+	if isDisabled {
+		events = append(events, &nonblocking.UserDisabledEventPayload{
+			UserRef: userRef,
+		})
+	} else {
+		events = append(events, &nonblocking.UserReenabledEventPayload{
+			UserRef: userRef,
+		})
+	}
+
+	for _, e := range events {
+		if err := c.Events.DispatchEvent(e); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
