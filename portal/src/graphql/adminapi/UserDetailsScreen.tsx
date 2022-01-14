@@ -364,7 +364,7 @@ function useSetUserDisabledCommandBarItem(
     return {
       key: "setDisabledStatus",
       text: userIsDisabled
-        ? renderToString("UserDetailsScreen.enable-user")
+        ? renderToString("UserDetailsScreen.reenable-user")
         : renderToString("UserDetailsScreen.disable-user"),
       iconProps: {
         iconName: userIsDisabled ? "Play" : "CircleStop",

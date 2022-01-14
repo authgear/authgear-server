@@ -227,7 +227,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
               }
             >
               {item.isDisabled ? (
-                <FormattedMessage id="UsersList.enable-user" />
+                <FormattedMessage id="UsersList.reenable-user" />
               ) : (
                 <FormattedMessage id="UsersList.disable-user" />
               )}
