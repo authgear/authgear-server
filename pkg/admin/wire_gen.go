@@ -527,11 +527,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Config: oAuthConfig,
 	}
 	coordinator := &facade.Coordinator{
+		Events:          eventService,
 		Identities:      serviceService,
 		Authenticators:  service4,
 		Verification:    verificationService,
 		MFA:             mfaService,
 		UserCommands:    commands,
+		UserQueries:     queries,
 		StdAttrsService: stdattrsService,
 		PasswordHistory: historyStore,
 		OAuth:           authorizationStore,

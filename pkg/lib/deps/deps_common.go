@@ -85,6 +85,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(welcomemessage.EventService), new(*event.Service)),
 		wire.Bind(new(featurestdattrs.EventService), new(*event.Service)),
 		wire.Bind(new(featurecustomattrs.EventService), new(*event.Service)),
+		wire.Bind(new(facade.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(
@@ -194,6 +195,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(featurecustomattrs.UserStore), new(*user.Store)),
 		wire.Bind(new(featurecustomattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(facade.UserCommands), new(*user.Commands)),
+		wire.Bind(new(facade.UserQueries), new(*user.Queries)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),
 		wire.Bind(new(oauthhandler.UserProvider), new(*user.Queries)),
