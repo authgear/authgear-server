@@ -113,6 +113,16 @@ const ScreenNav: React.FC = function ScreenNav() {
       {
         textKey: "ScreenNav.user-profile",
         url: "configuration/user-profile",
+        children: [
+          {
+            textKey: "ScreenNav.standard-attributes",
+            url: "configuration/user-profile/standard-attributes",
+          },
+          {
+            textKey: "ScreenNav.custom-attributes",
+            url: "configuration/user-profile/custom-attributes",
+          },
+        ],
       },
       {
         textKey: "ScreenNav.billing",

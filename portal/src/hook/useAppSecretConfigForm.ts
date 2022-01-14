@@ -14,7 +14,7 @@ export interface AppSecretConfigFormModel<State> {
   setState: (fn: (state: State) => State) => void;
   reload: () => void;
   reset: () => void;
-  save: () => void;
+  save: () => Promise<void>;
 }
 
 export type StateConstructor<State> = (
@@ -99,7 +99,7 @@ export function useAppSecretConfigForm<State>(
     setCurrentState(null);
   }, [isUpdating, resetError]);
 
-  const save = useCallback(() => {
+  const save = useCallback(async () => {
     if (!rawAppConfig || !currentState) {
       return;
     } else if (!isDirty || isUpdating) {
@@ -113,9 +113,11 @@ export function useAppSecretConfigForm<State>(
       currentState,
       effectiveConfig
     );
-    updateConfig(newConfig[0], newConfig[1])
-      .then(() => setCurrentState(null))
-      .catch(() => {});
+
+    try {
+      await updateConfig(newConfig[0], newConfig[1]);
+      setCurrentState(null);
+    } catch {}
   }, [
     isDirty,
     isUpdating,

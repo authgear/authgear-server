@@ -20,7 +20,7 @@ export interface FormModel {
   isUpdating: boolean;
   canSave?: boolean;
   reset: () => void;
-  save: () => void;
+  save: () => Promise<void>;
 }
 
 export interface SaveButtonProps {
@@ -38,6 +38,7 @@ export interface FormContainerProps {
   messageBar?: React.ReactNode;
   primaryItems?: ICommandBarItemProps[];
   secondaryItems?: ICommandBarItemProps[];
+  afterSave?: () => void;
 }
 
 const FormContainer: React.FC<FormContainerProps> = function FormContainer(
@@ -60,17 +61,25 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
     primaryItems,
     secondaryItems,
     messageBar,
+    afterSave,
   } = props;
 
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
+  const callSave = useCallback(() => {
+    save().then(
+      () => afterSave?.(),
+      () => {}
+    );
+  }, [save, afterSave]);
+
   const onFormSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      save();
+      callSave();
     },
-    [save]
+    [callSave]
   );
 
   const [isResetDialogVisible, setIsResetDialogVisible] = useState(false);
@@ -94,14 +103,23 @@ const FormContainer: React.FC<FormContainerProps> = function FormContainer(
         text: renderToString(saveButtonProps.labelId),
         iconProps: { iconName: saveButtonProps.iconName },
         disabled: disabled || !canSave,
-        onClick: () => save(),
+        onClick: () => {
+          callSave();
+        },
       },
     ];
     if (primaryItems != null) {
       items = [...items, ...primaryItems];
     }
     return items;
-  }, [canSave, disabled, save, saveButtonProps, renderToString, primaryItems]);
+  }, [
+    canSave,
+    disabled,
+    callSave,
+    saveButtonProps,
+    renderToString,
+    primaryItems,
+  ]);
 
   const farItems: ICommandBarItemProps[] = useMemo(() => {
     let farItems: ICommandBarItemProps[] = [

@@ -1,0 +1,26 @@
+.widget {
+  grid-column: 1 / span 12;
+}
+
+.fieldName {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  font-weight: 600;
+  height: 100%;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px;
+}
+
+.emptyStateMessage {
+  font-weight: 600;
+}
+
+.addNewAttributeButton {
+  margin: 16px 0;
+}

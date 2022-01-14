@@ -374,15 +374,21 @@ export interface CustomAttributesAttributeConfig {
   enum?: string[];
 }
 
-export type CustomAttributeType =
-  | "string"
-  | "number"
-  | "integer"
-  | "enum"
-  | "phone_number"
-  | "email"
-  | "url"
-  | "country_code";
+export const customAttributeTypes = [
+  "string",
+  "number",
+  "integer",
+  "enum",
+  "phone_number",
+  "email",
+  "url",
+  "country_code",
+] as const;
+export type CustomAttributeType = typeof customAttributeTypes[number];
+export function isCustomAttributeType(v: unknown): v is CustomAttributeType {
+  // @ts-expect-error
+  return typeof v === "string" && customAttributeTypes.includes(v);
+}
 
 export interface UserProfileConfig {
   standard_attributes?: StandardAttributesConfig;
