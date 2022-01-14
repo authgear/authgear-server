@@ -1,0 +1,40 @@
+package nonblocking
+
+import (
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/model"
+)
+
+const (
+	UserReenabled event.Type = "user.reenabled"
+)
+
+type UserReenabledEventPayload struct {
+	UserRef   model.UserRef `json:"-" resolve:"user"`
+	UserModel model.User    `json:"user"`
+}
+
+func (e *UserReenabledEventPayload) NonBlockingEventType() event.Type {
+	return UserReenabled
+}
+
+func (e *UserReenabledEventPayload) UserID() string {
+	return e.UserRef.ID
+}
+
+func (e *UserReenabledEventPayload) IsAdminAPI() bool {
+	return true
+}
+
+func (e *UserReenabledEventPayload) FillContext(ctx *event.Context) {
+}
+
+func (e *UserReenabledEventPayload) ForWebHook() bool {
+	return true
+}
+
+func (e *UserReenabledEventPayload) ForAudit() bool {
+	return true
+}
+
+var _ event.NonBlockingPayload = &UserReenabledEventPayload{}
