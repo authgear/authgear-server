@@ -18,6 +18,7 @@ export interface UpdateUserMutation_updateUser_user {
    */
   updatedAt: GQL_DateTime;
   standardAttributes: GQL_UserStandardAttributes;
+  customAttributes: GQL_UserCustomAttributes;
 }
 
 export interface UpdateUserMutation_updateUser {
@@ -35,4 +36,5 @@ export interface UpdateUserMutation {
 export interface UpdateUserMutationVariables {
   userID: string;
   standardAttributes: GQL_UserStandardAttributes;
+  customAttributes: GQL_UserCustomAttributes;
 }

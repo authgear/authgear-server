@@ -41,6 +41,7 @@ const userQuery = gql`
           value
         }
         standardAttributes
+        customAttributes
         sessions {
           edges {
             node {

@@ -38,6 +38,9 @@
   "error-user-not-found": "找不到你所輸入的帳號。請確保帳號正確",
   "error-invalid-credentials": "{AuthenticationType, select, password{密碼不正確} totp{驗證器應用程式／裝置所顯示的6位碼不正確} oob_otp_sms {短訊一次性密碼不正確} oob_otp_email{電郵一次性密碼不正確} recovery_code {10位的備用碼不正確} other {無效的憑証}}",
   "error-max-length": "字串長度須少於或等於{expected, plural, other{#個字}}",
+  "error-type": "請輸入{expected, select, number{一個數字} integer{一個整數} other{}}",
+  "error-minimum": "請輸入大於或等於{minimum}的數字",
+  "error-maximum": "請輸入少於或等於{maximum}的數字",
   "error-password-reset-failed": "該重設密碼鏈接已無效、已使用、或過期。請重新獲取一個新的鏈接。",
   "error-duplicated-identity": "{IntentKind, select, IntentAuthenticate {{IdentityType, select, login_id {{LoginIDType, select, email {該電郵地址} phone {該電話號碼} username {該用戶名稱} other {該身份資料}}已被登記。或許你想登入？} other {該外來帳戶已被登記。或許你想登入？}}} other {該身份資料已被登記。或許你想登入？}}",
   "error-duplicated-authenticator": "{AuthenticatorType, select, oob_otp_sms{你已設置該電話號碼作驗證用途。或許你想設置另一個電話號碼?} oob_otp_email{你已設置該電郵地址作驗證用途。或許你想設置另一個電郵地址?} other{你已設置該驗證器。或許你想設置新的一個?}}",
@@ -324,7 +327,7 @@
 
   "settings-profile-formatted-names-label": "名稱",
 
-  "settings-profile-edit-title": "更改{variant, select, name{名稱} email{電郵地址} phone_number{電話號碼} preferred_username{用戶名稱} profile{個人檔案 URL} website{網站 URL} gender{性別} birthdate{出生日期} zoneinfo{時區} locale{偏好語言} address{地址} other{}}",
+  "settings-profile-edit-title": "更改{variant, select, name{名稱} email{電郵地址} phone_number{電話號碼} preferred_username{用戶名稱} profile{個人檔案 URL} website{網站 URL} gender{性別} birthdate{出生日期} zoneinfo{時區} locale{偏好語言} address{地址} other{{label}}}",
   "settings-profile-edit-gender-other": "其他 (請註明)",
   "settings-profile-edit-email-placeholder": "沒有可供選擇的電郵地址",
   "settings-profile-edit-phone-number-placeholder": "沒有可供選擇的電話號碼",
@@ -351,6 +354,10 @@
   "standard-attribute-postal-code": "郵遞區號",
   "standard-attribute-region": "洲 / 省 / 縣 / 區",
   "standard-attribute-country": "地區",
+
+  "custom-attribute-numeric-hint-minimum": "請輸入大於或等於{minimum}的數字",
+  "custom-attribute-numeric-hint-maximum": "請輸入少於或等於{maximum}的數字",
+  "custom-attribute-numeric-hint-minimum-maximum": "請輸入介乎{minimum}與{maximum}之間的數字",
 
   "gender-female": "女性",
   "gender-male": "男性",

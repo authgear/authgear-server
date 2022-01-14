@@ -344,7 +344,7 @@ export interface StandardAttributesPopulationConfig {
 
 export type AccessControlLevelString = "hidden" | "readonly" | "readwrite";
 
-export interface StandardAttributesAccessControl {
+export interface UserProfileAttributesAccessControl {
   end_user: AccessControlLevelString;
   bearer: AccessControlLevelString;
   portal_ui: AccessControlLevelString;
@@ -352,7 +352,7 @@ export interface StandardAttributesAccessControl {
 
 export interface StandardAttributesAccessControlConfig {
   pointer: string;
-  access_control: StandardAttributesAccessControl;
+  access_control: UserProfileAttributesAccessControl;
 }
 
 export interface StandardAttributesConfig {
@@ -360,8 +360,39 @@ export interface StandardAttributesConfig {
   access_control?: StandardAttributesAccessControlConfig[];
 }
 
+export interface CustomAttributesConfig {
+  attributes?: CustomAttributesAttributeConfig[];
+}
+
+export interface CustomAttributesAttributeConfig {
+  id: string;
+  pointer: string;
+  type: CustomAttributeType;
+  access_control: UserProfileAttributesAccessControl;
+  minimum?: number;
+  maximum?: number;
+  enum?: string[];
+}
+
+export const customAttributeTypes = [
+  "string",
+  "number",
+  "integer",
+  "enum",
+  "phone_number",
+  "email",
+  "url",
+  "country_code",
+] as const;
+export type CustomAttributeType = typeof customAttributeTypes[number];
+export function isCustomAttributeType(v: unknown): v is CustomAttributeType {
+  // @ts-expect-error
+  return typeof v === "string" && customAttributeTypes.includes(v);
+}
+
 export interface UserProfileConfig {
   standard_attributes?: StandardAttributesConfig;
+  custom_attributes?: CustomAttributesConfig;
 }
 
 // PortalAPIAppConfig
@@ -533,6 +564,8 @@ export interface StandardAttributes {
   address?: StandardAttributesAddress;
   updated_at?: number;
 }
+
+export type CustomAttributes = Record<string, unknown>;
 
 export interface StandardAttributesAddress {
   formatted?: string;

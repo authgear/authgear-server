@@ -1,6 +1,9 @@
 package config
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -9,7 +12,8 @@ var _ = Schema.Add("UserProfileConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"standard_attributes": { "$ref": "#/$defs/StandardAttributesConfig" }
+		"standard_attributes": { "$ref": "#/$defs/StandardAttributesConfig" },
+		"custom_attributes": { "$ref": "#/$defs/CustomAttributesConfig" }
 	}
 }
 `)
@@ -68,12 +72,12 @@ var _ = Schema.Add("StandardAttributesAccessControlConfig", `
 				"/address"
 			]
 		},
-		"access_control": { "$ref": "#/$defs/StandardAttributesAccessControl" }
+		"access_control": { "$ref": "#/$defs/UserProfileAttributesAccessControl" }
 	}
 }
 `)
 
-var _ = Schema.Add("StandardAttributesAccessControl", `
+var _ = Schema.Add("UserProfileAttributesAccessControl", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -156,9 +160,284 @@ var defaultHiddenStandardAttributesPointers []string = []string{
 	"/address",
 }
 
+var _ = Schema.Add("CustomAttributesConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"attributes": {
+			"type": "array",
+			"items": {
+				"$ref": "#/$defs/CustomAttributesAttributeConfig"
+			}
+		}
+	}
+}
+`)
+
+// It seems impossible to write additionalProperties: false without duplicating the common schema in every variant :(
+// See https://json-schema.org/understanding-json-schema/reference/combining.html
+var _ = Schema.Add("CustomAttributesAttributeConfig", `
+{
+	"type": "object",
+	"properties": {
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"pointer": {
+			"type": "string",
+			"pattern": "^/[a-zA-Z0-9_]+$",
+			"not": {
+				"enum": [
+					"/iss",
+					"/sub",
+					"/aud",
+					"/exp",
+					"/nbf",
+					"/iat",
+					"/jti",
+
+					"/sub",
+
+					"/email",
+					"/email_verified",
+					"/phone_number",
+					"/phone_number_verified",
+					"/preferred_username",
+
+					"/family_name",
+					"/given_name",
+					"/picture",
+					"/gender",
+					"/birthdate",
+					"/zoneinfo",
+					"/locale",
+					"/name",
+					"/nickname",
+					"/middle_name",
+					"/profile",
+					"/website",
+					"/address",
+
+					"/updated_at"
+				]
+			}
+		},
+		"type": {
+			"type": "string",
+			"enum": [
+				"string",
+				"number",
+				"integer",
+				"enum",
+				"phone_number",
+				"email",
+				"url",
+				"country_code"
+			]
+		},
+		"access_control": { "$ref": "#/$defs/UserProfileAttributesAccessControl" }
+	},
+	"required": ["id", "pointer", "type"],
+	"allOf": [
+		{
+			"if": {
+				"properties": { "type": { "const": "number" } }
+			},
+			"then": {
+				"properties": {
+					"minimum": {
+						"type": "number"
+					},
+					"maximum": {
+						"type": "number"
+					}
+				}
+			}
+		},
+		{
+			"if": {
+				"properties": { "type": { "const": "integer" } }
+			},
+			"then": {
+				"properties": {
+					"minimum": {
+						"type": "integer"
+					},
+					"maximum": {
+						"type": "integer"
+					}
+				}
+			}
+		},
+		{
+			"if": {
+				"properties": { "type": { "const": "enum" } }
+			},
+			"then": {
+				"properties": {
+					"enum": {
+						"type": "array",
+						"items": {
+							"type": "string",
+							"pattern": "^[a-zA-Z0-9_]*$",
+							"minLength": 1
+						},
+						"minItems": 1,
+						"uniqueItems": true
+					}
+				},
+				"required": ["enum"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"type": {
+						"not": {
+							"enum": [
+								"number",
+								"integer",
+								"enum"
+							]
+						}
+					}
+				}
+			},
+			"then": true
+		}
+	]
+}
+`)
+
 type UserProfileConfig struct {
 	StandardAttributes *StandardAttributesConfig `json:"standard_attributes,omitempty"`
+	CustomAttributes   *CustomAttributesConfig   `json:"custom_attributes,omitempty"`
 }
+
+type CustomAttributesConfig struct {
+	Attributes []*CustomAttributesAttributeConfig `json:"attributes,omitempty"`
+}
+
+func (c *CustomAttributesConfig) GetAccessControl() accesscontrol.T {
+	t := accesscontrol.T{}
+	for _, a := range c.Attributes {
+		subject := accesscontrol.Subject(a.Pointer)
+		t[subject] = map[accesscontrol.Role]accesscontrol.Level{
+			RoleEndUser:  a.AccessControl.EndUser.Level(),
+			RoleBearer:   a.AccessControl.Bearer.Level(),
+			RolePortalUI: a.AccessControl.PortalUI.Level(),
+		}
+	}
+	return t
+}
+
+type CustomAttributesAttributeConfig struct {
+	ID            string                              `json:"id,omitempty"`
+	Pointer       string                              `json:"pointer,omitempty"`
+	Type          CustomAttributeType                 `json:"type,omitempty"`
+	AccessControl *UserProfileAttributesAccessControl `json:"access_control,omitempty"`
+	Minimum       *float64                            `json:"minimum,omitempty"`
+	Maximum       *float64                            `json:"maximum,omitempty"`
+	Enum          []string                            `json:"enum,omitempty"`
+}
+
+func (c *CustomAttributesAttributeConfig) SetDefaults() {
+	if c.AccessControl == nil {
+		c.AccessControl = &UserProfileAttributesAccessControl{}
+	}
+	if c.AccessControl.EndUser == AccessControlLevelStringDefault {
+		c.AccessControl.EndUser = AccessControlLevelStringHidden
+	}
+	if c.AccessControl.Bearer == AccessControlLevelStringDefault {
+		c.AccessControl.Bearer = AccessControlLevelStringHidden
+	}
+	if c.AccessControl.PortalUI == AccessControlLevelStringDefault {
+		c.AccessControl.PortalUI = AccessControlLevelStringReadwrite
+	}
+}
+
+func (c *CustomAttributesAttributeConfig) ToJSONSchema() (schema map[string]interface{}, err error) {
+	schema = make(map[string]interface{})
+
+	switch c.Type {
+	case CustomAttributeTypeString:
+		schema["type"] = "string"
+		schema["minLength"] = 1
+	case CustomAttributeTypeNumber:
+		schema["type"] = "number"
+		if c.Minimum != nil {
+			schema["minimum"] = *c.Minimum
+		}
+		if c.Maximum != nil {
+			schema["maximum"] = *c.Maximum
+		}
+	case CustomAttributeTypeInteger:
+		schema["type"] = "integer"
+		if c.Minimum != nil {
+			schema["minimum"] = int64(*c.Minimum)
+		}
+		if c.Maximum != nil {
+			schema["maximum"] = int64(*c.Maximum)
+		}
+	case CustomAttributeTypeEnum:
+		schema["type"] = "string"
+		schema["enum"] = c.Enum
+	case CustomAttributeTypePhoneNumber:
+		schema["type"] = "string"
+		schema["format"] = "phone"
+	case CustomAttributeTypeEmail:
+		schema["type"] = "string"
+		schema["format"] = "email"
+	case CustomAttributeTypeURL:
+		schema["type"] = "string"
+		schema["format"] = "uri"
+	case CustomAttributeTypeCountryCode:
+		schema["type"] = "string"
+		schema["format"] = "iso3166-1-alpha-2"
+	default:
+		err = fmt.Errorf("unknown type: %v", c.Type)
+	}
+
+	return
+}
+
+func (c *CustomAttributesAttributeConfig) ParseString(strRepr string) (interface{}, error) {
+	switch c.Type {
+	case CustomAttributeTypeString:
+		return strRepr, nil
+	case CustomAttributeTypeNumber:
+		return strconv.ParseFloat(strRepr, 64)
+	case CustomAttributeTypeInteger:
+		return strconv.ParseInt(strRepr, 10, 64)
+	case CustomAttributeTypeEnum:
+		return strRepr, nil
+	case CustomAttributeTypePhoneNumber:
+		return strRepr, nil
+	case CustomAttributeTypeEmail:
+		return strRepr, nil
+	case CustomAttributeTypeURL:
+		return strRepr, nil
+	case CustomAttributeTypeCountryCode:
+		return strRepr, nil
+	default:
+		panic(fmt.Errorf("unknown custom attribute type: %v", c.Type))
+	}
+}
+
+type CustomAttributeType string
+
+const (
+	CustomAttributeTypeString      CustomAttributeType = "string"
+	CustomAttributeTypeNumber      CustomAttributeType = "number"
+	CustomAttributeTypeInteger     CustomAttributeType = "integer"
+	CustomAttributeTypeEnum        CustomAttributeType = "enum"
+	CustomAttributeTypePhoneNumber CustomAttributeType = "phone_number"
+	CustomAttributeTypeEmail       CustomAttributeType = "email"
+	CustomAttributeTypeURL         CustomAttributeType = "url"
+	CustomAttributeTypeCountryCode CustomAttributeType = "country_code"
+)
 
 type StandardAttributesConfig struct {
 	Population    *StandardAttributesPopulationConfig      `json:"population,omitempty"`
@@ -166,13 +445,13 @@ type StandardAttributesConfig struct {
 }
 
 func (c *StandardAttributesConfig) SetDefaults() {
-	defaultReadwrite := &StandardAttributesAccessControl{
+	defaultReadwrite := &UserProfileAttributesAccessControl{
 		EndUser:  AccessControlLevelStringReadwrite,
 		Bearer:   AccessControlLevelStringReadonly,
 		PortalUI: AccessControlLevelStringReadwrite,
 	}
 
-	defaultHidden := &StandardAttributesAccessControl{
+	defaultHidden := &UserProfileAttributesAccessControl{
 		EndUser:  AccessControlLevelStringHidden,
 		Bearer:   AccessControlLevelStringHidden,
 		PortalUI: AccessControlLevelStringHidden,
@@ -234,11 +513,11 @@ func (c *StandardAttributesConfig) IsEndUserAllHidden() bool {
 }
 
 type StandardAttributesAccessControlConfig struct {
-	Pointer       string                           `json:"pointer,omitempty"`
-	AccessControl *StandardAttributesAccessControl `json:"access_control,omitempty"`
+	Pointer       string                              `json:"pointer,omitempty"`
+	AccessControl *UserProfileAttributesAccessControl `json:"access_control,omitempty"`
 }
 
-type StandardAttributesAccessControl struct {
+type UserProfileAttributesAccessControl struct {
 	EndUser  AccessControlLevelString `json:"end_user,omitempty"`
 	Bearer   AccessControlLevelString `json:"bearer,omitempty"`
 	PortalUI AccessControlLevelString `json:"portal_ui,omitempty"`

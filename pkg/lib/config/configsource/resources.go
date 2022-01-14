@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 
 	"sigs.k8s.io/yaml"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const (
@@ -124,44 +126,97 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 }
 
 func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig) error {
-	// check when adding new oauth clients
+	validationCtx := &validation.Context{}
+
+	// Enforce feature config.
 	if len(original.OAuth.Clients) < len(incoming.OAuth.Clients) {
 		if len(incoming.OAuth.Clients) > *fc.OAuth.Client.Maximum {
-			return fmt.Errorf("exceed the maximum number of oauth clients, actual: %d, expected: %d",
-				len(incoming.OAuth.Clients),
-				*fc.OAuth.Client.Maximum,
+			validationCtx.Child(
+				"oauth",
+				"clients",
+			).EmitErrorMessage(
+				fmt.Sprintf("exceed the maximum number of oauth clients, actual: %d, expected: %d",
+					len(incoming.OAuth.Clients),
+					*fc.OAuth.Client.Maximum,
+				),
 			)
 		}
 	}
-
 	if len(original.Identity.OAuth.Providers) < len(incoming.Identity.OAuth.Providers) {
 		if len(incoming.Identity.OAuth.Providers) > *fc.Identity.OAuth.MaximumProviders {
-			return fmt.Errorf("exceed the maximum number of sso providers, actual: %d, expected: %d",
-				len(incoming.Identity.OAuth.Providers),
-				*fc.Identity.OAuth.MaximumProviders,
+			validationCtx.Child(
+				"identity",
+				"oauth",
+				"providers",
+			).EmitErrorMessage(
+				fmt.Sprintf("exceed the maximum number of sso providers, actual: %d, expected: %d",
+					len(incoming.Identity.OAuth.Providers),
+					*fc.Identity.OAuth.MaximumProviders,
+				),
 			)
 		}
 	}
-
 	if len(original.Hook.BlockingHandlers) < len(incoming.Hook.BlockingHandlers) {
 		if len(incoming.Hook.BlockingHandlers) > *fc.Hook.BlockingHandler.Maximum {
-			return fmt.Errorf("exceed the maximum number of blocking handlers, actual: %d, expected: %d",
-				len(incoming.Hook.BlockingHandlers),
-				*fc.Hook.BlockingHandler.Maximum,
+			validationCtx.Child(
+				"hook",
+				"blocking_handlers",
+			).EmitErrorMessage(
+				fmt.Sprintf("exceed the maximum number of blocking handlers, actual: %d, expected: %d",
+					len(incoming.Hook.BlockingHandlers),
+					*fc.Hook.BlockingHandler.Maximum,
+				),
 			)
 		}
 	}
-
 	if len(original.Hook.NonBlockingHandlers) < len(incoming.Hook.NonBlockingHandlers) {
 		if len(incoming.Hook.NonBlockingHandlers) > *fc.Hook.NonBlockingHandler.Maximum {
-			return fmt.Errorf("exceed the maximum number of non blocking handlers, actual: %d, expected: %d",
-				len(incoming.Hook.NonBlockingHandlers),
-				*fc.Hook.NonBlockingHandler.Maximum,
+			validationCtx.Child(
+				"hook",
+				"non_blocking_handlers",
+			).EmitErrorMessage(
+				fmt.Sprintf("exceed the maximum number of non blocking handlers, actual: %d, expected: %d",
+					len(incoming.Hook.NonBlockingHandlers),
+					*fc.Hook.NonBlockingHandler.Maximum,
+				),
 			)
 		}
 	}
 
-	return nil
+	// Check custom attributes not removed nor edited.
+	for _, originalCustomAttr := range original.UserProfile.CustomAttributes.Attributes {
+		found := false
+		for i, incomingCustomAttr := range incoming.UserProfile.CustomAttributes.Attributes {
+			if originalCustomAttr.ID == incomingCustomAttr.ID {
+				found = true
+				if originalCustomAttr.Type != incomingCustomAttr.Type {
+					validationCtx.Child(
+						"user_profile",
+						"custom_attributes",
+						"attributes",
+						strconv.Itoa(i),
+					).EmitErrorMessage(
+						fmt.Sprintf("custom attribute of id '%v' has type changed; original: %v, incoming: %v",
+							originalCustomAttr.ID,
+							originalCustomAttr.Type,
+							incomingCustomAttr.Type,
+						),
+					)
+				}
+			}
+		}
+		if !found {
+			validationCtx.Child(
+				"user_profile",
+				"custom_attributes",
+				"attributes",
+			).EmitErrorMessage(
+				fmt.Sprintf("custom attribute of id '%v' was deleted", originalCustomAttr.ID),
+			)
+		}
+	}
+
+	return validationCtx.Error(fmt.Sprintf("invalid %v", AuthgearYAML))
 }
 
 var AppConfig = resource.RegisterResource(AuthgearYAMLDescriptor{})

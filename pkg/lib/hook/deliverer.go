@@ -19,17 +19,22 @@ import (
 
 //go:generate mockgen -source=deliverer.go -destination=deliverer_mock_test.go -package hook
 
-type StdAttrsServiceNoEvent interface {
+type StandardAttributesServiceNoEvent interface {
 	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
+type CustomAttributesServiceNoEvent interface {
+	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
+}
+
 type Deliverer struct {
-	Config                 *config.HookConfig
-	Secret                 *config.WebhookKeyMaterials
-	Clock                  clock.Clock
-	SyncHTTP               SyncHTTPClient
-	AsyncHTTP              AsyncHTTPClient
-	StdAttrsServiceNoEvent StdAttrsServiceNoEvent
+	Config             *config.HookConfig
+	Secret             *config.WebhookKeyMaterials
+	Clock              clock.Clock
+	SyncHTTP           SyncHTTPClient
+	AsyncHTTP          AsyncHTTPClient
+	StandardAttributes StandardAttributesServiceNoEvent
+	CustomAttributes   CustomAttributesServiceNoEvent
 }
 
 func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
@@ -78,13 +83,23 @@ func (deliverer *Deliverer) DeliverBlockingEvent(e *event.Event) error {
 	}
 
 	if mutationsEverApplied {
+		userID := e.Payload.UserID()
 		if mutations, ok := e.GenerateFullMutations(); ok {
 			if mutations.User.StandardAttributes != nil {
-				userID := e.Payload.UserID()
-				err := deliverer.StdAttrsServiceNoEvent.UpdateStandardAttributes(
-					config.RolePortalUI,
+				err := deliverer.StandardAttributes.UpdateStandardAttributes(
+					accesscontrol.RoleGreatest,
 					userID,
 					mutations.User.StandardAttributes,
+				)
+				if err != nil {
+					return err
+				}
+			}
+			if mutations.User.CustomAttributes != nil {
+				err := deliverer.CustomAttributes.UpdateAllCustomAttributes(
+					accesscontrol.RoleGreatest,
+					userID,
+					mutations.User.CustomAttributes,
 				)
 				if err != nil {
 					return err

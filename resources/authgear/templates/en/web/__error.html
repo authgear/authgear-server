@@ -81,6 +81,13 @@
                         {{ else }}
                             <li>{{ .details.reason }}</li>
                         {{ end }}
+                    {{ else if (eq .kind "type") }}
+                        <li>{{ template "error-type" (dict "expected" (index .details.expected 0)) }}</li>
+                    {{ else if (eq .kind "minimum") }}
+                        <li>{{ template "error-minimum" (dict "minimum" .details.minimum) }}</li>
+                    {{ else if (eq .kind "maximum") }}
+                        <li>{{ template "error-maximum" (dict "maximum" .details.maximum) }}</li>
+                    {{ else if (eq .kind "maximum") }}
                     {{ else if (eq .kind "general") }}
                         <li>{{ .details.msg }}</li>
                     {{ else }}

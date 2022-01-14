@@ -17,10 +17,12 @@ type EventService interface {
 
 type Commands struct {
 	*RawCommands
-	RawQueries        *RawQueries
-	Events            EventService
-	Verification      VerificationService
-	UserProfileConfig *config.UserProfileConfig
+	RawQueries         *RawQueries
+	Events             EventService
+	Verification       VerificationService
+	UserProfileConfig  *config.UserProfileConfig
+	StandardAttributes StandardAttributesService
+	CustomAttributes   CustomAttributesService
 }
 
 func (c *Commands) AfterCreate(
@@ -35,12 +37,17 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	stdAttrs, err := c.Verification.DeriveStandardAttributes(accesscontrol.EmptyRole, user.ID, user.UpdatedAt, user.StandardAttributes)
+	stdAttrs, err := c.StandardAttributes.DeriveStandardAttributes(accesscontrol.RoleGreatest, user.ID, user.UpdatedAt, user.StandardAttributes)
 	if err != nil {
 		return err
 	}
 
-	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs)
+	customAttrs, err := c.CustomAttributes.ReadCustomAttributesInStorageForm(accesscontrol.RoleGreatest, user.ID, user.CustomAttributes)
+	if err != nil {
+		return err
+	}
+
+	userModel := newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs)
 	var identityModels []model.Identity
 	for _, i := range identities {
 		identityModels = append(identityModels, i.ToModel())

@@ -1,0 +1,250 @@
+part: CustomAttributesAttributeConfig
+name: missing-required-keys
+error: |-
+  invalid value:
+  <root>: required
+    map[actual:<nil> expected:[id pointer type] missing:[id pointer type]]
+  <root>: required
+    map[actual:<nil> expected:[enum] missing:[enum]]
+value: {}
+
+---
+part: CustomAttributesAttributeConfig
+name: pointer-conflict-with-jwt-claim
+error: |-
+  invalid value:
+  /pointer: not
+value:
+  id: "0000"
+  pointer: /sub
+  type: string
+
+---
+part: CustomAttributesAttributeConfig
+name: pointer-conflict-with-standard-attribute
+error: |-
+  invalid value:
+  /pointer: not
+value:
+  id: "0000"
+  pointer: /email
+  type: email
+
+---
+part: CustomAttributesAttributeConfig
+name: pointer-invalid
+error: |-
+  invalid value:
+  /pointer: pattern
+    map[actual:foobar expected:^/[a-zA-Z0-9_]+$]
+value:
+  id: "0000"
+  pointer: foobar
+  type: string
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-access-control
+error: null
+value:
+  id: "0000"
+  pointer: /string
+  type: string
+  access_control:
+    end_user: hidden
+    bearer: hidden
+    portal_ui: hidden
+
+---
+part: CustomAttributesAttributeConfig
+name: invalid-access-control
+error: |-
+  invalid value:
+  /access_control: enum
+    map[actual:map[bearer:foobar end_user:foobar portal_ui:foobar] expected:[map[bearer:hidden end_user:hidden portal_ui:hidden] map[bearer:hidden end_user:hidden portal_ui:readonly] map[bearer:hidden end_user:hidden portal_ui:readwrite] map[bearer:readonly end_user:hidden portal_ui:readonly] map[bearer:readonly end_user:hidden portal_ui:readwrite] map[bearer:readonly end_user:readonly portal_ui:readonly] map[bearer:readonly end_user:readonly portal_ui:readwrite] map[bearer:readonly end_user:readwrite portal_ui:readwrite]]]
+  /access_control/bearer: enum
+    map[actual:foobar expected:[hidden readonly readwrite]]
+  /access_control/end_user: enum
+    map[actual:foobar expected:[hidden readonly readwrite]]
+  /access_control/portal_ui: enum
+    map[actual:foobar expected:[hidden readonly readwrite]]
+value:
+  id: "0000"
+  pointer: /string
+  type: string
+  access_control:
+    end_user: foobar
+    bearer: foobar
+    portal_ui: foobar
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-string
+error: null
+value:
+  id: "0000"
+  pointer: /string
+  type: string
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-number
+error: null
+value:
+  id: "0000"
+  pointer: /number
+  type: number
+  minimum: 0.0
+  maximum: 99.0
+
+---
+part: CustomAttributesAttributeConfig
+name: number-invalid-range
+error: |-
+  invalid value:
+  /maximum: type
+    map[actual:[string] expected:[number]]
+  /minimum: type
+    map[actual:[string] expected:[number]]
+value:
+  id: "0000"
+  pointer: /number
+  type: number
+  minimum: "invalid"
+  maximum: "invalid"
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-integer
+error: null
+value:
+  id: "0000"
+  pointer: /integer
+  type: integer
+  minimum: 0
+  maximum: 99
+
+---
+part: CustomAttributesAttributeConfig
+name: integer-invalid-range
+error: |-
+  invalid value:
+  /maximum: type
+    map[actual:[string] expected:[integer]]
+  /minimum: type
+    map[actual:[string] expected:[integer]]
+value:
+  id: "0000"
+  pointer: /integer
+  type: integer
+  minimum: "invalid"
+  maximum: "invalid"
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-enum
+error: null
+value:
+  id: "0000"
+  pointer: /enum
+  type: enum
+  enum: ["a", "b"]
+
+---
+part: CustomAttributesAttributeConfig
+name: enum-missing-enum
+error: |-
+  invalid value:
+  <root>: required
+    map[actual:[id pointer type] expected:[enum] missing:[enum]]
+value:
+  id: "0000"
+  pointer: /enum
+  type: enum
+
+---
+part: CustomAttributesAttributeConfig
+name: enum-empty-enum
+error: |-
+  invalid value:
+  /enum: minItems
+    map[actual:0 expected:1]
+value:
+  id: "0000"
+  pointer: /enum
+  type: enum
+  enum: []
+
+---
+part: CustomAttributesAttributeConfig
+name: enum-empty-value
+error: |-
+  invalid value:
+  /enum/0: minLength
+    map[actual:0 expected:1]
+value:
+  id: "0000"
+  pointer: /enum
+  type: enum
+  enum: [""]
+---
+part: CustomAttributesAttributeConfig
+name: enum-duplicate-value
+error: |-
+  invalid value:
+  /enum: uniqueItems
+    map[]
+value:
+  id: "0000"
+  pointer: /enum
+  type: enum
+  enum: ["a", "a"]
+
+---
+part: CustomAttributesAttributeConfig
+name: enum-invalid-value
+error: |-
+  invalid value:
+  /enum/0: pattern
+    map[actual:! expected:^[a-zA-Z0-9_]*$]
+value:
+  id: "0000"
+  pointer: /enum
+  type: enum
+  enum: ["!"]
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-phone-number
+error: null
+value:
+  id: "0000"
+  pointer: /x_phone_number
+  type: phone_number
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-email
+error: null
+value:
+  id: "0000"
+  pointer: /x_email
+  type: email
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-url
+error: null
+value:
+  id: "0000"
+  pointer: /url
+  type: url
+
+---
+part: CustomAttributesAttributeConfig
+name: valid-alpha2
+error: null
+value:
+  id: "0000"
+  pointer: /alpha2
+  type: country_code

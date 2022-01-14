@@ -24,6 +24,7 @@ import (
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -83,6 +84,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 		wire.Bind(new(welcomemessage.EventService), new(*event.Service)),
 		wire.Bind(new(featurestdattrs.EventService), new(*event.Service)),
+		wire.Bind(new(featurecustomattrs.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(
@@ -143,6 +145,12 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
+		featurecustomattrs.DependencySet,
+		wire.Bind(new(user.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
+		wire.Bind(new(hook.CustomAttributesServiceNoEvent), new(*featurecustomattrs.ServiceNoEvent)),
+	),
+
+	wire.NewSet(
 		identityloginid.DependencySet,
 		wire.Bind(new(stdattrs.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(interaction.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
@@ -178,8 +186,10 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
-		wire.Bind(new(featurestdattrs.UserQueries), new(*user.Queries)),
+		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
+		wire.Bind(new(featurecustomattrs.UserStore), new(*user.Store)),
+		wire.Bind(new(featurecustomattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(facade.UserCommands), new(*user.Commands)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),
@@ -240,6 +250,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		verification.DependencySet,
+		wire.Bind(new(featurestdattrs.ClaimStore), new(*verification.StorePQ)),
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
 		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
@@ -282,8 +293,9 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		featurestdattrs.DependencySet,
+		wire.Bind(new(user.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
 		wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
 		wire.Bind(new(interaction.StdAttrsService), new(*featurestdattrs.Service)),
-		wire.Bind(new(hook.StdAttrsServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
+		wire.Bind(new(hook.StandardAttributesServiceNoEvent), new(*featurestdattrs.ServiceNoEvent)),
 	),
 )

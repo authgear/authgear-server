@@ -31,9 +31,10 @@ func (e *UserProfilePreUpdateBlockingEventPayload) FillContext(ctx *event.Contex
 }
 
 func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(mutations event.Mutations) (event.BlockingPayload, bool) {
-	if mutations.User.StandardAttributes != nil {
+	user, mutated := ApplyMutations(e.UserModel, mutations)
+	if mutated {
 		copied := *e
-		copied.UserModel.StandardAttributes = mutations.User.StandardAttributes
+		copied.UserModel = user
 		return &copied, true
 	}
 
@@ -41,11 +42,7 @@ func (e *UserProfilePreUpdateBlockingEventPayload) ApplyMutations(mutations even
 }
 
 func (e *UserProfilePreUpdateBlockingEventPayload) GenerateFullMutations() event.Mutations {
-	return event.Mutations{
-		User: event.UserMutations{
-			StandardAttributes: e.UserModel.StandardAttributes,
-		},
-	}
+	return GenerateFullMutations(e.UserModel)
 }
 
 var _ event.BlockingPayload = &UserProfilePreUpdateBlockingEventPayload{}

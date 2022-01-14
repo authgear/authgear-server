@@ -70,6 +70,7 @@ type AppConfig struct {
 	Verification   *VerificationConfig   `json:"verification,omitempty"`
 }
 
+// nolint: gocyclo
 func (c *AppConfig) Validate(ctx *validation.Context) {
 	for i, client := range c.OAuth.Clients {
 		if client.RefreshTokenLifetime < client.AccessTokenLifetime {
@@ -181,6 +182,29 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	_, fallbackLanguageOK := supportedLanguagesSet[*c.Localization.FallbackLanguage]
 	if !fallbackLanguageOK {
 		ctx.Child("localization", "supported_languages").EmitErrorMessage("supported_languages must contain fallback_language")
+	}
+
+	customAttributeIDs := map[string]struct{}{}
+	customAttributePointers := map[string]struct{}{}
+	for i, customAttributeConfig := range c.UserProfile.CustomAttributes.Attributes {
+		if _, ok := customAttributeIDs[customAttributeConfig.ID]; ok {
+			ctx.Child(
+				"user_profile",
+				"custom_attributes",
+				"attributes",
+				strconv.Itoa(i),
+			).EmitErrorMessage("duplicated custom attribute ID")
+		}
+		if _, ok := customAttributePointers[customAttributeConfig.Pointer]; ok {
+			ctx.Child(
+				"user_profile",
+				"custom_attributes",
+				"attributes",
+				strconv.Itoa(i),
+			).EmitErrorMessage("duplicated custom attribute pointer")
+		}
+		customAttributeIDs[customAttributeConfig.ID] = struct{}{}
+		customAttributePointers[customAttributeConfig.Pointer] = struct{}{}
 	}
 }
 

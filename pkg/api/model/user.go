@@ -13,6 +13,7 @@ type User struct {
 	CanReauthenticate  bool                   `json:"can_reauthenticate"`
 	DisableReason      *string                `json:"disable_reason,omitempty"`
 	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
+	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
 }
 
 type UserRef struct {

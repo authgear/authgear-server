@@ -17,7 +17,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/event"
 	libfacade "github.com/authgear/authgear-server/pkg/lib/facade"
+	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -44,14 +46,16 @@ var DependencySet = wire.NewSet(
 
 	facade.DependencySet,
 	wire.Bind(new(facade.UserService), new(*libfacade.UserFacade)),
-	wire.Bind(new(facade.StdAttrsService), new(*featurestdattrs.Service)),
 	wire.Bind(new(facade.UserSearchService), new(*libes.Service)),
 	wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 	wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(facade.InteractionService), new(*service.InteractionService)),
 	wire.Bind(new(facade.VerificationService), new(*verification.Service)),
+	wire.Bind(new(facade.StandardAttributesService), new(*featurestdattrs.ServiceNoEvent)),
+	wire.Bind(new(facade.CustomAttributesService), new(*featurecustomattrs.ServiceNoEvent)),
 	wire.Bind(new(facade.SessionManager), new(*session.Manager)),
 	wire.Bind(new(facade.AuditLogQuery), new(*audit.Query)),
+	wire.Bind(new(facade.EventService), new(*event.Service)),
 
 	graphql.DependencySet,
 	wire.Bind(new(graphql.UserLoader), new(*loader.UserLoader)),
@@ -64,6 +68,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.VerificationFacade), new(*facade.VerificationFacade)),
 	wire.Bind(new(graphql.SessionFacade), new(*facade.SessionFacade)),
 	wire.Bind(new(graphql.AuditLogFacade), new(*facade.AuditLogFacade)),
+	wire.Bind(new(graphql.UserProfileFacade), new(*facade.UserProfileFacade)),
 
 	service.DependencySet,
 	wire.Bind(new(service.InteractionGraphService), new(*interaction.Service)),

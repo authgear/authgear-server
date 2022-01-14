@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -37,15 +38,17 @@ func TestDeliverer(t *testing.T) {
 
 		httpClient := &http.Client{}
 		gock.InterceptClient(httpClient)
-		stdAttrsService := NewMockStdAttrsServiceNoEvent(ctrl)
+		stdAttrsService := NewMockStandardAttributesServiceNoEvent(ctrl)
+		customAttrsService := NewMockCustomAttributesServiceNoEvent(ctrl)
 
 		deliverer := Deliverer{
-			Config:                 cfg,
-			Secret:                 secret,
-			Clock:                  clock,
-			SyncHTTP:               SyncHTTPClient{httpClient},
-			AsyncHTTP:              AsyncHTTPClient{httpClient},
-			StdAttrsServiceNoEvent: stdAttrsService,
+			Config:             cfg,
+			Secret:             secret,
+			Clock:              clock,
+			SyncHTTP:           SyncHTTPClient{httpClient},
+			AsyncHTTP:          AsyncHTTPClient{httpClient},
+			StandardAttributes: stdAttrsService,
+			CustomAttributes:   customAttrsService,
 		}
 
 		defer gock.Off()
@@ -159,6 +162,9 @@ func TestDeliverer(t *testing.T) {
 								StandardAttributes: map[string]interface{}{
 									"name": "John Doe",
 								},
+								CustomAttributes: map[string]interface{}{
+									"a": "a",
+								},
 							},
 						},
 					},
@@ -185,6 +191,9 @@ func TestDeliverer(t *testing.T) {
 								"standard_attributes": map[string]interface{}{
 									"name": "John Doe",
 								},
+								"custom_attributes": map[string]interface{}{
+									"a": "a",
+								},
 							},
 						},
 					})
@@ -201,10 +210,18 @@ func TestDeliverer(t *testing.T) {
 				defer func() { gock.Flush() }()
 
 				stdAttrsService.EXPECT().UpdateStandardAttributes(
-					config.RolePortalUI,
+					accesscontrol.RoleGreatest,
 					gomock.Any(),
 					map[string]interface{}{
 						"name": "John Doe",
+					},
+				).Times(1).Return(nil)
+
+				customAttrsService.EXPECT().UpdateAllCustomAttributes(
+					accesscontrol.RoleGreatest,
+					gomock.Any(),
+					map[string]interface{}{
+						"a": "a",
 					},
 				).Times(1).Return(nil)
 

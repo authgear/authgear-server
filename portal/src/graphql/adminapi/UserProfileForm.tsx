@@ -15,9 +15,12 @@ import {
   ITextProps,
   ITheme,
   TextField,
+  Label,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import FormTextField from "../../FormTextField";
+import FormDropdown from "../../FormDropdown";
+import FormPhoneTextField from "../../FormPhoneTextField";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { parseBirthdate, toBirthdate } from "../../util/birthdate";
 import {
@@ -26,13 +29,19 @@ import {
   Identity,
   IdentityClaims,
   AccessControlLevelString,
+  CustomAttributesAttributeConfig,
 } from "../../types";
 import { makeTimezoneOptions } from "../../util/timezone";
 import { makeAlpha2Options } from "../../util/alpha2";
 import { formatDatetime } from "../../util/formatDatetime";
-import { jsonPointerToString } from "../../util/jsonpointer";
+import { generateLabel } from "../../util/label";
+import { checkNumberInput, checkIntegerInput } from "../../util/input";
+import {
+  jsonPointerToString,
+  parseJSONPointerIntoParentChild,
+} from "../../util/jsonpointer";
 
-import styles from "./UserDetailsStandardAttributes.module.scss";
+import styles from "./UserProfileForm.module.scss";
 
 export interface StandardAttributesAddressState {
   street_address: string;
@@ -64,11 +73,16 @@ export interface StandardAttributesState {
   updated_at?: number;
 }
 
-export interface UserDetailsStandardAttributesProps {
+export type CustomAttributesState = Record<string, string>;
+
+export interface UserProfileFormProps {
   identities: Identity[];
   standardAttributes: StandardAttributesState;
   onChangeStandardAttributes?: (attrs: StandardAttributesState) => void;
-  accessControl: Record<string, AccessControlLevelString>;
+  standardAttributeAccessControl: Record<string, AccessControlLevelString>;
+  customAttributesConfig: CustomAttributesAttributeConfig[];
+  customAttributes: CustomAttributesState;
+  onChangeCustomAttributes?: (attrs: CustomAttributesState) => void;
 }
 
 type GenderVariant = "" | "male" | "female" | "other";
@@ -104,6 +118,19 @@ function UPDATED_AT_STYLES(_props: ITextProps, theme: ITheme) {
   };
 }
 
+function HorizontalDivider() {
+  const { themes } = useSystemConfig();
+  const theme = themes.main;
+  return (
+    <div
+      style={{
+        backgroundColor: `${theme.palette.neutralTertiaryAlt}`,
+        height: "1px",
+      }}
+    />
+  );
+}
+
 interface DivProps {
   className?: string;
   children?: React.ReactNode;
@@ -119,7 +146,7 @@ function Div(props: DivProps) {
   return <div className={className}>{children}</div>;
 }
 
-interface FormTextFieldShortcutProps {
+interface StandardAttributeTextFieldProps {
   standardAttributes: StandardAttributesState;
   fieldName: keyof StandardAttributes;
   makeOnChangeText: (
@@ -130,7 +157,7 @@ interface FormTextFieldShortcutProps {
   className?: string;
 }
 
-function FormTextFieldShortcut(props: FormTextFieldShortcutProps) {
+function StandardAttributeTextField(props: StandardAttributeTextFieldProps) {
   const {
     standardAttributes,
     fieldName,
@@ -165,36 +192,292 @@ function FormTextFieldShortcut(props: FormTextFieldShortcutProps) {
   );
 }
 
-const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps> =
+interface CustomAttributeControlProps {
+  attributeConfig: CustomAttributesAttributeConfig;
+  customAttributes: CustomAttributesState;
+  onChangeCustomAttributes?: (attrs: CustomAttributesState) => void;
+}
+
+// eslint-disable-next-line complexity
+function CustomAttributeControl(props: CustomAttributeControlProps) {
+  const { attributeConfig, customAttributes, onChangeCustomAttributes } = props;
+  const {
+    pointer,
+    type: typ,
+    access_control: { portal_ui: accessControl },
+    enum: enu,
+  } = attributeConfig;
+
+  const enumOptions: IDropdownOption[] = useMemo(() => {
+    const options = [
+      {
+        key: "",
+        text: "",
+      },
+    ];
+    for (const variant of enu ?? []) {
+      options.push({
+        key: variant,
+        text: generateLabel(variant),
+      });
+    }
+    return options;
+  }, [enu]);
+
+  const alpha2Options: IDropdownOption[] = useMemo(() => {
+    return [{ key: "", text: "" }, ...makeAlpha2Options()];
+  }, []);
+
+  const onChange = useCallback(
+    (_: React.FormEvent<unknown>, newValue?: string) => {
+      if (newValue == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: newValue,
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
+  const onChangeNumber = useCallback(
+    (_: React.FormEvent<unknown>, newValue?: string) => {
+      if (newValue == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      const good = checkNumberInput(newValue);
+      if (!good) {
+        return;
+      }
+
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: newValue,
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
+  const onChangeInteger = useCallback(
+    (_: React.FormEvent<unknown>, newValue?: string) => {
+      if (newValue == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      const good = checkIntegerInput(newValue);
+      if (!good) {
+        return;
+      }
+
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: newValue,
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
+  const onChangeDropdown = useCallback(
+    (_: React.FormEvent<unknown>, option?: IDropdownOption) => {
+      if (option == null || onChangeCustomAttributes == null) {
+        return;
+      }
+
+      const { key } = option;
+      if (typeof key === "string") {
+        onChangeCustomAttributes({
+          ...customAttributes,
+          [pointer]: key,
+        });
+      }
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
+  const onChangePhoneNumber = useCallback(
+    (valid: string, input: string) => {
+      if (onChangeCustomAttributes == null) {
+        return;
+      }
+
+      onChangeCustomAttributes({
+        ...customAttributes,
+        [pointer]: valid,
+        ["phone_number" + pointer]: input,
+      });
+    },
+    [customAttributes, onChangeCustomAttributes, pointer]
+  );
+
+  const value = customAttributes[pointer];
+  const disabled = accessControl === "readonly";
+
+  const parentChild = useMemo(() => {
+    return parseJSONPointerIntoParentChild(pointer);
+  }, [pointer]);
+
+  const { parent, fieldName, label } = useMemo(() => {
+    if (parentChild == null) {
+      return {
+        parent: "",
+        fieldName: "",
+        label: "",
+      };
+    }
+    const [parent, fieldName] = parentChild;
+    const label = generateLabel(fieldName);
+    return {
+      parent,
+      fieldName,
+      label,
+    };
+  }, [parentChild]);
+
+  if (accessControl !== "readonly" && accessControl !== "readwrite") {
+    return null;
+  }
+
+  switch (typ) {
+    case "string":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          onChange={onChange}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={label}
+          disabled={disabled}
+        />
+      );
+    case "number":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          onChange={onChangeNumber}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={label}
+          disabled={disabled}
+        />
+      );
+    case "integer":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          onChange={onChangeInteger}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={label}
+          disabled={disabled}
+        />
+      );
+    case "enum":
+      return (
+        <FormDropdown
+          className={styles.customAttributeControl}
+          selectedKey={value}
+          onChange={onChangeDropdown}
+          options={enumOptions}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={label}
+          disabled={disabled}
+        />
+      );
+    case "phone_number":
+      return (
+        <FormPhoneTextField
+          className={styles.customAttributeControl}
+          inputValue={customAttributes["phone_number" + pointer]}
+          onChange={onChangePhoneNumber}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={label}
+          disabled={disabled}
+        />
+      );
+    case "email":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          onChange={onChange}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={label}
+          disabled={disabled}
+        />
+      );
+    case "url":
+      return (
+        <FormTextField
+          className={styles.customAttributeControl}
+          value={value}
+          onChange={onChange}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={label}
+          disabled={disabled}
+        />
+      );
+    case "country_code":
+      return (
+        <FormDropdown
+          className={styles.customAttributeControl}
+          selectedKey={value}
+          onChange={onChangeDropdown}
+          options={alpha2Options}
+          parentJSONPointer={parent}
+          fieldName={fieldName}
+          label={label}
+          disabled={disabled}
+        />
+      );
+  }
+}
+
+interface StandardAttributesFormProps {
+  identities: Identity[];
+  standardAttributes: StandardAttributesState;
+  onChangeStandardAttributes?: (attrs: StandardAttributesState) => void;
+  standardAttributeAccessControl: Record<string, AccessControlLevelString>;
+}
+
+const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
   // eslint-disable-next-line complexity
-  function UserDetailsStandardAttributes(
-    props: UserDetailsStandardAttributesProps
-  ) {
+  function StandardAttributesForm(props: StandardAttributesFormProps) {
     const {
       standardAttributes,
       onChangeStandardAttributes,
       identities,
-      accessControl,
+      standardAttributeAccessControl,
     } = props;
+
     const { availableLanguages } = useSystemConfig();
-    const { renderToString, locale: appLocale } = useContext(Context);
+    const { renderToString } = useContext(Context);
 
     const isReadable = useCallback(
       (fieldName: keyof StandardAttributes) => {
         const ptr = jsonPointerToString([fieldName]);
-        const level = accessControl[ptr];
+        const level = standardAttributeAccessControl[ptr];
         return level === "readonly" || level === "readwrite";
       },
-      [accessControl]
+      [standardAttributeAccessControl]
     );
 
     const isDisabled = useCallback(
       (fieldName: keyof StandardAttributes) => {
         const ptr = jsonPointerToString([fieldName]);
-        const level = accessControl[ptr];
+        const level = standardAttributeAccessControl[ptr];
         return level !== "readwrite";
       },
-      [accessControl]
+      [standardAttributeAccessControl]
     );
 
     const makeOnChangeText = useCallback(
@@ -343,15 +626,13 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
         { key: "female", text: "female" },
         {
           key: "other",
-          text: renderToString(
-            "UserDetailsStandardAttributes.gender.other.label"
-          ),
+          text: renderToString("UserProfileForm.gender.other.label"),
         },
       ];
       return options;
     }, [renderToString]);
     const onChangeGenderVariant = useCallback(
-      // eslint-disable-next-line
+      // eslint-disable-next-line complexity
       (
         _e: React.FormEvent<unknown>,
         option?: IDropdownOption,
@@ -514,20 +795,16 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
       [standardAttributes, onChangeStandardAttributes]
     );
 
-    const updatedAt = standardAttributes.updated_at;
-    const updatedAtFormatted: string | undefined | null = useMemo(() => {
-      if (updatedAt == null) {
-        return undefined;
-      }
-
-      return formatDatetime(appLocale, new Date(updatedAt * 1000));
-    }, [appLocale, updatedAt]);
-
     return (
-      <div className={styles.root}>
+      <>
+        <Label className={styles.standardAttributesTitle}>
+          <Text variant="xLarge">
+            <FormattedMessage id="UserProfileForm.standard-attributes.title" />
+          </Text>
+        </Label>
         <Div className={styles.nameGroup}>
           {isReadable("name") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -535,7 +812,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             />
           )}
           {isReadable("nickname") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="nickname"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -543,7 +820,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             />
           )}
           {isReadable("given_name") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="given_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -551,7 +828,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             />
           )}
           {isReadable("middle_name") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="middle_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -559,7 +836,7 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             />
           )}
           {isReadable("family_name") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="family_name"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
@@ -568,37 +845,35 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
           )}
         </Div>
         {isReadable("picture") && (
-          <FormTextFieldShortcut
+          <StandardAttributeTextField
             fieldName="picture"
             standardAttributes={standardAttributes}
             makeOnChangeText={makeOnChangeText}
             isDisabled={isDisabled}
             className={styles.standalone}
-            placeholder={renderToString(
-              "UserDetailsStandardAttributes.picture.placeholder"
-            )}
+            placeholder={renderToString("UserProfileForm.picture.placeholder")}
           />
         )}
         <Div className={styles.singleColumnGroup}>
           {isReadable("profile") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="profile"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
               isDisabled={isDisabled}
               placeholder={renderToString(
-                "UserDetailsStandardAttributes.profile.placeholder"
+                "UserProfileForm.profile.placeholder"
               )}
             />
           )}
           {isReadable("website") && (
-            <FormTextFieldShortcut
+            <StandardAttributeTextField
               fieldName="website"
               standardAttributes={standardAttributes}
               makeOnChangeText={makeOnChangeText}
               isDisabled={isDisabled}
               placeholder={renderToString(
-                "UserDetailsStandardAttributes.website.placeholder"
+                "UserProfileForm.website.placeholder"
               )}
             />
           )}
@@ -727,6 +1002,83 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
             />
           </Div>
         )}
+      </>
+    );
+  };
+
+interface CustomAttributesFormProps {
+  customAttributes: CustomAttributesState;
+  onChangeCustomAttributes?: (attrs: CustomAttributesState) => void;
+  customAttributesConfig: CustomAttributesAttributeConfig[];
+}
+
+const CustomAttributesForm: React.FC<CustomAttributesFormProps> =
+  function CustomAttributesForm(props: CustomAttributesFormProps) {
+    const {
+      customAttributes,
+      onChangeCustomAttributes,
+      customAttributesConfig,
+    } = props;
+
+    return (
+      <>
+        <Label className={styles.standardAttributesTitle}>
+          <Text variant="xLarge">
+            <FormattedMessage id="UserProfileForm.custom-attributes.title" />
+          </Text>
+        </Label>
+        <div className={styles.customAttributesForm}>
+          {customAttributesConfig.map((c) => {
+            return (
+              <CustomAttributeControl
+                key={c.id}
+                attributeConfig={c}
+                customAttributes={customAttributes}
+                onChangeCustomAttributes={onChangeCustomAttributes}
+              />
+            );
+          })}
+        </div>
+      </>
+    );
+  };
+
+const UserProfileForm: React.FC<UserProfileFormProps> =
+  function UserProfileForm(props: UserProfileFormProps) {
+    const {
+      identities,
+      standardAttributes,
+      onChangeStandardAttributes,
+      standardAttributeAccessControl,
+      customAttributes,
+      onChangeCustomAttributes,
+      customAttributesConfig,
+    } = props;
+    const { locale: appLocale } = useContext(Context);
+
+    const updatedAt = standardAttributes.updated_at;
+    const updatedAtFormatted: string | undefined | null = useMemo(() => {
+      if (updatedAt == null) {
+        return undefined;
+      }
+
+      return formatDatetime(appLocale, new Date(updatedAt * 1000));
+    }, [appLocale, updatedAt]);
+
+    return (
+      <div className={styles.root}>
+        <StandardAttributesForm
+          identities={identities}
+          standardAttributes={standardAttributes}
+          onChangeStandardAttributes={onChangeStandardAttributes}
+          standardAttributeAccessControl={standardAttributeAccessControl}
+        />
+        <HorizontalDivider />
+        <CustomAttributesForm
+          customAttributes={customAttributes}
+          onChangeCustomAttributes={onChangeCustomAttributes}
+          customAttributesConfig={customAttributesConfig}
+        />
         {updatedAtFormatted != null && (
           <Text
             className={styles.standalone}
@@ -745,4 +1097,4 @@ const UserDetailsStandardAttributes: React.FC<UserDetailsStandardAttributesProps
     );
   };
 
-export default UserDetailsStandardAttributes;
+export default UserProfileForm;

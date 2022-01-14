@@ -4,8 +4,24 @@
 <div class="pane twc-container-vertical padding-t-12 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
   {{ template "__nav_bar.html" "/settings/profile" }}
 
+  {{ $ca := false }}
+  {{ $caLabel := "" }}
+
+  {{ if (eq $.Variant "custom_attributes") }}
+  {{ $ca = (call $.GetCustomAttributeByPointer $.Pointer) }}
+  {{ if $ca }}
+    {{ $label_key := printf "custom-attribute-label-%s" $ca.Pointer }}
+    {{ $has_key := $.Translations.HasKey $label_key }}
+    {{ if $has_key }}
+      {{ $caLabel = $.Translations.RenderText $label_key nil }}
+    {{ else }}
+      {{ $caLabel = $ca.Label }}
+    {{ end }}
+  {{ end }}
+  {{ end }}
+
   <h1 class="primary-txt margin-0 text-xl text-center font-bold">
-    {{ template "settings-profile-edit-title" (dict "variant" $.Variant) }}
+    {{ template "settings-profile-edit-title" (dict "variant" $.Variant "label" $caLabel) }}
   </h1>
 
   <form id="form" class="twc-container-vertical" method="post" novalidate>
@@ -198,6 +214,111 @@
       {{ end }}
     </select>
   </label>
+  {{ end }}
+  {{ end }}
+
+  {{ if $ca }}
+  {{ if $ca.IsEditable }}
+  <label class="grid grid-cols-1 auto-rows-auto gap-y-1.5 text-xs secondary-txt">
+    {{/* The label */}}
+    {{ $caLabel }}
+
+    {{/* The control */}}
+
+    {{ if (eq $ca.Type "string") }}
+    <input type="text" class="primary-txt input text-input text-base" name="{{ $ca.Pointer }}" value="{{ $ca.Value }}">
+    {{ end }}
+
+    {{ if (eq $ca.Type "number") }}
+    <input
+      type="text"
+      inputmode="decimal"
+      class="primary-txt input text-input text-base"
+      name="{{ $ca.Pointer }}"
+      value="{{ $ca.Value }}">
+    {{ end }}
+
+    {{ if (eq $ca.Type "integer") }}
+    <input
+      type="text"
+      inputmode="numeric"
+      class="primary-txt input text-input text-base"
+      name="{{ $ca.Pointer }}"
+      value="{{ $ca.Value }}">
+    {{ end }}
+
+    {{ if (eq $ca.Type "enum") }}
+    <select
+      class="primary-txt select"
+      name="{{ $ca.Pointer }}">
+      <option value="" {{ if not $ca.Value }}selected{{ end }}>{{ template "unset-label" }}</option>
+      {{ range $ca.Enum }}
+      {{ $label_key := printf "custom-attribute-enum-label-%s-%s" $ca.Pointer .Value }}
+      {{ $has_key := $.Translations.HasKey $label_key }}
+      <option value="{{ .Value }}" {{ if (eq $ca.Value .Value) }}selected{{ end }}>
+	{{ if $has_key }}
+	  {{ $.Translations.RenderText $label_key nil }}
+	{{ else }}
+	  {{ .Label }}
+	{{ end }}
+      </option>
+      {{ end }}
+    </select>
+    {{ end }}
+
+    {{ if (eq $ca.Type "phone_number") }}
+    <input
+      data-intl-tel-input="true"
+      data-intl-tel-input-class="flex flex-row"
+      type="text"
+      inputmode="tel"
+      class="primary-txt input text-input text-base w-full"
+      name="{{ $ca.Pointer }}"
+      value="{{ $ca.Value }}">
+    {{ end }}
+
+    {{ if (eq $ca.Type "email") }}
+    <input
+      type="email"
+      inputmode="email"
+      class="primary-txt input text-input text-base"
+      name="{{ $ca.Pointer }}"
+      value="{{ $ca.Value }}">
+    {{ end }}
+
+    {{ if (eq $ca.Type "url") }}
+    <input
+      type="url"
+      inputmode="url"
+      class="primary-txt input text-input text-base"
+      name="{{ $ca.Pointer }}"
+      value="{{ $ca.Value }}">
+    {{ end }}
+
+    {{ if (eq $ca.Type "country_code") }}
+    <select
+      class="primary-txt select"
+      name="{{ $ca.Pointer }}">
+      <option value="" {{ if not $ca.Value }}selected{{ end }}>{{ template "unset-label" }}</option>
+      {{ range $.Alpha2 }}
+      {{ $label := (print "territory-" . ) }}
+      <option value="{{ . }}" {{ if (eq $ca.Value .) }}selected{{ end }}>{{ . }} - {{ ($.Translations.RenderText $label nil) }}</option>
+      {{ end }}
+    </select>
+    {{ end }}
+  </label>
+
+  {{ if (or (eq $ca.Type "number") (eq $ca.Type "integer")) }}
+  {{ if (and $ca.MinimumNil $ca.MaximumNil) }}
+  {{ else if (and (not $ca.MinimumNil) $ca.MaximumNil) }}
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-minimum" (dict "minimum" $ca.Minimum) }}</span>
+  {{ else if (and $ca.MinimumNil (not $ca.MaximumNil)) }}
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-maximum" (dict "maximum" $ca.Maximum) }}</span>
+  {{ else }}
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-minimum-maximum" (dict "minimum" $ca.Minimum "maximum" $ca.Maximum) }}</span>
+  {{ end }}
+  {{ end }}
+
   {{ end }}
   {{ end }}
 

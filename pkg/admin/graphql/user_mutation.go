@@ -6,7 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -271,8 +271,12 @@ var updateUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Description: "Target user ID.",
 		},
 		"standardAttributes": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(UserStandardAttributes),
+			Type:        UserStandardAttributes,
 			Description: "Whole standard attributes to be set on the user.",
+		},
+		"customAttributes": &graphql.InputObjectFieldConfig{
+			Type:        UserCustomAttributes,
+			Description: "Whole custom attributes to be set on the user.",
 		},
 	},
 })
@@ -308,9 +312,15 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			stdAttrs := input["standardAttributes"].(map[string]interface{})
+			stdAttrs, _ := input["standardAttributes"].(map[string]interface{})
+			customAttrs, _ := input["customAttributes"].(map[string]interface{})
 
-			err := gqlCtx.UserFacade.UpdateStandardAttributes(config.RolePortalUI, userID, stdAttrs)
+			err := gqlCtx.UserProfileFacade.UpdateUserProfile(
+				accesscontrol.RoleGreatest,
+				userID,
+				stdAttrs,
+				customAttrs,
+			)
 			if err != nil {
 				return nil, err
 			}

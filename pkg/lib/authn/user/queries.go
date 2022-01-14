@@ -19,15 +19,24 @@ type AuthenticatorService interface {
 
 type VerificationService interface {
 	IsUserVerified(identities []*identity.Info) (bool, error)
+}
+
+type StandardAttributesService interface {
 	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+}
+
+type CustomAttributesService interface {
+	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
 }
 
 type Queries struct {
 	*RawQueries
-	Store          store
-	Identities     IdentityService
-	Authenticators AuthenticatorService
-	Verification   VerificationService
+	Store              store
+	Identities         IdentityService
+	Authenticators     AuthenticatorService
+	Verification       VerificationService
+	StandardAttributes StandardAttributesService
+	CustomAttributes   CustomAttributesService
 }
 
 func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
@@ -51,10 +60,15 @@ func (p *Queries) Get(id string, role accesscontrol.Role) (*model.User, error) {
 		return nil, err
 	}
 
-	stdAttrs, err := p.Verification.DeriveStandardAttributes(role, id, user.UpdatedAt, user.StandardAttributes)
+	stdAttrs, err := p.StandardAttributes.DeriveStandardAttributes(role, id, user.UpdatedAt, user.StandardAttributes)
 	if err != nil {
 		return nil, err
 	}
 
-	return newUserModel(user, identities, authenticators, isVerified, stdAttrs), nil
+	customAttrs, err := p.CustomAttributes.ReadCustomAttributesInStorageForm(role, id, user.CustomAttributes)
+	if err != nil {
+		return nil, err
+	}
+
+	return newUserModel(user, identities, authenticators, isVerified, stdAttrs, customAttrs), nil
 }

@@ -38,7 +38,10 @@ import VerificationConfigurationScreen from "./graphql/portal/VerificationConfig
 import BiometricConfigurationScreen from "./graphql/portal/BiometricConfigurationScreen";
 import SubscriptionScreen from "./graphql/portal/SubscriptionScreen";
 import SMTPConfigurationScreen from "./graphql/portal/SMTPConfigurationScreen";
-import UserProfileConfigurationScreen from "./graphql/portal/UserProfileConfigurationScreen";
+import StandardAttributesConfigurationScreen from "./graphql/portal/StandardAttributesConfigurationScreen";
+import CustomAttributesConfigurationScreen from "./graphql/portal/CustomAttributesConfigurationScreen";
+import EditCustomAttributeScreen from "./graphql/portal/EditCustomAttributeScreen";
+import CreateCustomAttributeScreen from "./graphql/portal/CreateCustomAttributeScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -151,8 +154,20 @@ const AppRoot: React.FC = function AppRoot() {
             element={<LocalizationConfigurationScreen />}
           />
           <Route
-            path="/configuration/user-profile"
-            element={<UserProfileConfigurationScreen />}
+            path="/configuration/user-profile/standard-attributes"
+            element={<StandardAttributesConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/user-profile/custom-attributes"
+            element={<CustomAttributesConfigurationScreen />}
+          />
+          <Route
+            path="/configuration/user-profile/custom-attributes/:index/edit"
+            element={<EditCustomAttributeScreen />}
+          />
+          <Route
+            path="/configuration/user-profile/custom-attributes/add"
+            element={<CreateCustomAttributeScreen />}
           />
           <Route
             path="/configuration/smtp"

@@ -36,6 +36,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -325,12 +326,26 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 		RateLimiter:       limiter,
 	}
+	serviceNoEvent := &stdattrs.ServiceNoEvent{
+		UserProfileConfig: userProfileConfig,
+		Identities:        serviceService,
+		UserQueries:       rawQueries,
+		UserStore:         store,
+		ClaimStore:        storePQ,
+	}
+	customattrsServiceNoEvent := &customattrs.ServiceNoEvent{
+		Config:      userProfileConfig,
+		UserQueries: rawQueries,
+		UserStore:   store,
+	}
 	queries := &user.Queries{
-		RawQueries:     rawQueries,
-		Store:          store,
-		Identities:     serviceService,
-		Authenticators: service4,
-		Verification:   verificationService,
+		RawQueries:         rawQueries,
+		Store:              store,
+		Identities:         serviceService,
+		Authenticators:     service4,
+		Verification:       verificationService,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	userLoader := loader.NewUserLoader(queries)
 	identityLoader := loader.NewIdentityLoader(serviceService)
@@ -399,19 +414,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	webhookKeyMaterials := deps.ProvideWebhookKeyMaterials(secretConfig)
 	syncHTTPClient := hook.NewSyncHTTPClient(hookConfig)
 	asyncHTTPClient := hook.NewAsyncHTTPClient()
-	serviceNoEvent := &stdattrs.ServiceNoEvent{
-		UserProfileConfig: userProfileConfig,
-		Identities:        serviceService,
-		UserQueries:       queries,
-		UserStore:         store,
-	}
 	deliverer := &hook.Deliverer{
-		Config:                 hookConfig,
-		Secret:                 webhookKeyMaterials,
-		Clock:                  clockClock,
-		SyncHTTP:               syncHTTPClient,
-		AsyncHTTP:              asyncHTTPClient,
-		StdAttrsServiceNoEvent: serviceNoEvent,
+		Config:             hookConfig,
+		Secret:             webhookKeyMaterials,
+		Clock:              clockClock,
+		SyncHTTP:           syncHTTPClient,
+		AsyncHTTP:          asyncHTTPClient,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	sink := &hook.Sink{
 		Logger:    hookLogger,
@@ -443,11 +453,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		WelcomeMessageProvider: welcomemessageProvider,
 	}
 	commands := &user.Commands{
-		RawCommands:       rawCommands,
-		RawQueries:        rawQueries,
-		Events:            eventService,
-		Verification:      verificationService,
-		UserProfileConfig: userProfileConfig,
+		RawCommands:        rawCommands,
+		RawQueries:         rawQueries,
+		Events:             eventService,
+		Verification:       verificationService,
+		UserProfileConfig:  userProfileConfig,
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
 	}
 	userProvider := &user.Provider{
 		Commands: commands,
@@ -473,7 +485,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
-		UserQueries:       queries,
+		UserQueries:       rawQueries,
 		UserStore:         store,
 		Events:            eventService,
 	}
@@ -673,10 +685,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Graph: interactionService,
 	}
 	facadeUserFacade := &facade2.UserFacade{
-		UserSearchService: elasticsearchService,
-		Users:             userFacade,
-		StdAttrsService:   stdattrsService,
-		Interaction:       serviceInteractionService,
+		UserSearchService:  elasticsearchService,
+		Users:              userFacade,
+		StandardAttributes: serviceNoEvent,
+		Interaction:        serviceInteractionService,
 	}
 	auditLogFeatureConfig := featureConfig.AuditLog
 	auditLogFacade := &facade2.AuditLogFacade{
@@ -703,6 +715,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sessionFacade := &facade2.SessionFacade{
 		Sessions: manager2,
 	}
+	userProfileFacade := &facade2.UserProfileFacade{
+		StandardAttributes: serviceNoEvent,
+		CustomAttributes:   customattrsServiceNoEvent,
+		Events:             eventService,
+	}
 	graphqlContext := &graphql.Context{
 		GQLLogger:           logger,
 		Users:               userLoader,
@@ -715,6 +732,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuthenticatorFacade: facadeAuthenticatorFacade,
 		VerificationFacade:  verificationFacade,
 		SessionFacade:       sessionFacade,
+		UserProfileFacade:   userProfileFacade,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,

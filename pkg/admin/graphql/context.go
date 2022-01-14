@@ -43,7 +43,6 @@ type UserFacade interface {
 	ResetPassword(id string, password string) error
 	SetDisabled(id string, isDisabled bool, reason *string) error
 	Delete(id string) error
-	UpdateStandardAttributes(role accesscontrol.Role, id string, stdAttrs map[string]interface{}) error
 }
 
 type IdentityFacade interface {
@@ -62,7 +61,17 @@ type AuthenticatorFacade interface {
 type VerificationFacade interface {
 	Get(userID string) ([]model.Claim, error)
 	SetVerified(userID string, claimName string, claimValue string, isVerified bool) error
+}
+
+type UserProfileFacade interface {
 	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
+	UpdateUserProfile(
+		role accesscontrol.Role,
+		userID string,
+		stdAttrs map[string]interface{},
+		customAttrs map[string]interface{},
+	) error
 }
 
 type SessionFacade interface {
@@ -90,6 +99,7 @@ type Context struct {
 	AuthenticatorFacade AuthenticatorFacade
 	VerificationFacade  VerificationFacade
 	SessionFacade       SessionFacade
+	UserProfileFacade   UserProfileFacade
 }
 
 func (c *Context) Logger() *log.Logger {

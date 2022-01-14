@@ -75,6 +75,7 @@ type Mutations struct {
 
 type UserMutations struct {
 	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
+	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
 }
 
 func ParseHookResponse(r io.Reader) (*HookResponse, error) {

@@ -8,6 +8,7 @@ import {
   CommandButton,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
+import { produce } from "immer";
 
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import NavBreadcrumb from "../../NavBreadcrumb";
@@ -18,9 +19,10 @@ import FormContainer from "../../FormContainer";
 import DeleteUserDialog from "./DeleteUserDialog";
 import SetUserDisabledDialog from "./SetUserDisabledDialog";
 import UserDetailSummary from "./UserDetailSummary";
-import UserDetailsStandardAttributes, {
+import UserProfileForm, {
+  CustomAttributesState,
   StandardAttributesState,
-} from "./UserDetailsStandardAttributes";
+} from "./UserProfileForm";
 import UserDetailsAccountSecurity from "./UserDetailsAccountSecurity";
 import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
@@ -36,8 +38,11 @@ import { getEndUserAccountIdentifier } from "../../util/user";
 import {
   PortalAPIAppConfig,
   StandardAttributes,
+  CustomAttributes,
   AccessControlLevelString,
+  CustomAttributesAttributeConfig,
 } from "../../types";
+import { parseJSONPointer } from "../../util/jsonpointer";
 
 import styles from "./UserDetailsScreen.module.scss";
 
@@ -47,7 +52,7 @@ interface UserDetailsProps {
   appConfig: PortalAPIAppConfig | null;
 }
 
-const STANDARD_ATTRIBUTES_KEY = "standard-attributes";
+const USER_PROFILE_KEY = "user-profile";
 const ACCOUNT_SECURITY_PIVOT_KEY = "account-security";
 const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
@@ -55,10 +60,13 @@ const SESSION_PIVOT_KEY = "session";
 interface FormState {
   userID: string;
   standardAttributes: StandardAttributesState;
+  customAttributes: CustomAttributesState;
 }
 
 // eslint-disable-next-line complexity
-function makeState(attrs: StandardAttributes): StandardAttributesState {
+function makeStandardAttributesState(
+  attrs: StandardAttributes
+): StandardAttributesState {
   return {
     email: attrs.email ?? "",
     phone_number: attrs.phone_number ?? "",
@@ -86,11 +94,115 @@ function makeState(attrs: StandardAttributes): StandardAttributesState {
   };
 }
 
+function makeCustomAttributesState(
+  attrs: CustomAttributes,
+  config: CustomAttributesAttributeConfig[]
+): CustomAttributesState {
+  const state: CustomAttributesState = {};
+  for (const c of config) {
+    const ptr = parseJSONPointer(c.pointer);
+    // FIXME(custom-attributes): support any-level jsonpointer.
+    const unknownValue = attrs[ptr[0]];
+    if (unknownValue == null) {
+      state[c.pointer] = "";
+    } else {
+      state[c.pointer] = String(unknownValue);
+    }
+
+    if (c.type === "phone_number") {
+      if (unknownValue == null) {
+        state["phone_number" + c.pointer] = "";
+      } else {
+        state["phone_number" + c.pointer] = String(unknownValue);
+      }
+    }
+  }
+  return state;
+}
+
+function makeStandardAttributesFromState(
+  state: StandardAttributesState
+): StandardAttributes {
+  return produce(state, (state) => {
+    delete state.updated_at;
+
+    for (const key of Object.keys(state)) {
+      // @ts-expect-error
+      const value = state[key];
+      if (value === "") {
+        // @ts-expect-error
+        delete state[key];
+      }
+    }
+
+    for (const key of Object.keys(state.address)) {
+      // @ts-expect-error
+      const value = state.address[key];
+      if (value === "") {
+        // @ts-expect-error
+        delete state.address[key];
+      }
+    }
+    if (Object.keys(state.address).length === 0) {
+      // @ts-expect-error
+      delete state.address;
+    }
+  });
+}
+
+// eslint-disable-next-line complexity
+function makeCustomAttributesFromState(
+  state: CustomAttributesState,
+  config: CustomAttributesAttributeConfig[]
+): CustomAttributes {
+  const out: CustomAttributes = {};
+  for (const c of config) {
+    const value = state[c.pointer];
+
+    if (value === "") {
+      continue;
+    }
+
+    // FIXME(custom-attributes): support any-level jsonpointer.
+    const ptr = parseJSONPointer(c.pointer);
+    const fieldName = ptr[0];
+
+    switch (c.type) {
+      case "string":
+        out[fieldName] = value;
+        break;
+      case "number":
+        out[fieldName] = parseFloat(value);
+        break;
+      case "integer":
+        out[fieldName] = parseInt(value, 10);
+        break;
+      case "enum":
+        out[fieldName] = value;
+        break;
+      case "phone_number":
+        out[fieldName] = value;
+        break;
+      case "email":
+        out[fieldName] = value;
+        break;
+      case "url":
+        out[fieldName] = value;
+        break;
+      case "country_code":
+        out[fieldName] = value;
+        break;
+    }
+  }
+
+  return out;
+}
+
 const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
   const { selectedKey, onLinkClick } = usePivotNavigation([
-    STANDARD_ATTRIBUTES_KEY,
+    USER_PROFILE_KEY,
     ACCOUNT_SECURITY_PIVOT_KEY,
     CONNECTED_IDENTITIES_PIVOT_KEY,
     SESSION_PIVOT_KEY,
@@ -111,7 +223,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     return rawLoginIdKeys.map((loginIdKey) => loginIdKey.key);
   }, [appConfig]);
 
-  const accessControl = useMemo(() => {
+  const standardAttributeAccessControl = useMemo(() => {
     const record: Record<string, AccessControlLevelString> = {};
     for (const item of appConfig?.user_profile?.standard_attributes
       ?.access_control ?? []) {
@@ -120,12 +232,29 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     return record;
   }, [appConfig]);
 
+  const customAttributesConfig: CustomAttributesAttributeConfig[] =
+    useMemo(() => {
+      return appConfig?.user_profile?.custom_attributes?.attributes ?? [];
+    }, [appConfig]);
+
   const onChangeStandardAttributes = useCallback(
     (attrs: StandardAttributesState) => {
       setState((state) => {
         return {
           ...state,
           standardAttributes: attrs,
+        };
+      });
+    },
+    [setState]
+  );
+
+  const onChangeCustomAttributes = useCallback(
+    (attrs: CustomAttributesState) => {
+      setState((state) => {
+        return {
+          ...state,
+          customAttributes: attrs,
         };
       });
     },
@@ -160,14 +289,17 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
       />
       <Pivot selectedKey={selectedKey} onLinkClick={onLinkClick}>
         <PivotItem
-          itemKey={STANDARD_ATTRIBUTES_KEY}
-          headerText={renderToString("UserDetails.standard-attributes.header")}
+          itemKey={USER_PROFILE_KEY}
+          headerText={renderToString("UserDetails.user-profile.header")}
         >
-          <UserDetailsStandardAttributes
+          <UserProfileForm
             identities={identities}
             standardAttributes={state.standardAttributes}
             onChangeStandardAttributes={onChangeStandardAttributes}
-            accessControl={accessControl}
+            standardAttributeAccessControl={standardAttributeAccessControl}
+            customAttributesConfig={customAttributesConfig}
+            customAttributes={state.customAttributes}
+            onChangeCustomAttributes={onChangeCustomAttributes}
           />
         </PivotItem>
         <PivotItem
@@ -255,6 +387,11 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
   function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
     const { user, effectiveAppConfig } = props;
     const navigate = useNavigate();
+    const customAttributesConfig = useMemo(() => {
+      return (
+        effectiveAppConfig.user_profile?.custom_attributes?.attributes ?? []
+      );
+    }, [effectiveAppConfig.user_profile?.custom_attributes?.attributes]);
 
     const navBreadcrumbItems = React.useMemo(() => {
       return [
@@ -301,9 +438,20 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     const defaultState = useMemo(() => {
       return {
         userID: user.id,
-        standardAttributes: makeState(user.standardAttributes),
+        standardAttributes: makeStandardAttributesState(
+          user.standardAttributes
+        ),
+        customAttributes: makeCustomAttributesState(
+          user.customAttributes,
+          customAttributesConfig
+        ),
       };
-    }, [user.id, user.standardAttributes]);
+    }, [
+      user.id,
+      user.standardAttributes,
+      user.customAttributes,
+      customAttributesConfig,
+    ]);
 
     const endUserAccountIdentifier = useMemo(
       () => getEndUserAccountIdentifier(user.standardAttributes),
@@ -314,9 +462,16 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
 
     const submit = useCallback(
       async (state: FormState) => {
-        await updateUser(state.userID, state.standardAttributes);
+        await updateUser(
+          state.userID,
+          makeStandardAttributesFromState(state.standardAttributes),
+          makeCustomAttributesFromState(
+            state.customAttributes,
+            customAttributesConfig
+          )
+        );
       },
-      [updateUser]
+      [updateUser, customAttributesConfig]
     );
 
     const form = useSimpleForm({
