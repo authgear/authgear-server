@@ -892,7 +892,8 @@
   "UserProfileAttributesList.header.tooltip.portal_ui": "Access control for the user profile attributes in Admin Portal > User Management",
 
   "UserProfileAttributesList.dialog.title.pending-update": "Are you sure to change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}”?",
-  "UserProfileAttributesList.dialog.description.pending-update": "If you change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}” to {strong, react, children{{level}}}, the Access Right of {affected, select, bearer{Token Bearer} end_user{End-user} other{Token Bearer and End-user}} will also be changed to {strong, react, children{{level}}}.",
+  "UserProfileAttributesList.dialog.adjustment.condition": "If you change the {strong, react, children{{party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}}}} Access Right of {strong, react, children{“{fieldName}”}} to {strong, react, children{{level}}}, then:",
+  "UserProfileAttributesList.dialog.adjustment.consequence": "The Access Right of {strong, react, children{{party, select, end_user{End-user} bearer{Token Bearer} portal_ui{Portal Admin} other{}}}} will also be changed to {strong, react, children{{level}}}.",
 
   "standard-attribute.name": "Name",
   "standard-attribute.given_name": "Given Name",

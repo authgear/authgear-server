@@ -23,6 +23,7 @@ import {
   IIconProps,
   IDragDropEvents,
   Icon,
+  Text,
 } from "@fluentui/react";
 import LabelWithTooltip from "./LabelWithTooltip";
 import {
@@ -83,34 +84,39 @@ function intOfAccessControlLevelString(
   }
 }
 
-function accessControlLevelStringOfInt(
-  value: number
-): AccessControlLevelString {
-  switch (value) {
-    case 1:
-      return "hidden";
-    case 2:
-      return "readonly";
-    case 3:
-      return "readwrite";
-  }
-  throw new Error("unknown value: " + String(value));
-}
-
-function adjustAccessControl(
+type AccessControlAdjuster = (
   accessControl: UserProfileAttributesAccessControl,
   target: keyof UserProfileAttributesAccessControl,
-  refValue: AccessControlLevelString
+  level: AccessControlLevelString
+) => UserProfileAttributesListAccessControlAdjustment | undefined;
+
+function atLeast(
+  accessControl: UserProfileAttributesAccessControl,
+  target: keyof UserProfileAttributesAccessControl,
+  level: AccessControlLevelString
 ): UserProfileAttributesListAccessControlAdjustment | undefined {
   const targetLevelInt = intOfAccessControlLevelString(accessControl[target]);
-  const refLevelInt = intOfAccessControlLevelString(refValue);
-  if (targetLevelInt <= refLevelInt) {
-    return undefined;
+  const levelInt = intOfAccessControlLevelString(level);
+  if (targetLevelInt < levelInt) {
+    return [target, level];
   }
-
-  return [target, accessControlLevelStringOfInt(refLevelInt)];
+  return undefined;
 }
 
+function atMost(
+  accessControl: UserProfileAttributesAccessControl,
+  target: keyof UserProfileAttributesAccessControl,
+  level: AccessControlLevelString
+): UserProfileAttributesListAccessControlAdjustment | undefined {
+  const targetLevelInt = intOfAccessControlLevelString(accessControl[target]);
+  const levelInt = intOfAccessControlLevelString(level);
+  if (targetLevelInt > levelInt) {
+    return [target, level];
+  }
+  return undefined;
+}
+
+// eslint-disable-next-line complexity
 function makeUpdate<T extends UserProfileAttributesListItem>(
   prevItems: T[],
   index: number,
@@ -118,28 +124,67 @@ function makeUpdate<T extends UserProfileAttributesListItem>(
   newValue: AccessControlLevelString
 ): UserProfileAttributesListPendingUpdate {
   const accessControl = prevItems[index].access_control;
+
   const mainAdjustment: UserProfileAttributesListAccessControlAdjustment = [
     key,
     newValue,
   ];
 
-  const adjustments: ReturnType<typeof adjustAccessControl>[] = [];
+  const adjustments: ReturnType<AccessControlAdjuster>[] = [];
   switch (key) {
-    case "end_user":
+    case "end_user": {
+      switch (newValue) {
+        case "hidden": {
+          adjustments.push(atLeast(accessControl, "bearer", "hidden"));
+          adjustments.push(atLeast(accessControl, "portal_ui", "hidden"));
+          break;
+        }
+        case "readonly": {
+          adjustments.push(atLeast(accessControl, "bearer", "readonly"));
+          adjustments.push(atLeast(accessControl, "portal_ui", "readonly"));
+          break;
+        }
+        case "readwrite": {
+          adjustments.push(atLeast(accessControl, "bearer", "readonly"));
+          adjustments.push(atLeast(accessControl, "portal_ui", "readwrite"));
+          break;
+        }
+      }
       break;
+    }
     case "bearer": {
-      if (newValue === "hidden") {
-        adjustments.push(
-          adjustAccessControl(accessControl, "end_user", newValue)
-        );
+      switch (newValue) {
+        case "hidden": {
+          adjustments.push(atMost(accessControl, "end_user", "hidden"));
+          break;
+        }
+        case "readonly": {
+          adjustments.push(atLeast(accessControl, "portal_ui", "readonly"));
+          break;
+        }
+        case "readwrite": {
+          // Unreachable because readwrite is not a valid value for bearer.
+          break;
+        }
       }
       break;
     }
     case "portal_ui": {
-      adjustments.push(adjustAccessControl(accessControl, "bearer", newValue));
-      adjustments.push(
-        adjustAccessControl(accessControl, "end_user", newValue)
-      );
+      switch (newValue) {
+        case "hidden": {
+          adjustments.push(atMost(accessControl, "end_user", "hidden"));
+          adjustments.push(atMost(accessControl, "bearer", "hidden"));
+          break;
+        }
+        case "readonly": {
+          adjustments.push(atMost(accessControl, "end_user", "readonly"));
+          break;
+        }
+        case "readwrite": {
+          // Nothing to adjust.
+          break;
+        }
+      }
       break;
     }
   }
@@ -267,15 +312,6 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
     const pointer = items[index].pointer;
     const fieldName = parseJSONPointer(pointer)[0];
 
-    const formattedLevel = renderToString(
-      "user-profile.access-control-level." + pendingUpdate.mainAdjustment[1]
-    );
-
-    const affected =
-      pendingUpdate.otherAdjustments.length === 1
-        ? pendingUpdate.otherAdjustments[0][0]
-        : "other";
-
     return {
       title: (
         <FormattedMessage
@@ -287,15 +323,36 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
         />
       ),
       subText: (
-        <FormattedMessage
-          id="UserProfileAttributesList.dialog.description.pending-update"
-          values={{
-            fieldName,
-            affected,
-            party: pendingUpdate.mainAdjustment[0],
-            level: formattedLevel,
-          }}
-        />
+        <>
+          <Text block={true}>
+            <FormattedMessage
+              id="UserProfileAttributesList.dialog.adjustment.condition"
+              values={{
+                fieldName,
+                party: pendingUpdate.mainAdjustment[0],
+                level: renderToString(
+                  "user-profile.access-control-level." +
+                    pendingUpdate.mainAdjustment[1]
+                ),
+              }}
+            />
+          </Text>
+          {pendingUpdate.otherAdjustments.map((a, i) => {
+            return (
+              <Text key={i} block={true} className={styles.consequence}>
+                <FormattedMessage
+                  id="UserProfileAttributesList.dialog.adjustment.consequence"
+                  values={{
+                    party: a[0],
+                    level: renderToString(
+                      "user-profile.access-control-level." + a[1]
+                    ),
+                  }}
+                />
+              </Text>
+            );
+          })}
+        </>
       ),
     };
   }, [renderToString, pendingUpdate, items]);
@@ -365,38 +422,18 @@ function UserProfileAttributesList<T extends UserProfileAttributesListItem>(
             break;
           case "bearer":
             options = [optionHidden, optionReadonly];
-            if (item.access_control.portal_ui === "hidden") {
-              optionReadonly.disabled = true;
-            }
             selectedKey = item.access_control.bearer;
             break;
           case "end_user":
             options = [optionHidden, optionReadonly, optionReadwrite];
-            if (item.access_control.bearer === "hidden") {
-              optionReadwrite.disabled = true;
-              optionReadonly.disabled = true;
-            }
-            if (item.access_control.portal_ui === "hidden") {
-              optionReadwrite.disabled = true;
-              optionReadonly.disabled = true;
-            }
-            if (item.access_control.portal_ui === "readonly") {
-              optionReadwrite.disabled = true;
-            }
             selectedKey = item.access_control.end_user;
             break;
         }
-
-        const disabledOptionCount = options.reduce((a, b) => {
-          return a + (b.disabled === true ? 1 : 0);
-        }, 0);
-        const dropdownIsDisabled = options.length - disabledOptionCount <= 1;
 
         return (
           <Dropdown
             options={options}
             selectedKey={selectedKey}
-            disabled={dropdownIsDisabled}
             onChange={makeDropdownOnChange(index, key)}
           />
         );
