@@ -102,7 +102,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithCookieSessionType(
 ) (*SignupAnonymousUserResult, error) {
 	s := session.GetSession(req.Context())
 	if s != nil && s.SessionType() == session.TypeIdentityProvider {
-		user, err := h.UserProvider.Get(s.GetAuthenticationInfo().UserID, accesscontrol.EmptyRole)
+		user, err := h.UserProvider.Get(s.GetAuthenticationInfo().UserID, accesscontrol.RoleGreatest)
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +156,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 			return nil, err
 		}
 
-		user, err := h.UserProvider.Get(authz.UserID, accesscontrol.EmptyRole)
+		user, err := h.UserProvider.Get(authz.UserID, accesscontrol.RoleGreatest)
 		if err != nil {
 			return nil, err
 		}
@@ -310,7 +310,7 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 		panic("unknown web session type")
 	}
 
-	user, err := h.UserProvider.Get(userID, accesscontrol.EmptyRole)
+	user, err := h.UserProvider.Get(userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return
 	}
