@@ -1,3 +1,4 @@
+/* global JSX */
 import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
@@ -12,6 +13,8 @@ import {
   IColumn,
   IDetailsHeaderProps,
   DetailsHeader,
+  IRenderFunction,
+  IDetailsColumnRenderTooltipProps,
 } from "@fluentui/react";
 import {
   isPromotionConflictBehaviour,
@@ -33,6 +36,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import Tooltip from "../../Tooltip";
 import styles from "./AnonymousUsersConfigurationScreen.module.scss";
 
 const dropDownStyles = {
@@ -134,25 +138,21 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
         {
           key: "name",
           name: renderToString(
-            "AnonymousUsersConfigurationScreen.user-lifetime.token.application-name.label"
+            "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.name"
           ),
           minWidth: 150,
           maxWidth: 150,
           isMultiline: true,
         },
         {
-          key: "refreshTokenIdleTimeout",
-          name: renderToString(
-            "AnonymousUsersConfigurationScreen.user-lifetime.token.refresh-token-idle-timeout.label"
-          ),
+          key: "refresh-token-idle-timeout",
+          name: "",
           minWidth: 150,
           maxWidth: 150,
         },
         {
-          key: "refreshTokenLifetime",
-          name: renderToString(
-            "AnonymousUsersConfigurationScreen.user-lifetime.token.refresh-token-lifetime.label"
-          ),
+          key: "refresh-token-lifetime",
+          name: "",
           minWidth: 150,
           maxWidth: 150,
         },
@@ -181,9 +181,9 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
         switch (column?.key) {
           case "name":
             return item.name;
-          case "refreshTokenIdleTimeout":
+          case "refresh-token-idle-timeout":
             return item.refreshTokenIdleTimeout;
-          case "refreshTokenLifetime":
+          case "refresh-token-lifetime":
             return item.refreshTokenLifetime;
           default:
             return null;
@@ -192,12 +192,63 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
       []
     );
 
-    const onRenderDetailsHeader = useCallback((props?: IDetailsHeaderProps) => {
-      if (props == null) {
-        return null;
-      }
-      return <DetailsHeader {...props} className={styles.detailsHeader} />;
-    }, []);
+    const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
+      useCallback(
+        (
+          props?: IDetailsColumnRenderTooltipProps,
+          defaultRender?: (
+            props: IDetailsColumnRenderTooltipProps
+          ) => JSX.Element | null
+        ) => {
+          if (props == null || defaultRender == null || props.column == null) {
+            return null;
+          }
+          if (
+            props.column.key === "refresh-token-idle-timeout" ||
+            props.column.key === "refresh-token-lifetime"
+          ) {
+            return (
+              <Tooltip
+                tooltipMessageId={
+                  "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip." +
+                  props.column.key
+                }
+              >
+                <Text
+                  variant="medium"
+                  block={true}
+                  className={styles.tooltipLabel}
+                >
+                  <FormattedMessage
+                    id={
+                      "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label." +
+                      props.column.key
+                    }
+                  />
+                </Text>
+              </Tooltip>
+            );
+          }
+          return defaultRender(props);
+        },
+        []
+      );
+
+    const onRenderDetailsHeader = useCallback(
+      (props?: IDetailsHeaderProps) => {
+        if (props == null) {
+          return null;
+        }
+        return (
+          <DetailsHeader
+            {...props}
+            className={styles.detailsHeader}
+            onRenderColumnHeaderTooltip={onRenderColumnHeaderTooltip}
+          />
+        );
+      },
+      [onRenderColumnHeaderTooltip]
+    );
 
     return (
       <Widget className={styles.widget}>
@@ -212,25 +263,41 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
             <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.title" />
           </Text>
           {sessionIdleTimeoutEnabled && (
-            <Text variant="medium" block={true} className={styles.sessionItem}>
+            <Text variant="medium" className={styles.sessionItem}>
+              <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout">
+                <span className={styles.label}>
+                  <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.idle-timeout" />
+                </span>
+              </Tooltip>
+              :{" "}
               <FormattedMessage
-                id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.idle-timeout.description"
+                id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
                 values={{
                   seconds: sessionIdleTimeoutSeconds?.toFixed(0) ?? "",
                 }}
               />
             </Text>
           )}
-          <Text variant="medium" block={true} className={styles.sessionItem}>
+          <Text variant="medium" className={styles.sessionItem}>
+            <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime">
+              <span className={styles.label}>
+                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime" />
+              </span>
+            </Tooltip>
+            :{" "}
             <FormattedMessage
-              id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.session-lifetime.description"
+              id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
               values={{
                 seconds: sessionLifetimeSeconds?.toFixed(0) ?? "",
               }}
             />
           </Text>
-          <Text variant="medium" block={true} className={styles.sessionItem}>
-            <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.persistent-cookie.label" />{" "}
+          <Text variant="medium" className={styles.sessionItem}>
+            <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.persistent-cookie">
+              <span className={styles.label}>
+                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.persistent-cookie" />
+              </span>
+            </Tooltip>
             :{" "}
             <FormattedMessage
               id={sessionPersistentCookie ? "enabled" : "disabled"}
