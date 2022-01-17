@@ -1,13 +1,27 @@
+/* global JSX */
 import React, { useCallback, useContext, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { produce } from "immer";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { Dropdown, IDropdownOption, Toggle } from "@fluentui/react";
+import {
+  Dropdown,
+  IDropdownOption,
+  Toggle,
+  Text,
+  DetailsList,
+  SelectionMode,
+  IColumn,
+  IDetailsHeaderProps,
+  DetailsHeader,
+  IRenderFunction,
+  IDetailsColumnRenderTooltipProps,
+} from "@fluentui/react";
 import {
   isPromotionConflictBehaviour,
   PortalAPIAppConfig,
   PromotionConflictBehaviour,
   promotionConflictBehaviours,
+  OAuthClientConfig,
 } from "../../types";
 import { clearEmptyObject } from "../../util/misc";
 import ShowLoading from "../../ShowLoading";
@@ -22,6 +36,7 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import FormContainer from "../../FormContainer";
+import Tooltip from "../../Tooltip";
 import styles from "./AnonymousUsersConfigurationScreen.module.scss";
 
 const dropDownStyles = {
@@ -33,6 +48,11 @@ const dropDownStyles = {
 interface FormState {
   enabled: boolean;
   promotionConflictBehaviour: PromotionConflictBehaviour;
+  oauthClients: OAuthClientConfig[];
+  sessionPersistentCookie: boolean;
+  sessionLifetimeSeconds: number | undefined;
+  sessionIdleTimeoutEnabled: boolean;
+  sessionIdleTimeoutSeconds: number | undefined;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
@@ -40,7 +60,16 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     config.authentication?.identities?.includes("anonymous") ?? false;
   const promotionConflictBehaviour =
     config.identity?.on_conflict?.promotion ?? "error";
-  return { enabled, promotionConflictBehaviour };
+  const oauthClients = config.oauth?.clients ?? [];
+  return {
+    enabled,
+    promotionConflictBehaviour,
+    oauthClients,
+    sessionPersistentCookie: !(config.session?.cookie_non_persistent ?? false),
+    sessionLifetimeSeconds: config.session?.lifetime_seconds,
+    sessionIdleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
+    sessionIdleTimeoutSeconds: config.session?.idle_timeout_seconds,
+  };
 }
 
 function constructConfig(
@@ -82,6 +111,222 @@ const conflictBehaviourMessageId: Record<PromotionConflictBehaviour, string> = {
   login: "AnonymousIdentityConflictBehaviour.login",
   error: "AnonymousIdentityConflictBehaviour.error",
 };
+
+interface OAuthClientListItem {
+  name: string;
+  refreshTokenIdleTimeout: string;
+  refreshTokenLifetime: string;
+}
+
+interface AnonymousUserLifeTimeDescriptionProps {
+  form: AppConfigFormModel<FormState>;
+}
+
+const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptionProps> =
+  function AnonymousUserLifeTimeDescription(props) {
+    const { renderToString } = useContext(Context);
+    const {
+      sessionIdleTimeoutEnabled,
+      sessionIdleTimeoutSeconds,
+      sessionLifetimeSeconds,
+      sessionPersistentCookie,
+      oauthClients,
+    } = props.form.state;
+
+    const columns: IColumn[] = useMemo(
+      () => [
+        {
+          key: "name",
+          name: renderToString(
+            "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.name"
+          ),
+          minWidth: 150,
+          maxWidth: 150,
+          isMultiline: true,
+        },
+        {
+          key: "refresh-token-idle-timeout",
+          name: "",
+          minWidth: 150,
+          maxWidth: 150,
+        },
+        {
+          key: "refresh-token-lifetime",
+          name: "",
+          minWidth: 150,
+          maxWidth: 150,
+        },
+      ],
+      [renderToString]
+    );
+
+    const items: OAuthClientListItem[] = useMemo(() => {
+      return oauthClients.map((client) => {
+        return {
+          name: client.name ?? "",
+          refreshTokenIdleTimeout: client.refresh_token_idle_timeout_enabled
+            ? client.refresh_token_idle_timeout_seconds?.toFixed(0) ?? ""
+            : "-",
+          refreshTokenLifetime:
+            client.refresh_token_lifetime_seconds?.toFixed(0) ?? "",
+        };
+      });
+    }, [oauthClients]);
+
+    const onRenderItemColumn = useCallback(
+      (item?: OAuthClientListItem, _index?: number, column?: IColumn) => {
+        if (item == null) {
+          return null;
+        }
+        switch (column?.key) {
+          case "name":
+            return item.name;
+          case "refresh-token-idle-timeout":
+            return item.refreshTokenIdleTimeout;
+          case "refresh-token-lifetime":
+            return item.refreshTokenLifetime;
+          default:
+            return null;
+        }
+      },
+      []
+    );
+
+    const onRenderColumnHeaderTooltip: IRenderFunction<IDetailsColumnRenderTooltipProps> =
+      useCallback(
+        (
+          props?: IDetailsColumnRenderTooltipProps,
+          defaultRender?: (
+            props: IDetailsColumnRenderTooltipProps
+          ) => JSX.Element | null
+        ) => {
+          if (props == null || defaultRender == null || props.column == null) {
+            return null;
+          }
+          if (
+            props.column.key === "refresh-token-idle-timeout" ||
+            props.column.key === "refresh-token-lifetime"
+          ) {
+            return (
+              <Tooltip
+                tooltipMessageId={
+                  "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip." +
+                  props.column.key
+                }
+              >
+                <Text
+                  variant="medium"
+                  block={true}
+                  className={styles.tooltipLabel}
+                >
+                  <FormattedMessage
+                    id={
+                      "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label." +
+                      props.column.key
+                    }
+                  />
+                </Text>
+              </Tooltip>
+            );
+          }
+          return defaultRender(props);
+        },
+        []
+      );
+
+    const onRenderDetailsHeader = useCallback(
+      (props?: IDetailsHeaderProps) => {
+        if (props == null) {
+          return null;
+        }
+        return (
+          <DetailsHeader
+            {...props}
+            className={styles.detailsHeader}
+            onRenderColumnHeaderTooltip={onRenderColumnHeaderTooltip}
+          />
+        );
+      },
+      [onRenderColumnHeaderTooltip]
+    );
+
+    return (
+      <Widget className={styles.widget}>
+        <WidgetTitle>
+          <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.title" />
+        </WidgetTitle>
+        <Text variant="medium" block={true}>
+          <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.description" />
+        </Text>
+        <div>
+          <Text className={styles.title} variant="medium" block={true}>
+            <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.title" />
+          </Text>
+          {sessionIdleTimeoutEnabled && (
+            <Text variant="medium" className={styles.sessionItem}>
+              <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout">
+                <span className={styles.label}>
+                  <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.idle-timeout" />
+                </span>
+              </Tooltip>
+              :{" "}
+              <FormattedMessage
+                id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
+                values={{
+                  seconds: sessionIdleTimeoutSeconds?.toFixed(0) ?? "",
+                }}
+              />
+            </Text>
+          )}
+          <Text variant="medium" className={styles.sessionItem}>
+            <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime">
+              <span className={styles.label}>
+                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime" />
+              </span>
+            </Tooltip>
+            :{" "}
+            <FormattedMessage
+              id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
+              values={{
+                seconds: sessionLifetimeSeconds?.toFixed(0) ?? "",
+              }}
+            />
+          </Text>
+          <Text variant="medium" className={styles.sessionItem}>
+            <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.persistent-cookie">
+              <span className={styles.label}>
+                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.persistent-cookie" />
+              </span>
+            </Tooltip>
+            :{" "}
+            <FormattedMessage
+              id={sessionPersistentCookie ? "enabled" : "disabled"}
+            />
+          </Text>
+        </div>
+        <div>
+          <Text className={styles.title} variant="medium" block={true}>
+            <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.token.title" />
+          </Text>
+          <DetailsList
+            columns={columns}
+            items={items}
+            selectionMode={SelectionMode.none}
+            onRenderItemColumn={onRenderItemColumn}
+            onRenderDetailsHeader={onRenderDetailsHeader}
+          />
+        </div>
+        <Text variant="medium" block={true}>
+          <FormattedMessage
+            id="AnonymousUsersConfigurationScreen.user-lifetime.go-to-applications.description"
+            values={{
+              applicationsPath: "../apps",
+            }}
+          />
+        </Text>
+      </Widget>
+    );
+  };
 
 interface AnonymousUserConfigurationContentProps {
   form: AppConfigFormModel<FormState>;
@@ -159,6 +404,7 @@ const AnonymousUserConfigurationContent: React.FC<AnonymousUserConfigurationCont
             onChange={onConflictOptionChange}
           />
         </Widget>
+        <AnonymousUserLifeTimeDescription form={props.form} />
       </ScreenContent>
     );
   };
