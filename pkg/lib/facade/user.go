@@ -11,7 +11,6 @@ type UserProvider interface {
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
 	QueryPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
-	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 }
 
 type UserFacade struct {
@@ -21,4 +20,12 @@ type UserFacade struct {
 
 func (u UserFacade) Delete(userID string) error {
 	return u.Coordinator.UserDelete(userID)
+}
+
+func (u UserFacade) Disable(userID string, reason *string) error {
+	return u.Coordinator.UserDisable(userID, reason)
+}
+
+func (u UserFacade) Reenable(userID string) error {
+	return u.Coordinator.UserReenable(userID)
 }

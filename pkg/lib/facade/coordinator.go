@@ -58,6 +58,7 @@ type UserQueries interface {
 }
 
 type UserCommands interface {
+	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 	Delete(userID string) error
 }
 
@@ -420,6 +421,50 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserReenable(userID string) error {
+	err := c.UserCommands.UpdateDisabledStatus(userID, false, nil)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserReenabledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+	}
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserDisable(userID string, reason *string) error {
+	err := c.UserCommands.UpdateDisabledStatus(userID, true, reason)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserDisabledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+	}
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
 	}
 
 	return nil

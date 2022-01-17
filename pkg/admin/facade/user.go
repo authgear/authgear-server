@@ -18,8 +18,9 @@ type UserService interface {
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
 	QueryPage(sortOption user.SortOption, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
-	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
 	Delete(userID string) error
+	Disable(userID string, reason *string) error
+	Reenable(userID string) error
 }
 
 type UserSearchService interface {
@@ -101,10 +102,16 @@ func (f *UserFacade) ResetPassword(id string, password string) error {
 }
 
 func (f *UserFacade) SetDisabled(id string, isDisabled bool, reason *string) error {
-	err := f.Users.UpdateDisabledStatus(id, isDisabled, reason)
+	var err error
+	if isDisabled {
+		err = f.Users.Disable(id, reason)
+	} else {
+		err = f.Users.Reenable(id)
+	}
 	if err != nil {
 		return err
 	}
+
 	err = f.UserSearchService.ReindexUser(id, false)
 	if err != nil {
 		return err
