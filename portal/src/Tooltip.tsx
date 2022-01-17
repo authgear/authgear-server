@@ -13,6 +13,7 @@ import { FormattedMessage } from "@oursky/react-messageformat";
 interface TooltipProps {
   className?: string;
   tooltipMessageId: string;
+  children?: React.ReactNode;
 }
 
 export interface UseTooltipTargetElementResult {
@@ -42,7 +43,7 @@ export function useTooltipTargetElement(): UseTooltipTargetElementResult {
 }
 
 const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {
-  const { className, tooltipMessageId } = props;
+  const { className, tooltipMessageId, children } = props;
   const tooltipProps: ITooltipProps = React.useMemo(() => {
     return {
       // eslint-disable-next-line react/no-unstable-nested-components
@@ -62,7 +63,11 @@ const Tooltip: React.FC<TooltipProps> = function Tooltip(props: TooltipProps) {
         tooltipProps={tooltipProps}
         directionalHint={DirectionalHint.bottomCenter}
       >
-        <Icon className={styles.infoIcon} iconName={"info"} />
+        {children ? (
+          children
+        ) : (
+          <Icon className={styles.infoIcon} iconName={"info"} />
+        )}
       </TooltipHost>
     </div>
   );

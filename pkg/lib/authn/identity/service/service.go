@@ -193,12 +193,24 @@ func (s *Service) GetBySpec(spec *identity.Spec) (*identity.Info, error) {
 
 	case model.IdentityTypeAnonymous:
 		keyID, _ := extractAnonymousClaims(spec.Claims)
-		a, err := s.Anonymous.GetByKeyID(keyID)
+		if keyID != "" {
+			a, err := s.Anonymous.GetByKeyID(keyID)
+			if err != nil {
+				return nil, err
+			}
+			return anonymousToIdentityInfo(a), nil
+		}
+		// when keyID is empty, try to get the identity from user and identity id
+		userID, identityID := extractExistingIDsFromAnonymousClaims(spec.Claims)
+		if userID == "" {
+			return nil, identity.ErrIdentityNotFound
+		}
+		a, err := s.Anonymous.Get(userID, identityID)
+		// identity must be found with existing user and identity id
 		if err != nil {
-			return nil, err
+			panic(fmt.Errorf("identity: failed to fetch anonymous identity: %s, %s, %w", userID, identityID, err))
 		}
 		return anonymousToIdentityInfo(a), nil
-
 	case model.IdentityTypeBiometric:
 		keyID, _, _ := extractBiometricClaims(spec.Claims)
 		b, err := s.Biometric.GetByKeyID(keyID)
@@ -677,6 +689,20 @@ func extractAnonymousClaims(claims map[string]interface{}) (keyID string, key st
 	if v, ok := claims[identity.IdentityClaimAnonymousKey]; ok {
 		if key, ok = v.(string); !ok {
 			panic(fmt.Sprintf("identity: expect string key, got %T", claims[identity.IdentityClaimAnonymousKey]))
+		}
+	}
+	return
+}
+
+func extractExistingIDsFromAnonymousClaims(claims map[string]interface{}) (existingUserID string, existingIdentityID string) {
+	if v, ok := claims[identity.IdentityClaimAnonymousExistingUserID]; ok {
+		if existingUserID, ok = v.(string); !ok {
+			panic(fmt.Sprintf("identity: expect string existing user id, got %T", claims[identity.IdentityClaimAnonymousExistingUserID]))
+		}
+	}
+	if v, ok := claims[identity.IdentityClaimAnonymousExistingIdentityID]; ok {
+		if existingIdentityID, ok = v.(string); !ok {
+			panic(fmt.Sprintf("identity: expect string existing identity id, got %T", claims[identity.IdentityClaimAnonymousExistingIdentityID]))
 		}
 	}
 	return

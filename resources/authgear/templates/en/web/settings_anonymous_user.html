@@ -1,0 +1,32 @@
+{{ template "__wide_page_frame.html" . }}
+
+{{ define "page-content" }}
+
+<div class="pane flex flex-col">
+  <div class="padding-h-20 margin-t-16 margin-b-4">
+    <h1 class="margin-0 primary-txt text-xl font-bold">
+      {{ template "settings-my-profile-title" }}
+    </h1>
+  </div>
+
+  <div class="padding-10 flex flex-row items-center row-sep">
+    <img
+      class="margin-10 rounded-full bg-center bg-cover bg-no-repeat w-18 h-18"
+      src="{{ call $.StaticAssetURL "avatar-placeholder" }}"
+    >
+    <div class="margin-h-10 flex flex-col space-y-1">
+      <span class="primary-txt">{{ template "settings-page-anonymous-user" }}</span>
+    </div>
+  </div>
+</div>
+
+{{ if $.ClientURI }}
+<div class="pane padding-v-16 padding-h-20 flex justify-center">
+  <a class="link text-sm" href="{{ $.ClientURI }}">
+    <i class="ti ti-logout margin-r-10"></i>
+    {{ template "back-to-app-label" }}
+  </a>
+</div>
+{{ end }}
+
+{{ end }}

@@ -170,6 +170,9 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(featurestdattrs.IdentityService), new(*identityservice.Service)),
+
+		wire.Bind(new(oauthhandler.PromotionCodeStore), new(*identityanonymous.StoreRedis)),
+		wire.Bind(new(oauthhandler.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 	),
 
 	wire.NewSet(
@@ -193,6 +196,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(facade.UserCommands), new(*user.Commands)),
 		wire.Bind(new(facade.UserProvider), new(*user.Provider)),
 		wire.Bind(new(oauthhandler.TokenHandlerUserFacade), new(*user.Queries)),
+		wire.Bind(new(oauthhandler.UserProvider), new(*user.Queries)),
 		wire.Bind(new(event.ResolverUserQueries), new(*user.Queries)),
 	),
 

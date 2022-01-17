@@ -334,6 +334,8 @@
   "settings-profile-edit-phone-number-placeholder": "No phone numbers available",
   "settings-profile-edit-preferred-username-placeholder": "No usernames available",
 
+  "settings-page-anonymous-user": "Guest",
+
   "standard-attribute-name": "Full Name",
   "standard-attribute-given-name": "Given Name",
   "standard-attribute-family-name": "Family Name",

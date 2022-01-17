@@ -1,3 +1,28 @@
 .widget {
   grid-column: 1 / span 6;
 }
+
+.title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.sessionItem {
+  display: flex;
+  margin-bottom: 5px;
+
+  .label {
+    text-decoration: underline dashed;
+    text-underline-offset: 2px;
+  }
+}
+
+.detailsHeader {
+  padding: 0;
+}
+
+.tooltipLabel {
+  font-weight: 600;
+  text-decoration: underline dashed;
+  text-underline-offset: 2px;
+}

@@ -11,18 +11,36 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-type anonymousTokenInput struct{ JWT string }
+type anonymousTokenInput struct {
+	JWT               string
+	PromoteUserID     string
+	PromoteIdentityID string
+}
 
 func (i *anonymousTokenInput) GetAnonymousRequestToken() string { return i.JWT }
 
+func (i *anonymousTokenInput) SignUpAnonymousUserWithoutKey() bool { return false }
+
+func (i *anonymousTokenInput) GetPromoteUserAndIdentityID() (string, string) {
+	return i.PromoteUserID, i.PromoteIdentityID
+}
+
+var _ nodes.InputUseIdentityAnonymous = &anonymousTokenInput{}
+
 type AnonymousIdentityProvider interface {
 	ParseRequestUnverified(requestJWT string) (r *anonymous.Request, err error)
+}
+
+type AnonymousPromotionCodeStore interface {
+	GetPromotionCode(codeHash string) (*anonymous.PromotionCode, error)
+	DeletePromotionCode(code *anonymous.PromotionCode) error
 }
 
 type LoginHintPageService interface {
@@ -30,14 +48,15 @@ type LoginHintPageService interface {
 }
 
 type LoginHintHandler struct {
-	Config           *config.OAuthConfig
-	Anonymous        AnonymousIdentityProvider
-	OfflineGrants    oauth.OfflineGrantStore
-	AppSessionTokens oauth.AppSessionTokenStore
-	AppSessions      oauth.AppSessionStore
-	Clock            clock.Clock
-	Cookies          CookieManager
-	Pages            LoginHintPageService
+	Config                  *config.OAuthConfig
+	Anonymous               AnonymousIdentityProvider
+	AnonymousPromotionCodes AnonymousPromotionCodeStore
+	OfflineGrants           oauth.OfflineGrantStore
+	AppSessionTokens        oauth.AppSessionTokenStore
+	AppSessions             oauth.AppSessionStore
+	Clock                   clock.Clock
+	Cookies                 CookieManager
+	Pages                   LoginHintPageService
 }
 
 type HandleLoginHintOptions struct {
@@ -61,20 +80,11 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 
 	switch query.Get("type") {
 	case "anonymous":
-		jwt := query.Get("jwt")
-		request, err := r.Anonymous.ParseRequestUnverified(jwt)
-		if err != nil {
-			return nil, err
-		}
-
-		switch request.Action {
-		case anonymous.RequestActionPromote:
+		startPromotionInteraction := func(inputer func() (interface{}, error)) (httputil.Result, error) {
 			intent := &intents.IntentAuthenticate{
 				Kind: intents.IntentAuthenticateKindPromote,
 			}
-			inputer := func() (interface{}, error) {
-				return &anonymousTokenInput{JWT: jwt}, nil
-			}
+
 			now := r.Clock.NowUTC()
 			sessionOpts := options.SessionOptions
 			sessionOpts.UpdatedAt = now
@@ -88,6 +98,37 @@ func (r *LoginHintHandler) HandleLoginHint(options HandleLoginHintOptions) (http
 				result.UILocales = options.UILocales
 			}
 			return result, nil
+		}
+
+		promotionCode := query.Get("promotion_code")
+		if promotionCode != "" {
+			// promotion code flow
+			userID, identityID, err := r.resolvePromotionCode(promotionCode)
+			if err != nil {
+				return nil, err
+			}
+			inputer := func() (interface{}, error) {
+				return &anonymousTokenInput{
+					PromoteUserID:     userID,
+					PromoteIdentityID: identityID,
+				}, nil
+			}
+			return startPromotionInteraction(inputer)
+		}
+
+		// jwt flow
+		jwt := query.Get("jwt")
+		request, err := r.Anonymous.ParseRequestUnverified(jwt)
+		if err != nil {
+			return nil, err
+		}
+
+		switch request.Action {
+		case anonymous.RequestActionPromote:
+			inputer := func() (interface{}, error) {
+				return &anonymousTokenInput{JWT: jwt}, nil
+			}
+			return startPromotionInteraction(inputer)
 		case anonymous.RequestActionAuth:
 			// TODO(webapp): support anonymous auth
 			panic("webapp: anonymous auth through web app is not supported")
@@ -147,4 +188,19 @@ func (r *LoginHintHandler) resolveAppSessionToken(token string) (string, error) 
 	}
 
 	return token, nil
+}
+
+func (r *LoginHintHandler) resolvePromotionCode(code string) (userID string, identityID string, err error) {
+	codeObj, err := r.AnonymousPromotionCodes.GetPromotionCode(anonymous.HashPromotionCode(code))
+	if err != nil {
+		return
+	}
+
+	err = r.AnonymousPromotionCodes.DeletePromotionCode(codeObj)
+	if err != nil {
+		return
+	}
+	userID = codeObj.UserID
+	identityID = codeObj.IdentityID
+	return
 }

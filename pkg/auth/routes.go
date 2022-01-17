@@ -1,6 +1,7 @@
 package auth
 
 import (
+	apihandler "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -100,6 +101,15 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		webapp.RequireAuthenticatedMiddleware{},
 	)
 
+	webappSettingsSubRoutesChain := httproute.Chain(
+		webappAuthenticatedChain,
+		// SettingsSubRoutesMiddleware should be added to all the settings sub routes only
+		// but no /settings itself
+		// it redirects all sub routes to /settings if the current user is
+		// anonymous user
+		p.Middleware(newSettingsSubRoutesMiddleware),
+	)
+
 	staticRoute := httproute.Route{Middleware: staticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
@@ -108,6 +118,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
+	webappSettingsSubRoutesRoute := httproute.Route{Middleware: webappSettingsSubRoutesChain}
 	webappSSOCallbackRoute := httproute.Route{Middleware: webappSSOCallbackChain}
 	webappWebsocketRoute := httproute.Route{Middleware: webappWebsocketChain}
 
@@ -141,17 +152,18 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
 	router.Add(webapphandler.ConfigureSettingsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsHandler))
-	router.Add(webapphandler.ConfigureSettingsProfileRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsProfileHandler))
-	router.Add(webapphandler.ConfigureSettingsProfileEditRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsProfileEditHandler))
-	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsIdentityHandler))
-	router.Add(webapphandler.ConfigureSettingsBiometricRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsBiometricHandler))
-	router.Add(webapphandler.ConfigureSettingsMFARoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsMFAHandler))
-	router.Add(webapphandler.ConfigureSettingsTOTPRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsTOTPHandler))
-	router.Add(webapphandler.ConfigureSettingsOOBOTPRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsOOBOTPHandler))
-	router.Add(webapphandler.ConfigureSettingsRecoveryCodeRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsRecoveryCodeHandler))
-	router.Add(webapphandler.ConfigureSettingsSessionsRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsSessionsHandler))
-	router.Add(webapphandler.ConfigureSettingsChangePasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsChangePasswordHandler))
-	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappAuthenticatedRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
+
+	router.Add(webapphandler.ConfigureSettingsProfileRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsProfileHandler))
+	router.Add(webapphandler.ConfigureSettingsProfileEditRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsProfileEditHandler))
+	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsIdentityHandler))
+	router.Add(webapphandler.ConfigureSettingsBiometricRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsBiometricHandler))
+	router.Add(webapphandler.ConfigureSettingsMFARoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsMFAHandler))
+	router.Add(webapphandler.ConfigureSettingsTOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsTOTPHandler))
+	router.Add(webapphandler.ConfigureSettingsOOBOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsOOBOTPHandler))
+	router.Add(webapphandler.ConfigureSettingsRecoveryCodeRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsRecoveryCodeHandler))
+	router.Add(webapphandler.ConfigureSettingsSessionsRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsSessionsHandler))
+	router.Add(webapphandler.ConfigureSettingsChangePasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangePasswordHandler))
+	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 
@@ -172,6 +184,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureAppSessionTokenRoute(apiRoute), p.Handler(newOAuthAppSessionTokenHandler))
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(scopedRoute), p.Handler(newOAuthUserInfoHandler))
+
+	router.Add(apihandler.ConfigureAnonymousUserSignupRoute(apiRoute), p.Handler(newAPIAnonymousUserSignupHandler))
+	router.Add(apihandler.ConfigureAnonymousUserPromotionCodeRoute(apiRoute), p.Handler(newAPIAnonymousUserPromotionCodeHandler))
+
 	router.Add(webapphandler.ConfigureWebsocketRoute(webappWebsocketRoute), p.Handler(newWebAppWebsocketHandler))
 
 	router.Add(webapphandler.ConfigureStaticAssetsRoute(staticRoute), p.Handler(newWebAppStaticAssetsHandler))

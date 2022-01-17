@@ -19,6 +19,8 @@ const (
 	Short = 5 * time.Minute
 	// PerMinute is 1 minute.
 	PerMinute = 1 * time.Minute
+	// PerHour is 1 hour.
+	PerHour = 1 * time.Hour
 	// ClockSkew is the duration of acceptable clock skew.
 	ClockSkew = 5 * time.Minute
 	// Long is a duration for something that persists for a certain time.

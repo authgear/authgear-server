@@ -3,6 +3,7 @@ package nodes
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -17,6 +18,8 @@ func init() {
 
 type InputUseIdentityAnonymous interface {
 	GetAnonymousRequestToken() string
+	SignUpAnonymousUserWithoutKey() bool
+	GetPromoteUserAndIdentityID() (string, string)
 }
 
 type EdgeUseIdentityAnonymous struct {
@@ -45,8 +48,56 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		)
 	}
 
-	jwt := input.GetAnonymousRequestToken()
+	if input.SignUpAnonymousUserWithoutKey() {
+		if !e.IsAuthentication {
+			panic("interaction: SignUpAnonymousUserWithoutKey should be used for signup only")
+		}
 
+		spec := &identity.Spec{
+			Type: model.IdentityTypeAnonymous,
+			Claims: map[string]interface{}{
+				identity.IdentityClaimAnonymousKeyID: "",
+				identity.IdentityClaimAnonymousKey:   "",
+			},
+		}
+
+		return &NodeUseIdentityAnonymous{
+			IsAuthentication: e.IsAuthentication,
+			IdentitySpec:     spec,
+		}, nil
+	}
+
+	promoteUserID, promoteIdentityID := input.GetPromoteUserAndIdentityID()
+	if promoteUserID != "" && promoteIdentityID != "" {
+		// promote user with promotion code flow
+		if e.IsAuthentication {
+			panic("interaction: cannot use promotion code for authentication")
+		}
+
+		anonIdentity, err := ctx.AnonymousIdentities.Get(promoteUserID, promoteIdentityID)
+		if err != nil {
+			panic(fmt.Errorf("interaction: failed to fetch anonymous identity: %s, %s, %w", promoteUserID, promoteIdentityID, err))
+		}
+
+		if anonIdentity.KeyID != "" {
+			panic(fmt.Errorf("interaction: anonymous user with key should use jwt to trigger promotion flow"))
+		}
+
+		spec := &identity.Spec{
+			Type: model.IdentityTypeAnonymous,
+			Claims: map[string]interface{}{
+				identity.IdentityClaimAnonymousExistingUserID:     anonIdentity.UserID,
+				identity.IdentityClaimAnonymousExistingIdentityID: anonIdentity.ID,
+			},
+		}
+
+		return &NodeUseIdentityAnonymous{
+			IsAuthentication: e.IsAuthentication,
+			IdentitySpec:     spec,
+		}, nil
+	}
+
+	jwt := input.GetAnonymousRequestToken()
 	request, err := ctx.AnonymousIdentities.ParseRequestUnverified(jwt)
 	if err != nil {
 		return nil, interaction.ErrInvalidCredentials
@@ -64,7 +115,11 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 		return nil, err
 	}
 
+	existingUserID := ""
+	existingIdentityID := ""
 	if anonIdentity != nil {
+		existingUserID = anonIdentity.UserID
+		existingIdentityID = anonIdentity.ID
 		// Key ID has associated identity =>
 		// verify the JWT signature before proceeding to use the key ID.
 		request, err = ctx.AnonymousIdentities.ParseRequest(jwt, anonIdentity)
@@ -102,8 +157,10 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	spec := &identity.Spec{
 		Type: model.IdentityTypeAnonymous,
 		Claims: map[string]interface{}{
-			identity.IdentityClaimAnonymousKeyID: request.KeyID,
-			identity.IdentityClaimAnonymousKey:   string(key),
+			identity.IdentityClaimAnonymousExistingUserID:     existingUserID,
+			identity.IdentityClaimAnonymousExistingIdentityID: existingIdentityID,
+			identity.IdentityClaimAnonymousKeyID:              request.KeyID,
+			identity.IdentityClaimAnonymousKey:                string(key),
 		},
 	}
 

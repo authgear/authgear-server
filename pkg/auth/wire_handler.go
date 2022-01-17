@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/wire"
 
+	handlerapi "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -93,6 +94,20 @@ func newOAuthAppSessionTokenHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handleroauth.AppSessionTokenHandler)),
+	))
+}
+
+func newAPIAnonymousUserSignupHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.AnonymousUserSignupAPIHandler)),
+	))
+}
+
+func newAPIAnonymousUserPromotionCodeHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerapi.AnonymousUserPromotionCodeAPIHandler)),
 	))
 }
 
