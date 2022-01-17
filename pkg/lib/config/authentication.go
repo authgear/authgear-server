@@ -57,8 +57,8 @@ var _ = Schema.Add("SecondaryAuthenticatorType", `
 
 type AuthenticationConfig struct {
 	Identities                  []model.IdentityType        `json:"identities,omitempty"`
-	PrimaryAuthenticators       []model.AuthenticatorType   `json:"primary_authenticators,omitempty"`
-	SecondaryAuthenticators     []model.AuthenticatorType   `json:"secondary_authenticators,omitempty"`
+	PrimaryAuthenticators       *[]model.AuthenticatorType  `json:"primary_authenticators,omitempty"`
+	SecondaryAuthenticators     *[]model.AuthenticatorType  `json:"secondary_authenticators,omitempty"`
 	SecondaryAuthenticationMode SecondaryAuthenticationMode `json:"secondary_authentication_mode,omitempty"`
 	DeviceToken                 *DeviceTokenConfig          `json:"device_token,omitempty"`
 	RecoveryCode                *RecoveryCodeConfig         `json:"recovery_code,omitempty"`
@@ -73,12 +73,12 @@ func (c *AuthenticationConfig) SetDefaults() {
 		}
 	}
 	if c.PrimaryAuthenticators == nil {
-		c.PrimaryAuthenticators = []model.AuthenticatorType{
+		c.PrimaryAuthenticators = &[]model.AuthenticatorType{
 			model.AuthenticatorTypePassword,
 		}
 	}
 	if c.SecondaryAuthenticators == nil {
-		c.SecondaryAuthenticators = []model.AuthenticatorType{
+		c.SecondaryAuthenticators = &[]model.AuthenticatorType{
 			model.AuthenticatorTypeTOTP,
 		}
 	}

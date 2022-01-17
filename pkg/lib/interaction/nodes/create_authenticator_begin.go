@@ -146,7 +146,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 
 	// 2. Check what primary authenticator the developer prefers.
 	// Here we check if the configuration is non-sense.
-	types := n.AuthenticationConfig.PrimaryAuthenticators
+	types := *n.AuthenticationConfig.PrimaryAuthenticators
 	if len(types) == 0 {
 		return nil, interaction.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
 	}
@@ -305,7 +305,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 	}
 
 	// Condition A.
-	for _, typ := range n.AuthenticationConfig.SecondaryAuthenticators {
+	for _, typ := range *n.AuthenticationConfig.SecondaryAuthenticators {
 		switch typ {
 		case model.AuthenticatorTypePassword:
 			// Condition B.
@@ -359,7 +359,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 	}
 
 	interaction.SortAuthenticators(
-		n.AuthenticationConfig.SecondaryAuthenticators,
+		*n.AuthenticationConfig.SecondaryAuthenticators,
 		edges,
 		func(i int) interaction.SortableAuthenticator {
 			edge := edges[i]

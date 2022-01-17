@@ -68,7 +68,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	password := false
 
 	if someIdentityCanHaveMFA {
-		for _, typ := range m.Authentication.SecondaryAuthenticators {
+		for _, typ := range *m.Authentication.SecondaryAuthenticators {
 			switch typ {
 			case model.AuthenticatorTypePassword:
 				password = true
