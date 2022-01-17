@@ -19,7 +19,11 @@ export function useSetDisabledStatusMutation(userID: string): {
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<SetDisabledStatusMutation>(setDisabledStatusMutation);
+    useMutation<SetDisabledStatusMutation>(setDisabledStatusMutation, {
+      // Disabling a user will terminate all sessions.
+      // So we have to refetch queries that fetch sessions.
+      refetchQueries: ["UserQuery"],
+    });
 
   const setDisabledStatus = useCallback(
     async (isDisabled: boolean) => {
