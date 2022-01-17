@@ -430,10 +430,11 @@
   "OAuthBranding.wechat.mobile": "Sign in with WeChat (Mobile/移动应用)",
 
   "PasswordConfigurationScreen.title": "Password",
-  "PasswordConfigurationScreen.description": "Configure the password policy if Password is configurate as primary authenticators.",
+  "PasswordConfigurationScreen.description": "Let your users to authenticate themselves using passwords.",
+  "PasswordConfigurationScreen.primary-authenticator-enabled.label": "Enable Password as authenticator?",
+  "PasswordConfigurationScreen.force-change.label": "Force password change on next login if it does not meet the policy requirements",
   "PasswordConfigurationScreen.basic-policies": "Basic Policies",
   "PasswordConfigurationScreen.advanced-policies": "Advanced Policies",
-  "PasswordConfigurationScreen.force-change.label": "Force password change on next login if it does not meet the policy requirements",
   "PasswordConfigurationScreen.min-length.label": "Minimum password length",
   "PasswordConfigurationScreen.require-digit.label": "Requires at least 1 digit",
   "PasswordConfigurationScreen.require-lowercase.label": "Requires at least 1 lowercase character",

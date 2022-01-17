@@ -38,6 +38,7 @@ import { fixTagPickerStyles } from "../../bugs";
 import styles from "./PasswordConfigurationScreen.module.scss";
 
 interface FormState {
+  primaryAuthenticatorEnabled: boolean;
   forceChange: boolean;
   policy: PasswordPolicyConfig;
   isPreventPasswordReuseEnabled: boolean;
@@ -57,6 +58,9 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
     ...config.authenticator?.password?.policy,
   };
   return {
+    primaryAuthenticatorEnabled:
+      config.authentication?.primary_authenticators?.includes("password") ??
+      false,
     forceChange: config.authenticator?.password?.force_change ?? true,
     policy,
     isPreventPasswordReuseEnabled:
@@ -78,6 +82,27 @@ function constructConfig(
     const policy = config.authenticator.password.policy;
     const initial = initialState.policy;
     const current = currentState.policy;
+
+    if (
+      initialState.primaryAuthenticatorEnabled !==
+      currentState.primaryAuthenticatorEnabled
+    ) {
+      config.authentication ??= {};
+      config.authentication.primary_authenticators ??= [];
+
+      if (config.authentication.primary_authenticators.includes("password")) {
+        if (!currentState.primaryAuthenticatorEnabled) {
+          config.authentication.primary_authenticators =
+            config.authentication.primary_authenticators.filter(
+              (p) => p !== "password"
+            );
+        }
+      } else {
+        if (currentState.primaryAuthenticatorEnabled) {
+          config.authentication.primary_authenticators.push("password");
+        }
+      }
+    }
 
     if (initialState.forceChange !== currentState.forceChange) {
       if (currentState.forceChange) {
@@ -293,6 +318,19 @@ const PasswordConfigurationScreenContent: React.FC<PasswordConfigurationScreenCo
       [setPolicy]
     );
 
+    const onPrimaryAuthenticatorChange = useCallback(
+      (_, checked?: boolean) => {
+        if (checked == null) {
+          return;
+        }
+        setState((state) => ({
+          ...state,
+          primaryAuthenticatorEnabled: checked,
+        }));
+      },
+      [setState]
+    );
+
     const onForceChangeChange = useCallback(
       (_, checked?: boolean) => {
         if (checked == null) {
@@ -314,6 +352,16 @@ const PasswordConfigurationScreenContent: React.FC<PasswordConfigurationScreenCo
         <ScreenDescription className={styles.widget}>
           <FormattedMessage id="PasswordConfigurationScreen.description" />
         </ScreenDescription>
+        <Widget className={styles.widget}>
+          <Toggle
+            checked={state.primaryAuthenticatorEnabled}
+            inlineLabel={true}
+            label={
+              <FormattedMessage id="PasswordConfigurationScreen.primary-authenticator-enabled.label" />
+            }
+            onChange={onPrimaryAuthenticatorChange}
+          />
+        </Widget>
         <Widget className={styles.widget}>
           <Toggle
             checked={state.forceChange}
