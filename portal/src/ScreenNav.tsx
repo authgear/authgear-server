@@ -65,6 +65,10 @@ const ScreenNav: React.FC = function ScreenNav() {
             url: "configuration/authentication/login-id",
           },
           {
+            textKey: "ScreenNav.password",
+            url: "configuration/authentication/password",
+          },
+          {
             textKey: "ScreenNav.authenticators",
             url: "configuration/authentication/authenticators",
           },
@@ -85,10 +89,6 @@ const ScreenNav: React.FC = function ScreenNav() {
       {
         textKey: "ScreenNav.single-sign-on",
         url: "configuration/single-sign-on",
-      },
-      {
-        textKey: "ScreenNav.password-policy",
-        url: "configuration/password-policy",
       },
       {
         textKey: "ScreenNav.client-applications",
