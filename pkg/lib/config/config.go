@@ -113,7 +113,7 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 	}
 
 	authenticatorTypes := map[model.AuthenticatorType]struct{}{}
-	for _, a := range c.Authentication.PrimaryAuthenticators {
+	for _, a := range *c.Authentication.PrimaryAuthenticators {
 		authenticatorTypes[a] = struct{}{}
 	}
 
