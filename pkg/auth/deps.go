@@ -86,6 +86,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(webapp.AnonymousPromotionCodeStore), new(*identityanonymous.StoreRedis)),
 
 	middleware.DependencySet,
+	wire.Bind(new(webapp.SettingsSubRoutesMiddlewareIdentityService), new(*facade.IdentityFacade)),
 
 	handleroauth.DependencySet,
 	wire.Bind(new(handleroauth.ProtocolAuthorizeHandler), new(*oauthhandler.AuthorizationHandler)),
