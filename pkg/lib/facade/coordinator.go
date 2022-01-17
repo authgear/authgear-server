@@ -295,24 +295,8 @@ func (c *Coordinator) UserDelete(userID string) error {
 	}
 
 	// Sessions:
-	idpSessions, err := c.IDPSessions.List(userID)
-	if err != nil {
+	if err = c.terminateAllSessions(userID); err != nil {
 		return err
-	}
-	for _, s := range idpSessions {
-		if err = c.IDPSessions.Delete(s); err != nil {
-			return err
-		}
-	}
-
-	oauthSessions, err := c.OAuthSessions.List(userID)
-	if err != nil {
-		return err
-	}
-	for _, s := range oauthSessions {
-		if err = c.OAuthSessions.Delete(s); err != nil {
-			return err
-		}
 	}
 
 	userModel, err := c.UserQueries.Get(userID, accesscontrol.RoleGreatest)
@@ -426,6 +410,30 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	return nil
 }
 
+func (c *Coordinator) terminateAllSessions(userID string) error {
+	idpSessions, err := c.IDPSessions.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, s := range idpSessions {
+		if err = c.IDPSessions.Delete(s); err != nil {
+			return err
+		}
+	}
+
+	oauthSessions, err := c.OAuthSessions.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, s := range oauthSessions {
+		if err = c.OAuthSessions.Delete(s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (c *Coordinator) UserReenable(userID string) error {
 	err := c.UserCommands.UpdateDisabledStatus(userID, false, nil)
 	if err != nil {
@@ -450,6 +458,11 @@ func (c *Coordinator) UserReenable(userID string) error {
 
 func (c *Coordinator) UserDisable(userID string, reason *string) error {
 	err := c.UserCommands.UpdateDisabledStatus(userID, true, reason)
+	if err != nil {
+		return err
+	}
+
+	err = c.terminateAllSessions(userID)
 	if err != nil {
 		return err
 	}
