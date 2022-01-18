@@ -228,3 +228,60 @@ type TaskProvider struct {
 
 	Context context.Context
 }
+
+type BackgroundProvider struct {
+	EnvironmentConfig  *config.EnvironmentConfig
+	ConfigSourceConfig *configsource.Config
+	LoggerFactory      *log.Factory
+	SentryHub          *getsentry.Hub
+	DatabasePool       *db.Pool
+	RedisPool          *redis.Pool
+	RedisHub           *redis.Hub
+	BaseResources      *resource.Manager
+}
+
+func NewBackgroundProvider(
+	cfg *config.EnvironmentConfig,
+	configSourceConfig *configsource.Config,
+	builtinResourceDirectory string,
+	customResourceDirectory string,
+) (*BackgroundProvider, error) {
+	var p BackgroundProvider
+
+	logLevel, err := log.ParseLevel(cfg.LogLevel)
+	if err != nil {
+		return nil, err
+	}
+
+	sentryHub, err := sentry.NewHub(string(cfg.SentryDSN))
+	if err != nil {
+		return nil, err
+	}
+
+	loggerFactory := log.NewFactory(
+		logLevel,
+		log.NewDefaultMaskLogHook(),
+		sentry.NewLogHookFromHub(sentryHub),
+	)
+
+	dbPool := db.NewPool()
+	redisPool := redis.NewPool()
+	redisHub := redis.NewHub(redisPool, loggerFactory)
+
+	p = BackgroundProvider{
+		EnvironmentConfig:  cfg,
+		ConfigSourceConfig: configSourceConfig,
+		LoggerFactory:      loggerFactory,
+		SentryHub:          sentryHub,
+		DatabasePool:       dbPool,
+		RedisPool:          redisPool,
+		RedisHub:           redisHub,
+		BaseResources: resource.NewManagerWithDir(
+			resource.DefaultRegistry,
+			builtinResourceDirectory,
+			customResourceDirectory,
+		),
+	}
+
+	return &p, nil
+}

@@ -34,4 +34,5 @@ func init() {
 	cmdRoot.AddCommand(cmdDatabase)
 	cmdRoot.AddCommand(cmdInternal)
 	cmdRoot.AddCommand(cmdAudit)
+	cmdRoot.AddCommand(cmdBackground)
 }
