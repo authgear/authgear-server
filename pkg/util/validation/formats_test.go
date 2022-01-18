@@ -167,3 +167,26 @@ func TestFormatAlpha2(t *testing.T) {
 		So(f("JP"), ShouldBeNil)
 	})
 }
+
+func TestFormatCustomAttributePointer(t *testing.T) {
+	f := FormatCustomAttributePointer{}.CheckFormat
+
+	Convey("FormatCustomAttributePointer", t, func() {
+		So(f(1), ShouldBeNil)
+
+		So(f(""), ShouldBeError, "custom attribute pointer must be one-level but found 0")
+		So(f("/"), ShouldBeError, "custom attribute pointer must not be empty")
+		So(f("/0"), ShouldBeError, `invalid character at 0: "0"`)
+		So(f("/_"), ShouldBeError, `invalid character at 0: "_"`)
+		So(f("/a_"), ShouldBeError, `invalid character at 1: "_"`)
+		So(f("/a-a"), ShouldBeError, `invalid character at 1: "-"`)
+		So(f("/aあa"), ShouldBeError, `invalid character at 1: "あ"`)
+
+		So(f("/a0"), ShouldBeNil)
+		So(f("/aa"), ShouldBeNil)
+		So(f("/aaa"), ShouldBeNil)
+		So(f("/a_a"), ShouldBeNil)
+		So(f("/mystring"), ShouldBeNil)
+		So(f("/my_string"), ShouldBeNil)
+	})
+}

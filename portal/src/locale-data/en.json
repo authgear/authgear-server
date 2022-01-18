@@ -65,7 +65,7 @@
   "errors.validation.required": "Please fill in this field",
   "errors.validation.general": "Invalid value",
   "errors.validation.pattern": "Expect the value to match {expected}",
-  "errors.validation.format": "{format, select, email{Please enter an email address} phone{Please enter a phone number} uri{Please enter an URL} wechat_account_id{Wechat account ID starts with gh_} http_origin_spec{An origin is a hostname without userinfo, path, query or fragment. Optionally it can start with http: or https: to enforce a scheme, otherwise HTTP or HTTPS is allowed} other{Invalid format}}",
+  "errors.validation.format": "{format, select, email{Please enter an email address} phone{Please enter a phone number} uri{Please enter an URL} wechat_account_id{Wechat account ID starts with gh_} http_origin_spec{An origin is a hostname without userinfo, path, query or fragment. Optionally it can start with http: or https: to enforce a scheme, otherwise HTTP or HTTPS is allowed} x_custom_attribute_pointer{Invalid attribute name} other{Invalid format}}",
   "errors.validation.minItems": "Expect at least {expected} items",
   "errors.validation.uniqueItems": "Expect unique items in the list",
   "errors.validation.minimum": "Expect number larger than or equal to {minimum}",
@@ -898,6 +898,7 @@
   "EditCustomAttributeScreen.title": "Edit Custom Attribute",
 
   "EditCustomAttributeForm.label.attribute-name": "Attribute Name",
+  "EditCustomAttributeForm.description.attribute-name": "Attribute name should consist of lowercase letters (a-z), digits (0-9) and underscore (_) only. It must start with lowercase letters (a-z), and NOT ended with an underscore (_).",
   "EditCustomAttributeForm.label.type": "Attribute Type",
   "EditCustomAttributeForm.label.options": "Options",
   "EditCustomAttributeForm.label.min": "min",

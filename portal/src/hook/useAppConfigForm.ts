@@ -113,6 +113,7 @@ export function useAppConfigForm<State>(
       setIsSubmitted(true);
     } catch (e: unknown) {
       setUpdateError(e);
+      throw e;
     } finally {
       setIsUpdating(false);
     }

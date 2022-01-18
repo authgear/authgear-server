@@ -117,7 +117,8 @@ export function useAppSecretConfigForm<State>(
     try {
       await updateConfig(newConfig[0], newConfig[1]);
       setCurrentState(null);
-    } catch {}
+    } finally {
+    }
   }, [
     isDirty,
     isUpdating,

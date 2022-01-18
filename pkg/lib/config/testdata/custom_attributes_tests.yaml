@@ -35,8 +35,8 @@ part: CustomAttributesAttributeConfig
 name: pointer-invalid
 error: |-
   invalid value:
-  /pointer: pattern
-    map[actual:foobar expected:^/[a-zA-Z0-9_]+$]
+  /pointer: format
+    map[error:0: expecting / but found: "f" format:x_custom_attribute_pointer]
 value:
   id: "0000"
   pointer: foobar
