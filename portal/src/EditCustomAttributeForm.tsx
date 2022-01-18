@@ -388,6 +388,9 @@ const EditCustomAttributeForm: React.FC<EditCustomAttributeFormProps> =
           value={fieldName}
           onChange={onChangeFieldName}
           label={renderToString("EditCustomAttributeForm.label.attribute-name")}
+          description={renderToString(
+            "EditCustomAttributeForm.description.attribute-name"
+          )}
         />
         <Dropdown
           selectedKey={draft.type}

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
 	"github.com/iawaknahc/originmatcher"
 	"golang.org/x/text/language"
@@ -33,6 +34,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_oob_otp_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_verification_code"] = secretcode.OOBOTPSecretCode
 	jsonschemaformat.DefaultChecker["x_recovery_code"] = secretcode.RecoveryCode
+	jsonschemaformat.DefaultChecker["x_custom_attribute_pointer"] = FormatCustomAttributePointer{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -269,4 +271,60 @@ func (FormatAlpha2) CheckFormat(value interface{}) error {
 	}
 
 	return fmt.Errorf("invalid ISO 3166-1 alpha-2 code: %#v", str)
+}
+
+type FormatCustomAttributePointer struct{}
+
+func (FormatCustomAttributePointer) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	p, err := jsonpointer.Parse(str)
+	if err != nil {
+		return err
+	}
+
+	if len(p) != 1 {
+		return fmt.Errorf("custom attribute pointer must be one-level but found %v", len(p))
+	}
+
+	var runes []rune
+	for _, r := range p[0] {
+		runes = append(runes, r)
+	}
+	if len(runes) <= 0 {
+		return fmt.Errorf("custom attribute pointer must not be empty")
+	}
+
+	checkStart := func(r rune) bool {
+		return (r >= 'a' && r <= 'z')
+	}
+
+	checkEnd := func(r rune) bool {
+		return (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')
+	}
+
+	check := func(r rune) bool {
+		return (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || (r == '_')
+	}
+
+	last := len(runes) - 1
+	for i, r := range runes {
+		var checkFunc func(rune) bool
+		switch i {
+		case 0:
+			checkFunc = checkStart
+		case last:
+			checkFunc = checkEnd
+		default:
+			checkFunc = check
+		}
+		if !checkFunc(r) {
+			return fmt.Errorf("invalid character at %v: %#v", i, string(r))
+		}
+	}
+
+	return nil
 }

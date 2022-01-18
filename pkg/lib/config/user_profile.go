@@ -187,7 +187,7 @@ var _ = Schema.Add("CustomAttributesAttributeConfig", `
 		},
 		"pointer": {
 			"type": "string",
-			"pattern": "^/[a-zA-Z0-9_]+$",
+			"format": "x_custom_attribute_pointer",
 			"not": {
 				"enum": [
 					"/iss",
