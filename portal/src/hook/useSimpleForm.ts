@@ -84,6 +84,7 @@ export function useSimpleForm<State, Result = unknown>(
       setIsSubmitted(true);
     } catch (e: unknown) {
       setError(e);
+      throw e;
     } finally {
       setIsLoading(false);
     }

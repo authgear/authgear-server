@@ -92,13 +92,15 @@ export function useResourceForm<State>(
       return;
     }
 
-    await updateResources([
-      ...diff.newResources,
-      ...diff.editedResources,
-      ...diff.deletedResources,
-    ])
-      .then(() => setCurrentState(null))
-      .catch(() => {});
+    try {
+      await updateResources([
+        ...diff.newResources,
+        ...diff.editedResources,
+        ...diff.deletedResources,
+      ]);
+      setCurrentState(null);
+    } finally {
+    }
   }, [diff, isUpdating, updateResources]);
 
   const state = currentState ?? initialState;
