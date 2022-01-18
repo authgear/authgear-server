@@ -18,11 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var rootDeps = wire.NewSet(
-	wire.FieldsOf(new(*RootProvider),
-		"EnvironmentConfig",
-		"ConfigSourceConfig",
-	),
+var envConfigDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.EnvironmentConfig),
 		"TrustProxy",
 		"DevMode",
@@ -30,6 +26,15 @@ var rootDeps = wire.NewSet(
 		"StaticAssetURLPrefix",
 		"Database",
 	),
+)
+
+var rootDeps = wire.NewSet(
+	wire.FieldsOf(new(*RootProvider),
+		"EnvironmentConfig",
+		"ConfigSourceConfig",
+	),
+
+	envConfigDeps,
 
 	ProvideCaptureTaskContext,
 	ProvideRestoreTaskContext,
@@ -87,4 +92,23 @@ var TaskDependencySet = wire.NewSet(
 		"AppProvider",
 		"Context",
 	),
+)
+
+var BackgroundDependencySet = wire.NewSet(
+	wire.FieldsOf(new(*BackgroundProvider),
+		"EnvironmentConfig",
+		"ConfigSourceConfig",
+		"LoggerFactory",
+		"SentryHub",
+		"DatabasePool",
+		"RedisPool",
+		"RedisHub",
+		"BaseResources",
+	),
+
+	envConfigDeps,
+
+	clock.DependencySet,
+	globaldb.DependencySet,
+	configsource.DependencySet,
 )
