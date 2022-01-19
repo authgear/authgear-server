@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -152,12 +153,14 @@ func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *o
 		return nil, nil, err
 	}
 
-	// Check if the user has been disabled.
+	// Standard session checking consider ErrUserNotFound and disabled as invalid.
 	u, err := s.Users.GetRaw(offlineGrant.Attrs.UserID)
 	if err != nil {
+		if errors.Is(err, user.ErrUserNotFound) {
+			return nil, nil, errInvalidRefreshToken
+		}
 		return nil, nil, err
 	}
-
 	err = u.CheckStatus()
 	if err != nil {
 		return nil, nil, errInvalidRefreshToken
