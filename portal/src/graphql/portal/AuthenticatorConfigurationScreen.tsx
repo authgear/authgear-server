@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
+import cn from "classnames";
 import {
   Checkbox,
   Dropdown,
@@ -286,6 +287,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
       }
       return false;
     }, [featureDisabled]);
+
+    const isSecondaryAuthenticatorDisabled = useMemo(
+      () => state.mfaMode === "disabled",
+      [state.mfaMode]
+    );
 
     const renderSecondaryAuthenticatorMode = useCallback(
       (key: SecondaryAuthenticationMode) => {
@@ -580,7 +586,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             selectedKey={state.mfaMode}
             onChange={onRequireMFAOptionChange}
           />
-          <div>
+          <div
+            className={cn({
+              [styles.readOnly]: isSecondaryAuthenticatorDisabled,
+            })}
+          >
             {hasSecondaryFeatureDisabled && (
               <MessageBar>
                 <FormattedMessage
@@ -599,6 +609,9 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             />
           </div>
           <Toggle
+            className={cn({
+              [styles.readOnly]: isSecondaryAuthenticatorDisabled,
+            })}
             inlineLabel={true}
             label={
               <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.disable-device-token.label" />
@@ -607,7 +620,11 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             onChange={onDisableDeviceTokenChange}
           />
         </Widget>
-        <Widget className={styles.widget}>
+        <Widget
+          className={cn(styles.widget, {
+            [styles.readOnly]: isSecondaryAuthenticatorDisabled,
+          })}
+        >
           <WidgetTitle>
             <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.title" />
           </WidgetTitle>
