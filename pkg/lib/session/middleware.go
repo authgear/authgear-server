@@ -76,6 +76,7 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 			return
 		}
 
+		// Standard session checking consider ErrUserNotFound and disabled as invalid.
 		u, err := m.Users.GetRaw(s.GetAuthenticationInfo().UserID)
 		if err != nil {
 			if errors.Is(err, user.ErrUserNotFound) {
