@@ -39,7 +39,8 @@ func (c *Controller) Start() {
 	}
 	defer configSrcController.Close()
 
-	// FIXME: configure runners
-	var runners []*backgroundjob.Runner
+	runners := []*backgroundjob.Runner{
+		newAccountDeletionRunner(p, context.Background()),
+	}
 	backgroundjob.Main(c.logger, runners)
 }
