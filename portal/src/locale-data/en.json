@@ -433,7 +433,7 @@
   "OAuthBranding.wechat.mobile": "Sign in with WeChat (Mobile/移动应用)",
 
   "PasswordPolicyConfigurationScreen.title": "Password Policy",
-  "PasswordPolicyConfigurationScreen.description": "Configure the password policy if Password is configurate as primary authenticators.",
+  "PasswordPolicyConfigurationScreen.description": "Configure the password policy for Password and Additional Password in MFA.",
   "PasswordPolicyConfigurationScreen.basic-policies": "Basic Policies",
   "PasswordPolicyConfigurationScreen.advanced-policies": "Advanced Policies",
   "PasswordPolicyConfigurationScreen.force-change.label": "Force password change on next login if it does not meet the policy requirements",
