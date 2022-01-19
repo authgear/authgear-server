@@ -10,7 +10,9 @@ import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/feature/accountdeletion"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -56,3 +58,19 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
+
+func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context) *backgroundjob.Runner {
+	factory := p.LoggerFactory
+	pool := p.DatabasePool
+	environmentConfig := p.EnvironmentConfig
+	databaseEnvironmentConfig := &environmentConfig.Database
+	handle := globaldb.NewHandle(c, pool, databaseEnvironmentConfig, factory)
+	store := &accountdeletion.Store{
+		Handle: handle,
+	}
+	runnable := &accountdeletion.Runnable{
+		Store: store,
+	}
+	runner := accountdeletion.NewRunner(factory, runnable)
+	return runner
+}
