@@ -165,9 +165,6 @@ function constructConfig(
 const ALL_REQUIRE_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
   ...secondaryAuthenticationModes,
 ];
-const HIDDEN_REQUIRE_MFA_OPTIONS: SecondaryAuthenticationMode[] = [
-  "if_requested",
-];
 
 const primaryAuthenticatorNameIds = {
   oob_otp_email: "AuthenticatorType.primary.oob-otp-email",
@@ -302,8 +299,6 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
             "AuthenticatorConfigurationScreen.secondary-authenticators.mode.required",
           if_exists:
             "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-exists",
-          if_requested:
-            "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-requested",
         };
 
         return renderToString(messageIdMap[key]);
@@ -321,9 +316,7 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           }));
         },
         state.mfaMode,
-        renderSecondaryAuthenticatorMode,
-        // NOTE: not supported yet
-        new Set(HIDDEN_REQUIRE_MFA_OPTIONS)
+        renderSecondaryAuthenticatorMode
       );
 
     const onRecoveryCodeNumberChange = useCallback(

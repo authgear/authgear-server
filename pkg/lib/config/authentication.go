@@ -90,22 +90,21 @@ func (c *AuthenticationConfig) SetDefaults() {
 var _ = Schema.Add("SecondaryAuthenticationMode", `
 {
 	"type": "string",
-	"enum": ["disabled", "if_requested", "if_exists", "required"]
+	"enum": ["disabled", "if_exists", "required"]
 }
 `)
 
 type SecondaryAuthenticationMode string
 
 const (
-	SecondaryAuthenticationModeDefault     SecondaryAuthenticationMode = ""
-	SecondaryAuthenticationModeDisabled    SecondaryAuthenticationMode = "disabled"
-	SecondaryAuthenticationModeIfRequested SecondaryAuthenticationMode = "if_requested"
-	SecondaryAuthenticationModeIfExists    SecondaryAuthenticationMode = "if_exists"
-	SecondaryAuthenticationModeRequired    SecondaryAuthenticationMode = "required"
+	SecondaryAuthenticationModeDefault  SecondaryAuthenticationMode = ""
+	SecondaryAuthenticationModeDisabled SecondaryAuthenticationMode = "disabled"
+	SecondaryAuthenticationModeIfExists SecondaryAuthenticationMode = "if_exists"
+	SecondaryAuthenticationModeRequired SecondaryAuthenticationMode = "required"
 )
 
 func (m SecondaryAuthenticationMode) IsDisabled() bool {
-	return m == SecondaryAuthenticationModeDisabled || m == SecondaryAuthenticationModeIfRequested
+	return m == SecondaryAuthenticationModeDisabled
 }
 
 var _ = Schema.Add("DeviceTokenConfig", `
