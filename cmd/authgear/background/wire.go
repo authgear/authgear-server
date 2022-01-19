@@ -16,12 +16,14 @@ import (
 func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *configsource.Controller {
 	panic(wire.Build(
 		deps.BackgroundDependencySet,
+		configsource.DependencySet,
 	))
 }
 
-func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context) *backgroundjob.Runner {
+func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
 	panic(wire.Build(
 		deps.BackgroundDependencySet,
 		accountdeletion.DependencySet,
+		wire.Bind(new(accountdeletion.AppContextResolver), new(*configsource.Controller)),
 	))
 }

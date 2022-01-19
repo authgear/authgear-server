@@ -110,5 +110,4 @@ var BackgroundDependencySet = wire.NewSet(
 
 	clock.DependencySet,
 	globaldb.DependencySet,
-	configsource.DependencySet,
 )
