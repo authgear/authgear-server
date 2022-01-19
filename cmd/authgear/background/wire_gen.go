@@ -59,7 +59,7 @@ var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
 
-func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context) *backgroundjob.Runner {
+func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
 	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
@@ -75,7 +75,8 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context) *ba
 		Clock:       clockClock,
 	}
 	runnable := &accountdeletion.Runnable{
-		Store: store,
+		Store:              store,
+		AppContextResolver: ctrl,
 	}
 	runner := accountdeletion.NewRunner(factory, runnable)
 	return runner

@@ -40,7 +40,7 @@ func (c *Controller) Start() {
 	defer configSrcController.Close()
 
 	runners := []*backgroundjob.Runner{
-		newAccountDeletionRunner(p, context.Background()),
+		newAccountDeletionRunner(p, context.Background(), configSrcController),
 	}
 	backgroundjob.Main(c.logger, runners)
 }
