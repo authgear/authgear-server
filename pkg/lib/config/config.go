@@ -158,6 +158,15 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		}
 	}
 
+	if !c.Authentication.SecondaryAuthenticationMode.IsDisabled() {
+		if len(*c.Authentication.SecondaryAuthenticators) <= 0 {
+			ctx.Child("authentication", "secondary_authentication_mode").
+				EmitError(
+					"noSecondaryAuthenticator",
+					map[string]interface{}{"secondary_authentication_mode": c.Authentication.SecondaryAuthenticationMode})
+		}
+	}
+
 	phoneInputPinnedOK := true
 	phoneInputAllowListMap := make(map[string]bool)
 	for _, alpha2 := range c.UI.PhoneInput.AllowList {
