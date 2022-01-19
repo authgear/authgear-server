@@ -65,8 +65,14 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context) *ba
 	environmentConfig := p.EnvironmentConfig
 	databaseEnvironmentConfig := &environmentConfig.Database
 	handle := globaldb.NewHandle(c, pool, databaseEnvironmentConfig, factory)
+	sqlBuilder := globaldb.NewSQLBuilder(databaseEnvironmentConfig)
+	sqlExecutor := globaldb.NewSQLExecutor(c, handle)
+	clockClock := _wireSystemClockValue
 	store := &accountdeletion.Store{
-		Handle: handle,
+		Handle:      handle,
+		SQLBuilder:  sqlBuilder,
+		SQLExecutor: sqlExecutor,
+		Clock:       clockClock,
 	}
 	runnable := &accountdeletion.Runnable{
 		Store: store,
