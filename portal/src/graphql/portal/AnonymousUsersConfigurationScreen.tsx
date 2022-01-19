@@ -140,21 +140,21 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
           name: renderToString(
             "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label.name"
           ),
-          minWidth: 150,
-          maxWidth: 150,
+          minWidth: 200,
+          maxWidth: 200,
           isMultiline: true,
         },
         {
           key: "refresh-token-idle-timeout",
           name: "",
-          minWidth: 150,
-          maxWidth: 150,
+          minWidth: 170,
+          maxWidth: 170,
         },
         {
           key: "refresh-token-lifetime",
           name: "",
-          minWidth: 150,
-          maxWidth: 150,
+          minWidth: 170,
+          maxWidth: 170,
         },
       ],
       [renderToString]
@@ -208,17 +208,8 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
             props.column.key === "refresh-token-lifetime"
           ) {
             return (
-              <Tooltip
-                tooltipMessageId={
-                  "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip." +
-                  props.column.key
-                }
-              >
-                <Text
-                  variant="medium"
-                  block={true}
-                  className={styles.tooltipLabel}
-                >
+              <span className={styles.tooltipHeader}>
+                <Text variant="medium" className={styles.bold}>
                   <FormattedMessage
                     id={
                       "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.label." +
@@ -226,7 +217,13 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
                     }
                   />
                 </Text>
-              </Tooltip>
+                <Tooltip
+                  tooltipMessageId={
+                    "AnonymousUsersConfigurationScreen.user-lifetime.applications-list.tooltip." +
+                    props.column.key
+                  }
+                />
+              </span>
             );
           }
           return defaultRender(props);
@@ -255,54 +252,62 @@ const AnonymousUserLifeTimeDescription: React.FC<AnonymousUserLifeTimeDescriptio
         <WidgetTitle>
           <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.title" />
         </WidgetTitle>
-        <Text variant="medium" block={true}>
+        <Text
+          variant="medium"
+          block={true}
+          className={styles.widgetDescription}
+        >
           <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.description" />
         </Text>
         <div>
           <Text className={styles.title} variant="medium" block={true}>
             <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.title" />
           </Text>
-          {sessionIdleTimeoutEnabled && (
-            <Text variant="medium" className={styles.sessionItem}>
-              <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout">
-                <span className={styles.label}>
-                  <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.idle-timeout" />
-                </span>
-              </Tooltip>
-              :{" "}
+          <div className={styles.sessionInfo}>
+            {sessionIdleTimeoutEnabled && (
+              <>
+                <div className={styles.tooltipLabel}>
+                  <Text variant="medium">
+                    <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.idle-timeout" />
+                  </Text>
+                  <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.idle-timeout" />
+                </div>
+                <Text variant="medium">
+                  <FormattedMessage
+                    id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
+                    values={{
+                      seconds: sessionIdleTimeoutSeconds?.toFixed(0) ?? "",
+                    }}
+                  />
+                </Text>
+              </>
+            )}
+            <div className={styles.tooltipLabel}>
+              <Text variant="medium">
+                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime" />
+              </Text>
+              <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime" />
+            </div>
+            <Text variant="medium">
               <FormattedMessage
                 id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
                 values={{
-                  seconds: sessionIdleTimeoutSeconds?.toFixed(0) ?? "",
+                  seconds: sessionLifetimeSeconds?.toFixed(0) ?? "",
                 }}
               />
             </Text>
-          )}
-          <Text variant="medium" className={styles.sessionItem}>
-            <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.session-lifetime">
-              <span className={styles.label}>
-                <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.session-lifetime" />
-              </span>
-            </Tooltip>
-            :{" "}
-            <FormattedMessage
-              id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.value.seconds"
-              values={{
-                seconds: sessionLifetimeSeconds?.toFixed(0) ?? "",
-              }}
-            />
-          </Text>
-          <Text variant="medium" className={styles.sessionItem}>
-            <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.persistent-cookie">
-              <span className={styles.label}>
+            <div className={styles.tooltipLabel}>
+              <Text variant="medium">
                 <FormattedMessage id="AnonymousUsersConfigurationScreen.user-lifetime.cookie.label.persistent-cookie" />
-              </span>
-            </Tooltip>
-            :{" "}
-            <FormattedMessage
-              id={sessionPersistentCookie ? "enabled" : "disabled"}
-            />
-          </Text>
+              </Text>
+              <Tooltip tooltipMessageId="AnonymousUsersConfigurationScreen.user-lifetime.cookie.tooltip.persistent-cookie" />
+            </div>
+            <Text variant="medium">
+              <FormattedMessage
+                id={sessionPersistentCookie ? "enabled" : "disabled"}
+              />
+            </Text>
+          </div>
         </div>
         <div>
           <Text className={styles.title} variant="medium" block={true}>

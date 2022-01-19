@@ -1,19 +1,24 @@
 .widget {
-  grid-column: 1 / span 6;
+  grid-column: 1 / span 7;
+}
+
+.widgetDescription {
+  margin-bottom: 8px;
 }
 
 .title {
-  font-weight: 700;
-  margin-bottom: 10px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
-.sessionItem {
-  display: flex;
-  margin-bottom: 5px;
+.sessionInfo {
+  display: grid;
+  grid-template-columns: max-content auto;
+  gap: 16px 32px;
+  padding: 16px 0;
 
-  .label {
-    text-decoration: underline dashed;
-    text-underline-offset: 2px;
+  .tooltipLabel {
+    display: flex;
   }
 }
 
@@ -21,8 +26,10 @@
   padding: 0;
 }
 
-.tooltipLabel {
+.tooltipHeader {
+  display: flex;
+}
+
+.bold {
   font-weight: 600;
-  text-decoration: underline dashed;
-  text-underline-offset: 2px;
 }
