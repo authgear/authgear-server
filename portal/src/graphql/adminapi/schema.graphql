@@ -655,6 +655,9 @@ type User implements Entity & Node {
   """"""
   customAttributes: UserCustomAttributes!
 
+  """The scheduled deletion time of the user"""
+  deleteAt: DateTime
+
   """"""
   disableReason: String
 
@@ -663,6 +666,9 @@ type User implements Entity & Node {
 
   """"""
   identities(after: String, before: String, first: Int, last: Int): IdentityConnection
+
+  """"""
+  isDeactivated: Boolean!
 
   """"""
   isDisabled: Boolean!

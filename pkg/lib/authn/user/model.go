@@ -45,6 +45,8 @@ type User struct {
 	LessRecentLoginAt  *time.Time
 	IsDisabled         bool
 	DisableReason      *string
+	IsDeactivated      bool
+	DeleteAt           *time.Time
 	StandardAttributes map[string]interface{}
 	CustomAttributes   map[string]interface{}
 }
@@ -106,8 +108,10 @@ func newUserModel(
 		IsAnonymous:        isAnonymous,
 		IsVerified:         isVerified,
 		IsDisabled:         user.IsDisabled,
-		CanReauthenticate:  canReauthenticate,
 		DisableReason:      user.DisableReason,
+		IsDeactivated:      user.IsDeactivated,
+		DeleteAt:           user.DeleteAt,
+		CanReauthenticate:  canReauthenticate,
 		StandardAttributes: derivedStandardAttributes,
 		CustomAttributes:   customAttributes,
 	}

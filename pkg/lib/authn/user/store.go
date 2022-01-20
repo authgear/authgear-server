@@ -65,6 +65,8 @@ func (s *Store) Create(u *User) (err error) {
 			"last_login_at",
 			"is_disabled",
 			"disable_reason",
+			"is_deactivated",
+			"delete_at",
 			"standard_attributes",
 			"custom_attributes",
 		).
@@ -76,6 +78,8 @@ func (s *Store) Create(u *User) (err error) {
 			u.LessRecentLoginAt,
 			u.IsDisabled,
 			u.DisableReason,
+			u.IsDeactivated,
+			u.DeleteAt,
 			stdAttrsBytes,
 			customAttrsBytes,
 		)
@@ -98,6 +102,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"last_login_at",
 			"is_disabled",
 			"disable_reason",
+			"is_deactivated",
+			"delete_at",
 			"standard_attributes",
 			"custom_attributes",
 		).
@@ -108,6 +114,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 	u := &User{}
 	var stdAttrsBytes []byte
 	var customAttrsBytes []byte
+	var isDeactivated sql.NullBool
 
 	if err := scn.Scan(
 		&u.ID,
@@ -117,11 +124,14 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.LessRecentLoginAt,
 		&u.IsDisabled,
 		&u.DisableReason,
+		&isDeactivated,
+		&u.DeleteAt,
 		&stdAttrsBytes,
 		&customAttrsBytes,
 	); err != nil {
 		return nil, err
 	}
+	u.IsDeactivated = isDeactivated.Bool
 
 	if len(stdAttrsBytes) > 0 {
 		if err := json.Unmarshal(stdAttrsBytes, &u.StandardAttributes); err != nil {
