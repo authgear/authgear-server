@@ -376,3 +376,79 @@ Once used, a recovery code is invalidated.
 
 The codes are cryptographically secure random 10-letter string in Crockford's
 Base32 alphabet.
+
+## Deleting a user
+
+Deleting a user will hard-delete all data from the database,
+including identities, authenticators, sessions, etc.
+
+The developer can delete a user via the Admin API, or
+the admin can delete a user on the portal.
+
+### Cached data
+
+Some internal data may still present in cache (Redis), such as OAuth states,
+MFA device tokens, rate limit counter. There data will remain in the cache
+until its natural expiry.
+
+## Disabled user, deactivated user, and scheduled account deletion
+
+This section specifies the feature of disabled user, deactivated user, and scheduled account deletion.
+
+There are 3 attributes to represent the state of these features, summarized in the following table.
+
+|is\_disabled|is\_deactivated|delete\_at|state|
+|---|---|---|---|
+|false|false|null|Normal|
+|true|false|null|Disabled|
+|true|true|null|Deactivated|
+|true|false|non-null|Scheduled deletion by admin|
+|true|true|non-null|Scheduled deletion by end-user|
+
+List of valid state transitions:
+
+- Normal --[Disable]--> Disabled
+- Normal --[Deactivate]--> Deactivated
+- Normal --[Schedule deletion by admin]--> Scheduled deletion by admin
+- Normal --[Schedule deletion by end-user]--> Scheduled deletion by end-user
+- Disabled --[Re-enable]--> Normal
+- Deactivated --[Reactivate]--> Normal
+- Deactivated --[Re-enable]--> Normal
+- Scheduled deletion by admin --[Unschedule deletion]--> Normal
+- Scheduled deletion by end-user --[Unschedule deletion]--> Normal
+
+### Disabled user
+
+A user can be disabled by admins. A disabled user cannot sign in, and appropriate
+error message will be shown when login is attempted.
+
+Admin may optionally provide a reason when disabling a user. This reason will be
+shown when the user attempted to sign in.
+
+When a disabled user attempts to sign in, the user will be informed of disabled
+status only after performing the whole authentication process, including MFA if required.
+
+### Deactivated user
+
+The end-user can deactivate their account. A deactivated user is considered as disabled.
+When a deactivated user signs in, they can reactivate their account.
+
+> Reactivating a user is NOT yet implemented!
+
+### Scheduled account deletion
+
+Instead of deleting a user immediately, a deletion can be scheduled.
+
+The schedule is measured in terms of days. The default value is 30 days. Valid values are [1, 180].
+
+When the deletion is scheduled via Admin API or by admin, the user is disabled.
+When the deletion is unscheduled, the user is re-enabled.
+
+When the deletion is scheduled by the end-user, the user is deactivated.
+To cancel the scheduled deletion, the end-user has to reactivate their account.
+It is possible to cancel the scheduled deletion on behalf of the end-user.
+Whether the end-user can schedule deletion on their account is configurable.
+
+### Sessions
+
+When a user is disabled, deactivated or scheduled for deletion, all sessions are deleted.
