@@ -12,7 +12,7 @@ type AppContextResolver interface {
 }
 
 type UserService interface {
-	Delete(userID string) error
+	DeleteFromScheduledDeletion(userID string) error
 }
 
 type UserServiceFactory interface {
@@ -43,7 +43,7 @@ func (r *Runnable) Run(ctx context.Context) error {
 			return err
 		}
 		userService := r.UserServiceFactory.NewUserService(ctx, appUser.AppID, appContext)
-		err = userService.Delete(appUser.UserID)
+		err = userService.DeleteFromScheduledDeletion(appUser.UserID)
 		if err != nil {
 			return err
 		}

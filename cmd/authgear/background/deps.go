@@ -74,7 +74,7 @@ func (f *UserServiceFactory) NewUserService(ctx context.Context, appID string, a
 }
 
 type UserFacade interface {
-	Delete(userID string) error
+	DeleteFromScheduledDeletion(userID string) error
 }
 
 type UserService struct {
@@ -82,9 +82,9 @@ type UserService struct {
 	UserFacade  UserFacade
 }
 
-func (s *UserService) Delete(userID string) (err error) {
+func (s *UserService) DeleteFromScheduledDeletion(userID string) (err error) {
 	return s.AppDBHandle.WithTx(func() error {
-		return s.UserFacade.Delete(userID)
+		return s.UserFacade.DeleteFromScheduledDeletion(userID)
 	})
 }
 
