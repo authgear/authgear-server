@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+type RemoteIP string
+
 var forwardedForRegex = regexp.MustCompile(`for=([^;]*)(?:[; ]|$)`)
 var ipRegex = regexp.MustCompile(`^(?:(\d+\.\d+\.\d+\.\d+)|\[(.*)\])(?::\d+)?$`)
 

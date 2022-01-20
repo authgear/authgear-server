@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func init() {
@@ -28,8 +27,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	}
 
 	if !bypassRateLimit {
-		ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-		err := ctx.RateLimiter.TakeToken(interaction.AccountEnumerationRateLimitBucket(ip))
+		err := ctx.RateLimiter.TakeToken(interaction.AccountEnumerationRateLimitBucket(string(ctx.RemoteIP)))
 		if err != nil {
 			return nil, err
 		}

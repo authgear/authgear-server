@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -153,8 +152,7 @@ func (s *Service) Accept(ctx *Context, graph *Graph, input interface{}) (*Graph,
 	}
 
 	if !bypassRateLimit {
-		ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-		err := ctx.RateLimiter.TakeToken(RequestRateLimitBucket(ip))
+		err := ctx.RateLimiter.TakeToken(RequestRateLimitBucket(string(ctx.RemoteIP)))
 		if err != nil {
 			return nil, nil, err
 		}

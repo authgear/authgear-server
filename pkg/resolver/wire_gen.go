@@ -99,6 +99,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	contextContext := deps.ProvideRequestContext(request)
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	userAgentString := deps.ProvideUserAgentString(request)
 	appID := appConfig.ID
 	handle := appProvider.Redis
 	clock := _wireSystemClockValue
@@ -119,23 +121,26 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	rand := _wireRandValue
 	provider := &idpsession.Provider{
-		Context:      contextContext,
-		Request:      request,
-		AppID:        appID,
-		Redis:        handle,
-		Store:        storeRedis,
-		AccessEvents: eventProvider,
-		TrustProxy:   trustProxy,
-		Config:       sessionConfig,
-		Clock:        clock,
-		Random:       rand,
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           handle,
+		Store:           storeRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clock,
+		Random:          rand,
 	}
 	resolver := &idpsession.Resolver{
-		Cookies:    cookieManager,
-		CookieDef:  cookieDef,
-		Provider:   provider,
-		TrustProxy: trustProxy,
-		Clock:      clock,
+		Cookies:         cookieManager,
+		CookieDef:       cookieDef,
+		Provider:        provider,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		TrustProxy:      trustProxy,
+		Clock:           clock,
 	}
 	oAuthConfig := appConfig.OAuth
 	secretConfig := config.SecretConfig
@@ -325,11 +330,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:           request,
+		RemoteIP:          remoteIP,
 		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
-		TrustProxy:        trustProxy,
 		Clock:             clock,
 		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
@@ -369,8 +373,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		BaseURL:    endpointsProvider,
 	}
 	oauthResolver := &oauth2.Resolver{
+		RemoteIP:           remoteIP,
+		UserAgentString:    userAgentString,
 		OAuthConfig:        oAuthConfig,
-		TrustProxy:         trustProxy,
 		Authorizations:     authorizationStore,
 		AccessGrants:       store,
 		OfflineGrants:      store,
@@ -491,13 +496,14 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Anonymous:             anonymousProvider,
 		Biometric:             biometricProvider,
 	}
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	factory := appProvider.LoggerFactory
 	logger := verification.NewLogger(factory)
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
-	rootProvider := appProvider.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	trustProxy := environmentConfig.TrustProxy
 	appredisHandle := appProvider.Redis
 	storeRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
@@ -519,11 +525,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	verificationService := &verification.Service{
-		Request:           request,
+		RemoteIP:          remoteIP,
 		Logger:            logger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
-		TrustProxy:        trustProxy,
 		Clock:             clockClock,
 		CodeStore:         storeRedis,
 		ClaimStore:        storePQ,

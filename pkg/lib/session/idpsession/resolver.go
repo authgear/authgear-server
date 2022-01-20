@@ -20,11 +20,13 @@ type ResolverCookieManager interface {
 }
 
 type Resolver struct {
-	Cookies    ResolverCookieManager
-	CookieDef  session.CookieDef
-	Provider   resolverProvider
-	TrustProxy config.TrustProxy
-	Clock      clock.Clock
+	Cookies         ResolverCookieManager
+	CookieDef       session.CookieDef
+	Provider        resolverProvider
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
+	TrustProxy      config.TrustProxy
+	Clock           clock.Clock
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Session, error) {
@@ -34,7 +36,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Se
 		return nil, nil
 	}
 
-	accessEvent := access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
+	accessEvent := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
 	s, err := re.Provider.AccessWithToken(cookie.Value, accessEvent)
 	if err != nil {
 		if errors.Is(err, ErrSessionNotFound) {

@@ -4,6 +4,8 @@ import (
 	"net/http"
 )
 
+type HTTPHost string
+
 func GetHost(r *http.Request, trustProxy bool) string {
 	if trustProxy {
 		if host := r.Header.Get("X-Forwarded-Host"); host != "" {

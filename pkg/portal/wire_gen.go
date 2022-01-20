@@ -144,9 +144,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Executor: inProcessExecutor,
 	}
 	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	requestOriginProvider := &endpoint.RequestOriginProvider{
-		Request:    request,
-		TrustProxy: trustProxy,
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
 	}
 	endpointsProvider := &endpoint.EndpointsProvider{
 		OriginProvider: requestOriginProvider,
@@ -342,9 +344,11 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Executor: inProcessExecutor,
 	}
 	trustProxy := environmentConfig.TrustProxy
+	httpHost := deps.ProvideHTTPHost(request, trustProxy)
+	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	requestOriginProvider := &endpoint.RequestOriginProvider{
-		Request:    request,
-		TrustProxy: trustProxy,
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
 	}
 	endpointsProvider := &endpoint.EndpointsProvider{
 		OriginProvider: requestOriginProvider,

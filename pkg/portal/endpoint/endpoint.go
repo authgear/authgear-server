@@ -1,11 +1,9 @@
 package endpoint
 
 import (
-	"net/http"
 	"net/url"
 	"path"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -14,14 +12,14 @@ type OriginProvider interface {
 }
 
 type RequestOriginProvider struct {
-	Request    *http.Request
-	TrustProxy config.TrustProxy
+	HTTPHost  httputil.HTTPHost
+	HTTPProto httputil.HTTPProto
 }
 
 func (p *RequestOriginProvider) Origin() *url.URL {
 	return &url.URL{
-		Host:   httputil.GetHost(p.Request, bool(p.TrustProxy)),
-		Scheme: httputil.GetProto(p.Request, bool(p.TrustProxy)),
+		Host:   string(p.HTTPHost),
+		Scheme: string(p.HTTPProto),
 	}
 }
 
