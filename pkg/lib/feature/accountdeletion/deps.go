@@ -18,5 +18,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(Store), "*"),
 	wire.Struct(new(Runnable), "*"),
 	NewRunner,
+	NewRunnableLogger,
 	wire.Bind(new(backgroundjob.Runnable), new(*Runnable)),
 )
