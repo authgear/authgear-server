@@ -5,7 +5,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -41,8 +40,7 @@ func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interact
 	if !bypassRateLimit {
 		// check the rate limit only to ensure that we have token to signup
 		// the token will be token after running the effects successfully
-		ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
-		pass, _, err := ctx.RateLimiter.CheckToken(interaction.SignupRateLimitBucket(ip))
+		pass, _, err := ctx.RateLimiter.CheckToken(interaction.SignupRateLimitBucket(string(ctx.RemoteIP)))
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +79,7 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			newIdentities := graph.GetUserNewIdentities()
-			ip := httputil.GetIP(ctx.Request, bool(ctx.TrustProxy))
+			ip := string(ctx.RemoteIP)
 			isAnonymous := false
 			for _, i := range newIdentities {
 				if i.Type == model.IdentityTypeAnonymous {

@@ -2,7 +2,6 @@ package forgotpassword
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -63,10 +62,9 @@ type EventService interface {
 }
 
 type Provider struct {
-	Request     *http.Request
+	RemoteIP    httputil.RemoteIP
 	Translation TranslationService
 	Config      *config.ForgotPasswordConfig
-	TrustProxy  config.TrustProxy
 
 	Store     *Store
 	Clock     clock.Clock
@@ -259,7 +257,7 @@ func (p *Provider) sendSMS(phone string, code string) (err error) {
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
 func (p *Provider) ResetPasswordByCode(codeStr string, newPassword string) (oldInfo *authenticator.Info, newInfo *authenticator.Info, err error) {
-	err = p.RateLimiter.TakeToken(VerifyIPRateLimitBucket(httputil.GetIP(p.Request, bool(p.TrustProxy))))
+	err = p.RateLimiter.TakeToken(VerifyIPRateLimitBucket(string(p.RemoteIP)))
 	if err != nil {
 		return
 	}

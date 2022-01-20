@@ -2,7 +2,6 @@ package verification
 
 import (
 	"errors"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -42,11 +41,10 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("verification")} }
 
 type Service struct {
-	Request           *http.Request
+	RemoteIP          httputil.RemoteIP
 	Logger            Logger
 	Config            *config.VerificationConfig
 	UserProfileConfig *config.UserProfileConfig
-	TrustProxy        config.TrustProxy
 
 	Clock       clock.Clock
 	CodeStore   CodeStore
@@ -263,7 +261,7 @@ func (s *Service) GetCode(id string) (*Code, error) {
 }
 
 func (s *Service) VerifyCode(id string, code string) (*Code, error) {
-	err := s.RateLimiter.TakeToken(VerifyRateLimitBucket(httputil.GetIP(s.Request, bool(s.TrustProxy))))
+	err := s.RateLimiter.TakeToken(VerifyRateLimitBucket(string(s.RemoteIP)))
 	if err != nil {
 		return nil, err
 	}
