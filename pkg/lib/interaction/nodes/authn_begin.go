@@ -66,7 +66,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 
 	switch n.Stage {
 	case authn.AuthenticationStagePrimary:
-		preferred = n.AuthenticationConfig.PrimaryAuthenticators
+		preferred = *n.AuthenticationConfig.PrimaryAuthenticators
 		availableAuthenticators = authenticator.ApplyFilters(
 			n.Authenticators,
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(n.Identity),
@@ -74,7 +74,7 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 		required = n.Identity.PrimaryAuthenticatorTypes()
 
 	case authn.AuthenticationStageSecondary:
-		preferred = n.AuthenticationConfig.SecondaryAuthenticators
+		preferred = *n.AuthenticationConfig.SecondaryAuthenticators
 		availableAuthenticators = authenticator.ApplyFilters(
 			n.Authenticators,
 			authenticator.KeepKind(authenticator.KindSecondary),
@@ -94,9 +94,10 @@ func (n *NodeAuthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge, 
 			for t := range existingAuths {
 				required = append(required, t)
 			}
-
-		case config.SecondaryAuthenticationModeIfRequested:
-			// Never require unless explicitly requested.
+		case config.SecondaryAuthenticationModeDisabled,
+			config.SecondaryAuthenticationModeIfRequested:
+			// When MFA is disabled, treat it as if the user has no authenticators.
+			availableAuthenticators = nil
 			required = nil
 		}
 

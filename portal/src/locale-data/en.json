@@ -150,9 +150,10 @@
 
   "Onboarding.secondary-authentication-mode.title": "Is Multi-factor authentication required?",
   "Onboarding.secondary-authentication-mode.desc": "Multi-Factor Authentication (MFA) enhance security of your end-user greatly! According to {ExternalLink, react, href{https://security.googleblog.com/2019/05/new-research-how-effective-is-basic.html} children{research}} simply having SMS as 2FA block 100% of automated bots, 96% of bulk phishing attacks, and 76% of targeted attacks. Using on-device 2FA is even better at handling targeted attacks!",
+  "Onboarding.secondary-authentication-mode.disabled": "Disabled",
   "Onboarding.secondary-authentication-mode.required": "Always required",
   "Onboarding.secondary-authentication-mode.if-exists": "Required if user has Mutli-factor Authenticator",
-  "Onboarding.secondary-authentication-mode.if-requested": "Optional",
+  "Onboarding.secondary-authentication-mode.if-requested": "Disabled (Deprecated)",
 
   "Onboarding.verification.email-enabled.title" :"Should we verify email?",
   "Onboarding.verification.phone-enabled.title" :"Should we verify phone?",
@@ -348,15 +349,19 @@
   "AuthenticatorConfigurationScreen.columns.authenticator": "Authenticator",
   "AuthenticatorConfigurationScreen.primary-authenticators.title": "Primary Authenticator",
   "AuthenticatorConfigurationScreen.secondary-authenticators.title": "Secondary Authenticator",
-  "AuthenticatorConfigurationScreen.policy.title": "Policy",
-  "AuthenticatorConfigurationScreen.policy.require-mfa": "Require Multi-factor Auth",
-  "AuthenticatorConfigurationScreen.policy.require-mfa.required": "Always Required",
-  "AuthenticatorConfigurationScreen.policy.require-mfa.if-exists": "Required if user has Multi-factor Authenticator",
-  "AuthenticatorConfigurationScreen.policy.require-mfa.if-requested": "Required if user enabled Multi-factor Authenticator",
-  "AuthenticatorConfigurationScreen.policy.recovery-code-number": "Number of Recovery Code",
-  "AuthenticatorConfigurationScreen.policy.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
-  "AuthenticatorConfigurationScreen.policy.disable-device-token": "Disable \"Do not ask again on this device\" for the Multi-factor Auth",
+  
+  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.label": "Require Secondary Authenticator",
+  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.disabled": "Disabled",
+  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.required": "Always Required",
+  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-exists": "Required if user has Secondary Authenticator",
+  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-requested": "Disabled (Deprecated)",
+  "AuthenticatorConfigurationScreen.secondary-authenticators.disable-device-token.label": "Disable \"Do not ask again on this device\" for the Secondary Authenticator",
 
+  "AuthenticatorConfigurationScreen.recovery-code.title": "Recovery code",
+  "AuthenticatorConfigurationScreen.recovery-code.description": "In the case of losing access to the Secondary Authenticators, the end-user can recover their account by using the Recovery Codes.",
+  "AuthenticatorConfigurationScreen.recovery-code.recovery-code-number": "Number of Recovery Code",
+  "AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code": "Allow user to retrieve or regenerate recovery code again",
+  
   "VerificationConfigurationScreen.title": "User Verification",
   "VerificationConfigurationScreen.description": "Configure if the email or phone number of your users could be verified and if it is required",
   "VerificationConfigurationScreen.basic-settings": "Basic Settings",
@@ -428,7 +433,7 @@
   "OAuthBranding.wechat.mobile": "Sign in with WeChat (Mobile/移动应用)",
 
   "PasswordPolicyConfigurationScreen.title": "Password Policy",
-  "PasswordPolicyConfigurationScreen.description": "Configure the password policy if Password is configurate as primary authenticators.",
+  "PasswordPolicyConfigurationScreen.description": "Configure the password policy for Password and Additional Password in MFA.",
   "PasswordPolicyConfigurationScreen.basic-policies": "Basic Policies",
   "PasswordPolicyConfigurationScreen.advanced-policies": "Advanced Policies",
   "PasswordPolicyConfigurationScreen.force-change.label": "Force password change on next login if it does not meet the policy requirements",

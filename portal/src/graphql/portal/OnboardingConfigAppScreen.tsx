@@ -543,9 +543,9 @@ const SecondaryAuthenticationModeContent: React.FC<SecondaryAuthenticationModeCo
     const options: IDropdownOption[] = useMemo(
       () => [
         {
-          key: "required",
+          key: "disabled",
           text: renderToString(
-            "Onboarding.secondary-authentication-mode.required"
+            "Onboarding.secondary-authentication-mode.disabled"
           ),
         },
         {
@@ -555,10 +555,17 @@ const SecondaryAuthenticationModeContent: React.FC<SecondaryAuthenticationModeCo
           ),
         },
         {
+          key: "required",
+          text: renderToString(
+            "Onboarding.secondary-authentication-mode.required"
+          ),
+        },
+        {
           key: "if_requested",
           text: renderToString(
             "Onboarding.secondary-authentication-mode.if-requested"
           ),
+          hidden: true,
         },
       ],
       [renderToString]

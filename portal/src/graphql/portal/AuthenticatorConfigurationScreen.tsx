@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
+import cn from "classnames";
 import {
   Checkbox,
   Dropdown,
@@ -37,6 +38,7 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import ScreenDescription from "../../ScreenDescription";
 import WidgetTitle from "../../WidgetTitle";
+import WidgetDescription from "../../WidgetDescription";
 import Widget from "../../Widget";
 import FormContainer from "../../FormContainer";
 
@@ -286,15 +288,22 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
       return false;
     }, [featureDisabled]);
 
+    const isSecondaryAuthenticatorDisabled = useMemo(
+      () => state.mfaMode === "disabled",
+      [state.mfaMode]
+    );
+
     const renderSecondaryAuthenticatorMode = useCallback(
       (key: SecondaryAuthenticationMode) => {
         const messageIdMap: Record<SecondaryAuthenticationMode, string> = {
+          disabled:
+            "AuthenticatorConfigurationScreen.secondary-authenticators.mode.disabled",
           required:
-            "AuthenticatorConfigurationScreen.policy.require-mfa.required",
+            "AuthenticatorConfigurationScreen.secondary-authenticators.mode.required",
           if_exists:
-            "AuthenticatorConfigurationScreen.policy.require-mfa.if-exists",
+            "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-exists",
           if_requested:
-            "AuthenticatorConfigurationScreen.policy.require-mfa.if-requested",
+            "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-requested",
         };
 
         return renderToString(messageIdMap[key]);
@@ -569,40 +578,64 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           <WidgetTitle>
             <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.title" />
           </WidgetTitle>
-          {hasSecondaryFeatureDisabled && (
-            <MessageBar>
-              <FormattedMessage
-                id="FeatureConfig.disabled"
-                values={{
-                  planPagePath: "../../../billing",
-                }}
-              />
-            </MessageBar>
-          )}
-          <DetailsList
-            items={secondaryItems}
-            columns={authenticatorColumns}
-            onRenderItemColumn={onRenderSecondaryColumn}
-            selectionMode={SelectionMode.none}
-          />
-        </Widget>
-        <Widget className={styles.widget}>
-          <WidgetTitle>
-            <FormattedMessage id="AuthenticatorConfigurationScreen.policy.title" />
-          </WidgetTitle>
           <Dropdown
             label={renderToString(
-              "AuthenticatorConfigurationScreen.policy.require-mfa"
+              "AuthenticatorConfigurationScreen.secondary-authenticators.mode.label"
             )}
             options={requireMFAOptions}
             selectedKey={state.mfaMode}
             onChange={onRequireMFAOptionChange}
           />
+          <div
+            className={cn({
+              [styles.readOnly]: isSecondaryAuthenticatorDisabled,
+            })}
+          >
+            {hasSecondaryFeatureDisabled && (
+              <MessageBar>
+                <FormattedMessage
+                  id="FeatureConfig.disabled"
+                  values={{
+                    planPagePath: "../../../billing",
+                  }}
+                />
+              </MessageBar>
+            )}
+            <DetailsList
+              items={secondaryItems}
+              columns={authenticatorColumns}
+              onRenderItemColumn={onRenderSecondaryColumn}
+              selectionMode={SelectionMode.none}
+            />
+          </div>
+          <Toggle
+            className={cn({
+              [styles.readOnly]: isSecondaryAuthenticatorDisabled,
+            })}
+            inlineLabel={true}
+            label={
+              <FormattedMessage id="AuthenticatorConfigurationScreen.secondary-authenticators.disable-device-token.label" />
+            }
+            checked={state.disableDeviceToken}
+            onChange={onDisableDeviceTokenChange}
+          />
+        </Widget>
+        <Widget
+          className={cn(styles.widget, {
+            [styles.readOnly]: isSecondaryAuthenticatorDisabled,
+          })}
+        >
+          <WidgetTitle>
+            <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.title" />
+          </WidgetTitle>
+          <WidgetDescription>
+            <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.description" />
+          </WidgetDescription>
           <FormTextField
             parentJSONPointer="/authentication/recovery_code"
             fieldName="count"
             label={renderToString(
-              "AuthenticatorConfigurationScreen.policy.recovery-code-number"
+              "AuthenticatorConfigurationScreen.recovery-code.recovery-code-number"
             )}
             value={state.numRecoveryCode?.toFixed(0) ?? ""}
             onChange={onRecoveryCodeNumberChange}
@@ -610,18 +643,10 @@ const AuthenticationAuthenticatorSettingsContent: React.FC<AuthenticationAuthent
           <Toggle
             inlineLabel={true}
             label={
-              <FormattedMessage id="AuthenticatorConfigurationScreen.policy.allow-retrieve-recovery-code" />
+              <FormattedMessage id="AuthenticatorConfigurationScreen.recovery-code.allow-retrieve-recovery-code" />
             }
             checked={state.allowListRecoveryCode}
             onChange={onAllowRetrieveRecoveryCodeChange}
-          />
-          <Toggle
-            inlineLabel={true}
-            label={
-              <FormattedMessage id="AuthenticatorConfigurationScreen.policy.disable-device-token" />
-            }
-            checked={state.disableDeviceToken}
-            onChange={onDisableDeviceTokenChange}
           />
         </Widget>
       </ScreenContent>
