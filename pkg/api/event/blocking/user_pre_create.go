@@ -25,8 +25,11 @@ func (e *UserPreCreateBlockingEventPayload) UserID() string {
 	return e.UserRef.ID
 }
 
-func (e *UserPreCreateBlockingEventPayload) IsAdminAPI() bool {
-	return e.AdminAPI
+func (e *UserPreCreateBlockingEventPayload) GetTriggeredBy() event.TriggeredByType {
+	if e.AdminAPI {
+		return event.TriggeredByTypeAdminAPI
+	}
+	return event.TriggeredByTypeUser
 }
 
 func (e *UserPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {

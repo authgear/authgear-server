@@ -20,8 +20,8 @@ func (e *AuthenticationFailedLoginIDEventPayload) UserID() string {
 	return ""
 }
 
-func (e *AuthenticationFailedLoginIDEventPayload) IsAdminAPI() bool {
-	return false
+func (e *AuthenticationFailedLoginIDEventPayload) GetTriggeredBy() event.TriggeredByType {
+	return event.TriggeredByTypeUser
 }
 
 func (e *AuthenticationFailedLoginIDEventPayload) FillContext(ctx *event.Context) {

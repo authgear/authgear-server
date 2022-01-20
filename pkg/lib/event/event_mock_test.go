@@ -23,8 +23,8 @@ func (e *MockUserEventBase) UserID() string {
 	return e.User.ID
 }
 
-func (e *MockUserEventBase) IsAdminAPI() bool {
-	return false
+func (e *MockUserEventBase) GetTriggeredBy() event.TriggeredByType {
+	return event.TriggeredByTypeUser
 }
 
 type MockNonBlockingEvent1 struct {
