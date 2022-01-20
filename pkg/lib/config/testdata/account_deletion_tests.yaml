@@ -1,0 +1,18 @@
+part: AccountDeletionConfig
+name: zero-grace-period
+error: |-
+  invalid value:
+  /grace_period_days: minimum
+    map[actual:0 minimum:1]
+value:
+  grace_period_days: 0
+
+---
+part: AccountDeletionConfig
+name: too-large-grace-period
+error: |-
+  invalid value:
+  /grace_period_days: maximum
+    map[actual:181 maximum:180]
+value:
+  grace_period_days: 181
