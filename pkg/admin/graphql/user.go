@@ -107,6 +107,16 @@ var nodeUser = node(
 			"disableReason": &graphql.Field{
 				Type: graphql.String,
 			},
+			"isDeactivated": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.Boolean),
+			},
+			"deleteAt": &graphql.Field{
+				Type:        graphql.DateTime,
+				Description: "The scheduled deletion time of the user",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					return p.Source.(*user.User).DeleteAt, nil
+				},
+			},
 			"standardAttributes": &graphql.Field{
 				Type: graphql.NewNonNull(UserStandardAttributes),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
