@@ -178,10 +178,7 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		resolvedLanguage = s.Localization.SupportedLanguages[resolvedLanguageIdx]
 	}
 
-	triggeredBy := event.TriggeredByTypeUser
-	if payload.IsAdminAPI() {
-		triggeredBy = event.TriggeredByTypeAdminAPI
-	}
+	triggeredBy := payload.GetTriggeredBy()
 
 	clientID := clientid.GetClientID(s.Context)
 

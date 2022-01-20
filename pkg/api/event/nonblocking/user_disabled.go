@@ -22,8 +22,8 @@ func (e *UserDisabledEventPayload) UserID() string {
 	return e.UserRef.ID
 }
 
-func (e *UserDisabledEventPayload) IsAdminAPI() bool {
-	return true
+func (e *UserDisabledEventPayload) GetTriggeredBy() event.TriggeredByType {
+	return event.TriggeredByTypeAdminAPI
 }
 
 func (e *UserDisabledEventPayload) FillContext(ctx *event.Context) {
