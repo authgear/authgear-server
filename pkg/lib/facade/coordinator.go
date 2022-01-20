@@ -249,7 +249,7 @@ func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, secret
 	return c.Authenticators.VerifySecret(info, secret)
 }
 
-func (c *Coordinator) UserDelete(userID string) error {
+func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error {
 	// Delete dependents of user entity.
 
 	// Identities:
@@ -311,7 +311,8 @@ func (c *Coordinator) UserDelete(userID string) error {
 	}
 
 	err = c.Events.DispatchEvent(&nonblocking.UserDeletedEventPayload{
-		UserModel: *userModel,
+		UserModel:           *userModel,
+		IsScheduledDeletion: isScheduledDeletion,
 	})
 	if err != nil {
 		return err
