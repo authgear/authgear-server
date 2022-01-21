@@ -263,6 +263,112 @@ var _ = registerMutationField(
 	},
 )
 
+var scheduleAccountDeletionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "ScheduleAccountDeletionInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+	},
+})
+
+var scheduleAccountDeletionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "ScheduleAccountDeletionPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"scheduleAccountDeletion",
+	&graphql.Field{
+		Description: "Schedule account deletion",
+		Type:        graphql.NewNonNull(scheduleAccountDeletionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(scheduleAccountDeletionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.ScheduleDeletion(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
+var unscheduleAccountDeletionInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "UnscheduleAccountDeletionInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+	},
+})
+
+var unscheduleAccountDeletionPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "UnscheduleAccountDeletionPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"unscheduleAccountDeletion",
+	&graphql.Field{
+		Description: "Unschedule account deletion",
+		Type:        graphql.NewNonNull(unscheduleAccountDeletionPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(unscheduleAccountDeletionInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.UnscheduleDeletion(userID)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
 var updateUserInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "UpdateUserInput",
 	Fields: graphql.InputObjectConfigFieldMap{

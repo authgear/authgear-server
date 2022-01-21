@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type EventService interface {
@@ -93,19 +94,21 @@ type OAuthSessionManager SessionManager
 // FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
 //             removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
-	Events          EventService
-	Identities      IdentityService
-	Authenticators  AuthenticatorService
-	Verification    VerificationService
-	MFA             MFAService
-	UserCommands    UserCommands
-	UserQueries     UserQueries
-	StdAttrsService StdAttrsService
-	PasswordHistory PasswordHistoryStore
-	OAuth           OAuthService
-	IDPSessions     IDPSessionManager
-	OAuthSessions   OAuthSessionManager
-	IdentityConfig  *config.IdentityConfig
+	Events                EventService
+	Identities            IdentityService
+	Authenticators        AuthenticatorService
+	Verification          VerificationService
+	MFA                   MFAService
+	UserCommands          UserCommands
+	UserQueries           UserQueries
+	StdAttrsService       StdAttrsService
+	PasswordHistory       PasswordHistoryStore
+	OAuth                 OAuthService
+	IDPSessions           IDPSessionManager
+	OAuthSessions         OAuthSessionManager
+	IdentityConfig        *config.IdentityConfig
+	AccountDeletionConfig *config.AccountDeletionConfig
+	Clock                 clock.Clock
 }
 
 func (c *Coordinator) IdentityGet(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
@@ -503,5 +506,53 @@ func (c *Coordinator) UserDisable(userID string, reason *string) error {
 		return err
 	}
 
+	return nil
+}
+
+func (c *Coordinator) UserScheduleDeletion(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	deleteAt := now.Add(c.AccountDeletionConfig.GracePeriod.Duration())
+
+	accountStatus, err := u.AccountStatus().ScheduleDeletionByAdmin(deleteAt)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	err = c.terminateAllSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	// FIXME: dispatch blocking and nonblocking event.
+	return nil
+}
+
+func (c *Coordinator) UserUnscheduleDeletion(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().UnscheduleDeletionByAdmin()
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	// FIXME: dispatch nonblocking event.
 	return nil
 }

@@ -422,11 +422,17 @@ type Mutation {
   """Revoke session of user"""
   revokeSession(input: RevokeSessionInput!): RevokeSessionPayload!
 
+  """Schedule account deletion"""
+  scheduleAccountDeletion(input: ScheduleAccountDeletionInput!): ScheduleAccountDeletionPayload!
+
   """Set disabled status of user"""
   setDisabledStatus(input: SetDisabledStatusInput!): SetDisabledStatusPayload!
 
   """Set verified status of a claim of user"""
   setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
+
+  """Unschedule account deletion"""
+  unscheduleAccountDeletion(input: UnscheduleAccountDeletionInput!): UnscheduleAccountDeletionPayload!
 
   """Update user"""
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
@@ -509,6 +515,18 @@ input RevokeSessionInput {
 
 """"""
 type RevokeSessionPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input ScheduleAccountDeletionInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type ScheduleAccountDeletionPayload {
   """"""
   user: User!
 }
@@ -624,6 +642,18 @@ enum SortDirection {
 
   """"""
   DESC
+}
+
+""""""
+input UnscheduleAccountDeletionInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type UnscheduleAccountDeletionPayload {
+  """"""
+  user: User!
 }
 
 """"""

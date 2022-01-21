@@ -42,6 +42,8 @@ type UserFacade interface {
 	Create(identityDef model.IdentityDef, password string) (string, error)
 	ResetPassword(id string, password string) error
 	SetDisabled(id string, isDisabled bool, reason *string) error
+	ScheduleDeletion(id string) error
+	UnscheduleDeletion(id string) error
 	Delete(id string) error
 }
 
