@@ -356,24 +356,30 @@ function useDeleteUserCommandBarItem(
 }
 
 function useSetUserDisabledCommandBarItem(
-  userIsDisabled: boolean,
+  user: UserQuery_node_User,
   onClick: IButtonProps["onClick"]
 ): ICommandBarItemProps {
   const { renderToString } = useContext(Context);
   const itemProps: ICommandBarItemProps = useMemo(() => {
+    const text =
+      user.deleteAt != null
+        ? renderToString("UserDetailsScreen.cancel-removal")
+        : user.isDisabled
+        ? renderToString("UserDetailsScreen.reenable-user")
+        : renderToString("UserDetailsScreen.disable-user");
+    const iconName =
+      user.deleteAt != null ? "Undo" : user.isDisabled ? "Play" : "CircleStop";
     return {
       key: "setDisabledStatus",
-      text: userIsDisabled
-        ? renderToString("UserDetailsScreen.reenable-user")
-        : renderToString("UserDetailsScreen.disable-user"),
+      text,
       iconProps: {
-        iconName: userIsDisabled ? "Play" : "CircleStop",
+        iconName,
       },
       onRender: (props) => {
         return <CommandButton {...props} onClick={onClick} />;
       },
     };
-  }, [userIsDisabled, onClick, renderToString]);
+  }, [user.deleteAt, user.isDisabled, onClick, renderToString]);
   return itemProps;
 }
 
@@ -427,7 +433,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     }, []);
 
     const setUserDisabledCommandBarItem = useSetUserDisabledCommandBarItem(
-      user.isDisabled,
+      user,
       onClickSetUserDisabled
     );
 
@@ -490,14 +496,16 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
           isHidden={deleteUserDialogIsHidden}
           onDismiss={onDismissDeleteUserDialog}
           userID={user.id}
+          userDeleteAt={user.deleteAt}
           endUserAccountIdentifier={endUserAccountIdentifier}
         />
         <SetUserDisabledDialog
           isHidden={setUserDisabledDialogIsHidden}
           onDismiss={onDismissSetUserDisabledDialog}
           userID={user.id}
+          userIsDisabled={user.isDisabled}
+          userDeleteAt={user.deleteAt}
           endUserAccountIdentifier={endUserAccountIdentifier}
-          isDisablingUser={!user.isDisabled}
         />
       </FormContainer>
     );
