@@ -572,7 +572,7 @@ name: invalid-non-blocking-hook
 error: |-
   invalid configuration:
   /hook/non_blocking_handlers/0/events/0: enum
-    map[actual:invalid_name expected:[* user.created user.authenticated user.profile.updated user.disabled user.reenabled user.anonymous.promoted user.deleted identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected]]
+    map[actual:invalid_name expected:[* user.created user.authenticated user.profile.updated user.disabled user.reenabled user.anonymous.promoted user.deletion_scheduled user.deletion_unscheduled user.deleted identity.email.added identity.email.removed identity.email.updated identity.phone.added identity.phone.removed identity.phone.updated identity.username.added identity.username.removed identity.username.updated identity.oauth.connected identity.oauth.disconnected]]
 config:
   id: test
   http:

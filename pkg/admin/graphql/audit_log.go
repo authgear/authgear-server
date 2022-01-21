@@ -32,6 +32,12 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"USER_ANONYMOUS_PROMOTED": &graphql.EnumValueConfig{
 			Value: "user.anonymous.promoted",
 		},
+		"USER_DELETION_SCHEDULED": &graphql.EnumValueConfig{
+			Value: "user.deletion_scheduled",
+		},
+		"USER_DELETION_UNSCHEDULED": &graphql.EnumValueConfig{
+			Value: "user.deletion_unscheduled",
+		},
 		"USER_DELETED": &graphql.EnumValueConfig{
 			Value: "user.deleted",
 		},

@@ -112,6 +112,12 @@ enum AuditLogActivityType {
   USER_DELETED
 
   """"""
+  USER_DELETION_SCHEDULED
+
+  """"""
+  USER_DELETION_UNSCHEDULED
+
+  """"""
   USER_DISABLED
 
   """"""

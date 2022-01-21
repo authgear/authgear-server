@@ -2,6 +2,7 @@ package facade
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -533,7 +534,30 @@ func (c *Coordinator) UserScheduleDeletion(userID string) error {
 		return err
 	}
 
-	// FIXME: dispatch blocking and nonblocking event.
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: userID,
+		},
+	}
+
+	events := []event.Payload{
+		&blocking.UserPreScheduleDeletionBlockingEventPayload{
+			UserRef:  userRef,
+			AdminAPI: true,
+		},
+		&nonblocking.UserDeletionScheduledEventPayload{
+			UserRef:  userRef,
+			AdminAPI: true,
+		},
+	}
+
+	for _, e := range events {
+		err := c.Events.DispatchEvent(e)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -553,6 +577,19 @@ func (c *Coordinator) UserUnscheduleDeletion(userID string) error {
 		return err
 	}
 
-	// FIXME: dispatch nonblocking event.
+	e := &nonblocking.UserDeletionUnscheduledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		AdminAPI: true,
+	}
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
