@@ -73,16 +73,10 @@ func (s AccountStatus) Type() AccountStatusType {
 
 func (s AccountStatus) Reenable() (*AccountStatus, error) {
 	target := AccountStatus{}
-	if s.IsDisabled {
+	if s.Type() == AccountStatusTypeDisabled {
 		return &target, nil
 	}
-	return nil, InvalidAccountStatusTransition.NewWithInfo(
-		fmt.Sprintf("invalid account status transition: %v -> %v", s.Type(), target.Type()),
-		map[string]interface{}{
-			"from": s.Type(),
-			"to":   target.Type(),
-		},
-	)
+	return nil, s.makeTransitionError(target.Type())
 }
 
 func (s AccountStatus) Disable(reason *string) (*AccountStatus, error) {
@@ -90,14 +84,37 @@ func (s AccountStatus) Disable(reason *string) (*AccountStatus, error) {
 		IsDisabled:    true,
 		DisableReason: reason,
 	}
-	if !s.IsDisabled {
+	if s.Type() == AccountStatusTypeNormal {
 		return &target, nil
 	}
-	return nil, InvalidAccountStatusTransition.NewWithInfo(
-		fmt.Sprintf("invalid account status transition: %v -> %v", s.Type(), target.Type()),
+	return nil, s.makeTransitionError(target.Type())
+}
+
+func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStatus, error) {
+	target := AccountStatus{
+		IsDisabled: true,
+		DeleteAt:   &deleteAt,
+	}
+	if s.Type() == AccountStatusTypeScheduledDeletion {
+		return nil, s.makeTransitionError(target.Type())
+	}
+	return &target, nil
+}
+
+func (s AccountStatus) UnscheduleDeletionByAdmin() (*AccountStatus, error) {
+	var target AccountStatus
+	if s.Type() != AccountStatusTypeScheduledDeletion {
+		return nil, s.makeTransitionError(target.Type())
+	}
+	return &target, nil
+}
+
+func (s AccountStatus) makeTransitionError(targetType AccountStatusType) error {
+	return InvalidAccountStatusTransition.NewWithInfo(
+		fmt.Sprintf("invalid account status transition: %v -> %v", s.Type(), targetType),
 		map[string]interface{}{
 			"from": s.Type(),
-			"to":   target.Type(),
+			"to":   targetType,
 		},
 	)
 }

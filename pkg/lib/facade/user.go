@@ -33,3 +33,11 @@ func (u UserFacade) Disable(userID string, reason *string) error {
 func (u UserFacade) Reenable(userID string) error {
 	return u.Coordinator.UserReenable(userID)
 }
+
+func (u UserFacade) ScheduleDeletion(userID string) error {
+	return u.Coordinator.UserScheduleDeletion(userID)
+}
+
+func (u UserFacade) UnscheduleDeletion(userID string) error {
+	return u.Coordinator.UserUnscheduleDeletion(userID)
+}
