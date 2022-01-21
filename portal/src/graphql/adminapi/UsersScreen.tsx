@@ -42,6 +42,9 @@ const LIST_QUERY = gql`
           createdAt
           lastLoginAt
           isDisabled
+          disableReason
+          isDeactivated
+          deleteAt
           standardAttributes
         }
       }

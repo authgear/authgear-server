@@ -8,13 +8,16 @@ const setDisabledStatusMutation = gql`
       user {
         id
         isDisabled
+        disableReason
+        isDeactivated
+        deleteAt
       }
     }
   }
 `;
 
-export function useSetDisabledStatusMutation(userID: string): {
-  setDisabledStatus: (isDisabled: boolean) => Promise<boolean>;
+export function useSetDisabledStatusMutation(): {
+  setDisabledStatus: (userID: string, isDisabled: boolean) => Promise<boolean>;
   loading: boolean;
   error: unknown;
 } {
@@ -26,7 +29,7 @@ export function useSetDisabledStatusMutation(userID: string): {
     });
 
   const setDisabledStatus = useCallback(
-    async (isDisabled: boolean) => {
+    async (userID: string, isDisabled: boolean) => {
       const result = await mutationFunction({
         variables: {
           userID,
@@ -36,7 +39,7 @@ export function useSetDisabledStatusMutation(userID: string): {
 
       return !!result.data;
     },
-    [mutationFunction, userID]
+    [mutationFunction]
   );
 
   return { setDisabledStatus, loading, error };

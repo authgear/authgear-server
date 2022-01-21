@@ -14,6 +14,12 @@ export interface SetDisabledStatusMutation_setDisabledStatus_user {
    */
   id: string;
   isDisabled: boolean;
+  disableReason: string | null;
+  isDeactivated: boolean;
+  /**
+   * The scheduled deletion time of the user
+   */
+  deleteAt: GQL_DateTime | null;
 }
 
 export interface SetDisabledStatusMutation_setDisabledStatus {
