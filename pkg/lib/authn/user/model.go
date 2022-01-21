@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -37,6 +38,70 @@ func (o SortOption) Apply(builder db.SelectBuilder) db.SelectBuilder {
 	return builder.OrderBy(fmt.Sprintf("%s %s NULLS LAST", sortBy, sortDirection))
 }
 
+var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccountStatusTransition")
+
+type AccountStatusType string
+
+const (
+	AccountStatusTypeNormal            AccountStatusType = "normal"
+	AccountStatusTypeDisabled          AccountStatusType = "disabled"
+	AccountStatusTypeDeactivated       AccountStatusType = "deactivated"
+	AccountStatusTypeScheduledDeletion AccountStatusType = "scheduled_deletion"
+)
+
+// AccountStatus represents disabled, deactivated, or scheduled deletion state.
+// The zero value means normal.
+type AccountStatus struct {
+	IsDisabled    bool
+	IsDeactivated bool
+	DisableReason *string
+	DeleteAt      *time.Time
+}
+
+func (s AccountStatus) Type() AccountStatusType {
+	if !s.IsDisabled {
+		return AccountStatusTypeNormal
+	}
+	if s.DeleteAt != nil {
+		return AccountStatusTypeScheduledDeletion
+	}
+	if s.IsDeactivated {
+		return AccountStatusTypeDeactivated
+	}
+	return AccountStatusTypeDisabled
+}
+
+func (s AccountStatus) Reenable() (*AccountStatus, error) {
+	target := AccountStatus{}
+	if s.IsDisabled {
+		return &target, nil
+	}
+	return nil, InvalidAccountStatusTransition.NewWithInfo(
+		fmt.Sprintf("invalid account status transition: %v -> %v", s.Type(), target.Type()),
+		map[string]interface{}{
+			"from": s.Type(),
+			"to":   target.Type(),
+		},
+	)
+}
+
+func (s AccountStatus) Disable(reason *string) (*AccountStatus, error) {
+	target := AccountStatus{
+		IsDisabled:    true,
+		DisableReason: reason,
+	}
+	if !s.IsDisabled {
+		return &target, nil
+	}
+	return nil, InvalidAccountStatusTransition.NewWithInfo(
+		fmt.Sprintf("invalid account status transition: %v -> %v", s.Type(), target.Type()),
+		map[string]interface{}{
+			"from": s.Type(),
+			"to":   target.Type(),
+		},
+	)
+}
+
 type User struct {
 	ID                 string
 	CreatedAt          time.Time
@@ -62,6 +127,15 @@ func (u *User) GetMeta() model.Meta {
 func (u *User) ToRef() *model.UserRef {
 	return &model.UserRef{
 		Meta: u.GetMeta(),
+	}
+}
+
+func (u *User) AccountStatus() AccountStatus {
+	return AccountStatus{
+		IsDisabled:    u.IsDisabled,
+		DisableReason: u.DisableReason,
+		IsDeactivated: u.IsDeactivated,
+		DeleteAt:      u.DeleteAt,
 	}
 }
 

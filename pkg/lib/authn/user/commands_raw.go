@@ -57,8 +57,8 @@ func (c *RawCommands) UpdateLoginTime(userID string, loginAt time.Time) error {
 	return c.Store.UpdateLoginTime(userID, loginAt)
 }
 
-func (c *RawCommands) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
-	return c.Store.UpdateDisabledStatus(userID, isDisabled, reason)
+func (c *RawCommands) UpdateAccountStatus(userID string, accountStatus AccountStatus) error {
+	return c.Store.UpdateAccountStatus(userID, accountStatus)
 }
 
 func (c *RawCommands) Delete(userID string) error {

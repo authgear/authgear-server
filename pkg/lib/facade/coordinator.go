@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -54,11 +55,12 @@ type MFAService interface {
 }
 
 type UserQueries interface {
+	GetRaw(userID string) (*user.User, error)
 	Get(userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type UserCommands interface {
-	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
+	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
 	Delete(userID string) error
 }
 
@@ -436,7 +438,17 @@ func (c *Coordinator) terminateAllSessions(userID string) error {
 }
 
 func (c *Coordinator) UserReenable(userID string) error {
-	err := c.UserCommands.UpdateDisabledStatus(userID, false, nil)
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().Reenable()
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
 	if err != nil {
 		return err
 	}
@@ -458,7 +470,17 @@ func (c *Coordinator) UserReenable(userID string) error {
 }
 
 func (c *Coordinator) UserDisable(userID string, reason *string) error {
-	err := c.UserCommands.UpdateDisabledStatus(userID, true, reason)
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().Disable(reason)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
 	if err != nil {
 		return err
 	}

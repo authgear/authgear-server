@@ -22,7 +22,7 @@ type store interface {
 	Count() (uint64, error)
 	QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
-	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
+	UpdateAccountStatus(userID string, status AccountStatus) error
 	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(userID string, customAttrs map[string]interface{}) error
 	Delete(userID string) error
@@ -252,11 +252,13 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 	return nil
 }
 
-func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) error {
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("is_disabled", isDisabled).
-		Set("disable_reason", reason).
+		Set("is_disabled", accountStatus.IsDisabled).
+		Set("disable_reason", accountStatus.DisableReason).
+		Set("is_deactivated", accountStatus.IsDeactivated).
+		Set("delete_at", accountStatus.DeleteAt).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
