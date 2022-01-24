@@ -62,8 +62,10 @@
   "error-webhook-delivery-timeout": "因Webhook逾時，操作已被禁止",
   "error-disabled-user": "你的帳號已被管理員停用。",
   "error-disabled-user-reason": "原因： {reason}",
-  "error-disabled-user-no-reason": "請向管理員了解詳情。",
-  "error-blocked-user": "你的帳號已被禁止登入。",
+  "error-deactivated-user": "你已停用你的帳戶。",
+  "error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在{date, date, long}被刪除。",
+  "error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在{date, date, long}被刪除。",
+
   "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
   "error-server": "伺服器內部錯誤。",
 
@@ -134,7 +136,7 @@
   "oob-otp-resend-button-label": "重發",
   "oob-otp-resend-button-label--unit": "重發 (%ds)",
   "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
-  "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請<a class=\"link\" target=\"_blank\" href={customerSupportLink}>聯繫客戶服務</a>",
+  "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
   "verify-user-page-title--sms": "短訊驗證",
   "verify-user-page-title--email": "驗證你的電郵地址",
@@ -279,7 +281,7 @@
   "enter-oob-otp-sms-instead": "以短訊發送驗證碼至 {target}",
 
   "enter-recovery-code-instead-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button>",
-  "enter-recovery-code-instead-with-customer-support-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button> 或 <a class=\"link\" target=\"_blank\" href={customerSupportLink}>聯繫客戶服務</a>",
+  "enter-recovery-code-instead-with-customer-support-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button> 或 聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
   "setup-oob-otp-title--sms": "設置短訊雙重驗證",
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
@@ -369,6 +371,9 @@
 
   "account-deletion-success-title": "帳戶將會被刪除",
   "account-deletion-success-description": "你的帳戶已被停用，而將會在{date, date, long}被刪除",
+
+  "account-status-contact-support": "請聯繫客戶服務。",
+  "account-status-contact-support-with-link": "請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>。",
 
   "gender-female": "女性",
   "gender-male": "男性",

@@ -85,9 +85,9 @@ func (s AccountStatus) Check() error {
 	case AccountStatusTypeDeactivated:
 		return ErrDeactivatedUser
 	case AccountStatusTypeScheduledDeletionDisabled:
-		return ErrScheduledDeletionByAdmin
+		return NewErrScheduledDeletionByAdmin(*s.DeleteAt)
 	case AccountStatusTypeScheduledDeletionDeactivated:
-		return ErrScheduledDeletionByEndUser
+		return NewErrScheduledDeletionByEndUser(*s.DeleteAt)
 	default:
 		panic(fmt.Errorf("unknown account status type: %v", typ))
 	}
