@@ -23,7 +23,7 @@ func TestAccountStatus(t *testing.T) {
 
 			scheduledDeletion, err := normal.ScheduleDeletionByAdmin(deleteAt)
 			So(err, ShouldBeNil)
-			So(scheduledDeletion.Type(), ShouldEqual, AccountStatusTypeScheduledDeletion)
+			So(scheduledDeletion.Type(), ShouldEqual, AccountStatusTypeScheduledDeletionDisabled)
 
 			_, err = normal.UnscheduleDeletionByAdmin()
 			So(err, ShouldBeError, "invalid account status transition: normal -> normal")
@@ -44,7 +44,7 @@ func TestAccountStatus(t *testing.T) {
 
 			scheduledDeletion, err := disabled.ScheduleDeletionByAdmin(deleteAt)
 			So(err, ShouldBeNil)
-			So(scheduledDeletion.Type(), ShouldEqual, AccountStatusTypeScheduledDeletion)
+			So(scheduledDeletion.Type(), ShouldEqual, AccountStatusTypeScheduledDeletionDisabled)
 
 			_, err = disabled.UnscheduleDeletionByAdmin()
 			So(err, ShouldBeError, "invalid account status transition: disabled -> normal")
@@ -58,13 +58,13 @@ func TestAccountStatus(t *testing.T) {
 			var err error
 
 			_, err = scheduledDeletion.Disable(nil)
-			So(err, ShouldBeError, "invalid account status transition: scheduled_deletion -> disabled")
+			So(err, ShouldBeError, "invalid account status transition: scheduled_deletion_disabled -> disabled")
 
 			_, err = scheduledDeletion.Reenable()
-			So(err, ShouldBeError, "invalid account status transition: scheduled_deletion -> normal")
+			So(err, ShouldBeError, "invalid account status transition: scheduled_deletion_disabled -> normal")
 
 			_, err = scheduledDeletion.ScheduleDeletionByAdmin(deleteAt)
-			So(err, ShouldBeError, "invalid account status transition: scheduled_deletion -> scheduled_deletion")
+			So(err, ShouldBeError, "invalid account status transition: scheduled_deletion_disabled -> scheduled_deletion_disabled")
 
 			normal, err := scheduledDeletion.UnscheduleDeletionByAdmin()
 			So(err, ShouldBeNil)

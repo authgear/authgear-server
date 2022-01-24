@@ -15,3 +15,8 @@ func NewErrDisabledUser(reason *string) error {
 		"reason": reason,
 	})
 }
+
+var ErrDeactivatedUser = apierrors.Forbidden.WithReason("DeactivatedUser").New("user is deactivated")
+
+var ErrScheduledDeletionByAdmin = apierrors.Forbidden.WithReason("ScheduleDeletionByAdmin").New("user was scheduled for deletion by admin")
+var ErrScheduledDeletionByEndUser = apierrors.Forbidden.WithReason("ScheduledDeletionByEndUser").New("user was scheduled for deletion by end-user")

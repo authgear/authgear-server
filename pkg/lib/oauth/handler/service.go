@@ -161,7 +161,7 @@ func (s *TokenService) ParseRefreshToken(token string) (*oauth.Authorization, *o
 		}
 		return nil, nil, err
 	}
-	err = u.CheckStatus()
+	err = u.AccountStatus().Check()
 	if err != nil {
 		return nil, nil, errInvalidRefreshToken
 	}
