@@ -628,17 +628,17 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0 12px;
 }
 
-.destructive-btn {
+.destructive-secondary-btn {
   color: var(--color-error-unshaded);
   background-color: transparent;
 }
-.destructive-btn:hover, .destructive-btn:focus {
+.destructive-secondary-btn:hover, .destructive-secondary-btn:focus {
   color: var(--color-error-shaded-4);
 }
-.destructive-btn:active {
+.destructive-secondary-btn:active {
   color: var(--color-error-shaded-7);
 }
-.destructive-btn:disabled {
+.destructive-secondary-btn:disabled {
   color: var(--color-error-shaded-1);
 }
 
