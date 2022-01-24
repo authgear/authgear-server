@@ -34,10 +34,10 @@ func (u UserFacade) Reenable(userID string) error {
 	return u.Coordinator.UserReenable(userID)
 }
 
-func (u UserFacade) ScheduleDeletion(userID string) error {
-	return u.Coordinator.UserScheduleDeletion(userID)
+func (u UserFacade) ScheduleDeletionByAdmin(userID string) error {
+	return u.Coordinator.UserScheduleDeletionByAdmin(userID)
 }
 
-func (u UserFacade) UnscheduleDeletion(userID string) error {
-	return u.Coordinator.UserUnscheduleDeletion(userID)
+func (u UserFacade) UnscheduleDeletionByAdmin(userID string) error {
+	return u.Coordinator.UserUnscheduleDeletionByAdmin(userID)
 }
