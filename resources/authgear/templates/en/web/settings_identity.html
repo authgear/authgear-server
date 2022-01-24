@@ -158,4 +158,13 @@
 
 </div>
 
+{{ if $.AccountDeletionAllowed }}
+<a class="pane not-a flex flex-row justify-center items-center" href="/settings/delete_account">
+  <i class="ti ti-user-x"></i>
+  <span class="margin-v-16 margin-h-10 primary-txt">
+    {{- template "account-deletion-delete-account-link-label" -}}
+  </span>
+</a>
+{{ end }}
+
 {{ end }}

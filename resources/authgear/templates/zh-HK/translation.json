@@ -360,6 +360,8 @@
   "custom-attribute-numeric-hint-maximum": "請輸入少於或等於{maximum}的數字",
   "custom-attribute-numeric-hint-minimum-maximum": "請輸入介乎{minimum}與{maximum}之間的數字",
 
+  "account-deletion-delete-account-link-label": "刪除您的帳戶",
+
   "gender-female": "女性",
   "gender-male": "男性",
 
