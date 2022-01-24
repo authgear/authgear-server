@@ -377,6 +377,13 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	))
 }
 
+func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsDeleteAccountHandler)),
+	))
+}
+
 func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
