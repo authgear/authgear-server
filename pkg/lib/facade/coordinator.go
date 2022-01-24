@@ -510,7 +510,7 @@ func (c *Coordinator) UserDisable(userID string, reason *string) error {
 	return nil
 }
 
-func (c *Coordinator) UserScheduleDeletion(userID string) error {
+func (c *Coordinator) UserScheduleDeletionByAdmin(userID string) error {
 	u, err := c.UserQueries.GetRaw(userID)
 	if err != nil {
 		return err
@@ -561,7 +561,7 @@ func (c *Coordinator) UserScheduleDeletion(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) UserUnscheduleDeletion(userID string) error {
+func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
 	u, err := c.UserQueries.GetRaw(userID)
 	if err != nil {
 		return err
