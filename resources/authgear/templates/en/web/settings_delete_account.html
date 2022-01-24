@@ -17,10 +17,10 @@
     <span class="secondary-txt text-sm">
       {{ template "account-deletion-confirmation-label" }}
     </span>
-    <input class="primary-txt input text-input" name="delete">
+    <input class="primary-txt input text-input" name="delete" data-account-deletion-delete-button="delete-account-button">
   </label>
 
-  <button class="btn destructive-btn margin-t-20" type="submit" name="x_action" value="delete">
+  <button id="delete-account-button" class="btn destructive-btn margin-t-20" type="submit" name="x_action" value="delete" disabled>
     {{ template "account-deletion-delete-account-button-label" }}
   </button>
 </form>
