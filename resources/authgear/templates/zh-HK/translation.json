@@ -85,6 +85,7 @@
   "remove-button-label": "移除",
   "save-button-label": "儲存",
   "more-button-label": "更多",
+  "done-button-label": "完成",
   "resend-verification-code-button-label": "發送驗證碼",
   "verification-status-label--unverified": "未驗證",
   "verification-status-label--verified": "已驗證",
@@ -365,6 +366,9 @@
   "account-deletion-description": "一旦你刪除你的帳戶，所有資料將會被移除而不能復完。如你確定繼續，你的帳戶將在{date, date, long}被刪除",
   "account-deletion-confirmation-label": "請輸入<b>DELETE</b>確定",
   "account-deletion-delete-account-button-label": "刪除帳戶",
+
+  "account-deletion-success-title": "帳戶將會被刪除",
+  "account-deletion-success-description": "你的帳戶已被停用，而將會在{date, date, long}被刪除",
 
   "gender-female": "女性",
   "gender-male": "男性",
