@@ -90,6 +90,18 @@ func (s AccountStatus) Disable(reason *string) (*AccountStatus, error) {
 	return nil, s.makeTransitionError(target.Type())
 }
 
+func (s AccountStatus) ScheduleDeletionByEndUser(deleteAt time.Time) (*AccountStatus, error) {
+	target := AccountStatus{
+		IsDisabled:    true,
+		IsDeactivated: true,
+		DeleteAt:      &deleteAt,
+	}
+	if s.Type() != AccountStatusTypeNormal {
+		return nil, s.makeTransitionError(target.Type())
+	}
+	return &target, nil
+}
+
 func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStatus, error) {
 	target := AccountStatus{
 		IsDisabled: true,

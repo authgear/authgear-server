@@ -28172,12 +28172,17 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
+	userFacade := &facade.UserFacade{
+		UserProvider: userProvider,
+		Coordinator:  coordinator,
+	}
 	settingsDeleteAccountHandler := &webapp2.SettingsDeleteAccountHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 		AccountDeletion:   accountDeletionConfig,
 		Clock:             clockClock,
+		Users:             userFacade,
 	}
 	return settingsDeleteAccountHandler
 }

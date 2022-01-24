@@ -4,8 +4,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -26,12 +29,17 @@ type SettingsDeleteAccountViewModel struct {
 	ExpectedAccountDeletionTime time.Time
 }
 
+type SettingsDeleteAccountUserService interface {
+	ScheduleDeletionByEndUser(userID string) error
+}
+
 type SettingsDeleteAccountHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 	AccountDeletion   *config.AccountDeletionConfig
 	Clock             clock.Clock
+	Users             SettingsDeleteAccountUserService
 }
 
 func (h *SettingsDeleteAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -58,6 +66,9 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	}
 	defer ctrl.Serve()
 
+	currentSession := session.GetSession(r.Context())
+	redirectURI := "/settings/delete_account/success"
+
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
 		if err != nil {
@@ -65,6 +76,23 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsDeleteAccountHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("delete", func() error {
+		confirmation := r.Form.Get("delete")
+		isConfirmed := confirmation == "DELETE"
+		if !isConfirmed {
+			return apierrors.NewInvalid("confirmation is required to delete account")
+		}
+
+		err := h.Users.ScheduleDeletionByEndUser(currentSession.GetAuthenticationInfo().UserID)
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{RedirectURI: redirectURI}
+		result.WriteResponse(w, r)
 		return nil
 	})
 }

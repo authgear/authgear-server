@@ -511,6 +511,14 @@ func (c *Coordinator) UserDisable(userID string, reason *string) error {
 }
 
 func (c *Coordinator) UserScheduleDeletionByAdmin(userID string) error {
+	return c.userScheduleDeletion(userID, true)
+}
+
+func (c *Coordinator) UserScheduleDeletionByEndUser(userID string) error {
+	return c.userScheduleDeletion(userID, false)
+}
+
+func (c *Coordinator) userScheduleDeletion(userID string, byAdmin bool) error {
 	u, err := c.UserQueries.GetRaw(userID)
 	if err != nil {
 		return err
@@ -519,7 +527,12 @@ func (c *Coordinator) UserScheduleDeletionByAdmin(userID string) error {
 	now := c.Clock.NowUTC()
 	deleteAt := now.Add(c.AccountDeletionConfig.GracePeriod.Duration())
 
-	accountStatus, err := u.AccountStatus().ScheduleDeletionByAdmin(deleteAt)
+	var accountStatus *user.AccountStatus
+	if byAdmin {
+		accountStatus, err = u.AccountStatus().ScheduleDeletionByAdmin(deleteAt)
+	} else {
+		accountStatus, err = u.AccountStatus().ScheduleDeletionByEndUser(deleteAt)
+	}
 	if err != nil {
 		return err
 	}
@@ -543,11 +556,11 @@ func (c *Coordinator) UserScheduleDeletionByAdmin(userID string) error {
 	events := []event.Payload{
 		&blocking.UserPreScheduleDeletionBlockingEventPayload{
 			UserRef:  userRef,
-			AdminAPI: true,
+			AdminAPI: byAdmin,
 		},
 		&nonblocking.UserDeletionScheduledEventPayload{
 			UserRef:  userRef,
-			AdminAPI: true,
+			AdminAPI: byAdmin,
 		},
 	}
 
