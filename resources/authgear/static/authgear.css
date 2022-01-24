@@ -632,13 +632,13 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-error-unshaded);
   background-color: transparent;
 }
-.destructive-btn:hover, .description-btn:focus {
+.destructive-btn:hover, .destructive-btn:focus {
   color: var(--color-error-shaded-4);
 }
 .destructive-btn:active {
   color: var(--color-error-shaded-7);
 }
-.description-btn:disabled {
+.destructive-btn:disabled {
   color: var(--color-error-shaded-1);
 }
 
