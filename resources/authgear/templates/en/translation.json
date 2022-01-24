@@ -85,6 +85,7 @@
   "remove-button-label": "Remove",
   "save-button-label": "Save",
   "more-button-label": "More",
+  "done-button-label": "Done",
   "resend-verification-code-button-label": "Send verification code",
   "verification-status-label--unverified": "Not verified",
   "verification-status-label--verified": "Verified",
@@ -366,6 +367,9 @@
   "account-deletion-description": "By deleting the account, all data will be permanently deleted and we will not be able to retrieve it. If you continue, your account will be deleted on {date, date, long}",
   "account-deletion-confirmation-label": "Please type <b>DELETE</b> to confirm",
   "account-deletion-delete-account-button-label": "Delete account",
+
+  "account-deletion-success-title": "Account deletion scheduled",
+  "account-deletion-success-description": "Your account has been deactivated and the data will be deleted on {date, date, long}",
 
   "gender-female": "Female",
   "gender-male": "Male",
