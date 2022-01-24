@@ -41,3 +41,7 @@ func (u UserFacade) ScheduleDeletionByAdmin(userID string) error {
 func (u UserFacade) UnscheduleDeletionByAdmin(userID string) error {
 	return u.Coordinator.UserUnscheduleDeletionByAdmin(userID)
 }
+
+func (u UserFacade) ScheduleDeletionByEndUser(userID string) error {
+	return u.Coordinator.UserScheduleDeletionByEndUser(userID)
+}
