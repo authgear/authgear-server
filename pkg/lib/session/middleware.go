@@ -84,7 +84,7 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Session
 			}
 			return
 		}
-		if err = u.CheckStatus(); err != nil {
+		if err = u.AccountStatus().Check(); err != nil {
 			err = ErrInvalidSession
 			return
 		}

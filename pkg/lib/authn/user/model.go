@@ -43,10 +43,11 @@ var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccoun
 type AccountStatusType string
 
 const (
-	AccountStatusTypeNormal            AccountStatusType = "normal"
-	AccountStatusTypeDisabled          AccountStatusType = "disabled"
-	AccountStatusTypeDeactivated       AccountStatusType = "deactivated"
-	AccountStatusTypeScheduledDeletion AccountStatusType = "scheduled_deletion"
+	AccountStatusTypeNormal                       AccountStatusType = "normal"
+	AccountStatusTypeDisabled                     AccountStatusType = "disabled"
+	AccountStatusTypeDeactivated                  AccountStatusType = "deactivated"
+	AccountStatusTypeScheduledDeletionDisabled    AccountStatusType = "scheduled_deletion_disabled"
+	AccountStatusTypeScheduledDeletionDeactivated AccountStatusType = "scheduled_deletion_deactivated"
 )
 
 // AccountStatus represents disabled, deactivated, or scheduled deletion state.
@@ -63,12 +64,33 @@ func (s AccountStatus) Type() AccountStatusType {
 		return AccountStatusTypeNormal
 	}
 	if s.DeleteAt != nil {
-		return AccountStatusTypeScheduledDeletion
+		if s.IsDeactivated {
+			return AccountStatusTypeScheduledDeletionDeactivated
+		}
+		return AccountStatusTypeScheduledDeletionDisabled
 	}
 	if s.IsDeactivated {
 		return AccountStatusTypeDeactivated
 	}
 	return AccountStatusTypeDisabled
+}
+
+func (s AccountStatus) Check() error {
+	typ := s.Type()
+	switch typ {
+	case AccountStatusTypeNormal:
+		return nil
+	case AccountStatusTypeDisabled:
+		return NewErrDisabledUser(s.DisableReason)
+	case AccountStatusTypeDeactivated:
+		return ErrDeactivatedUser
+	case AccountStatusTypeScheduledDeletionDisabled:
+		return ErrScheduledDeletionByAdmin
+	case AccountStatusTypeScheduledDeletionDeactivated:
+		return ErrScheduledDeletionByEndUser
+	default:
+		panic(fmt.Errorf("unknown account status type: %v", typ))
+	}
 }
 
 func (s AccountStatus) Reenable() (*AccountStatus, error) {
@@ -107,7 +129,7 @@ func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStat
 		IsDisabled: true,
 		DeleteAt:   &deleteAt,
 	}
-	if s.Type() == AccountStatusTypeScheduledDeletion {
+	if s.DeleteAt != nil {
 		return nil, s.makeTransitionError(target.Type())
 	}
 	return &target, nil
@@ -115,7 +137,7 @@ func (s AccountStatus) ScheduleDeletionByAdmin(deleteAt time.Time) (*AccountStat
 
 func (s AccountStatus) UnscheduleDeletionByAdmin() (*AccountStatus, error) {
 	var target AccountStatus
-	if s.Type() != AccountStatusTypeScheduledDeletion {
+	if s.DeleteAt == nil {
 		return nil, s.makeTransitionError(target.Type())
 	}
 	return &target, nil
@@ -166,13 +188,6 @@ func (u *User) AccountStatus() AccountStatus {
 		IsDeactivated: u.IsDeactivated,
 		DeleteAt:      u.DeleteAt,
 	}
-}
-
-func (u *User) CheckStatus() error {
-	if u.IsDisabled {
-		return NewErrDisabledUser(u.DisableReason)
-	}
-	return nil
 }
 
 func newUserModel(
