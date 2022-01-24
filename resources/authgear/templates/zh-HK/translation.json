@@ -361,6 +361,10 @@
   "custom-attribute-numeric-hint-minimum-maximum": "請輸入介乎{minimum}與{maximum}之間的數字",
 
   "account-deletion-delete-account-link-label": "刪除您的帳戶",
+  "account-deletion-title": "刪除您的帳戶",
+  "account-deletion-description": "一旦你刪除你的帳戶，所有資料將會被移除而不能復完。如你確定繼續，你的帳戶將在{date, date, long}被刪除",
+  "account-deletion-confirmation-label": "請輸入<b>DELETE</b>確定",
+  "account-deletion-delete-account-button-label": "刪除帳戶",
 
   "gender-female": "女性",
   "gender-male": "男性",

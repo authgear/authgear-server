@@ -28176,6 +28176,8 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
+		AccountDeletion:   accountDeletionConfig,
+		Clock:             clockClock,
 	}
 	return settingsDeleteAccountHandler
 }

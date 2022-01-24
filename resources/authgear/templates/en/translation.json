@@ -362,6 +362,10 @@
   "custom-attribute-numeric-hint-minimum-maximum": "Please enter a number between {minimum} and {maximum}",
 
   "account-deletion-delete-account-link-label": "Delete your account",
+  "account-deletion-title": "Delete your account",
+  "account-deletion-description": "By deleting the account, all data will be permanently deleted and we will not be able to retrieve it. If you continue, your account will be deleted on {date, date, long}",
+  "account-deletion-confirmation-label": "Please type <b>DELETE</b> to confirm",
+  "account-deletion-delete-account-button-label": "Delete account",
 
   "gender-female": "Female",
   "gender-male": "Male",
