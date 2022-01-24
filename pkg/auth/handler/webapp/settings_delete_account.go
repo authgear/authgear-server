@@ -2,8 +2,11 @@ package webapp
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -19,16 +22,31 @@ func ConfigureSettingsDeleteAccountRoute(route httproute.Route) httproute.Route 
 		WithPathPattern("/settings/delete_account")
 }
 
+type SettingsDeleteAccountViewModel struct {
+	ExpectedAccountDeletionTime time.Time
+}
+
 type SettingsDeleteAccountHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
+	AccountDeletion   *config.AccountDeletionConfig
+	Clock             clock.Clock
 }
 
 func (h *SettingsDeleteAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+
+	now := h.Clock.NowUTC()
+	deletionTime := now.Add(h.AccountDeletion.GracePeriod.Duration())
+	viewModel := SettingsDeleteAccountViewModel{
+		ExpectedAccountDeletionTime: deletionTime,
+	}
+
 	viewmodels.Embed(data, baseViewModel)
+	viewmodels.Embed(data, viewModel)
+
 	return data, nil
 }
 
