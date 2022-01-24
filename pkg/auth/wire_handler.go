@@ -391,10 +391,10 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	))
 }
 
-func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.UserDisabledHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AccountStatusHandler)),
 	))
 }
 
