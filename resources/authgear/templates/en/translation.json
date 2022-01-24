@@ -361,6 +361,8 @@
   "custom-attribute-numeric-hint-maximum": "Please enter a number less than or equal to {maximum}",
   "custom-attribute-numeric-hint-minimum-maximum": "Please enter a number between {minimum} and {maximum}",
 
+  "account-deletion-delete-account-link-label": "Delete your account",
+
   "gender-female": "Female",
   "gender-male": "Male",
 
