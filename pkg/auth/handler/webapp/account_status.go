@@ -10,24 +10,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var TemplateWebUserDisabledHTML = template.RegisterHTML(
-	"web/user_disabled.html",
+var TemplateWebAccountStatusHTML = template.RegisterHTML(
+	"web/account_status.html",
 	components...,
 )
 
-func ConfigureUserDisabledRoute(route httproute.Route) httproute.Route {
+func ConfigureAccountStatusRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/user_disabled")
+		WithPathPattern("/account_status")
 }
 
-type UserDisabledHandler struct {
+type AccountStatusHandler struct {
 	ControllerFactory ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          Renderer
 }
 
-func (h *UserDisabledHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *AccountStatusHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	if node, ok := graph.CurrentNode().(*nodes.NodeValidateUser); ok {
@@ -37,7 +37,7 @@ func (h *UserDisabledHandler) GetData(r *http.Request, rw http.ResponseWriter, g
 	return data, nil
 }
 
-func (h *UserDisabledHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AccountStatusHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -56,7 +56,7 @@ func (h *UserDisabledHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebUserDisabledHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebAccountStatusHTML, data)
 		return nil
 	})
 }

@@ -28812,7 +28812,7 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	return settingsDeleteAccountSuccessHandler
 }
 
-func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
 	factory := appProvider.LoggerFactory
 	handle := appProvider.AppDatabase
@@ -29427,12 +29427,12 @@ func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:  factory,
 		ControllerDeps: controllerDeps,
 	}
-	userDisabledHandler := &webapp2.UserDisabledHandler{
+	accountStatusHandler := &webapp2.AccountStatusHandler{
 		ControllerFactory: controllerFactory,
 		BaseViewModel:     baseViewModeler,
 		Renderer:          responseRenderer,
 	}
-	return userDisabledHandler
+	return accountStatusHandler
 }
 
 func newWebAppLogoutHandler(p *deps.RequestProvider) http.Handler {
