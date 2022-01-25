@@ -410,6 +410,7 @@ export interface PortalAPIAppConfig {
   session?: SessionConfig;
   hook?: HookConfig;
   user_profile?: UserProfileConfig;
+  account_deletion?: AccountDeletionConfig;
 }
 
 export interface OAuthClientSecret {
@@ -541,6 +542,11 @@ export interface NonBlockingHookHandlerFeatureConfig {
 
 export interface AuditLogFeatureConfig {
   retrieval_days?: number;
+}
+
+export interface AccountDeletionConfig {
+  scheduled_by_end_user_enabled?: boolean;
+  grace_period_days?: number;
 }
 
 export interface StandardAttributes {

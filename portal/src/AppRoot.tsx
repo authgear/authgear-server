@@ -42,6 +42,7 @@ import StandardAttributesConfigurationScreen from "./graphql/portal/StandardAttr
 import CustomAttributesConfigurationScreen from "./graphql/portal/CustomAttributesConfigurationScreen";
 import EditCustomAttributeScreen from "./graphql/portal/EditCustomAttributeScreen";
 import CreateCustomAttributeScreen from "./graphql/portal/CreateCustomAttributeScreen";
+import AccountDeletionConfigurationScreen from "./graphql/portal/AccountDeletionConfigurationScreen";
 
 const AppRoot: React.FC = function AppRoot() {
   const { appID } = useParams();
@@ -183,6 +184,10 @@ const AppRoot: React.FC = function AppRoot() {
           <Route
             path="/advanced/admin-api"
             element={<AdminAPIConfigurationScreen />}
+          />
+          <Route
+            path="/advanced/account-deletion"
+            element={<AccountDeletionConfigurationScreen />}
           />
           <Route path="/audit-log/" element={<AuditLogScreen />} />
           <Route
