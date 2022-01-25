@@ -112,6 +112,7 @@
   "ScreenNav.audit-log": "Audit Log",
   "ScreenNav.admin-api": "Admin API",
   "ScreenNav.smtp": "Custom Email Provider",
+  "ScreenNav.account-deletion": "Account Deletion",
 
   "NavBreadcrumb.label": "Nested navigation",
 
@@ -924,6 +925,13 @@
   "UserProfileAttributesList.dialog.title.pending-update": "Are you sure to change the {party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}} Access Right of “{fieldName}”?",
   "UserProfileAttributesList.dialog.adjustment.condition": "If you change the {strong, react, children{{party, select, portal_ui{Portal Admin} bearer{Token Bearer} end_user{End-user} other{}}}} Access Right of {strong, react, children{“{fieldName}”}} to {strong, react, children{{level}}}, then:",
   "UserProfileAttributesList.dialog.adjustment.consequence": "The Access Right of {strong, react, children{{party, select, end_user{End-user} bearer{Token Bearer} portal_ui{Portal Admin} other{}}}} will also be changed to {strong, react, children{{level}}}.",
+
+  "AccountDeletionConfigurationScreen.title": "Account Deletion",
+  "AccountDeletionConfigurationScreen.deletion-schedule.title": "Deletion Schedule",
+  "AccountDeletionConfigurationScreen.grace-period.label": "Grace Period (Days)",
+  "AccountDeletionConfigurationScreen.grace-period.description": "The end-user account will be disabled immediately upon request and deleted after the grace period",
+  "AccountDeletionConfigurationScreen.scheduled-by-end-user.label": "Show \"Delete Account\" button in the end-user settings page",
+  "AccountDeletionConfigurationScreen.apple-app-store.description": "Apps submitted to Apple App Store must offer account deletion within the app. Please refer to {ExternalLink, react, href{https://developer.apple.com/app-store/review/guidelines/#5.1.1} children{App Store Review Guidelines 5.1.1(v)}}",
 
   "standard-attribute.name": "Name",
   "standard-attribute.given_name": "Given Name",
