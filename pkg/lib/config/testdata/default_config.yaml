@@ -422,6 +422,9 @@ user_profile:
           end_user: hidden
           bearer: hidden
           portal_ui: hidden
+account_deletion:
+  scheduled_by_end_user_enabled: false
+  grace_period_days: 30
 forgot_password:
   enabled: true
   email_message:

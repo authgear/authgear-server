@@ -25,6 +25,7 @@ var configDeps = wire.NewSet(
 		"ForgotPassword",
 		"WelcomeMessage",
 		"Verification",
+		"AccountDeletion",
 	),
 	wire.FieldsOf(new(*config.IdentityConfig),
 		"LoginID",

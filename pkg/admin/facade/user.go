@@ -21,6 +21,8 @@ type UserService interface {
 	Delete(userID string) error
 	Disable(userID string, reason *string) error
 	Reenable(userID string) error
+	ScheduleDeletion(userID string) error
+	UnscheduleDeletion(userID string) error
 }
 
 type UserSearchService interface {
@@ -108,6 +110,32 @@ func (f *UserFacade) SetDisabled(id string, isDisabled bool, reason *string) err
 	} else {
 		err = f.Users.Reenable(id)
 	}
+	if err != nil {
+		return err
+	}
+
+	err = f.UserSearchService.ReindexUser(id, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) ScheduleDeletion(id string) error {
+	err := f.Users.ScheduleDeletion(id)
+	if err != nil {
+		return err
+	}
+
+	err = f.UserSearchService.ReindexUser(id, false)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) UnscheduleDeletion(id string) error {
+	err := f.Users.UnscheduleDeletion(id)
 	if err != nil {
 		return err
 	}

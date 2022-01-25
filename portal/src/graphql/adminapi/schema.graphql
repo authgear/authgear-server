@@ -112,6 +112,12 @@ enum AuditLogActivityType {
   USER_DELETED
 
   """"""
+  USER_DELETION_SCHEDULED
+
+  """"""
+  USER_DELETION_UNSCHEDULED
+
+  """"""
   USER_DISABLED
 
   """"""
@@ -422,11 +428,17 @@ type Mutation {
   """Revoke session of user"""
   revokeSession(input: RevokeSessionInput!): RevokeSessionPayload!
 
+  """Schedule account deletion"""
+  scheduleAccountDeletion(input: ScheduleAccountDeletionInput!): ScheduleAccountDeletionPayload!
+
   """Set disabled status of user"""
   setDisabledStatus(input: SetDisabledStatusInput!): SetDisabledStatusPayload!
 
   """Set verified status of a claim of user"""
   setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
+
+  """Unschedule account deletion"""
+  unscheduleAccountDeletion(input: UnscheduleAccountDeletionInput!): UnscheduleAccountDeletionPayload!
 
   """Update user"""
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
@@ -509,6 +521,18 @@ input RevokeSessionInput {
 
 """"""
 type RevokeSessionPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input ScheduleAccountDeletionInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type ScheduleAccountDeletionPayload {
   """"""
   user: User!
 }
@@ -627,6 +651,18 @@ enum SortDirection {
 }
 
 """"""
+input UnscheduleAccountDeletionInput {
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type UnscheduleAccountDeletionPayload {
+  """"""
+  user: User!
+}
+
+""""""
 input UpdateUserInput {
   """Whole custom attributes to be set on the user."""
   customAttributes: UserCustomAttributes
@@ -655,6 +691,9 @@ type User implements Entity & Node {
   """"""
   customAttributes: UserCustomAttributes!
 
+  """The scheduled deletion time of the user"""
+  deleteAt: DateTime
+
   """"""
   disableReason: String
 
@@ -663,6 +702,9 @@ type User implements Entity & Node {
 
   """"""
   identities(after: String, before: String, first: Int, last: Int): IdentityConnection
+
+  """"""
+  isDeactivated: Boolean!
 
   """"""
   isDisabled: Boolean!

@@ -2,14 +2,17 @@ package facade
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type EventService interface {
@@ -54,11 +57,12 @@ type MFAService interface {
 }
 
 type UserQueries interface {
+	GetRaw(userID string) (*user.User, error)
 	Get(userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type UserCommands interface {
-	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
+	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
 	Delete(userID string) error
 }
 
@@ -91,19 +95,21 @@ type OAuthSessionManager SessionManager
 // FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
 //             removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
-	Events          EventService
-	Identities      IdentityService
-	Authenticators  AuthenticatorService
-	Verification    VerificationService
-	MFA             MFAService
-	UserCommands    UserCommands
-	UserQueries     UserQueries
-	StdAttrsService StdAttrsService
-	PasswordHistory PasswordHistoryStore
-	OAuth           OAuthService
-	IDPSessions     IDPSessionManager
-	OAuthSessions   OAuthSessionManager
-	IdentityConfig  *config.IdentityConfig
+	Events                EventService
+	Identities            IdentityService
+	Authenticators        AuthenticatorService
+	Verification          VerificationService
+	MFA                   MFAService
+	UserCommands          UserCommands
+	UserQueries           UserQueries
+	StdAttrsService       StdAttrsService
+	PasswordHistory       PasswordHistoryStore
+	OAuth                 OAuthService
+	IDPSessions           IDPSessionManager
+	OAuthSessions         OAuthSessionManager
+	IdentityConfig        *config.IdentityConfig
+	AccountDeletionConfig *config.AccountDeletionConfig
+	Clock                 clock.Clock
 }
 
 func (c *Coordinator) IdentityGet(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
@@ -436,7 +442,17 @@ func (c *Coordinator) terminateAllSessions(userID string) error {
 }
 
 func (c *Coordinator) UserReenable(userID string) error {
-	err := c.UserCommands.UpdateDisabledStatus(userID, false, nil)
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().Reenable()
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
 	if err != nil {
 		return err
 	}
@@ -458,7 +474,17 @@ func (c *Coordinator) UserReenable(userID string) error {
 }
 
 func (c *Coordinator) UserDisable(userID string, reason *string) error {
-	err := c.UserCommands.UpdateDisabledStatus(userID, true, reason)
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().Disable(reason)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
 	if err != nil {
 		return err
 	}
@@ -474,6 +500,90 @@ func (c *Coordinator) UserDisable(userID string, reason *string) error {
 				ID: userID,
 			},
 		},
+	}
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserScheduleDeletion(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	deleteAt := now.Add(c.AccountDeletionConfig.GracePeriod.Duration())
+
+	accountStatus, err := u.AccountStatus().ScheduleDeletionByAdmin(deleteAt)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	err = c.terminateAllSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: userID,
+		},
+	}
+
+	events := []event.Payload{
+		&blocking.UserPreScheduleDeletionBlockingEventPayload{
+			UserRef:  userRef,
+			AdminAPI: true,
+		},
+		&nonblocking.UserDeletionScheduledEventPayload{
+			UserRef:  userRef,
+			AdminAPI: true,
+		},
+	}
+
+	for _, e := range events {
+		err := c.Events.DispatchEvent(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserUnscheduleDeletion(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().UnscheduleDeletionByAdmin()
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserDeletionUnscheduledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		AdminAPI: true,
 	}
 
 	err = c.Events.DispatchEvent(e)

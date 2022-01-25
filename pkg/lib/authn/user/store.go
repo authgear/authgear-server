@@ -22,7 +22,7 @@ type store interface {
 	Count() (uint64, error)
 	QueryPage(sortOption SortOption, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
-	UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error
+	UpdateAccountStatus(userID string, status AccountStatus) error
 	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(userID string, customAttrs map[string]interface{}) error
 	Delete(userID string) error
@@ -65,6 +65,8 @@ func (s *Store) Create(u *User) (err error) {
 			"last_login_at",
 			"is_disabled",
 			"disable_reason",
+			"is_deactivated",
+			"delete_at",
 			"standard_attributes",
 			"custom_attributes",
 		).
@@ -76,6 +78,8 @@ func (s *Store) Create(u *User) (err error) {
 			u.LessRecentLoginAt,
 			u.IsDisabled,
 			u.DisableReason,
+			u.IsDeactivated,
+			u.DeleteAt,
 			stdAttrsBytes,
 			customAttrsBytes,
 		)
@@ -98,6 +102,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"last_login_at",
 			"is_disabled",
 			"disable_reason",
+			"is_deactivated",
+			"delete_at",
 			"standard_attributes",
 			"custom_attributes",
 		).
@@ -108,6 +114,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 	u := &User{}
 	var stdAttrsBytes []byte
 	var customAttrsBytes []byte
+	var isDeactivated sql.NullBool
 
 	if err := scn.Scan(
 		&u.ID,
@@ -117,11 +124,14 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.LessRecentLoginAt,
 		&u.IsDisabled,
 		&u.DisableReason,
+		&isDeactivated,
+		&u.DeleteAt,
 		&stdAttrsBytes,
 		&customAttrsBytes,
 	); err != nil {
 		return nil, err
 	}
+	u.IsDeactivated = isDeactivated.Bool
 
 	if len(stdAttrsBytes) > 0 {
 		if err := json.Unmarshal(stdAttrsBytes, &u.StandardAttributes); err != nil {
@@ -242,11 +252,13 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 	return nil
 }
 
-func (s *Store) UpdateDisabledStatus(userID string, isDisabled bool, reason *string) error {
+func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) error {
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
-		Set("is_disabled", isDisabled).
-		Set("disable_reason", reason).
+		Set("is_disabled", accountStatus.IsDisabled).
+		Set("disable_reason", accountStatus.DisableReason).
+		Set("is_deactivated", accountStatus.IsDeactivated).
+		Set("delete_at", accountStatus.DeleteAt).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)

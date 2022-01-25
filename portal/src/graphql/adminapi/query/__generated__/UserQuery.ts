@@ -130,6 +130,12 @@ export interface UserQuery_node_User {
   customAttributes: GQL_UserCustomAttributes;
   sessions: UserQuery_node_User_sessions | null;
   isDisabled: boolean;
+  disableReason: string | null;
+  isDeactivated: boolean;
+  /**
+   * The scheduled deletion time of the user
+   */
+  deleteAt: GQL_DateTime | null;
   /**
    * The last login time of user
    */
