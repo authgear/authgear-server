@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback, useContext } from "react";
+import { DateTime } from "luxon";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Pivot,
@@ -6,6 +7,8 @@ import {
   IButtonProps,
   ICommandBarItemProps,
   CommandButton,
+  MessageBar,
+  MessageBarType,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -43,6 +46,7 @@ import {
   CustomAttributesAttributeConfig,
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
+import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsScreen.module.scss";
 
@@ -383,6 +387,30 @@ function useSetUserDisabledCommandBarItem(
   return itemProps;
 }
 
+interface WarnScheduledDeletionProps {
+  user: UserQuery_node_User;
+}
+
+function WarnScheduledDeletion(props: WarnScheduledDeletionProps) {
+  const { user } = props;
+  const { locale } = useContext(Context);
+  if (user.deleteAt == null) {
+    return null;
+  }
+
+  return (
+    <MessageBar messageBarType={MessageBarType.warning}>
+      <FormattedMessage
+        id="UserDetailsScreen.scheduled-deletion"
+        values={{
+          date:
+            formatDatetime(locale, user.deleteAt, DateTime.DATE_SHORT) ?? "",
+        }}
+      />
+    </MessageBar>
+  );
+}
+
 interface UserDetailsScreenContentProps {
   user: UserQuery_node_User;
   effectiveAppConfig: PortalAPIAppConfig;
@@ -487,7 +515,11 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     });
 
     return (
-      <FormContainer form={form} primaryItems={primaryItems}>
+      <FormContainer
+        form={form}
+        primaryItems={primaryItems}
+        messageBar={<WarnScheduledDeletion user={user} />}
+      >
         <ScreenContent>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
           <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
