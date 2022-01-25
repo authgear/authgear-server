@@ -26,7 +26,7 @@ type Controller struct {
 func (c *Controller) Start() {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		golog.Fatalf("failed to load server config: %s", err)
+		golog.Fatalf("failed to load server config: %v", err)
 	}
 
 	var wrk *worker.Worker
@@ -42,7 +42,7 @@ func (c *Controller) Start() {
 		taskQueueFactory,
 	)
 	if err != nil {
-		golog.Fatalf("failed to setup server: %s", err)
+		golog.Fatalf("failed to setup server: %v", err)
 	}
 
 	wrk = worker.NewWorker(p)

@@ -17,6 +17,7 @@ type TriggeredByType string
 const (
 	TriggeredByTypeUser     TriggeredByType = "user"
 	TriggeredByTypeAdminAPI TriggeredByType = "admin_api"
+	TriggeredBySystem       TriggeredByType = "system"
 )
 
 type Context struct {

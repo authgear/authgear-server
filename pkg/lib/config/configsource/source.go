@@ -80,3 +80,9 @@ func (c *Controller) GetConfigSource() *ConfigSource {
 		ContextResolver: c.ContextResolver,
 	}
 }
+
+// ResolveContext allows direct resolution from appID.
+// It is useful when you get appID somewhere else, rather than from a HTTP request.
+func (c *Controller) ResolveContext(appID string) (*config.AppContext, error) {
+	return c.ContextResolver.ResolveContext(appID)
+}

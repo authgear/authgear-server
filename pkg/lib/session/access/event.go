@@ -1,7 +1,6 @@
 package access
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -18,10 +17,10 @@ type Event struct {
 	UserAgent string    `json:"user_agent,omitempty"`
 }
 
-func NewEvent(timestamp time.Time, req *http.Request, trustProxy bool) Event {
+func NewEvent(timestamp time.Time, remoteIP httputil.RemoteIP, userAgentString httputil.UserAgentString) Event {
 	return Event{
 		Timestamp: timestamp,
-		RemoteIP:  httputil.GetIP(req, trustProxy),
-		UserAgent: req.UserAgent(),
+		RemoteIP:  string(remoteIP),
+		UserAgent: string(userAgentString),
 	}
 }

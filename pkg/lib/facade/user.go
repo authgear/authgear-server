@@ -19,7 +19,11 @@ type UserFacade struct {
 }
 
 func (u UserFacade) Delete(userID string) error {
-	return u.Coordinator.UserDelete(userID)
+	return u.Coordinator.UserDelete(userID, false)
+}
+
+func (u UserFacade) DeleteFromScheduledDeletion(userID string) error {
+	return u.Coordinator.UserDelete(userID, true)
 }
 
 func (u UserFacade) Disable(userID string, reason *string) error {

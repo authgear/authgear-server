@@ -26,8 +26,9 @@ type ResolverCookieManager interface {
 }
 
 type Resolver struct {
+	RemoteIP           httputil.RemoteIP
+	UserAgentString    httputil.UserAgentString
 	OAuthConfig        *config.OAuthConfig
-	TrustProxy         config.TrustProxy
 	Authorizations     AuthorizationStore
 	AccessGrants       AccessGrantStore
 	OfflineGrants      OfflineGrantStore
@@ -99,7 +100,7 @@ func (re *Resolver) resolveHeader(r *http.Request) (session.Session, error) {
 	}
 
 	var authSession session.Session
-	event := access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
+	event := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
 
 	switch grant.SessionKind {
 	case GrantSessionKindSession:
@@ -178,7 +179,7 @@ func (re *Resolver) resolveCookie(r *http.Request) (session.Session, error) {
 		return nil, err
 	}
 
-	event := access.NewEvent(re.Clock.NowUTC(), r, bool(re.TrustProxy))
+	event := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
 	offlineGrant, err = re.OfflineGrants.AccessWithID(offlineGrant.ID, event, expiry)
 	if err != nil {
 		return nil, err

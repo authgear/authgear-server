@@ -3,7 +3,6 @@ package handler
 import (
 	"crypto/subtle"
 	"errors"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -12,16 +11,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 var errInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
 
 type TokenService struct {
-	Request    *http.Request
-	AppID      config.AppID
-	Config     *config.OAuthConfig
-	TrustProxy config.TrustProxy
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
+	AppID           config.AppID
+	Config          *config.OAuthConfig
 
 	Authorizations    oauth.AuthorizationStore
 	OfflineGrants     oauth.OfflineGrantStore
@@ -40,7 +40,7 @@ func (s *TokenService) IssueOfflineGrant(
 ) (*oauth.OfflineGrant, error) {
 	token := s.GenerateToken()
 	now := s.Clock.NowUTC()
-	accessEvent := access.NewEvent(now, s.Request, bool(s.TrustProxy))
+	accessEvent := access.NewEvent(now, s.RemoteIP, s.UserAgentString)
 
 	offlineGrant := &oauth.OfflineGrant{
 		AppID:           string(s.AppID),

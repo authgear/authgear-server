@@ -25,8 +25,8 @@ func (e *AuthenticationFailedIdentityEventPayload) UserID() string {
 	return e.UserRef.ID
 }
 
-func (e *AuthenticationFailedIdentityEventPayload) IsAdminAPI() bool {
-	return false
+func (e *AuthenticationFailedIdentityEventPayload) GetTriggeredBy() event.TriggeredByType {
+	return event.TriggeredByTypeUser
 }
 
 func (e *AuthenticationFailedIdentityEventPayload) FillContext(ctx *event.Context) {

@@ -2,7 +2,6 @@ package idpsession
 
 import (
 	"math/rand"
-	"net/http"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -32,16 +31,12 @@ func TestProvider(t *testing.T) {
 		clock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
 		initialTime := clock.Time
 
-		req, _ := http.NewRequest("POST", "", nil)
-		req.Header.Set("User-Agent", "SDK")
 		accessEvent := access.Event{
 			Timestamp: initialTime,
-			UserAgent: "SDK",
 		}
 
 		disabled := false
 		provider := &Provider{
-			Request:      req,
 			Store:        store,
 			AccessEvents: &mockAccessEventProvider{},
 			TrustProxy:   true,

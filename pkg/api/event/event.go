@@ -4,7 +4,7 @@ type Type string
 
 type Payload interface {
 	UserID() string
-	IsAdminAPI() bool
+	GetTriggeredBy() TriggeredByType
 	FillContext(ctx *Context)
 }
 

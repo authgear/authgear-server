@@ -300,12 +300,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OOBOTP:      oobProvider,
 		RateLimiter: limiter,
 	}
-	verificationLogger := verification.NewLogger(factory)
-	verificationConfig := appConfig.Verification
-	userProfileConfig := appConfig.UserProfile
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
+	verificationLogger := verification.NewLogger(factory)
+	verificationConfig := appConfig.Verification
+	userProfileConfig := appConfig.UserProfile
 	verificationStoreRedis := &verification.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -316,11 +317,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	verificationService := &verification.Service{
-		Request:           request,
+		RemoteIP:          remoteIP,
 		Logger:            verificationLogger,
 		Config:            verificationConfig,
 		UserProfileConfig: userProfileConfig,
-		TrustProxy:        trustProxy,
 		Clock:             clockClock,
 		CodeStore:         verificationStoreRedis,
 		ClaimStore:        storePQ,
@@ -400,6 +400,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StaticAssets:   staticAssetResolver,
 	}
 	welcomeMessageConfig := appConfig.WelcomeMessage
+	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
 	storeImpl := &event.StoreImpl{
@@ -439,7 +440,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	eventService := event.NewService(contextContext, request, trustProxy, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink)
+	eventService := event.NewService(contextContext, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink)
 	welcomemessageProvider := &welcomemessage.Provider{
 		Translation:          translationService,
 		RateLimiter:          limiter,
@@ -584,10 +585,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	providerLogger := forgotpassword.NewProviderLogger(factory)
 	forgotpasswordProvider := &forgotpassword.Provider{
-		Request:        request,
+		RemoteIP:       remoteIP,
 		Translation:    translationService,
 		Config:         forgotPasswordConfig,
-		TrustProxy:     trustProxy,
 		Store:          forgotpasswordStore,
 		Clock:          clockClock,
 		URLs:           webEndpoints,
@@ -628,25 +628,26 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:      contextContext,
-		Request:      request,
-		AppID:        appID,
-		Redis:        appredisHandle,
-		Store:        idpsessionStoreRedis,
-		AccessEvents: eventProvider,
-		TrustProxy:   trustProxy,
-		Config:       sessionConfig,
-		Clock:        clockClock,
-		Random:       rand,
+		Context:         contextContext,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		AppID:           appID,
+		Redis:           appredisHandle,
+		Store:           idpsessionStoreRedis,
+		AccessEvents:    eventProvider,
+		TrustProxy:      trustProxy,
+		Config:          sessionConfig,
+		Clock:           clockClock,
+		Random:          rand,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
 		Request:                   request,
+		RemoteIP:                  remoteIP,
 		Database:                  sqlExecutor,
 		Clock:                     clockClock,
 		Config:                    appConfig,
 		FeatureConfig:             featureConfig,
-		TrustProxy:                trustProxy,
 		Identities:                identityFacade,
 		Authenticators:            authenticatorFacade,
 		AnonymousIdentities:       anonymousProvider,

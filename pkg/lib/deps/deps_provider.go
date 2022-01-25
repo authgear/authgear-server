@@ -14,15 +14,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var rootDeps = wire.NewSet(
-	wire.FieldsOf(new(*RootProvider),
-		"EnvironmentConfig",
-		"ConfigSourceConfig",
-	),
+var envConfigDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.EnvironmentConfig),
 		"TrustProxy",
 		"DevMode",
@@ -30,6 +27,15 @@ var rootDeps = wire.NewSet(
 		"StaticAssetURLPrefix",
 		"Database",
 	),
+)
+
+var rootDeps = wire.NewSet(
+	wire.FieldsOf(new(*RootProvider),
+		"EnvironmentConfig",
+		"ConfigSourceConfig",
+	),
+
+	envConfigDeps,
 
 	ProvideCaptureTaskContext,
 	ProvideRestoreTaskContext,
@@ -71,6 +77,22 @@ var RootDependencySet = wire.NewSet(
 
 func ProvideRequestContext(r *http.Request) context.Context { return r.Context() }
 
+func ProvideRemoteIP(r *http.Request, trustProxy config.TrustProxy) httputil.RemoteIP {
+	return httputil.RemoteIP(httputil.GetIP(r, bool(trustProxy)))
+}
+
+func ProvideHTTPHost(r *http.Request, trustProxy config.TrustProxy) httputil.HTTPHost {
+	return httputil.HTTPHost(httputil.GetHost(r, bool(trustProxy)))
+}
+
+func ProvideHTTPProto(r *http.Request, trustProxy config.TrustProxy) httputil.HTTPProto {
+	return httputil.HTTPProto(httputil.GetProto(r, bool(trustProxy)))
+}
+
+func ProvideUserAgentString(r *http.Request) httputil.UserAgentString {
+	return httputil.UserAgentString(r.UserAgent())
+}
+
 var RequestDependencySet = wire.NewSet(
 	appRootDeps,
 	wire.FieldsOf(new(*RequestProvider),
@@ -79,6 +101,10 @@ var RequestDependencySet = wire.NewSet(
 		"ResponseWriter",
 	),
 	ProvideRequestContext,
+	ProvideRemoteIP,
+	ProvideUserAgentString,
+	ProvideHTTPHost,
+	ProvideHTTPProto,
 )
 
 var TaskDependencySet = wire.NewSet(
@@ -87,4 +113,22 @@ var TaskDependencySet = wire.NewSet(
 		"AppProvider",
 		"Context",
 	),
+)
+
+var BackgroundDependencySet = wire.NewSet(
+	wire.FieldsOf(new(*BackgroundProvider),
+		"EnvironmentConfig",
+		"ConfigSourceConfig",
+		"LoggerFactory",
+		"SentryHub",
+		"DatabasePool",
+		"RedisPool",
+		"RedisHub",
+		"BaseResources",
+	),
+
+	envConfigDeps,
+
+	clock.DependencySet,
+	globaldb.DependencySet,
 )

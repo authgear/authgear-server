@@ -22,8 +22,8 @@ func (e *EmailSentEventPayload) UserID() string {
 	return ""
 }
 
-func (e *EmailSentEventPayload) IsAdminAPI() bool {
-	return false
+func (e *EmailSentEventPayload) GetTriggeredBy() event.TriggeredByType {
+	return event.TriggeredByTypeUser
 }
 
 func (e *EmailSentEventPayload) FillContext(ctx *event.Context) {

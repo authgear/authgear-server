@@ -8,12 +8,29 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 func ProvideRequestContext(r *http.Request) context.Context { return r.Context() }
+
+func ProvideRemoteIP(r *http.Request, trustProxy config.TrustProxy) httputil.RemoteIP {
+	return httputil.RemoteIP(httputil.GetIP(r, bool(trustProxy)))
+}
+
+func ProvideHTTPHost(r *http.Request, trustProxy config.TrustProxy) httputil.HTTPHost {
+	return httputil.HTTPHost(httputil.GetHost(r, bool(trustProxy)))
+}
+
+func ProvideHTTPProto(r *http.Request, trustProxy config.TrustProxy) httputil.HTTPProto {
+	return httputil.HTTPProto(httputil.GetProto(r, bool(trustProxy)))
+}
+
+func ProvideUserAgentString(r *http.Request) httputil.UserAgentString {
+	return httputil.UserAgentString(r.UserAgent())
+}
 
 func ProvideConfigSource(ctrl *configsource.Controller) *configsource.ConfigSource {
 	return ctrl.GetConfigSource()
@@ -74,6 +91,10 @@ var DependencySet = wire.NewSet(
 		"Request",
 	),
 	ProvideRequestContext,
+	ProvideRemoteIP,
+	ProvideUserAgentString,
+	ProvideHTTPHost,
+	ProvideHTTPProto,
 	ProvideConfigSource,
 	ProvideAppBaseResources,
 	ProvideDatabaseConfig,
