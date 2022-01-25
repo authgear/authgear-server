@@ -199,6 +199,7 @@
   "UserDetailsScreen.reenable-user": "Re-enable User",
   "UserDetailsScreen.disable-user": "Disable User",
   "UserDetailsScreen.cancel-removal": "Cancel removal",
+  "UserDetailsScreen.scheduled-deletion": "This user is disabled and scheduled to be removed on {date}",
 
   "UsersList.column.raw-id": "ID",
   "UsersList.column.username": "Username",
