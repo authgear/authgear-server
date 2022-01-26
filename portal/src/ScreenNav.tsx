@@ -55,6 +55,7 @@ const ScreenNav: React.FC = function ScreenNav() {
 
   const links: NavLinkProps[] = useMemo(() => {
     const links = [
+      { textKey: "ScreenNav.analytics", url: "analytics" },
       { textKey: "ScreenNav.users", url: "users" },
       {
         textKey: "ScreenNav.authentication",
