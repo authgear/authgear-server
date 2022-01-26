@@ -63,6 +63,8 @@ func (i *IntentAddIdentity) DeriveEdgesForNode(graph *interaction.Graph, node in
 		}, nil
 
 	case *nodes.NodeDoUseIdentity:
+		return []interaction.Edge{&nodes.EdgeEnsureRemoveAnonymousIdentity{}}, nil
+	case *nodes.NodeEnsureRemoveAnonymousIdentity:
 		return []interaction.Edge{
 			&nodes.EdgeCreateAuthenticatorBegin{
 				Stage: authn.AuthenticationStagePrimary,
