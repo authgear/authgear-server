@@ -75,7 +75,11 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebSettingsDeleteAccountHTML, data)
+		if !h.AccountDeletion.ScheduledByEndUserEnabled {
+			http.Redirect(w, r, "/settings", http.StatusFound)
+		} else {
+			h.Renderer.RenderHTML(w, r, TemplateWebSettingsDeleteAccountHTML, data)
+		}
 		return nil
 	})
 
