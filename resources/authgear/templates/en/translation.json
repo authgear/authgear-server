@@ -63,8 +63,8 @@
   "error-disabled-user": "Administrator has disabled your account.",
   "error-disabled-user-reason": "Reason: {reason}",
   "error-deactivated-user": "You have deactivated your account.",
-  "error-scheduled-deletion-by-admin": "Administrator has disabled your account and your account will be deleted on {date, date, long}",
-  "error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on {date, date, long}",
+  "error-scheduled-deletion-by-admin": "Administrator has disabled your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+  "error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
 
   "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",
@@ -366,12 +366,12 @@
 
   "account-deletion-delete-account-link-label": "Delete your account",
   "account-deletion-title": "Delete your account",
-  "account-deletion-description": "By deleting the account, all data will be permanently deleted and we will not be able to retrieve it. If you continue, your account will be deleted on {date, date, long}",
+  "account-deletion-description": "By deleting the account, all data will be permanently deleted and we will not be able to retrieve it. If you continue, your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "account-deletion-confirmation-label": "Please type <b>DELETE</b> to confirm",
   "account-deletion-delete-account-button-label": "Delete account",
 
   "account-deletion-success-title": "Account deletion scheduled",
-  "account-deletion-success-description": "Your account has been deactivated and the data will be deleted on {date, date, long}",
+  "account-deletion-success-description": "Your account has been deactivated and the data will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
 
   "account-status-contact-support": "Please contact customer support.",
   "account-status-contact-support-with-link": "Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",

@@ -8,7 +8,7 @@
 </h1>
 
 <p class="margin-0 primary-txt text-center text-sm">
-  {{ template "account-deletion-success-description" (dict "date" $.ExpectedAccountDeletionTime) }}
+  {{ template "account-deletion-success-description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
 </p>
 
 <a class="not-a btn primary-btn margin-t-20 flex flex-col items-center justify-center" href="/">

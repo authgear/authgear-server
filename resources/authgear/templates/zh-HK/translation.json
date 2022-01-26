@@ -63,8 +63,8 @@
   "error-disabled-user": "你的帳號已被管理員停用。",
   "error-disabled-user-reason": "原因： {reason}",
   "error-deactivated-user": "你已停用你的帳戶。",
-  "error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在{date, date, long}被刪除。",
-  "error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在{date, date, long}被刪除。",
+  "error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
+  "error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
 
   "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
   "error-server": "伺服器內部錯誤。",
@@ -365,12 +365,12 @@
 
   "account-deletion-delete-account-link-label": "刪除您的帳戶",
   "account-deletion-title": "刪除您的帳戶",
-  "account-deletion-description": "一旦你刪除你的帳戶，所有資料將會被移除而不能復完。如你確定繼續，你的帳戶將在{date, date, long}被刪除",
+  "account-deletion-description": "一旦你刪除你的帳戶，所有資料將會被移除而不能復完。如你確定繼續，你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除",
   "account-deletion-confirmation-label": "請輸入<b>DELETE</b>確定",
   "account-deletion-delete-account-button-label": "刪除帳戶",
 
   "account-deletion-success-title": "帳戶將會被刪除",
-  "account-deletion-success-description": "你的帳戶已被停用，而將會在{date, date, long}被刪除",
+  "account-deletion-success-description": "你的帳戶已被停用，而將會在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除",
 
   "account-status-contact-support": "請聯繫客戶服務。",
   "account-status-contact-support-with-link": "請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>。",
