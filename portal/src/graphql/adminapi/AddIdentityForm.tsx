@@ -34,21 +34,47 @@ interface User {
   primaryAuthenticators: AuthenticatorType[];
 }
 
+// eslint-disable-next-line complexity
 function isPasswordRequired(
   config: PortalAPIAppConfig | null,
   user: User | null,
   loginIDType: LoginIDKeyType
 ) {
   let needPrimaryPassword: boolean;
+  const isPasswordEnabled =
+    config?.authentication?.primary_authenticators?.includes("password") ??
+    true;
+  let isOOBOTPEmailFirst = false;
+  let isOOBOTPSMSFirst = false;
+  const primaryAuthenticators =
+    config?.authentication?.primary_authenticators ?? [];
+  // reverse order is important
+  for (let i = primaryAuthenticators.length - 1; i >= 0; i--) {
+    switch (primaryAuthenticators[i]) {
+      case "oob_otp_email":
+        isOOBOTPEmailFirst = true;
+        break;
+      case "oob_otp_sms":
+        isOOBOTPSMSFirst = true;
+        break;
+      case "password":
+        isOOBOTPEmailFirst = false;
+        isOOBOTPSMSFirst = false;
+        break;
+      default:
+        break;
+    }
+  }
+
   switch (loginIDType) {
     case "username":
-      needPrimaryPassword =
-        config?.authentication?.primary_authenticators?.includes("password") ??
-        true;
+      needPrimaryPassword = isPasswordEnabled;
       break;
     case "email":
+      needPrimaryPassword = isPasswordEnabled && !isOOBOTPEmailFirst;
+      break;
     case "phone":
-      needPrimaryPassword = false;
+      needPrimaryPassword = isPasswordEnabled && !isOOBOTPSMSFirst;
       break;
   }
   const hasPrimaryPassword =
