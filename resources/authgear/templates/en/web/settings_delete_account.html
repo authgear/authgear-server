@@ -8,7 +8,7 @@
 </h1>
 
 <p class="margin-0 secondary-txt text-center text-sm">
-  {{ template "account-deletion-description" (dict "date" $.ExpectedAccountDeletionTime) }}
+  {{ template "account-deletion-description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
 </p>
 
 <form class="twc-container-vertical" method="post" novalidate>
