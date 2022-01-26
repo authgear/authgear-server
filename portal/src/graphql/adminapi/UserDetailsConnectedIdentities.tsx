@@ -57,12 +57,13 @@ interface UserDetailsConnectedIdentitiesProps {
 
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
 type LoginIDIdentityType = typeof loginIdIdentityTypes[number];
-type IdentityType = "login_id" | "oauth" | "biometric";
+type IdentityType = "login_id" | "oauth" | "biometric" | "anonymous";
 
 type IdentityListItem =
   | OAuthIdentityListItem
   | LoginIDIdentityListItem
-  | BiometricIdentityListItem;
+  | BiometricIdentityListItem
+  | AnonymousIdentityListItem;
 interface OAuthIdentityListItem {
   id: string;
   type: "oauth";
@@ -91,12 +92,20 @@ interface BiometricIdentityListItem {
   formattedDeviceInfo: string;
 }
 
+interface AnonymousIdentityListItem {
+  id: string;
+  type: "anonymous";
+  verified: undefined;
+  connectedOn: string;
+}
+
 export interface IdentityLists {
   oauth: OAuthIdentityListItem[];
   email: LoginIDIdentityListItem[];
   phone: LoginIDIdentityListItem[];
   username: LoginIDIdentityListItem[];
   biometric: BiometricIdentityListItem[];
+  anonymous: AnonymousIdentityListItem[];
 }
 
 interface IdentityListCellProps {
@@ -147,11 +156,13 @@ const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
 };
 
 const biometricIcon: React.ReactNode = <Icon iconName="Fingerprint" />;
+const anonymousIcon: React.ReactNode = <Icon iconName="People" />;
 
-const removeButtonTextId: Record<IdentityType, "remove" | "disconnect"> = {
+const removeButtonTextId: Record<IdentityType, "remove" | "disconnect" | ""> = {
   oauth: "disconnect",
   login_id: "remove",
   biometric: "remove",
+  anonymous: "",
 };
 
 function getIcon(item: IdentityListItem) {
@@ -161,6 +172,9 @@ function getIcon(item: IdentityListItem) {
   if (item.type === "biometric") {
     return biometricIcon;
   }
+  if (item.type === "anonymous") {
+    return anonymousIcon;
+  }
   return loginIdIconMap[item.loginIDKey];
 }
 
@@ -168,12 +182,17 @@ function getClaimName(item: IdentityListItem): string | undefined {
   if (item.type === "biometric") {
     return undefined;
   }
-
+  if (item.type === "anonymous") {
+    return undefined;
+  }
   return item.claimName;
 }
 
 function getClaimValue(item: IdentityListItem): string | undefined {
   if (item.type === "biometric") {
+    return undefined;
+  }
+  if (item.type === "anonymous") {
     return undefined;
   }
   return item.claimValue;
@@ -189,6 +208,11 @@ function getIdentityName(
       : renderToString(
           "UserDetails.connected-identities.biometric.unknown-device"
         );
+  }
+  if (item.type === "anonymous") {
+    return renderToString(
+      "UserDetails.connected-identities.anonymous.anonymous-user"
+    );
   }
   return item.claimValue;
 }
@@ -326,6 +350,12 @@ const IdentityListCell: React.FC<IdentityListCellProps> =
               values={{ datetime: connectedOn }}
             />
           )}
+          {identityType === "anonymous" && (
+            <FormattedMessage
+              id="UserDetails.connected-identities.added-on"
+              values={{ datetime: connectedOn }}
+            />
+          )}
         </Text>
         {verified != null && setVerifiedStatus != null && (
           <VerifyButton
@@ -334,14 +364,16 @@ const IdentityListCell: React.FC<IdentityListCellProps> =
             toggleVerified={onVerifyClicked}
           />
         )}
-        <DefaultButton
-          className={cn(styles.controlButton, styles.removeButton)}
-          disabled={settingVerifiedStatus}
-          theme={themes.destructive}
-          onClick={onRemoveClicked}
-        >
-          <FormattedMessage id={removeButtonTextId[identityType]} />
-        </DefaultButton>
+        {removeButtonTextId[identityType] !== "" && (
+          <DefaultButton
+            className={cn(styles.controlButton, styles.removeButton)}
+            disabled={settingVerifiedStatus}
+            theme={themes.destructive}
+            onClick={onRemoveClicked}
+          >
+            <FormattedMessage id={removeButtonTextId[identityType]} />
+          </DefaultButton>
+        )}
       </ListCellLayout>
     );
   };
@@ -383,12 +415,14 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         identityName: "",
       });
 
+    // eslint-disable-next-line complexity
     const identityLists: IdentityLists = useMemo(() => {
       const oauthIdentityList: OAuthIdentityListItem[] = [];
       const emailIdentityList: LoginIDIdentityListItem[] = [];
       const phoneIdentityList: LoginIDIdentityListItem[] = [];
       const usernameIdentityList: LoginIDIdentityListItem[] = [];
       const biometricIdentityList: BiometricIdentityListItem[] = [];
+      const anonymousIdentityList: AnonymousIdentityListItem[] = [];
 
       for (const identity of identities) {
         const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
@@ -488,6 +522,14 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
             formattedDeviceInfo: formattedDeviceInfo,
           });
         }
+        if (identity.type === "ANONYMOUS") {
+          anonymousIdentityList.push({
+            id: identity.id,
+            type: "anonymous",
+            verified: undefined,
+            connectedOn: createdAtStr,
+          });
+        }
       }
       return {
         oauth: oauthIdentityList,
@@ -495,6 +537,7 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
         phone: phoneIdentityList,
         username: usernameIdentityList,
         biometric: biometricIdentityList,
+        anonymous: anonymousIdentityList,
       };
     }, [locale, identities, verifiedClaims]);
 
@@ -710,6 +753,18 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
                 <List
                   className={styles.list}
                   items={identityLists.biometric}
+                  onRenderCell={onRenderIdentityCell}
+                />
+              </>
+            )}
+            {identityLists.anonymous.length > 0 && (
+              <>
+                <Text as="h3" className={styles.subHeader}>
+                  <FormattedMessage id="UserDetails.connected-identities.anonymous" />
+                </Text>
+                <List
+                  className={styles.list}
+                  items={identityLists.anonymous}
                   onRenderCell={onRenderIdentityCell}
                 />
               </>
