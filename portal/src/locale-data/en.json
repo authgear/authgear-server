@@ -91,6 +91,7 @@
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
 
   "ScreenNav.label": "Top-level tab navigation",
+  "ScreenNav.analytics": "Analytics",
   "ScreenNav.users": "User Management",
   "ScreenNav.authentication": "Authentication",
   "ScreenNav.login-id": "Login ID",
@@ -1061,5 +1062,8 @@
   "Locales.tr": "Turkish",
   "Locales.uk": "Ukrainian",
   "Locales.vi": "Vietnamese",
-  "Locales.zu": "Zulu"
+  "Locales.zu": "Zulu",
+
+  "AnalyticsScreen.title": "Analytics",
+  "AnalyticsActivityWidget.title": "Activity"
 }
