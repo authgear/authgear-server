@@ -93,6 +93,7 @@
   "TodoButtonWrapper.dialog-message": "This feature is not yet implemented",
 
   "ScreenNav.label": "Top-level tab navigation",
+  "ScreenNav.analytics": "Analytics",
   "ScreenNav.users": "User Management",
   "ScreenNav.authentication": "Authentication",
   "ScreenNav.login-id": "Login ID",
@@ -1001,6 +1002,9 @@
   "user-profile.access-control-level.hidden": "Hidden",
   "user-profile.access-control-level.readonly": "Read-only",
   "user-profile.access-control-level.readwrite": "Editable",
+
+  "AnalyticsScreen.title": "Analytics",
+  "AnalyticsActivityWidget.title": "Activity",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
