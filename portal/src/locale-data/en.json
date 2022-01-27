@@ -1064,5 +1064,6 @@
   "Locales.zu": "Zulu",
 
   "AnalyticsScreen.title": "Analytics",
-  "AnalyticsActivityWidget.title": "Activity"
+  "AnalyticsActivityWidget.title": "Activity",
+  "AnalyticsActivityWidget.active-user.label": "No. of active users"
 }
