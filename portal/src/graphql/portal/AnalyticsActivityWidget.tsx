@@ -6,8 +6,10 @@ import {
   LinearScale,
   BarElement,
   Tooltip,
+  PointElement,
+  LineElement,
 } from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { Bar, Line } from "react-chartjs-2";
 import {
   AnalyticChartsQuery_activeUserChart,
   AnalyticChartsQuery_totalUserCountChart,
@@ -19,6 +21,13 @@ import Widget from "../../Widget";
 import styles from "./AnalyticsActivityWidget.module.scss";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip
+);
 
 interface AnalyticsActivityWidgetActiveUserChartProps {
   chartData: AnalyticChartsQuery_activeUserChart | null;
@@ -70,6 +79,47 @@ const AnalyticsActivityWidgetActiveUserChart: React.FC<AnalyticsActivityWidgetAc
     }, [chartData, periodical, renderToString]);
     return chartData ? <Bar options={options} data={data} /> : <></>;
   };
+
+interface AnalyticsActivityWidgetTotalUserChartProps {
+  chartData: AnalyticChartsQuery_totalUserCountChart | null;
+}
+
+const AnalyticsActivityWidgetTotalUserChart: React.FC<AnalyticsActivityWidgetTotalUserChartProps> =
+  function AnalyticsActivityWidgetTotalUserChart(props) {
+    const { renderToString } = useContext(Context);
+    const { chartData } = props;
+    const options = {
+      responsive: true,
+      scales: {
+        y: {
+          title: {
+            display: true,
+            text: renderToString("AnalyticsActivityWidget.total-user.label"),
+          },
+          min: 0,
+        },
+        x: {
+          ticks: {
+            maxTicksLimit: 12,
+          },
+        },
+      },
+    };
+    const data = useMemo(() => {
+      return {
+        labels: chartData?.dataset.map((pt) => (pt ? pt.label : "")),
+        datasets: [
+          {
+            label: renderToString("AnalyticsActivityWidget.total-user.label"),
+            data: chartData?.dataset.map((pt) => pt?.data),
+            borderColor: "#176DF3",
+            backgroundColor: "#176DF3",
+          },
+        ],
+      };
+    }, [chartData, renderToString]);
+    return chartData ? <Line options={options} data={data} /> : <></>;
+  };
 interface AnalyticsActivityWidgetProps {
   periodical: Periodical;
   activeUserChartData: AnalyticChartsQuery_activeUserChart | null;
@@ -87,6 +137,9 @@ const AnalyticsActivityWidget: React.FC<AnalyticsActivityWidgetProps> =
           <AnalyticsActivityWidgetActiveUserChart
             chartData={props.activeUserChartData}
             periodical={props.periodical}
+          />
+          <AnalyticsActivityWidgetTotalUserChart
+            chartData={props.totalUserCountChartData}
           />
         </>
       </Widget>
