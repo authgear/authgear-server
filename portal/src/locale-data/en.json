@@ -1065,5 +1065,6 @@
 
   "AnalyticsScreen.title": "Analytics",
   "AnalyticsActivityWidget.title": "Activity",
-  "AnalyticsActivityWidget.active-user.label": "No. of active users"
+  "AnalyticsActivityWidget.active-user.label": "No. of active users",
+  "AnalyticsActivityWidget.total-user.label": "No. of total users"
 }
