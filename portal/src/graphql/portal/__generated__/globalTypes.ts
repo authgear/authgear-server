@@ -12,6 +12,11 @@ export enum CollaboratorRole {
   OWNER = "OWNER",
 }
 
+export enum Periodical {
+  MONTHLY = "MONTHLY",
+  WEEKLY = "WEEKLY",
+}
+
 /**
  * Update to resource file.
  */
