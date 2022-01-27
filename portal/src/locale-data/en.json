@@ -1005,6 +1005,7 @@
 
   "AnalyticsScreen.title": "Analytics",
   "AnalyticsActivityWidget.title": "Activity",
+  "AnalyticsActivityWidget.active-user.label": "No. of active users",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
