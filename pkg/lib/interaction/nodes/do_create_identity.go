@@ -27,17 +27,39 @@ func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *inte
 	if e.IsAddition && !isAdminAPI && modifyDisabled {
 		return nil, interaction.ErrIdentityModifyDisabled
 	}
+
+	skipCreateIdentityEvent := false
+	if _, creating := graph.GetNewUserID(); creating {
+		skipCreateIdentityEvent = true
+	} else {
+		// not user signup
+		// determine if the flow is user promotion by checking user's identities
+		// this node need to be run before removing the anonymous identity
+		iis, err := ctx.Identities.ListByUser(graph.MustGetUserID())
+		if err != nil {
+			return nil, err
+		}
+		for _, ii := range iis {
+			if ii.Type == model.IdentityTypeAnonymous {
+				// skip create identity event for anonymous user promotion
+				skipCreateIdentityEvent = true
+			}
+		}
+	}
+
 	return &NodeDoCreateIdentity{
-		Identity:   e.Identity,
-		IsAddition: e.IsAddition,
-		IsAdminAPI: isAdminAPI,
+		Identity:                e.Identity,
+		IsAddition:              e.IsAddition,
+		IsAdminAPI:              isAdminAPI,
+		SkipCreateIdentityEvent: skipCreateIdentityEvent,
 	}, nil
 }
 
 type NodeDoCreateIdentity struct {
-	Identity   *identity.Info `json:"identity"`
-	IsAddition bool           `json:"is_addition"`
-	IsAdminAPI bool           `json:"is_admin_api"`
+	Identity                *identity.Info `json:"identity"`
+	IsAddition              bool           `json:"is_addition"`
+	IsAdminAPI              bool           `json:"is_admin_api"`
+	SkipCreateIdentityEvent bool           `json:"skip_create_identity_event"`
 }
 
 func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
@@ -80,7 +102,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 			return nil
 		}),
 		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			if _, creating := graph.GetNewUserID(); creating {
+			if n.SkipCreateIdentityEvent {
 				return nil
 			}
 
