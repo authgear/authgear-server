@@ -1066,6 +1066,8 @@
   "AnalyticsScreen.title": "Analytics",
   "AnalyticsScreen.start-date.label": "Start Date",
   "AnalyticsScreen.end-date.label": "End Date",
+  "AnalyticsScreen.clear-date-range.label": "Clear Date Range",
+  "AnalyticsScreen.date-range.dialog-title": "Date Range",
   "AnalyticsScreen.to.label": "to",
   "AnalyticsActivityWidget.title": "Activity",
   "AnalyticsActivityWidget.monthly.label": "Monthly",
