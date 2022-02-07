@@ -3,12 +3,6 @@ import { useParams } from "react-router-dom";
 import {
   ICommandBarItemProps,
   IDropdownOption,
-  Dialog,
-  DialogFooter,
-  PrimaryButton,
-  DefaultButton,
-  DatePicker,
-  TextField,
   MessageBar,
   addDays,
 } from "@fluentui/react";
@@ -24,6 +18,7 @@ import CommandBarDropdown, {
 import CommandBarContainer from "../../CommandBarContainer";
 import ScreenContent from "../../ScreenContent";
 import ShowError from "../../ShowError";
+import DateRangeDialog from "../portal/DateRangeDialog";
 import { encodeOffsetToCursor } from "../../util/pagination";
 import useTransactionalState from "../../hook/useTransactionalState";
 import {
@@ -316,13 +311,6 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
     [commitRangeFrom, commitRangeTo]
   );
 
-  const dateRangeDialogContentProps = useMemo(() => {
-    const title = renderToString("AuditLogScreen.date-range.custom");
-    return {
-      title,
-    };
-  }, [renderToString]);
-
   const onSelectRangeFrom = useCallback(
     (value: Date | null | undefined) => {
       if (value == null) {
@@ -389,41 +377,24 @@ const AuditLogScreen: React.FC = function AuditLogScreen() {
           />
         </ScreenContent>
       </CommandBarContainer>
-      <Dialog
+      <DateRangeDialog
         hidden={dateRangeDialogHidden}
+        title={renderToString("AuditLogScreen.date-range.custom")}
+        fromDatePickerLabel={renderToString(
+          "AuditLogScreen.date-range.start-date"
+        )}
+        toDatePickerLabel={renderToString("AuditLogScreen.date-range.end-date")}
+        rangeFrom={uncommittedRangeFrom ?? undefined}
+        rangeTo={uncommittedRangeTo ?? undefined}
+        fromDatePickerMinDate={datePickerMinDate}
+        fromDatePickerMaxDate={today}
+        toDatePickerMinDate={datePickerMinDate}
+        toDatePickerMaxDate={today}
+        onSelectRangeFrom={onSelectRangeFrom}
+        onSelectRangeTo={onSelectRangeTo}
+        onCommitDateRange={commitDateRange}
         onDismiss={onDismissDateRangeDialog}
-        dialogContentProps={dateRangeDialogContentProps}
-        /* https://developer.microsoft.com/en-us/fluentui#/controls/web/dialog
-         * Best practice says the max width is 340 */
-        minWidth={340}
-      >
-        {/* Dialog is based on Modal, which will focus the first child on open. *
-        However, we do not want the date picker to be opened at the same time. *
-        So we make the first focusable element a hidden TextField */}
-        <TextField className={styles.hidden} />
-        <DatePicker
-          label={renderToString("AuditLogScreen.date-range.start-date")}
-          value={uncommittedRangeFrom ?? undefined}
-          minDate={datePickerMinDate}
-          maxDate={today}
-          onSelectDate={onSelectRangeFrom}
-        />
-        <DatePicker
-          label={renderToString("AuditLogScreen.date-range.end-date")}
-          value={uncommittedRangeTo ?? undefined}
-          minDate={datePickerMinDate}
-          maxDate={today}
-          onSelectDate={onSelectRangeTo}
-        />
-        <DialogFooter>
-          <PrimaryButton onClick={commitDateRange}>
-            <FormattedMessage id="done" />
-          </PrimaryButton>
-          <DefaultButton onClick={onDismissDateRangeDialog}>
-            <FormattedMessage id="cancel" />
-          </DefaultButton>
-        </DialogFooter>
-      </Dialog>
+      />
     </>
   );
 };
