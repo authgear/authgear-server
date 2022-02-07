@@ -1004,6 +1004,9 @@
   "user-profile.access-control-level.readwrite": "Editable",
 
   "AnalyticsScreen.title": "Analytics",
+  "AnalyticsScreen.start-date.label": "Start Date",
+  "AnalyticsScreen.end-date.label": "End Date",
+  "AnalyticsScreen.to.label": "to",
   "AnalyticsActivityWidget.title": "Activity",
   "AnalyticsActivityWidget.monthly.label": "Monthly",
   "AnalyticsActivityWidget.weekly.label": "Weekly",
