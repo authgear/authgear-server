@@ -1,5 +1,6 @@
-import React, { useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { IPivotItemProps, Pivot, PivotItem } from "@fluentui/react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,6 +19,7 @@ import { Periodical } from "./__generated__/globalTypes";
 import { isoWeekLabel, monthLabel } from "../../util/date";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
+import ShowLoading from "../../ShowLoading";
 import styles from "./AnalyticsActivityWidget.module.scss";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
@@ -77,7 +79,11 @@ const AnalyticsActivityWidgetActiveUserChart: React.FC<AnalyticsActivityWidgetAc
         ],
       };
     }, [chartData, periodical, renderToString]);
-    return chartData ? <Bar options={options} data={data} /> : <></>;
+    return chartData ? (
+      <Bar className={styles.chart} options={options} data={data} />
+    ) : (
+      <></>
+    );
   };
 
 interface AnalyticsActivityWidgetTotalUserChartProps {
@@ -118,30 +124,84 @@ const AnalyticsActivityWidgetTotalUserChart: React.FC<AnalyticsActivityWidgetTot
         ],
       };
     }, [chartData, renderToString]);
-    return chartData ? <Line options={options} data={data} /> : <></>;
+    return chartData ? (
+      <Line className={styles.chart} options={options} data={data} />
+    ) : (
+      <></>
+    );
   };
+
+const AnalyticsActivityCharts: React.FC<AnalyticsActivityWidgetProps> =
+  function AnalyticsActivityCharts(props) {
+    if (props.loading) {
+      return (
+        <div className={styles.loadingWrapper}>
+          <ShowLoading />
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <AnalyticsActivityWidgetActiveUserChart
+          chartData={props.activeUserChartData}
+          periodical={props.periodical}
+        />
+        <AnalyticsActivityWidgetTotalUserChart
+          chartData={props.totalUserCountChartData}
+        />
+      </>
+    );
+  };
+
 interface AnalyticsActivityWidgetProps {
+  loading: boolean;
   periodical: Periodical;
+  onPeriodicalChange: (periodical: Periodical) => void;
   activeUserChartData: AnalyticChartsQuery_activeUserChart | null;
   totalUserCountChartData: AnalyticChartsQuery_totalUserCountChart | null;
 }
 
 const AnalyticsActivityWidget: React.FC<AnalyticsActivityWidgetProps> =
   function AnalyticsActivityWidget(props) {
+    const { renderToString } = useContext(Context);
+    const { periodical, onPeriodicalChange } = props;
+    const onPeriodicalClick = useCallback(
+      (item?: { props: IPivotItemProps }) => {
+        const itemKey = item?.props.itemKey;
+        if (itemKey) {
+          if (itemKey !== periodical) {
+            if (itemKey in Periodical) {
+              onPeriodicalChange(itemKey as Periodical);
+            }
+          }
+        }
+      },
+      [periodical, onPeriodicalChange]
+    );
     return (
       <Widget className={styles.widget}>
         <WidgetTitle>
           <FormattedMessage id="AnalyticsActivityWidget.title" />
         </WidgetTitle>
-        <>
-          <AnalyticsActivityWidgetActiveUserChart
-            chartData={props.activeUserChartData}
-            periodical={props.periodical}
-          />
-          <AnalyticsActivityWidgetTotalUserChart
-            chartData={props.totalUserCountChartData}
-          />
-        </>
+        <Pivot
+          className={styles.pivot}
+          onLinkClick={onPeriodicalClick}
+          selectedKey={periodical}
+        >
+          <PivotItem
+            headerText={renderToString("AnalyticsActivityWidget.monthly.label")}
+            itemKey={Periodical.MONTHLY}
+          >
+            <AnalyticsActivityCharts {...props} />
+          </PivotItem>
+          <PivotItem
+            headerText={renderToString("AnalyticsActivityWidget.weekly.label")}
+            itemKey={Periodical.WEEKLY}
+          >
+            <AnalyticsActivityCharts {...props} />
+          </PivotItem>
+        </Pivot>
       </Widget>
     );
   };
