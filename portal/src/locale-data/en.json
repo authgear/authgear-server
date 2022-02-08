@@ -199,7 +199,7 @@
   "UserDetailsScreen.remove-user": "Remove User",
   "UserDetailsScreen.reenable-user": "Re-enable User",
   "UserDetailsScreen.disable-user": "Disable User",
-  "UserDetailsScreen.cancel-removal": "Cancel removal",
+  "UserDetailsScreen.cancel-removal": "Cancel Removal",
   "UserDetailsScreen.scheduled-deletion": "This user is disabled and scheduled to be removed on {date}",
 
   "UsersList.column.raw-id": "ID",
@@ -211,20 +211,20 @@
 
   "UsersList.disable-user": "Disable User",
   "UsersList.reenable-user": "Re-enable User",
-  "UsersList.cancel-removal": "Cancel removal",
+  "UsersList.cancel-removal": "Cancel Removal",
 
   "SetUserDisabledDialog.disable-user.title": "Disable User",
   "SetUserDisabledDialog.disable-user.description": "Do you really want to disable user {username}? Disabling the user {username} will forbid them from logging in. Their existing sessions will also be removed.",
   "SetUserDisabledDialog.reenable-user.title": "Re-enable User",
   "SetUserDisabledDialog.reenable-user.description": "Do you really want to re-enable user {username}? Re-enable the user {username} so that they can login again.",
-  "SetUserDisabledDialog.cancel-removal.title": "Cancel scheduled removal",
+  "SetUserDisabledDialog.cancel-removal.title": "Cancel Scheduled Removal",
   "SetUserDisabledDialog.cancel-removal.description": "Do you really want to cancel scheduled removal on user {username}? If the removal is canceled, they can login again.",
-  "SetUserDisabledDialog.cancel-removal.label": "Cancel removal",
+  "SetUserDisabledDialog.cancel-removal.label": "Cancel Removal",
 
   "DeleteUserDialog.title": "Remove User",
   "DeleteUserDialog.text": "Are you really want to remove user {username}? This action cannot be undone.",
   "DeleteUserDialog.label.remove-immediately": "Remove Immediately",
-  "DeleteUserDialog.label.schedule-removal": "Schedule removal",
+  "DeleteUserDialog.label.schedule-removal": "Schedule Removal",
 
   "UserDetails.signed-up": "Signed Up: {datetime}",
   "UserDetails.last-login-at": "Last Login: {datetime}",
