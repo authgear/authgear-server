@@ -8,6 +8,18 @@
     {{ else if eq .Error.reason "WebUIInvalidSession" }}
         <!-- This error is handled as fatal error -->
         {{ $display_error = false }}
+    {{ else if eq .Error.reason "DisabledUser" }}
+        <!-- This error is handled differently -->
+        {{ $display_error = false }}
+    {{ else if eq .Error.reason "DeactivatedUser" }}
+        <!-- This error is handled differently -->
+        {{ $display_error = false }}
+    {{ else if eq .Error.reason "ScheduledDeletionByAdmin" }}
+        <!-- This error is handled differently -->
+        {{ $display_error = false }}
+    {{ else if eq .Error.reason "ScheduledDeletionByEndUser" }}
+        <!-- This error is handled differently -->
+        {{ $display_error = false }}
     {{ end }}
 {{ end }}
 <div id="error-message-bar" class="messages-bar flex flew-row errors {{ if not $display_error }}hidden{{ end }}">
