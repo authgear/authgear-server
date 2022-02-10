@@ -560,13 +560,6 @@ const SecondaryAuthenticationModeContent: React.FC<SecondaryAuthenticationModeCo
             "Onboarding.secondary-authentication-mode.required"
           ),
         },
-        {
-          key: "if_requested",
-          text: renderToString(
-            "Onboarding.secondary-authentication-mode.if-requested"
-          ),
-          hidden: true,
-        },
       ],
       [renderToString]
     );

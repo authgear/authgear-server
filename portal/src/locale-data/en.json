@@ -73,6 +73,7 @@
   "errors.validation.minLength": "Expect string with length greater than or equal to {expected, plural, one{1 character} other{# characters}}",
   "errors.validation.maxLength": "Expect string with length less than or equal to {expected, plural, one{1 character} other{# characters}}",
   "errors.validation.noPrimaryAuthenticator": "Can't save the config. At least one authenticator for type {login_id_type, select, email {email} username {username} phone {phone} other {}} is needed.",
+  "errors.validation.noSecondaryAuthenticator": "Can't save the config. At least one secondary authenticator is needed.",
   "errors.validation.blocked": "{reason, select, EmailDomainBlocklist{Email} EmailDomainAllowlist{Email} UsernameReserved{Username} UsernameExcludedKeywords{Username} other {}} is not allowed",
   "errors.password-mismatch": "New password does not match with confirm password, please double check",
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",
@@ -153,7 +154,6 @@
   "Onboarding.secondary-authentication-mode.disabled": "Disabled",
   "Onboarding.secondary-authentication-mode.required": "Always required",
   "Onboarding.secondary-authentication-mode.if-exists": "Required if user has Mutli-factor Authenticator",
-  "Onboarding.secondary-authentication-mode.if-requested": "Disabled (Deprecated)",
 
   "Onboarding.verification.email-enabled.title" :"Should we verify email?",
   "Onboarding.verification.phone-enabled.title" :"Should we verify phone?",
@@ -356,7 +356,6 @@
   "AuthenticatorConfigurationScreen.secondary-authenticators.mode.disabled": "Disabled",
   "AuthenticatorConfigurationScreen.secondary-authenticators.mode.required": "Always Required",
   "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-exists": "Required if user has Secondary Authenticator",
-  "AuthenticatorConfigurationScreen.secondary-authenticators.mode.if-requested": "Disabled (Deprecated)",
   "AuthenticatorConfigurationScreen.secondary-authenticators.disable-device-token.label": "Disable \"Do not ask again on this device\" for the Secondary Authenticator",
 
   "AuthenticatorConfigurationScreen.recovery-code.title": "Recovery code",
