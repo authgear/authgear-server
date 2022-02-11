@@ -15,6 +15,12 @@ import useTransactionalState from "../../hook/useTransactionalState";
 import DateRangeDialog from "./DateRangeDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 
+function truncateTimeAndReplaceTimezoneToUTC(date: Date): Date {
+  return new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+  );
+}
+
 const CommandBarLabelValue = (label: string, value: string) => {
   return (props: ICommandBarItemProps) => {
     const { commandBarButtonProps } = props;
@@ -191,6 +197,10 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
       if (value == null) {
         setRangeFrom(null);
       } else {
+        // the date from the date picker is 0:0:0 in the user timezone
+        // in analytics page context, all data are in UTC
+        // so we set the time of the date object to UTC 0:0:0
+        value = truncateTimeAndReplaceTimezoneToUTC(value);
         if (uncommittedRangeTo != null && value > uncommittedRangeTo) {
           setRangeTo(value);
           setRangeFrom(uncommittedRangeTo);
@@ -207,6 +217,10 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
       if (value == null) {
         setRangeTo(null);
       } else {
+        // the date from the date picker is 0:0:0 in the user timezone
+        // in analytics page context, all data are in UTC
+        // so we set the time of the date object to UTC 0:0:0
+        value = truncateTimeAndReplaceTimezoneToUTC(value);
         if (uncommittedRangeFrom != null && value < uncommittedRangeFrom) {
           setRangeFrom(value);
           setRangeTo(uncommittedRangeFrom);
