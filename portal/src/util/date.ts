@@ -31,3 +31,9 @@ export function monthLabel(isoDate: string): string {
     }
   );
 }
+
+export function parseDate(isoDate: string): Date {
+  return DateTime.fromISO(isoDate, {
+    zone: "UTC",
+  }).toJSDate();
+}

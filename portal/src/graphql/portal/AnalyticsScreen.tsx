@@ -14,6 +14,7 @@ import styles from "./AnalyticsScreen.module.scss";
 import useTransactionalState from "../../hook/useTransactionalState";
 import DateRangeDialog from "./DateRangeDialog";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { parseDate } from "../../util/date";
 
 function truncateTimeAndReplaceTimezoneToUTC(date: Date): Date {
   return new Date(
@@ -47,8 +48,16 @@ const OnRenderCommandBarToLabel = () => {
 const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
 
+  const { analyticEpoch: analyticEpochStr } = useSystemConfig();
+  const analyticEpochDate = useMemo(() => {
+    if (analyticEpochStr === "") {
+      return undefined;
+    }
+    return parseDate(analyticEpochStr);
+  }, [analyticEpochStr]);
+
   const today = useConst(new Date(Date.now()));
-  const defaultRangeTo = useMemo(() => {
+  const yesterday = useMemo(() => {
     // yesterday
     const d = new Date(
       Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
@@ -57,12 +66,16 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
     return d;
   }, [today]);
 
+  const defaultRangeTo = useMemo(() => yesterday, [yesterday]);
   const defaultRangeFrom = useMemo(() => {
     // default 1 year range
     const d = new Date(defaultRangeTo);
     d.setFullYear(d.getFullYear() - 1);
+    if (analyticEpochDate && analyticEpochDate > d) {
+      return analyticEpochDate;
+    }
     return d;
-  }, [defaultRangeTo]);
+  }, [defaultRangeTo, analyticEpochDate]);
 
   const {
     committedValue: rangeFrom,
@@ -83,13 +96,12 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
   } = useTransactionalState<Date | null>(defaultRangeTo);
 
   const minDate = useMemo(() => {
-    // FIXME: minDate should respect analytic epoch
-    return defaultRangeFrom;
-  }, [defaultRangeFrom]);
+    return analyticEpochDate;
+  }, [analyticEpochDate]);
 
   const maxDate = useMemo(() => {
-    return defaultRangeTo;
-  }, [defaultRangeTo]);
+    return yesterday;
+  }, [yesterday]);
 
   const rangeToStr = useMemo(() => {
     return rangeTo ? rangeTo.toISOString().split("T")[0] : "";
@@ -201,15 +213,26 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
         // in analytics page context, all data are in UTC
         // so we set the time of the date object to UTC 0:0:0
         value = truncateTimeAndReplaceTimezoneToUTC(value);
-        if (uncommittedRangeTo != null && value > uncommittedRangeTo) {
+        if (uncommittedRangeTo == null) {
+          setRangeFrom(value);
+        } else if (value > uncommittedRangeTo) {
           setRangeTo(value);
           setRangeFrom(uncommittedRangeTo);
         } else {
           setRangeFrom(value);
+          // bound date range within 1 year
+          let limitRangeTo = new Date(value);
+          limitRangeTo.setFullYear(limitRangeTo.getFullYear() + 1);
+          if (limitRangeTo > yesterday) {
+            limitRangeTo = yesterday;
+          }
+          if (uncommittedRangeTo > limitRangeTo) {
+            setRangeTo(limitRangeTo);
+          }
         }
       }
     },
-    [setRangeFrom, setRangeTo, uncommittedRangeTo]
+    [setRangeFrom, setRangeTo, uncommittedRangeTo, yesterday]
   );
 
   const onSelectRangeTo = useCallback(
@@ -221,15 +244,27 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
         // in analytics page context, all data are in UTC
         // so we set the time of the date object to UTC 0:0:0
         value = truncateTimeAndReplaceTimezoneToUTC(value);
-        if (uncommittedRangeFrom != null && value < uncommittedRangeFrom) {
+        if (uncommittedRangeFrom == null) {
+          setRangeTo(value);
+        } else if (value < uncommittedRangeFrom) {
           setRangeFrom(value);
           setRangeTo(uncommittedRangeFrom);
         } else {
           setRangeTo(value);
+
+          // bound date range within 1 year and before epoch date
+          let limitRangeFrom = new Date(value);
+          limitRangeFrom.setFullYear(limitRangeFrom.getFullYear() - 1);
+          if (analyticEpochDate != null && limitRangeFrom < analyticEpochDate) {
+            limitRangeFrom = analyticEpochDate;
+          }
+          if (uncommittedRangeFrom < limitRangeFrom) {
+            setRangeFrom(limitRangeFrom);
+          }
         }
       }
     },
-    [setRangeTo, setRangeFrom, uncommittedRangeFrom]
+    [setRangeTo, setRangeFrom, uncommittedRangeFrom, analyticEpochDate]
   );
 
   if (error != null) {
