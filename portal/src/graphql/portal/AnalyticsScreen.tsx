@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { useConst } from "@fluentui/react-hooks";
-import { CommandBarButton, ICommandBarItemProps } from "@fluentui/react";
+import { CommandBarButton, ICommandBarItemProps, Text } from "@fluentui/react";
 import { useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useAnalyticChartsQuery } from "./query/analyticChartsQuery";
@@ -13,6 +13,7 @@ import CommandBarContainer from "../../CommandBarContainer";
 import styles from "./AnalyticsScreen.module.scss";
 import useTransactionalState from "../../hook/useTransactionalState";
 import DateRangeDialog from "./DateRangeDialog";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 const CommandBarLabelValue = (label: string, value: string) => {
   return (props: ICommandBarItemProps) => {
@@ -37,7 +38,7 @@ const OnRenderCommandBarToLabel = () => {
   );
 };
 
-const AnalyticsScreen: React.FC = function AnalyticsScreen() {
+const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
   const [dateRangeDialogHidden, setDateRangeDialogHidden] = useState(true);
 
   const today = useConst(new Date(Date.now()));
@@ -257,6 +258,16 @@ const AnalyticsScreen: React.FC = function AnalyticsScreen() {
       />
     </>
   );
+};
+
+const AnalyticsScreen: React.FC = function AnalyticsScreen() {
+  const { analyticEnabled } = useSystemConfig();
+
+  if (!analyticEnabled) {
+    return <Text>Analytics page is disabled.</Text>;
+  }
+
+  return <AnalyticsScreenContent />;
 };
 
 export default AnalyticsScreen;
