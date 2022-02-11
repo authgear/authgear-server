@@ -1,0 +1,20 @@
+{{ template "__page_frame.html" . }}
+
+{{ define "page-content" }}
+<div class="pane twc-container-vertical padding-t-32 padding-b-20 padding-h-24 tablet:padding-h-32 desktop:padding-h-32">
+
+<h1 class="primary-txt text-center margin-0 text-xl font-bold">
+  {{ template "account-deletion-success-title" }}
+</h1>
+
+<p class="margin-0 primary-txt text-center text-sm">
+  {{ template "account-deletion-success-description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
+</p>
+
+<a class="not-a btn primary-btn margin-t-20 flex flex-col items-center justify-center" href="/">
+  {{ template "done-button-label" }}
+</a>
+
+{{ template "__watermark.html" . }}
+</div>
+{{ end }}

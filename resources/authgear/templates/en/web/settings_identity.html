@@ -125,7 +125,7 @@
       {{ if not .modify_disabled }}
         {{ if .identity_id }}
           {{ if gt $.IdentityCount 1 }}
-            <button class="btn destructive-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="unlink_oauth">
+            <button class="btn destructive-secondary-btn flex-1 flex flex-col items-end justify-center" type="submit" name="x_action" value="unlink_oauth">
               <i class="ti ti-unlink"></i>
             </button>
           {{ end }}
@@ -157,5 +157,14 @@
   {{ end }}
 
 </div>
+
+{{ if $.AccountDeletionAllowed }}
+<a class="pane not-a flex flex-row justify-center items-center" href="/settings/delete_account">
+  <i class="ti ti-user-x"></i>
+  <span class="margin-v-16 margin-h-10 primary-txt">
+    {{- template "account-deletion-delete-account-link-label" -}}
+  </span>
+</a>
+{{ end }}
 
 {{ end }}

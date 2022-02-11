@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"net/http"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	corerand "github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
@@ -31,21 +31,22 @@ type AccessEventProvider interface {
 type Rand *rand.Rand
 
 type Provider struct {
-	Context      context.Context
-	Request      *http.Request
-	AppID        config.AppID
-	Redis        *appredis.Handle
-	Store        Store
-	AccessEvents AccessEventProvider
-	TrustProxy   config.TrustProxy
-	Config       *config.SessionConfig
-	Clock        clock.Clock
-	Random       Rand
+	Context         context.Context
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
+	AppID           config.AppID
+	Redis           *appredis.Handle
+	Store           Store
+	AccessEvents    AccessEventProvider
+	TrustProxy      config.TrustProxy
+	Config          *config.SessionConfig
+	Clock           clock.Clock
+	Random          Rand
 }
 
 func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	now := p.Clock.NowUTC()
-	accessEvent := access.NewEvent(now, p.Request, bool(p.TrustProxy))
+	accessEvent := access.NewEvent(now, p.RemoteIP, p.UserAgentString)
 	session := &IDPSession{
 		ID:              uuid.New(),
 		CreatedAt:       now,

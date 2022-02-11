@@ -23,8 +23,11 @@ func (e *UserProfilePreUpdateBlockingEventPayload) UserID() string {
 	return e.UserRef.ID
 }
 
-func (e *UserProfilePreUpdateBlockingEventPayload) IsAdminAPI() bool {
-	return e.AdminAPI
+func (e *UserProfilePreUpdateBlockingEventPayload) GetTriggeredBy() event.TriggeredByType {
+	if e.AdminAPI {
+		return event.TriggeredByTypeAdminAPI
+	}
+	return event.TriggeredByTypeUser
 }
 
 func (e *UserProfilePreUpdateBlockingEventPayload) FillContext(ctx *event.Context) {

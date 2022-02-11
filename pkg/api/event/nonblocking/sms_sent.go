@@ -22,8 +22,8 @@ func (e *SMSSentEventPayload) UserID() string {
 	return ""
 }
 
-func (e *SMSSentEventPayload) IsAdminAPI() bool {
-	return false
+func (e *SMSSentEventPayload) GetTriggeredBy() event.TriggeredByType {
+	return event.TriggeredByTypeUser
 }
 
 func (e *SMSSentEventPayload) FillContext(ctx *event.Context) {

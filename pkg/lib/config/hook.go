@@ -34,7 +34,11 @@ var _ = Schema.Add("BlockingHookHandlersConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"event": { "type": "string", "enum" : ["user.pre_create", "user.profile.pre_update"] },
+		"event": { "type": "string", "enum" : [
+			"user.pre_create",
+			"user.profile.pre_update",
+			"user.pre_schedule_deletion"
+		] },
 		"url": { "type": "string", "format": "uri" }
 	},
 	"required": ["event", "url"]
@@ -60,7 +64,12 @@ var _ = Schema.Add("NonBlockingHookHandlersConfig", `
 					"user.created",
 					"user.authenticated",
 					"user.profile.updated",
+					"user.disabled",
+					"user.reenabled",
 					"user.anonymous.promoted",
+					"user.deletion_scheduled",
+					"user.deletion_unscheduled",
+					"user.deleted",
 					"identity.email.added",
 					"identity.email.removed",
 					"identity.email.updated",

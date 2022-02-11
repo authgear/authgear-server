@@ -24,6 +24,12 @@ export interface UsersListQuery_users_edges_node {
    */
   lastLoginAt: GQL_DateTime | null;
   isDisabled: boolean;
+  disableReason: string | null;
+  isDeactivated: boolean;
+  /**
+   * The scheduled deletion time of the user
+   */
+  deleteAt: GQL_DateTime | null;
   standardAttributes: GQL_UserStandardAttributes;
 }
 

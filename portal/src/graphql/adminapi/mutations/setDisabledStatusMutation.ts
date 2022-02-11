@@ -8,21 +8,28 @@ const setDisabledStatusMutation = gql`
       user {
         id
         isDisabled
+        disableReason
+        isDeactivated
+        deleteAt
       }
     }
   }
 `;
 
-export function useSetDisabledStatusMutation(userID: string): {
-  setDisabledStatus: (isDisabled: boolean) => Promise<boolean>;
+export function useSetDisabledStatusMutation(): {
+  setDisabledStatus: (userID: string, isDisabled: boolean) => Promise<boolean>;
   loading: boolean;
   error: unknown;
 } {
   const [mutationFunction, { loading, error }] =
-    useMutation<SetDisabledStatusMutation>(setDisabledStatusMutation);
+    useMutation<SetDisabledStatusMutation>(setDisabledStatusMutation, {
+      // Disabling a user will terminate all sessions.
+      // So we have to refetch queries that fetch sessions.
+      refetchQueries: ["UserQuery"],
+    });
 
   const setDisabledStatus = useCallback(
-    async (isDisabled: boolean) => {
+    async (userID: string, isDisabled: boolean) => {
       const result = await mutationFunction({
         variables: {
           userID,
@@ -32,7 +39,7 @@ export function useSetDisabledStatusMutation(userID: string): {
 
       return !!result.data;
     },
-    [mutationFunction, userID]
+    [mutationFunction]
   );
 
   return { setDisabledStatus, loading, error };

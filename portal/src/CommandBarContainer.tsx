@@ -41,11 +41,11 @@ const CommandBarContainer: React.FC<CommandBarContainerProps> =
             items={primaryItems ?? []}
             farItems={secondaryItems}
           />
+          {messageBar}
           <ProgressIndicator
             styles={progressIndicatorStyles}
             className={!isLoading ? styles.hidden : ""}
           />
-          {messageBar}
         </div>
         {props.children}
       </div>

@@ -44,8 +44,11 @@ func (e *IdentityLoginIDRemovedEventPayload) UserID() string {
 	return e.UserRef.ID
 }
 
-func (e *IdentityLoginIDRemovedEventPayload) IsAdminAPI() bool {
-	return e.AdminAPI
+func (e *IdentityLoginIDRemovedEventPayload) GetTriggeredBy() event.TriggeredByType {
+	if e.AdminAPI {
+		return event.TriggeredByTypeAdminAPI
+	}
+	return event.TriggeredByTypeUser
 }
 
 func (e *IdentityLoginIDRemovedEventPayload) FillContext(ctx *event.Context) {

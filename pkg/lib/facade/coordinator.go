@@ -1,13 +1,23 @@
 package facade
 
 import (
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/blocking"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
+
+type EventService interface {
+	DispatchEvent(payload event.Payload) error
+}
 
 type IdentityService interface {
 	Get(userID string, typ model.IdentityType, id string) (*identity.Info, error)
@@ -46,7 +56,13 @@ type MFAService interface {
 	InvalidateAllRecoveryCode(userID string) error
 }
 
+type UserQueries interface {
+	GetRaw(userID string) (*user.User, error)
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
+}
+
 type UserCommands interface {
+	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
 	Delete(userID string) error
 }
 
@@ -79,17 +95,21 @@ type OAuthSessionManager SessionManager
 // FIXME(mfa): remove all MFA recovery code when last secondary authenticator is
 //             removed, so that recovery codes are re-generated when setup again.
 type Coordinator struct {
-	Identities      IdentityService
-	Authenticators  AuthenticatorService
-	Verification    VerificationService
-	MFA             MFAService
-	UserCommands    UserCommands
-	StdAttrsService StdAttrsService
-	PasswordHistory PasswordHistoryStore
-	OAuth           OAuthService
-	IDPSessions     IDPSessionManager
-	OAuthSessions   OAuthSessionManager
-	IdentityConfig  *config.IdentityConfig
+	Events                EventService
+	Identities            IdentityService
+	Authenticators        AuthenticatorService
+	Verification          VerificationService
+	MFA                   MFAService
+	UserCommands          UserCommands
+	UserQueries           UserQueries
+	StdAttrsService       StdAttrsService
+	PasswordHistory       PasswordHistoryStore
+	OAuth                 OAuthService
+	IDPSessions           IDPSessionManager
+	OAuthSessions         OAuthSessionManager
+	IdentityConfig        *config.IdentityConfig
+	AccountDeletionConfig *config.AccountDeletionConfig
+	Clock                 clock.Clock
 }
 
 func (c *Coordinator) IdentityGet(userID string, typ model.IdentityType, id string) (*identity.Info, error) {
@@ -235,7 +255,7 @@ func (c *Coordinator) AuthenticatorVerifySecret(info *authenticator.Info, secret
 	return c.Authenticators.VerifySecret(info, secret)
 }
 
-func (c *Coordinator) UserDelete(userID string) error {
+func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error {
 	// Delete dependents of user entity.
 
 	// Identities:
@@ -281,28 +301,30 @@ func (c *Coordinator) UserDelete(userID string) error {
 	}
 
 	// Sessions:
-	idpSessions, err := c.IDPSessions.List(userID)
-	if err != nil {
+	if err = c.terminateAllSessions(userID); err != nil {
 		return err
-	}
-	for _, s := range idpSessions {
-		if err = c.IDPSessions.Delete(s); err != nil {
-			return err
-		}
 	}
 
-	oauthSessions, err := c.OAuthSessions.List(userID)
+	userModel, err := c.UserQueries.Get(userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return err
-	}
-	for _, s := range oauthSessions {
-		if err = c.OAuthSessions.Delete(s); err != nil {
-			return err
-		}
 	}
 
 	// Finally, delete the user.
-	return c.UserCommands.Delete(userID)
+	err = c.UserCommands.Delete(userID)
+	if err != nil {
+		return err
+	}
+
+	err = c.Events.DispatchEvent(&nonblocking.UserDeletedEventPayload{
+		UserModel:           *userModel,
+		IsScheduledDeletion: isScheduledDeletion,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *Coordinator) removeOrphans(userID string) error {
@@ -390,6 +412,196 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) terminateAllSessions(userID string) error {
+	idpSessions, err := c.IDPSessions.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, s := range idpSessions {
+		if err = c.IDPSessions.Delete(s); err != nil {
+			return err
+		}
+	}
+
+	oauthSessions, err := c.OAuthSessions.List(userID)
+	if err != nil {
+		return err
+	}
+	for _, s := range oauthSessions {
+		if err = c.OAuthSessions.Delete(s); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserReenable(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().Reenable()
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserReenabledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+	}
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserDisable(userID string, reason *string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().Disable(reason)
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	err = c.terminateAllSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserDisabledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+	}
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserScheduleDeletionByAdmin(userID string) error {
+	return c.userScheduleDeletion(userID, true)
+}
+
+func (c *Coordinator) UserScheduleDeletionByEndUser(userID string) error {
+	return c.userScheduleDeletion(userID, false)
+}
+
+func (c *Coordinator) userScheduleDeletion(userID string, byAdmin bool) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	now := c.Clock.NowUTC()
+	deleteAt := now.Add(c.AccountDeletionConfig.GracePeriod.Duration())
+
+	var accountStatus *user.AccountStatus
+	if byAdmin {
+		accountStatus, err = u.AccountStatus().ScheduleDeletionByAdmin(deleteAt)
+	} else {
+		accountStatus, err = u.AccountStatus().ScheduleDeletionByEndUser(deleteAt)
+	}
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	err = c.terminateAllSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: userID,
+		},
+	}
+
+	events := []event.Payload{
+		&blocking.UserPreScheduleDeletionBlockingEventPayload{
+			UserRef:  userRef,
+			AdminAPI: byAdmin,
+		},
+		&nonblocking.UserDeletionScheduledEventPayload{
+			UserRef:  userRef,
+			AdminAPI: byAdmin,
+		},
+	}
+
+	for _, e := range events {
+		err := c.Events.DispatchEvent(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
+	u, err := c.UserQueries.GetRaw(userID)
+	if err != nil {
+		return err
+	}
+
+	accountStatus, err := u.AccountStatus().UnscheduleDeletionByAdmin()
+	if err != nil {
+		return err
+	}
+
+	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserDeletionUnscheduledEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		AdminAPI: true,
+	}
+
+	err = c.Events.DispatchEvent(e)
+	if err != nil {
+		return err
 	}
 
 	return nil

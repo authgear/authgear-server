@@ -62,8 +62,10 @@
   "error-webhook-delivery-timeout": "Operation is disallowed because the webhook delivery resulted in timeout.",
   "error-disabled-user": "Administrator has disabled your account.",
   "error-disabled-user-reason": "Reason: {reason}",
-  "error-disabled-user-no-reason": "Please contact administrator for details.",
-  "error-blocked-user": "Your account is blocked from login.",
+  "error-deactivated-user": "You have deactivated your account.",
+  "error-scheduled-deletion-by-admin": "Administrator has disabled your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+  "error-scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+
   "error-network": "Your device is offline. Please check your network connection first.",
   "error-server": "Server encountered an internal error.",
 
@@ -85,7 +87,7 @@
   "remove-button-label": "Remove",
   "save-button-label": "Save",
   "more-button-label": "More",
-  "more-login-methods-label": "More login methods",
+  "done-button-label": "Done",
   "resend-verification-code-button-label": "Send verification code",
   "verification-status-label--unverified": "Not verified",
   "verification-status-label--verified": "Verified",
@@ -135,7 +137,7 @@
   "oob-otp-resend-button-label": "Resend",
   "oob-otp-resend-button-label--unit": "Resend (%ds)",
   "oob-otp-sms-is-not-supported": "Sending SMS is not supported. Please contact administrator.",
-  "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please <a class=\"link\" target=\"_blank\" href={customerSupportLink}>contact customer support</a>.",
+  "oob-otp-sms-is-not-supported-with-customer-support": "Sending SMS is not supported. Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
 
   "verify-user-page-title--sms": "SMS Verification",
   "verify-user-page-title--email": "Email Verification",
@@ -280,7 +282,7 @@
   "enter-oob-otp-sms-instead": "Send code to {target} instead via SMS",
 
   "enter-recovery-code-instead-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button>",
-  "enter-recovery-code-instead-with-customer-support-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button> or <a class=\"link\" target=\"_blank\" href={customerSupportLink}>contact customer support</a>",
+  "enter-recovery-code-instead-with-customer-support-v1": "Having Trouble? <button class=\"btn secondary-btn\" type=\"submit\">Use recovery code</button> or contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>",
 
   "setup-oob-otp-title--sms": "Setup SMS 2-step verification",
   "setup-oob-otp-title--email": "Setup email 2-step verification",
@@ -361,6 +363,18 @@
   "custom-attribute-numeric-hint-minimum": "Please enter a number greater than or equal to {minimum}",
   "custom-attribute-numeric-hint-maximum": "Please enter a number less than or equal to {maximum}",
   "custom-attribute-numeric-hint-minimum-maximum": "Please enter a number between {minimum} and {maximum}",
+
+  "account-deletion-delete-account-link-label": "Delete your account",
+  "account-deletion-title": "Delete your account",
+  "account-deletion-description": "By deleting the account, all data will be permanently deleted and we will not be able to retrieve it. If you continue, your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+  "account-deletion-confirmation-label": "Please type <b>DELETE</b> to confirm",
+  "account-deletion-delete-account-button-label": "Delete account",
+
+  "account-deletion-success-title": "Account deletion scheduled",
+  "account-deletion-success-description": "Your account has been deactivated and the data will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+
+  "account-status-contact-support": "Please contact customer support.",
+  "account-status-contact-support-with-link": "Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
 
   "gender-female": "Female",
   "gender-male": "Male",

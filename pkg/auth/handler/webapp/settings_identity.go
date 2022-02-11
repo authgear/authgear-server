@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -26,7 +27,8 @@ func ConfigureSettingsIdentityRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsIdentityViewModel struct {
-	VerificationStatuses map[string][]verification.ClaimStatus
+	VerificationStatuses   map[string][]verification.ClaimStatus
+	AccountDeletionAllowed bool
 }
 
 type SettingsIdentityHandler struct {
@@ -35,6 +37,7 @@ type SettingsIdentityHandler struct {
 	Renderer          Renderer
 	Identities        SettingsIdentityService
 	Verification      SettingsVerificationService
+	AccountDeletion   *config.AccountDeletionConfig
 }
 
 func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -49,7 +52,9 @@ func (h *SettingsIdentityHandler) GetData(r *http.Request, rw http.ResponseWrite
 	}
 	authenticationViewModel := viewmodels.NewAuthenticationViewModelWithCandidates(candidates)
 
-	viewModel := SettingsIdentityViewModel{}
+	viewModel := SettingsIdentityViewModel{
+		AccountDeletionAllowed: h.AccountDeletion.ScheduledByEndUserEnabled,
+	}
 	identities, err := h.Identities.ListByUser(*userID)
 	if err != nil {
 		return nil, err

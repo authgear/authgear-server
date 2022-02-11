@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import {
   DefaultButton,
+  PrimaryButton,
   Dialog,
   DialogFooter,
   IDialogContentProps,
@@ -8,14 +9,15 @@ import {
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useSetDisabledStatusMutation } from "./mutations/setDisabledStatusMutation";
-import ButtonWithLoading from "../../ButtonWithLoading";
+import { useUnscheduleAccountDeletionMutation } from "./mutations/unscheduleAccountDeletion";
 import ErrorDialog from "../../error/ErrorDialog";
 
 interface SetUserDisabledDialogProps {
   isHidden: boolean;
   onDismiss: () => void;
-  isDisablingUser: boolean;
   userID: string;
+  userDeleteAt: string | null;
+  userIsDisabled: boolean;
   endUserAccountIdentifier: string | undefined;
 }
 
@@ -26,14 +28,27 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
     const {
       isHidden,
       onDismiss,
-      isDisablingUser,
       userID,
+      userDeleteAt,
+      userIsDisabled,
       endUserAccountIdentifier,
     } = props;
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
-    const { setDisabledStatus, loading, error } =
-      useSetDisabledStatusMutation(userID);
+    const {
+      setDisabledStatus,
+      loading: setDisabledStatusLoading,
+      error: setDisabledStatusError,
+    } = useSetDisabledStatusMutation();
+    const {
+      unscheduleAccountDeletion,
+      loading: unscheduleAccountDeletionLoading,
+      error: unscheduleAccountDeletionError,
+    } = useUnscheduleAccountDeletionMutation();
+
+    const loading =
+      setDisabledStatusLoading || unscheduleAccountDeletionLoading;
+    const error = setDisabledStatusError || unscheduleAccountDeletionError;
 
     const onDialogDismiss = useCallback(() => {
       if (loading || isHidden) {
@@ -46,24 +61,71 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
       if (loading || isHidden) {
         return;
       }
-      setDisabledStatus(isDisablingUser).finally(() => onDismiss());
-    }, [loading, isHidden, setDisabledStatus, isDisablingUser, onDismiss]);
+      if (userDeleteAt != null) {
+        unscheduleAccountDeletion(userID).finally(() => onDismiss());
+      } else {
+        setDisabledStatus(userID, !userIsDisabled).finally(() => onDismiss());
+      }
+    }, [
+      loading,
+      isHidden,
+      setDisabledStatus,
+      unscheduleAccountDeletion,
+      userID,
+      userIsDisabled,
+      userDeleteAt,
+      onDismiss,
+    ]);
 
     const dialogContentProps: IDialogContentProps = useMemo(() => {
-      return isDisablingUser
+      const args = {
+        username: endUserAccountIdentifier ?? userID,
+      };
+
+      return userDeleteAt != null
         ? {
-            title: renderToString("SetUserDisabledDialog.disableUser.title"),
-            subText: renderToString("SetUserDisabledDialog.disableUser.text", {
-              username: endUserAccountIdentifier ?? userID,
-            }),
+            title: renderToString("SetUserDisabledDialog.cancel-removal.title"),
+            subText: renderToString(
+              "SetUserDisabledDialog.cancel-removal.description",
+              args
+            ),
+          }
+        : userIsDisabled
+        ? {
+            title: renderToString("SetUserDisabledDialog.reenable-user.title"),
+            subText: renderToString(
+              "SetUserDisabledDialog.reenable-user.description",
+              args
+            ),
           }
         : {
-            title: renderToString("SetUserDisabledDialog.enableUser.title"),
-            subText: renderToString("SetUserDisabledDialog.enableUser.text", {
-              username: endUserAccountIdentifier ?? userID,
-            }),
+            title: renderToString("SetUserDisabledDialog.disable-user.title"),
+            subText: renderToString(
+              "SetUserDisabledDialog.disable-user.description",
+              args
+            ),
           };
-    }, [renderToString, isDisablingUser, endUserAccountIdentifier, userID]);
+    }, [
+      renderToString,
+      userDeleteAt,
+      userIsDisabled,
+      endUserAccountIdentifier,
+      userID,
+    ]);
+
+    const theme =
+      userDeleteAt == null && !userIsDisabled
+        ? themes.destructive
+        : themes.main;
+
+    const children =
+      userDeleteAt != null ? (
+        <FormattedMessage id="SetUserDisabledDialog.cancel-removal.label" />
+      ) : userIsDisabled ? (
+        <FormattedMessage id="reenable" />
+      ) : (
+        <FormattedMessage id="disable" />
+      );
 
     return (
       <>
@@ -74,27 +136,15 @@ const SetUserDisabledDialog: React.FC<SetUserDisabledDialogProps> = React.memo(
           styles={dialogStyles}
         >
           <DialogFooter>
-            <ButtonWithLoading
-              theme={isDisablingUser ? themes.destructive : themes.main}
-              onClick={onConfirm}
-              labelId={
-                isDisablingUser
-                  ? "SetUserDisabledDialog.disableUser.action"
-                  : "SetUserDisabledDialog.enableUser.action"
-              }
-              loading={loading}
-            />
-
+            <PrimaryButton theme={theme} disabled={loading} onClick={onConfirm}>
+              {children}
+            </PrimaryButton>
             <DefaultButton onClick={onDialogDismiss} disabled={loading}>
               <FormattedMessage id="cancel" />
             </DefaultButton>
           </DialogFooter>
         </Dialog>
-        <ErrorDialog
-          rules={[]}
-          error={error}
-          fallbackErrorMessageID="SetUserDisabledDialog.generic-error"
-        />
+        <ErrorDialog error={error} />
       </>
     );
   }

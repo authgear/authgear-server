@@ -19,7 +19,7 @@ func (e *EdgeValidateUser) Instantiate(ctx *interaction.Context, graph *interact
 	}
 
 	var apiError *apierrors.APIError
-	if err := u.CheckStatus(); err != nil {
+	if err := u.AccountStatus().Check(); err != nil {
 		apiError = apierrors.AsAPIError(err)
 	}
 

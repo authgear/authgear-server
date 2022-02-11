@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/google/wire"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 var DependencySet = wire.NewSet(
@@ -23,8 +23,8 @@ var DependencySet = wire.NewSet(
 
 func NewService(
 	ctx context.Context,
-	request *http.Request,
-	trustProxy config.TrustProxy,
+	remoteIP httputil.RemoteIP,
+	userAgentString httputil.UserAgentString,
 	logger Logger,
 	database Database,
 	clock clock.Clock,
@@ -35,15 +35,15 @@ func NewService(
 	auditSink *audit.Sink,
 ) *Service {
 	return &Service{
-		Context:      ctx,
-		Request:      request,
-		TrustProxy:   trustProxy,
-		Logger:       logger,
-		Database:     database,
-		Clock:        clock,
-		Localization: localization,
-		Store:        store,
-		Resolver:     resolver,
-		Sinks:        []Sink{hookSink, auditSink},
+		Context:         ctx,
+		RemoteIP:        remoteIP,
+		UserAgentString: userAgentString,
+		Logger:          logger,
+		Database:        database,
+		Clock:           clock,
+		Localization:    localization,
+		Store:           store,
+		Resolver:        resolver,
+		Sinks:           []Sink{hookSink, auditSink},
 	}
 }

@@ -616,7 +616,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
 }
 
-.btn.primary-btn, .btn.light-btn {
+.btn.primary-btn, .btn.light-btn, .btn.destructive-btn {
   height: 36px;
   border-radius: 2px;
   padding: 0 20px;
@@ -629,16 +629,33 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .destructive-btn {
+  color: var(--color-white-shaded-8);
+  background-color: var(--color-error-unshaded);
+}
+.destructive-btn:focus {
+  background-color: var(--color-error-unshaded);
+}
+.destructive-btn:hover {
+  background-color: var(--color-error-shaded-6);
+}
+.destructive-btn:active {
+  background-color: var(--color-error-shaded-7);
+}
+.destructive-btn:disabled {
+  background-color: var(--color-error-shaded-3);
+}
+
+.destructive-secondary-btn {
   color: var(--color-error-unshaded);
   background-color: transparent;
 }
-.destructive-btn:hover, .description-btn:focus {
+.destructive-secondary-btn:hover, .destructive-secondary-btn:focus {
   color: var(--color-error-shaded-4);
 }
-.destructive-btn:active {
+.destructive-secondary-btn:active {
   color: var(--color-error-shaded-7);
 }
-.description-btn:disabled {
+.destructive-secondary-btn:disabled {
   color: var(--color-error-shaded-1);
 }
 

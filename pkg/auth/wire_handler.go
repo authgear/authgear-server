@@ -377,10 +377,24 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	))
 }
 
-func newWebAppUserDisabledHandler(p *deps.RequestProvider) http.Handler {
+func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.UserDisabledHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsDeleteAccountHandler)),
+	))
+}
+
+func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsDeleteAccountSuccessHandler)),
+	))
+}
+
+func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebapp.AccountStatusHandler)),
 	))
 }
 

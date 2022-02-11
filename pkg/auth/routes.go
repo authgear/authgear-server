@@ -143,11 +143,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
 	router.Add(webapphandler.ConfigureResetPasswordRoute(webappPageRoute), p.Handler(newWebAppResetPasswordHandler))
 	router.Add(webapphandler.ConfigureResetPasswordSuccessRoute(webappPageRoute), p.Handler(newWebAppResetPasswordSuccessHandler))
-	router.Add(webapphandler.ConfigureUserDisabledRoute(webappPageRoute), p.Handler(newWebAppUserDisabledHandler))
+	router.Add(webapphandler.ConfigureAccountStatusRoute(webappPageRoute), p.Handler(newWebAppAccountStatusHandler))
 	router.Add(webapphandler.ConfigureReturnRoute(webappPageRoute), p.Handler(newWebAppReturnHandler))
 	router.Add(webapphandler.ConfigureErrorRoute(webappPageRoute), p.Handler(newWebAppErrorHandler))
 	router.Add(webapphandler.ConfigureForceChangePasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangePasswordHandler))
 	router.Add(webapphandler.ConfigureForceChangeSecondaryPasswordRoute(webappPageRoute), p.Handler(newWebAppForceChangeSecondaryPasswordHandler))
+	router.Add(webapphandler.ConfigureSettingsDeleteAccountSuccessRoute(webappPageRoute), p.Handler(newWebAppSettingsDeleteAccountSuccessHandler))
 
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
@@ -164,6 +165,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureSettingsSessionsRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsSessionsHandler))
 	router.Add(webapphandler.ConfigureSettingsChangePasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangePasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
+	router.Add(webapphandler.ConfigureSettingsDeleteAccountRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsDeleteAccountHandler))
 
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), p.Handler(newWebAppSSOCallbackHandler))
 

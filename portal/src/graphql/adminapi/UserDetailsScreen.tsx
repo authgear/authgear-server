@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useCallback, useContext } from "react";
+import { DateTime } from "luxon";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Pivot,
@@ -6,6 +7,8 @@ import {
   IButtonProps,
   ICommandBarItemProps,
   CommandButton,
+  MessageBar,
+  MessageBarType,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -43,6 +46,7 @@ import {
   CustomAttributesAttributeConfig,
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
+import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailsScreen.module.scss";
 
@@ -356,25 +360,55 @@ function useDeleteUserCommandBarItem(
 }
 
 function useSetUserDisabledCommandBarItem(
-  userIsDisabled: boolean,
+  user: UserQuery_node_User,
   onClick: IButtonProps["onClick"]
 ): ICommandBarItemProps {
   const { renderToString } = useContext(Context);
   const itemProps: ICommandBarItemProps = useMemo(() => {
+    const text =
+      user.deleteAt != null
+        ? renderToString("UserDetailsScreen.cancel-removal")
+        : user.isDisabled
+        ? renderToString("UserDetailsScreen.reenable-user")
+        : renderToString("UserDetailsScreen.disable-user");
+    const iconName =
+      user.deleteAt != null ? "Undo" : user.isDisabled ? "Play" : "CircleStop";
     return {
       key: "setDisabledStatus",
-      text: userIsDisabled
-        ? renderToString("UserDetailsScreen.enable-user")
-        : renderToString("UserDetailsScreen.disable-user"),
+      text,
       iconProps: {
-        iconName: userIsDisabled ? "Play" : "CircleStop",
+        iconName,
       },
       onRender: (props) => {
         return <CommandButton {...props} onClick={onClick} />;
       },
     };
-  }, [userIsDisabled, onClick, renderToString]);
+  }, [user.deleteAt, user.isDisabled, onClick, renderToString]);
   return itemProps;
+}
+
+interface WarnScheduledDeletionProps {
+  user: UserQuery_node_User;
+}
+
+function WarnScheduledDeletion(props: WarnScheduledDeletionProps) {
+  const { user } = props;
+  const { locale } = useContext(Context);
+  if (user.deleteAt == null) {
+    return null;
+  }
+
+  return (
+    <MessageBar messageBarType={MessageBarType.warning}>
+      <FormattedMessage
+        id="UserDetailsScreen.scheduled-deletion"
+        values={{
+          date:
+            formatDatetime(locale, user.deleteAt, DateTime.DATE_SHORT) ?? "",
+        }}
+      />
+    </MessageBar>
+  );
 }
 
 interface UserDetailsScreenContentProps {
@@ -427,7 +461,7 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     }, []);
 
     const setUserDisabledCommandBarItem = useSetUserDisabledCommandBarItem(
-      user.isDisabled,
+      user,
       onClickSetUserDisabled
     );
 
@@ -481,7 +515,11 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
     });
 
     return (
-      <FormContainer form={form} primaryItems={primaryItems}>
+      <FormContainer
+        form={form}
+        primaryItems={primaryItems}
+        messageBar={<WarnScheduledDeletion user={user} />}
+      >
         <ScreenContent>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
           <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
@@ -490,14 +528,16 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
           isHidden={deleteUserDialogIsHidden}
           onDismiss={onDismissDeleteUserDialog}
           userID={user.id}
+          userDeleteAt={user.deleteAt}
           endUserAccountIdentifier={endUserAccountIdentifier}
         />
         <SetUserDisabledDialog
           isHidden={setUserDisabledDialogIsHidden}
           onDismiss={onDismissSetUserDisabledDialog}
           userID={user.id}
+          userIsDisabled={user.isDisabled}
+          userDeleteAt={user.deleteAt}
           endUserAccountIdentifier={endUserAccountIdentifier}
-          isDisablingUser={!user.isDisabled}
         />
       </FormContainer>
     );

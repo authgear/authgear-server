@@ -3,7 +3,6 @@ package event
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/clientid"
@@ -40,16 +39,16 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("event")} }
 
 type Service struct {
-	Context      context.Context
-	Request      *http.Request
-	TrustProxy   config.TrustProxy
-	Logger       Logger
-	Database     Database
-	Clock        clock.Clock
-	Localization *config.LocalizationConfig
-	Store        Store
-	Resolver     Resolver
-	Sinks        []Sink
+	Context         context.Context
+	RemoteIP        httputil.RemoteIP
+	UserAgentString httputil.UserAgentString
+	Logger          Logger
+	Database        Database
+	Clock           clock.Clock
+	Localization    *config.LocalizationConfig
+	Store           Store
+	Resolver        Resolver
+	Sinks           []Sink
 
 	NonBlockingPayloads []event.NonBlockingPayload `wire:"-"`
 	NonBlockingEvents   []*event.Event             `wire:"-"`
@@ -179,13 +178,8 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		resolvedLanguage = s.Localization.SupportedLanguages[resolvedLanguageIdx]
 	}
 
-	triggeredBy := event.TriggeredByTypeUser
-	if payload.IsAdminAPI() {
-		triggeredBy = event.TriggeredByTypeAdminAPI
-	}
+	triggeredBy := payload.GetTriggeredBy()
 
-	ipAddress := httputil.GetIP(s.Request, bool(s.TrustProxy))
-	userAgent := s.Request.UserAgent()
 	clientID := clientid.GetClientID(s.Context)
 
 	ctx := &event.Context{
@@ -194,8 +188,8 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		TriggeredBy:        triggeredBy,
 		PreferredLanguages: preferredLanguageTags,
 		Language:           resolvedLanguage,
-		IPAddress:          ipAddress,
-		UserAgent:          userAgent,
+		IPAddress:          string(s.RemoteIP),
+		UserAgent:          string(s.UserAgentString),
 		ClientID:           clientID,
 	}
 

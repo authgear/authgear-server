@@ -54,6 +54,9 @@ const userQuery = gql`
           }
         }
         isDisabled
+        disableReason
+        isDeactivated
+        deleteAt
         lastLoginAt
         createdAt
         updatedAt

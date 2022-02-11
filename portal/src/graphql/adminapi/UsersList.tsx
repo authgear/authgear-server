@@ -43,6 +43,8 @@ interface UserListItem {
   id: string;
   rawID: string;
   isDisabled: boolean;
+  isDeactivated: boolean;
+  deleteAt: string | null;
   createdAt: string | null;
   endUserAccountIdentitifer: string | null;
   username: string | null;
@@ -52,8 +54,9 @@ interface UserListItem {
 }
 
 interface DisableUserDialogData {
-  isDisablingUser: boolean;
   userID: string;
+  userDeleteAt: string | null;
+  userIsDisabled: boolean;
   endUserAccountIdentitifer: string | null;
 }
 
@@ -160,6 +163,8 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
             id: node.id,
             rawID: extractRawID(node.id),
             isDisabled: node.isDisabled,
+            isDeactivated: node.isDeactivated,
+            deleteAt: formatDatetime(locale, node.deleteAt),
             createdAt: formatDatetime(locale, node.createdAt),
             lastLoginAt: formatDatetime(locale, node.lastLoginAt),
             endUserAccountIdentitifer:
@@ -188,20 +193,15 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
     );
   }, []);
 
-  const onDisableUserClicked = useCallback(
-    (
-      event: React.MouseEvent<unknown>,
-      isDisablingUser: boolean,
-      userID: string,
-      endUserAccountIdentitifer: string | null
-    ) => {
-      // prevent triggering the link to user detail page
-      event.preventDefault();
-      event.stopPropagation();
+  const onUserActionClick = useCallback(
+    (e: React.MouseEvent<unknown>, item: UserListItem) => {
+      e.preventDefault();
+      e.stopPropagation();
       setDisableUserDialogData({
-        isDisablingUser,
-        userID,
-        endUserAccountIdentitifer,
+        userID: item.id,
+        userDeleteAt: item.deleteAt,
+        userIsDisabled: item.isDisabled,
+        endUserAccountIdentitifer: item.endUserAccountIdentitifer,
       });
       setIsDisableUserDialogHidden(false);
     },
@@ -211,28 +211,34 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
   const onRenderUserItemColumn = useCallback(
     (item: UserListItem, _index?: number, column?: IColumn) => {
       switch (column?.key) {
-        case "action":
+        case "action": {
+          const theme =
+            item.deleteAt != null
+              ? themes.actionButton
+              : item.isDisabled
+              ? themes.actionButton
+              : themes.destructive;
+
+          const children =
+            item.deleteAt != null ? (
+              <FormattedMessage id="UsersList.cancel-removal" />
+            ) : item.isDisabled ? (
+              <FormattedMessage id="UsersList.reenable-user" />
+            ) : (
+              <FormattedMessage id="UsersList.disable-user" />
+            );
+
           return (
             <ActionButton
               className={styles.actionButton}
               styles={{ flexContainer: { alignItems: "normal" } }}
-              theme={item.isDisabled ? themes.actionButton : themes.destructive}
-              onClick={(event) =>
-                onDisableUserClicked(
-                  event,
-                  !item.isDisabled,
-                  item.id,
-                  item.endUserAccountIdentitifer
-                )
-              }
+              theme={theme}
+              onClick={(event) => onUserActionClick(event, item)}
             >
-              {item.isDisabled ? (
-                <FormattedMessage id="UsersList.enable-user" />
-              ) : (
-                <FormattedMessage id="UsersList.disable-user" />
-              )}
+              {children}
             </ActionButton>
           );
+        }
         default:
           return (
             <span>
@@ -241,7 +247,7 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
           );
       }
     },
-    [onDisableUserClicked, themes.actionButton, themes.destructive]
+    [onUserActionClick, themes.actionButton, themes.destructive]
   );
 
   const dismissDisableUserDialog = useCallback(() => {
@@ -290,8 +296,9 @@ const UsersList: React.FC<UsersListProps> = function UsersList(props) {
         <SetUserDisabledDialog
           isHidden={isDisableUserDialogHidden}
           onDismiss={dismissDisableUserDialog}
-          isDisablingUser={disableUserDialogData.isDisablingUser}
           userID={disableUserDialogData.userID}
+          userDeleteAt={disableUserDialogData.userDeleteAt}
+          userIsDisabled={disableUserDialogData.userIsDisabled}
           endUserAccountIdentifier={
             disableUserDialogData.endUserAccountIdentitifer ?? undefined
           }

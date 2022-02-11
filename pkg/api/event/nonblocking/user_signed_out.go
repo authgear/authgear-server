@@ -24,8 +24,11 @@ func (e *UserSignedOutEventPayload) UserID() string {
 	return e.UserRef.ID
 }
 
-func (e *UserSignedOutEventPayload) IsAdminAPI() bool {
-	return e.AdminAPI
+func (e *UserSignedOutEventPayload) GetTriggeredBy() event.TriggeredByType {
+	if e.AdminAPI {
+		return event.TriggeredByTypeAdminAPI
+	}
+	return event.TriggeredByTypeUser
 }
 
 func (e *UserSignedOutEventPayload) FillContext(ctx *event.Context) {

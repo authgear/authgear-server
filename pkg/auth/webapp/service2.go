@@ -459,7 +459,7 @@ func deriveSessionStepKind(graph *interaction.Graph) SessionStepKind {
 	case *nodes.NodeVerifyIdentity:
 		return SessionStepVerifyIdentity
 	case *nodes.NodeValidateUser:
-		return SessionStepUserDisabled
+		return SessionStepAccountStatus
 	case *nodes.NodeChangePasswordBegin:
 		switch currentNode.Stage {
 		case authn.AuthenticationStagePrimary:

@@ -62,8 +62,10 @@
   "error-webhook-delivery-timeout": "因Webhook逾時，操作已被禁止",
   "error-disabled-user": "你的帳號已被管理員停用。",
   "error-disabled-user-reason": "原因： {reason}",
-  "error-disabled-user-no-reason": "請向管理員了解詳情。",
-  "error-blocked-user": "你的帳號已被禁止登入。",
+  "error-deactivated-user": "你已停用你的帳戶。",
+  "error-scheduled-deletion-by-admin": "你的帳戶已被管理員停用，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
+  "error-scheduled-deletion-by-end-user": "你已停用你的帳戶，而你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
+
   "error-network": "你的裝置是離線狀態。請先檢查你的網絡連線",
   "error-server": "伺服器內部錯誤。",
 
@@ -85,7 +87,7 @@
   "remove-button-label": "移除",
   "save-button-label": "儲存",
   "more-button-label": "更多",
-  "more-login-methods-label": "更多登入方法",
+  "done-button-label": "完成",
   "resend-verification-code-button-label": "發送驗證碼",
   "verification-status-label--unverified": "未驗證",
   "verification-status-label--verified": "已驗證",
@@ -134,7 +136,7 @@
   "oob-otp-resend-button-label": "重發",
   "oob-otp-resend-button-label--unit": "重發 (%ds)",
   "oob-otp-sms-is-not-supported": "不支援發送短信，請聯繫管理員",
-  "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請<a class=\"link\" target=\"_blank\" href={customerSupportLink}>聯繫客戶服務</a>",
+  "oob-otp-sms-is-not-supported-with-customer-support": "不支援發送短信，請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
   "verify-user-page-title--sms": "短訊驗證",
   "verify-user-page-title--email": "驗證你的電郵地址",
@@ -279,7 +281,7 @@
   "enter-oob-otp-sms-instead": "以短訊發送驗證碼至 {target}",
 
   "enter-recovery-code-instead-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button>",
-  "enter-recovery-code-instead-with-customer-support-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button> 或 <a class=\"link\" target=\"_blank\" href={customerSupportLink}>聯繫客戶服務</a>",
+  "enter-recovery-code-instead-with-customer-support-v1": "遇到問題? <button class=\"btn secondary-btn\" type=\"submit\">改為輸入備用碼</button> 或 聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>",
 
   "setup-oob-otp-title--sms": "設置短訊雙重驗證",
   "setup-oob-otp-title--email": "設置電郵雙重驗證",
@@ -360,6 +362,18 @@
   "custom-attribute-numeric-hint-minimum": "請輸入大於或等於{minimum}的數字",
   "custom-attribute-numeric-hint-maximum": "請輸入少於或等於{maximum}的數字",
   "custom-attribute-numeric-hint-minimum-maximum": "請輸入介乎{minimum}與{maximum}之間的數字",
+
+  "account-deletion-delete-account-link-label": "刪除您的帳戶",
+  "account-deletion-title": "刪除您的帳戶",
+  "account-deletion-description": "一旦你刪除你的帳戶，所有資料將會被移除而不能復完。如你確定繼續，你的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除",
+  "account-deletion-confirmation-label": "請輸入<b>DELETE</b>確定",
+  "account-deletion-delete-account-button-label": "刪除帳戶",
+
+  "account-deletion-success-title": "帳戶將會被刪除",
+  "account-deletion-success-description": "你的帳戶已被停用，而將會在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除",
+
+  "account-status-contact-support": "請聯繫客戶服務。",
+  "account-status-contact-support-with-link": "請聯繫<a class=\"link\" target=\"_blank\" href={customerSupportLink}>客戶服務</a>。",
 
   "gender-female": "女性",
   "gender-male": "男性",
