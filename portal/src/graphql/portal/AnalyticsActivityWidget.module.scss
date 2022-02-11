@@ -17,3 +17,10 @@
 .chart {
   margin: 20px 0;
 }
+
+.totalUserLabel {
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  text-align: left;
+}

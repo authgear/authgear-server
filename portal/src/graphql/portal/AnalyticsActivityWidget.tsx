@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { IPivotItemProps, Pivot, PivotItem } from "@fluentui/react";
+import { IPivotItemProps, Pivot, PivotItem, Text } from "@fluentui/react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -133,6 +133,14 @@ const AnalyticsActivityWidgetTotalUserChart: React.FC<AnalyticsActivityWidgetTot
 
 const AnalyticsActivityCharts: React.FC<AnalyticsActivityWidgetProps> =
   function AnalyticsActivityCharts(props) {
+    const totalNumberOfUser = useMemo(() => {
+      const dataset = props.totalUserCountChartData?.dataset;
+      if (dataset == null || dataset.length === 0) {
+        return "-";
+      }
+      return dataset[dataset.length - 1]?.data;
+    }, [props.totalUserCountChartData]);
+
     if (props.loading) {
       return (
         <div className={styles.loadingWrapper}>
@@ -147,6 +155,14 @@ const AnalyticsActivityCharts: React.FC<AnalyticsActivityWidgetProps> =
           chartData={props.activeUserChartData}
           periodical={props.periodical}
         />
+        <div className={styles.totalUserLabel}>
+          <Text variant="medium" block={true}>
+            <FormattedMessage id="AnalyticsActivityWidget.total-user.label" />
+          </Text>
+          <Text variant="xLarge" block={true}>
+            {totalNumberOfUser}
+          </Text>
+        </div>
         <AnalyticsActivityWidgetTotalUserChart
           chartData={props.totalUserCountChartData}
         />
