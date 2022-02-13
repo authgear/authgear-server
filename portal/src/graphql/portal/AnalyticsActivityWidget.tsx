@@ -9,6 +9,7 @@ import {
   Tooltip,
   PointElement,
   LineElement,
+  TooltipItem,
 } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
 import {
@@ -16,7 +17,7 @@ import {
   AnalyticChartsQuery_totalUserCountChart,
 } from "./query/__generated__/AnalyticChartsQuery";
 import { Periodical } from "./__generated__/globalTypes";
-import { isoWeekLabel, monthLabel } from "../../util/date";
+import { isoWeekLabels, monthLabel } from "../../util/date";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
@@ -41,6 +42,7 @@ const AnalyticsActivityWidgetActiveUserChart: React.FC<AnalyticsActivityWidgetAc
     const { renderToString } = useContext(Context);
     const { chartData, periodical } = props;
     const options = {
+      maintainAspectRatio: false,
       responsive: true,
       scales: {
         y: {
@@ -56,20 +58,38 @@ const AnalyticsActivityWidgetActiveUserChart: React.FC<AnalyticsActivityWidgetAc
           },
         },
       },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            title: function (tooltipItem: TooltipItem<"bar">[]) {
+              const item = tooltipItem[0];
+              const dataLabels = item.chart.data.labels;
+              if (dataLabels) {
+                const labels = dataLabels[item.dataIndex];
+                // join multiple line labels to one line in the tooltip title
+                if (Array.isArray(labels)) {
+                  return labels.join(" ");
+                }
+              }
+              return tooltipItem[0].label;
+            },
+          },
+        },
+      },
     };
     const data = useMemo(() => {
-      let labalFn = (iosDate: string) => iosDate;
+      let labelFn = (iosDate: any) => iosDate;
       switch (periodical) {
         case Periodical.MONTHLY:
-          labalFn = monthLabel;
+          labelFn = monthLabel;
           break;
         case Periodical.WEEKLY:
-          labalFn = isoWeekLabel;
+          labelFn = isoWeekLabels;
           break;
       }
 
       return {
-        labels: chartData?.dataset.map((pt) => (pt ? labalFn(pt.label) : "")),
+        labels: chartData?.dataset.map((pt) => (pt ? labelFn(pt.label) : "")),
         datasets: [
           {
             label: renderToString("AnalyticsActivityWidget.active-user.label"),
@@ -80,7 +100,9 @@ const AnalyticsActivityWidgetActiveUserChart: React.FC<AnalyticsActivityWidgetAc
       };
     }, [chartData, periodical, renderToString]);
     return chartData ? (
-      <Bar className={styles.chart} options={options} data={data} />
+      <div className={styles.chartContainer}>
+        <Bar options={options} data={data} />
+      </div>
     ) : (
       <></>
     );
@@ -95,6 +117,7 @@ const AnalyticsActivityWidgetTotalUserChart: React.FC<AnalyticsActivityWidgetTot
     const { renderToString } = useContext(Context);
     const { chartData } = props;
     const options = {
+      maintainAspectRatio: false,
       responsive: true,
       scales: {
         y: {
@@ -125,7 +148,9 @@ const AnalyticsActivityWidgetTotalUserChart: React.FC<AnalyticsActivityWidgetTot
       };
     }, [chartData, renderToString]);
     return chartData ? (
-      <Line className={styles.chart} options={options} data={data} />
+      <div className={styles.chartContainer}>
+        <Line options={options} data={data} />
+      </div>
     ) : (
       <></>
     );
