@@ -1,7 +1,8 @@
 import { DateTime } from "luxon";
 
-export function isoWeekLabel(isoDate: string): string {
-  let label = isoDate;
+export function isoWeekLabels(isoDate: string): string[] {
+  const label = isoDate;
+  const labels = [label];
   const luxonDate = DateTime.fromISO(isoDate, {
     zone: "UTC",
   });
@@ -9,10 +10,10 @@ export function isoWeekLabel(isoDate: string): string {
   const iosWeek = luxonDate.toISOWeekDate(); //=> '1982-W21-2'
   const parts = iosWeek.split("-");
   if (parts.length === 3) {
-    label = `${label} (${parts[1]})`;
+    labels.push(`(${parts[1]})`);
   }
 
-  return label;
+  return labels;
 }
 
 export function monthLabel(isoDate: string): string {

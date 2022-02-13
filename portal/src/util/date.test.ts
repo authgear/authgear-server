@@ -1,10 +1,10 @@
 /* global describe, it, expect */
-import { isoWeekLabel, monthLabel, parseDate } from "./date";
+import { isoWeekLabels, monthLabel, parseDate } from "./date";
 
-describe("isoWeekLabel", () => {
+describe("isoWeekLabels", () => {
   it("convert ios to ios week label YYYY-Www", () => {
-    expect(isoWeekLabel("1990-01-01")).toEqual("1990-01-01 (W01)");
-    expect(isoWeekLabel("2000-01-01")).toEqual("2000-01-01 (W52)");
+    expect(isoWeekLabels("1990-01-01")).toEqual(["1990-01-01", "(W01)"]);
+    expect(isoWeekLabels("2000-01-01")).toEqual(["2000-01-01", "(W52)"]);
   });
 });
 
