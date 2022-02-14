@@ -117,8 +117,14 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
 
   const { renderToString } = useContext(Context);
   const { appID } = useParams();
-  const { loading, error, refetch, activeUserChart, totalUserCountChart } =
-    useAnalyticChartsQuery(appID, periodical, rangeFromStr, rangeToStr);
+  const {
+    loading,
+    error,
+    refetch,
+    activeUserChart,
+    totalUserCountChart,
+    signupConversionRate,
+  } = useAnalyticChartsQuery(appID, periodical, rangeFromStr, rangeToStr);
 
   const onClickDateRange = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
@@ -290,6 +296,8 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
           />
           <AnalyticsSignupConversionWidget
             className={styles.signupConversionWidget}
+            loading={loading}
+            signupConversionRate={signupConversionRate}
           />
           <AnalyticsSignupMethodsWidget
             className={styles.signupMethodsWidget}
