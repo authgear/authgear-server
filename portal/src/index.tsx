@@ -25,6 +25,7 @@ import {
   Tooltip,
   PointElement,
   LineElement,
+  ArcElement,
 } from "chart.js";
 
 import ReactApp from "./ReactApp";
@@ -42,5 +43,8 @@ ChartJS.register(
   LineElement,
   Tooltip
 );
+
+// ChartJS registration for Pie chart in the AnalyticsSignupConversionWidget
+ChartJS.register(ArcElement, Tooltip);
 
 render(<ReactApp />, document.getElementById("react-app-root"));

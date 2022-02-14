@@ -31,6 +31,12 @@ export interface AnalyticChartsQuery_totalUserCountChart {
   dataset: (AnalyticChartsQuery_totalUserCountChart_dataset | null)[];
 }
 
+export interface AnalyticChartsQuery_signupConversionRate {
+  __typename: "SignupConversionRate";
+  totalSignup: number;
+  totalSignupUniquePageView: number;
+}
+
 export interface AnalyticChartsQuery {
   /**
    * Active users chart dataset
@@ -40,6 +46,10 @@ export interface AnalyticChartsQuery {
    * Total users count chart dataset
    */
   totalUserCountChart: AnalyticChartsQuery_totalUserCountChart | null;
+  /**
+   * Signup conversion rate dashboard data
+   */
+  signupConversionRate: AnalyticChartsQuery_signupConversionRate | null;
 }
 
 export interface AnalyticChartsQueryVariables {

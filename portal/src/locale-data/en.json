@@ -1017,6 +1017,9 @@
   "AnalyticsActivityWidget.total-user.label": "No. of total users",
   
   "AnalyticsSignupConversionWidget.title": "Signup Conversion",
+  "AnalyticsSignupConversionWidget.unique-signup-view.label": "Unique Signup View",
+  "AnalyticsSignupConversionWidget.signup.label": "Signup",
+  "AnalyticsSignupConversionWidget.chart.signup-percentage.label": "{percentage}% of the unique views have signed up",
 
   "AnalyticsSignupMethodsWidget.title": "User Signup Methods",
 
