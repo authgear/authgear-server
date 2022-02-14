@@ -1,5 +1,17 @@
 @import "../../styles/variable.scss";
 
+.activityWidget {
+  grid-column: 1 / span 12;
+}
+
+.signupConversionWidget {
+  grid-column: 1 / span 6;
+}
+
+.signupMethodsWidget {
+  grid-column: 7 / span 6;
+}
+
 .commandBarButtonLabelValue {
   .label {
     margin: 0 4px;
