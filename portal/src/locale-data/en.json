@@ -1081,6 +1081,16 @@
   "AnalyticsSignupConversionWidget.signup.label": "Signup",
   "AnalyticsSignupConversionWidget.chart.signup-percentage.label": "{percentage}% of the unique views have signed up",
 
-  "AnalyticsSignupMethodsWidget.title": "User Signup Methods"
-
+  "AnalyticsSignupMethodsWidget.title": "User Signup Methods",
+  "AnalyticsSignupMethodsWidget.chart.email.label": "Email",
+  "AnalyticsSignupMethodsWidget.chart.phone.label": "Phone",
+  "AnalyticsSignupMethodsWidget.chart.username.label": "Username",
+  "AnalyticsSignupMethodsWidget.chart.google.label": "Google",
+  "AnalyticsSignupMethodsWidget.chart.facebook.label": "Facebook",
+  "AnalyticsSignupMethodsWidget.chart.linkedin.label": "LinkedIn",
+  "AnalyticsSignupMethodsWidget.chart.azureadv2.label": "MS Azure AD",
+  "AnalyticsSignupMethodsWidget.chart.adfs.label": "MS AD FS",
+  "AnalyticsSignupMethodsWidget.chart.apple.label": "Apple",
+  "AnalyticsSignupMethodsWidget.chart.wechat.label": "WeChat",
+  "AnalyticsSignupMethodsWidget.chart.anonymous.label": "Anonymous"
 }

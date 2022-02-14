@@ -124,6 +124,7 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
     activeUserChart,
     totalUserCountChart,
     signupConversionRate,
+    signupByMethodsChart,
   } = useAnalyticChartsQuery(appID, periodical, rangeFromStr, rangeToStr);
 
   const onClickDateRange = useCallback(
@@ -301,6 +302,8 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
           />
           <AnalyticsSignupMethodsWidget
             className={styles.signupMethodsWidget}
+            loading={loading}
+            signupByMethodsChart={signupByMethodsChart}
           />
         </ScreenContent>
       </CommandBarContainer>
