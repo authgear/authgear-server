@@ -12,6 +12,7 @@ import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
 import styles from "./AnalyticsSignupMethodsWidget.module.scss";
 
+const noDataPlaceholderColor = "#EAEAEA";
 const colorMap: Record<string, string> = {
   email: "#FF7629",
   phone: "#92674F",
@@ -40,16 +41,40 @@ const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
   function AnalyticsSignupMethodsChart(props) {
     const { renderToString } = useContext(Context);
     const { dataset } = props;
-    const options = {
-      maintainAspectRatio: false,
-      responsive: true,
-    };
+
+    const noDataAvailable = useMemo(() => dataset.length === 0, [dataset]);
+
+    const options = useMemo(() => {
+      return {
+        maintainAspectRatio: false,
+        responsive: true,
+        plugins: {
+          tooltip: {
+            enabled: !noDataAvailable,
+          },
+        },
+      };
+    }, [noDataAvailable]);
 
     const colorList = useMemo(() => {
       return dataset.map((pt) => getColorCodeByMethod(pt.label));
     }, [dataset]);
 
     const data = useMemo(() => {
+      if (noDataAvailable) {
+        // show the grey circle when there is no data
+        return {
+          datasets: [
+            {
+              data: [1],
+              backgroundColor: [noDataPlaceholderColor],
+              borderColor: [noDataPlaceholderColor],
+              borderWidth: 1,
+            },
+          ],
+        };
+      }
+
       return {
         labels: dataset.map((pt) => {
           return renderToString(
@@ -65,11 +90,20 @@ const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
           },
         ],
       };
-    }, [dataset, colorList, renderToString]);
+    }, [dataset, colorList, renderToString, noDataAvailable]);
 
     return (
       <div className={styles.chartContainer}>
         <Pie data={data} options={options} />
+        {noDataAvailable && (
+          <div className={styles.noDataAvailableLabel}>
+            <Text variant="medium">
+              <FormattedMessage
+                id={`AnalyticsSignupMethodsWidget.no-data-available.label`}
+              />
+            </Text>
+          </div>
+        )}
       </div>
     );
   };
