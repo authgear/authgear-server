@@ -8,6 +8,8 @@ import { Periodical } from "./__generated__/globalTypes";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import AnalyticsActivityWidget from "./AnalyticsActivityWidget";
+import AnalyticsSignupConversionWidget from "./AnalyticsSignupConversionWidget";
+import AnalyticsSignupMethodsWidget from "./AnalyticsSignupMethodsWidget";
 import ShowError from "../../ShowError";
 import CommandBarContainer from "../../CommandBarContainer";
 import styles from "./AnalyticsScreen.module.scss";
@@ -279,11 +281,18 @@ const AnalyticsScreenContent: React.FC = function AnalyticsScreenContent() {
             <FormattedMessage id="AnalyticsScreen.title" />
           </ScreenTitle>
           <AnalyticsActivityWidget
+            className={styles.activityWidget}
             loading={loading}
             periodical={periodical}
             onPeriodicalChange={setPeriodical}
             activeUserChartData={activeUserChart}
             totalUserCountChartData={totalUserCountChart}
+          />
+          <AnalyticsSignupConversionWidget
+            className={styles.signupConversionWidget}
+          />
+          <AnalyticsSignupMethodsWidget
+            className={styles.signupMethodsWidget}
           />
         </ScreenContent>
       </CommandBarContainer>

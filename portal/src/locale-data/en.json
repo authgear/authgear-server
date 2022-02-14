@@ -1009,11 +1009,16 @@
   "AnalyticsScreen.clear-date-range.label": "Clear Date Range",
   "AnalyticsScreen.date-range.dialog-title": "Date Range",
   "AnalyticsScreen.to.label": "to",
+
   "AnalyticsActivityWidget.title": "Activity",
   "AnalyticsActivityWidget.monthly.label": "Monthly",
   "AnalyticsActivityWidget.weekly.label": "Weekly",
   "AnalyticsActivityWidget.active-user.label": "No. of active users",
   "AnalyticsActivityWidget.total-user.label": "No. of total users",
+  
+  "AnalyticsSignupConversionWidget.title": "Signup Conversion",
+
+  "AnalyticsSignupMethodsWidget.title": "User Signup Methods",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
