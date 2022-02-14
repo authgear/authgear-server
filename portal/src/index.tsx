@@ -45,6 +45,7 @@ ChartJS.register(
 );
 
 // ChartJS registration for Pie chart in the AnalyticsSignupConversionWidget
+// and AnalyticsSignupMethodsWidget
 ChartJS.register(ArcElement, Tooltip);
 
 render(<ReactApp />, document.getElementById("react-app-root"));
