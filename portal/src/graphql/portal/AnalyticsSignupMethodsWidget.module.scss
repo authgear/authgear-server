@@ -1,0 +1,35 @@
+.loadingWrapper {
+  min-height: 290px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.chartContainer {
+  height: 170px;
+  margin: 20px 0;
+}
+
+.legend {
+  display: flex;
+  flex-direction: row;
+  column-gap: 6px;
+  row-gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+.legendItem {
+  width: 82px;
+  border-left: 3px solid;
+  padding-left: 8px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  text-align: left;
+}
+
+.bold {
+  font-weight: 600;
+}

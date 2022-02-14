@@ -6,6 +6,7 @@ import {
   AnalyticChartsQuery,
   AnalyticChartsQueryVariables,
   AnalyticChartsQuery_activeUserChart,
+  AnalyticChartsQuery_signupByMethodsChart,
   AnalyticChartsQuery_signupConversionRate,
   AnalyticChartsQuery_totalUserCountChart,
 } from "./__generated__/AnalyticChartsQuery";
@@ -46,6 +47,16 @@ export const analyticChartsQuery = gql`
       totalSignup
       totalSignupUniquePageView
     }
+    signupByMethodsChart(
+      appID: $appID
+      rangeFrom: $rangeFrom
+      rangeTo: $rangeTo
+    ) {
+      dataset {
+        label
+        data
+      }
+    }
   }
 `;
 
@@ -57,6 +68,7 @@ export interface AnalyticChartsQueryResult
   activeUserChart: AnalyticChartsQuery_activeUserChart | null;
   totalUserCountChart: AnalyticChartsQuery_totalUserCountChart | null;
   signupConversionRate: AnalyticChartsQuery_signupConversionRate | null;
+  signupByMethodsChart: AnalyticChartsQuery_signupByMethodsChart | null;
 }
 export const useAnalyticChartsQuery = (
   appID: string,
@@ -82,6 +94,7 @@ export const useAnalyticChartsQuery = (
       activeUserChart: data?.activeUserChart ?? null,
       totalUserCountChart: data?.totalUserCountChart ?? null,
       signupConversionRate: data?.signupConversionRate ?? null,
+      signupByMethodsChart: data?.signupByMethodsChart ?? null,
     };
   }, [data]);
 
