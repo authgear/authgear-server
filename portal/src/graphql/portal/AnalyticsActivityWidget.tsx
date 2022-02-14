@@ -1,16 +1,7 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { IPivotItemProps, Pivot, PivotItem, Text } from "@fluentui/react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  PointElement,
-  LineElement,
-  TooltipItem,
-} from "chart.js";
+import { TooltipItem } from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
 import {
   AnalyticChartsQuery_activeUserChart,
@@ -22,15 +13,6 @@ import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
 import styles from "./AnalyticsActivityWidget.module.scss";
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip
-);
 
 interface AnalyticsActivityWidgetActiveUserChartProps {
   chartData: AnalyticChartsQuery_activeUserChart | null;
