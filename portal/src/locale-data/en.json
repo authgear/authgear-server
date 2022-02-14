@@ -1073,5 +1073,10 @@
   "AnalyticsActivityWidget.monthly.label": "Monthly",
   "AnalyticsActivityWidget.weekly.label": "Weekly",
   "AnalyticsActivityWidget.active-user.label": "No. of active users",
-  "AnalyticsActivityWidget.total-user.label": "No. of total users"
+  "AnalyticsActivityWidget.total-user.label": "No. of total users",
+  
+  "AnalyticsSignupConversionWidget.title": "Signup Conversion",
+
+  "AnalyticsSignupMethodsWidget.title": "User Signup Methods"
+
 }
