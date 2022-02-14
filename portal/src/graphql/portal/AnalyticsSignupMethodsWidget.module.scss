@@ -7,8 +7,17 @@
 }
 
 .chartContainer {
+  position: relative;
   height: 170px;
   margin: 20px 0;
+
+  .noDataAvailableLabel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
 }
 
 .legend {
