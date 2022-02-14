@@ -17,9 +17,30 @@ import "intl-tel-input/build/js/utils.js";
 import React from "react";
 import { render } from "react-dom";
 import { initializeIcons } from "@fluentui/react";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  PointElement,
+  LineElement,
+} from "chart.js";
 
 import ReactApp from "./ReactApp";
 
 initializeIcons();
+
+// ChartJS registration for Bar chart in the AnalyticsActivityWidget
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip);
+
+// ChartJS registration for Line chart in the AnalyticsActivityWidget
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip
+);
 
 render(<ReactApp />, document.getElementById("react-app-root"));
