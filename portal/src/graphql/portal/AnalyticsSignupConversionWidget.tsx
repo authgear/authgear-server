@@ -39,6 +39,11 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
       return 100 - signedUpPercentage;
     }, [signedUpPercentage]);
 
+    const noDataAvailable = useMemo(
+      () => signedUpPercentage === 0 && totalSignupUniquePageView === 0,
+      [signedUpPercentage, totalSignupUniquePageView]
+    );
+
     const options = {
       maintainAspectRatio: false,
       responsive: true,
@@ -81,6 +86,15 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
     return (
       <div className={styles.chartContainer}>
         <Pie data={data} options={options} />
+        {noDataAvailable && (
+          <div className={styles.noDataAvailableLabel}>
+            <Text variant="medium">
+              <FormattedMessage
+                id={`AnalyticsSignupConversionWidget.no-data-available.label`}
+              />
+            </Text>
+          </div>
+        )}
       </div>
     );
   };
