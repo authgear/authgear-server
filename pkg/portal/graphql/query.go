@@ -126,6 +126,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
+				// Access Control: collaborator.
+				_, err = ctx.AuthzService.CheckAccessOfViewer(appID)
+				if err != nil {
+					return nil, nil
+				}
+
 				err = checkChartDateRangeInput(rangeFrom, rangeTo)
 				if err != nil {
 					return nil, err
@@ -152,6 +158,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
 				if err != nil {
 					return nil, err
+				}
+
+				// Access Control: collaborator.
+				_, err = ctx.AuthzService.CheckAccessOfViewer(appID)
+				if err != nil {
+					return nil, nil
 				}
 
 				err = checkChartDateRangeInput(rangeFrom, rangeTo)
@@ -181,6 +193,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
+				// Access Control: collaborator.
+				_, err = ctx.AuthzService.CheckAccessOfViewer(appID)
+				if err != nil {
+					return nil, nil
+				}
+
 				err = checkChartDateRangeInput(rangeFrom, rangeTo)
 				if err != nil {
 					return nil, err
@@ -206,6 +224,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				appID, rangeFrom, rangeTo, err := getAnalyticArgs(p.Args)
 				if err != nil {
 					return nil, err
+				}
+
+				// Access Control: collaborator.
+				_, err = ctx.AuthzService.CheckAccessOfViewer(appID)
+				if err != nil {
+					return nil, nil
 				}
 
 				err = checkChartDateRangeInput(rangeFrom, rangeTo)
