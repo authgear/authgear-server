@@ -1,6 +1,7 @@
 package template
 
 import (
+	"reflect"
 	"time"
 
 	"github.com/Masterminds/sprig"
@@ -12,6 +13,7 @@ func MakeTemplateFuncMap() map[string]interface{} {
 	templateFuncMap[messageformat.TemplateRuntimeFuncName] = messageformat.TemplateRuntimeFunc
 	templateFuncMap["rfc3339"] = RFC3339
 	templateFuncMap["ensureTime"] = EnsureTime
+	templateFuncMap["isNil"] = IsNil
 	return templateFuncMap
 }
 
@@ -47,6 +49,11 @@ func EnsureTime(anyValue interface{}) interface{} {
 	default:
 		return anyValue
 	}
+}
+
+func IsNil(v interface{}) bool {
+	return v == nil ||
+		(reflect.ValueOf(v).Kind() == reflect.Ptr && reflect.ValueOf(v).IsNil())
 }
 
 var DefaultFuncMap = MakeTemplateFuncMap()
