@@ -1,0 +1,22 @@
+@import "../../styles/variable.scss";
+
+.commandBarButtonLabelValue {
+  .label {
+    margin: 0 4px;
+  }
+
+  .value {
+    color: $neutral-tertiary-color;
+    margin: 0 4px;
+  }
+}
+
+.commandBarButtonTo {
+  color: $neutral-secondary-color;
+  display: flex;
+  height: 100%;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  margin: 0 4px;
+}

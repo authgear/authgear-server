@@ -1,5 +1,7 @@
 declare type GQL_AuditLogData = unknown;
 
+declare type GQL_Date = string;
+
 declare type GQL_DateTime = string;
 
 declare interface GQL_IdentityClaims extends Record<string, unknown> {

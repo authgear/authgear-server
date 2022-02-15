@@ -30,7 +30,7 @@ type ChartService struct {
 	AnalyticConfig *config.AnalyticConfig
 }
 
-func (s *ChartService) GetActiveUserChat(
+func (s *ChartService) GetActiveUserChart(
 	appID string,
 	periodical string,
 	rangeFrom time.Time,
@@ -67,7 +67,7 @@ func (s *ChartService) GetActiveUserChat(
 	}, nil
 }
 
-func (s *ChartService) GetTotalUserCountChat(appID string, rangeFrom time.Time, rangeTo time.Time) (*Chart, error) {
+func (s *ChartService) GetTotalUserCountChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*Chart, error) {
 	if s.Database == nil {
 		return &Chart{}, nil
 	}

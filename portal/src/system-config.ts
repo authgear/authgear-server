@@ -13,6 +13,8 @@ export interface SystemConfig {
   searchEnabled: boolean;
   auditLogEnabled: boolean;
   gitCommitHash: string;
+  analyticEnabled: boolean;
+  analyticEpoch: string;
 }
 
 export interface SystemConfigThemes {
@@ -258,5 +260,7 @@ export function instantiateSystemConfig(
     searchEnabled: config.searchEnabled ?? false,
     auditLogEnabled: config.auditLogEnabled ?? false,
     gitCommitHash: config.gitCommitHash ?? "",
+    analyticEnabled: config.analyticEnabled ?? false,
+    analyticEpoch: config.analyticEpoch ?? "",
   };
 }

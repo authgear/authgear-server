@@ -7,6 +7,11 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum Periodical {
+  MONTHLY = "MONTHLY",
+  WEEKLY = "WEEKLY",
+}
+
 /**
  * Update to resource file.
  */

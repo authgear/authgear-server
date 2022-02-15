@@ -131,7 +131,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				chart, err := ctx.AnalyticChartService.GetActiveUserChat(
+				chart, err := ctx.AnalyticChartService.GetActiveUserChart(
 					appID,
 					periodical,
 					*rangeFrom,
@@ -159,7 +159,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				chart, err := ctx.AnalyticChartService.GetTotalUserCountChat(
+				chart, err := ctx.AnalyticChartService.GetTotalUserCountChart(
 					appID,
 					*rangeFrom,
 					*rangeTo,

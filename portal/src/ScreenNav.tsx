@@ -48,13 +48,16 @@ const ScreenNav: React.FC = function ScreenNav() {
   const location = useLocation();
   const path = getAppRouterPath(location);
 
-  const { auditLogEnabled } = useSystemConfig();
+  const { auditLogEnabled, analyticEnabled } = useSystemConfig();
 
   const label = renderToString("ScreenNav.label");
   const [expandState, setExpandState] = useState<Record<string, boolean>>({});
 
   const links: NavLinkProps[] = useMemo(() => {
     const links = [
+      ...(analyticEnabled
+        ? [{ textKey: "ScreenNav.analytics", url: "analytics" }]
+        : []),
       { textKey: "ScreenNav.users", url: "users" },
       {
         textKey: "ScreenNav.authentication",
@@ -160,7 +163,7 @@ const ScreenNav: React.FC = function ScreenNav() {
     ];
 
     return links;
-  }, [auditLogEnabled]);
+  }, [analyticEnabled, auditLogEnabled]);
 
   const [selectedKeys, selectedKey] = useMemo(() => {
     const matchedKeys: string[] = [];
