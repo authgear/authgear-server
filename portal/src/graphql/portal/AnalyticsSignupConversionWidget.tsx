@@ -3,6 +3,9 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Text } from "@fluentui/react";
 import { Pie } from "react-chartjs-2";
 import { TooltipItem } from "chart.js";
+import ChartDataLabels, {
+  Context as ChartDataLabelsContext,
+} from "chartjs-plugin-datalabels";
 import { AnalyticChartsQuery_signupConversionRate } from "./query/__generated__/AnalyticChartsQuery";
 import WidgetTitle from "../../WidgetTitle";
 import Widget from "../../Widget";
@@ -15,6 +18,8 @@ interface AnalyticsSignupConversionChartProps {
 
 const signupViewCountColor = "#176DF3";
 const notSignupViewCountColor = "#EAEAEA";
+const labelColor = "#FFFFFF";
+const labelBackgroundColor = "#B0B0B0";
 
 const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartProps> =
   function AnalyticsSignupConversionChart(props) {
@@ -48,6 +53,17 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
       maintainAspectRatio: false,
       responsive: true,
       plugins: {
+        datalabels: {
+          display: true,
+          formatter: (val: number, ctx: ChartDataLabelsContext) => {
+            if (ctx.dataIndex === 0 && val > 0) {
+              return ` ${val}% `;
+            }
+            return "";
+          },
+          color: labelColor,
+          backgroundColor: labelBackgroundColor,
+        },
         tooltip: {
           filter: function (tooltipItem: TooltipItem<"pie">) {
             // only show the tooltips for signed up percentage
@@ -85,7 +101,7 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
 
     return (
       <div className={styles.chartContainer}>
-        <Pie data={data} options={options} />
+        <Pie data={data} options={options} plugins={[ChartDataLabels]} />
         {noDataAvailable && (
           <div className={styles.noDataAvailableLabel}>
             <Text variant="medium">
