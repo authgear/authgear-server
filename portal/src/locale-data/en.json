@@ -1073,5 +1073,25 @@
   "AnalyticsActivityWidget.monthly.label": "Monthly",
   "AnalyticsActivityWidget.weekly.label": "Weekly",
   "AnalyticsActivityWidget.active-user.label": "No. of active users",
-  "AnalyticsActivityWidget.total-user.label": "No. of total users"
+  "AnalyticsActivityWidget.total-user.label": "No. of total users",
+  
+  "AnalyticsSignupConversionWidget.title": "Signup Conversion",
+  "AnalyticsSignupConversionWidget.unique-signup-view.label": "Unique Signup View",
+  "AnalyticsSignupConversionWidget.signup.label": "Signup",
+  "AnalyticsSignupConversionWidget.chart.signup-percentage.label": "{percentage}% of the unique views have signed up",
+  "AnalyticsSignupConversionWidget.no-data-available.label": "No Data Available",
+
+  "AnalyticsSignupMethodsWidget.title": "User Signup Methods",
+  "AnalyticsSignupMethodsWidget.chart.email.label": "Email",
+  "AnalyticsSignupMethodsWidget.chart.phone.label": "Phone",
+  "AnalyticsSignupMethodsWidget.chart.username.label": "Username",
+  "AnalyticsSignupMethodsWidget.chart.google.label": "Google",
+  "AnalyticsSignupMethodsWidget.chart.facebook.label": "Facebook",
+  "AnalyticsSignupMethodsWidget.chart.linkedin.label": "LinkedIn",
+  "AnalyticsSignupMethodsWidget.chart.azureadv2.label": "MS Azure AD",
+  "AnalyticsSignupMethodsWidget.chart.adfs.label": "MS AD FS",
+  "AnalyticsSignupMethodsWidget.chart.apple.label": "Apple",
+  "AnalyticsSignupMethodsWidget.chart.wechat.label": "WeChat",
+  "AnalyticsSignupMethodsWidget.chart.anonymous.label": "Anonymous",
+  "AnalyticsSignupMethodsWidget.no-data-available.label": "No Data Available"
 }

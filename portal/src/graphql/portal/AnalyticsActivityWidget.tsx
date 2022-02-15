@@ -178,6 +178,7 @@ const AnalyticsActivityCharts: React.FC<AnalyticsActivityWidgetProps> =
   };
 
 interface AnalyticsActivityWidgetProps {
+  className?: string;
   loading: boolean;
   periodical: Periodical;
   onPeriodicalChange: (periodical: Periodical) => void;
@@ -203,7 +204,7 @@ const AnalyticsActivityWidget: React.FC<AnalyticsActivityWidgetProps> =
       [periodical, onPeriodicalChange]
     );
     return (
-      <Widget className={styles.widget}>
+      <Widget className={props.className}>
         <WidgetTitle>
           <FormattedMessage id="AnalyticsActivityWidget.title" />
         </WidgetTitle>
