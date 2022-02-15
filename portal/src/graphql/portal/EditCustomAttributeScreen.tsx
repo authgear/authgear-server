@@ -73,14 +73,22 @@ function makeConstructConfig(
         c.type = currentState.type;
       }
 
-      const minimum = parseFloat(currentState.minimum);
-      if (!isNaN(minimum)) {
-        c.minimum = minimum;
+      if (currentState.minimum === "") {
+        c.minimum = undefined;
+      } else {
+        const minimum = parseFloat(currentState.minimum);
+        if (!isNaN(minimum)) {
+          c.minimum = minimum;
+        }
       }
 
-      const maximum = parseFloat(currentState.maximum);
-      if (!isNaN(maximum)) {
-        c.maximum = maximum;
+      if (currentState.maximum === "") {
+        c.maximum = undefined;
+      } else {
+        const maximum = parseFloat(currentState.maximum);
+        if (!isNaN(maximum)) {
+          c.maximum = maximum;
+        }
       }
 
       if (c.type === "enum") {
