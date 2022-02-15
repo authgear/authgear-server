@@ -654,3 +654,69 @@ config:
       - id: "0001"
         pointer: /a
         type: string
+---
+name: invalid-custom-attribute-number-min-max-range
+error: |-
+  invalid configuration:
+  /user_profile/custom_attributes/attributes/0/minimum: maximum
+    map[actual:99.5 maximum:10.5]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+      - id: "0000"
+        pointer: /number
+        type: number
+        minimum: 99.5
+        maximum: 10.5
+---
+name: invalid-custom-attribute-integer-min-max-range
+error: |-
+  invalid configuration:
+  /user_profile/custom_attributes/attributes/0/minimum: maximum
+    map[actual:99 maximum:10]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+      - id: "0000"
+        pointer: /integer
+        type: integer
+        minimum: 99
+        maximum: 10
+---
+name: valid-custom-attribute-number-min-max-range
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+      - id: "0000"
+        pointer: /number
+        type: number
+        minimum: 10.5
+        maximum: 99.5
+---
+name: valid-custom-attribute-integer-min-max-range
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  user_profile:
+    custom_attributes:
+      attributes:
+      - id: "0000"
+        pointer: /integer
+        type: integer
+        minimum: 10
+        maximum: 99

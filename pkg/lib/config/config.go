@@ -216,6 +216,25 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 		}
 		customAttributeIDs[customAttributeConfig.ID] = struct{}{}
 		customAttributePointers[customAttributeConfig.Pointer] = struct{}{}
+
+		// ensure the minimum config is smaller than the maximum config
+		if customAttributeConfig.Type == CustomAttributeTypeNumber ||
+			customAttributeConfig.Type == CustomAttributeTypeInteger {
+			if customAttributeConfig.Maximum != nil &&
+				customAttributeConfig.Minimum != nil &&
+				*customAttributeConfig.Minimum > *customAttributeConfig.Maximum {
+				ctx.Child(
+					"user_profile",
+					"custom_attributes",
+					"attributes",
+					strconv.Itoa(i),
+					"minimum",
+				).EmitError("maximum", map[string]interface{}{
+					"maximum": *customAttributeConfig.Maximum,
+					"actual":  *customAttributeConfig.Minimum,
+				})
+			}
+		}
 	}
 }
 
