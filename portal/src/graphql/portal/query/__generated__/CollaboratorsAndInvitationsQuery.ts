@@ -3,6 +3,8 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
+import { CollaboratorRole } from "./../../__generated__/globalTypes";
+
 // ====================================================
 // GraphQL query operation: CollaboratorsAndInvitationsQuery
 // ====================================================
@@ -23,6 +25,7 @@ export interface CollaboratorsAndInvitationsQuery_node_App_collaborators_user {
 export interface CollaboratorsAndInvitationsQuery_node_App_collaborators {
   __typename: "Collaborator";
   id: string;
+  role: CollaboratorRole;
   createdAt: GQL_DateTime;
   user: CollaboratorsAndInvitationsQuery_node_App_collaborators_user;
 }

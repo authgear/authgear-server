@@ -37,6 +37,7 @@ interface PortalAdminListCollaboratorItem {
   id: string;
   createdAt: Date;
   email: string;
+  isOwner: boolean;
 }
 
 interface PortalAdminListCollaboratorInvitationItem {
@@ -44,6 +45,7 @@ interface PortalAdminListCollaboratorInvitationItem {
   id: string;
   createdAt: Date;
   email: string;
+  isOwner: false;
 }
 
 type PortalAdminListItem =
@@ -107,6 +109,7 @@ const PortalAdminList: React.FC<PortalAdminListProps> =
             id: collaborator.id,
             createdAt: new Date(collaborator.createdAt),
             email: collaborator.user.email ?? "",
+            isOwner: collaborator.role === "OWNER",
           })
         ),
         ...collaboratorInvitations.map<PortalAdminListCollaboratorInvitationItem>(
@@ -115,6 +118,7 @@ const PortalAdminList: React.FC<PortalAdminListProps> =
             id: collaboratorInvitation.id,
             createdAt: new Date(collaboratorInvitation.createdAt),
             email: collaboratorInvitation.inviteeEmail,
+            isOwner: false,
           })
         ),
       ];
@@ -124,6 +128,13 @@ const PortalAdminList: React.FC<PortalAdminListProps> =
       (item: PortalAdminListItem, _index?: number, column?: IColumn) => {
         switch (column?.key) {
           case "email":
+            if (item.isOwner) {
+              return (
+                <span>{`${item.email} (${renderToString(
+                  "PortalAdminList.owner"
+                )})`}</span>
+              );
+            }
             return <span>{item.email}</span>;
           case "status":
             if (isPortalAdminListCollaboratorItem(item)) {
@@ -131,6 +142,9 @@ const PortalAdminList: React.FC<PortalAdminListProps> =
             }
             return <span className={styles.pendingStatus}>Pending</span>;
           case "action":
+            if (item.isOwner) {
+              return <></>;
+            }
             return (
               <ActionButton
                 className={styles.actionButton}
@@ -157,6 +171,7 @@ const PortalAdminList: React.FC<PortalAdminListProps> =
         onRemoveCollaboratorClicked,
         onRemoveCollaboratorInvitationClicked,
         themes.destructive,
+        renderToString,
       ]
     );
 
