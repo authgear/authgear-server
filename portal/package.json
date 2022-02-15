@@ -51,6 +51,7 @@
     "@oursky/react-messageformat": "2.0.2",
     "base64-js": "1.5.1",
     "chart.js": "3.7.0",
+    "chartjs-plugin-datalabels": "2.0.0",
     "classnames": "2.3.1",
     "deep-equal": "2.0.5",
     "google-libphonenumber": "3.2.27",
