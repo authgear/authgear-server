@@ -27,4 +27,19 @@ func TestRFC3339(t *testing.T) {
 			So(RFC3339([]struct{}{}), ShouldEqual, "INVALID_DATE")
 		})
 	})
+
+	Convey("IsNil", t, func() {
+		So(IsNil(nil), ShouldBeTrue)
+
+		var p *int64
+		So(IsNil(p), ShouldBeTrue)
+
+		var v int64
+		p = &v
+		So(IsNil(p), ShouldBeFalse)
+		So(IsNil(v), ShouldBeFalse)
+
+		p = nil
+		So(IsNil(p), ShouldBeTrue)
+	})
 }

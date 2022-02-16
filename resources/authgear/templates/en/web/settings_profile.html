@@ -193,7 +193,7 @@
       {{ end }}
     </span>
     <span class="col-start-1 col-span-1 row-start-2 row-span-1 secondary-txt">
-      {{ if .Value }}
+      {{ if not (isNil .Value) }}
         {{ if eq .Type "enum" }}
           {{ $variant_label_key := printf "%s-%s" $label_key .Value }}
           {{ if $.Translations.HasKey $variant_label_key }}
