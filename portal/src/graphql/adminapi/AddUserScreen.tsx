@@ -17,7 +17,10 @@ import {
   PasswordPolicyConfig,
   PortalAPIAppConfig,
 } from "../../types";
-import { ErrorParseRule } from "../../error/parse";
+import {
+  ErrorParseRule,
+  makeInvariantViolatedErrorParseRule,
+} from "../../error/parse";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormTextField from "../../FormTextField";
 import FormContainer from "../../FormContainer";
@@ -113,17 +116,10 @@ function getEnabledLoginIDTypes(
 }
 
 const errorRules: ErrorParseRule[] = [
-  {
-    reason: "ValidationFailed",
-    location: "",
-    kind: "format",
-    errorMessageID: "AddUserScreen.error.invalid-identity",
-  },
-  {
-    reason: "InvariantViolated",
-    kind: "DuplicatedIdentity",
-    errorMessageID: "AddUserScreen.error.duplicated-identity",
-  },
+  makeInvariantViolatedErrorParseRule(
+    "DuplicatedIdentity",
+    "AddUserScreen.error.duplicated-identity"
+  ),
 ];
 
 interface AddUserContentProps {

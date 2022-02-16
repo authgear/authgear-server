@@ -191,65 +191,38 @@ function parseError(error: APIError): ParsedAPIError[] {
   return errors;
 }
 
-interface BaseErrorParseRule {
-  reason: string;
-  errorMessageID: string;
+export interface ErrorParseRule {
+  (apiError: APIError): ParsedAPIError[];
 }
 
-interface ValidationErrorParseRule extends BaseErrorParseRule {
-  reason: "ValidationFailed";
-  kind: ValidationFailedErrorInfoCause["kind"];
-  location: string;
-  errorMessageID: string;
+export function makeReasonErrorParseRule(
+  reason: APIError["reason"],
+  errorMessageID: string
+): ErrorParseRule {
+  return (apiError: APIError): ParsedAPIError[] => {
+    if (apiError.reason === reason) {
+      return [{ messageID: errorMessageID }];
+    }
+    return [];
+  };
 }
 
-interface InvariantViolationErrorParseRule extends BaseErrorParseRule {
-  reason: "InvariantViolated";
-  kind: string;
-  errorMessageID: string;
+export function makeInvariantViolatedErrorParseRule(
+  kind: string,
+  errorMessageID: string
+): ErrorParseRule {
+  return (apiError: APIError): ParsedAPIError[] => {
+    if (apiError.reason === "InvariantViolated") {
+      if (apiError.info.cause.kind === kind) {
+        return [{ messageID: errorMessageID }];
+      }
+    }
+    return [];
+  };
 }
-
-type TypedErrorParseRules =
-  | ValidationErrorParseRule
-  | InvariantViolationErrorParseRule;
-
-interface GenericErrorParseRule extends BaseErrorParseRule {
-  reason: Exclude<APIError["reason"], TypedErrorParseRules["reason"]>;
-  errorMessageID: string;
-}
-
-export type ErrorParseRule = TypedErrorParseRules | GenericErrorParseRule;
 
 function matchRule(rule: ErrorParseRule, error: APIError): ParsedAPIError[] {
-  if (rule.reason !== error.reason) {
-    return [];
-  }
-
-  const parsedErrors: ParsedAPIError[] = [];
-
-  switch (error.reason) {
-    case "ValidationFailed": {
-      const { kind, location } = rule as ValidationErrorParseRule;
-      for (const cause of error.info.causes) {
-        if (kind === cause.kind && location === cause.location) {
-          parsedErrors.push({ messageID: rule.errorMessageID });
-        }
-      }
-      break;
-    }
-    case "InvariantViolated": {
-      const { kind } = rule as InvariantViolationErrorParseRule;
-      if (kind === error.info.cause.kind) {
-        parsedErrors.push({ messageID: rule.errorMessageID });
-      }
-      break;
-    }
-    default:
-      parsedErrors.push({ messageID: rule.errorMessageID });
-      break;
-  }
-
-  return parsedErrors;
+  return rule(error);
 }
 
 function matchField(

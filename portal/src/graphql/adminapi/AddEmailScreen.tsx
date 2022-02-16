@@ -8,16 +8,18 @@ import FormTextField from "../../FormTextField";
 import AddIdentityForm from "./AddIdentityForm";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
-import { ErrorParseRule } from "../../error/parse";
+import {
+  ErrorParseRule,
+  makeInvariantViolatedErrorParseRule,
+} from "../../error/parse";
 
 import styles from "./AddEmailScreen.module.scss";
 
 const errorRules: ErrorParseRule[] = [
-  {
-    reason: "InvariantViolated",
-    kind: "DuplicatedIdentity",
-    errorMessageID: "AddEmailScreen.error.duplicated-email",
-  },
+  makeInvariantViolatedErrorParseRule(
+    "DuplicatedIdentity",
+    "AddEmailScreen.error.duplicated-email"
+  ),
 ];
 
 interface EmailFieldProps {

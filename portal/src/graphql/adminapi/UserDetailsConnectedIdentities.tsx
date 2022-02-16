@@ -28,6 +28,7 @@ import { useSetVerifiedStatusMutation } from "./mutations/setVerifiedStatusMutat
 import { formatDatetime } from "../../util/formatDatetime";
 import { OAuthSSOProviderType } from "../../types";
 import { UserQuery_node_User_verifiedClaims } from "./query/__generated__/UserQuery";
+import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
 
 import styles from "./UserDetailsConnectedIdentities.module.scss";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -666,12 +667,10 @@ const UserDetailsConnectedIdentities: React.FC<UserDetailsConnectedIdentitiesPro
           <ErrorDialog
             error={deleteIdentityError}
             rules={[
-              {
-                reason: "InvariantViolated",
-                kind: "RemoveLastIdentity",
-                errorMessageID:
-                  "UserDetails.connected-identities.remove-identity-error.connot-remove-last",
-              },
+              makeInvariantViolatedErrorParseRule(
+                "RemoveLastIdentity",
+                "UserDetails.connected-identities.remove-identity-error.connot-remove-last"
+              ),
             ]}
             fallbackErrorMessageID="UserDetails.connected-identities.remove-identity-error.generic"
           />

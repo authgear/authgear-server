@@ -9,16 +9,18 @@ import FormTextField from "../../FormTextField";
 import AddIdentityForm from "./AddIdentityForm";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import { ErrorParseRule } from "../../error/parse";
+import {
+  ErrorParseRule,
+  makeInvariantViolatedErrorParseRule,
+} from "../../error/parse";
 
 import styles from "./AddUsernameScreen.module.scss";
 
 const errorRules: ErrorParseRule[] = [
-  {
-    reason: "InvariantViolated",
-    kind: "DuplicatedIdentity",
-    errorMessageID: "AddUsernameScreen.error.duplicated-username",
-  },
+  makeInvariantViolatedErrorParseRule(
+    "DuplicatedIdentity",
+    "AddUsernameScreen.error.duplicated-username"
+  ),
 ];
 
 interface UsernameFieldProps {

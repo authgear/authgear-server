@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useNavigate, useParams } from "react-router-dom";
 import FormTextField from "../../FormTextField";
-import { ErrorParseRule } from "../../error/parse";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useCreateCollaboratorInvitationMutation } from "./mutations/createCollaboratorInvitationMutation";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import FormContainer from "../../FormContainer";
@@ -89,10 +89,10 @@ const InviteAdminScreen: React.FC = function InviteAdminScreen() {
 
   const errorRules: ErrorParseRule[] = useMemo(
     () => [
-      {
-        reason: "CollaboratorInvitationDuplicate",
-        errorMessageID: "InviteAdminScreen.duplicated-error",
-      },
+      makeReasonErrorParseRule(
+        "CollaboratorInvitationDuplicate",
+        "InviteAdminScreen.duplicated-error"
+      ),
     ],
     []
   );
