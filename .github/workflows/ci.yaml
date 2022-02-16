@@ -12,12 +12,12 @@ on:
 
 jobs:
   portal-test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
       with:
-        node-version: "16.13.1"
+        node-version: "16.14.0"
     - run: npm ci
       working-directory: ./portal
     - run: npm run typecheck
@@ -43,7 +43,7 @@ jobs:
       if: ${{ !cancelled() }}
 
   portal-image:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: portal-test
     env:
       TARGET: portal
@@ -62,15 +62,15 @@ jobs:
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
 
   authgear-test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
       with:
-        go-version: "1.17.5"
+        go-version: "1.17.7"
     - uses: actions/setup-node@v1
       with:
-        node-version: "16.13.1"
+        node-version: "16.14.0"
     - run: make vendor
     - run: make lint
       if: ${{ !cancelled() }}
@@ -80,7 +80,7 @@ jobs:
       if: ${{ !cancelled() }}
 
   authgear-image:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: authgear-test
     env:
       TARGET: authgear

@@ -114,6 +114,7 @@ var timezoneNames = []string{
 	"Pacific/Tahiti",
 	"Pacific/Guam",
 	"Pacific/Tarawa",
+	"Pacific/Kanton",
 	"Pacific/Kiritimati",
 	"Pacific/Majuro",
 	"Pacific/Kwajalein",

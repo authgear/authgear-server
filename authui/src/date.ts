@@ -80,6 +80,7 @@ export function formatDateRelative() {
       const abs = hasAbs
         ? luxonDatetime.toLocaleString(
             {
+              // @ts-expect-error
               dateStyle,
               timeStyle,
             },

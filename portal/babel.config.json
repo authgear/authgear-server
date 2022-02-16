@@ -1,6 +1,6 @@
 {
   "presets": [
-    "@babel/preset-env",
+    "@parcel/babel-preset-env",
     "@babel/preset-react",
     ["@babel/preset-typescript", {
       "isTSX": true,

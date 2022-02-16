@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "lib": ["DOM", "ES2015"],
     "noEmit": true,
     "module": "commonjs",
     "strict": true,
