@@ -27,6 +27,7 @@ import {
 import { useSystemConfig } from "./context/SystemConfigContext";
 import FormErrorMessageText from "./FormErrorMessageText";
 import styles from "./EditCustomAttributeForm.module.scss";
+import { makeValidationErrorMatchUnknownKindParseRule } from "./error/parse";
 
 const REMOVE_BUTTON_ICON_PROPS = {
   iconName: "Blocked12",
@@ -391,6 +392,13 @@ const EditCustomAttributeForm: React.FC<EditCustomAttributeFormProps> =
           description={renderToString(
             "EditCustomAttributeForm.description.attribute-name"
           )}
+          errorRules={[
+            makeValidationErrorMatchUnknownKindParseRule(
+              "not",
+              parentJSONPointer + "/pointer",
+              "EditCustomAttributeForm.error.not"
+            ),
+          ]}
         />
         <Dropdown
           selectedKey={draft.type}

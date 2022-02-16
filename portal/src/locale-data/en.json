@@ -920,6 +920,7 @@
   "EditCustomAttributeForm.label.options": "Options",
   "EditCustomAttributeForm.label.min": "min",
   "EditCustomAttributeForm.label.max": "max",
+  "EditCustomAttributeForm.error.not": "Attribute name is reserved for standard attribute",
 
   "UserProfileAttributesList.header.label.attribute-name": "Attribute Name",
   "UserProfileAttributesList.header.label.end_user": "End-user Access Right",
