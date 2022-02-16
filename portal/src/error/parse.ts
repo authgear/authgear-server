@@ -72,6 +72,13 @@ const errorCauseMessageIDs = {
   noSecondaryAuthenticator: "errors.validation.noSecondaryAuthenticator",
 };
 
+function isKnownCauseKind(kind: string): boolean {
+  if (kind === "__local") {
+    return true;
+  }
+  return kind in errorCauseMessageIDs;
+}
+
 function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   if (cause.kind === "general") {
     return { message: cause.details.msg };
@@ -229,6 +236,10 @@ function matchField(
   cause: ValidationFailedErrorInfoCause,
   field: FormField
 ): boolean {
+  if (!isKnownCauseKind(cause.kind)) {
+    return false;
+  }
+
   if (cause.kind === "required") {
     for (const child of cause.details.missing) {
       const condidate = parentChildToJSONPointer(cause.location, child);
