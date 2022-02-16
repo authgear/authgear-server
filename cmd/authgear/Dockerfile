@@ -30,7 +30,7 @@ COPY . .
 RUN make authui GIT_HASH=$GIT_HASH
 
 # Stage 3: Prepare the actual fs we use to run the program
-FROM debian:bullseye-20211220-slim
+FROM debian:bullseye-20220125-slim
 ARG GIT_HASH
 WORKDIR /app
 # /etc/mime.types (mime-support)
