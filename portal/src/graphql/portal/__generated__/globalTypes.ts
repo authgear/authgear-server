@@ -7,6 +7,11 @@
 // START Enums and Input Objects
 //==============================================================
 
+export enum CollaboratorRole {
+  EDITOR = "EDITOR",
+  OWNER = "OWNER",
+}
+
 /**
  * Update to resource file.
  */

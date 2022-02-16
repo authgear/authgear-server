@@ -17,6 +17,7 @@ export const collaboratorsAndInvitationsQuery = gql`
         id
         collaborators {
           id
+          role
           createdAt
           user {
             id

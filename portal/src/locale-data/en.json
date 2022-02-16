@@ -638,6 +638,7 @@
   "PortalAdminList.column.email": "Email",
   "PortalAdminList.column.status": "Status",
   "PortalAdminList.column.action": "Action",
+  "PortalAdminList.owner": "Owner",
   "PortalAdminList.remove": "Remove",
   "PortalAdminList.error.self-deletion": "You cannot remove yourself. Ask someone else to remove you.",
 
