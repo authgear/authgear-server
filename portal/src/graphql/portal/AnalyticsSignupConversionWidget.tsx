@@ -16,10 +16,10 @@ interface AnalyticsSignupConversionChartProps {
   signupConversionRate: AnalyticChartsQuery_signupConversionRate | null;
 }
 
-const signupViewCountColor = "#176DF3";
-const notSignupViewCountColor = "#EAEAEA";
-const labelColor = "#FFFFFF";
-const labelBackgroundColor = "#B0B0B0";
+const SignupViewCountColor = "#176DF3";
+const NotSignupViewCountColor = "#EAEAEA";
+const LabelColor = "#FFFFFF";
+const LabelBackgroundColor = "#B0B0B0";
 
 const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartProps> =
   function AnalyticsSignupConversionChart(props) {
@@ -61,8 +61,8 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
             }
             return "";
           },
-          color: labelColor,
-          backgroundColor: labelBackgroundColor,
+          color: LabelColor,
+          backgroundColor: LabelBackgroundColor,
         },
         tooltip: {
           filter: function (tooltipItem: TooltipItem<"pie">) {
@@ -91,8 +91,8 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
         datasets: [
           {
             data: [signedUpPercentage, notSignedUpViewPercentage],
-            backgroundColor: [signupViewCountColor, notSignupViewCountColor],
-            borderColor: [signupViewCountColor, notSignupViewCountColor],
+            backgroundColor: [SignupViewCountColor, NotSignupViewCountColor],
+            borderColor: [SignupViewCountColor, NotSignupViewCountColor],
             borderWidth: 1,
           },
         ],

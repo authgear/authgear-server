@@ -12,8 +12,8 @@ import Widget from "../../Widget";
 import ShowLoading from "../../ShowLoading";
 import styles from "./AnalyticsSignupMethodsWidget.module.scss";
 
-const noDataPlaceholderColor = "#EAEAEA";
-const colorMap: Record<string, string> = {
+const NoDataPlaceholderColor = "#EAEAEA";
+const ColorMap: Record<string, string> = {
   email: "#FF7629",
   phone: "#92674F",
   username: "#FFB900",
@@ -28,8 +28,8 @@ const colorMap: Record<string, string> = {
 };
 
 function getColorCodeByMethod(method: string): string {
-  if (method in colorMap) {
-    return colorMap[method];
+  if (method in ColorMap) {
+    return ColorMap[method];
   }
   return "";
 }
@@ -67,8 +67,8 @@ const AnalyticsSignupMethodsChart: React.FC<AnalyticsSignupMethodsChartProps> =
           datasets: [
             {
               data: [1],
-              backgroundColor: [noDataPlaceholderColor],
-              borderColor: [noDataPlaceholderColor],
+              backgroundColor: [NoDataPlaceholderColor],
+              borderColor: [NoDataPlaceholderColor],
               borderWidth: 1,
             },
           ],
