@@ -12,7 +12,7 @@ on:
 
 jobs:
   portal-test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
@@ -43,7 +43,7 @@ jobs:
       if: ${{ !cancelled() }}
 
   portal-image:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: portal-test
     env:
       TARGET: portal
@@ -62,7 +62,7 @@ jobs:
       if: ${{ github.repository == 'authgear/authgear-server' && github.event_name == 'push' }}
 
   authgear-test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-go@v2
@@ -80,7 +80,7 @@ jobs:
       if: ${{ !cancelled() }}
 
   authgear-image:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: authgear-test
     env:
       TARGET: authgear
