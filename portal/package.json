@@ -18,11 +18,11 @@
   },
   "devDependencies": {
     "@babel/core": "7.17.4",
-    "@babel/preset-env": "7.16.11",
     "@babel/preset-react": "7.16.7",
     "@babel/preset-typescript": "7.16.7",
     "@oursky/eslint-plugin": "6.0.0",
     "@oursky/stylelint-oursky": "2.0.0",
+    "@parcel/babel-preset-env": "2.3.1",
     "@parcel/transformer-sass": "2.3.1",
     "@types/deep-equal": "1.0.1",
     "@types/jest": "27.4.0",
