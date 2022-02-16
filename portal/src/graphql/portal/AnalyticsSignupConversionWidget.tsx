@@ -16,10 +16,12 @@ interface AnalyticsSignupConversionChartProps {
   signupConversionRate: AnalyticChartsQuery_signupConversionRate | null;
 }
 
-const SignupViewCountColor = "#176DF3";
-const NotSignupViewCountColor = "#EAEAEA";
+const SignedUpPercentageDataIndex = 0; // index of SignedUpPercentage data in the dataset
+const SignedUpPercentageColor = "#176DF3";
+const NotSignedUpPercentageColor = "#EAEAEA";
 const LabelColor = "#FFFFFF";
-const LabelBackgroundColor = "#B0B0B0";
+const LabelBorderColor = "#FFFFFF";
+const LabelBackgroundColor = "#176DF3";
 
 const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartProps> =
   function AnalyticsSignupConversionChart(props) {
@@ -49,29 +51,40 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
       [signedUpPercentage, totalSignupUniquePageView]
     );
 
+    function shouldShowLabelForData(ctx: ChartDataLabelsContext): boolean {
+      const val = ctx.dataset.data[ctx.dataIndex] as number;
+      if (ctx.dataIndex === SignedUpPercentageDataIndex && val > 0) {
+        return true;
+      }
+      return false;
+    }
+
     const options = {
       maintainAspectRatio: false,
       responsive: true,
       plugins: {
         datalabels: {
-          display: true,
+          display: (ctx: ChartDataLabelsContext) => shouldShowLabelForData(ctx),
           formatter: (val: number, ctx: ChartDataLabelsContext) => {
-            if (ctx.dataIndex === 0 && val > 0) {
+            if (shouldShowLabelForData(ctx)) {
               return ` ${val}% `;
             }
             return "";
           },
           color: LabelColor,
           backgroundColor: LabelBackgroundColor,
+          borderColor: LabelBorderColor,
+          borderWidth: 2,
+          borderRadius: 2,
         },
         tooltip: {
           filter: function (tooltipItem: TooltipItem<"pie">) {
             // only show the tooltips for signed up percentage
-            return tooltipItem.dataIndex === 0;
+            return tooltipItem.dataIndex === SignedUpPercentageDataIndex;
           },
           callbacks: {
             label: function (tooltipItem: TooltipItem<"pie">) {
-              if (tooltipItem.dataIndex === 0) {
+              if (tooltipItem.dataIndex === SignedUpPercentageDataIndex) {
                 return renderToString(
                   "AnalyticsSignupConversionWidget.chart.signup-percentage.label",
                   {
@@ -91,8 +104,11 @@ const AnalyticsSignupConversionChart: React.FC<AnalyticsSignupConversionChartPro
         datasets: [
           {
             data: [signedUpPercentage, notSignedUpViewPercentage],
-            backgroundColor: [SignupViewCountColor, NotSignupViewCountColor],
-            borderColor: [SignupViewCountColor, NotSignupViewCountColor],
+            backgroundColor: [
+              SignedUpPercentageColor,
+              NotSignedUpPercentageColor,
+            ],
+            borderColor: [SignedUpPercentageColor, NotSignedUpPercentageColor],
             borderWidth: 1,
           },
         ],
