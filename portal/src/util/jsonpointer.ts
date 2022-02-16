@@ -36,9 +36,11 @@ export function parseJSONPointer(pointer: string): string[] {
         switch (r) {
           case "0":
             w?.writeString("~");
+            state = State.CHAR;
             break;
           case "1":
             w?.writeString("/");
+            state = State.CHAR;
             break;
           default:
             throw new Error("expecting 0 or 1 but found: " + r);

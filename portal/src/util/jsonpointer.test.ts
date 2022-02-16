@@ -15,6 +15,9 @@ describe("parseJSONPointer", () => {
     expect(f("/")).toEqual([""]);
     expect(f("//")).toEqual(["", ""]);
     expect(f("/a")).toEqual(["a"]);
+    expect(f("/a~0")).toEqual(["a~"]);
+    expect(f("/a~1")).toEqual(["a/"]);
+    expect(f("/a~1b")).toEqual(["a/b"]);
   });
 });
 
@@ -25,6 +28,9 @@ describe("jsonPointerToString", () => {
     expect(f([""])).toEqual("/");
     expect(f(["", ""])).toEqual("//");
     expect(f(["a"])).toEqual("/a");
+    expect(f(["a~"])).toEqual("/a~0");
+    expect(f(["a/"])).toEqual("/a~1");
+    expect(f(["a/b"])).toEqual("/a~1b");
   });
 });
 
