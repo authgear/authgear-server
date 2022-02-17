@@ -3,6 +3,7 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { ICommandBarItemProps } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { makeReasonErrorParseRule } from "../../error/parse";
 import { useCollaboratorsAndInvitationsQuery } from "./query/collaboratorsAndInvitationsQuery";
 import { useDeleteCollaboratorInvitationMutation } from "./mutations/deleteCollaboratorInvitationMutation";
 import { useDeleteCollaboratorMutation } from "./mutations/deleteCollaboratorMutation";
@@ -196,10 +197,10 @@ const PortalAdminsSettings: React.FC = function PortalAdminsSettings() {
       <ErrorDialog
         error={deleteCollaboratorError}
         rules={[
-          {
-            reason: "CollaboratorSelfDeletion",
-            errorMessageID: "PortalAdminList.error.self-deletion",
-          },
+          makeReasonErrorParseRule(
+            "CollaboratorSelfDeletion",
+            "PortalAdminList.error.self-deletion"
+          ),
         ]}
         fallbackErrorMessageID="PortalAdminsSettings.delete-collaborator-dialog.generic-error"
       />

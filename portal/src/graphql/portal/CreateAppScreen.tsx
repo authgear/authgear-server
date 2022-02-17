@@ -9,7 +9,7 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 
 import styles from "./CreateAppScreen.module.scss";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
-import { ErrorParseRule } from "../../error/parse";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import FormTextField from "../../FormTextField";
 import OnboardingFormContainer from "./OnboardingFormContainer";
 
@@ -24,18 +24,18 @@ const defaultState: FormState = {
 const APP_ID_SCHEME = "https://";
 
 const errorRules: ErrorParseRule[] = [
-  {
-    reason: "DuplicatedAppID",
-    errorMessageID: "CreateAppScreen.error.duplicated-app-id",
-  },
-  {
-    reason: "AppIDReserved",
-    errorMessageID: "CreateAppScreen.error.reserved-app-id",
-  },
-  {
-    reason: "InvalidAppID",
-    errorMessageID: "CreateAppScreen.error.invalid-app-id",
-  },
+  makeReasonErrorParseRule(
+    "DuplicatedAppID",
+    "CreateAppScreen.error.duplicated-app-id"
+  ),
+  makeReasonErrorParseRule(
+    "AppIDReserved",
+    "CreateAppScreen.error.reserved-app-id"
+  ),
+  makeReasonErrorParseRule(
+    "InvalidAppID",
+    "CreateAppScreen.error.invalid-app-id"
+  ),
 ];
 
 interface CreateAppContentProps {

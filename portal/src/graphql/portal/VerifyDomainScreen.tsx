@@ -20,7 +20,7 @@ import { useVerifyDomainMutation } from "./mutations/verifyDomainMutation";
 import { useCopyFeedback } from "../../hook/useCopyFeedback";
 
 import styles from "./VerifyDomainScreen.module.scss";
-import { ErrorParseRule } from "../../error/parse";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import ScreenContent from "../../ScreenContent";
 import Widget from "../../Widget";
 
@@ -169,26 +169,26 @@ const VerifyDomain: React.FC<VerifyDomainProps> = function VerifyDomain(
 
   const errorRules: ErrorParseRule[] = useMemo(() => {
     return [
-      {
-        reason: "DuplicatedDomain",
-        errorMessageID: "VerifyDomainScreen.error.duplicated-error",
-      },
-      {
-        reason: "DomainVerified",
-        errorMessageID: "VerifyDomainScreen.error.verified-error",
-      },
-      {
-        reason: "DomainNotFound",
-        errorMessageID: "VerifyDomainScreen.error.not-found-error",
-      },
-      {
-        reason: "DomainNotCustom",
-        errorMessageID: "VerifyDomainScreen.error.not-custom-error",
-      },
-      {
-        reason: "DomainVerificationFailed",
-        errorMessageID: "VerifyDomainScreen.error.verification-error",
-      },
+      makeReasonErrorParseRule(
+        "DuplicatedDomain",
+        "VerifyDomainScreen.error.duplicated-error"
+      ),
+      makeReasonErrorParseRule(
+        "DomainVerified",
+        "VerifyDomainScreen.error.verified-error"
+      ),
+      makeReasonErrorParseRule(
+        "DomainNotFound",
+        "VerifyDomainScreen.error.not-found-error"
+      ),
+      makeReasonErrorParseRule(
+        "DomainNotCustom",
+        "VerifyDomainScreen.error.not-custom-error"
+      ),
+      makeReasonErrorParseRule(
+        "DomainVerificationFailed",
+        "VerifyDomainScreen.error.verification-error"
+      ),
     ];
   }, []);
 

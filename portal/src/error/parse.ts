@@ -72,6 +72,13 @@ const errorCauseMessageIDs = {
   noSecondaryAuthenticator: "errors.validation.noSecondaryAuthenticator",
 };
 
+function isKnownCauseKind(kind: string): boolean {
+  if (kind === "__local") {
+    return true;
+  }
+  return kind in errorCauseMessageIDs;
+}
+
 function parseCause(cause: ValidationFailedErrorInfoCause): ParsedAPIError {
   if (cause.kind === "general") {
     return { message: cause.details.msg };
@@ -191,71 +198,65 @@ function parseError(error: APIError): ParsedAPIError[] {
   return errors;
 }
 
-interface BaseErrorParseRule {
-  reason: string;
-  errorMessageID: string;
+export interface ErrorParseRule {
+  (apiError: APIError): ParsedAPIError[];
 }
 
-interface ValidationErrorParseRule extends BaseErrorParseRule {
-  reason: "ValidationFailed";
-  kind: ValidationFailedErrorInfoCause["kind"];
-  location: string;
-  errorMessageID: string;
-}
-
-interface InvariantViolationErrorParseRule extends BaseErrorParseRule {
-  reason: "InvariantViolated";
-  kind: string;
-  errorMessageID: string;
-}
-
-type TypedErrorParseRules =
-  | ValidationErrorParseRule
-  | InvariantViolationErrorParseRule;
-
-interface GenericErrorParseRule extends BaseErrorParseRule {
-  reason: Exclude<APIError["reason"], TypedErrorParseRules["reason"]>;
-  errorMessageID: string;
-}
-
-export type ErrorParseRule = TypedErrorParseRules | GenericErrorParseRule;
-
-function matchRule(rule: ErrorParseRule, error: APIError): ParsedAPIError[] {
-  if (rule.reason !== error.reason) {
+export function makeReasonErrorParseRule(
+  reason: APIError["reason"],
+  errorMessageID: string
+): ErrorParseRule {
+  return (apiError: APIError): ParsedAPIError[] => {
+    if (apiError.reason === reason) {
+      return [{ messageID: errorMessageID }];
+    }
     return [];
-  }
+  };
+}
 
-  const parsedErrors: ParsedAPIError[] = [];
-
-  switch (error.reason) {
-    case "ValidationFailed": {
-      const { kind, location } = rule as ValidationErrorParseRule;
-      for (const cause of error.info.causes) {
+export function makeValidationErrorMatchUnknownKindParseRule(
+  kind: string,
+  location: string,
+  errorMessageID: string
+): ErrorParseRule {
+  return (apiError: APIError): ParsedAPIError[] => {
+    if (apiError.reason === "ValidationFailed") {
+      for (const cause of apiError.info.causes) {
         if (kind === cause.kind && location === cause.location) {
-          parsedErrors.push({ messageID: rule.errorMessageID });
+          return [{ messageID: errorMessageID }];
         }
       }
-      break;
     }
-    case "InvariantViolated": {
-      const { kind } = rule as InvariantViolationErrorParseRule;
-      if (kind === error.info.cause.kind) {
-        parsedErrors.push({ messageID: rule.errorMessageID });
-      }
-      break;
-    }
-    default:
-      parsedErrors.push({ messageID: rule.errorMessageID });
-      break;
-  }
+    return [];
+  };
+}
 
-  return parsedErrors;
+export function makeInvariantViolatedErrorParseRule(
+  kind: string,
+  errorMessageID: string
+): ErrorParseRule {
+  return (apiError: APIError): ParsedAPIError[] => {
+    if (apiError.reason === "InvariantViolated") {
+      if (apiError.info.cause.kind === kind) {
+        return [{ messageID: errorMessageID }];
+      }
+    }
+    return [];
+  };
+}
+
+function matchRule(rule: ErrorParseRule, error: APIError): ParsedAPIError[] {
+  return rule(error);
 }
 
 function matchField(
   cause: ValidationFailedErrorInfoCause,
   field: FormField
 ): boolean {
+  if (!isKnownCauseKind(cause.kind)) {
+    return false;
+  }
+
   if (cause.kind === "required") {
     for (const child of cause.details.missing) {
       const condidate = parentChildToJSONPointer(cause.location, child);

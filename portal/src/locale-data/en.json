@@ -193,7 +193,6 @@
   "AddUserScreen.cannot-add-user": "Please enable at least one of username, email or phone in authentication screen",
   "AddUserScreen.error.invalid-password": "Please check password policies below",
   "AddUserScreen.error.duplicated-identity": "Duplicated identity",
-  "AddUserScreen.error.invalid-identity": "Invalid identity",
 
   "UserDetailsScreen.title": "User Details",
   "UserDetailsScreen.remove-user": "Remove User",
@@ -921,6 +920,7 @@
   "EditCustomAttributeForm.label.options": "Options",
   "EditCustomAttributeForm.label.min": "min",
   "EditCustomAttributeForm.label.max": "max",
+  "EditCustomAttributeForm.error.not": "Attribute name is reserved for standard attribute",
 
   "UserProfileAttributesList.header.label.attribute-name": "Attribute Name",
   "UserProfileAttributesList.header.label.end_user": "End-user Access Right",

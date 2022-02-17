@@ -15,18 +15,20 @@ import ShowError from "../../ShowError";
 import AddIdentityForm, { LoginIDFieldProps } from "./AddIdentityForm";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
 import { useUserQuery } from "./query/userQuery";
-import { ErrorParseRule } from "../../error/parse";
+import {
+  ErrorParseRule,
+  makeInvariantViolatedErrorParseRule,
+} from "../../error/parse";
 import { PortalAPIAppConfig } from "../../types";
 import FormPhoneTextField from "../../FormPhoneTextField";
 
 import styles from "./AddPhoneScreen.module.scss";
 
 const errorRules: ErrorParseRule[] = [
-  {
-    reason: "InvariantViolated",
-    kind: "DuplicatedIdentity",
-    errorMessageID: "AddPhoneScreen.error.duplicated-phone-number",
-  },
+  makeInvariantViolatedErrorParseRule(
+    "DuplicatedIdentity",
+    "AddPhoneScreen.error.duplicated-phone-number"
+  ),
 ];
 
 interface PhoneContextValue {

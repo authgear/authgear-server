@@ -18,7 +18,11 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 
 import styles from "./AcceptAdminInvitationScreen.module.scss";
 import ScreenHeader from "../../ScreenHeader";
-import { parseAPIErrors, parseRawError } from "../../error/parse";
+import {
+  makeReasonErrorParseRule,
+  parseAPIErrors,
+  parseRawError,
+} from "../../error/parse";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import { useAuthenticatedForInvitationQuery } from "./query/authenticatedForInvitationQuery";
@@ -81,19 +85,18 @@ const AcceptAdminInvitationIsInvitee: React.FC<AcceptAdminInvitationIsInviteePro
         apiErrors,
         [],
         [
-          {
-            reason: "CollaboratorInvitationInvalidCode",
-            errorMessageID: "AcceptAdminInvitationScreen.invalid-code-error",
-          },
-          {
-            reason: "CollaboratorDuplicate",
-            errorMessageID:
-              "AcceptAdminInvitationScreen.duplicated-collaborator-error",
-          },
-          {
-            reason: "CollaboratorInvitationInvalidEmail",
-            errorMessageID: "AcceptAdminInvitationScreen.invalid-email-error",
-          },
+          makeReasonErrorParseRule(
+            "CollaboratorInvitationInvalidCode",
+            "AcceptAdminInvitationScreen.invalid-code-error"
+          ),
+          makeReasonErrorParseRule(
+            "CollaboratorDuplicate",
+            "AcceptAdminInvitationScreen.duplicated-collaborator-error"
+          ),
+          makeReasonErrorParseRule(
+            "CollaboratorInvitationInvalidEmail",
+            "AcceptAdminInvitationScreen.invalid-email-error"
+          ),
         ]
       );
       return topErrors;

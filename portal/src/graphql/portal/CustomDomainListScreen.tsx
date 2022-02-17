@@ -35,6 +35,7 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import { useTextField } from "../../hook/useInput";
 import {
   ErrorParseRule,
+  makeReasonErrorParseRule,
   parseAPIErrors,
   parseRawError,
 } from "../../error/parse";
@@ -168,14 +169,14 @@ const AddDomainSection: React.FC = function AddDomainSection() {
 
   const errorRules: ErrorParseRule[] = useMemo(() => {
     return [
-      {
-        errorMessageID: "CustomDomainListScreen.add-domain.duplicated-error",
-        reason: "DuplicatedDomain",
-      },
-      {
-        errorMessageID: "CustomDomainListScreen.add-domain.invalid-error",
-        reason: "InvalidDomain",
-      },
+      makeReasonErrorParseRule(
+        "DuplicatedDomain",
+        "CustomDomainListScreen.add-domain.duplicated-error"
+      ),
+      makeReasonErrorParseRule(
+        "InvalidDomain",
+        "CustomDomainListScreen.add-domain.invalid-error"
+      ),
     ];
   }, []);
 
@@ -359,11 +360,10 @@ const DeleteDomainDialog: React.FC<DeleteDomainDialogProps> =
     }, [domainID, deleteDomain, dismissDialog]);
 
     const errorRules: ErrorParseRule[] = [
-      {
-        reason: "Forbidden",
-        errorMessageID:
-          "CustomDomainListScreen.delete-domain-dialog.forbidden-error",
-      },
+      makeReasonErrorParseRule(
+        "Forbidden",
+        "CustomDomainListScreen.delete-domain-dialog.forbidden-error"
+      ),
     ];
 
     const dialogContentProps: IDialogProps["dialogContentProps"] =
