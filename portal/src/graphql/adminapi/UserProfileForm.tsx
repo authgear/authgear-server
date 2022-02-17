@@ -32,7 +32,7 @@ import {
   CustomAttributesAttributeConfig,
 } from "../../types";
 import { makeTimezoneOptions } from "../../util/timezone";
-import { makeAlpha2Options } from "../../util/alpha2";
+import { useMakeAlpha2Options } from "../../util/alpha2";
 import { formatDatetime } from "../../util/formatDatetime";
 import { generateLabel } from "../../util/label";
 import { checkNumberInput, checkIntegerInput } from "../../util/input";
@@ -224,9 +224,8 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
     return options;
   }, [enu]);
 
-  const alpha2Options: IDropdownOption[] = useMemo(() => {
-    return [{ key: "", text: "" }, ...makeAlpha2Options()];
-  }, []);
+  const { alpha2Options: o } = useMakeAlpha2Options();
+  const alpha2Options = useMemo(() => [{ key: "", text: "" }, ...o], [o]);
 
   const onChange = useCallback(
     (_: React.FormEvent<unknown>, newValue?: string) => {
@@ -770,10 +769,9 @@ const StandardAttributesForm: React.FC<StandardAttributesFormProps> =
       [makeOnChangeDropdown]
     );
 
-    const alpha2Options = useMemo(
-      () => [{ key: "", text: "" }, ...makeAlpha2Options()],
-      []
-    );
+    const { alpha2Options: o } = useMakeAlpha2Options();
+    const alpha2Options = useMemo(() => [{ key: "", text: "" }, ...o], [o]);
+
     const onChangeCountry = useCallback(
       (
         _e: React.FormEvent<unknown>,
