@@ -37,6 +37,11 @@ export interface NetworkError {
   reason: "NetworkFailed";
 }
 
+export interface RequestEntityTooLargeError {
+  errorName: "RequestEntityTooLarge";
+  reason: "RequestEntityTooLarge";
+}
+
 export interface UnknownError {
   errorName: "Unknown";
   reason: "Unknown";
@@ -47,6 +52,7 @@ export interface UnknownError {
 
 export type APIError =
   | NetworkError
+  | RequestEntityTooLargeError
   | UnknownError
   | WebHookDisallowedError
   | WebHookDeliveryTimeoutError
