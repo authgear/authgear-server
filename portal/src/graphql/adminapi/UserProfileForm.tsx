@@ -304,7 +304,7 @@ function CustomAttributeControl(props: CustomAttributeControlProps) {
 
       onChangeCustomAttributes({
         ...customAttributes,
-        [pointer]: valid,
+        [pointer]: valid ? valid : input,
         ["phone_number" + pointer]: input,
       });
     },
