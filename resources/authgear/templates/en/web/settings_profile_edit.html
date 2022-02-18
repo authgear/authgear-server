@@ -226,7 +226,7 @@
     {{/* The control */}}
 
     {{ if (eq $ca.Type "string") }}
-    <input type="text" class="primary-txt input text-input text-base" name="{{ $ca.Pointer }}" value="{{ $ca.Value }}">
+    <input type="text" class="primary-txt input text-input text-base" name="{{ $ca.Pointer }}" value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
 
     {{ if (eq $ca.Type "number") }}
@@ -235,7 +235,7 @@
       inputmode="decimal"
       class="primary-txt input text-input text-base"
       name="{{ $ca.Pointer }}"
-      value="{{ $ca.Value }}">
+      value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
 
     {{ if (eq $ca.Type "integer") }}
@@ -244,7 +244,7 @@
       inputmode="numeric"
       class="primary-txt input text-input text-base"
       name="{{ $ca.Pointer }}"
-      value="{{ $ca.Value }}">
+      value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
 
     {{ if (eq $ca.Type "enum") }}
@@ -255,7 +255,7 @@
       {{ range $ca.Enum }}
       {{ $label_key := printf "custom-attribute-enum-label-%s-%s" $ca.Pointer .Value }}
       {{ $has_key := $.Translations.HasKey $label_key }}
-      <option value="{{ .Value }}" {{ if (eq $ca.Value .Value) }}selected{{ end }}>
+      <option value="{{ showAttributeValue .Value }}" {{ if (eq $ca.Value .Value) }}selected{{ end }}>
 	{{ if $has_key }}
 	  {{ $.Translations.RenderText $label_key nil }}
 	{{ else }}
@@ -274,7 +274,7 @@
       inputmode="tel"
       class="primary-txt input text-input text-base w-full"
       name="{{ $ca.Pointer }}"
-      value="{{ $ca.Value }}">
+      value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
 
     {{ if (eq $ca.Type "email") }}
@@ -283,7 +283,7 @@
       inputmode="email"
       class="primary-txt input text-input text-base"
       name="{{ $ca.Pointer }}"
-      value="{{ $ca.Value }}">
+      value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
 
     {{ if (eq $ca.Type "url") }}
@@ -292,7 +292,7 @@
       inputmode="url"
       class="primary-txt input text-input text-base"
       name="{{ $ca.Pointer }}"
-      value="{{ $ca.Value }}">
+      value="{{ showAttributeValue $ca.Value }}">
     {{ end }}
 
     {{ if (eq $ca.Type "country_code") }}
@@ -311,11 +311,11 @@
   {{ if (or (eq $ca.Type "number") (eq $ca.Type "integer")) }}
   {{ if (and (isNil $ca.Minimum) (isNil $ca.Maximum)) }}
   {{ else if (and (not (isNil $ca.Minimum)) (isNil $ca.Maximum)) }}
-    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-minimum" (dict "minimum" $ca.Minimum) }}</span>
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-minimum" (dict "minimum" (showAttributeValue $ca.Minimum)) }}</span>
   {{ else if (and (isNil $ca.Minimum) (not (isNil $ca.Maximum))) }}
-    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-maximum" (dict "maximum" $ca.Maximum) }}</span>
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-maximum" (dict "maximum" (showAttributeValue $ca.Maximum)) }}</span>
   {{ else }}
-    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-minimum-maximum" (dict "minimum" $ca.Minimum "maximum" $ca.Maximum) }}</span>
+    <span class="primary-txt text-sm">{{ template "custom-attribute-numeric-hint-minimum-maximum" (dict "minimum" (showAttributeValue $ca.Minimum) "maximum" (showAttributeValue $ca.Maximum)) }}</span>
   {{ end }}
   {{ end }}
 

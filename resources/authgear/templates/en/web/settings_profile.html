@@ -204,7 +204,7 @@
         {{ else if eq .Type "country_code" }}
           {{ .Value }} - {{ $.Translations.RenderText (printf "territory-%s" .Value) nil }}
         {{ else }}
-          {{ .Value }}
+          {{ showAttributeValue .Value }}
         {{ end }}
       {{ end }}
     </span>
