@@ -395,7 +395,7 @@ const EditCustomAttributeForm: React.FC<EditCustomAttributeFormProps> =
           errorRules={[
             makeValidationErrorMatchUnknownKindParseRule(
               "not",
-              parentJSONPointer + "/pointer",
+              /\/pointer$/,
               "EditCustomAttributeForm.error.not"
             ),
           ]}
