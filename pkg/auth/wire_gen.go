@@ -19391,6 +19391,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 		Renderer:                 responseRenderer,
 		Identities:               serviceService,
 		Verification:             verificationService,
+		AccountDeletion:          accountDeletionConfig,
 	}
 	return settingsHandler
 }
