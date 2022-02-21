@@ -60,6 +60,10 @@ import { useResourceForm } from "../../hook/useResourceForm";
 import FormContainer from "../../FormContainer";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import WidgetDescription from "../../WidgetDescription";
+import { ErrorParseRule, ParsedAPIError } from "../../error/parse";
+import { APIError } from "../../error/error";
+
+const ImageMaxSizeInKB = 100;
 
 interface ConfigFormState {
   supportedLanguages: string[];
@@ -940,6 +944,56 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
     },
   };
 
+  const imageSizeTooLargeErrorRule = useCallback(
+    (apiError: APIError): ParsedAPIError[] => {
+      if (apiError.reason === "RequestEntityTooLarge") {
+        // When the request is blocked by the load balancer due to RequestEntityTooLarge
+        // We try to get the largest resource from the state
+        // and construct the error message for display
+
+        let path = "";
+        let longestLength = 0;
+        // get the largest resources from the state
+        for (const r of Object.keys(state.resources)) {
+          const l = state.resources[r]?.nullableValue?.length ?? 0;
+          if (l > longestLength) {
+            longestLength = l;
+            path = state.resources[r]?.path ?? "";
+          }
+        }
+
+        // parse resource type from resource path
+        let resourceType = "other";
+        if (path !== "") {
+          const dir = path.split("/");
+          const fileName = dir[dir.length - 1];
+          if (fileName.lastIndexOf(".") !== -1) {
+            resourceType = fileName.slice(0, fileName.lastIndexOf("."));
+          } else {
+            resourceType = fileName;
+          }
+        }
+
+        return [
+          {
+            messageID: "errors.resource-too-large",
+            arguments: {
+              maxSize: ImageMaxSizeInKB,
+              resourceType,
+            },
+          },
+        ];
+      }
+      return [];
+    },
+    [state.resources]
+  );
+
+  const errorRules: ErrorParseRule[] = useMemo(
+    () => [imageSizeTooLargeErrorRule],
+    [imageSizeTooLargeErrorRule]
+  );
+
   if (form.isLoading) {
     return <ShowLoading />;
   }
@@ -949,7 +1003,7 @@ const UISettingsScreen: React.FC = function UISettingsScreen() {
   }
 
   return (
-    <FormContainer form={form} canSave={true}>
+    <FormContainer form={form} canSave={true} errorRules={errorRules}>
       <ResourcesConfigurationContent
         form={form}
         supportedLanguages={config.state.supportedLanguages}
