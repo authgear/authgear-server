@@ -398,6 +398,11 @@ const EditCustomAttributeForm: React.FC<EditCustomAttributeFormProps> =
               /\/pointer$/,
               "EditCustomAttributeForm.error.not"
             ),
+            makeValidationErrorMatchUnknownKindParseRule(
+              "duplicated",
+              /\/pointer$/,
+              "EditCustomAttributeForm.error.duplicated-attribute-name"
+            ),
           ]}
         />
         <Dropdown
