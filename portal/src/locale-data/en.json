@@ -217,7 +217,7 @@
   "SetUserDisabledDialog.reenable-user.title": "Re-enable User",
   "SetUserDisabledDialog.reenable-user.description": "Do you really want to re-enable user {username}? Re-enable the user {username} so that they can login again.",
   "SetUserDisabledDialog.cancel-removal.title": "Cancel Scheduled Removal",
-  "SetUserDisabledDialog.cancel-removal.description": "Do you really want to cancel scheduled removal on user {username}? If the removal is canceled, they can login again.",
+  "SetUserDisabledDialog.cancel-removal.description": "Do you really want to cancel scheduled removal on user {username}? If the removal is canceled, they will be re-enabled and can login again.",
   "SetUserDisabledDialog.cancel-removal.label": "Cancel Removal",
 
   "DeleteUserDialog.title": "Remove User",
