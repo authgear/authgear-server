@@ -1,3 +1,5 @@
+@import "../../styles/variable.scss";
+
 .root {
   width: 600px;
   font-size: 13px;
@@ -8,10 +10,11 @@
   grid-template:
     "pic     accountID"
     "pic     formattedName"
-    "pic             ." 10px
+    "pic             ." 4px
     "pic     createdAt"
     "pic   lastLoginAt"
     / min-content auto;
+  margin-bottom: 20px;
 }
 
 .profilePic {
@@ -21,10 +24,12 @@
 
 .accountID {
   grid-area: accountID;
+  color: $black;
 }
 
 .formattedName {
   grid-area: formattedName;
+  color: $black;
 }
 
 .createdAt {
