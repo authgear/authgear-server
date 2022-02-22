@@ -74,6 +74,11 @@
   {{/* Only show more button when at least one row is hidden */}}
   {{ $show_more_button = (or ($show_more_button) ($is_hidden)) }}
 
+  {{/* Always show more button when account deletion is enabled */}}
+  {{ if $.AccountDeletionAllowed }}
+  {{ $show_more_button = true }}
+  {{ end }}
+
   {{ if not $is_hidden }}
   <section class="padding-20 row-sep flex flex-row space-x-2">
     {{ $ti := "" }}

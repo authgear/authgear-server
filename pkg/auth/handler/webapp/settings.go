@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -60,6 +61,7 @@ type SettingsHandler struct {
 	Renderer                 Renderer
 	Identities               SettingsIdentityService
 	Verification             SettingsVerificationService
+	AccountDeletion          *config.AccountDeletionConfig
 }
 
 func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -98,7 +100,9 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 	if err != nil {
 		return nil, err
 	}
-	identityViewModel := SettingsIdentityViewModel{}
+	identityViewModel := SettingsIdentityViewModel{
+		AccountDeletionAllowed: h.AccountDeletion.ScheduledByEndUserEnabled,
+	}
 	identityViewModel.VerificationStatuses, err = h.Verification.GetVerificationStatuses(identities)
 	if err != nil {
 		return nil, err
