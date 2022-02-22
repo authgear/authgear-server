@@ -1,4 +1,4 @@
-import { ApolloError } from "@apollo/client";
+import { ApolloError, ServerError } from "@apollo/client";
 import { APIError, isAPIError } from "./error";
 import { ValidationFailedErrorInfoCause } from "./validation";
 import { Values } from "@oursky/react-messageformat";
@@ -25,7 +25,16 @@ export function parseRawError(error: unknown): APIError[] {
   const errors: APIError[] = [];
   if (error instanceof ApolloError) {
     if (error.networkError) {
-      errors.push({ reason: "NetworkFailed", errorName: "NetworkFailed" });
+      if ((error.networkError as ServerError).statusCode === 413) {
+        // the request may be blocked by the load balancer if the payload is too large
+        // e.g. upload a large image as the app logo
+        errors.push({
+          reason: "RequestEntityTooLarge",
+          errorName: "RequestEntityTooLarge",
+        });
+      } else {
+        errors.push({ reason: "NetworkFailed", errorName: "NetworkFailed" });
+      }
     }
     for (const e of error.graphQLErrors) {
       if (isAPIError(e.extensions)) {
@@ -153,6 +162,9 @@ function parseError(error: APIError): ParsedAPIError[] {
       break;
     case "NetworkFailed":
       errors.push({ messageID: "errors.network" });
+      break;
+    case "RequestEntityTooLarge":
+      errors.push({ messageID: "errors.request-entity-too-large" });
       break;
     case "Unknown":
       errors.push({

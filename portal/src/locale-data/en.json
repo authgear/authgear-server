@@ -80,11 +80,12 @@
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",
   "errors.password-policy.containing-excluded-keywords": "Password contains excluded keywords, please check password policies below",
   "errors.password-policy.unknown": "Password is invalid; please check password policies",
-  "errors.resource-too-large": "The {resourceType, select, favicon{favicon } app_logo{app logo } other{}}file size is too large. Please upload a JPG, PNG or GIF file smaller than {maxSize} KB.",
+  "errors.resource-too-large": "The {resourceType, select, favicon{favicon } app_logo{app logo } app_logo_dark{app logo } other{}}file size is too large. Please upload a JPG, PNG or GIF file smaller than {maxSize} KB.",
   "errors.webhook.disallowed": "Operation is disallowed by one of your webhook handler. Raw info: {code, react, children{{info}}}",
   "errors.webhook.timeout": "Operation is disallowed because the webhook delivery resulted in a timeout. Make sure your webhook handlers return a valid response in reasonable time.",
   "errors.webhook.invalid-response": "Operation is disallowed because one of your webhook handler returned an invalid response. See {ExternalLink, react, href{https://docs.authgear.com/webhooks/webhooks} children{the documentation}} for details.",
   "errors.network": "There is a problem with the network",
+  "errors.request-entity-too-large": "The file size is too large. Please upload a file that is within the size limit.",
   "errors.unknown": "Unknown error: {message}",
 
   "TodoButtonWrapper.dialog-title": "Feature Not Ready",
