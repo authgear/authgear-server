@@ -68,13 +68,15 @@ func TestTranslationResource(t *testing.T) {
 	Convey("TranslationJSON EffectiveResource", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
+		fsC := afero.NewMemMapFs()
 
 		r := &resource.Registry{}
 		r.Register(template.TranslationJSON)
 
 		manager := resource.NewManager(r, []resource.Fs{
 			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
-			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelCustom},
+			resource.LeveledAferoFs{Fs: fsC, FsLevel: resource.FsLevelApp},
 		})
 
 		compact := func(s string) string {
@@ -176,12 +178,12 @@ func TestTranslationResource(t *testing.T) {
 				"b": "en b in fs A",
 				"c": "en c in fs A"
 			}`)
-			writeFile(fsB, "en", `{
-				"c": "en c in fs B"
+			writeFile(fsC, "en", `{
+				"c": "en c in fs C"
 			}`)
-			writeFile(fsB, "zh", `{
-				"b": "zh b in fs B",
-				"c": "zh c in fs B"
+			writeFile(fsC, "zh", `{
+				"b": "zh b in fs C",
+				"c": "zh c in fs C"
 			}`)
 
 			data, err := read(resource.EffectiveResource{
@@ -192,7 +194,7 @@ func TestTranslationResource(t *testing.T) {
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
-				"c": { "LanguageTag": "en", "Value": "en c in fs B" }
+				"c": { "LanguageTag": "en", "Value": "en c in fs C" }
 			}`))
 
 			data, err = read(resource.EffectiveResource{
@@ -204,7 +206,7 @@ func TestTranslationResource(t *testing.T) {
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "en", "Value": "en b in fs A" },
-				"c": { "LanguageTag": "en", "Value": "en c in fs B" }
+				"c": { "LanguageTag": "en", "Value": "en c in fs C" }
 			}`))
 
 			data, err = read(resource.EffectiveResource{
@@ -215,8 +217,8 @@ func TestTranslationResource(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "en", "Value": "en a in fs A" },
-				"b": { "LanguageTag": "zh", "Value": "zh b in fs B" },
-				"c": { "LanguageTag": "zh", "Value": "zh c in fs B" }
+				"b": { "LanguageTag": "zh", "Value": "zh b in fs C" },
+				"c": { "LanguageTag": "zh", "Value": "zh c in fs C" }
 			}`))
 		})
 
@@ -226,11 +228,11 @@ func TestTranslationResource(t *testing.T) {
 				"b": "en b in fs A",
 				"c": "en c in fs A"
 			}`)
-			writeFile(fsB, "en", `{
-				"b": "en b in fs B",
+			writeFile(fsC, "en", `{
+				"b": "en b in fs C"
 			}`)
-			writeFile(fsB, "zh", `{
-				"c": "zh c in fs B"
+			writeFile(fsC, "zh", `{
+				"c": "zh c in fs C"
 			}`)
 
 			data, err := read(resource.EffectiveResource{
@@ -241,7 +243,7 @@ func TestTranslationResource(t *testing.T) {
 			So(data, ShouldEqual, compact(`{
 				"a": { "LanguageTag": "zh", "Value": "en a in fs A" },
 				"b": { "LanguageTag": "zh", "Value": "en b in fs A" },
-				"c": { "LanguageTag": "zh", "Value": "zh c in fs B" }
+				"c": { "LanguageTag": "zh", "Value": "zh c in fs C" }
 			}`))
 		})
 	})
