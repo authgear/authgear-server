@@ -7,6 +7,7 @@
   column-gap: 26px;
   grid-template:
     "pic     accountID"
+    "pic     formattedName"
     "pic             ." 10px
     "pic     createdAt"
     "pic   lastLoginAt"
@@ -20,6 +21,10 @@
 
 .accountID {
   grid-area: accountID;
+}
+
+.formattedName {
+  grid-area: formattedName;
 }
 
 .createdAt {
