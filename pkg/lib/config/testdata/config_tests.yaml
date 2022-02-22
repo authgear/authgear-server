@@ -621,7 +621,7 @@ config:
 name: dupe-custom-attribute-id
 error: |-
   invalid configuration:
-  /user_profile/custom_attributes/attributes/1: duplicated custom attribute ID
+  /user_profile/custom_attributes/attributes/1/id: duplicated
 config:
   id: test
   http:
@@ -640,7 +640,7 @@ config:
 name: dupe-custom-attribute-pointer
 error: |-
   invalid configuration:
-  /user_profile/custom_attributes/attributes/1: duplicated custom attribute pointer
+  /user_profile/custom_attributes/attributes/1/pointer: duplicated
 config:
   id: test
   http:

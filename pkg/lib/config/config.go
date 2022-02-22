@@ -204,7 +204,8 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 				"custom_attributes",
 				"attributes",
 				strconv.Itoa(i),
-			).EmitErrorMessage("duplicated custom attribute ID")
+				"id",
+			).EmitError("duplicated", nil)
 		}
 		if _, ok := customAttributePointers[customAttributeConfig.Pointer]; ok {
 			ctx.Child(
@@ -212,7 +213,8 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 				"custom_attributes",
 				"attributes",
 				strconv.Itoa(i),
-			).EmitErrorMessage("duplicated custom attribute pointer")
+				"pointer",
+			).EmitError("duplicated", nil)
 		}
 		customAttributeIDs[customAttributeConfig.ID] = struct{}{}
 		customAttributePointers[customAttributeConfig.Pointer] = struct{}{}

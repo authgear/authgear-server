@@ -395,8 +395,13 @@ const EditCustomAttributeForm: React.FC<EditCustomAttributeFormProps> =
           errorRules={[
             makeValidationErrorMatchUnknownKindParseRule(
               "not",
-              parentJSONPointer + "/pointer",
+              /\/pointer$/,
               "EditCustomAttributeForm.error.not"
+            ),
+            makeValidationErrorMatchUnknownKindParseRule(
+              "duplicated",
+              /\/pointer$/,
+              "EditCustomAttributeForm.error.duplicated-attribute-name"
             ),
           ]}
         />

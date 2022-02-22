@@ -228,13 +228,13 @@ export function makeReasonErrorParseRule(
 
 export function makeValidationErrorMatchUnknownKindParseRule(
   kind: string,
-  location: string,
+  locationRegExp: RegExp,
   errorMessageID: string
 ): ErrorParseRule {
   return (apiError: APIError): ParsedAPIError[] => {
     if (apiError.reason === "ValidationFailed") {
       for (const cause of apiError.info.causes) {
-        if (kind === cause.kind && location === cause.location) {
+        if (kind === cause.kind && locationRegExp.test(cause.location)) {
           return [{ messageID: errorMessageID }];
         }
       }

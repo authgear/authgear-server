@@ -921,6 +921,7 @@
   "EditCustomAttributeForm.label.options": "Options",
   "EditCustomAttributeForm.label.min": "min",
   "EditCustomAttributeForm.label.max": "max",
+  "EditCustomAttributeForm.error.duplicated-attribute-name": "Attribute name is already in use",
   "EditCustomAttributeForm.error.not": "Attribute name is reserved for standard attribute",
 
   "UserProfileAttributesList.header.label.attribute-name": "Attribute Name",
