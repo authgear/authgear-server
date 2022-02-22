@@ -10,6 +10,7 @@ import ShowError from "../../ShowError";
 import ScreenContent from "../../ScreenContent";
 import Widget from "../../Widget";
 import { formatDatetime } from "../../util/formatDatetime";
+import { extractRawID } from "../../util/graphql";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import {
   AuditLogEntryQuery,
@@ -86,7 +87,7 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
 
   let activityType: string | undefined;
   let loggedAt: string | undefined;
-  let userID: string | undefined;
+  let rawUserID: string | undefined;
   let ipAddress: string | undefined;
   let userAgent: string | undefined;
   let clientID: string | undefined;
@@ -94,7 +95,9 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
   if (data?.node?.__typename === "AuditLog") {
     activityType = data.node.activityType;
     loggedAt = formatDatetime(locale, data.node.createdAt) ?? undefined;
-    userID = data.node.user?.id;
+    rawUserID = data.node.user?.id
+      ? extractRawID(data.node.user.id)
+      : undefined;
     ipAddress = data.node.ipAddress ?? undefined;
     userAgent = data.node.userAgent ?? undefined;
     clientID = data.node.clientID ?? undefined;
@@ -129,12 +132,12 @@ const AuditLogEntryScreen: React.FC = function AuditLogEntryScreen() {
               />
             </SummaryText>
           )}
-          {userID && (
+          {rawUserID && (
             <SummaryText light={true}>
               <FormattedMessage
                 id="AuditLogEntryScreen.user-id"
                 values={{
-                  id: userID,
+                  id: rawUserID,
                 }}
               />
             </SummaryText>
