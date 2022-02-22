@@ -298,6 +298,9 @@ Various files in this project have versioned dependencies.
 - [The dependencies in ./authui/package.json](./authui/package.json)
 - [The dependencies in ./portal/package.json](./portal/package.json)
 - [The dependencies in ./scripts/npm/package.json](./scripts/npm/package.json)
+  - Note that you cannot simply upgrade `tzdata` because the version must match that of the server.
+  - You can find out the server version by going into the container and run `apt list --installed`.
+  - The version of Debian bullseye is `2021a`, which correspond to `tzdata@v1.0.25`.
 - [The intl-tel-input static resources in ./resources/authgear/static](./resources/authgear/static)
 - [The tabler static resources in ./resources/authgear/static](./resources/authgear/static)
 
