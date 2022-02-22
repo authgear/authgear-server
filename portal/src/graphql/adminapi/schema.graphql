@@ -697,6 +697,9 @@ type User implements Entity & Node {
   """"""
   disableReason: String
 
+  """"""
+  formattedName: String
+
   """The ID of an object"""
   id: ID!
 
