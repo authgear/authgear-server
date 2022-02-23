@@ -9,7 +9,7 @@ type FallbackLanguage string
 // Fallback constructs FallbackLanguage.
 func Fallback(fallbackLanguageTag string) FallbackLanguage {
 	if fallbackLanguageTag == "" {
-		return FallbackLanguage(DefaultLanguage)
+		return FallbackLanguage(BuiltinBaseLanguage)
 	}
 	return FallbackLanguage(fallbackLanguageTag)
 }

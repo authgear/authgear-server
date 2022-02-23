@@ -31,7 +31,7 @@ type LocalizationConfig struct {
 
 func (c *LocalizationConfig) SetDefaults() {
 	if c.FallbackLanguage == nil {
-		a := intl.DefaultLanguage
+		a := intl.BuiltinBaseLanguage
 		c.FallbackLanguage = &a
 	}
 	if c.SupportedLanguages == nil {

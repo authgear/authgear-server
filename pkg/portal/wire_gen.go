@@ -263,8 +263,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 
 var (
 	_wireSystemClockValue           = clock.NewSystemClock()
-	_wireDefaultLanguageTagValue    = template.DefaultLanguageTag(intl.DefaultLanguage)
-	_wireSupportedLanguageTagsValue = template.SupportedLanguageTags([]string{intl.DefaultLanguage})
+	_wireDefaultLanguageTagValue    = template.DefaultLanguageTag(intl.BuiltinBaseLanguage)
+	_wireSupportedLanguageTagsValue = template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})
 )
 
 func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {

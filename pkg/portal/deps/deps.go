@@ -100,6 +100,6 @@ var DependencySet = wire.NewSet(
 	ProvideDatabaseConfig,
 	ProvideAuditDatabaseCredentials,
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
-	wire.Value(template.DefaultLanguageTag(intl.DefaultLanguage)),
-	wire.Value(template.SupportedLanguageTags([]string{intl.DefaultLanguage})),
+	wire.Value(template.DefaultLanguageTag(intl.BuiltinBaseLanguage)),
+	wire.Value(template.SupportedLanguageTags([]string{intl.BuiltinBaseLanguage})),
 )
