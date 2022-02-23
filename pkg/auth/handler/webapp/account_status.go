@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -54,6 +55,16 @@ func (h *AccountStatusHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		data, err := h.GetData(r, w, graph)
 		if err != nil {
 			return err
+		}
+
+		webSession := webapp.GetSession(r.Context())
+		if webSession != nil {
+			// complete the interaction when user login with account
+			// which has been disabled / deactivated / scheduled deletion
+			err := ctrl.DeleteSession(webSession.ID)
+			if err != nil {
+				return err
+			}
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebAccountStatusHTML, data)
