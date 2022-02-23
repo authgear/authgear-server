@@ -287,6 +287,7 @@ const UserDetails: React.FC<UserDetailsProps> = function UserDetails(
     <div className={styles.widget}>
       <UserDetailSummary
         profileImageURL={data?.standardAttributes.picture}
+        formattedName={data?.formattedName ?? undefined}
         endUserAccountIdentifier={endUserAccountIdentifier}
         createdAtISO={data?.createdAt ?? null}
         lastLoginAtISO={data?.lastLoginAt ?? null}
@@ -413,13 +414,14 @@ function WarnScheduledDeletion(props: WarnScheduledDeletionProps) {
 
 interface UserDetailsScreenContentProps {
   user: UserQuery_node_User;
+  refreshUser?: () => void;
   effectiveAppConfig: PortalAPIAppConfig;
 }
 
 const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
   // eslint-disable-next-line complexity
   function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
-    const { user, effectiveAppConfig } = props;
+    const { user, refreshUser, effectiveAppConfig } = props;
     const navigate = useNavigate();
     const customAttributesConfig = useMemo(() => {
       return (
@@ -504,8 +506,9 @@ const UserDetailsScreenContent: React.FC<UserDetailsScreenContentProps> =
             customAttributesConfig
           )
         );
+        refreshUser?.();
       },
-      [updateUser, customAttributesConfig]
+      [updateUser, customAttributesConfig, refreshUser]
     );
 
     const form = useSimpleForm({
@@ -573,6 +576,7 @@ const UserDetailsScreen: React.FC = function UserDetailsScreen() {
   return (
     <UserDetailsScreenContent
       user={user}
+      refreshUser={refetch}
       effectiveAppConfig={effectiveAppConfig}
     />
   );

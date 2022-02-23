@@ -1,9 +1,10 @@
 package graphql
 
 import (
-	"github.com/authgear/graphql-go-relay"
+	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -139,6 +140,18 @@ var nodeUser = node(
 						return nil, err
 					}
 					return attrs, nil
+				},
+			},
+			"formattedName": &graphql.Field{
+				Type: graphql.String,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*user.User)
+					gqlCtx := GQLContext(p.Context)
+					stdAttrs, err := gqlCtx.UserProfileFacade.DeriveStandardAttributes(accesscontrol.RoleGreatest, source.ID, source.UpdatedAt, source.StandardAttributes)
+					if err != nil {
+						return nil, err
+					}
+					return stdattrs.T(stdAttrs).FormattedName(), nil
 				},
 			},
 		},

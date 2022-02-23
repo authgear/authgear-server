@@ -53,6 +53,7 @@ const userQuery = gql`
             }
           }
         }
+        formattedName
         isDisabled
         disableReason
         isDeactivated
